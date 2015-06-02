@@ -222,11 +222,6 @@
         ['exclude', '_test\\.(cc|h)$'],
       ],
       'conditions': [
-        ['dart_io_support==1 and dart_io_secure_socket==1', {
-          'dependencies': [
-            'bin/net/ssl.gyp:libssl_dart',
-          ],
-        }],
         ['dart_io_secure_socket==0', {
           'defines': [
             'DART_IO_SECURE_SOCKET_DISABLED'
@@ -283,6 +278,7 @@
       'include_dirs': [
         '..',
         '../../third_party',
+        '../../third_party/boring_ssl/include',
       ],
       'includes': [
         'io_impl_sources.gypi',
@@ -292,12 +288,7 @@
         'io_natives.cc',
       ],
       'conditions': [
-        ['dart_io_support==1 and dart_io_secure_socket==1', {
-          'dependencies': [
-            'bin/net/ssl.gyp:libssl_dart',
-          ],
-        }],
-        ['dart_io_support==1 and dart_io_secure_socket==0', {
+        ['dart_io_support==1', {
           'dependencies': [
             'bin/net/zlib.gyp:zlib_dart',
           ],
@@ -306,6 +297,14 @@
           'defines': [
             'DART_IO_SECURE_SOCKET_DISABLED'
           ],
+        }],
+        ['OS=="linux"', {
+          'link_settings': {
+            'library_dirs' : [
+              '../third_party/boring_ssl/build/crypto',
+              '../third_party/boring_ssl/build/ssl'],
+            'libraries': [ '-lssl', '-lcrypto' ],
+          },
         }],
         ['OS=="win"', {
           'link_settings': {
@@ -333,19 +332,6 @@
           },
         }],
       ],
-      'configurations': {
-        'Dart_Android_Base': {
-          'target_conditions': [
-            ['_toolset=="target"', {
-              'defines': [
-                # Needed for sources outside of nss that include pr and ssl
-                # header files.
-                'MDCPUCFG="md/_linux.cfg"',
-              ],
-            }],
-          ],
-        },
-      },
     },
     {
       'target_name': 'libdart_nosnapshot',

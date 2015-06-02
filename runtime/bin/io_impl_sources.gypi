@@ -27,8 +27,6 @@
     'io_service.cc',
     'io_service.h',
     'io_service_unsupported.cc',
-    'net/nss_memio.cc',
-    'net/nss_memio.h',
     'platform.cc',
     'platform.h',
     'platform_android.cc',
@@ -66,8 +64,6 @@
           ],
         }, {  # else dart_io_secure_socket == 0
           'sources!' : [
-            'net/nss_memio.cc',
-            'net/nss_memio.h',
             'secure_socket.cc',
             'secure_socket.h',
           ],
@@ -83,8 +79,6 @@
         'filter.h',
         'io_service.cc',
         'io_service.h',
-        'net/nss_memio.cc',
-        'net/nss_memio.h',
         'secure_socket.cc',
         'secure_socket.h',
       ],

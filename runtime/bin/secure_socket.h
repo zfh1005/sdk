@@ -11,12 +11,10 @@
 #include <sys/types.h>
 
 #if !defined(DART_IO_SECURE_SOCKET_DISABLED)
-#include <prinit.h>
-#include <prerror.h>
-#include <prnetdb.h>
-#include <ssl.h>
-#else
-struct PRFileDesc;
+#include <boring_ssl/include/openssl/bio.h>
+#include <boring_ssl/include/openssl/ssl.h>
+#include <boring_ssl/include/openssl/err.h>
+#include <boring_ssl/include/openssl/x509.h>
 #endif
 
 #include "bin/builtin.h"
@@ -54,15 +52,15 @@ class SSLFilter {
         handshake_complete_(NULL),
         bad_certificate_callback_(NULL),
         in_handshake_(false),
-        client_certificate_name_(NULL),
-        filter_(NULL) { }
+        hostname_(NULL),
+        certificate_checking_parameters_(NULL) { }
 
   void Init(Dart_Handle dart_this);
-  void Connect(const char* host,
+  void Connect(const char* hostname,
                const RawAddr& raw_addr,
                int port,
+               SSL_CTX* context,
                bool is_server,
-               const char* certificate_name,
                bool request_client_certificate,
                bool require_client_certificate,
                bool send_client_certificate,
@@ -87,18 +85,18 @@ class SSLFilter {
                          int ends[kNumBuffers],
                          bool in_handshake);
   Dart_Handle PeerCertificate();
-  static void InitializeLibrary(const char* certificate_database,
-                                const char* password,
-                                bool use_builtin_root_certificates,
-                                bool report_duplicate_initialization = true);
+  static void InitializeLibrary();
   Dart_Handle callback_error;
 
   static CObject* ProcessFilterRequest(const CObjectArray& request);
 
+  // TODO(whesse): make private:
+  SSL* ssl_;
+  BIO* socket_side_;
+
+
  private:
-  static const int kMemioBufferSize = 20 * KB;
   static bool library_initialized_;
-  static const char* password_;
   static Mutex* mutex_;  // To protect library initialization.
 
   uint8_t* buffers_[kNumBuffers];
@@ -111,8 +109,8 @@ class SSLFilter {
   Dart_PersistentHandle bad_certificate_callback_;
   bool in_handshake_;
   bool is_server_;
-  char* client_certificate_name_;
-  PRFileDesc* filter_;
+  char* hostname_;
+  X509_VERIFY_PARAM* certificate_checking_parameters_;
 
   static bool isBufferEncrypted(int i) {
     return static_cast<BufferIndex>(i) >= kFirstEncrypted;

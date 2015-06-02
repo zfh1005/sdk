@@ -60,11 +60,15 @@ namespace bin {
   V(SecureSocket_GetSelectedProtocol, 1)                                       \
   V(SecureSocket_Handshake, 1)                                                 \
   V(SecureSocket_Init, 1)                                                      \
-  V(SecureSocket_InitializeLibrary, 3)                                         \
   V(SecureSocket_PeerCertificate, 1)                                           \
   V(SecureSocket_RegisterBadCertificateCallback, 2)                            \
   V(SecureSocket_RegisterHandshakeCompleteCallback, 2)                         \
   V(SecureSocket_Renegotiate, 4)                                               \
+  V(SecurityContext_Allocate, 1)                                               \
+  V(SecurityContext_UsePrivateKey, 3)                                          \
+  V(SecurityContext_SetClientAuthorities, 2)                                   \
+  V(SecurityContext_SetTrustedCertificates, 3)                                 \
+  V(SecurityContext_UseCertificateChain, 2)                                    \
   V(ServerSocket_Accept, 2)                                                    \
   V(ServerSocket_CreateBindListen, 6)                                          \
   V(Socket_CreateConnect, 3)                                                   \
@@ -94,8 +98,11 @@ namespace bin {
   V(Stdin_SetLineMode, 1)                                                      \
   V(Stdout_GetTerminalSize, 1)                                                 \
   V(StringToSystemEncoding, 1)                                                 \
-  V(SystemEncodingToString, 1)
-
+  V(SystemEncodingToString, 1)                                                 \
+  V(X509_Subject, 1)                                                           \
+  V(X509_Issuer, 1)                                                            \
+  V(X509_StartValidity, 1)                                                     \
+  V(X509_EndValidity, 1)
 
 IO_NATIVE_LIST(DECLARE_FUNCTION);
 

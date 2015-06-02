@@ -18,16 +18,6 @@ abstract class SecureSocket implements Socket {
    * [host] on port [port]. The returned Future will complete with a
    * [SecureSocket] that is connected and ready for subscription.
    *
-   * If [sendClientCertificate] is set to true, the socket will send a client
-   * certificate if one is requested by the server.
-   *
-   * If [certificateName] is the nickname of a certificate in the certificate
-   * database, that certificate will be sent.
-   *
-   * If [certificateName] is null, which is the usual use case, an
-   * appropriate certificate will be searched for in the database and
-   * sent automatically, based on what the server says it will accept.
-   *
    * [onBadCertificate] is an optional handler for unverifiable certificates.
    * The handler receives the [X509Certificate], and can inspect it and
    * decide (or let the user decide) whether to accept
@@ -37,14 +27,13 @@ abstract class SecureSocket implements Socket {
   static Future<SecureSocket> connect(
       host,
       int port,
-      {bool sendClientCertificate: false,
-       String certificateName,
+      {SecurityContext context,
        bool onBadCertificate(X509Certificate certificate),
+       bool sendClientCertificate,
        List<String> supportedProtocols}) {
     return RawSecureSocket.connect(host,
                                    port,
-                                   sendClientCertificate: sendClientCertificate,
-                                   certificateName: certificateName,
+                                   context: context,
                                    onBadCertificate: onBadCertificate,
                                    supportedProtocols: supportedProtocols)
         .then((rawSocket) => new SecureSocket._(rawSocket));
@@ -79,8 +68,7 @@ abstract class SecureSocket implements Socket {
   static Future<SecureSocket> secure(
       Socket socket,
       {host,
-       bool sendClientCertificate: false,
-       String certificateName,
+       SecurityContext context,
        bool onBadCertificate(X509Certificate certificate)}) {
     var completer = new Completer();
     (socket as dynamic)._detachRaw()
@@ -89,7 +77,7 @@ abstract class SecureSocket implements Socket {
             detachedRaw[0],
             subscription: detachedRaw[1],
             host: host,
-            sendClientCertificate: sendClientCertificate,
+            context: context,
             onBadCertificate: onBadCertificate);
           })
         .then((raw) {
@@ -121,7 +109,7 @@ abstract class SecureSocket implements Socket {
    */
   static Future<SecureSocket> secureServer(
       Socket socket,
-      String certificateName,
+      SecurityContext context,
       {List<int> bufferedData,
        bool requestClientCertificate: false,
        bool requireClientCertificate: false,
@@ -131,7 +119,7 @@ abstract class SecureSocket implements Socket {
         .then((detachedRaw) {
           return RawSecureSocket.secureServer(
             detachedRaw[0],
-            certificateName,
+            context,
             subscription: detachedRaw[1],
             bufferedData: bufferedData,
             requestClientCertificate: requestClientCertificate,
@@ -168,52 +156,6 @@ abstract class SecureSocket implements Socket {
   void renegotiate({bool useSessionCache: true,
                     bool requestClientCertificate: false,
                     bool requireClientCertificate: false});
-
-  /**
-   * Initializes the NSS library. If [initialize] is not called, the library
-   * is automatically initialized as if [initialize] were called with no
-   * arguments. If [initialize] is called more than once, or called after
-   * automatic initialization has happened (when a secure connection is made),
-   * then a TlsException is thrown.
-   *
-   * The optional argument [database] is the path to a certificate database
-   * directory containing root certificates for verifying certificate paths on
-   * client connections, and server certificates to provide on server
-   * connections. The argument [password] should be used when creating
-   * secure server sockets, to allow the private key of the server
-   * certificate to be fetched. If [useBuiltinRoots] is true (the default),
-   * then a built-in set of root certificates for trusted certificate
-   * authorities is merged with the certificates in the database.
-   * The list of built-in root certificates, and documentation about this
-   * default database, is available at
-   * http://www.mozilla.org/projects/security/certs/included/ .
-   *
-   * If the [database] argument is omitted, then only the
-   * builtin root certificates are used. If [useBuiltinRoots] is also false,
-   * then no certificates are available.
-   *
-   * Examples:
-   *   1) Use only the builtin root certificates:
-   *     SecureSocket.initialize(); or
-   *
-   *   2) Use a specified database directory and the builtin roots:
-   *     SecureSocket.initialize(database: 'path/to/my/database',
-   *                             password: 'my_password');
-   *
-   *   3) Use a specified database directory, without builtin roots:
-   *     SecureSocket.initialize(database: 'path/to/my/database',
-   *                             password: 'my_password'.
-   *                             useBuiltinRoots: false);
-   *
-   * The database should be an NSS certificate database directory
-   * containing a cert9.db file, not a cert8.db file.  This version of
-   * the database can be created using the NSS certutil tool with "sql:" in
-   * front of the absolute path of the database directory, or setting the
-   * environment variable [[NSS_DEFAULT_DB_TYPE]] to "sql".
-   */
-  external static void initialize({String database,
-                                   String password,
-                                   bool useBuiltinRoots: true});
 }
 
 
@@ -224,7 +166,7 @@ abstract class SecureSocket implements Socket {
  * RawSecureServerSocket, also returns RawSecureSocket objects representing
  * the server end of a secure connection.
  * The certificate provided by the server is checked
- * using the certificate database provided in SecureSocket.initialize, and/or
+ * using the trusted certificates set in the SecurityContext object and/or
  * the default built-in root certificates.
  */
 abstract class RawSecureSocket implements RawSocket {
@@ -233,8 +175,9 @@ abstract class RawSecureSocket implements RawSocket {
    * host on the given port. The returned Future is completed with the
    * RawSecureSocket when it is connected and ready for subscription.
    *
-   * The certificate provided by the server is checked using the certificate
-   * database provided in [SecureSocket.initialize], and/or the default built-in
+   * The certificate provided by the server is checked
+   * using the trusted certificates set in the SecurityContext object and/or
+   * the default built-in
    * root certificates. If [sendClientCertificate] is
    * set to true, the socket will send a client certificate if one is
    * requested by the server. If [certificateName] is the nickname of
@@ -252,24 +195,20 @@ abstract class RawSecureSocket implements RawSocket {
   static Future<RawSecureSocket> connect(
       host,
       int port,
-      {bool sendClientCertificate: false,
-       String certificateName,
+      {SecurityContext context,
        bool onBadCertificate(X509Certificate certificate),
        List<String> supportedProtocols}) {
     _RawSecureSocket._verifyFields(
         host,
         port,
-        certificateName,
         false,
         false,
         false,
-        sendClientCertificate,
         onBadCertificate);
     return RawSocket.connect(host, port)
         .then((socket) {
           return secure(socket,
-                        sendClientCertificate: sendClientCertificate,
-                        certificateName: certificateName,
+                        context: context,
                         onBadCertificate: onBadCertificate,
                         supportedProtocols: supportedProtocols);
         });
@@ -307,8 +246,7 @@ abstract class RawSecureSocket implements RawSocket {
       RawSocket socket,
       {StreamSubscription subscription,
        host,
-       bool sendClientCertificate: false,
-       String certificateName,
+       SecurityContext context,
        bool onBadCertificate(X509Certificate certificate),
        List<String> supportedProtocols}) {
     socket.readEventsEnabled = false;
@@ -316,11 +254,10 @@ abstract class RawSecureSocket implements RawSocket {
     return  _RawSecureSocket.connect(
         host != null ? host : socket.address.host,
         socket.port,
-        certificateName,
         is_server: false,
         socket: socket,
         subscription: subscription,
-        sendClientCertificate: sendClientCertificate,
+        context: context,
         onBadCertificate: onBadCertificate,
         supportedProtocols: supportedProtocols);
   }
@@ -350,7 +287,7 @@ abstract class RawSecureSocket implements RawSocket {
    */
   static Future<RawSecureSocket> secureServer(
       RawSocket socket,
-      String certificateName,
+      SecurityContext context,
       {StreamSubscription subscription,
        List<int> bufferedData,
        bool requestClientCertificate: false,
@@ -361,7 +298,7 @@ abstract class RawSecureSocket implements RawSocket {
     return _RawSecureSocket.connect(
         socket.address,
         socket.remotePort,
-        certificateName,
+        context: context,
         is_server: true,
         socket: socket,
         subscription: subscription,
@@ -402,15 +339,13 @@ abstract class RawSecureSocket implements RawSocket {
  * X509Certificate represents an SSL certificate, with accessors to
  * get the fields of the certificate.
  */
-class X509Certificate {
-  X509Certificate(this.subject,
-                  this.issuer,
-                  this.startValidity,
-                  this.endValidity);
-  final String subject;
-  final String issuer;
-  final DateTime startValidity;
-  final DateTime endValidity;
+abstract class X509Certificate {
+  external factory X509Certificate();
+
+  String get subject;
+  String get issuer;
+  DateTime get startValidity;
+  DateTime get endValidity;
 }
 
 
@@ -456,10 +391,9 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   int _bufferedDataIndex = 0;
   final InternetAddress address;
   final bool is_server;
-  final String certificateName;
+  SecurityContext context;
   final bool requestClientCertificate;
   final bool requireClientCertificate;
-  final bool sendClientCertificate;
   final Function onBadCertificate;
 
   var _status = HANDSHAKE;
@@ -484,8 +418,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   static Future<_RawSecureSocket> connect(
       host,
       int requestedPort,
-      String certificateName,
       {bool is_server,
+       SecurityContext context,
        RawSocket socket,
        StreamSubscription subscription,
        List<int> bufferedData,
@@ -494,22 +428,21 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
        bool sendClientCertificate: false,
        bool onBadCertificate(X509Certificate certificate),
        List<String> supportedProtocols}) {
-    _verifyFields(host, requestedPort, certificateName, is_server,
+    _verifyFields(host, requestedPort, is_server,
                  requestClientCertificate, requireClientCertificate,
-                 sendClientCertificate, onBadCertificate);
+                 onBadCertificate);
     if (host is InternetAddress) host = host.host;
     var address = socket.address;
     if (host != null) address =  address._cloneWithNewHost(host);
     return new _RawSecureSocket(address,
                                 requestedPort,
-                                certificateName,
                                 is_server,
+                                context,
                                 socket,
                                 subscription,
                                 bufferedData,
                                 requestClientCertificate,
                                 requireClientCertificate,
-                                sendClientCertificate,
                                 onBadCertificate,
                                 supportedProtocols)
         ._handshakeComplete.future;
@@ -518,14 +451,13 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   _RawSecureSocket(
       this.address,
       int requestedPort,
-      this.certificateName,
       this.is_server,
+      this.context,
       RawSocket this._socket,
       this._socketSubscription,
       this._bufferedData,
       this.requestClientCertificate,
       this.requireClientCertificate,
-      this.sendClientCertificate,
       this.onBadCertificate(X509Certificate certificate),
       List<String> supportedProtocols) {
     _controller = new StreamController<RawSocketEvent>(
@@ -573,12 +505,14 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       _secureFilter.connect(address.host,
                             (address as dynamic)._in_addr,
                             port,
+                            context,
                             is_server,
-                            certificateName,
                             requestClientCertificate ||
                                 requireClientCertificate,
                             requireClientCertificate,
-                            sendClientCertificate,
+                            // TODO(whesse): Remove sendClientCertificate
+                            // argument, or add it to API.
+                            false, // sendClientCertificate,
                             _protocolsToLengthEncoding(supportedProtocols));
       _secureHandshake();
     } catch (e, s) {
@@ -721,11 +655,9 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
   static void _verifyFields(host,
                             int requestedPort,
-                            String certificateName,
                             bool is_server,
                             bool requestClientCertificate,
                             bool requireClientCertificate,
-                            bool sendClientCertificate,
                             Function onBadCertificate) {
     if (host is! String && host is! InternetAddress) {
       throw new ArgumentError("host is not a String or an InternetAddress");
@@ -736,20 +668,11 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     if (requestedPort < 0 || requestedPort > 65535) {
       throw new ArgumentError("requestedPort is not in the range 0..65535");
     }
-    if (certificateName != null && certificateName is! String) {
-      throw new ArgumentError("certificateName is not null or a String");
-    }
-    if (certificateName == null && is_server) {
-      throw new ArgumentError("certificateName is null on a server");
-    }
     if (requestClientCertificate is! bool) {
       throw new ArgumentError("requestClientCertificate is not a bool");
     }
     if (requireClientCertificate is! bool) {
       throw new ArgumentError("requireClientCertificate is not a bool");
-    }
-    if (sendClientCertificate is! bool) {
-      throw new ArgumentError("sendClientCertificate is not a bool");
     }
     if (onBadCertificate != null && onBadCertificate is! Function) {
       throw new ArgumentError("onBadCertificate is not null or a Function");
