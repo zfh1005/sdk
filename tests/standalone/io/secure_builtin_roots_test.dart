@@ -13,23 +13,8 @@ void main(List<String> args) {
   if (!args.contains('--child')) {
     runAllTestsInChildProcesses();
   } else {
-    InitializeSSL(useDatabase: args.contains('--database'),
-                  useBuiltinRoots: args.contains('--builtin-roots'));
+    // TODO(whesse): Handle --builtin-roots flag, and do the right thing.
     testGoogleUrl(args.contains('--builtin-roots'));
-  }
-}
-
-void InitializeSSL({bool useDatabase, bool useBuiltinRoots}) {
-  // If the built-in root certificates aren't loaded, the connection
-  // should signal an error.  Even when an external database is loaded,
-  // they should not be loaded.
-  if (useDatabase) {
-    var certificateDatabase = Platform.script.resolve('pkcert').toFilePath();
-    SecureSocket.initialize(database: certificateDatabase,
-                            password: 'dartdart',
-                            useBuiltinRoots: useBuiltinRoots);
-  } else {
-    SecureSocket.initialize(useBuiltinRoots: useBuiltinRoots);
   }
 }
 

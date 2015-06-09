@@ -14,11 +14,15 @@ const String MAX_LEN_ERROR =
 const String MAX_MSG_LEN_ERROR =
     'The maximum message length supported is 2^15-1';
 
-void InitializeSSL() {
-  var testPkcertDatabase = Platform.script.resolve('pkcert').toFilePath();
-  SecureSocket.initialize(database: testPkcertDatabase,
-                          password: 'dartdart');
-}
+String localFile(path) => Platform.script.resolve(path).toFilePath();
+
+SecurityContext serverContext = new SecurityContext()
+  ..useCertificateChain(localFile('certificates/server_chain.pem'))
+  ..usePrivateKey(localFile('certificates/server_key.pem'),
+                  password: 'dartdart');
+
+SecurityContext clientContext = new SecurityContext()
+  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
 
 // Tests that client/server with same protocol can securly establish a
 // connection, negogiate the protocol and can send data to each other.
@@ -26,7 +30,7 @@ void testSuccessfulAlpnNegogiationConnection(List<String> clientProtocols,
                                              List<String> serverProtocols,
                                              String selectedProtocol) {
   asyncStart();
-  SecureServerSocket.bind('localhost', 0, 'localhost_cert',
+  SecureServerSocket.bind('localhost', 0, serverContext,
      supportedProtocols: serverProtocols).then((SecureServerSocket server) {
 
     asyncStart();
@@ -40,7 +44,7 @@ void testSuccessfulAlpnNegogiationConnection(List<String> clientProtocols,
     });
 
     asyncStart();
-    SecureSocket.connect('localhost', server.port,
+    SecureSocket.connect('localhost', server.port, context: clientContext,
         supportedProtocols: clientProtocols).then((socket) {
       Expect.equals(selectedProtocol, socket.selectedProtocol);
       socket..write('client message')..close();
@@ -58,7 +62,7 @@ void testSuccessfulAlpnNegogiationConnection(List<String> clientProtocols,
 void testFailedAlpnNegogiationConnection(List<String> clientProtocols,
                                          List<String> serverProtocols) {
   asyncStart();
-  SecureServerSocket.bind('localhost', 0, 'localhost_cert',
+  SecureServerSocket.bind('localhost', 0, serverContext,
      supportedProtocols: serverProtocols).then((SecureServerSocket server) {
 
     asyncStart();
@@ -70,6 +74,7 @@ void testFailedAlpnNegogiationConnection(List<String> clientProtocols,
     asyncStart();
     SecureSocket.connect('localhost',
                          server.port,
+                         context: clientContext,
                          supportedProtocols: clientProtocols)
         .catchError((error, stack) {
       Expect.isTrue(error is HandshakeException);
@@ -84,7 +89,7 @@ void testInvalidArgumentsLongName(List<String> protocols,
                                   bool isLenError,
                                   bool isMsgLenError) {
   asyncStart();
-  SecureServerSocket.bind('localhost', 0, 'localhost_cert',
+  SecureServerSocket.bind('localhost', 0, serverContext,
      supportedProtocols: protocols).then((SecureServerSocket server) {
 
     asyncStart();
@@ -103,6 +108,7 @@ void testInvalidArgumentsLongName(List<String> protocols,
     asyncStart();
     SecureSocket.connect('localhost',
                          server.port,
+                         context: clientContext,
                          supportedProtocols: protocols)
         .catchError((error, stack) {
       String errorString = '${(error as ArgumentError)}';
@@ -121,7 +127,6 @@ void testInvalidArgumentsLongName(List<String> protocols,
 }
 
 main() {
-  InitializeSSL();
   final longname256 = 'p' * 256;
   final String longname255 = 'p' * 255;
   final String strangelongname255 = 'ø' + 'p' * 253;

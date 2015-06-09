@@ -14,11 +14,13 @@ class ExpectException implements Exception {
   String message;
 }
 
-void expect(condition) {
+void expect(condition, {message = ''}) {
   if (!condition) {
-    throw new ExpectException('');
+    throw new ExpectException(message);
   }
 }
+
+String localFile(path) => Platform.script.resolve(path).toFilePath();
 
 const HOST_NAME = "localhost";
 
@@ -26,21 +28,26 @@ Future runHttpClient(int port, result) async {
   bool badCertificateCallback(X509Certificate certificate,
                               String host,
                               int callbackPort) {
-    expect(HOST_NAME == host);
-    expect(callbackPort == port);
-    expect('CN=localhost' == certificate.subject);
-    expect('CN=myauthority' == certificate.issuer);
-    expect(result != 'exception');  // Throw exception if one is requested.
+    expect(HOST_NAME == host, "HOST_NAME == host");
+    expect(callbackPort == port, "callbackPort == port");
+    expect('CN=localhost' == certificate.subject,
+           "'CN=localhost' == certificate.subject");
+    expect('CN=myauthority' == certificate.issuer,
+           "'CN=myauthority' == certificate.issuer");
+    // Throw exception if one is requested.
+    expect(result != 'exception', "result != 'exception'");
     if (result == 'true') return true;
     if (result == 'false') return false;
     return result;
   }
 
-  HttpClient client = new HttpClient();
+  HttpClient client = new HttpClient(context: new SecurityContext()
+    ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
 
   await client.getUrl(Uri.parse('https://$HOST_NAME:$port/$result'))
     .then((HttpClientRequest request) {
-      expect(result == 'true');  // The session cache may keep the session.
+      // The session cache may keep the session.
+      expect(result == 'true', "result == 'true'");
       return request.close();
     }, onError: (e) {
       expect(e is HandshakeException || e is SocketException);
@@ -74,7 +81,6 @@ Future runHttpClient(int port, result) async {
 }
 
 void main(List<String> args) {
-  SecureSocket.initialize();
   int port = int.parse(args[0]);
   runHttpClient(port, args[1])
     .then((_) => print('SUCCESS'));

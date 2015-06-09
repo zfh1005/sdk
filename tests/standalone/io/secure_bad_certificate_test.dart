@@ -10,16 +10,15 @@ import "dart:async";
 import "dart:io";
 
 const HOST_NAME = "localhost";
-const CERTIFICATE = "localhost_cert";
+String localFile(path) => Platform.script.resolve(path).toFilePath();
 
-
-String certificateDatabase() => Platform.script.resolve('pkcert').toFilePath();
+SecurityContext serverContext = new SecurityContext()
+  ..useCertificateChain(localFile('certificates/server_chain.pem'))
+  ..usePrivateKey(localFile('certificates/server_key.pem'),
+                  password: 'dartdart');
 
 Future<SecureServerSocket> runServer() {
-  SecureSocket.initialize(database: certificateDatabase(),
-                          password: 'dartdart');
-
-  return SecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE)
+  return SecureServerSocket.bind(HOST_NAME, 0, serverContext)
       .then((SecureServerSocket server) {
     server.listen((SecureSocket socket) {
       socket.listen((_) { },

@@ -8,6 +8,11 @@
 import "dart:async";
 import "dart:io";
 
+String localFile(path) => Platform.script.resolve(path).toFilePath();
+
+SecurityContext clientContext = new SecurityContext()
+  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
+
 class ExpectException implements Exception {
   ExpectException(this.message);
   String toString() => "ExpectException: $message";
@@ -34,6 +39,7 @@ void runClient(int port, result) {
 
   SecureSocket.connect(HOST_NAME,
                        port,
+                       clientContext,
                        onBadCertificate: badCertificateCallback)
       .then((SecureSocket socket) {
         expect(result);
@@ -53,6 +59,5 @@ void runClient(int port, result) {
 
 
 void main(List<String> args) {
-  SecureSocket.initialize();
   runClient(int.parse(args[0]), args[1]);
 }
