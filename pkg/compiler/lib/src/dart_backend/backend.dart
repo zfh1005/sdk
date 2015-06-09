@@ -129,7 +129,8 @@ class DartBackend extends Backend {
     world.registerInvocation(new Selector.call("compareTo", null, 1));
   }
 
-  void codegen(CodegenWorkItem work) { }
+  WorldImpact codegen(CodegenWorkItem work) => const WorldImpact();
+
   /**
    * Tells whether we should output given element. Corelib classes like
    * Object should not be in the resulting code.
@@ -311,6 +312,13 @@ class DartBackend extends Backend {
     }
 
   }
+
+  @override
+  bool registerDeferredLoading(Spannable node, Registry registry) {
+    // TODO(sigurdm): Implement deferred loading for dart2dart.
+    compiler.reportWarning(node, MessageKind.DEFERRED_LIBRARY_DART_2_DART);
+    return false;
+  }
 }
 
 class DartResolutionCallbacks extends ResolutionCallbacks {
@@ -423,18 +431,41 @@ class DartConstantTask extends ConstantCompilerTask
 
   String get name => 'ConstantHandler';
 
+  @override
+  ConstantSystem get constantSystem => constantCompiler.constantSystem;
+
+  @override
+  ConstantValue getConstantValue(ConstantExpression expression) {
+    return constantCompiler.getConstantValue(expression);
+  }
+
+  @override
+  ConstantValue getConstantValueForVariable(VariableElement element) {
+    return constantCompiler.getConstantValueForVariable(element);
+  }
+
+  @override
   ConstantExpression getConstantForVariable(VariableElement element) {
     return constantCompiler.getConstantForVariable(element);
   }
 
+  @override
   ConstantExpression getConstantForNode(Node node, TreeElements elements) {
     return constantCompiler.getConstantForNode(node, elements);
   }
 
-  ConstantExpression getConstantForMetadata(MetadataAnnotation metadata) {
-    return metadata.constant;
+  @override
+  ConstantValue getConstantValueForNode(Node node, TreeElements elements) {
+    return getConstantValue(
+        constantCompiler.getConstantForNode(node, elements));
   }
 
+  @override
+  ConstantValue getConstantValueForMetadata(MetadataAnnotation metadata) {
+    return getConstantValue(metadata.constant);
+  }
+
+  @override
   ConstantExpression compileConstant(VariableElement element) {
     return measure(() {
       return constantCompiler.compileConstant(element);
@@ -447,20 +478,33 @@ class DartConstantTask extends ConstantCompilerTask
     });
   }
 
-  ConstantExpression compileNode(Node node, TreeElements elements,
-                                 {bool enforceConst: true}) {
+  @override
+  ConstantExpression compileNode(
+      Node node,
+      TreeElements elements,
+      {bool enforceConst: true}) {
     return measure(() {
       return constantCompiler.compileNodeWithDefinitions(node, elements,
           isConst: enforceConst);
     });
   }
 
-  ConstantExpression compileMetadata(MetadataAnnotation metadata,
-                           Node node,
-                           TreeElements elements) {
+  @override
+  ConstantExpression compileMetadata(
+      MetadataAnnotation metadata,
+      Node node,
+      TreeElements elements) {
     return measure(() {
       return constantCompiler.compileMetadata(metadata, node, elements);
     });
+  }
+
+  // TODO(johnniwinther): Remove this when values are computed from the
+  // expressions.
+  @override
+  void copyConstantValues(DartConstantTask task) {
+    constantCompiler.constantValueMap.addAll(
+        task.constantCompiler.constantValueMap);
   }
 }
 

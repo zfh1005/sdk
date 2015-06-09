@@ -229,7 +229,8 @@ def Main():
 
   RESOURCE = join(SDK_tmp, 'lib', '_internal', 'pub', 'asset')
   os.makedirs(os.path.dirname(RESOURCE))
-  copytree(join(HOME, 'sdk', 'lib', '_internal', 'pub', 'asset'),
+  copytree(join(HOME, 'third_party', 'pkg', 'pub', 'lib', 'src',
+                'asset'),
            join(RESOURCE),
            ignore=ignore_patterns('.svn'))
 
@@ -250,7 +251,7 @@ def Main():
   versionFile.close()
 
   # Write the 'revision' file
-  revision = utils.GetSVNRevision()
+  revision = utils.GetGitRevision()
 
   if revision is not None:
     with open(os.path.join(SDK_tmp, 'revision'), 'w') as f:

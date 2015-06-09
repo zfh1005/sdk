@@ -156,8 +156,11 @@ class CodeGenerator extends tree_ir.StatementVisitor
     return name;
   }
 
-  List<js.Expression> visitArguments(List<tree_ir.Expression> arguments) {
-    return arguments.map(visitExpression).toList();
+  List<js.Expression> visitExpressionList(
+      List<tree_ir.Expression> expressions) {
+    return new List<js.Expression>.generate(expressions.length,
+        (int index) => visitExpression(expressions[index]),
+        growable: false);
   }
 
   giveup(tree_ir.Node node,
@@ -173,9 +176,9 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
     js.Expression toString(tree_ir.Expression input) {
       bool useDirectly = input is tree_ir.Constant &&
-          (input.expression.value.isString ||
-           input.expression.value.isInt ||
-           input.expression.value.isBool);
+          (input.value.isString ||
+           input.value.isInt ||
+           input.value.isBool);
       js.Expression value = visitExpression(input);
       if (useDirectly) {
         return value;
@@ -205,11 +208,11 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   js.Expression visitConstant(tree_ir.Constant node) {
-    return buildConstant(node.expression.value);
+    return buildConstant(node.value);
   }
 
   js.Expression compileConstant(ParameterElement parameter) {
-    return buildConstant(glue.getConstantForVariable(parameter).value);
+    return buildConstant(glue.getConstantValueForVariable(parameter));
   }
 
   // TODO(karlklose): get rid of the selector argument.
@@ -242,7 +245,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
     registry.registerInstantiatedType(node.type);
     Selector selector = node.selector;
     FunctionElement target = node.target;
-    List<js.Expression> arguments = visitArguments(node.arguments);
+    List<js.Expression> arguments = visitExpressionList(node.arguments);
     return buildStaticInvoke(selector, target, arguments);
   }
 
@@ -269,7 +272,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
     registerMethodInvoke(node);
     return js.propertyCall(visitExpression(node.receiver),
                            glue.invocationName(node.selector),
-                           visitArguments(node.arguments));
+                           visitExpressionList(node.arguments));
   }
 
   @override
@@ -277,7 +280,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
     Selector selector = node.selector;
     assert(selector.isGetter || selector.isSetter || selector.isCall);
     FunctionElement target = node.target;
-    List<js.Expression> arguments = visitArguments(node.arguments);
+    List<js.Expression> arguments = visitExpressionList(node.arguments);
     return buildStaticInvoke(selector, target, arguments,
         sourceInformation: node.sourceInformation);
   }
@@ -291,19 +294,19 @@ class CodeGenerator extends tree_ir.StatementVisitor
       return js.js('#.#(#)',
           [visitExpression(node.receiver),
            glue.instanceMethodName(node.target),
-           visitArguments(node.arguments)]);
+           visitExpressionList(node.arguments)]);
     }
     return js.js('#.#.call(#, #)',
         [glue.prototypeAccess(node.target.enclosingClass),
          glue.invocationName(node.selector),
          visitExpression(node.receiver),
-         visitArguments(node.arguments)]);
+         visitExpressionList(node.arguments)]);
   }
 
   @override
   js.Expression visitLiteralList(tree_ir.LiteralList node) {
     registry.registerInstantiatedClass(glue.listClass);
-    List<js.Expression> entries = node.values.map(visitExpression).toList();
+    List<js.Expression> entries = visitExpressionList(node.values);
     return new js.ArrayInitializer(entries);
   }
 
@@ -351,25 +354,22 @@ class CodeGenerator extends tree_ir.StatementVisitor
   @override
   js.Expression visitTypeOperator(tree_ir.TypeOperator node) {
     js.Expression value = visitExpression(node.value);
-    List<js.Expression> typeArguments =
-        node.typeArguments.map(visitExpression).toList();
-    if (!node.isTypeTest) {
-      giveup(node, 'type casts not implemented.');
-    }
+    List<js.Expression> typeArguments = visitExpressionList(node.typeArguments);
     DartType type = node.type;
-    // Note that the trivial (but special) cases of Object, dynamic, and Null
-    // are handled at build-time and must not occur in a TypeOperator.
-    assert(!type.isObject && !type.isDynamic);
     if (type is InterfaceType) {
       glue.registerIsCheck(type, registry);
       ClassElement clazz = type.element;
 
-      // We use the helper:
+      // We use one of the two helpers:
       //
       //     checkSubtype(value, $isT, typeArgs, $asT)
+      //     subtypeCast(value, $isT, typeArgs, $asT)
       //
       // Any of the last two arguments may be null if there are no type
       // arguments, and/or if no substitution is required.
+      Element function = node.isTypeTest
+          ? glue.getCheckSubtype()
+          : glue.getSubtypeCast();
 
       js.Expression isT = js.string(glue.getTypeTestTag(type));
 
@@ -382,14 +382,20 @@ class CodeGenerator extends tree_ir.StatementVisitor
           : new js.LiteralNull();
 
       return buildStaticHelperInvocation(
-          glue.getCheckSubtype(),
+          function,
           <js.Expression>[value, isT, typeArgumentArray, asT]);
     } else if (type is TypeVariableType) {
       glue.registerIsCheck(type, registry);
+
+      Element function = node.isTypeTest
+          ? glue.getCheckSubtypeOfRuntimeType()
+          : glue.getSubtypeOfRuntimeTypeCast();
+
       // The only type argument is the type held in the type variable.
       js.Expression typeValue = typeArguments.single;
+
       return buildStaticHelperInvocation(
-          glue.getCheckSubtypeOfRuntime(),
+          function,
           <js.Expression>[value, typeValue]);
     }
     return giveup(node, 'type check unimplemented for $type.');
@@ -545,6 +551,12 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   @override
+  void visitUnreachable(tree_ir.Unreachable node) {
+    // Output nothing.
+    // TODO(asgerf): Emit a throw/return to assist local analysis in the VM?
+  }
+
+  @override
   void visitTry(tree_ir.Try node) {
     js.Block tryBlock = buildBodyBlock(node.tryBody);
     tree_ir.Variable exceptionVariable = node.catchParameters.first;
@@ -557,7 +569,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   js.Expression visitCreateBox(tree_ir.CreateBox node) {
-    return new js.ObjectInitializer([]);
+    return new js.ObjectInitializer(const <js.Property>[]);
   }
 
   @override
@@ -570,7 +582,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
     registry.registerInstantiatedClass(cls);
     js.Expression instance = new js.New(
         glue.constructorAccess(cls),
-        node.arguments.map(visitExpression).toList());
+        visitExpressionList(node.arguments));
 
     List<tree_ir.Expression> typeInformation = node.typeInformation;
     assert(typeInformation.isEmpty ||
@@ -578,7 +590,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
     if (typeInformation.isNotEmpty) {
       FunctionElement helper = glue.getAddRuntimeTypeInformation();
       js.Expression typeArguments = new js.ArrayInitializer(
-          typeInformation.map(visitExpression).toList());
+          visitExpressionList(typeInformation));
       return buildStaticHelperInvocation(helper,
           <js.Expression>[instance, typeArguments]);
     } else {
@@ -593,9 +605,9 @@ class CodeGenerator extends tree_ir.StatementVisitor
     js.Expression internalName = js.string(glue.invocationName(node.selector));
     js.Expression kind = js.number(node.selector.invocationMirrorKind);
     js.Expression arguments = new js.ArrayInitializer(
-        node.arguments.map(visitExpression).toList());
+        visitExpressionList(node.arguments));
     js.Expression argumentNames = new js.ArrayInitializer(
-        node.selector.namedArguments.map(js.string).toList());
+        node.selector.namedArguments.map(js.string).toList(growable: false));
     return buildStaticHelperInvocation(glue.createInvocationMirrorMethod,
         [name, internalName, kind, arguments, argumentNames]);
   }
@@ -628,7 +640,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
       // Read a lazily initialized field.
       registry.registerStaticUse(node.element.declaration);
       js.Expression getter = glue.isolateLazyInitializerAccess(node.element);
-      return new js.Call(getter, [], sourceInformation: node.sourceInformation);
+      return new js.Call(getter, <js.Expression>[],
+          sourceInformation: node.sourceInformation);
     }
     // Read an eagerly initialized field.
     registry.registerStaticUse(node.element.declaration);
@@ -678,8 +691,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   js.Expression visitTypeExpression(tree_ir.TypeExpression node) {
-    List<js.Expression> arguments =
-        node.arguments.map(visitExpression).toList(growable: false);
+    List<js.Expression> arguments = visitExpressionList(node.arguments);
     return glue.generateTypeRepresentation(node.dartType, arguments);
   }
 

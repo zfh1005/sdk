@@ -64,12 +64,45 @@
         <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.clazz.name }}</em> ({{ ref.length }})</a>
         <curly-block callback="{{ expander() }}">
           <div class="memberList">
-            <template repeat="{{ element in ref.elements }}">
+            <template repeat="{{ index in ref.elements.asMap().keys }}">
               <div class="memberItem">
-                <div class="memberName">[{{ element['index']}}]</div>
+                <div class="memberName">[{{ index }}]</div>
                 <div class="memberValue">
-                  <any-service-ref ref="{{ element['value'] }}"></any-service-ref>
+                  <any-service-ref ref="{{ ref.elements[index] }}">
+                  </any-service-ref>
                 </div>
+              </div>
+            </template>
+          </div>
+        </curly-block>
+      </template>
+
+      <template if="{{ ref.isMap }}">
+        <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.clazz.name }}</em> ({{ ref.length }})</a>
+        <curly-block callback="{{ expander() }}">
+          <div class="memberList">
+            <template repeat="{{ association in ref.associations }}">
+              <div class="memberItem">
+                <div class="memberName">
+                  [<any-service-ref ref="{{ association['key'] }}"></any-service-ref>]
+                </div>
+                <div class="memberValue">
+                  <any-service-ref ref="{{ association['value'] }}"></any-service-ref>
+                </div>
+              </div>
+            </template>
+          </div>
+        </curly-block>
+      </template>
+
+      <template if="{{ ref.isTypedData }}">
+        <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.clazz.name }}</em> ({{ ref.length }})</a>
+        <curly-block callback="{{ expander() }}">
+          <div class="memberList">
+            <template repeat="{{ index in ref.typedElements.asMap().keys }}">
+              <div class="memberItem">
+                <div class="memberName">[{{ index }}]</div>
+                <div class="memberValue">{{ ref.typedElements[index].toString() }}</div>
               </div>
             </template>
           </div>

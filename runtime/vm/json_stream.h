@@ -21,12 +21,18 @@ class JSONObject;
 class MessageQueue;
 class Metric;
 class Object;
+class Script;
 class ServiceEvent;
 class Breakpoint;
 class String;
 class Zone;
 
 
+// Keep this enum in sync with:
+//
+//  - runtime/vm/service/vmservice.dart
+//  - runtime/observatory/lib/src/service/object.dart
+//
 enum JSONRpcErrorCode {
   kParseError     = -32700,
   kInvalidRequest = -32600,
@@ -34,11 +40,11 @@ enum JSONRpcErrorCode {
   kInvalidParams  = -32602,
   kInternalError  = -32603,
 
-  kVMMustBePaused    = 100,
-  kNoBreakAtLine     = 101,
-  kNoBreakAtFunction = 102,
-
-  kProfilingDisabled = 200,
+  kFeatureDisabled         = 100,
+  kVMMustBePaused          = 101,
+  kCannotAddBreakpoint     = 102,
+  kStreamAlreadySubscribed = 103,
+  kStreamNotSubscribed     = 104,
 };
 
 
@@ -110,6 +116,7 @@ class JSONStream : ValueObject {
   void PrintValue(intptr_t i);
   void PrintValue64(int64_t i);
   void PrintValue(double d);
+  void PrintValueBase64(const uint8_t* bytes, intptr_t length);
   void PrintValue(const char* s);
   void PrintValue(const char* s, intptr_t len);
   void PrintValueNoEscape(const char* s);
@@ -127,6 +134,9 @@ class JSONStream : ValueObject {
   void PrintProperty(const char* name, intptr_t i);
   void PrintProperty64(const char* name, int64_t i);
   void PrintProperty(const char* name, double d);
+  void PrintPropertyBase64(const char* name,
+                           const uint8_t* bytes,
+                           intptr_t length);
   void PrintProperty(const char* name, const char* s);
   bool PrintPropertyStr(const char* name, const String& s, intptr_t limit);
   void PrintPropertyNoEscape(const char* name, const char* s);
@@ -187,6 +197,10 @@ class JSONObject : public ValueObject {
 
   void AddFixedServiceId(const char* format, ...) const PRINTF_ATTRIBUTE(2, 3);
 
+  void AddLocation(const Script& script,
+                   intptr_t token_pos,
+                   intptr_t end_token_pos = -1);
+
   void AddProperty(const char* name, bool b) const {
     stream_->PrintPropertyBool(name, b);
   }
@@ -198,6 +212,11 @@ class JSONObject : public ValueObject {
   }
   void AddProperty(const char* name, double d) const {
     stream_->PrintProperty(name, d);
+  }
+  void AddPropertyBase64(const char* name,
+                         const uint8_t* bytes,
+                         intptr_t length) const {
+    stream_->PrintPropertyBase64(name, bytes, length);
   }
   void AddProperty(const char* name, const char* s) const {
     stream_->PrintProperty(name, s);

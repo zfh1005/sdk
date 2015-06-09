@@ -62,8 +62,6 @@ deferred_fail_and_retry_test: SkipByDesign # Uses eval to simulate failed loadin
 deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed loading.
 
 [ $compiler == dart2js && $cps_ir ]
-10216a_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-10216b_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 12320_test: Crash #  Unhandled node
 16407_test: Pass # Please triage this failure.
 17094_test: RuntimeError # Please triage this failure.
@@ -86,19 +84,14 @@ code_motion_exception_test: Crash # Instance of 'TypeOperator': type check unimp
 conditional_send_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 constant_javascript_semantics2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 constant_javascript_semantics3_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-deferred/deferred_class_test: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred/deferred_constant2_test: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred/deferred_constant3_test: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred/deferred_constant4_test: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred/deferred_function_test: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred/deferred_mirrors1_test: Crash # (lazy.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred/deferred_overlapping_test: Crash # (lib1.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_fail_and_retry_test: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_fail_and_retry_worker_test: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-do_test: Timeout # Please triage this failure.
-for_test: Timeout # Please triage this failure.
+deferred/deferred_class_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+deferred/deferred_constant2_test: RuntimeError # Please triage this failure.
+deferred/deferred_constant3_test: RuntimeError # Please triage this failure.
+deferred/deferred_constant4_test: RuntimeError # Please triage this failure.
+deferred/deferred_function_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+deferred/deferred_mirrors1_test: RuntimeError # Please triage this failure.
+deferred/deferred_overlapping_test: RuntimeError # Please triage this failure.
 generics_factories_test: Crash # Please triage this failure.
-if_null_test: Crash # Please triage this failure.
 inference_nsm_mirrors_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 inferrer_is_int_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 interface_type_optimization_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -126,4 +119,3 @@ switch_test/none: Crash # (switch (val){}): Unhandled node
 this_phi_elimination_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 type_constant_switch_test/none: Crash # (switch (v){}): Unhandled node
 typevariable_factory_test: Crash # Please triage this failure.
-while_test: Timeout # Please triage this failure.

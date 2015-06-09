@@ -102,17 +102,15 @@ class AnyServiceRefElement extends ObservatoryElement {
         ServiceRefElement element = new Element.tag('script-ref');
         element.ref = ref;
         return element;
+      case 'Instance':
+      case 'Sentinel':
+        ServiceRefElement element = new Element.tag('instance-ref');
+        element.ref = ref;
+        return element;
       default:
-        if (ref.isInstance ||
-            ref.isSentinel) {  // TODO(rmacnak): Separate this out.
-          ServiceRefElement element = new Element.tag('instance-ref');
-          element.ref = ref;
-          return element;
-        } else {
-          SpanElement element = new Element.tag('span');
-          element.text = "<<Unknown service ref: $ref>>";
-          return element;
-        }
+        SpanElement element = new Element.tag('span');
+        element.text = "<<Unknown service ref: $ref>>";
+        return element;
     }
   }
 
@@ -123,7 +121,7 @@ class AnyServiceRefElement extends ObservatoryElement {
       Logger.root.info('Viewing null object.');
       return;
     }
-    var type = ref.vmType;
+    var type = ref.type;
     var element = _constructElementForRef();
     if (element == null) {
       Logger.root.info('Unable to find a ref element for \'${type}\'');

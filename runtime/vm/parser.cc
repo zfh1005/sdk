@@ -37,31 +37,13 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, enable_asserts, false, "Enable assert statements.");
 DEFINE_FLAG(bool, enable_debug_break, false, "Allow use of break \"message\".");
-DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
 DEFINE_FLAG(bool, load_deferred_eagerly, false,
     "Load deferred libraries eagerly.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef.");
-DECLARE_FLAG(bool, error_on_bad_type);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
-
-static void CheckedModeHandler(bool value) {
-  FLAG_enable_asserts = value;
-  FLAG_enable_type_checks = value;
-}
-
-// --enable-checked-mode and --checked both enable checked mode which is
-// equivalent to setting --enable-asserts and --enable-type-checks.
-DEFINE_FLAG_HANDLER(CheckedModeHandler,
-                    enable_checked_mode,
-                    "Enable checked mode.");
-
-DEFINE_FLAG_HANDLER(CheckedModeHandler,
-                    checked,
-                    "Enable checked mode.");
 
 
 // Quick access to the current isolate and zone.
@@ -3230,7 +3212,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     // Populate function scope with the formal parameters.
     AddFormalParamsToScope(&params, current_block_->scope);
 
-    if (I->TypeChecksEnabled() &&
+    if (I->flags().type_checks() &&
         (current_block_->scope->function_level() > 0)) {
       // We are parsing, but not compiling, a local function.
       // The instantiator may be required at run time for generic type checks.
@@ -6188,7 +6170,7 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
                                     // No outer try statement
                                     CatchClauseNode::kInvalidTryIndex);
       finally_clause = NULL;
-      AddFinallyBlockToNode(true, node_to_inline, node);
+      AddFinallyClauseToNode(true, node_to_inline, node);
       node_index++;
     }
   } while (finally_clause == NULL);
@@ -7282,7 +7264,7 @@ AstNode* Parser::ParseVariableDeclarationList() {
   bool is_final = (CurrentToken() == Token::kFINAL);
   bool is_const = (CurrentToken() == Token::kCONST);
   const AbstractType& type = AbstractType::ZoneHandle(Z,
-      ParseConstFinalVarOrType(I->TypeChecksEnabled() ?
+      ParseConstFinalVarOrType(I->flags().type_checks() ?
           ClassFinalizer::kCanonicalize : ClassFinalizer::kIgnore));
   if (!IsIdentifier()) {
     ReportError("identifier expected");
@@ -8391,8 +8373,8 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
     // position, which is inside the loop body.
     new_loop_var = true;
     loop_var_type = ParseConstFinalVarOrType(
-       I->TypeChecksEnabled() ? ClassFinalizer::kCanonicalize :
-                                ClassFinalizer::kIgnore);
+       I->flags().type_checks() ? ClassFinalizer::kCanonicalize :
+                                  ClassFinalizer::kIgnore);
   }
   intptr_t loop_var_pos = TokenPos();
   const String* loop_var_name = ExpectIdentifier("variable name expected");
@@ -8609,7 +8591,7 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
                                     context_var,
                                     outer_try_index);
       finally_clause = NULL;
-      AddFinallyBlockToNode(true, node_to_inline, node);
+      AddFinallyClauseToNode(true, node_to_inline, node);
       node_index++;
     }
   } while (finally_clause == NULL);
@@ -8671,8 +8653,8 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
     // position, which is inside the loop body.
     new_loop_var = true;
     loop_var_type = ParseConstFinalVarOrType(
-        I->TypeChecksEnabled() ? ClassFinalizer::kCanonicalize :
-                                 ClassFinalizer::kIgnore);
+        I->flags().type_checks() ? ClassFinalizer::kCanonicalize :
+                                   ClassFinalizer::kIgnore);
     loop_var_name = ExpectIdentifier("variable name expected");
   }
   ExpectToken(Token::kIN);
@@ -8890,7 +8872,7 @@ AstNode* Parser::ParseAssertStatement() {
   ConsumeToken();  // Consume assert keyword.
   ExpectToken(Token::kLPAREN);
   const intptr_t condition_pos = TokenPos();
-  if (!I->AssertsEnabled() && !I->TypeChecksEnabled()) {
+  if (!I->flags().asserts() && !I->flags().type_checks()) {
     SkipExpr();
     ExpectToken(Token::kRPAREN);
     return NULL;
@@ -8973,15 +8955,19 @@ void Parser::SaveExceptionAndStacktrace(SequenceNode* statements,
 }
 
 
-SequenceNode* Parser::ParseFinallyBlock(
+SequenceNode* Parser::EnsureFinallyClause(
+    bool parse,
     bool is_async,
     LocalVariable* exception_var,
     LocalVariable* stack_trace_var,
     LocalVariable* rethrow_exception_var,
     LocalVariable* rethrow_stack_trace_var) {
-  TRACE_PARSER("ParseFinallyBlock");
+  TRACE_PARSER("EnsureFinallyClause");
+  ASSERT(parse || (is_async && (try_stack_ != NULL)));
   OpenBlock();
-  ExpectToken(Token::kLBRACE);
+  if (parse) {
+    ExpectToken(Token::kLBRACE);
+  }
 
   if (try_stack_ != NULL) {
     try_stack_->enter_finally();
@@ -9017,13 +9003,15 @@ SequenceNode* Parser::ParseFinallyBlock(
                                rethrow_stack_trace_var);
   }
 
-  ParseStatementSequence();
-  ExpectToken(Token::kRBRACE);
-  SequenceNode* finally_block = CloseBlock();
+  if (parse) {
+    ParseStatementSequence();
+    ExpectToken(Token::kRBRACE);
+  }
+  SequenceNode* finally_clause = CloseBlock();
   if (try_stack_ != NULL) {
     try_stack_->exit_finally();
   }
-  return finally_block;
+  return finally_clause;
 }
 
 
@@ -9067,19 +9055,19 @@ void Parser::AddNodeForFinallyInlining(AstNode* node) {
 }
 
 
-// Add the inlined finally block to the specified node.
-void Parser::AddFinallyBlockToNode(bool is_async,
-                                   AstNode* node,
-                                   InlinedFinallyNode* finally_node) {
+// Add the inlined finally clause to the specified node.
+void Parser::AddFinallyClauseToNode(bool is_async,
+                                    AstNode* node,
+                                    InlinedFinallyNode* finally_clause) {
   ReturnNode* return_node = node->AsReturnNode();
   if (return_node != NULL) {
     parsed_function()->EnsureFinallyReturnTemp(is_async);
-    return_node->AddInlinedFinallyNode(finally_node);
+    return_node->AddInlinedFinallyNode(finally_clause);
     return;
   }
   JumpNode* jump_node = node->AsJumpNode();
   ASSERT(jump_node != NULL);
-  jump_node->AddInlinedFinallyNode(finally_node);
+  jump_node->AddInlinedFinallyNode(finally_clause);
 }
 
 
@@ -9464,31 +9452,39 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   const intptr_t outer_try_index = (outer_try != NULL) ?
       outer_try->try_index() : CatchClauseNode::kInvalidTryIndex;
 
-  // Finally parse the 'finally' block.
-  SequenceNode* finally_block = NULL;
-  if (CurrentToken() == Token::kFINALLY) {
-    ConsumeToken();  // Consume the 'finally'.
+  // Finally, parse or generate the 'finally' clause.
+  // A finally clause is required in async code to restore the saved try context
+  // of an existing outer try. Generate a finally clause to this purpose if it
+  // is not declared.
+  SequenceNode* finally_clause = NULL;
+  const bool parse = CurrentToken() == Token::kFINALLY;
+  if (parse || (is_async && (try_stack_ != NULL))) {
+    if (parse) {
+      ConsumeToken();  // Consume the 'finally'.
+    }
     const intptr_t finally_pos = TokenPos();
     // Add the finally block to the exit points recorded so far.
     intptr_t node_index = 0;
     AstNode* node_to_inline = try_statement->GetNodeToInlineFinally(node_index);
     while (node_to_inline != NULL) {
-      finally_block = ParseFinallyBlock(
+      finally_clause = EnsureFinallyClause(
+          parse,
           is_async,
           exception_var,
           stack_trace_var,
           is_async ? saved_exception_var : exception_var,
           is_async ? saved_stack_trace_var : stack_trace_var);
       InlinedFinallyNode* node = new(Z) InlinedFinallyNode(finally_pos,
-                                                           finally_block,
+                                                           finally_clause,
                                                            context_var,
                                                            outer_try_index);
-      AddFinallyBlockToNode(is_async, node_to_inline, node);
+      AddFinallyClauseToNode(is_async, node_to_inline, node);
       node_index += 1;
       node_to_inline = try_statement->GetNodeToInlineFinally(node_index);
       tokens_iterator_.SetCurrentPosition(finally_pos);
     }
-    finally_block = ParseFinallyBlock(
+    finally_clause = EnsureFinallyClause(
+        parse,
         is_async,
         exception_var,
         stack_trace_var,
@@ -9505,7 +9501,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       stack_trace_var,
       is_async ? saved_exception_var : exception_var,
       is_async ? saved_stack_trace_var : stack_trace_var,
-      (finally_block != NULL) ?
+      (finally_clause != NULL) ?
           AllocateTryIndex() : CatchClauseNode::kInvalidTryIndex,
       needs_stack_trace);
 
@@ -9513,7 +9509,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   // on the try/catch, close the block that's embedding the try statement
   // and attach the label to it.
   AstNode* try_catch_node = new(Z) TryCatchNode(
-      try_pos, try_block, context_var, catch_clause, finally_block, try_index);
+      try_pos, try_block, context_var, catch_clause, finally_clause, try_index);
 
   if (try_label != NULL) {
     current_block_->statements->Add(try_catch_node);
@@ -12069,7 +12065,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
                     "include a type variable");
       }
     } else {
-      if (I->ErrorOnBadTypeEnabled()) {
+      if (I->flags().error_on_bad_type()) {
         ReportError(type_pos,
                     "a list literal takes one type argument specifying "
                     "the element type");
@@ -12092,7 +12088,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
     while (CurrentToken() != Token::kRBRACK) {
       const intptr_t element_pos = TokenPos();
       AstNode* element = ParseExpr(is_const, kConsumeCascades);
-      if (I->TypeChecksEnabled() &&
+      if (I->flags().type_checks() &&
           !is_const &&
           !element_type.IsDynamicType()) {
         element = new(Z) AssignableNode(element_pos,
@@ -12123,7 +12119,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
       // Arguments have been evaluated to a literal value already.
       ASSERT(elem->IsLiteralNode());
       ASSERT(!is_top_level_);  // We cannot check unresolved types.
-      if (I->TypeChecksEnabled() &&
+      if (I->flags().type_checks() &&
           !element_type.IsDynamicType() &&
           (!elem->AsLiteralNode()->literal().IsNull() &&
            !elem->AsLiteralNode()->literal().IsInstanceOf(
@@ -12266,7 +12262,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
                     "include a type variable");
       }
     } else {
-      if (I->ErrorOnBadTypeEnabled()) {
+      if (I->flags().error_on_bad_type()) {
         ReportError(type_pos,
                     "a map literal takes two type arguments specifying "
                     "the key type and the value type");
@@ -12285,7 +12281,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     const bool saved_mode = SetAllowFunctionLiterals(true);
     const intptr_t key_pos = TokenPos();
     AstNode* key = ParseExpr(is_const, kConsumeCascades);
-    if (I->TypeChecksEnabled() &&
+    if (I->flags().type_checks() &&
         !is_const &&
         !key_type.IsDynamicType()) {
       key = new(Z) AssignableNode(
@@ -12308,7 +12304,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     const intptr_t value_pos = TokenPos();
     AstNode* value = ParseExpr(is_const, kConsumeCascades);
     SetAllowFunctionLiterals(saved_mode);
-    if (I->TypeChecksEnabled() &&
+    if (I->flags().type_checks() &&
         !is_const &&
         !value_type.IsDynamicType()) {
       value = new(Z) AssignableNode(
@@ -12340,7 +12336,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
       // Arguments have been evaluated to a literal value already.
       ASSERT(arg->IsLiteralNode());
       ASSERT(!is_top_level_);  // We cannot check unresolved types.
-      if (I->TypeChecksEnabled()) {
+      if (I->flags().type_checks()) {
         if ((i % 2) == 0) {
           // Check key type.
           arg_type = key_type.raw();
@@ -12665,7 +12661,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
         }
         return ThrowTypeError(redirect_type.token_pos(), redirect_type);
       }
-      if (I->TypeChecksEnabled() && !redirect_type.IsSubtypeOf(type, NULL)) {
+      if (I->flags().type_checks() && !redirect_type.IsSubtypeOf(type, NULL)) {
         // Additional type checking of the result is necessary.
         type_bound = type.raw();
       }

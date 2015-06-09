@@ -8,19 +8,18 @@ class TypeCheckerTask extends CompilerTask {
   TypeCheckerTask(Compiler compiler) : super(compiler);
   String get name => "Type checker";
 
-  void check(TreeElements elements) {
-    AstElement element = elements.analyzedElement;
+  void check(AstElement element) {
+    if (element.isClass) return;
     if (element.isTypedef) return;
-
+    ResolvedAst resolvedAst = element.resolvedAst;
     compiler.withCurrentElement(element, () {
       measure(() {
-        Node tree = element.node;
-        TypeCheckerVisitor visitor =
-            new TypeCheckerVisitor(compiler, elements, compiler.types);
+        TypeCheckerVisitor visitor = new TypeCheckerVisitor(
+            compiler, resolvedAst.elements, compiler.types);
         if (element.isField) {
           visitor.analyzingInitializer = true;
         }
-        tree.accept(visitor);
+        resolvedAst.node.accept(visitor);
       });
     });
   }
@@ -1808,13 +1807,13 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         List<FieldElement> unreferencedFields = <FieldElement>[];
         EnumClassElement enumClass = expressionType.element;
         enumClass.enumValues.forEach((FieldElement field) {
-          ConstantExpression constantExpression =
-              compiler.constants.getConstantForVariable(field);
-          if (constantExpression == null) {
+          ConstantValue constantValue =
+              compiler.constants.getConstantValueForVariable(field);
+          if (constantValue == null) {
             // The field might not have been resolved.
             unreferencedFields.add(field);
           } else {
-            enumValues[constantExpression.value] = field;
+            enumValues[constantValue] = field;
           }
         });
 
@@ -1825,7 +1824,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
               ConstantExpression caseConstant =
                   compiler.resolver.constantCompiler.compileNode(
                       caseMatch.expression, elements);
-              enumValues.remove(caseConstant.value);
+              enumValues.remove(
+                  compiler.constants.getConstantValue(caseConstant));
             }
           }
         }

@@ -5,6 +5,7 @@
 library simple_types_inferrer;
 
 import '../closure.dart' show ClosureClassMap, ClosureScope;
+import '../constants/values.dart' show ConstantValue, IntConstantValue;
 import '../cps_ir/cps_ir_nodes.dart' as cps_ir show Node;
 import '../dart_types.dart'
     show DartType, InterfaceType, FunctionType, TypeKind;
@@ -1474,10 +1475,11 @@ class SimpleTypeInferrerVisitor<T>
                && element.isField
                && Elements.isStaticOrTopLevelField(element)
                && compiler.world.fieldNeverChanges(element)) {
-      var constant =
-          compiler.backend.constants.getConstantForVariable(element);
-      if (constant != null && constant.value.isInt) {
-        return constant.value.primitiveValue;
+      ConstantValue value =
+          compiler.backend.constants.getConstantValueForVariable(element);
+      if (value != null && value.isInt) {
+        IntConstantValue intValue = value;
+        return intValue.primitiveValue;
       }
     }
     return null;
@@ -1537,7 +1539,7 @@ class SimpleTypeInferrerVisitor<T>
         element = constructor.effectiveTarget.implementation;
       }
     }
-    if (element.isForeign(compiler.backend)) {
+    if (compiler.backend.isForeign(element)) {
       return handleForeignSend(node, element);
     }
     Selector selector = elements.getSelector(node);
@@ -1598,7 +1600,7 @@ class SimpleTypeInferrerVisitor<T>
 
   /// Handle invocation of a top level or static [function].
   T handleStaticFunctionInvoke(ast.Send node, MethodElement function) {
-    if (function.isForeign(compiler.backend)) {
+    if (compiler.backend.isForeign(function)) {
       return handleForeignSend(node, function);
     }
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
@@ -1691,6 +1693,26 @@ class SimpleTypeInferrerVisitor<T>
       CallStructure callStructure,
       _) {
     return handleStaticFieldOrGetterInvoke(node, getter);
+  }
+
+  @override
+  T visitStaticSetterInvoke(
+      ast.Send node,
+      MethodElement setter,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    return handleInvalidStaticInvoke(node);
+  }
+
+  @override
+  T visitTopLevelSetterInvoke(
+      ast.Send node,
+      MethodElement setter,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    return handleInvalidStaticInvoke(node);
   }
 
   @override
@@ -1869,6 +1891,22 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   @override
+  T visitStaticSetterGet(
+      ast.Send node,
+      MethodElement setter,
+      _) {
+    return types.dynamicType;
+  }
+
+  @override
+  T visitTopLevelSetterGet(
+      ast.Send node,
+      MethodElement setter,
+      _) {
+    return types.dynamicType;
+  }
+
+  @override
   T visitUnresolvedGet(
       ast.Send node,
       Element element,
@@ -1933,13 +1971,23 @@ class SimpleTypeInferrerVisitor<T>
       _) {
     ArgumentsTypes argumentTypes = analyzeArguments(node.arguments);
     Selector selector = elements.getSelector(node);
-    if (!selector.applies(function, compiler.world)) return types.dynamicType;
     // This only works for function statements. We need a
     // more sophisticated type system with function types to support
     // more.
     return inferrer.registerCalledElement(
         node, selector, outermostElement, function, argumentTypes,
         sideEffects, inLoop);
+  }
+
+  @override
+  T visitLocalFunctionIncompatibleInvoke(
+      ast.Send node,
+      LocalFunctionElement function,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    analyzeArguments(node.arguments);
+    return types.dynamicType;
   }
 
   T handleStaticSend(ast.Node node,

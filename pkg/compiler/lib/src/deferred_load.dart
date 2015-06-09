@@ -286,18 +286,23 @@ class DeferredLoadTask extends CompilerTask {
       }
       treeElements.forEachConstantNode((Node node, _) {
         // Explicitly depend on the backend constants.
-        constants.add(
-            backend.constants.getConstantForNode(node, treeElements).value);
+        ConstantValue value =
+            backend.constants.getConstantValueForNode(node, treeElements);
+        if (value != null) {
+          // TODO(johnniwinther): Assert that all constants have values when
+          // these are directly evaluated.
+          constants.add(value);
+        }
       });
       elements.addAll(treeElements.otherDependencies);
     }
 
     // TODO(sigurdm): How is metadata on a patch-class handled?
     for (MetadataAnnotation metadata in element.metadata) {
-      ConstantExpression constant =
-          backend.constants.getConstantForMetadata(metadata);
+      ConstantValue constant =
+          backend.constants.getConstantValueForMetadata(metadata);
       if (constant != null) {
-        constants.add(constant.value);
+        constants.add(constant);
       }
     }
 
@@ -491,20 +496,18 @@ class DeferredLoadTask extends CompilerTask {
       });
 
       for (MetadataAnnotation metadata in library.metadata) {
-        ConstantExpression constant =
-            backend.constants.getConstantForMetadata(metadata);
+        ConstantValue constant =
+            backend.constants.getConstantValueForMetadata(metadata);
         if (constant != null) {
-          _mapConstantDependencies(constant.value,
-                                   deferredImport);
+          _mapConstantDependencies(constant, deferredImport);
         }
       }
       for (LibraryTag tag in library.tags) {
         for (MetadataAnnotation metadata in tag.metadata) {
-          ConstantExpression constant =
-              backend.constants.getConstantForMetadata(metadata);
+          ConstantValue constant =
+              backend.constants.getConstantValueForMetadata(metadata);
           if (constant != null) {
-            _mapConstantDependencies(constant.value,
-                                     deferredImport);
+            _mapConstantDependencies(constant, deferredImport);
           }
         }
       }
@@ -537,10 +540,11 @@ class DeferredLoadTask extends CompilerTask {
         assert(metadatas != null);
         for (MetadataAnnotation metadata in metadatas) {
           metadata.ensureResolved(compiler);
-          Element element =
-              metadata.constant.value.getType(compiler.coreTypes).element;
+          ConstantValue value =
+              compiler.constants.getConstantValue(metadata.constant);
+          Element element = value.getType(compiler.coreTypes).element;
           if (element == deferredLibraryClass) {
-            ConstructedConstantValue constant = metadata.constant.value;
+            ConstructedConstantValue constant = value;
             StringConstantValue s = constant.fields.values.single;
             result = s.primitiveValue.slowToString();
             break;
@@ -727,8 +731,9 @@ class DeferredLoadTask extends CompilerTask {
           if (metadataList != null) {
             for (MetadataAnnotation metadata in metadataList) {
               metadata.ensureResolved(compiler);
-              Element element =
-                  metadata.constant.value.getType(compiler.coreTypes).element;
+              ConstantValue value =
+                  compiler.constants.getConstantValue(metadata.constant);
+              Element element = value.getType(compiler.coreTypes).element;
               if (element == deferredLibraryClass) {
                  compiler.reportError(
                      import, MessageKind.DEFERRED_OLD_SYNTAX);
@@ -770,16 +775,9 @@ class DeferredLoadTask extends CompilerTask {
         }
       });
     }
-    Backend backend = compiler.backend;
-    if (isProgramSplit && backend is JavaScriptBackend) {
-      backend.registerCheckDeferredIsLoaded(compiler.globalDependencies);
-    }
-    if (isProgramSplit && backend is DartBackend) {
-      // TODO(sigurdm): Implement deferred loading for dart2dart.
-      compiler.reportWarning(
-          lastDeferred,
-          MessageKind.DEFERRED_LIBRARY_DART_2_DART);
-      isProgramSplit = false;
+    if (isProgramSplit) {
+      isProgramSplit = compiler.backend.registerDeferredLoading(
+            lastDeferred, compiler.globalDependencies);
     }
   }
 

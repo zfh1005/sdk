@@ -200,7 +200,7 @@ class ProfileFunction : public ZoneAllocated {
   void PrintToJSONObject(JSONObject* func) {
     func->AddProperty("type", "@Function");
     func->AddProperty("name", name());
-    func->AddProperty("kind", KindToCString(kind()));
+    func->AddProperty("_kind", KindToCString(kind()));
   }
 
   void PrintToJSONArray(JSONArray* functions) {
@@ -2166,7 +2166,7 @@ void ProfilerService::PrintJSON(JSONStream* stream, TagOrder tag_order) {
   MutexLocker profiler_data_lock(isolate->profiler_data_mutex());
   IsolateProfilerData* profiler_data = isolate->profiler_data();
   if (profiler_data == NULL) {
-    stream->PrintError(kProfilingDisabled, NULL);
+    stream->PrintError(kFeatureDisabled, NULL);
     return;
   }
   SampleBuffer* sample_buffer = profiler_data->sample_buffer();

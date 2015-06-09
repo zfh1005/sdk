@@ -194,7 +194,6 @@ io/file_invalid_arguments_test: Crash # Instance of 'TypeOperator': type check u
 io/file_read_encoded_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/file_system_delete_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/file_system_links_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/file_system_watcher_test: Crash #  Unhandled node
 io/file_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/file_typed_data_test: Crash # Please triage this failure.
 io/file_uri_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -238,7 +237,6 @@ io/regress_21160_test: Crash #  Unhandled node
 io/secure_client_raw_server_test: Crash #  Unhandled node
 io/secure_server_closing_test: Crash # Please triage this failure.
 io/secure_server_socket_test: Crash # Please triage this failure.
-io/secure_socket_alpn_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 io/secure_socket_argument_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/secure_socket_bad_data_test: Crash #  Unhandled node
 io/skipping_dart2js_compilations_test: Crash #  Unhandled node
@@ -258,9 +256,6 @@ io/web_socket_test: Crash # Instance of 'TypeOperator': type check unimplemented
 io/windows_file_system_links_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/zlib_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 priority_queue_stress_test: RuntimeError # Please triage this failure.
-status_expression_test: RuntimeError # Please triage this failure.
-typed_array_test: Crash # unsupported element kind: float64:field
-verified_mem_test: Crash # unsupported element kind: a:field
 
 [ $runtime == vm ]
 # Failures in secure networking while NSS is replaced with BoringSSL

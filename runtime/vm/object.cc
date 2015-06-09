@@ -65,7 +65,6 @@ DEFINE_FLAG(bool, use_field_guards, true, "Guard field cids.");
 DEFINE_FLAG(bool, use_lib_cache, true, "Use library name cache");
 DEFINE_FLAG(bool, trace_field_guards, false, "Trace changes in field's cids.");
 
-DECLARE_FLAG(bool, error_on_bad_override);
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
@@ -1586,20 +1585,29 @@ static void AddNameProperties(JSONObject* jsobj,
 }
 
 
-static void AddTypeProperties(JSONObject* jsobj,
-                              const char* user_type,
-                              const char* vm_type,
-                              bool ref) {
-  bool same_type = (strcmp(user_type, vm_type) == 0);
+void Object::AddCommonObjectProperties(JSONObject* jsobj,
+                                       const char* protocol_type,
+                                       bool ref) const {
+  const char* vm_type = JSONType();
+  bool same_type = (strcmp(protocol_type, vm_type) == 0);
   if (ref) {
-    jsobj->AddPropertyF("type", "@%s", user_type);
-    if (!same_type) {
-      jsobj->AddPropertyF("_vmType", "@%s", vm_type);
-    }
+    jsobj->AddPropertyF("type", "@%s", protocol_type);
   } else {
-    jsobj->AddProperty("type", user_type);
-    if (!same_type) {
-      jsobj->AddProperty("_vmType", vm_type);
+    jsobj->AddProperty("type", protocol_type);
+  }
+  if (!same_type) {
+    jsobj->AddProperty("_vmType", vm_type);
+  }
+  if (!ref || IsInstance()) {
+    // TODO(turnidge): Provide the type arguments here too?
+    const Class& cls = Class::Handle(this->clazz());
+    jsobj->AddProperty("class", cls);
+  }
+  if (!ref) {
+    if (raw()->IsHeapObject()) {
+      jsobj->AddProperty("size", raw()->Size());
+    } else {
+      jsobj->AddProperty("size", (intptr_t)0);
     }
   }
 }
@@ -1608,14 +1616,10 @@ static void AddTypeProperties(JSONObject* jsobj,
 void Object::PrintJSON(JSONStream* stream, bool ref) const {
   if (IsNull()) {
     JSONObject jsobj(stream);
-    AddTypeProperties(&jsobj, "null", JSONType(), ref);
+    AddCommonObjectProperties(&jsobj, "Instance", ref);
+    jsobj.AddProperty("kind", "Null");
     jsobj.AddFixedServiceId("objects/null");
     jsobj.AddProperty("valueAsString", "null");
-    if (!ref) {
-      const Class& cls = Class::Handle(this->clazz());
-      jsobj.AddProperty("class", cls);
-      jsobj.AddProperty("size", raw()->Size());
-    }
   } else {
     PrintJSONImpl(stream, ref);
   }
@@ -1624,14 +1628,11 @@ void Object::PrintJSON(JSONStream* stream, bool ref) const {
 
 void Object::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  AddTypeProperties(&jsobj, "Object", JSONType(), ref);
+  AddCommonObjectProperties(&jsobj, "Object", ref);
   jsobj.AddServiceId(*this);
   if (ref) {
     return;
   }
-  Class& cls = Class::Handle(this->clazz());
-  jsobj.AddProperty("class", cls);
-  jsobj.AddProperty("size", raw()->Size());
 }
 
 
@@ -3300,9 +3301,15 @@ RawString* Class::GenerateUserVisibleName() const {
     case kTypedDataUint64ArrayCid:
     case kExternalTypedDataUint64ArrayCid:
       return Symbols::Uint64List().raw();
+    case kTypedDataInt32x4ArrayCid:
+    case kExternalTypedDataInt32x4ArrayCid:
+      return Symbols::Int32x4List().raw();
     case kTypedDataFloat32x4ArrayCid:
     case kExternalTypedDataFloat32x4ArrayCid:
       return Symbols::Float32x4List().raw();
+    case kTypedDataFloat64x2ArrayCid:
+    case kExternalTypedDataFloat64x2ArrayCid:
+      return Symbols::Float64x2List().raw();
     case kTypedDataFloat32ArrayCid:
     case kExternalTypedDataFloat32ArrayCid:
       return Symbols::Float32List().raw();
@@ -4113,12 +4120,11 @@ const char* Class::ToCString() const {
 void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   if ((raw() == Class::null()) || (id() == kFreeListElement)) {
-    // TODO(turnidge): This is weird.  See if there is another way to
-    // handle this.
+    // TODO(turnidge): This is weird and needs to be changed.
     jsobj.AddProperty("type", "null");
     return;
   }
-  AddTypeProperties(&jsobj, "Class", JSONType(), ref);
+  AddCommonObjectProperties(&jsobj, "Class", ref);
   jsobj.AddFixedServiceId("classes/%" Pd "", id());
   const String& user_name = String::Handle(PrettyName());
   const String& vm_name = String::Handle(Name());
@@ -4143,9 +4149,7 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("library", Object::Handle(library()));
   const Script& script = Script::Handle(this->script());
   if (!script.IsNull()) {
-    jsobj.AddProperty("script", script);
-    jsobj.AddProperty("tokenPos", token_pos());
-    jsobj.AddProperty("endTokenPos", ComputeEndTokenPos());
+    jsobj.AddLocation(script, token_pos(), ComputeEndTokenPos());
   }
   {
     JSONArray interfaces_array(&jsobj, "interfaces");
@@ -4448,7 +4452,7 @@ void TypeArguments::PrintJSONImpl(JSONStream* stream, bool ref) const {
   ObjectStore* object_store = isolate->object_store();
   const Array& table = Array::Handle(object_store->canonical_type_arguments());
   ASSERT(table.Length() > 0);
-  AddTypeProperties(&jsobj, "TypeArguments", JSONType(), ref);
+  AddCommonObjectProperties(&jsobj, "TypeArguments", ref);
   jsobj.AddServiceId(*this);
   const String& user_name = String::Handle(PrettyName());
   const String& vm_name = String::Handle(Name());
@@ -5116,6 +5120,7 @@ bool Function::HasCode() const {
 
 
 void Function::ClearCode() const {
+  ASSERT(ic_data_array() == Array::null());
   StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
   StubCode* stub_code = Isolate::Current()->stub_code();
   StorePointer(&raw_ptr()->instructions_,
@@ -5142,8 +5147,9 @@ void Function::SwitchToUnoptimizedCode() const {
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
   }
-  AttachCode(Code::Handle(zone, unoptimized_code()));
-  CodePatcher::RestoreEntry(Code::Handle(zone, unoptimized_code()));
+  const Code& unopt_code = Code::Handle(zone, unoptimized_code());
+  AttachCode(unopt_code);
+  CodePatcher::RestoreEntry(unopt_code);
   isolate->TrackDeoptimizedCode(current_code);
 }
 
@@ -5907,7 +5913,7 @@ const char* Function::ToQualifiedCString() const {
 
 bool Function::HasCompatibleParametersWith(const Function& other,
                                            Error* bound_error) const {
-  ASSERT(Isolate::Current()->ErrorOnBadOverrideEnabled());
+  ASSERT(Isolate::Current()->flags().error_on_bad_override());
   ASSERT((bound_error != NULL) && bound_error->IsNull());
   // Check that this function's signature type is a subtype of the other
   // function's signature type.
@@ -6199,13 +6205,13 @@ RawFunction* Function::Clone(const Class& new_owner) const {
   const PatchClass& clone_owner =
       PatchClass::Handle(PatchClass::New(new_owner, origin));
   clone.set_owner(clone_owner);
+  clone.ClearICDataArray();
   clone.ClearCode();
   clone.set_usage_counter(0);
   clone.set_deoptimization_counter(0);
   clone.set_regexp_cid(kIllegalCid);
   clone.set_optimized_instruction_count(0);
   clone.set_optimized_call_site_count(0);
-  clone.set_ic_data_array(Array::Handle());
   if (new_owner.NumTypeParameters() > 0) {
     // Adjust uninstantiated types to refer to type parameters of the new owner.
     AbstractType& type = AbstractType::Handle(clone.result_type());
@@ -6755,8 +6761,21 @@ RawArray* Function::ic_data_array() const {
   return raw_ptr()->ic_data_array_;
 }
 
-void Function::ClearICData() const {
-  set_ic_data_array(Array::Handle());
+void Function::ClearICDataArray() const {
+  set_ic_data_array(Array::null_array());
+}
+
+
+void Function::SetDeoptReasonForAll(intptr_t deopt_id,
+                                    ICData::DeoptReasonId reason) {
+  const Array& icd_array = Array::Handle(ic_data_array());
+  ICData& icd = ICData::Handle();
+  for (intptr_t i = 0; i < icd_array.Length(); i++) {
+    icd ^= icd_array.At(i);
+    if (icd.deopt_id() == deopt_id) {
+      icd.AddDeoptReason(reason);
+    }
+  }
 }
 
 
@@ -6880,7 +6899,7 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   err ^= cls.EnsureIsFinalized(Isolate::Current());
   ASSERT(err.IsNull());
   JSONObject jsobj(stream);
-  AddTypeProperties(&jsobj, "Function", JSONType(), ref);
+  AddCommonObjectProperties(&jsobj, "Function", ref);
   AddFunctionServiceId(jsobj, *this, cls);
   const String& user_name = String::Handle(PrettyName());
   const String& vm_name = String::Handle(name());
@@ -6919,9 +6938,7 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
   const Script& script = Script::Handle(this->script());
   if (!script.IsNull()) {
-    jsobj.AddProperty("script", script);
-    jsobj.AddProperty("tokenPos", token_pos());
-    jsobj.AddProperty("endTokenPos", end_token_pos());
+    jsobj.AddLocation(script, token_pos(), end_token_pos());
   }
 }
 
@@ -7230,7 +7247,7 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   intptr_t id = cls.FindFieldIndex(*this);
   ASSERT(id >= 0);
   intptr_t cid = cls.id();
-  AddTypeProperties(&jsobj, "Field", JSONType(), ref);
+  AddCommonObjectProperties(&jsobj, "Field", ref);
   jsobj.AddFixedServiceId("classes/%" Pd "/fields/%" Pd "", cid, id);
   const String& user_name = String::Handle(PrettyName());
   const String& vm_name = String::Handle(name());
@@ -7276,8 +7293,7 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const Class& origin_cls = Class::Handle(origin());
   const Script& script = Script::Handle(origin_cls.script());
   if (!script.IsNull()) {
-    jsobj.AddProperty("script", script);
-    jsobj.AddProperty("tokenPos", token_pos());
+    jsobj.AddLocation(script, token_pos());
   }
 }
 
@@ -8015,16 +8031,13 @@ const char* TokenStream::ToCString() const {
 
 void TokenStream::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  AddTypeProperties(&jsobj, "Object", JSONType(), ref);
+  AddCommonObjectProperties(&jsobj, "Object", ref);
   // TODO(johnmccutchan): Generate a stable id. TokenStreams hang off
   // a Script object but do not have a back reference to generate a stable id.
   jsobj.AddServiceId(*this);
   if (ref) {
     return;
   }
-  Class& cls = Class::Handle(this->clazz());
-  jsobj.AddProperty("class", cls);
-  jsobj.AddProperty("size", raw()->Size());
   const String& private_key = String::Handle(PrivateKey());
   jsobj.AddProperty("privateKey", private_key);
   // TODO(johnmccutchan): Add support for printing LiteralTokens and add
@@ -8549,7 +8562,7 @@ RawLibrary* Script::FindLibrary() const {
 // See also Dart_ScriptGetTokenInfo.
 void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  AddTypeProperties(&jsobj, "Script", JSONType(), ref);
+  AddCommonObjectProperties(&jsobj, "Script", ref);
   const String& uri = String::Handle(url());
   ASSERT(!uri.IsNull());
   const String& encoded_uri = String::Handle(String::EncodeIRI(uri));
@@ -9900,7 +9913,7 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
   intptr_t id = index();
   ASSERT(id >= 0);
   JSONObject jsobj(stream);
-  AddTypeProperties(&jsobj, "Library", JSONType(), ref);
+  AddCommonObjectProperties(&jsobj, "Library", ref);
   jsobj.AddFixedServiceId("libraries/%" Pd "", id);
   jsobj.AddProperty("name", library_name);
   const String& library_url = String::Handle(url());
@@ -10760,16 +10773,13 @@ const char* PcDescriptors::ToCString() const {
 
 
 void PcDescriptors::PrintToJSONObject(JSONObject* jsobj, bool ref) const {
-  AddTypeProperties(jsobj, "Object", JSONType(), ref);
+  AddCommonObjectProperties(jsobj, "Object", ref);
   // TODO(johnmccutchan): Generate a stable id. PcDescriptors hang off a Code
   // object but do not have a back reference to generate an ID.
   jsobj->AddServiceId(*this);
   if (ref) {
     return;
   }
-  Class& cls = Class::Handle(this->clazz());
-  jsobj->AddProperty("class", cls);
-  jsobj->AddProperty("size", raw()->Size());
   JSONArray members(jsobj, "members");
   Iterator iter(*this, RawPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
@@ -10777,6 +10787,7 @@ void PcDescriptors::PrintToJSONObject(JSONObject* jsobj, bool ref) const {
     descriptor.AddPropertyF("pcOffset", "%" Px "", iter.PcOffset());
     descriptor.AddProperty("kind", KindAsStr(iter.Kind()));
     descriptor.AddProperty("deoptId", iter.DeoptId());
+    // TODO(turnidge): Use AddLocation instead.
     descriptor.AddProperty("tokenPos", iter.TokenPos());
     descriptor.AddProperty("tryIndex", iter.TryIndex());
   }
@@ -11041,16 +11052,13 @@ const char* LocalVarDescriptors::ToCString() const {
 void LocalVarDescriptors::PrintJSONImpl(JSONStream* stream,
                                         bool ref) const {
   JSONObject jsobj(stream);
-  AddTypeProperties(&jsobj, "Object", JSONType(), ref);
+  AddCommonObjectProperties(&jsobj, "Object", ref);
   // TODO(johnmccutchan): Generate a stable id. LocalVarDescriptors hang off
   // a Code object but do not have a back reference to generate an ID.
   jsobj.AddServiceId(*this);
   if (ref) {
     return;
   }
-  Class& cls = Class::Handle(this->clazz());
-  jsobj.AddProperty("class", cls);
-  jsobj.AddProperty("size", raw()->Size());
   JSONArray members(&jsobj, "members");
   String& var_name = String::Handle();
   for (intptr_t i = 0; i < Length(); i++) {
@@ -11990,6 +11998,7 @@ void ICData::PrintToJSONArray(const JSONArray& jsarray,
 
   JSONObject jsobj(&jsarray);
   jsobj.AddProperty("name", String::Handle(target_name()).ToCString());
+  // TODO(turnidge): Use AddLocation instead.
   jsobj.AddProperty("tokenPos", token_pos);
   // TODO(rmacnak): Figure out how to stringify DeoptReasons().
   // jsobj.AddProperty("deoptReasons", ...);
@@ -12720,7 +12729,7 @@ bool Code::IsFunctionCode() const {
 
 void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  AddTypeProperties(&jsobj, "Code", JSONType(), ref);
+  AddCommonObjectProperties(&jsobj, "Code", ref);
   jsobj.AddFixedServiceId("code/%" Px64"-%" Px "",
                           compile_timestamp(),
                           EntryPoint());
@@ -13019,7 +13028,7 @@ void Context::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   // TODO(turnidge): Should the user level type for Context be Context
   // or Object?
-  AddTypeProperties(&jsobj, "Context", JSONType(), ref);
+  AddCommonObjectProperties(&jsobj, "Context", ref);
   jsobj.AddServiceId(*this);
 
   jsobj.AddProperty("length", num_variables());
@@ -13028,19 +13037,16 @@ void Context::PrintJSONImpl(JSONStream* stream, bool ref) const {
     return;
   }
 
-  Class& cls = Class::Handle(this->clazz());
-  jsobj.AddProperty("class", cls);
-
-  jsobj.AddProperty("size", raw()->Size());
-
   const Context& parent_context = Context::Handle(parent());
-  jsobj.AddProperty("parent", parent_context);
+  if (!parent_context.IsNull()) {
+    jsobj.AddProperty("parent", parent_context);
+  }
 
   JSONArray jsarr(&jsobj, "variables");
-  for (intptr_t i = 0; i < num_variables(); i++) {
-    const Object& var = Object::Handle(At(i));
+  Object& var = Object::Handle();
+  for (intptr_t index = 0; index < num_variables(); index++) {
+    var = At(index);
     JSONObject jselement(&jsarr);
-    jselement.AddProperty("index", i);
     jselement.AddProperty("value", var);
   }
 }
@@ -13438,7 +13444,9 @@ const char* ApiError::ToCString() const {
 
 void ApiError::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  AddTypeProperties(&jsobj, "Error", JSONType(), ref);
+  AddCommonObjectProperties(&jsobj, "Error", ref);
+  jsobj.AddProperty("kind", "InternalError");
+  jsobj.AddServiceId(*this);
   jsobj.AddProperty("message", ToErrorCString());
 }
 
@@ -13575,7 +13583,9 @@ const char* LanguageError::ToCString() const {
 
 void LanguageError::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  AddTypeProperties(&jsobj, "Error", JSONType(), ref);
+  AddCommonObjectProperties(&jsobj, "Error", ref);
+  jsobj.AddProperty("kind", "LanguageError");
+  jsobj.AddServiceId(*this);
   jsobj.AddProperty("message", ToErrorCString());
 }
 
@@ -13666,9 +13676,13 @@ const char* UnhandledException::ToCString() const {
 void UnhandledException::PrintJSONImpl(JSONStream* stream,
                                        bool ref) const {
   JSONObject jsobj(stream);
-  AddTypeProperties(&jsobj, "Error", JSONType(), ref);
+  AddCommonObjectProperties(&jsobj, "Error", ref);
+  jsobj.AddProperty("kind", "UnhandledException");
+  jsobj.AddServiceId(*this);
   jsobj.AddProperty("message", ToErrorCString());
-
+  if (ref) {
+    return;
+  }
   Instance& instance = Instance::Handle();
   instance = exception();
   jsobj.AddProperty("exception", instance);
@@ -13710,7 +13724,9 @@ const char* UnwindError::ToCString() const {
 
 void UnwindError::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  AddTypeProperties(&jsobj, "Error", JSONType(), ref);
+  AddCommonObjectProperties(&jsobj, "Error", ref);
+  jsobj.AddProperty("kind", "TerminationError");
+  jsobj.AddServiceId(*this);
   jsobj.AddProperty("message", ToErrorCString());
 }
 
@@ -13851,6 +13867,7 @@ RawInstance* Instance::CheckAndCanonicalize(const char** error_str) const {
       break;
     }
     if (this->CanonicalizeEquals(result)) {
+      ASSERT(result.IsCanonical());
       return result.raw();
     }
     index++;
@@ -13942,7 +13959,7 @@ bool Instance::IsInstanceOf(const AbstractType& other,
     const AbstractType& instantiated_other = AbstractType::Handle(
         isolate, other.InstantiateFrom(other_instantiator, bound_error));
     if ((bound_error != NULL) && !bound_error->IsNull()) {
-      ASSERT(Isolate::Current()->TypeChecksEnabled());
+      ASSERT(Isolate::Current()->flags().type_checks());
       return false;
     }
     other_class = instantiated_other.type_class();
@@ -14153,20 +14170,13 @@ const char* Instance::ToCString() const {
 
 void Instance::PrintSharedInstanceJSON(JSONObject* jsobj,
                                        bool ref) const {
-  Class& cls = Class::Handle(this->clazz());
-  jsobj->AddProperty("class", cls);
-  // TODO(turnidge): Provide the type arguments here too.
+  AddCommonObjectProperties(jsobj, "Instance", ref);
   if (ref) {
     return;
   }
 
-  if (raw()->IsHeapObject()) {
-    jsobj->AddProperty("size", raw()->Size());
-  } else {
-    jsobj->AddProperty("size", (intptr_t)0);
-  }
-
   // Walk the superclass chain, adding all instance fields.
+  Class& cls = Class::Handle(this->clazz());
   {
     Instance& fieldValue = Instance::Handle();
     JSONArray jsarr(jsobj, "fields");
@@ -14216,12 +14226,18 @@ void Instance::PrintJSONImpl(JSONStream* stream, bool ref) const {
     return;
   }
 
-  AddTypeProperties(&jsobj, "Instance", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
+  if (IsClosure()) {
+    jsobj.AddProperty("kind", "Closure");
+  } else {
+    jsobj.AddProperty("kind", "PlainInstance");
+  }
   jsobj.AddServiceId(*this);
   if (IsClosure()) {
-    jsobj.AddProperty("function", Function::Handle(Closure::function(*this)));
-    jsobj.AddProperty("context", Context::Handle(Closure::context(*this)));
+    jsobj.AddProperty("closureFunction",
+                      Function::Handle(Closure::function(*this)));
+    jsobj.AddProperty("closureContext",
+                      Context::Handle(Closure::context(*this)));
   }
   if (ref) {
     return;
@@ -14610,14 +14626,14 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
   // type and/or malbounded parameter types, which will then be encountered here
   // at run time.
   if (IsMalbounded()) {
-    ASSERT(Isolate::Current()->TypeChecksEnabled());
+    ASSERT(Isolate::Current()->flags().type_checks());
     if ((bound_error != NULL) && bound_error->IsNull()) {
       *bound_error = error();
     }
     return false;
   }
   if (other.IsMalbounded()) {
-    ASSERT(Isolate::Current()->TypeChecksEnabled());
+    ASSERT(Isolate::Current()->flags().type_checks());
     if ((bound_error != NULL) && bound_error->IsNull()) {
       *bound_error = other.error();
     }
@@ -14824,7 +14840,7 @@ bool Type::IsMalformed() const {
 
 
 bool Type::IsMalbounded() const {
-  if (!Isolate::Current()->TypeChecksEnabled()) {
+  if (!Isolate::Current()->flags().type_checks()) {
     return false;
   }
   if (raw_ptr()->error_ == LanguageError::null()) {
@@ -14844,7 +14860,7 @@ bool Type::IsMalformedOrMalbounded() const {
     return true;
   }
   ASSERT(type_error.kind() == Report::kMalboundedType);
-  return Isolate::Current()->TypeChecksEnabled();
+  return Isolate::Current()->flags().type_checks();
 }
 
 
@@ -15314,8 +15330,8 @@ const char* Type::ToCString() const {
 
 void Type::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  AddTypeProperties(&jsobj, "Type", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "Type");
   if (IsCanonical()) {
     const Class& type_cls = Class::Handle(type_class());
     intptr_t id = type_cls.FindCanonicalTypeIndex(*this);
@@ -15505,8 +15521,8 @@ const char* TypeRef::ToCString() const {
 
 void TypeRef::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  AddTypeProperties(&jsobj, "TypeRef", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "TypeRef");
   jsobj.AddServiceId(*this);
   const String& user_name = String::Handle(PrettyName());
   const String& vm_name = String::Handle(Name());
@@ -15514,7 +15530,7 @@ void TypeRef::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
-  jsobj.AddProperty("refType", AbstractType::Handle(type()));
+  jsobj.AddProperty("targetType", AbstractType::Handle(type()));
 }
 
 
@@ -15739,8 +15755,8 @@ const char* TypeParameter::ToCString() const {
 
 void TypeParameter::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  AddTypeProperties(&jsobj, "TypeParameter", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "TypeParameter");
   jsobj.AddServiceId(*this);
   const String& user_name = String::Handle(PrettyName());
   const String& vm_name = String::Handle(Name());
@@ -15750,9 +15766,9 @@ void TypeParameter::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
-  jsobj.AddProperty("index", index());
+  jsobj.AddProperty("parameterIndex", index());
   const AbstractType& upper_bound = AbstractType::Handle(bound());
-  jsobj.AddProperty("upperBound", upper_bound);
+  jsobj.AddProperty("bound", upper_bound);
 }
 
 
@@ -15848,7 +15864,7 @@ RawAbstractType* BoundedType::InstantiateFrom(
                                                 bound_error,
                                                 trail);
   }
-  if ((Isolate::Current()->TypeChecksEnabled()) &&
+  if ((Isolate::Current()->flags().type_checks()) &&
       (bound_error != NULL) && bound_error->IsNull()) {
     AbstractType& upper_bound = AbstractType::Handle(bound());
     ASSERT(!upper_bound.IsObjectType() && !upper_bound.IsDynamicType());
@@ -15955,8 +15971,8 @@ const char* BoundedType::ToCString() const {
 
 void BoundedType::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  AddTypeProperties(&jsobj, "BoundedType", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "BoundedType");
   jsobj.AddServiceId(*this);
   const String& user_name = String::Handle(PrettyName());
   const String& vm_name = String::Handle(Name());
@@ -15964,8 +15980,8 @@ void BoundedType::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
-  jsobj.AddProperty("boundedType", AbstractType::Handle(type()));
-  jsobj.AddProperty("upperBound", AbstractType::Handle(bound()));
+  jsobj.AddProperty("targetType", AbstractType::Handle(type()));
+  jsobj.AddProperty("bound", AbstractType::Handle(bound()));
 }
 
 
@@ -16058,8 +16074,8 @@ const char* Integer::ToCString() const {
 
 void Integer::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  AddTypeProperties(&jsobj, "int", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "Int");
   jsobj.AddServiceId(*this);
   jsobj.AddProperty("valueAsString", ToCString());
 }
@@ -16487,8 +16503,8 @@ const char* Smi::ToCString() const {
 
 void Smi::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  AddTypeProperties(&jsobj, "int", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "Int");
   jsobj.AddFixedServiceId("objects/int-%" Pd "", Value());
   jsobj.AddPropertyF("valueAsString", "%" Pd "", Value());
 }
@@ -16538,6 +16554,7 @@ RawMint* Mint::NewCanonical(int64_t value) {
       break;
     }
     if (canonical_value.value() == value) {
+      ASSERT(canonical_value.IsCanonical());
       return canonical_value.raw();
     }
     index++;
@@ -16749,10 +16766,8 @@ const char* Double::ToCString() const {
 
 void Double::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  // Suppress the fact that the internal vm name for this type is
-  // "Double".  Return "double" instead.
-  AddTypeProperties(&jsobj, "double", "double", ref);
   PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "Double");
   jsobj.AddServiceId(*this);
   jsobj.AddProperty("valueAsString", ToCString());
 }
@@ -18331,8 +18346,8 @@ void String::PrintJSONImpl(JSONStream* stream, bool ref) const {
     jsobj.AddProperty("valueAsString", "<optimized out>");
     return;
   }
-  AddTypeProperties(&jsobj, "String", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "String");
   jsobj.AddServiceId(*this);
   if (ref) {
     bool did_truncate = jsobj.AddPropertyStr("valueAsString", *this, 128);
@@ -19240,10 +19255,8 @@ const char* Bool::ToCString() const {
 void Bool::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const char* str = ToCString();
   JSONObject jsobj(stream);
-  // Suppress the fact that the internal vm name for this type is
-  // "Bool".  Return "bool" instead.
-  AddTypeProperties(&jsobj, "bool", "bool", ref);
   PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "Bool");
   jsobj.AddFixedServiceId("objects/bool-%s", str);
   jsobj.AddPropertyF("valueAsString", "%s", str);
 }
@@ -19343,19 +19356,17 @@ const char* Array::ToCString() const {
   if (IsNull()) {
     return IsImmutable() ? "_ImmutableList NULL" : "_List NULL";
   }
-  const char* format = IsImmutable() ?
-      "_ImmutableList len:%" Pd : "_List len:%" Pd;
-  intptr_t len = OS::SNPrint(NULL, 0, format, Length()) + 1;
-  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, Length());
-  return chars;
+  Zone* zone = Isolate::Current()->current_zone();
+  const char* format = IsImmutable() ? "_ImmutableList len:%" Pd
+                                     : "_List len:%" Pd;
+  return zone->PrintToString(format, Length());
 }
 
 
 void Array::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  AddTypeProperties(&jsobj, "List", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "List");
   jsobj.AddServiceId(*this);
   jsobj.AddProperty("length", Length());
   if (ref) {
@@ -19363,12 +19374,10 @@ void Array::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
   {
     JSONArray jsarr(&jsobj, "elements");
+    Object& element = Object::Handle();
     for (intptr_t index = 0; index < Length(); index++) {
-      JSONObject jselement(&jsarr);
-      jselement.AddProperty("index", index);
-
-      Object& element = Object::Handle(At(index));
-      jselement.AddProperty("value", element);
+      element = At(index);
+      jsarr.AddValue(element);
     }
   }
 }
@@ -19600,8 +19609,8 @@ const char* GrowableObjectArray::ToCString() const {
 void GrowableObjectArray::PrintJSONImpl(JSONStream* stream,
                                         bool ref) const {
   JSONObject jsobj(stream);
-  AddTypeProperties(&jsobj, "List", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "List");
   jsobj.AddServiceId(*this);
   jsobj.AddProperty("length", Length());
   if (ref) {
@@ -19609,12 +19618,10 @@ void GrowableObjectArray::PrintJSONImpl(JSONStream* stream,
   }
   {
     JSONArray jsarr(&jsobj, "elements");
+    Object& element = Object::Handle();
     for (intptr_t index = 0; index < Length(); index++) {
-      JSONObject jselement(&jsarr);
-      jselement.AddProperty("index", index);
-
-      Object& element = Object::Handle(At(index));
-      jselement.AddProperty("value", element);
+      element = At(index);
+      jsarr.AddValue(element);
     }
   }
 }
@@ -19655,18 +19662,13 @@ typedef EnumIndexHashMap<DefaultHashTraits> EnumIndexDefaultMap;
 
 
 RawLinkedHashMap* LinkedHashMap::NewDefault(Heap::Space space) {
-  // Keep this in sync with Dart implementation (lib/compact_hash.dart).
-  static const intptr_t kInitialIndexBits = 3;
-  static const intptr_t kInitialIndexSize = 1 << (kInitialIndexBits + 1);
   const Array& data = Array::Handle(Array::New(kInitialIndexSize, space));
   const TypedData& index = TypedData::Handle(TypedData::New(
       kTypedDataUint32ArrayCid, kInitialIndexSize, space));
+  // On 32-bit, the top bits are wasted to avoid Mint allocation.
+  static const intptr_t kAvailableBits = (kSmiBits >= 32) ? 32 : kSmiBits;
   static const intptr_t kInitialHashMask =
-#if defined(ARCH_IS_64_BIT)
-      (1 << (32 - kInitialIndexBits)) - 1;
-#else
-      (1 << (30 - kInitialIndexBits)) - 1;
-#endif
+      (1 << (kAvailableBits - kInitialIndexBits)) - 1;
   return LinkedHashMap::New(data, index, kInitialHashMask, 0, 0, space);
 }
 
@@ -19706,14 +19708,32 @@ RawLinkedHashMap* LinkedHashMap::NewUninitialized(Heap::Space space) {
 
 
 const char* LinkedHashMap::ToCString() const {
-  // TODO(koda): Print key/value pairs.
-  return "_LinkedHashMap";
+  Zone* zone = Isolate::Current()->current_zone();
+  return zone->PrintToString("_LinkedHashMap len:%" Pd, Length());
 }
 
 
 void LinkedHashMap::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  // TODO(koda): Print key/value pairs.
-  Instance::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "Map");
+  jsobj.AddServiceId(*this);
+  jsobj.AddProperty("length", Length());
+  if (ref) {
+    return;
+  }
+  {
+    JSONArray jsarr(&jsobj, "associations");
+    Object& object = Object::Handle();
+    LinkedHashMap::Iterator iterator(*this);
+    while (iterator.MoveNext()) {
+      JSONObject jsassoc(&jsarr);
+      object = iterator.CurrentKey();
+      jsassoc.AddProperty("key", object);
+      object = iterator.CurrentValue();
+      jsassoc.AddProperty("value", object);
+    }
+  }
 }
 
 
@@ -20094,7 +20114,23 @@ const char* TypedData::ToCString() const {
 
 
 void TypedData::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Instance::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  const Class& cls = Class::Handle(clazz());
+  const String& kind = String::Handle(cls.UserVisibleName());
+  jsobj.AddProperty("kind", kind.ToCString());
+  jsobj.AddServiceId(*this);
+  jsobj.AddProperty("length", Length());
+  if (ref) {
+    return;
+  }
+
+  {
+    NoSafepointScope no_safepoint;
+    jsobj.AddPropertyBase64("bytes",
+                            reinterpret_cast<const uint8_t*>(DataAddr(0)),
+                            LengthInBytes());
+  }
 }
 
 
@@ -20129,7 +20165,23 @@ const char* ExternalTypedData::ToCString() const {
 
 void ExternalTypedData::PrintJSONImpl(JSONStream* stream,
                                       bool ref) const {
-  Instance::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  const Class& cls = Class::Handle(clazz());
+  const String& kind = String::Handle(cls.UserVisibleName());
+  jsobj.AddProperty("kind", kind.ToCString());
+  jsobj.AddServiceId(*this);
+  jsobj.AddProperty("length", Length());
+  if (ref) {
+    return;
+  }
+
+  {
+    NoSafepointScope no_safepoint;
+    jsobj.AddPropertyBase64("bytes",
+                            reinterpret_cast<const uint8_t*>(DataAddr(0)),
+                            LengthInBytes());
+  }
 }
 
 
@@ -20588,17 +20640,17 @@ const char* WeakProperty::ToCString() const {
 
 void WeakProperty::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  AddTypeProperties(&jsobj, "Instance", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "WeakProperty");
   jsobj.AddServiceId(*this);
   if (ref) {
     return;
   }
 
   const Object& key_handle = Object::Handle(key());
-  jsobj.AddProperty("key", key_handle);
+  jsobj.AddProperty("propertyKey", key_handle);
   const Object& value_handle = Object::Handle(value());
-  jsobj.AddProperty("value", value_handle);
+  jsobj.AddProperty("propertyValue", value_handle);
 }
 
 RawAbstractType* MirrorReference::GetAbstractTypeReferent() const {
@@ -20659,8 +20711,8 @@ const char* MirrorReference::ToCString() const {
 
 void MirrorReference::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  AddTypeProperties(&jsobj, "Instance", JSONType(), ref);
   PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "MirrorReference");
   jsobj.AddServiceId(*this);
 
   if (ref) {
@@ -20668,7 +20720,7 @@ void MirrorReference::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 
   const Object& referent_handle = Object::Handle(referent());
-  jsobj.AddProperty("referent", referent_handle);
+  jsobj.AddProperty("mirrorReferent", referent_handle);
 }
 
 

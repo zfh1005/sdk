@@ -141,7 +141,7 @@ class SsaBuilderTask extends CompilerTask {
           signature.forEachOptionalParameter((ParameterElement parameter) {
             // This ensures the default value will be computed.
             ConstantValue constant =
-                backend.constants.getConstantForVariable(parameter).value;
+                backend.constants.getConstantValueForVariable(parameter);
             CodegenRegistry registry = work.registry;
             registry.registerCompileTimeConstant(constant);
           });
@@ -1322,9 +1322,12 @@ class SsaBuilder extends NewResolvedVisitor {
     bool meetsHardConstraints() {
       if (compiler.disableInlining) return false;
 
-      assert(selector != null
-             || Elements.isStaticOrTopLevel(element)
-             || element.isGenerativeConstructorBody);
+      assert(invariant(
+          currentNode != null ? currentNode : element,
+          selector != null ||
+          Elements.isStaticOrTopLevel(element) ||
+          element.isGenerativeConstructorBody,
+          message: "Missing selector for inlining of $element."));
       if (selector != null && !selector.applies(function, compiler.world)) {
         return false;
       }
@@ -1505,11 +1508,11 @@ class SsaBuilder extends NewResolvedVisitor {
   }
 
   HInstruction handleConstantForOptionalParameter(Element parameter) {
-    ConstantExpression constant =
-        backend.constants.getConstantForVariable(parameter);
-    assert(invariant(parameter, constant != null,
+    ConstantValue constantValue =
+        backend.constants.getConstantValueForVariable(parameter);
+    assert(invariant(parameter, constantValue != null,
         message: 'No constant computed for $parameter'));
-    return graph.addConstant(constant.value, compiler);
+    return graph.addConstant(constantValue, compiler);
   }
 
   Element get currentNonClosureClass {
@@ -1545,11 +1548,11 @@ class SsaBuilder extends NewResolvedVisitor {
   bool inTryStatement = false;
 
   ConstantValue getConstantForNode(ast.Node node) {
-    ConstantExpression constant =
-        backend.constants.getConstantForNode(node, elements);
-    assert(invariant(node, constant != null,
+    ConstantValue constantValue =
+        backend.constants.getConstantValueForNode(node, elements);
+    assert(invariant(node, constantValue != null,
         message: 'No constant computed for $node'));
-    return constant.value;
+    return constantValue;
   }
 
   HInstruction addConstant(ast.Node node) {
@@ -1873,7 +1876,7 @@ class SsaBuilder extends NewResolvedVisitor {
       // by the effective target.
       if (!callee.isRedirectingGenerative) {
         inlinedFrom(callee, () {
-          buildFieldInitializers(callee.enclosingElement.implementation,
+          buildFieldInitializers(callee.enclosingClass.implementation,
                                fieldValues);
         });
       }
@@ -2005,7 +2008,7 @@ class SsaBuilder extends NewResolvedVisitor {
       ClassElement superClass = enclosingClass.superclass;
       if (!enclosingClass.isObject) {
         assert(superClass != null);
-        assert(superClass.resolutionState == STATE_DONE);
+        assert(superClass.isResolved);
         // TODO(johnniwinther): Should we find injected constructors as well?
         FunctionElement target = superClass.lookupDefaultConstructor();
         if (target == null) {
@@ -3246,8 +3249,7 @@ class SsaBuilder extends NewResolvedVisitor {
     return pop();
   }
 
-  String noSuchMethodTargetSymbolString(ErroneousElement error,
-                                        [String prefix]) {
+  String noSuchMethodTargetSymbolString(Element error, [String prefix]) {
     String result = error.name;
     if (prefix == "set") return "$result=";
     return result;
@@ -3288,14 +3290,18 @@ class SsaBuilder extends NewResolvedVisitor {
         node);
   }
 
+  void handleInvalidStaticGet(ast.Send node, Element element) {
+    generateThrowNoSuchMethod(
+        node,
+        noSuchMethodTargetSymbolString(element, 'get'),
+        argumentNodes: const Link<ast.Node>());
+  }
+
   /// Generate read access of an unresolved static or top level entity.
   void generateStaticUnresolvedGet(ast.Send node, Element element) {
     if (element is ErroneousElement) {
       // An erroneous element indicates an unresolved static getter.
-      generateThrowNoSuchMethod(
-          node,
-          noSuchMethodTargetSymbolString(element, 'get'),
-          argumentNodes: const Link<ast.Node>());
+      handleInvalidStaticGet(node, element);
     } else {
       // This happens when [element] has parse errors.
       assert(invariant(node, element == null || element.isErroneous));
@@ -3310,7 +3316,7 @@ class SsaBuilder extends NewResolvedVisitor {
       ast.Send node,
       FieldElement field,
       ConstantExpression constant) {
-    ConstantValue value = constant.value;
+    ConstantValue value = backend.constants.getConstantValue(constant);
     HConstant instruction;
     // Constants that are referred via a deferred prefix should be referred
     // by reference.
@@ -3628,10 +3634,15 @@ class SsaBuilder extends NewResolvedVisitor {
       bool first = true;
       List<js.Expression> templates = <js.Expression>[];
       for (DartType argument in interface.typeArguments) {
-        templates.add(rti.getTypeRepresentationWithPlaceholders(argument, (variable) {
-          HInstruction runtimeType = addTypeVariableReference(variable);
-          inputs.add(runtimeType);
-        }, firstPlaceholderIndex : inputs.length));
+        // As we construct the template in stages, we have to make sure that for
+        // each part the generated sub-template's holes match the index of the
+        // inputs that are later used to instantiate it. We do this by starting
+        // the indexing with the number of inputs from previous sub-templates.
+        templates.add(
+            rti.getTypeRepresentationWithPlaceholders(argument, (variable) {
+              HInstruction runtimeType = addTypeVariableReference(variable);
+              inputs.add(runtimeType);
+            }, firstPlaceholderIndex: inputs.length));
       }
       // TODO(sra): This is a fresh template each time.  We can't let the
       // template manager build them.
@@ -3894,6 +3905,16 @@ class SsaBuilder extends NewResolvedVisitor {
 
   @override
   visitLocalFunctionInvoke(
+      ast.Send node,
+      LocalFunctionElement function,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    generateCallInvoke(node, localsHandler.readLocal(function));
+  }
+
+  @override
+  visitLocalFunctionIncompatibleInvoke(
       ast.Send node,
       LocalFunctionElement function,
       ast.NodeList arguments,
@@ -4258,40 +4279,6 @@ class SsaBuilder extends NewResolvedVisitor {
       handleForeignRawFunctionRef(node, 'RAW_DART_FUNCTION_REF');
     } else if (name == 'JS_SET_CURRENT_ISOLATE') {
       handleForeignSetCurrentIsolate(node);
-    } else if (name == 'JS_OPERATOR_AS_PREFIX') {
-      // TODO(floitsch): this should be a JS_NAME.
-      stack.add(addConstantString(backend.namer.operatorAsPrefix));
-    } else if (name == 'JS_SIGNATURE_NAME') {
-      // TODO(floitsch): this should be a JS_NAME.
-      stack.add(addConstantString(backend.namer.operatorSignature));
-    } else if (name == 'JS_TYPEDEF_TAG') {
-      // TODO(floitsch): this should be a JS_NAME.
-      stack.add(addConstantString(backend.namer.typedefTag));
-    } else if (name == 'JS_FUNCTION_TYPE_VOID_RETURN_TAG') {
-      // TODO(floitsch): this should be a JS_NAME.
-      stack.add(addConstantString(backend.namer.functionTypeVoidReturnTag));
-    } else if (name == 'JS_FUNCTION_TYPE_RETURN_TYPE_TAG') {
-      // TODO(floitsch): this should be a JS_NAME.
-      stack.add(addConstantString(backend.namer.functionTypeReturnTypeTag));
-    } else if (name ==
-               'JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG') {
-      // TODO(floitsch): this should be a JS_NAME.
-      stack.add(addConstantString(
-          backend.namer.functionTypeRequiredParametersTag));
-    } else if (name ==
-               'JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG') {
-      // TODO(floitsch): this should be a JS_NAME.
-      stack.add(addConstantString(
-          backend.namer.functionTypeOptionalParametersTag));
-    } else if (name ==
-               'JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG') {
-      // TODO(floitsch): this should be a JS_NAME.
-      stack.add(addConstantString(
-          backend.namer.functionTypeNamedParametersTag));
-    } else if (name == 'JS_IS_INDEXABLE_FIELD_NAME') {
-      // TODO(floitsch): this should be a JS_NAME.
-      Element element = backend.findHelper('JavaScriptIndexingBehavior');
-      stack.add(addConstantString(backend.namer.operatorIs(element)));
     } else if (name == 'JS_CURRENT_ISOLATE') {
       handleForeignJsCurrentIsolate(node);
     } else if (name == 'JS_GET_NAME') {
@@ -4309,7 +4296,7 @@ class SsaBuilder extends NewResolvedVisitor {
     } else if (name == 'JS_STRING_CONCAT') {
       handleJsStringConcat(node);
     } else {
-      throw "Unknown foreign: ${element}";
+      compiler.internalError(node, "Unknown foreign: ${element}");
     }
   }
 
@@ -5143,7 +5130,7 @@ class SsaBuilder extends NewResolvedVisitor {
       ast.NodeList arguments,
       CallStructure callStructure,
       _) {
-    if (function.isForeign(backend)) {
+    if (backend.isForeign(function)) {
       handleForeignSend(node, function);
     } else {
       generateStaticFunctionInvoke(node, function, callStructure);
@@ -5172,11 +5159,53 @@ class SsaBuilder extends NewResolvedVisitor {
   }
 
   @override
+  void visitTopLevelSetterGet(
+      ast.Send node,
+      MethodElement setter,
+      _) {
+    handleInvalidStaticGet(node, setter);
+  }
+
+  @override
+  void visitStaticSetterGet(
+      ast.Send node,
+      MethodElement setter,
+      _) {
+    handleInvalidStaticGet(node, setter);
+  }
+
+  @override
   void visitUnresolvedGet(
       ast.Send node,
       Element element,
       _) {
     generateStaticUnresolvedGet(node, element);
+  }
+
+  void handleInvalidStaticInvoke(ast.Send node, Element element) {
+    generateThrowNoSuchMethod(node,
+                              noSuchMethodTargetSymbolString(element),
+                              argumentNodes: node.arguments);
+  }
+
+  @override
+  void visitStaticSetterInvoke(
+      ast.Send node,
+      MethodElement setter,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    handleInvalidStaticInvoke(node, setter);
+  }
+
+  @override
+  void visitTopLevelSetterInvoke(
+      ast.Send node,
+      MethodElement setter,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    handleInvalidStaticInvoke(node, setter);
   }
 
   @override
@@ -5189,9 +5218,7 @@ class SsaBuilder extends NewResolvedVisitor {
     if (element is ErroneousElement) {
       // An erroneous element indicates that the funciton could not be
       // resolved (a warning has been issued).
-      generateThrowNoSuchMethod(node,
-                                noSuchMethodTargetSymbolString(element),
-                                argumentNodes: node.arguments);
+      handleInvalidStaticInvoke(node, element);
     } else {
       // TODO(ahe): Do something like [generateWrongArgumentCountError].
       stack.add(graph.addConstantNull(compiler));

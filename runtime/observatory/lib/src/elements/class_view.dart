@@ -44,11 +44,18 @@ class ClassViewElement extends ObservatoryElement {
     });
   }
 
+  void attached() {
+    cls.fields.forEach((field) => field.reload());
+  }
+
   Future refresh() {
     instances = null;
     retainedBytes = null;
     mostRetained = null;
-    return cls.reload();
+    var loads = [];
+    loads.add(cls.reload());
+    cls.fields.forEach((field) => loads.add(field.reload()));
+    return Future.wait(loads);
   }
 
   Future refreshCoverage() {

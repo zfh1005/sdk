@@ -1871,7 +1871,8 @@ TEST_CASE(TypedDataDirectAccessVerified) {
 
 static void TestDirectAccess(Dart_Handle lib,
                              Dart_Handle array,
-                             Dart_TypedData_Type expected_type) {
+                             Dart_TypedData_Type expected_type,
+                             bool is_external) {
   Dart_Handle result;
 
   // Invoke the dart function that sets initial values.
@@ -1892,6 +1893,15 @@ static void TestDirectAccess(Dart_Handle lib,
   int8_t* dataP = reinterpret_cast<int8_t*>(data);
   for (int i = 0; i < kLength; i++) {
     EXPECT_EQ(i, dataP[i]);
+  }
+
+  if (!is_external) {
+    // Now try allocating a string with outstanding Acquires and it should
+    // return an error.
+    result = NewString("We expect an error here");
+    EXPECT_ERROR(result,
+                 "Internal Dart data pointers have been acquired, "
+                 "please release them using Dart_TypedDataReleaseData.");
   }
 
   // Now modify the values in the directly accessible array and then check
@@ -1942,7 +1952,7 @@ static void TestTypedDataDirectAccess1() {
   Dart_Handle list_access_test_obj;
   list_access_test_obj = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(list_access_test_obj);
-  TestDirectAccess(lib, list_access_test_obj, Dart_TypedData_kInt8);
+  TestDirectAccess(lib, list_access_test_obj, Dart_TypedData_kInt8, false);
 
   // Test with an external typed data object.
   uint8_t data[] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
@@ -1951,7 +1961,7 @@ static void TestTypedDataDirectAccess1() {
   ext_list_access_test_obj = Dart_NewExternalTypedData(Dart_TypedData_kUint8,
                                                        data, data_length);
   EXPECT_VALID(ext_list_access_test_obj);
-  TestDirectAccess(lib, ext_list_access_test_obj, Dart_TypedData_kUint8);
+  TestDirectAccess(lib, ext_list_access_test_obj, Dart_TypedData_kUint8, true);
 }
 
 
@@ -2002,7 +2012,7 @@ static void TestTypedDataViewDirectAccess() {
   Dart_Handle list_access_test_obj;
   list_access_test_obj = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(list_access_test_obj);
-  TestDirectAccess(lib, list_access_test_obj, Dart_TypedData_kInt8);
+  TestDirectAccess(lib, list_access_test_obj, Dart_TypedData_kInt8, false);
 }
 
 
@@ -2053,7 +2063,7 @@ static void TestByteDataDirectAccess() {
   Dart_Handle list_access_test_obj;
   list_access_test_obj = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(list_access_test_obj);
-  TestDirectAccess(lib, list_access_test_obj, Dart_TypedData_kByteData);
+  TestDirectAccess(lib, list_access_test_obj, Dart_TypedData_kByteData, false);
 }
 
 
@@ -3701,7 +3711,7 @@ UNIT_TEST_CASE(CurrentIsolateData) {
   intptr_t mydata = 12345;
   char* err;
   Dart_Isolate isolate =
-      Dart_CreateIsolate(NULL, NULL, bin::isolate_snapshot_buffer,
+      Dart_CreateIsolate(NULL, NULL, bin::isolate_snapshot_buffer, NULL,
                          reinterpret_cast<void*>(mydata),
                          &err);
   EXPECT(isolate != NULL);
@@ -7301,6 +7311,7 @@ UNIT_TEST_CASE(NewNativePort) {
 static Dart_Isolate RunLoopTestCallback(const char* script_name,
                                         const char* main,
                                         const char* package_root,
+                                        Dart_IsolateFlags* flags,
                                         void* data,
                                         char** error) {
   const char* kScriptChars =
@@ -7373,7 +7384,8 @@ static void RunLoopTest(bool throw_exception_child,
   Dart_IsolateCreateCallback saved = Isolate::CreateCallback();
   Isolate::SetCreateCallback(RunLoopTestCallback);
   Isolate::SetUnhandledExceptionCallback(RunLoopUnhandledExceptionCallback);
-  Dart_Isolate isolate = RunLoopTestCallback(NULL, NULL, NULL, NULL, NULL);
+  Dart_Isolate isolate = RunLoopTestCallback(
+      NULL, NULL, NULL, NULL, NULL, NULL);
 
   Dart_EnterIsolate(isolate);
   Dart_EnterScope();
@@ -7475,6 +7487,7 @@ void BusyLoop_start(uword unused) {
     char* error = NULL;
     shared_isolate = Dart_CreateIsolate(NULL, NULL,
                                         bin::isolate_snapshot_buffer,
+                                        NULL,
                                         NULL, &error);
     EXPECT(shared_isolate != NULL);
     Dart_EnterScope();
@@ -7603,6 +7616,7 @@ UNIT_TEST_CASE(IsolateShutdown) {
   char* err;
   Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL,
                                             bin::isolate_snapshot_buffer,
+                                            NULL,
                                             my_data, &err);
   if (isolate == NULL) {
     OS::Print("Creation of isolate failed '%s'\n", err);
@@ -7653,6 +7667,7 @@ UNIT_TEST_CASE(IsolateShutdownRunDartCode) {
   char* err;
   Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL,
                                             bin::isolate_snapshot_buffer,
+                                            NULL,
                                             NULL, &err);
   if (isolate == NULL) {
     OS::Print("Creation of isolate failed '%s'\n", err);

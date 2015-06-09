@@ -350,9 +350,10 @@ class Builder implements cps_ir.Visitor<Node> {
   }
 
   Statement visitInvokeMethod(cps_ir.InvokeMethod node) {
-    Expression invoke = new InvokeMethod(getVariableUse(node.receiver),
-                                         node.selector,
-                                         translateArguments(node.arguments));
+    InvokeMethod invoke = new InvokeMethod(getVariableUse(node.receiver),
+                                           node.selector,
+                                           translateArguments(node.arguments));
+    invoke.receiverIsNotNull = node.receiverIsNotNull;
     return continueWithExpression(node.continuation, invoke);
   }
 
@@ -377,6 +378,10 @@ class Builder implements cps_ir.Visitor<Node> {
 
   Statement visitRethrow(cps_ir.Rethrow node) {
     return new Rethrow();
+  }
+
+  Statement visitUnreachable(cps_ir.Unreachable node) {
+    return new Unreachable();
   }
 
   Expression visitNonTailThrow(cps_ir.NonTailThrow node) {
@@ -414,13 +419,18 @@ class Builder implements cps_ir.Visitor<Node> {
     return Assign.makeStatement(variable, value, visit(node.body));
   }
 
-  Statement visitTypeOperator(cps_ir.TypeOperator node) {
+  Statement visitTypeCast(cps_ir.TypeCast node) {
     Expression value = getVariableUse(node.value);
     List<Expression> typeArgs = translateArguments(node.typeArguments);
-    Expression concat =
-        new TypeOperator(value, node.type, typeArgs,
-                         isTypeTest: node.isTypeTest);
-    return continueWithExpression(node.continuation, concat);
+    Expression expression =
+        new TypeOperator(value, node.type, typeArgs, isTypeTest: false);
+    return continueWithExpression(node.continuation, expression);
+  }
+
+  Expression visitTypeTest(cps_ir.TypeTest node) {
+    Expression value = getVariableUse(node.value);
+    List<Expression> typeArgs = translateArguments(node.typeArguments);
+    return new TypeOperator(value, node.type, typeArgs, isTypeTest: true);
   }
 
   Statement visitInvokeConstructor(cps_ir.InvokeConstructor node) {
@@ -490,7 +500,7 @@ class Builder implements cps_ir.Visitor<Node> {
   }
 
   Expression visitConstant(cps_ir.Constant node) {
-    return new Constant(node.expression);
+    return new Constant(node.expression, node.value);
   }
 
   Expression visitLiteralList(cps_ir.LiteralList node) {

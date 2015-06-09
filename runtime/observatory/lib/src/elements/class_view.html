@@ -45,8 +45,7 @@
         <div class="memberItem">
           <div class="memberName">script</div>
           <div class="memberValue">
-            <script-ref ref="{{ cls.script }}" pos="{{ cls.tokenPos }}">
-            </script-ref>
+            <source-link location="{{ cls.location }}"></source-link>
           </div>
         </div>
 
@@ -95,6 +94,12 @@
     <template if="{{ cls.error != null }}">
       <error-ref ref="{{ cls.error }}"></error-ref>
     </template>
+
+    <hr>
+
+    <div class="content">
+      <eval-box callback="{{ evaluate }}"></eval-box>
+    </div>
 
     <hr>
 
@@ -199,14 +204,11 @@
         </template>
     </div>
 
+    <hr>
+
     <div class="content-centered-big">
-      <hr>
-      <eval-box callback="{{ evaluate }}"></eval-box>
-      <hr>
-      <script-inset script="{{ cls.script }}"
-                    startPos="{{ cls.tokenPos }}"
-                    endPos="{{ cls.endTokenPos }}">
-      </script-inset>
+      <source-inset location="{{ cls.location }}">
+      </source-inset>
     </div>
 
     <view-footer></view-footer>

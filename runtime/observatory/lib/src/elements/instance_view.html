@@ -88,8 +88,6 @@
                 </function-ref>
               </div>
             </div>
-          </template>
-          <template if="{{ instance.isClosure }}">
             <div class="memberItem">
               <div class="memberName">closure context</div>
               <div class="memberValue">
@@ -128,9 +126,15 @@
       <hr>
 
       <div class="content">
+        <eval-box callback="{{ evaluate }}"></eval-box>
+      </div>
+
+      <hr>
+
+      <div class="content">
         <template if="{{ instance.nativeFields.isNotEmpty }}">
           native fields ({{ instance.nativeFields.length }})
-          <curly-block expand="{{ instance.nativeFields.length <= 8 }}">
+          <curly-block expand="{{ instance.nativeFields.length <= 100 }}">
             <div class="memberList">
               <template repeat="{{ field in instance.nativeFields }}">
                 <div class="memberItem">
@@ -144,7 +148,7 @@
 
         <template if="{{ instance.fields.isNotEmpty }}">
           fields ({{ instance.fields.length }})
-          <curly-block expand="{{ instance.fields.length <= 8 }}">
+          <curly-block expand="{{ instance.fields.length <= 100 }}">
             <div class="memberList">
               <template repeat="{{ field in instance.fields }}">
                 <div class="memberItem">
@@ -162,26 +166,55 @@
 
         <template if="{{ instance.elements.isNotEmpty }}">
           elements ({{ instance.elements.length }})
-          <curly-block expand="{{ instance.elements.length <= 8 }}">
+          <curly-block expand="{{ instance.elements.length <= 100 }}">
             <div class="memberList">
-              <template repeat="{{ element in instance.elements }}">
+              <template repeat="{{ index in instance.elements.asMap().keys }}">
                 <div class="memberItem">
-                  <div class="memberName">[{{ element['index']}}]</div>
+                  <div class="memberName">[{{ index }}]</div>
                   <div class="memberValue">
-                    <any-service-ref ref="{{ element['value'] }}"></any-service-ref>
+                    <any-service-ref ref="{{ instance.elements[index] }}">
+                    </any-service-ref>
                   </div>
                 </div>
               </template>
             </div>
           </curly-block><br><br>
         </template>
+
+        <template if="{{ instance.associations.isNotEmpty }}">
+          associations ({{ instance.elements.length }})
+          <curly-block expand="{{ instance.associations.length <= 100 }}">
+            <div class="memberList">
+              <template repeat="{{ association in instance.associations }}">
+                <div class="memberItem">
+                  <div class="memberValue">
+                    [<any-service-ref ref="{{ association['key'] }}"></any-service-ref>]
+                  </div>
+                  <div class="memberValue">
+                    <any-service-ref ref="{{ association['value'] }}"></any-service-ref>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </curly-block><br><br>
+        </template>
+
+        <template if="{{ instance.typedElements.isNotEmpty }}">
+          elements ({{ instance.typedElements.length }})
+          <curly-block expand="{{ instance.typedElements.length <= 100 }}">
+            <div class="memberList">
+              <template repeat="{{ index in instance.typedElements.asMap().keys }}">
+                <div class="memberItem">
+                  <div class="memberName">[{{ index }}]</div>
+                  <div class="memberValue">{{ instance.typedElements[index].toString() }}</div>
+                </div>
+              </template>
+            </div>
+          </curly-block><br><br>
+        </template>
+
       </div>
 
-      <hr>
-
-      <div class="content">
-        <eval-box callback="{{ evaluate }}"></eval-box>
-      </div>
     </template>
     <view-footer></view-footer>
   </template>

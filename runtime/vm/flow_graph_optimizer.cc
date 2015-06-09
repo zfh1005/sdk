@@ -1231,7 +1231,7 @@ bool FlowGraphOptimizer::InlineSetIndexed(
                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
-  if (I->TypeChecksEnabled()) {
+  if (I->flags().type_checks()) {
     // Only type check for the value. A type check for the index is not
     // needed here because we insert a deoptimizing smi-check for the case
     // the index is not a smi.
@@ -1444,7 +1444,10 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
     case MethodRecognizer::kInt16ArraySetIndexed:
     case MethodRecognizer::kUint16ArraySetIndexed:
       // Optimistically assume Smi.
-      // TODO(srdjan): Check deopt reason to prevent repeated deoptimizations.
+      if (ic_data.HasDeoptReason(ICData::kDeoptCheckSmi)) {
+        // Optimistic assumption failed at least once.
+        return false;
+      }
       value_check = ic_data.AsUnaryClassChecksForCid(kSmiCid, target);
       return InlineSetIndexed(kind, target, call, receiver, token_pos,
                               value_check, entry, last);
@@ -4567,7 +4570,7 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
                                                  const ICData& unary_ic_data) {
   ASSERT((unary_ic_data.NumberOfChecks() > 0) &&
       (unary_ic_data.NumArgsTested() == 1));
-  if (I->TypeChecksEnabled()) {
+  if (I->flags().type_checks()) {
     // Checked mode setters are inlined like normal methods by conventional
     // inlining.
     return false;

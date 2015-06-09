@@ -68,8 +68,8 @@ void main(List<String> arguments) {
   useSsa(null);
   useIo(null, null);
   usedByTests();
-  useElements(null, null, null, null, null);
-  useIr(null, null);
+  useElements();
+  useIr(null);
   useCompiler(null);
   useTypes();
   useCodeEmitterTask(null);
@@ -245,24 +245,22 @@ usedByTests() {
 }
 
 useElements(
-    elements.ClassElement e,
-    elements.Name n,
-    modelx.FieldElementX f,
-    PartialClassElement pce,
-    PartialFunctionElement pfe) {
+    [elements.ClassElement e,
+     elements.Name n,
+     modelx.FieldElementX f,
+     PartialClassElement pce,
+     PartialFunctionElement pfe,
+     elements.LibraryElement l]) {
   e.lookupClassMember(null);
   e.lookupInterfaceMember(null);
   n.isAccessibleFrom(null);
   f.reuseElement();
   pce.copyWithEnclosing(null);
   pfe.copyWithEnclosing(null);
+  l.forEachImport(null);
 }
 
-useIr(ir_builder.IrBuilderTask task,
-      ir_builder.IrBuilder builder) {
-  task
-    ..hasIr(null)
-    ..getIr(null);
+useIr(ir_builder.IrBuilder builder) {
   builder
     ..buildStringConstant(null)
     ..buildDynamicGet(null, null);
@@ -274,6 +272,7 @@ useCompiler(dart2jslib.Compiler compiler) {
       ..resetAsync(null)
       ..lookupLibrary(null);
   compiler.forgetElement(null);
+  compiler.backend.constantCompilerTask.copyConstantValues(null);
 }
 
 useTypes() {

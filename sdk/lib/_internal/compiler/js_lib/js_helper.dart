@@ -48,17 +48,9 @@ import 'dart:_foreign_helper' show
     JS_CURRENT_ISOLATE_CONTEXT,
     JS_EFFECT,
     JS_EMBEDDED_GLOBAL,
-    JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG,
-    JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG,
-    JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG,
-    JS_FUNCTION_TYPE_RETURN_TYPE_TAG,
-    JS_FUNCTION_TYPE_VOID_RETURN_TAG,
     JS_GET_FLAG,
     JS_GET_NAME,
     JS_HAS_EQUALS,
-    JS_IS_INDEXABLE_FIELD_NAME,
-    JS_OPERATOR_AS_PREFIX,
-    JS_SIGNATURE_NAME,
     JS_STRING_CONCAT,
     RAW_DART_FUNCTION_REF;
 
@@ -2052,7 +2044,11 @@ StackTrace getTraceFromException(exception) {
   if (exception is ExceptionAndStackTrace) {
     return exception.stackTrace;
   }
-  return new _StackTrace(exception);
+  if (exception == null) return new _StackTrace(exception);
+  _StackTrace trace = JS('_StackTrace|Null', r'#.$cachedTrace', exception);
+  if (trace != null) return trace;
+  trace = new _StackTrace(exception);
+  return JS('_StackTrace', r'#.$cachedTrace = #', exception, trace);
 }
 
 class _StackTrace implements StackTrace {
@@ -2318,7 +2314,8 @@ abstract class Closure implements Function {
       throw 'Error in reflectionInfo.';
     }
 
-    JS('', '#[#] = #', prototype, JS_SIGNATURE_NAME(), signatureFunction);
+    JS('', '#[#] = #', prototype, JS_GET_NAME(JsGetName.SIGNATURE_NAME),
+        signatureFunction);
 
     JS('', '#[#] = #', prototype, callName, trampoline);
     for (int i = 1; i < functions.length; i++) {
@@ -3221,28 +3218,33 @@ class RuntimeFunctionType extends RuntimeType {
 
   _extractFunctionTypeObjectFrom(o) {
     var interceptor = getInterceptor(o);
-    return JS('bool', '# in #', JS_SIGNATURE_NAME(), interceptor)
-        ? JS('', '#[#]()', interceptor, JS_SIGNATURE_NAME())
+    var signatureName = JS_GET_NAME(JsGetName.SIGNATURE_NAME);
+    return JS('bool', '# in #', signatureName, interceptor)
+        ? JS('', '#[#]()', interceptor, JS_GET_NAME(JsGetName.SIGNATURE_NAME))
         : null;
   }
 
   toRti() {
     var result = createDartFunctionTypeRti();
     if (isVoid) {
-      JS('', '#[#] = true', result, JS_FUNCTION_TYPE_VOID_RETURN_TAG());
+      JS('', '#[#] = true', result,
+          JS_GET_NAME(JsGetName.FUNCTION_TYPE_VOID_RETURN_TAG));
     } else {
       if (returnType is! DynamicRuntimeType) {
-        JS('', '#[#] = #', result, JS_FUNCTION_TYPE_RETURN_TYPE_TAG(),
+        JS('', '#[#] = #', result,
+           JS_GET_NAME(JsGetName.FUNCTION_TYPE_RETURN_TYPE_TAG),
            returnType.toRti());
       }
     }
     if (parameterTypes != null && !parameterTypes.isEmpty) {
-      JS('', '#[#] = #', result, JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG(),
+      JS('', '#[#] = #', result,
+         JS_GET_NAME(JsGetName.FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG),
          listToRti(parameterTypes));
     }
 
     if (optionalParameterTypes != null && !optionalParameterTypes.isEmpty) {
-      JS('', '#[#] = #', result, JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG(),
+      JS('', '#[#] = #', result,
+         JS_GET_NAME(JsGetName.FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG),
          listToRti(optionalParameterTypes));
     }
 
@@ -3254,7 +3256,8 @@ class RuntimeFunctionType extends RuntimeType {
         var rti = JS('', '#[#]', namedParameters, name).toRti();
         JS('', '#[#] = #', namedRti, name, rti);
       }
-      JS('', '#[#] = #', result, JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG(),
+      JS('', '#[#] = #', result,
+         JS_GET_NAME(JsGetName.FUNCTION_TYPE_NAMED_PARAMETERS_TAG),
          namedRti);
     }
 

@@ -95,14 +95,12 @@ static const char* GetJSONRpcErrorMessage(intptr_t code) {
       return "Invalid params";
     case kInternalError:
       return "Internal error";
+    case kFeatureDisabled:
+      return "Feature is disabled";
     case kVMMustBePaused:
       return "VM must be paused";
-    case kNoBreakAtLine:
-      return "Cannot set breakpoint at line";
-    case kNoBreakAtFunction:
-      return "Cannot set breakpoint at function";
-    case kProfilingDisabled:
-      return "Profiling is disabled";
+    case kCannotAddBreakpoint:
+      return "Cannot add breakpoint";
     default:
       UNIMPLEMENTED();
       return "Unexpected rpc error code";
@@ -279,6 +277,42 @@ void JSONStream::PrintValue(double d) {
 }
 
 
+static const char base64_digits[65] =
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static const char base64_pad = '=';
+
+
+void JSONStream::PrintValueBase64(const uint8_t* bytes, intptr_t length) {
+  PrintCommaIfNeeded();
+  buffer_.AddChar('"');
+
+  intptr_t odd_bits = length % 3;
+  intptr_t even_bits = length - odd_bits;
+  for (intptr_t i = 0; i < even_bits; i += 3) {
+    intptr_t triplet = (bytes[i] << 16) | (bytes[i + 1] << 8) | bytes[i + 2];
+    buffer_.AddChar(base64_digits[triplet >> 18]);
+    buffer_.AddChar(base64_digits[(triplet >> 12) & 63]);
+    buffer_.AddChar(base64_digits[(triplet >> 6) & 63]);
+    buffer_.AddChar(base64_digits[triplet & 63]);
+  }
+  if (odd_bits == 1) {
+    intptr_t triplet = bytes[even_bits] << 16;
+    buffer_.AddChar(base64_digits[triplet >> 18]);
+    buffer_.AddChar(base64_digits[(triplet >> 12) & 63]);
+    buffer_.AddChar(base64_pad);
+    buffer_.AddChar(base64_pad);
+  } else if (odd_bits == 2) {
+    intptr_t triplet = (bytes[even_bits] << 16) | (bytes[even_bits + 1] << 8);
+    buffer_.AddChar(base64_digits[triplet >> 18]);
+    buffer_.AddChar(base64_digits[(triplet >> 12) & 63]);
+    buffer_.AddChar(base64_digits[(triplet >> 6) & 63]);
+    buffer_.AddChar(base64_pad);
+  }
+
+  buffer_.AddChar('"');
+}
+
+
 void JSONStream::PrintValue(const char* s) {
   PrintCommaIfNeeded();
   buffer_.AddChar('"');
@@ -392,6 +426,14 @@ void JSONStream::PrintProperty(const char* name, double d) {
 void JSONStream::PrintProperty(const char* name, const char* s) {
   PrintPropertyName(name);
   PrintValue(s);
+}
+
+
+void JSONStream::PrintPropertyBase64(const char* name,
+                                     const uint8_t* b,
+                                     intptr_t len) {
+  PrintPropertyName(name);
+  PrintValueBase64(b, len);
 }
 
 
@@ -577,6 +619,20 @@ void JSONObject::AddFixedServiceId(const char* format, ...) const {
   stream_->buffer_.AddChar('"');
   free(p);
 }
+
+
+void JSONObject::AddLocation(const Script& script,
+                             intptr_t token_pos,
+                             intptr_t end_token_pos) {
+  JSONObject location(this, "location");
+  location.AddProperty("type", "SourceLocation");
+  location.AddProperty("script", script);
+  location.AddProperty("tokenPos", token_pos);
+  if (end_token_pos >= 0) {
+    location.AddProperty("endTokenPos", end_token_pos);
+  }
+}
+
 
 
 void JSONObject::AddPropertyF(const char* name,

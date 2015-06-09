@@ -1409,6 +1409,16 @@ abstract class InvokeBulkMixin<R, A>
   }
 
   @override
+  R visitLocalFunctionIncompatibleInvoke(
+      Send node,
+      LocalFunctionElement function,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg) {
+    return bulkHandleInvoke(node, arg);
+  }
+
+  @override
   R visitLocalVariableInvoke(
       Send node,
       LocalVariableElement variable,
@@ -2870,6 +2880,41 @@ abstract class NewBulkMixin<R, A>
   }
 
   @override
+  R visitBoolFromEnvironmentConstructorInvoke(
+      NewExpression node,
+      BoolFromEnvironmentConstantExpression constant,
+      A arg) {
+    return bulkHandleNew(node, arg);
+  }
+
+  @override
+  R visitIntFromEnvironmentConstructorInvoke(
+      NewExpression node,
+      IntFromEnvironmentConstantExpression constant,
+      A arg) {
+    return bulkHandleNew(node, arg);
+  }
+
+  @override
+  R visitStringFromEnvironmentConstructorInvoke(
+      NewExpression node,
+      StringFromEnvironmentConstantExpression constant,
+      A arg) {
+    return bulkHandleNew(node, arg);
+  }
+
+  @override
+  R visitConstructorIncompatibleInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg) {
+    return bulkHandleNew(node, arg);
+  }
+
+  @override
   R visitGenerativeConstructorInvoke(
       NewExpression node,
       ConstructorElement constructor,
@@ -4043,6 +4088,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       Selector selector,
       Node rhs,
       A arg) {
+    apply(receiver, arg);
     apply(rhs, arg);
     return null;
   }
@@ -4172,6 +4218,17 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
 
   @override
   R visitLocalFunctionInvoke(
+      Send node,
+      LocalFunctionElement function,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+
+  @override
+  R visitLocalFunctionIncompatibleInvoke(
       Send node,
       LocalFunctionElement function,
       NodeList arguments,
@@ -5509,6 +5566,42 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       NewExpression node,
       ConstructedConstantExpression constant,
       A arg) {
+    return null;
+  }
+
+  @override
+  R visitBoolFromEnvironmentConstructorInvoke(
+      NewExpression node,
+      BoolFromEnvironmentConstantExpression constant,
+      A arg) {
+    return null;
+  }
+
+  @override
+  R visitIntFromEnvironmentConstructorInvoke(
+      NewExpression node,
+      IntFromEnvironmentConstantExpression constant,
+      A arg) {
+    return null;
+  }
+
+  @override
+  R visitStringFromEnvironmentConstructorInvoke(
+      NewExpression node,
+      StringFromEnvironmentConstantExpression constant,
+      A arg) {
+    return null;
+  }
+
+  @override
+  R visitConstructorIncompatibleInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg) {
+    apply(arguments, arg);
     return null;
   }
 
@@ -7367,6 +7460,16 @@ abstract class BaseImplementationOfLocalsMixin<R, A>
   }
 
   @override
+  R visitLocalFunctionIncompatibleInvoke(
+      Send node,
+      LocalFunctionElement function,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg) {
+    return handleLocalInvoke(node, function, arguments, callStructure, arg);
+  }
+
+  @override
   R visitLocalVariableGet(
       Send node,
       LocalVariableElement variable,
@@ -7571,6 +7674,30 @@ abstract class BaseImplementationOfConstantsMixin<R, A>
   R visitConstConstructorInvoke(
       NewExpression node,
       ConstructedConstantExpression constant,
+      A arg) {
+    return handleConstantGet(node, constant, arg);
+  }
+
+  @override
+  R visitBoolFromEnvironmentConstructorInvoke(
+      NewExpression node,
+      BoolFromEnvironmentConstantExpression constant,
+      A arg) {
+    return handleConstantGet(node, constant, arg);
+  }
+
+  @override
+  R visitIntFromEnvironmentConstructorInvoke(
+      NewExpression node,
+      IntFromEnvironmentConstantExpression constant,
+      A arg) {
+    return handleConstantGet(node, constant, arg);
+  }
+
+  @override
+  R visitStringFromEnvironmentConstructorInvoke(
+      NewExpression node,
+      StringFromEnvironmentConstantExpression constant,
       A arg) {
     return handleConstantGet(node, constant, arg);
   }

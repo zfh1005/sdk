@@ -204,13 +204,13 @@ TEST_CASE(Service_Code) {
                       entry);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
+  EXPECT_SUBSTRING("\"type\":\"Code\"", handler.msg());
   {
     // Only perform a partial match.
     const intptr_t kBufferSize = 512;
     char buffer[kBufferSize];
     OS::SNPrint(buffer, kBufferSize-1,
-                "{\"type\":\"Code\",\"fixedId\":true,"
-                "\"id\":\"code\\/%" Px64 "-%" Px "\",",
+                "\"fixedId\":true,\"id\":\"code\\/%" Px64 "-%" Px "\",",
                 compile_timestamp,
                 entry);
     EXPECT_SUBSTRING(buffer, handler.msg());
@@ -245,9 +245,8 @@ TEST_CASE(Service_Code) {
                       address);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_SUBSTRING("{\"type\":\"null\",\"fixedId\":true,"
-                   "\"id\":\"objects\\/null\","
-                   "\"valueAsString\":\"null\"",
+  // TODO(turnidge): It is pretty broken to return an Instance here.  Fix.
+  EXPECT_SUBSTRING("\"kind\":\"Null\"",
                    handler.msg());
 
   // Request malformed native code.
@@ -467,9 +466,10 @@ TEST_CASE(Service_Address) {
     service_msg = Eval(lib, buf);
     Service::HandleIsolateMessage(isolate, service_msg);
     handler.HandleNextMessage();
-    EXPECT_SUBSTRING(ref ? "\"type\":\"@String\"" :
-                           "\"type\":\"String\"",
+    EXPECT_SUBSTRING(ref ? "\"type\":\"@Instance\"" :
+                           "\"type\":\"Instance\"",
                      handler.msg());
+    EXPECT_SUBSTRING("\"kind\":\"String\"", handler.msg());
     EXPECT_SUBSTRING("foobar", handler.msg());
   }
   // Expect null when no object is found.

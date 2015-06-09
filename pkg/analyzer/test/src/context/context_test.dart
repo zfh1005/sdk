@@ -75,7 +75,7 @@ class AnalysisContextImplTest extends AbstractContextTest {
     expect(context.sourcesNeedingProcessing, hasLength(0));
   }
 
-  Future fail_applyChanges_remove() {
+  Future test_applyChanges_remove() {
     SourcesChangedListener listener = new SourcesChangedListener();
     context.onSourcesChanged.listen(listener.onData);
     String libAContents = r'''
@@ -101,16 +101,13 @@ import 'libB.dart';''';
     expect(importedLibraries, hasLength(1));
     return pumpEventQueue().then((_) {
       listener.assertEvent(wereSourcesAdded: true);
-      listener.assertEvent(changedSources: [libA]);
       listener.assertEvent(wereSourcesAdded: true);
-      listener.assertEvent(changedSources: [libB]);
-      listener.assertEvent(changedSources: [libB]);
       listener.assertEvent(wereSourcesRemovedOrDeleted: true);
       listener.assertNoMoreEvents();
     });
   }
 
-  Future fail_applyChanges_removeContainer() {
+  Future test_applyChanges_removeContainer() {
     SourcesChangedListener listener = new SourcesChangedListener();
     context.onSourcesChanged.listen(listener.onData);
     String libAContents = r'''
@@ -133,9 +130,7 @@ import 'libB.dart';''';
     expect(sources[0], same(libA));
     return pumpEventQueue().then((_) {
       listener.assertEvent(wereSourcesAdded: true);
-      listener.assertEvent(changedSources: [libA]);
       listener.assertEvent(wereSourcesAdded: true);
-      listener.assertEvent(changedSources: [libB]);
       listener.assertEvent(wereSourcesRemovedOrDeleted: true);
       listener.assertNoMoreEvents();
     });
@@ -478,6 +473,8 @@ library lib;
 part 'part.dart';''');
     // run all tasks without part
     _analyzeAll_assertFinished();
+    expect(_hasAnalysisErrorWithErrorSeverity(context.getErrors(libSource)),
+        isTrue, reason: "lib has errors");
     // add part and run all tasks
     Source partSource = addSource("/part.dart", r'''
 part of lib;
@@ -486,6 +483,11 @@ part of lib;
     // "libSource" should be here
     List<Source> librariesWithPart = context.getLibrariesContaining(partSource);
     expect(librariesWithPart, unorderedEquals([libSource]));
+    expect(_hasAnalysisErrorWithErrorSeverity(context.getErrors(libSource)),
+        isFalse, reason: "lib doesn't have errors");
+    expect(
+        context.getResolvedCompilationUnit2(partSource, libSource), isNotNull,
+        reason: "part resolved");
   }
 
   void test_performAnalysisTask_changeLibraryContents() {
@@ -559,10 +561,7 @@ part of lib;
         reason: "part resolved 3");
   }
 
-  void fail_performAnalysisTask_changePartContents_makeItAPart() {
-    // TODO(paulberry): fix this.  It appears to be broken because of broken
-    // dependency handling with part files (see TODO comment in
-    // ContainingLibrariesTask.internalPeform)
+  void test_performAnalysisTask_changePartContents_makeItAPart() {
     Source libSource = addSource("/lib.dart", r'''
 library lib;
 part 'part.dart';
@@ -572,7 +571,7 @@ void f(x) {}''');
     expect(context.getResolvedCompilationUnit2(libSource, libSource), isNotNull,
         reason: "library resolved 1");
     expect(
-        context.getResolvedCompilationUnit2(partSource, libSource), isNotNull,
+        context.getResolvedCompilationUnit2(partSource, partSource), isNotNull,
         reason: "part resolved 1");
     // update and analyze
     context.setContents(partSource, r'''
@@ -580,7 +579,7 @@ part of lib;
 void g() { f(null); }''');
     expect(context.getResolvedCompilationUnit2(libSource, libSource), isNull,
         reason: "library changed 2");
-    expect(context.getResolvedCompilationUnit2(partSource, libSource), isNull,
+    expect(context.getResolvedCompilationUnit2(partSource, partSource), isNull,
         reason: "part changed 2");
     _analyzeAll_assertFinished();
     expect(context.getResolvedCompilationUnit2(libSource, libSource), isNotNull,
@@ -812,7 +811,7 @@ void g() { f(null); }''');
     fail("Implement this");
   }
 
-  void fail_resolveCompilationUnit_import_relative() {
+  void test_resolveCompilationUnit_import_relative() {
     Source sourceA =
         addSource("/libA.dart", "library libA; import 'libB.dart'; class A{}");
     addSource("/libB.dart", "library libB; class B{}");
@@ -823,10 +822,16 @@ void g() { f(null); }''');
     List<LibraryElement> importedLibraries = library.importedLibraries;
     assertNamedElements(importedLibraries, ["dart.core", "libB"]);
     List<LibraryElement> visibleLibraries = library.visibleLibraries;
-    assertNamedElements(visibleLibraries, ["dart.core", "libA", "libB"]);
+    assertNamedElements(visibleLibraries, [
+      "dart.core",
+      "dart.async",
+      "dart.math",
+      "libA",
+      "libB"
+    ]);
   }
 
-  void fail_resolveCompilationUnit_import_relative_cyclic() {
+  void test_resolveCompilationUnit_import_relative_cyclic() {
     Source sourceA =
         addSource("/libA.dart", "library libA; import 'libB.dart'; class A{}");
     addSource("/libB.dart", "library libB; import 'libA.dart'; class B{}");
@@ -837,7 +842,13 @@ void g() { f(null); }''');
     List<LibraryElement> importedLibraries = library.importedLibraries;
     assertNamedElements(importedLibraries, ["dart.core", "libB"]);
     List<LibraryElement> visibleLibraries = library.visibleLibraries;
-    assertNamedElements(visibleLibraries, ["dart.core", "libA", "libB"]);
+    assertNamedElements(visibleLibraries, [
+      "dart.core",
+      "dart.async",
+      "dart.math",
+      "libA",
+      "libB"
+    ]);
   }
 
   void fail_resolveHtmlUnit() {

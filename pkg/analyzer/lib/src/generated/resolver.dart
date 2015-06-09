@@ -4,8 +4,8 @@
 
 library engine.resolver;
 
-import "dart:math" as math;
 import 'dart:collection';
+import "dart:math" as math;
 
 import 'package:analyzer/src/generated/utilities_collection.dart';
 
@@ -2064,10 +2064,6 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       sc.Token property = node.propertyKeyword;
       SimpleIdentifier methodName = node.name;
       String nameOfMethod = methodName.name;
-      if (nameOfMethod == sc.TokenType.MINUS.lexeme &&
-          node.parameters.parameters.length == 0) {
-        nameOfMethod = "unary-";
-      }
       if (property == null) {
         _enclosingExecutable = _findWithNameAndOffset(
             _enclosingClass.methods, nameOfMethod, methodName.offset);
@@ -2284,7 +2280,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   Element _findWithNameAndOffset(
       List<Element> elements, String name, int offset) {
     for (Element element in elements) {
-      if (element.displayName == name && element.nameOffset == offset) {
+      if (element.nameOffset == offset && element.displayName == name) {
         return element;
       }
     }
@@ -2503,7 +2499,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     ClassElementImpl element = new ClassElementImpl.forNode(className);
     element.abstract = node.abstractKeyword != null;
     element.mixinApplication = true;
-    element.typedef = true;
     List<TypeParameterElement> typeParameters = holder.typeParameters;
     element.typeParameters = typeParameters;
     List<DartType> typeArguments = _createTypeParameterTypes(typeParameters);
@@ -2537,6 +2532,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     SimpleIdentifier constructorName = node.name;
     ConstructorElementImpl element =
         new ConstructorElementImpl.forNode(constructorName);
+    if (node.externalKeyword != null) {
+      element.external = true;
+    }
     if (node.factoryKeyword != null) {
       element.factory = true;
     }
@@ -2696,6 +2694,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         SimpleIdentifier functionName = node.name;
         FunctionElementImpl element =
             new FunctionElementImpl.forNode(functionName);
+        if (node.externalKeyword != null) {
+          element.external = true;
+        }
         element.functions = holder.functions;
         element.labels = holder.labels;
         element.localVariables = holder.localVariables;
@@ -2735,6 +2736,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         if (node.isGetter) {
           PropertyAccessorElementImpl getter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          if (node.externalKeyword != null) {
+            getter.external = true;
+          }
           getter.functions = holder.functions;
           getter.labels = holder.labels;
           getter.localVariables = holder.localVariables;
@@ -2754,6 +2758,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         } else {
           PropertyAccessorElementImpl setter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          if (node.externalKeyword != null) {
+            setter.external = true;
+          }
           setter.functions = holder.functions;
           setter.labels = holder.labels;
           setter.localVariables = holder.localVariables;
@@ -2905,6 +2912,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         MethodElementImpl element =
             new MethodElementImpl(nameOfMethod, methodName.offset);
         element.abstract = node.isAbstract;
+        if (node.externalKeyword != null) {
+          element.external = true;
+        }
         element.functions = holder.functions;
         element.labels = holder.labels;
         element.localVariables = holder.localVariables;
@@ -2933,6 +2943,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         if (node.isGetter) {
           PropertyAccessorElementImpl getter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          if (node.externalKeyword != null) {
+            getter.external = true;
+          }
           getter.functions = holder.functions;
           getter.labels = holder.labels;
           getter.localVariables = holder.localVariables;
@@ -2952,6 +2965,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         } else {
           PropertyAccessorElementImpl setter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          if (node.externalKeyword != null) {
+            setter.external = true;
+          }
           setter.functions = holder.functions;
           setter.labels = holder.labels;
           setter.localVariables = holder.localVariables;
@@ -5156,9 +5172,9 @@ class ImplicitConstructorBuilder extends SimpleElementVisitor {
   ImplicitConstructorBuilder(this.errorListener, this._callback);
 
   @override
-  void visitClassElement(ClassElementImpl classElement) {
-    classElement.mixinErrorsReported = false;
-    if (classElement.isTypedef) {
+  void visitClassElement(ClassElement classElement) {
+    (classElement as ClassElementImpl).mixinErrorsReported = false;
+    if (classElement.isMixinApplication) {
       _visitClassTypeAlias(classElement);
     } else {
       _visitClassDeclaration(classElement);
@@ -10509,13 +10525,15 @@ class ResolverVisitor extends ScopedVisitor {
    * @param potentialType the potential type of the elements
    * @param allowPrecisionLoss see @{code overrideVariable} docs
    */
-  void overrideExpression(
-      Expression expression, DartType potentialType, bool allowPrecisionLoss) {
+  void overrideExpression(Expression expression, DartType potentialType,
+      bool allowPrecisionLoss, bool setExpressionType) {
     VariableElement element = getOverridableStaticElement(expression);
     if (element != null) {
       DartType newBestType =
           overrideVariable(element, potentialType, allowPrecisionLoss);
-      recordPropagatedTypeIfBetter(expression, newBestType);
+      if (setExpressionType) {
+        recordPropagatedTypeIfBetter(expression, newBestType);
+      }
     }
     element = getOverridablePropagatedElement(expression);
     if (element != null) {
@@ -10638,7 +10656,7 @@ class ResolverVisitor extends ScopedVisitor {
     // Since an as-statement doesn't actually change the type, we don't
     // let it affect the propagated type when it would result in a loss
     // of precision.
-    overrideExpression(node.expression, node.type.type, false);
+    overrideExpression(node.expression, node.type.type, false, false);
     return null;
   }
 
@@ -11703,7 +11721,7 @@ class ResolverVisitor extends ScopedVisitor {
         // Since an is-statement doesn't actually change the type, we don't
         // let it affect the propagated type when it would result in a loss
         // of precision.
-        overrideExpression(is2.expression, is2.type.type, false);
+        overrideExpression(is2.expression, is2.type.type, false, false);
       }
     } else if (condition is PrefixExpression) {
       PrefixExpression prefix = condition;
@@ -11744,7 +11762,7 @@ class ResolverVisitor extends ScopedVisitor {
         // Since an is-statement doesn't actually change the type, we don't
         // let it affect the propagated type when it would result in a loss
         // of precision.
-        overrideExpression(is2.expression, is2.type.type, false);
+        overrideExpression(is2.expression, is2.type.type, false, false);
       }
     } else if (condition is PrefixExpression) {
       PrefixExpression prefix = condition;

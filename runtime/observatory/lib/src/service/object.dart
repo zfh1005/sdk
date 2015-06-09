@@ -20,10 +20,11 @@ class ServerRpcException extends RpcException {
   static const kMethodNotFound = -32601;
   static const kInvalidParams  = -32602;
   static const kInternalError  = -32603;
-  static const kVMMustBePaused    = 100;
-  static const kNoBreakAtLine     = 101;
-  static const kNoBreakAtFunction = 102;
-  static const kProfilingDisabled = 200;
+  static const kFeatureDisabled         = 100;
+  static const kVMMustBePaused          = 101;
+  static const kCannotAddBreakpoint     = 102;
+  static const kStreamAlreadySubscribed = 103;
+  static const kStreamNotSubscribed     = 104;
 
   int code;
   Map data;
@@ -101,58 +102,26 @@ abstract class ServiceObject extends Observable {
   @reflectable String get vmType => _vmType;
   String _vmType;
 
-  static bool _isInstanceType(String type) {
-    switch (type) {
-      case 'BoundedType':
-      case 'Instance':
-      case 'List':
-      case 'String':
-      case 'Type':
-      case 'TypeParameter':
-      case 'TypeRef':
-      case 'bool':
-      case 'double':
-      case 'int':
-      case 'null':
-        return true;
-      default:
-        return false;
-    }
-  }
-
-  static bool _isTypeType(String type) {
-    switch (type) {
-      case 'BoundedType':
-      case 'Type':
-      case 'TypeParameter':
-      case 'TypeRef':
-        return true;
-      default:
-        return false;
-    }
-  }
-
-  bool get isAbstractType => _isTypeType(type);
-  bool get isBool => type == 'bool';
   bool get isContext => type == 'Context';
-  bool get isDouble => type == 'double';
   bool get isError => type == 'Error';
-  bool get isInstance => _isInstanceType(type);
-  bool get isInt => type == 'int';
-  bool get isList => type == 'List';
-  bool get isNull => type == 'null';
+  bool get isInstance => type == 'Instance';
   bool get isSentinel => type == 'Sentinel';
-  bool get isString => type == 'String';
   bool get isMessage => type == 'Message';
 
   // Kinds of Instance.
-  bool get isMirrorReference => vmType == 'MirrorReference';
-  bool get isWeakProperty => vmType == 'WeakProperty';
+  bool get isAbstractType => false;
+  bool get isNull => false;
+  bool get isBool => false;
+  bool get isDouble => false;
+  bool get isString => false;
+  bool get isInt => false;
+  bool get isList => false;
+  bool get isMap => false;
+  bool get isTypedData => false;
+  bool get isMirrorReference => false;
+  bool get isWeakProperty => false;
   bool get isClosure => false;
-  bool get isPlainInstance {
-    return (type == 'Instance' &&
-            !isMirrorReference && !isWeakProperty && !isClosure);
-  }
+  bool get isPlainInstance => false;
 
   /// Has this object been fully loaded?
   bool get loaded => _loaded;
@@ -184,7 +153,7 @@ abstract class ServiceObject extends Observable {
     }
     assert(_isServiceMap(map));
     var type = _stripRef(map['type']);
-    var vmType = map['_vmType'] != null ? _stripRef(map['_vmType']) : type;
+    var vmType = map['_vmType'] != null ? map['_vmType'] : type;
     var obj = null;
     assert(type != 'VM');
     switch (type) {
@@ -209,6 +178,9 @@ abstract class ServiceObject extends Observable {
       case 'Field':
         obj = new Field._empty(owner);
         break;
+      case 'Frame':
+        obj = new Frame._empty(owner);
+        break;
       case 'Function':
         obj = new ServiceFunction._empty(owner);
         break;
@@ -220,6 +192,12 @@ abstract class ServiceObject extends Observable {
         break;
       case 'Library':
         obj = new Library._empty(owner);
+        break;
+      case 'Message':
+        obj = new ServiceMessage._empty(owner);
+        break;
+      case 'SourceLocation':
+        obj = new SourceLocation._empty(owner);
         break;
       case 'Object':
         switch (vmType) {
@@ -243,11 +221,11 @@ abstract class ServiceObject extends Observable {
       case 'Socket':
         obj = new Socket._empty(owner);
         break;
+      case 'Instance':
+      case 'Sentinel':  // TODO(rmacnak): Separate this out.
+        obj = new Instance._empty(owner);
+        break;
       default:
-        if (_isInstanceType(type) ||
-            type == 'Sentinel') {  // TODO(rmacnak): Separate this out.
-          obj = new Instance._empty(owner);
-        }
         break;
     }
     if (obj == null) {
@@ -397,6 +375,32 @@ abstract class ServiceObjectOwner extends ServiceObject {
   /// The result may come from the cache.  The result will not necessarily
   /// be [loaded].
   ServiceObject getFromMap(ObservableMap map);
+}
+
+/// A [SourceLocation] represents a location or range in the source code.
+class SourceLocation extends ServiceObject {
+  Script script;
+  int tokenPos;
+  int endTokenPos;
+
+  SourceLocation._empty(ServiceObject owner) : super._empty(owner);
+
+  void _update(ObservableMap map, bool mapIsRef) {
+    assert(!mapIsRef);
+    _upgradeCollection(map, owner);
+    script = map['script'];
+    tokenPos = map['tokenPos'];
+    assert(script != null && tokenPos != null);
+    endTokenPos = map['endTokenPos'];
+  }
+
+  String toString() {
+    if (endTokenPos == null) {
+      return '${script.name}:token(${tokenPos})';
+    } else {
+      return '${script.name}:tokens(${tokenPos}-${endTokenPos})';
+    }
+  }
 }
 
 /// State for a VM being inspected.
@@ -559,12 +563,29 @@ abstract class VM extends ServiceObjectOwner {
     });
   }
 
-  Future<ObservableMap> _fetchDirect() {
-    return invokeRpcNoUpgrade('getVM', {});
+  Future<ObservableMap> _fetchDirect() async {
+    if (!loaded) {
+      // TODO(turnidge): Instead of always listening to all streams,
+      // implement a stream abstraction in the service library so
+      // that we only subscribe to the streams we want.
+      await _streamListen('Isolate');
+      await _streamListen('Debug');
+      await _streamListen('GC');
+      await _streamListen('_Echo');
+      await _streamListen('_Graph');
+    }
+    return await invokeRpcNoUpgrade('getVM', {});
   }
 
   Future<ServiceObject> getFlagList() {
     return invokeRpc('getFlagList', {});
+  }
+
+  Future<ServiceObject> _streamListen(String streamId) {
+    Map params = {
+      'streamId': streamId,
+    };
+    return invokeRpc('streamListen', params);
   }
 
   /// Force the VM to disconnect.
@@ -787,11 +808,16 @@ class HeapSnapshot {
 
   List<Future<ServiceObject>> getMostRetained({int classId, int limit}) {
     var result = [];
-    for (var v in graph.getMostRetained(classId: classId, limit: limit)) {
-      var address = v.addressForWordSize(isolate.vm.architectureBits ~/ 8);
-      result.add(isolate.getObjectByAddress(address.toRadixString(16)).then((obj) {
-        obj.retainedSize = v.retainedSize;
-        return new Future(() => obj);
+    for (ObjectVertex v in graph.getMostRetained(classId: classId,
+                                                 limit: limit)) {
+      result.add(isolate.getObjectByAddress(v.address.toRadixString(16))
+                        .then((ServiceObject obj) {
+        if (obj is Instance) {
+          // TODO(rmacnak): size/retainedSize are properties of all heap
+          // objects, not just Instances.
+          obj.retainedSize = v.retainedSize;
+        }
+        return obj;
       }));
     }
     return result;
@@ -959,7 +985,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
   @observable Library rootLibrary;
   @observable ObservableList<Library> libraries =
       new ObservableList<Library>();
-  @observable ObservableMap topFrame;
+  @observable Frame topFrame;
 
   @observable String name;
   @observable String vmName;
@@ -1186,13 +1212,13 @@ class Isolate extends ServiceObjectOwner with Coverage {
       Breakpoint bpt = await invokeRpc('addBreakpoint', params);
       if (bpt.resolved &&
           script.loaded &&
-          script.tokenToLine(bpt.tokenPos) != line) {
+          script.tokenToLine(bpt.location.tokenPos) != line) {
         // TODO(turnidge): Can this still happen?
         script.getLine(line).possibleBpt = false;
       }
       return bpt;
     } on ServerRpcException catch(e) {
-      if (e.code == ServerRpcException.kNoBreakAtLine) {
+      if (e.code == ServerRpcException.kCannotAddBreakpoint) {
         // Unable to set a breakpoint at the desired line.
         script.getLine(line).possibleBpt = false;
       }
@@ -1454,7 +1480,7 @@ class ServiceEvent extends ServiceObject {
 
   @observable String kind;
   @observable Breakpoint breakpoint;
-  @observable ServiceMap topFrame;
+  @observable Frame topFrame;
   @observable ServiceMap exception;
   @observable ServiceObject inspectee;
   @observable ByteData data;
@@ -1481,9 +1507,15 @@ class ServiceEvent extends ServiceObject {
     if (map['breakpoint'] != null) {
       breakpoint = map['breakpoint'];
     }
-    if (map['topFrame'] != null) {
-      topFrame = map['topFrame'];
+    // TODO(turnidge): Expose the full list of breakpoints.  For now
+    // we just pretend like there is only one active breakpoint.
+    if (map['pauseBreakpoints'] != null) {
+      var pauseBpts = map['pauseBreakpoints'];
+      if (pauseBpts.length > 0) {
+        breakpoint = pauseBpts[0];
+      }
     }
+    topFrame = map['topFrame'];
     if (map['exception'] != null) {
       exception = map['exception'];
     }
@@ -1529,8 +1561,7 @@ class Breakpoint extends ServiceObject {
   @observable int number;
 
   // Source location information.
-  @observable Script script;
-  @observable int tokenPos;
+  @observable SourceLocation location;
 
   // The breakpoint has been assigned to a final source location.
   @observable bool resolved;
@@ -1540,34 +1571,46 @@ class Breakpoint extends ServiceObject {
     _upgradeCollection(map, owner);
 
     var newNumber = map['breakpointNumber'];
-    var newScript = map['location']['script'];
-    var newTokenPos = map['location']['tokenPos'];
-
-    // number and script never change.
+    // number never changes.
     assert((number == null) || (number == newNumber));
-    assert((script == null) || (script == newScript));
+    number = newNumber;
 
-    number = map['breakpointNumber'];
-    script = map['location']['script'];
     resolved = map['resolved'];
-    bool tokenPosChanged = tokenPos != newTokenPos;
 
-    if (script.loaded &&
-        (tokenPos != null) &&
+    var oldLocation = location;
+    var newLocation = map['location'];
+    var oldScript;
+    var newScript;
+    var oldTokenPos;
+    var newTokenPos;
+    if (oldLocation != null) {
+      oldScript = location.script;
+      oldTokenPos = location.tokenPos;
+    }
+    if (newLocation != null) {
+      newScript = newLocation.script;
+      newTokenPos = newLocation.tokenPos;
+    }
+    // script never changes
+    assert((oldScript == null) || (oldScript == newScript));
+    bool tokenPosChanged = oldTokenPos != newTokenPos;
+    if (newScript.loaded &&
+        (newTokenPos != null) &&
         tokenPosChanged) {
       // The breakpoint has moved.  Remove it and add it later.
-      script._removeBreakpoint(this);
+      if (oldScript != null) {
+        oldScript._removeBreakpoint(this);
+      }
     }
-
-    tokenPos = newTokenPos;
-    if (script.loaded && tokenPosChanged) {
-      script._addBreakpoint(this);
+    location = newLocation;
+    if (newScript.loaded && tokenPosChanged) {
+      newScript._addBreakpoint(this);
     }
   }
 
   void remove() {
     // Remove any references to this breakpoint.  It has been removed.
-    script._removeBreakpoint(this);
+    location.script._removeBreakpoint(this);
     if ((isolate.pauseEvent != null) &&
         (isolate.pauseEvent.breakpoint != null) &&
         (isolate.pauseEvent.breakpoint.id == id)) {
@@ -1577,7 +1620,7 @@ class Breakpoint extends ServiceObject {
 
   String toString() {
     if (number != null) {
-      return 'Breakpoint ${number} at ${script.name}(token:${tokenPos})';
+      return 'Breakpoint ${number} at ${location})';
     } else {
       return 'Uninitialized breakpoint';
     }
@@ -1693,7 +1736,6 @@ class Allocations {
 
 class Class extends ServiceObject with Coverage {
   @observable Library library;
-  @observable Script script;
 
   @observable bool isAbstract;
   @observable bool isConst;
@@ -1701,8 +1743,7 @@ class Class extends ServiceObject with Coverage {
   @observable bool isPatch;
   @observable bool isImplemented;
 
-  @observable int tokenPos;
-  @observable int endTokenPos;
+  @observable SourceLocation location;
 
   @observable ServiceMap error;
   @observable int vmCid;
@@ -1749,16 +1790,12 @@ class Class extends ServiceObject with Coverage {
       library = null;
     }
 
-    script = map['script'];
-
+    location = map['location'];
     isAbstract = map['abstract'];
     isConst = map['const'];
     isFinalized = map['_finalized'];
     isPatch = map['_patch'];
     isImplemented = map['_implemented'];
-
-    tokenPos = map['tokenPos'];
-    endTokenPos = map['endTokenPos'];
 
     subclasses.clear();
     subclasses.addAll(map['subclasses']);
@@ -1809,6 +1846,7 @@ class Class extends ServiceObject with Coverage {
 }
 
 class Instance extends ServiceObject {
+  @observable String kind;
   @observable Class clazz;
   @observable int size;
   @observable int retainedSize;
@@ -1817,18 +1855,52 @@ class Instance extends ServiceObject {
   @observable ServiceFunction function;  // If a closure.
   @observable Context context;  // If a closure.
   @observable String name;  // If a Type.
-  @observable int length; // If a List.
+  @observable int length; // If a List, Map or TypedData.
 
   @observable var typeClass;
   @observable var fields;
   @observable var nativeFields;
-  @observable var elements;
-  @observable var userName;
+  @observable var elements;  // If a List.
+  @observable var associations;  // If a Map.
+  @observable var typedElements;  // If a TypedData.
   @observable var referent;  // If a MirrorReference.
   @observable Instance key;  // If a WeakProperty.
   @observable Instance value;  // If a WeakProperty.
 
-  bool get isClosure => function != null;
+  bool get isAbstractType {
+    return (kind == 'Type' || kind == 'TypeRef' ||
+            kind == 'TypeParameter' || kind == 'BoundedType');
+  }
+  bool get isNull => kind == 'Null';
+  bool get isBool => kind == 'Bool';
+  bool get isDouble => kind == 'Double';
+  bool get isString => kind == 'String';
+  bool get isInt => kind == 'Int';
+  bool get isList => kind == 'List';
+  bool get isMap => kind == 'Map';
+  bool get isTypedData {
+    return kind == 'Uint8ClampedList'
+        || kind == 'Uint8List'
+        || kind == 'Uint16List'
+        || kind == 'Uint32List'
+        || kind == 'Uint64List'
+        || kind == 'Int8List'
+        || kind == 'Int16List'
+        || kind == 'Int32List'
+        || kind == 'Int64List'
+        || kind == 'Float32List'
+        || kind == 'Float64List'
+        || kind == 'Int32x4List'
+        || kind == 'Float32x4List'
+        || kind == 'Float64x2List';
+  }
+  bool get isMirrorReference => kind == 'MirrorReference';
+  bool get isWeakProperty => kind == 'WeakProperty';
+  bool get isClosure => kind == 'Closure';
+
+  // TODO(turnidge): Is this properly backwards compatible when new
+  // instance kinds are added?
+  bool get isPlainInstance => kind == 'PlainInstance';
 
   Instance._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -1836,13 +1908,14 @@ class Instance extends ServiceObject {
     // Extract full properties.
     _upgradeCollection(map, isolate);
 
+    kind = map['kind'];
     clazz = map['class'];
     size = map['size'];
     valueAsString = map['valueAsString'];
     // Coerce absence to false.
     valueAsStringIsTruncated = map['valueAsStringIsTruncated'] == true;
-    function = map['function'];
-    context = map['context'];
+    function = map['closureFunction'];
+    context = map['closureContext'];
     name = map['name'];
     length = map['length'];
 
@@ -1853,11 +1926,44 @@ class Instance extends ServiceObject {
     nativeFields = map['_nativeFields'];
     fields = map['fields'];
     elements = map['elements'];
-    typeClass = map['type_class'];
-    userName = map['user_name'];
-    referent = map['referent'];
-    key = map['key'];
-    value = map['value'];
+    associations = map['associations'];
+    if (map['bytes'] != null) {
+      var bytes = decodeBase64(map['bytes']);
+      switch (map['kind']) {
+        case "Uint8ClampedList":
+          typedElements = bytes.buffer.asUint8ClampedList(); break;
+        case "Uint8List":
+          typedElements = bytes.buffer.asUint8List(); break;
+        case "Uint16List":
+          typedElements = bytes.buffer.asUint16List(); break;
+        case "Uint32List":
+          typedElements = bytes.buffer.asUint32List(); break;
+        case "Uint64List":
+          typedElements = bytes.buffer.asUint64List(); break;
+        case "Int8List":
+          typedElements = bytes.buffer.asInt8List(); break;
+        case "Int16List":
+          typedElements = bytes.buffer.asInt16List(); break;
+        case "Int32List":
+          typedElements = bytes.buffer.asInt32List(); break;
+        case "Int64List":
+          typedElements = bytes.buffer.asInt64List(); break;
+        case "Float32List":
+          typedElements = bytes.buffer.asFloat32List(); break;
+        case "Float64List":
+          typedElements = bytes.buffer.asFloat64List(); break;
+        case "Int32x4List":
+          typedElements = bytes.buffer.asInt32x4List(); break;
+        case "Float32x4List":
+          typedElements = bytes.buffer.asFloat32x4List(); break;
+        case "Float64x2List":
+          typedElements = bytes.buffer.asFloat64x2List(); break;
+      }
+    }
+    typeClass = map['typeClass'];
+    referent = map['mirrorReferent'];
+    key = map['propertyKey'];
+    value = map['propertyValue'];
 
     // We are fully loaded.
     _loaded = true;
@@ -1973,9 +2079,7 @@ class ServiceFunction extends ServiceObject with Coverage {
   @observable Library library;
   @observable bool isStatic;
   @observable bool isConst;
-  @observable Script script;
-  @observable int tokenPos;
-  @observable int endTokenPos;
+  @observable SourceLocation location;
   @observable Code code;
   @observable Code unoptimizedCode;
   @observable bool isOptimizable;
@@ -2024,9 +2128,7 @@ class ServiceFunction extends ServiceObject with Coverage {
     _loaded = true;
     isStatic = map['static'];
     isConst = map['const'];
-    script = map['script'];
-    tokenPos = map['tokenPos'];
-    endTokenPos = map['endTokenPos'];
+    location = map['location'];
     code = map['code'];
     isOptimizable = map['_optimizable'];
     isInlinable = map['_inlinable'];
@@ -2050,10 +2152,9 @@ class Field extends ServiceObject {
   @observable String vmName;
 
   @observable bool guardNullable;
-  @observable String guardClass;
+  @observable var /* Class | String */ guardClass;
   @observable String guardLength;
-  @observable Script script;
-  @observable int tokenPos;
+  @observable SourceLocation location;
 
   Field._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -2085,9 +2186,7 @@ class Field extends ServiceObject {
     guardNullable = map['_guardNullable'];
     guardClass = map['_guardClass'];
     guardLength = map['_guardLength'];
-    script = map['script'];
-    tokenPos = map['tokenPos'];
-
+    location = map['location'];
     _loaded = true;
   }
 
@@ -2174,6 +2273,7 @@ class ScriptLine extends Observable {
 
 class CallSite {
   final String name;
+  // TODO(turnidge): Use SourceLocation here instead.
   final Script script;
   final int tokenPos;
   final List<CallSiteEntry> entries;
@@ -2362,7 +2462,7 @@ class Script extends ServiceObject with Coverage {
       lines.add(new ScriptLine(this, i + lineOffset + 1, sourceLines[i]));
     }
     for (var bpt in isolate.breakpoints.values) {
-      if (bpt.script == this) {
+      if (bpt.location.script == this) {
         _addBreakpoint(bpt);
       }
     }
@@ -2380,12 +2480,12 @@ class Script extends ServiceObject with Coverage {
   }
 
   void _addBreakpoint(Breakpoint bpt) {
-    var line = tokenToLine(bpt.tokenPos);
+    var line = tokenToLine(bpt.location.tokenPos);
     getLine(line).addBreakpoint(bpt);
   }
 
   void _removeBreakpoint(Breakpoint bpt) {
-    var line = tokenToLine(bpt.tokenPos);
+    var line = tokenToLine(bpt.location.tokenPos);
     if (line != null) {
       getLine(line).removeBreakpoint(bpt);
     }
@@ -2770,10 +2870,11 @@ class Code extends ServiceObject {
     if (function == null) {
       return;
     }
-    if (function.script == null) {
+    if ((function.location == null) ||
+        (function.location.script == null)) {
       // Attempt to load the function.
       function.load().then((func) {
-        var script = function.script;
+        var script = function.location.script;
         if (script == null) {
           // Function doesn't have an associated script.
           return;
@@ -2784,7 +2885,7 @@ class Code extends ServiceObject {
       return;
     }
     // Load the script and then update descriptors.
-    function.script.load().then(_updateDescriptors);
+    function.location.script.load().then(_updateDescriptors);
   }
 
   /// Reload [this]. Returns a future which completes to [this] or an
@@ -3133,6 +3234,50 @@ class MetricPoller {
     }
   }
 }
+
+class Frame extends ServiceObject {
+  @observable int index;
+  @observable ServiceFunction function;
+  @observable SourceLocation location;
+  @observable Code code;
+  @observable List<ServiceMap> variables = new ObservableList<ServiceMap>();
+
+  Frame._empty(ServiceObject owner) : super._empty(owner);
+
+  void _update(ObservableMap map, bool mapIsRef) {
+    assert(!mapIsRef);
+    _loaded = true;
+    _upgradeCollection(map, owner);
+    this.index = map['index'];
+    this.function = map['function'];
+    this.location = map['location'];
+    this.code = map['code'];
+    this.variables = map['vars'];
+  }
+}
+
+
+class ServiceMessage extends ServiceObject {
+  @observable int index;
+  @observable String messageObjectId;
+  @observable int size;
+  @observable ServiceFunction handler;
+  @observable SourceLocation location;
+
+  ServiceMessage._empty(ServiceObject owner) : super._empty(owner);
+
+  void _update(ObservableMap map, bool mapIsRef) {
+    assert(!mapIsRef);
+    _loaded = true;
+    _upgradeCollection(map, owner);
+    this.messageObjectId = map['messageObjectId'];
+    this.index = map['index'];
+    this.size = map['size'];
+    this.handler = map['handler'];
+    this.location = map['location'];
+  }
+}
+
 
 // Returns true if [map] is a service map. i.e. it has the following keys:
 // 'id' and a 'type'.

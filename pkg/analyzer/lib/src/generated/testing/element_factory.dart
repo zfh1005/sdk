@@ -15,7 +15,9 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:path/path.dart';
 
@@ -55,7 +57,7 @@ class ElementFactory {
             new List<TypeParameterTypeImpl>(count);
         for (int i = 0; i < count; i++) {
           TypeParameterElementImpl typeParameter =
-              new TypeParameterElementImpl(parameterNames[i], 0);
+              typeParameterElement(parameterNames[i]);
           typeParameters[i] = typeParameter;
           typeParameterTypes[i] = new TypeParameterTypeImpl(typeParameter);
           typeParameter.type = typeParameterTypes[i];
@@ -75,7 +77,7 @@ class ElementFactory {
       [List<String> parameterNames]) {
     ClassElementImpl element =
         classElement(typeName, superclassType, parameterNames);
-    element.typedef = true;
+    element.mixinApplication = true;
     return element;
   }
 
@@ -346,6 +348,14 @@ class ElementFactory {
     return functionElement;
   }
 
+  static FunctionTypeAliasElementImpl functionTypeAliasElement(String name) {
+    FunctionTypeAliasElementImpl functionTypeAliasElement =
+        new FunctionTypeAliasElementImpl(name, -1);
+    functionTypeAliasElement.type =
+        new FunctionTypeImpl.forTypedef(functionTypeAliasElement);
+    return functionTypeAliasElement;
+  }
+
   static PropertyAccessorElementImpl getterElement(
       String name, bool isStatic, DartType type) {
     FieldElementImpl field = new FieldElementImpl(name, -1);
@@ -508,8 +518,16 @@ class ElementFactory {
 
   static TopLevelVariableElementImpl topLevelVariableElement3(
       String name, bool isConst, bool isFinal, DartType type) {
-    TopLevelVariableElementImpl variable =
-        new TopLevelVariableElementImpl(name, -1);
+    TopLevelVariableElementImpl variable;
+    if (isConst) {
+      ConstTopLevelVariableElementImpl constant =
+          new ConstTopLevelVariableElementImpl(AstFactory.identifier3(name));
+      constant.constantInitializer = AstFactory.instanceCreationExpression2(
+          Keyword.CONST, AstFactory.typeName(type.element));
+      variable = constant;
+    } else {
+      variable = new TopLevelVariableElementImpl(name, -1);
+    }
     variable.const3 = isConst;
     variable.final2 = isFinal;
     variable.synthetic = true;
@@ -537,4 +555,7 @@ class ElementFactory {
     }
     return variable;
   }
+
+  static TypeParameterElementImpl typeParameterElement(String name) =>
+      new TypeParameterElementImpl(name, 0);
 }

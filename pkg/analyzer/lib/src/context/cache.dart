@@ -158,7 +158,8 @@ class AnalysisCache {
    */
   MapIterator<AnalysisTarget, CacheEntry> iterator() {
     int count = _partitions.length;
-    List<Map<AnalysisTarget, CacheEntry>> maps = new List<Map>(count);
+    List<Map<AnalysisTarget, CacheEntry>> maps =
+        new List<Map<AnalysisTarget, CacheEntry>>(count);
     for (int i = 0; i < count; i++) {
       maps[i] = _partitions[i].map;
     }
@@ -424,6 +425,15 @@ class CacheEntry {
    */
   /*<V>*/ void setValue(ResultDescriptor /*<V>*/ descriptor, dynamic /*V*/
       value, List<TargetedResult> dependedOn) {
+//    {
+//      String valueStr = '$value';
+//      if (valueStr.length > 20) {
+//        valueStr = valueStr.substring(0, 20) + '...';
+//      }
+//      valueStr = valueStr.replaceAll('\n', '\\n');
+//      print(
+//          'setValue $descriptor for $target value=$valueStr deps=$dependedOn');
+//    }
     _validateStateChange(descriptor, CacheState.VALID);
     TargetedResult thisResult = new TargetedResult(target, descriptor);
     if (_partition != null) {
@@ -463,6 +473,7 @@ class CacheEntry {
    * invalidation to other results that depend on it.
    */
   void _invalidate(ResultDescriptor descriptor) {
+//    print('invalidate $descriptor for $target');
     ResultData thisData = _resultMap.remove(descriptor);
     if (thisData == null) {
       return;

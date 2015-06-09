@@ -211,7 +211,6 @@ big_integer_parsed_mul_div_vm_test: Pass, Slow
 
 [ $compiler == dart2js && $cps_ir ]
 apply2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-bool_from_environment_test: RuntimeError # Please triage this failure.
 collection_removes_test: RuntimeError # Please triage this failure.
 const_list_remove_range_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 const_list_set_range_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -234,8 +233,7 @@ hash_map2_test: Crash # Instance of 'TypeOperator': type check unimplemented for
 hash_set_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 hash_set_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 hash_set_type_check_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-hashcode_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-int_from_environment_test: RuntimeError # Please triage this failure.
+hashcode_test : RuntimeError
 int_parse_radix_test/01: Crash # Please triage this failure.
 int_parse_radix_test/02: Crash # Please triage this failure.
 int_parse_radix_test/none: Crash # Please triage this failure.
@@ -300,22 +298,17 @@ regexp/no-extensions_test: Crash # Instance of 'TypeOperator': type check unimpl
 regexp/pcre_test: Crash # Please triage this failure.
 regexp/range-out-of-order_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 regexp/regexp_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-set_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 set_to_string_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-shuffle_test: RuntimeError # Please triage this failure.
 splay_tree_from_iterables_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 splay_tree_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 string_buffer_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 string_codeunits_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-string_from_environment2_test: RuntimeError # Please triage this failure.
-string_from_environment_test: RuntimeError # Please triage this failure.
 string_fromcharcode_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 string_fromcharcodes_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 string_operations_with_null_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 string_pattern_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 string_replace_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 string_runes_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-string_source_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 string_substring_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 string_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 symbol_operator_test/03: RuntimeError # Please triage this failure.
@@ -327,7 +320,6 @@ symbol_test/none: Crash # Please triage this failure.
 uri_file_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 uri_ipv4_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 uri_ipv6_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-uri_normalize_path_test: RuntimeError # Please triage this failure.
 uri_path_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 uri_query_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 uri_scheme_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.

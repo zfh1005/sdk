@@ -78,8 +78,7 @@ class Label {
 /**
  * A local variable in the tree IR.
  *
- * All tree IR variables are mutable, and may in Dart-mode be referenced inside
- * nested functions.
+ * All tree IR variables are mutable.
  *
  * To use a variable as an expression, reference it from a [VariableUse], with
  * one [VariableUse] per expression.
@@ -192,13 +191,16 @@ class InvokeStatic extends Expression implements Invoke {
 /**
  * A call to a method, operator, getter, setter or index getter/setter.
  *
- * In contrast to the CPS-based IR, the receiver and arguments can be
- * arbitrary expressions.
+ * If [receiver] is `null`, an error is thrown before the arguments are
+ * evaluated. This corresponds to the JS evaluation order.
  */
 class InvokeMethod extends Expression implements Invoke {
   Expression receiver;
   final Selector selector;
   final List<Expression> arguments;
+
+  /// If true, it is known that the receiver cannot be `null`.
+  bool receiverIsNotNull = false;
 
   InvokeMethod(this.receiver, this.selector, this.arguments) {
     assert(receiver != null);
@@ -211,6 +213,9 @@ class InvokeMethod extends Expression implements Invoke {
 }
 
 /// Invoke [target] on [receiver], bypassing ordinary dispatch semantics.
+///
+/// Since the [receiver] is not used for method lookup, it may be `null`
+/// without an error being thrown.
 class InvokeMethodDirectly extends Expression implements Invoke {
   Expression receiver;
   final Element target;
@@ -269,17 +274,17 @@ class ConcatenateStrings extends Expression {
  */
 class Constant extends Expression {
   final ConstantExpression expression;
+  final values.ConstantValue value;
 
-  Constant(this.expression);
+  Constant(this.expression, this.value);
 
   Constant.bool(values.BoolConstantValue constantValue)
       : expression = new BoolConstantExpression(
-          constantValue.primitiveValue, constantValue);
+          constantValue.primitiveValue),
+        value = constantValue;
 
   accept(ExpressionVisitor visitor) => visitor.visitConstant(this);
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitConstant(this, arg);
-
-  values.ConstantValue get value => expression.value;
 }
 
 class This extends Expression {
@@ -318,6 +323,10 @@ class LiteralMap extends Expression {
   }
 }
 
+/// Type test or type cast.
+///
+/// Note that if this is a type test, then [type] cannot be `Object`, `dynamic`,
+/// or the `Null` type. These cases are compiled to other node types.
 class TypeOperator extends Expression {
   Expression value;
   final DartType type;
@@ -612,6 +621,17 @@ class Try extends Statement {
   }
 }
 
+/// A statement that is known to be unreachable.
+class Unreachable extends Statement {
+  Statement get next => null;
+  void set next(Statement value) => throw 'UNREACHABLE';
+
+  accept(StatementVisitor visitor) => visitor.visitUnreachable(this);
+  accept1(StatementVisitor1 visitor, arg) {
+    return visitor.visitUnreachable(this, arg);
+  }
+}
+
 class FunctionDefinition extends Node {
   final ExecutableElement element;
   final List<Variable> parameters;
@@ -822,6 +842,7 @@ abstract class StatementVisitor<S> {
   S visitWhileCondition(WhileCondition node);
   S visitExpressionStatement(ExpressionStatement node);
   S visitTry(Try node);
+  S visitUnreachable(Unreachable node);
 }
 
 abstract class StatementVisitor1<S, A> {
@@ -837,6 +858,7 @@ abstract class StatementVisitor1<S, A> {
   S visitWhileCondition(WhileCondition node, A arg);
   S visitExpressionStatement(ExpressionStatement node, A arg);
   S visitTry(Try node, A arg);
+  S visitUnreachable(Unreachable node, A arg);
 }
 
 abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
@@ -1001,6 +1023,8 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
   visitCreateInvocationMirror(CreateInvocationMirror node) {
     node.arguments.forEach(visitExpression);
   }
+
+  visitUnreachable(Unreachable node) {}
 }
 
 abstract class Transformer implements ExpressionVisitor<Expression>,
@@ -1195,6 +1219,10 @@ class RecursiveTransformer extends Transformer {
 
   visitCreateInvocationMirror(CreateInvocationMirror node) {
     _replaceExpressions(node.arguments);
+    return node;
+  }
+
+  visitUnreachable(Unreachable node) {
     return node;
   }
 }
