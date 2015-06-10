@@ -41,7 +41,7 @@ vars = {
   "analyzer_cli_rev" : "@090c4859a2f88e62ae71a11583ba31e9999c74f6",
   "args_tag": "@0.13.0",
   "barback_rev" : "@29ee90dbcf77cfd64632fa2797a4c8a4f29a4b51",
-  "boring_ssl_rev" : "@f0320d3c73f69a9a1d2701fa7ae911b03c97f085",
+  "boring_ssl_rev" : "@2b23eaa478aa533a93dca93c33e51de07afcbf96",
   "charcode_tag": "@1.1.0",
   "chrome_rev" : "@19997",
   "clang_rev" : "@28450",
@@ -123,8 +123,9 @@ deps = {
       Var("chromium_git") + "/chromium/src/third_party/zlib.git" +
       Var("zlib_rev"),
 
-  Var("dart_root") + "/third_party/boring_ssl":
-      "https://boringssl.googlesource.com/boringssl.git" + Var("boring_ssl_rev"),
+  Var("dart_root") + "/third_party/boring_ssl/src":
+      "https://boringssl.googlesource.com/boringssl.git" +
+      Var("boring_ssl_rev"),
 
   Var("dart_root") + "/third_party/jinja2":
       Var("chromium_git") + "/chromium/src/third_party/jinja2.git" +

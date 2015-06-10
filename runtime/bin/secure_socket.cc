@@ -10,11 +10,11 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <boring_ssl/include/openssl/bio.h>
-#include <boring_ssl/include/openssl/err.h>
-#include <boring_ssl/include/openssl/safestack.h>
-#include <boring_ssl/include/openssl/ssl.h>
-#include <boring_ssl/include/openssl/x509.h>
+#include <boring_ssl/src/include/openssl/bio.h>
+#include <boring_ssl/src/include/openssl/err.h>
+#include <boring_ssl/src/include/openssl/safestack.h>
+#include <boring_ssl/src/include/openssl/ssl.h>
+#include <boring_ssl/src/include/openssl/x509.h>
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"

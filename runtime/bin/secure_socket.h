@@ -11,10 +11,10 @@
 #include <sys/types.h>
 
 #if !defined(DART_IO_SECURE_SOCKET_DISABLED)
-#include <boring_ssl/include/openssl/bio.h>
-#include <boring_ssl/include/openssl/ssl.h>
-#include <boring_ssl/include/openssl/err.h>
-#include <boring_ssl/include/openssl/x509.h>
+#include <boring_ssl/src/include/openssl/bio.h>
+#include <boring_ssl/src/include/openssl/ssl.h>
+#include <boring_ssl/src/include/openssl/err.h>
+#include <boring_ssl/src/include/openssl/x509.h>
 #endif
 
 #include "bin/builtin.h"

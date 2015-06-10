@@ -278,7 +278,7 @@
       'include_dirs': [
         '..',
         '../../third_party',
-        '../../third_party/boring_ssl/include',
+        '../../third_party/boring_ssl/src/include',
       ],
       'includes': [
         'io_impl_sources.gypi',
@@ -301,8 +301,8 @@
         ['OS=="linux"', {
           'link_settings': {
             'library_dirs' : [
-              '../third_party/boring_ssl/build/crypto',
-              '../third_party/boring_ssl/build/ssl'],
+              '../third_party/boring_ssl/src/build/crypto',
+              '../third_party/boring_ssl/src/build/ssl'],
             'libraries': [ '-lssl', '-lcrypto' ],
           },
         }],
