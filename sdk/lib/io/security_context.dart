@@ -69,4 +69,116 @@ abstract class SecurityContext {
    * certificates - the authority names are extracted from the certificates.
    */
   void setClientAuthorities(String file);
+
+  /**
+   * Sets the list of application-level protocols supported by a client
+   * connection or server connection. The ALPN (application level protocol
+   * negotiation) extension to TLS allows a client to send a list of
+   * protocols in the TLS client hello message, and the server to pick
+   * one and send the selected one back in its server hello message.
+   *
+   * Separate lists of protocols can be sent for client connections and
+   * for server connections, using the same SecurityContext.  The [isServer]
+   * boolean argument specifies whether to set the list for server connections
+   * or client connections.
+   */
+   void setAlpnProtocols(List<String> protocols, bool isServer);
+
+  /// Encodes a set of supported protocols for ALPN/NPN usage.
+  ///
+  /// The `protocols` list is expected to contain protocols in descending order
+  /// of preference.
+  ///
+  /// See RFC 7301 (https://tools.ietf.org/html/rfc7301) for the encoding of
+  /// `List<String> protocols`:
+  ///     opaque ProtocolName<1..2^8-1>;
+  ///
+  ///     struct {
+  ///         ProtocolName protocol_name_list<2..2^16-1>
+  ///     } ProtocolNameList;
+  ///
+  /// The encoding of the opaque `ProtocolName<lower..upper>` vector is
+  /// described in RFC 2246: 4.3 Vectors.
+  ///
+  /// Note: Even though this encoding scheme would allow a total
+  /// `ProtocolNameList` length of 65535, this limit cannot be reached. Testing
+  /// showed that more than ~ 2^14  bytes will fail to negotiate a protocol.
+  /// We will be conservative and support only messages up to (1<<13)-1 bytes.
+  static Uint8List _protocolsToLengthEncoding(List<String> protocols) {
+    if (protocols == null || protocols.length == 0) {
+      return new Uint8List(0);
+    }
+    int protocolsLength = protocols.length;
+
+    // Calculate the number of bytes we will need if it is ASCII.
+    int expectedLength = protocolsLength;
+    for (int i = 0; i < protocolsLength; i++) {
+      int length = protocols[i].length;
+      if (length > 0 && length <= 255) {
+        expectedLength += length;
+      } else {
+        throw new ArgumentError(
+            'Length of protocol must be between 1 and 255 (was: $length).');
+      }
+    }
+
+    if (expectedLength >= (1 << 13)) {
+      throw new ArgumentError(
+          'The maximum message length supported is 2^13-1.');
+    }
+
+    // Try encoding the `List<String> protocols` array using fast ASCII path.
+    var bytes = new Uint8List(expectedLength);
+    int bytesOffset = 0;
+    for (int i = 0; i < protocolsLength; i++) {
+      String proto = protocols[i];
+
+      // Add length byte.
+      bytes[bytesOffset++] = proto.length;
+      int bits = 0;
+
+      // Add protocol bytes.
+      for (int j = 0; j < proto.length; j++) {
+        var char = proto.codeUnitAt(j);
+        bits |= char;
+        bytes[bytesOffset++] = char & 0xff;
+      }
+
+      // Go slow case if we have encountered anything non-ascii.
+      if (bits > 0x7f) {
+        return _protocolsToLengthEncodingNonAsciiBailout(protocols);
+      }
+    }
+    return bytes;
+  }
+
+  static Uint8List _protocolsToLengthEncodingNonAsciiBailout(
+      List<String> protocols) {
+    void addProtocol(List<int> outBytes, String protocol) {
+      var protocolBytes = UTF8.encode(protocol);
+      var len = protocolBytes.length;
+
+      if (len > 255) {
+        throw new ArgumentError(
+            'Length of protocol must be between 1 and 255 (was: $len)');
+      }
+      // Add length byte.
+      outBytes.add(len);
+
+      // Add protocol bytes.
+      outBytes.addAll(protocolBytes);
+    }
+
+    List<int> bytes = [];
+    for (var i = 0; i < protocols.length; i++) {
+      addProtocol(bytes, protocols[i]);
+    }
+
+    if (bytes.length >= (1 << 13)) {
+      throw new ArgumentError(
+          'The maximum message length supported is 2^13-1.');
+    }
+
+    return new Uint8List.fromList(bytes);
+  }
 }

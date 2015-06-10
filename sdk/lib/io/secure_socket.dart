@@ -502,6 +502,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
           ..onDone(_doneHandler);
     }
     try {
+      var encodedProtocols =
+          SecurityContext._protocolsToLengthEncoding(supportedProtocols);
       _secureFilter.connect(address.host,
                             (address as dynamic)._in_addr,
                             port,
@@ -513,133 +515,11 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
                             // TODO(whesse): Remove sendClientCertificate
                             // argument, or add it to API.
                             false, // sendClientCertificate,
-                            _protocolsToLengthEncoding(supportedProtocols));
+                            encodedProtocols);
       _secureHandshake();
     } catch (e, s) {
       _reportError(e, s);
     }
-  }
-
-  /// Encodes a set of supported protocols for ALPN/NPN usage.
-  ///
-  /// The `protocols` list is expected to contain protocols in descending order
-  /// of preference.
-  ///
-  /// See RFC 7301 (https://tools.ietf.org/html/rfc7301) for the encoding of
-  /// `List<String> protocols`:
-  ///     opaque ProtocolName<1..2^8-1>;
-  ///
-  ///     struct {
-  ///         ProtocolName protocol_name_list<2..2^16-1>
-  ///     } ProtocolNameList;
-  ///
-  /// The encoding of the opaque `ProtocolName<lower..upper>` vector is
-  /// described in RFC 2246: 4.3 Vectors.
-  ///
-  /// Note: Even though this encoding scheme would allow a total
-  /// `ProtocolNameList` length of 65535, this limit cannot be reached. Testing
-  /// showed that more than ~ 65480 bytes will fail to negogiate a protocol.
-  /// We will be conservative and support only messages up to (1<<15) -1 bytes.
-  ///
-  /// Our NSS implementation will support ALPN and NPN transparently. The
-  /// default protocol will be the first in the encoded Uint8List.
-  ///
-  /// NOTE: The NSS library will treat the first protocol as the fallback
-  /// protocol. The remaining ones are sorted in (decreasing) priority order.
-  /// We therefore put the protocol least desired to the front, to make it the
-  /// default.
-  Uint8List _protocolsToLengthEncoding(List<String> protocols) {
-    if (protocols == null || protocols.length == 0) {
-      return new Uint8List(0);
-    }
-    int protocolsLength = protocols.length;
-
-    // Calculate the number of bytes we will need if it is ASCII.
-    int expectedLength = protocolsLength;
-    for (int i = 0; i < protocolsLength; i++) {
-      int length = protocols[i].length;
-      if (length > 0 && length <= 255) {
-        expectedLength += length;
-      } else {
-        throw new ArgumentError(
-            'Length of protocol must be between 1 and 255 (was: $length).');
-      }
-    }
-
-    if (expectedLength >= (1 << 15)) {
-      throw new ArgumentError(
-          'The maximum message length supported is 2^15-1.');
-    }
-
-    // Try encoding the `List<String> protocols` array using fast ASCII path.
-    var bytes = new Uint8List(expectedLength);
-    int bytesOffset = 0;
-    for (int i = 0; i < protocolsLength; i++) {
-      // The last protocol will be encoded as the first/default one in the list.
-      // (i.e. rotate `protocols` by 1 to the right).
-      int index = i;
-      if (index == 0) index = protocols.length;
-      String proto = protocols[index - 1];
-
-      // Add length byte.
-      bytes[bytesOffset++] = proto.length;
-      int bits = 0;
-
-      // Add protocol bytes.
-      for (int j = 0; j < proto.length; j++) {
-        var char = proto.codeUnitAt(j);
-        bits |= char;
-        bytes[bytesOffset++] = char & 0xff;
-      }
-
-      // Go slow case if we have encountered anything non-ascii.
-      if (bits > 0x7f) {
-        return _protocolsToLengthEncodingNonAsciiBailout(protocols);
-      }
-    }
-    return bytes;
-  }
-
-  Uint8List _protocolsToLengthEncodingNonAsciiBailout(List<String> protocols) {
-    void addProtocol(List<int> outBytes, String protocol) {
-      var protocolBytes = UTF8.encode(protocol);
-      var len = protocolBytes.length;
-
-      if (len > 255) {
-        throw new ArgumentError(
-            'Length of protocol must be between 1 and 255 (was: $len)');
-      }
-      // Add length byte.
-      outBytes.add(len);
-
-      // Add protocol bytes.
-      outBytes.addAll(protocolBytes);
-    }
-
-    List<int> bytes = [];
-    addProtocol(bytes, protocols.last);
-    for (var i = 0; i < protocols.length -1; i++) {
-      addProtocol(bytes, protocols[i]);
-    }
-
-    if (bytes.length >= (1 << 15)) {
-      throw new ArgumentError(
-          'The maximum message length supported is 2^15-1.');
-    }
-
-    return new Uint8List.fromList(bytes);
-  }
-
-  void _addProtocolBytes(List<int> outBytes, String protocol) {
-    var protocolBytes = UTF8.encode(protocol);
-    var len = protocolBytes.length;
-
-    if (len > 255) {
-      throw new ArgumentError(
-          'Cannot support protocols with more than 255 characters');
-    }
-    outBytes.add(len);
-    outBytes.addAll(protocolBytes);
   }
 
   StreamSubscription listen(void onData(RawSocketEvent data),

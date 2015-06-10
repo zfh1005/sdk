@@ -265,6 +265,5 @@ io/secure_bad_certificate_test: RuntimeError
 io/secure_builtin_roots_test: RuntimeError
 io/secure_server_client_certificate_test: RuntimeError
 io/secure_server_client_no_certificate_test: RuntimeError
-io/secure_socket_alpn_test: RuntimeError
 io/secure_socket_renegotiate_test: RuntimeError
 io/secure_socket_bad_data_test: RuntimeError  # An error in a secure connection just puts a READ_CLOSED on the stream, rather than signaling an error on the stream.

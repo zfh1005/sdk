@@ -149,6 +149,13 @@ class _SecurityContext
       native "SecurityContext_UseCertificateChain";
   void setClientAuthorities(String file)
       native "SecurityContext_SetClientAuthorities";
+  void setAlpnProtocols(List<String> protocols, bool isServer) {
+    Uint8List encodedProtocols =
+        SecurityContext._protocolsToLengthEncoding(protocols);
+    _setAlpnProtocols(encodedProtocols, isServer);
+  }
+  void _setAlpnProtocols(Uint8List protocols, bool isServer)
+      native "SecurityContext_SetAlpnProtocols";
 }
 
 /**

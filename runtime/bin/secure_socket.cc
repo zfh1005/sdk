@@ -14,6 +14,7 @@
 #include <boring_ssl/src/include/openssl/err.h>
 #include <boring_ssl/src/include/openssl/safestack.h>
 #include <boring_ssl/src/include/openssl/ssl.h>
+#include <boring_ssl/src/include/openssl/tls1.h>
 #include <boring_ssl/src/include/openssl/x509.h>
 
 #include "bin/builtin.h"
@@ -118,6 +119,13 @@ static X509* GetX509(Dart_NativeArguments args) {
       reinterpret_cast<intptr_t*>(&certificate)));
   return certificate;
 }
+
+
+// Forward declaration.
+static void SetAlpnProtocolList(Dart_Handle protocols_handle,
+                                SSL* ssl,
+                                SSL_CTX* context,
+                                bool is_server);
 
 
 void FUNCTION_NAME(SecureSocket_Init)(Dart_NativeArguments args) {
@@ -257,6 +265,9 @@ void FUNCTION_NAME(SecurityContext_Allocate)(Dart_NativeArguments args) {
   SSL_CTX_set_cipher_list(context, "HIGH:MEDIUM");
   SSL_CTX_set_cipher_list_tls11(context, "HIGH:MEDIUM");
   SetSecurityContext(args, context);
+  // TODO(whesse): Use WeakPersistentHandle to free the SSL_CTX
+  // when the object is GC'd.  Also free the alpn_select_cb data pointer,
+  // if non-null (allocated in SetAlpnProtocolList).
 }
 
 
@@ -384,6 +395,19 @@ void FUNCTION_NAME(SecurityContext_SetClientAuthorities)(
     Dart_ThrowException(DartUtils::NewDartArgumentError(
         "Could not load certificate names from file in SetClientAuthorities"));
   }
+}
+
+
+void FUNCTION_NAME(SecurityContext_SetAlpnProtocols)(
+    Dart_NativeArguments args) {
+  SSL_CTX* context = GetSecurityContext(args);
+  Dart_Handle protocols_handle =
+      ThrowIfError(Dart_GetNativeArgument(args, 1));
+  Dart_Handle is_server_handle =
+      ThrowIfError(Dart_GetNativeArgument(args, 2));
+  bool is_server = DartUtils::GetBooleanValue(is_server_handle);
+
+  SetAlpnProtocolList(protocols_handle, NULL, context, is_server);
 }
 
 
@@ -681,6 +705,99 @@ Dart_Handle SSLFilter::PeerCertificate() {
 }
 
 
+int AlpnCallback(SSL *ssl,
+                 const uint8_t **out,
+                 uint8_t *outlen,
+                 const uint8_t *in,
+                 unsigned int inlen,
+                 void *arg) {
+  // 'in' and 'arg' are sequences of (length, data) strings with 1-byte lengths.
+  // 'arg' is 0-terminated. Finds the first string in 'arg' that is in 'in'.
+  uint8_t* server_list = static_cast<uint8_t*>(arg);
+  while (*server_list != 0) {
+    uint8_t protocol_length = *server_list++;
+    const uint8_t* client_list = in;
+    while (client_list < in + inlen) {
+      uint8_t client_protocol_length = *client_list++;
+      if (client_protocol_length == protocol_length) {
+        if (0 == memcmp(server_list, client_list, protocol_length)) {
+          *out = client_list;
+          *outlen = client_protocol_length;
+          return SSL_TLSEXT_ERR_OK;  // Success
+        }
+      }
+      client_list += client_protocol_length;
+    }
+    server_list += protocol_length;
+  }
+  // TODO(23580): Make failure send a fatal alert instead of ignoring ALPN.
+  return SSL_TLSEXT_ERR_NOACK;
+}
+
+
+// Sets the protocol list for ALPN on a SSL object or a context.
+static void SetAlpnProtocolList(Dart_Handle protocols_handle,
+                                SSL* ssl,
+                                SSL_CTX* context,
+                                bool is_server) {
+  // Enable ALPN (application layer protocol negotiation) if the caller provides
+  // a valid list of supported protocols.
+  Dart_TypedData_Type protocols_type;
+  uint8_t* protocol_string = NULL;
+  uint8_t* protocol_string_copy = NULL;
+  intptr_t protocol_string_len = 0;
+  int status;
+
+  Dart_Handle result = Dart_TypedDataAcquireData(
+      protocols_handle,
+      &protocols_type,
+      reinterpret_cast<void**>(&protocol_string),
+      &protocol_string_len);
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
+
+  if (protocols_type != Dart_TypedData_kUint8) {
+    Dart_TypedDataReleaseData(protocols_handle);
+    Dart_PropagateError(Dart_NewApiError(
+        "Unexpected type for protocols (expected valid Uint8List)."));
+  }
+
+  if (protocol_string_len > 0) {
+    if (is_server) {
+      // ALPN on server connections must be set on an SSL_CTX object,
+      // not on the SSL object of the individual connection.
+      ASSERT(context != NULL);
+      ASSERT(ssl == NULL);
+      // Because it must be passed as a single void*, terminate
+      // the list of (length, data) strings with a length 0 string.
+      protocol_string_copy =
+          static_cast<uint8_t*>(malloc(protocol_string_len + 1));
+      memmove(protocol_string_copy, protocol_string, protocol_string_len);
+      protocol_string_copy[protocol_string_len] = '\0';
+      SSL_CTX_set_alpn_select_cb(context, AlpnCallback, protocol_string_copy);
+      // TODO(whesse): If this function is called again, free the previous
+      // protocol_string_copy.  It may be better to keep this as a native
+      // field on the Dart object, since fetching it from the structure is
+      // not in the public api.  Also free this when the context is destroyed.
+    } else {
+      // The function makes a local copy of protocol_string, which it owns.
+      if (ssl != NULL) {
+        ASSERT(context == NULL);
+        status = SSL_set_alpn_protos(ssl, protocol_string, protocol_string_len);
+      } else {
+        ASSERT(context != NULL);
+        ASSERT(ssl == NULL);
+        status = SSL_CTX_set_alpn_protos(
+            context, protocol_string, protocol_string_len);
+      }
+      ASSERT(status == 0);  // The function returns a non-standard status.
+    }
+  }
+  Dart_TypedDataReleaseData(protocols_handle);
+}
+
+
 void SSLFilter::Connect(const char* hostname,
                         const RawAddr& raw_addr,
                         int port,
@@ -695,79 +812,50 @@ void SSLFilter::Connect(const char* hostname,
     FATAL("Connect called twice on the same _SecureFilter.");
   }
 
-  // Enable ALPN (application layer protocol negogiation) if the caller provides
-  // a valid list of supported protocols.
-  {
-    Dart_TypedData_Type protocols_type;
-    uint8_t* protocol_string = NULL;
-    intptr_t protocol_string_len = 0;
+  int status;
+  int error;
+  BIO* ssl_side;
+  status = BIO_new_bio_pair(&ssl_side, 10000, &socket_side_, 10000);
+  CheckStatus(status, "BIO_new_bio_pair", __LINE__);
 
-    Dart_Handle result = Dart_TypedDataAcquireData(
-        protocols_handle,
-        &protocols_type,
-        reinterpret_cast<void**>(&protocol_string),
-        &protocol_string_len);
-    if (Dart_IsError(result)) {
-      Dart_PropagateError(result);
-    }
+  if (context == NULL) {
+    DART_CHECK_VALID(Dart_ThrowException(DartUtils::NewDartArgumentError(
+        "Default SecurityContext not implemented, context cannot be null.")));
+  }
 
-    if (protocols_type != Dart_TypedData_kUint8) {
-      Dart_TypedDataReleaseData(protocols_handle);
-      Dart_PropagateError(Dart_NewApiError(
-          "Unexpected type for protocols (expected valid Uint8List)."));
-    }
+  ssl_ = SSL_new(context);
+  SSL_set_bio(ssl_, ssl_side, ssl_side);
+  SSL_set_mode(ssl_, SSL_MODE_AUTO_RETRY);
 
-    if (protocol_string_len > 0) {
-      // TODO(whesse): Implement ALPN support.
-      Dart_ThrowException(DartUtils::NewDartArgumentError(
-          "ALPN support not implemented"));
-    }
-    Dart_TypedDataReleaseData(protocols_handle);
-
-    int status;
-    int error;
-    BIO* ssl_side;
-    status = BIO_new_bio_pair(&ssl_side, 10000, &socket_side_, 10000);
-    CheckStatus(status, "BIO_new_bio_pair", __LINE__);
-
-    if (context == NULL) {
-      DART_CHECK_VALID(Dart_ThrowException(DartUtils::NewDartArgumentError(
-          "Default SecurityContext not implemented, context cannot be null.")));
-    }
-
-    ssl_ = SSL_new(context);
-    SSL_set_bio(ssl_, ssl_side, ssl_side);
-    SSL_set_mode(ssl_, SSL_MODE_AUTO_RETRY);
-
-    if (!is_server_) {
-      certificate_checking_parameters_ = X509_VERIFY_PARAM_new();
-      hostname_ = strdup(hostname);
-      X509_VERIFY_PARAM_set_hostflags(certificate_checking_parameters_, 0);
-      X509_VERIFY_PARAM_set1_host(certificate_checking_parameters_,
-                                  hostname_, strlen(hostname_));
-      SSL_set1_param(ssl_, certificate_checking_parameters_);
-    }
-    if (is_server_) {
-      status = SSL_accept(ssl_);
-      if (SSL_LOG_STATUS) Log::Print("SSL_accept status: %d\n", status);
-      if (status != 1) {
-        error = SSL_get_error(ssl_, status);
-        if (SSL_LOG_STATUS) Log::Print("SSL_accept error: %d\n", error);
-      }
-    } else {
-      status = SSL_connect(ssl_);
-      if (SSL_LOG_STATUS) Log::Print("SSL_connect status: %d\n", status);
-      if (status != 1) {
-        error = SSL_get_error(ssl_, status);
-        if (SSL_LOG_STATUS) Log::Print("SSL_connect error: %d\n", error);
-      }
-    }
-    status = SSL_do_handshake(ssl_);
-    if (SSL_LOG_STATUS) Log::Print("SSL_handshake status: %d\n", status);
+  if (!is_server_) {
+    SetAlpnProtocolList(protocols_handle, ssl_, NULL, false);
+    certificate_checking_parameters_ = X509_VERIFY_PARAM_new();
+    hostname_ = strdup(hostname);
+    X509_VERIFY_PARAM_set_hostflags(certificate_checking_parameters_, 0);
+    X509_VERIFY_PARAM_set1_host(certificate_checking_parameters_,
+                                hostname_, strlen(hostname_));
+    SSL_set1_param(ssl_, certificate_checking_parameters_);
+  }
+  if (is_server_) {
+    status = SSL_accept(ssl_);
+    if (SSL_LOG_STATUS) Log::Print("SSL_accept status: %d\n", status);
     if (status != 1) {
       error = SSL_get_error(ssl_, status);
-      if (SSL_LOG_STATUS) Log::Print("SSL_handshake error: %d\n", error);
+      if (SSL_LOG_STATUS) Log::Print("SSL_accept error: %d\n", error);
     }
+  } else {
+    status = SSL_connect(ssl_);
+    if (SSL_LOG_STATUS) Log::Print("SSL_connect status: %d\n", status);
+    if (status != 1) {
+      error = SSL_get_error(ssl_, status);
+      if (SSL_LOG_STATUS) Log::Print("SSL_connect error: %d\n", error);
+    }
+  }
+  status = SSL_do_handshake(ssl_);
+  if (SSL_LOG_STATUS) Log::Print("SSL_handshake status: %d\n", status);
+  if (status != 1) {
+    error = SSL_get_error(ssl_, status);
+    if (SSL_LOG_STATUS) Log::Print("SSL_handshake error: %d\n", error);
   }
 
   if (is_server) {
@@ -848,11 +936,14 @@ void SSLFilter::Handshake() {
 }
 
 void SSLFilter::GetSelectedProtocol(Dart_NativeArguments args) {
-  // TODO(whesse): Return a string describing the protocol selected by ALPN.
-  // Possible error messages could be:
-  //         "Protocol selected via ALPN, unable to get protocol string."
-  //         "Client and Server could not agree upon a protocol"
-  //         "Could not retrieve selected protocol via ALPN"
+  const uint8_t* protocol;
+  unsigned length;
+  SSL_get0_alpn_selected(ssl_, &protocol, &length);
+  if (length == 0) {
+    Dart_SetReturnValue(args, Dart_Null());
+  } else {
+    Dart_SetReturnValue(args, Dart_NewStringFromUTF8(protocol, length));
+  }
 }
 
 
