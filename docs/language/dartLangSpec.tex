@@ -7,7 +7,7 @@
 \usepackage{lmodern}
 \newcommand{\code}[1]{{\sf #1}}
 \title{Dart Programming Language  Specification \\
-{\large Version 1.9}}
+{\large Version 1.10}}
 
 % For information about Location Markers (and in particular the
 % commands \LMHash and \LMLabel), see the long comment at the
@@ -2344,7 +2344,7 @@ An {\em expression} is a fragment of Dart code that can be evaluated at run time
 
 \begin{grammar}
 {\bf primary:}thisExpression;
-      \SUPER{} assignableSelector;
+      \SUPER{} unconditionalAssignableSelector;
       functionExpression;
       literal;
       identifier;
@@ -2748,6 +2748,10 @@ Multiline strings are delimited by either matching triples of single quotes or m
  \rationale{
  The idea is to ignore whitespace, where whitespace is defined as tabs, spaces and newlines. These can be represented directly, but since for most characters prefixing by backslash is an identity, we allow those forms as well.
  }
+ 
+ % could be clearer. Is the first line in  """\t
+ %    """ ignored not. It depends if we mean whitespace before escapes are interpreted,
+ % or after, or both.  See https://code.google.com/p/dart/issues/detail?id=23020
 
 \LMHash{}
 Strings support escape sequences for special characters. The escapes are:
@@ -3666,6 +3670,8 @@ where $id$ is an identifier.
 \LMHash{}
 If there exists a lexically visible declaration named $id$, let $f_{id}$ be the innermost such declaration. Then:
 \begin{itemize}
+\item 
+If $f_{id}$ is a prefix object, a compile-time error occurs.
 \item
  If $f_{id}$ is a local function, a library function, a library or static getter or a variable then $i$ is interpreted as a function expression invocation (\ref{functionExpressionInvocation}).
  \item
@@ -3673,17 +3679,12 @@ Otherwise, if $f_{id}$ is a static method of the enclosing class $C$, $i$ is equ
 \item Otherwise, $f_{id}$ is considered equivalent to the ordinary method invocation $\THIS{}.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
 \end{itemize}
 
-%Otherwise, if there is an accessible (\ref{privacy}) static method named $id$ declared in a superclass $S$ of the immediately enclosing class $C$ then i is equivalent to the static method invocation $S.id(a_1, \ldots, a_n, x_{n+1}: a_{n+1}, \ldots, x_{n+k}: a_{n+k})$.  
-
-%\rationale{
-%Unqualified access to static methods of superclasses is inconsistent with the idea that static methods are not inherited. It is not particularly necessary and  may be restricted in future versions.
-%}
-
 \LMHash{}
 Otherwise, if $i$ occurs inside a top level or static function (be it function, method, getter,  or setter) or variable initializer, evaluation of $i$ causes a \cd{NoSuchMethodError} to be thrown.
 
 \LMHash{}
 If $i$ does not occur inside a top level or static function, $i$ is equivalent to $\THIS{}.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
+
 
 % Should also say:
 % It is a static warning if $i$  occurs inside a top level or static function (be it function, method, getter,  or setter) or variable initializer and there is no lexically visible declaration named $id$ in scope.
@@ -3916,7 +3917,7 @@ $\SUPER{}.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
 Evaluation of $i$ proceeds as follows:
 
 \LMHash{}
-First, the argument list $(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ is evaluated  yielding actual argument objects $o_1, \ldots , o_{n+k}$. Let $S$ be the superclass of the immediately enclosing class, and let $f$ be the result of looking up method (\ref{ordinaryInvocation})  $m$ in $S$  with respect to the current library $L$. 
+First, the argument list $(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ is evaluated  yielding actual argument objects $o_1, \ldots , o_{n+k}$. Let $S$ be the superclass of the immediately enclosing class, and let $f$ be the result of looking up method (\ref{methodLookup})  $m$ in $S$  with respect to the current library $L$. 
 Let $p_1 \ldots p_h$ be the required parameters of $f$,  let $p_1 \ldots p_m$ be the positional parameters of $f$ and let $p_{h+1}, \ldots, p_{h+l}$ be the optional parameters declared by $f$.
 
 \LMHash{}
@@ -3990,7 +3991,7 @@ Property extraction can be either {\em conditional} or {\em unconditional}.
 Tear-offs using the \cd{ x\#id}  syntax cannot be conditional at this time; this is inconsistent, and is likely to be addressed in the near future, perhaps via  notation such as  \cd{ x?\#id} . As indicated in section \ref{ecmaConformance}, experimentation in this area is allowed.
 }
 
-Evaluation of a {\em conditional property extraction expression} $e$ of the form $e_1?.id$  is equivalent to the evaluation of the expression  $((x) => x == \NULL ? \NULL : x.id)(e_1)$. The static type of $e$ is the same as the static type of $e_1.id$. Let $T$ be the static type of $e_1$ and let $y$ be a fresh variable o type $T$. Exactly the same static warnings that would be caused by $y.id$ are also generated in the case of $e_1?.id$.
+Evaluation of a {\em conditional property extraction expression} $e$ of the form $e_1?.id$  is equivalent to the evaluation of the expression  $((x) => x == \NULL ? \NULL : x.id)(e_1)$. The static type of $e$ is the same as the static type of $e_1.id$. Let $T$ be the static type of $e_1$ and let $y$ be a fresh variable of type $T$. Exactly the same static warnings that would be caused by $y.id$ are also generated in the case of $e_1?.id$.
 
 \commentary{
 One might be tempted to conclude that for $e \ne \NULL{}$, $e?.v$ is always equivalent to $e.v$. However this is not the case. If $e$ is a type literal representing a type with static member $v$, then $e.v$ refers to that member, but $e?.v$ does not.
@@ -4155,7 +4156,7 @@ This restriction is in line with other limitations on the use of prefixes as obj
 \LMHash{}
 Let $T$ be the static type of $e$. It is a static type warning if $T$ does not have an accessible instance method or getter named $m$ unless either:
 \begin{itemize}
-\item $T$ or a superinterface of $T$ is annotated with an annotation denoting a constant identical to the constant proxy defined in \cd{dart:core}. Or
+\item $T$ or a superinterface of $T$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \cd{dart:core}. Or
 \item $T$ is \cd{Type}, $e$ is a constant type literal and the class corresponding to $e$ declares an accessible static method or getter named $m$.
 \end{itemize}
 
@@ -4398,14 +4399,17 @@ Evaluation of an assignment $a$ of the form $v$ \code{=} $e$ proceeds as follows
 % \item Otherwise, the assignment is equivalent to the assignment \code{ \THIS{}.$v$ = $e$}. 
 % \end{itemize}
  
-%Otherwise,  
+%Otherwise 
 
 \LMHash{}
 Let $d$ be the innermost declaration whose name is $v$ or $v=$, if it exists.
+It is a compile-time error if $d$ denotes a prefix object.
 
 \LMHash{}
 If $d$ is the declaration of a local variable, the expression $e$ is evaluated to an object $o$. Then, the variable $v$ is bound to $o$ unless $v$ is \FINAL{} or \CONST{}, in which case a dynamic error occurs.
 If no error occurs, the value of the assignment expression is $o$.  
+
+% add local functions per bug 23218
 
 \LMHash{}
 If $d$ is the declaration of a library variable, top level getter or top level setter, the expression $e$ is evaluated to an object $o$. Then the setter $v=$ is invoked with its formal parameter bound to $o$. The value of the assignment expression is $o$.  
@@ -4535,7 +4539,13 @@ It is a compile-time error to invoke any of the setters of class \cd{Object} on 
 \LMLabel{compoundAssignment}
 
 \LMHash{}
-Evaluation of a compound assignment of the form $v$ {\em ??=} $e$ is equivalent to the evaluation of the expression  $((x) => x == \NULL{}$ ?  $v=e : x)(v)$ where $x$ is a fresh variable that is not used in $e$. Evaluation of a compound assignment of the form $C.v$ {\em ??=} $e$, where $C$ is a type literal, is equivalent to the evaluation of the expression  $((x) => x == \NULL{}$?  $C.v=e: x)(C.v)$ where $x$ is a fresh variable that is not used in $e$. Evaluation of a compound assignment of the form $e_1.v$ {\em ??=} $e_2$ is equivalent to the evaluation of the expression  $((x) =>((y) => y == \NULL{}$ ? $ x.v = e_2: y)(x.v))(e_1)$ where $x$ and $y$ are distinct fresh variables that are not used in $e_2$. Evaluation of a compound assignment of the form  $e_1[e_2]$  {\em ??=} $e_3$ is equivalent to the evaluation of the expression  
+Evaluation of a compound assignment of the form $v$ {\em ??=} $e$ is equivalent to the evaluation of the expression  $((x) => x == \NULL{}$ ?  $v=e : x)(v)$ where $x$ is a fresh variable that is not used in $e$. Evaluation of a compound assignment of the form $C.v$ {\em ??=} $e$, where $C$ is a type literal, is equivalent to the evaluation of the expression  $((x) => x == \NULL{}$?  $C.v=e: x)(C.v)$ where $x$ is a fresh variable that is not used in $e$. 
+
+\commentary {
+The two rules above also apply when the variable v or the type C is prefixed.
+}
+
+Evaluation of a compound assignment of the form $e_1.v$ {\em ??=} $e_2$ is equivalent to the evaluation of the expression  $((x) =>((y) => y == \NULL{}$ ? $ x.v = e_2: y)(x.v))(e_1)$ where $x$ and $y$ are distinct fresh variables that are not used in $e_2$. Evaluation of a compound assignment of the form  $e_1[e_2]$  {\em ??=} $e_3$ is equivalent to the evaluation of the expression  
 $((a, i) => ((x) => x == \NULL{}$ ?  $a[i] = e_3: x)(a[i]))(e_1, e_2)$ where $x$, $a$ and $i$ are distinct fresh variables that are not used in $e_3$. Evaluation of a compound assignment of the form $\SUPER.v$  {\em ??=} $e$ is equivalent to the evaluation of the expression  $((x) => x == \NULL{}$ ? $\SUPER.v = e: x)(\SUPER.v)$ where $x$ is a fresh variable that is not used in $e$.
 
 \LMHash{}
@@ -4550,7 +4560,7 @@ The static type of a compound assignment of the form $v$ {\em ??=} $e$ is the le
 The static type of a compound assignment of the form  $C.v$ {\em ??=} $e$  is the least upper bound of the static type of $C.v$ and the static type of $e$.  Exactly the same static warnings that would be caused by $C.v = e$ are also generated in the case of $C.v$ {\em ??=} $e$.
 
 \LMHash{}
-The static type of a compound assignment of the form $e_1.v$  {\em ??=} $e_2$ is the least upper bound of the static type of $e_1.v$ and the static type of $e_2$. Let $T$ be the static type of $e_1$ and let $z$ be a fresh variable of type $T$. Exactly the same static warnings that would be caused by $z.v = e$ are also generated in the case of $e_1.v$  {\em ??=} $e_2$.
+The static type of a compound assignment of the form $e_1.v$  {\em ??=} $e_2$ is the least upper bound of the static type of $e_1.v$ and the static type of $e_2$. Let $T$ be the static type of $e_1$ and let $z$ be a fresh variable of type $T$. Exactly the same static warnings that would be caused by $z.v = e_2$ are also generated in the case of $e_1.v$  {\em ??=} $e_2$.
 
 \LMHash{}
 The static type of a compound assignment of the form $e_1[e_2]$  {\em ??=} $e_3$  is the least upper bound of the static type of $e_1[e_2]$ and the static type of $e_3$. Exactly the same static warnings that would be caused by $e_1[e_2] = e_3$ are also generated in the case of $e_1[e_2]$  {\em ??=} $e_3$.
@@ -4564,6 +4574,8 @@ For any other valid operator $op$, a compound assignment of the form $v$ $op\cod
 
 \LMHash{}
 Evaluation of a compound assignment of the form $e_1?.v$ $op = e_2$ is equivalent to \code{((x) $=>$ x?.v = x.v $op$ $e_2$)($e_1$)} where $x$ is a variable that is not used in $e_2$. The static type of $e_1?.v$ $op = e_2$ is the static type of $e_1.v$ $op$ $e_2$. Exactly the same static warnings that would be caused by $e_1.v$ $op = e_2$ are also generated in the case of $e_1?.v$ $op = e_2$.
+
+% Buggy. Allows C?.v = e.
 
 \begin{grammar}
 {\bf compoundAssignmentOperator:}`*=';
@@ -4998,7 +5010,7 @@ Postfix expressions invoke the postfix operators on objects.
  A {\em postfix expression} is either a primary expression, a function, method or getter invocation, or an invocation of a postfix operator on an expression $e$.
 
 \LMHash{}
-A postfix expression of the form \code{$v$++}, where $v$ is an identifier, is equivalent to \code{()\{var r = $v$; $v$ = r + 1; return r\}()}.
+A postfix expression of the form \code{$v$++}, where $v$ is an identifier, is equivalent to \code{()\{\VAR{} r = $v$; $v$ = r + 1; \RETURN{} r\}()}.
 
 \rationale{The above ensures that if $v$ is a field, the getter gets called exactly once. Likewise in the cases below. 
 }
@@ -5006,38 +5018,48 @@ A postfix expression of the form \code{$v$++}, where $v$ is an identifier, is eq
 \LMHash{}
 A postfix expression of the form \code{$C.v$ ++} is equivalent to 
 
-\code{()\{var r = $C.v$; $C.v$ = r + 1; return r\}()}.
+\code{()\{\VAR{} r = $C.v$; $C.v$ = r + 1; \RETURN{} r\}()}.
 
 \LMHash{}
 A postfix expression of the form \code{$e_1.v$++} is equivalent to 
 
-\code{(x)\{var r = x.v; x.v = r + 1; \RETURN{} r\}($e_1$)}.
+\code{(x)\{\VAR{} r = x.v; x.v = r + 1; \RETURN{} r\}($e_1$)}.
 
 \LMHash{}
 A postfix expression of the form \code{$e_1[e_2]$++},  is equivalent to 
 
-\code{(a, i)\{var r = a[i]; a[i] = r + 1; return r\}($e_1$, $e_2$)}.
+\code{(a, i)\{\VAR{} r = a[i]; a[i] = r + 1; \RETURN{} r\}($e_1$, $e_2$)}.
 
 \LMHash{}
 A postfix expression of the form \code{$v$-{}-}, where $v$ is an identifier, is equivalent to 
 
-\code{()\{var r = $v$; $v$ = r - 1; return r\}()}.
+\code{()\{\VAR{} r = $v$; $v$ = r - 1; \RETURN{} r\}()}.
 
 \LMHash{}
 A postfix expression of the form \code{$C.v$-{}-} is equivalent to 
 
-\code{()\{var r = $C.v$; $C.v$ = r - 1; return r\}()}.
+\code{()\{\VAR{} r = $C.v$; $C.v$ = r - 1; \RETURN{} r\}()}.
 
 \LMHash{}
 A postfix expression of the form \code{$e_1.v$-{}-} is equivalent to 
 
-\code{(x)\{var r = x.v; x.v = r - 1; \RETURN{} r\}($e_1$)}.
+\code{(x)\{\VAR{} r = x.v; x.v = r - 1; \RETURN{} r\}($e_1$)}.
 
 \LMHash{}
 A postfix expression of the form \code{$e_1[e_2]$-{}-},  is equivalent to 
 
-\code{(a, i)\{var r = a[i]; a[i] = r - 1; return r\}($e_1$, $e_2$)}.
- 
+\code{(a, i)\{\VAR{} r = a[i]; a[i] = r - 1; \RETURN{} r\}($e_1$, $e_2$)}.
+
+\LMHash{}
+A postfix expression of the form \code{$e_1?.v$++} is equivalent to 
+
+\code{((x) =$>$ x == \NULL? \NULL : x.v++)($e_1$)}.
+
+\LMHash{}
+A postfix expression of the form \code{$e_1?.v$-{}-} is equivalent to 
+
+\code{((x) =$>$ x == \NULL? \NULL : x.v-{}-)($e_1$)}.
+
 
 \subsection{ Assignable Expressions}
 \LMLabel{assignableExpressions}
@@ -5625,6 +5647,14 @@ where \code{n0} is an identifier that does not occur anywhere in the program.
 \commentary{
 Note that in fact, using a  \CONST{} variable would give rise to a compile time error since \cd{n0.current} is not a constant expression.  
 }
+
+It is a static warning if the static type of $e$ does not have a member \cd{iterator}. It is a static warning if the static type of \cd{$e$.iterator} does not have a method \cd{moveNext}. It is a static warning if static return type of  \cd{$e$.iterator.moveNext()} is not assignable to the static type of \cd{id}.
+
+
+\commentary {
+One might have required that \cd{n0} had type \cd{Iterable$<T>$} where $T$ was the static type of \cd{id}. However, that would cause failure in checked mode if $e$ was merely emulating the  \cd{Iterable} interface. 
+}
+ 
  
 \subsubsection{Asynchronous For-in}
 \LMLabel{asynchronousFor-in}
@@ -6557,16 +6587,21 @@ An import directive $I$ may optionally include a namespace combinator clauses us
 Let $I$ be an import directive that refers to a URI via the string $s_1$. Evaluation of $I$  proceeds as follows:
 
 \LMHash{}
-If $I$ is a deferred import, no evaluation takes place. Instead, a mapping of the name of the prefix, $p$ to a {\em deferred prefix object} is added to the scope of $L$.
+If $I$ is a deferred import, no evaluation takes place. Instead, a mapping of the name of the prefix, $p$ to a {\em deferred prefix object} is added to the scope of the current library $L$.
 The deferred prefix object has the following methods:
 
 \begin{itemize}
 \item \code{loadLibrary}. This method returns a future $f$. When called, the method causes an immediate import $I'$ to be executed at some future time, where $I'$ is is derived from $I$ by eliding the word \DEFERRED{} and adding a \HIDE{} \code{loadLibrary}  combinator clause. When $I'$ executes without error, $f$ completes successfully. If $I'$ executes without error, we say that the call to \code{loadLibrary} has succeeded, otherwise we say the call has failed.
-\item  For every top level function $f$ named $id$ in $L$, a corresponding method named $id$ with the same signature as $f$. Calling the method results in a runtime error.
-\item For every top level getter $g$ named $id$ in $L$, a corresponding getter named $id$ with the same signature as $g$.  Calling the method results in a runtime error.
-\item For every top level setter $s$ named $id$ in $L$, a corresponding setter named $id$ with the same signature as $s$.  Calling the method results in a runtime error.
-\item For every type $T$ named $id$ in $L$, a corresponding getter named $id$ with return type \code{Type}.  Calling the method results in a runtime error.
+\item  For every top level function $f$ named $id$ in the imported library $B$, a corresponding method named $id$ with the same signature as $f$. Calling the method results in a runtime error.
+\item For every top level getter $g$ named $id$ in $B$, a corresponding getter named $id$ with the same signature as $g$.  Calling the method results in a runtime error.
+\item For every top level setter $s$ named $id$ in $B$, a corresponding setter named $id$ with the same signature as $s$.  Calling the method results in a runtime error.
+\item For every type $T$ named $id$ in $B$, a corresponding getter named $id$ with return type \code{Type}.  Calling the method results in a runtime error.
 \end{itemize}
+
+\rationale {
+The purpose of adding members of $B$ to $p$ is to ensure that any warnings  issued when using $p$ are correct, and no spurious warnings are generated.  In fact, at runtime we cannot add these members until $B$ is loaded; but any such invocations will fail at runtime as specified by virtue of being completely absent.
+}
+%But this is still a lie detectable by reflection. Probably revise so the type of p has these members but p does not.
 
 \LMHash{}
 After a call succeeds, the name $p$ is mapped to a non-deferred prefix object as described below. In addition, the prefix object also supports the \code{loadLibrary} method, and so it is possible to call \code{loadLibrary} again. If a call fails, nothing happens, and one again has the option to call \code{loadLibrary} again. Whether a repeated call to \code{loadLibrary} succeeds will vary as described below.
@@ -6877,14 +6912,10 @@ This specification does not discuss the interpretation of URIs, with the followi
 A URI of the form \code{dart:$s$} is interpreted as a reference to a system library (\ref{imports}) $s$. 
  
 \LMHash{}
-A URI of the form \code{package:$s$} is interpreted as a URI of the form \code{packages/s} relative to an implementation specified location.
-
-\commentary{ 
-This location will often be the location of the root library presented to the Dart compiler. However, implementations may supply means to override or replace this choice.
-}
+A URI of the form \code{package:$s$} is interpreted in an implementation specific manner.
 
 \rationale{
-The intent is that, during development, Dart programmers can rely on a package manager to find elements of their program. Such package managers may provide a directory structure starting at a local directory \code{packages} where they place the required dart code (or links thereto).
+The intent is that, during development, Dart programmers can rely on a package manager to find elements of their program. 
 }
 
 \LMHash{}
@@ -7270,7 +7301,7 @@ If a type $I$ includes an instance method named \CALL{}, and the type of \CALL{}
 %\commentary{Need to specify how a function values dynamic type is derived from its static signature.}
 
 \LMHash{}
-A function type $(T_1, \ldots T_{k}, [T_{k+1}  \ldots, T_{n+m}]) \rightarrow T$ is a more specific than the
+A function type $(T_1, \ldots T_{k}, [T_{k+1}  \ldots, T_{n+m}]) \rightarrow T$ is more specific than the
 function type $(S_1, \ldots, S_{k+j}, [S_{k+j+1} \ldots, S_{n}]) \rightarrow S$, if all of the following conditions are met:
 \begin{enumerate}
 \item Either

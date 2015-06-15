@@ -6,7 +6,6 @@ library dart2js.new_js_emitter.model_emitter;
 
 import '../../constants/values.dart' show ConstantValue, FunctionConstantValue;
 import '../../dart2jslib.dart' show Compiler;
-import '../../dart_types.dart' show DartType;
 import '../../elements/elements.dart' show ClassElement, FunctionElement;
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart' show
@@ -138,8 +137,8 @@ class ModelEmitter {
     // deferred hash (which depends on the output) when emitting the main
     // fragment.
     fragments.skip(1).forEach((DeferredFragment deferredUnit) {
-      List<js.Expression> types =
-          program.metadataTypes[deferredUnit.outputUnit];
+      js.Expression types =
+          program.metadataTypesForOutputUnit(deferredUnit.outputUnit);
       js.Expression ast = emitDeferredFragment(types, deferredUnit,
                                                program.holders);
       String code = js.prettyPrint(ast, compiler).getText();
@@ -191,7 +190,6 @@ class ModelEmitter {
     elements.add(
         emitLazilyInitializedStatics(fragment.staticLazilyInitializedFields));
     elements.add(emitConstants(fragment.constants));
-
 
     js.Expression code = new js.ArrayInitializer(elements);
 
@@ -479,34 +477,21 @@ class ModelEmitter {
   }
 
   List<js.Property> emitMetadata(Program program) {
-    // Unparses all given js-expressions (suitable for `expressionCompile`) and
-    // returns the result in a js-array.
-    // If the given [expressions] is null returns the empty js-array.
-    js.ArrayInitializer unparseExpressions(List<js.Expression> expressions) {
-      if (expressions == null) expressions = <js.Expression>[];
-      List<js.LiteralString> unparsedExpressions = expressions
-          .map((expr) => unparse(compiler, expr, protectForEval: false))
-          .toList();
-      return new js.ArrayInitializer(unparsedExpressions);
-    }
-
     List<js.Property> metadataGlobals = <js.Property>[];
 
-    js.ArrayInitializer unparsedMetadata = unparseExpressions(program.metadata);
-    metadataGlobals.add(new js.Property(js.string(lazyMetadataName),
-                                        unparsedMetadata));
-    metadataGlobals.add(new js.Property(js.string(METADATA),
-                                        new js.ArrayInitializer([])));
+    js.Property createGlobal(js.Expression metadata, String global) {
+      return new js.Property(js.string(global), metadata);
+    }
 
-    List<js.Expression> types =
-        program.metadataTypes[program.fragments.first.outputUnit];
-    metadataGlobals.add(new js.Property(js.string(TYPES),
-                                        unparseExpressions(types)));
+    metadataGlobals.add(createGlobal(program.metadata, METADATA));
+    js.Expression types =
+        program.metadataTypesForOutputUnit(program.mainFragment.outputUnit);
+    metadataGlobals.add(createGlobal(types, TYPES));
 
     return metadataGlobals;
   }
 
-  js.Expression emitDeferredFragment(List<js.Expression> types,
+  js.Expression emitDeferredFragment(js.Expression deferredTypes,
                                      DeferredFragment fragment,
                                      List<Holder> holders) {
     // TODO(floitsch): initialize eager classes.
@@ -530,10 +515,6 @@ class ModelEmitter {
 
 
     js.LiteralString immediateString = unparse(compiler, immediateCode);
-
-    js.Expression deferredTypes = (types == null)
-        ? js.string("[]")
-        : unparse(compiler, new js.ArrayInitializer(types));
 
     js.ArrayInitializer hunk =
         new js.ArrayInitializer([deferredArray, immediateString,

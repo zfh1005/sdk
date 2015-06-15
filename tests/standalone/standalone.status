@@ -17,15 +17,6 @@ javascript_compatibility_errors_test/none: Fail, OK  # Not possible to exclude o
 package/package_isolate_test: Fail # Issue 12474
 io/observatory_test: Fail
 
-[ $runtime == vm && ($system == macos || $system == windows) ]
-io/platform_executable_test/01: RuntimeError # Issue 16994
-io/platform_executable_test/02: RuntimeError # Issue 16994
-io/platform_executable_test/04: RuntimeError # Issue 16994
-io/platform_executable_test/05: RuntimeError # Issue 16994
-
-[ $runtime == vm && $system == windows ]
-io/platform_executable_test/06: RuntimeError # NEEDS TRIAGE (kevmoo)
-
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
 io/process_invalid_arguments_test: Fail, OK
@@ -44,6 +35,7 @@ io/directory_fuzz_test: Skip
 # This is expected as MacOS by default runs with a very low number
 # of allowed open files ('ulimit -n' says something like 256).
 io/socket_many_connections_test: Skip
+io/platform_executable_test/06: RuntimeError
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 typed_array_test: Fail # Issue 13921
@@ -87,6 +79,8 @@ int_array_load_elimination_test: Skip  # This is a VM test
 medium_integer_test: RuntimeError, OK # Test fails with JS number semantics: issue 1533.
 io/process_exit_negative_test: Fail, OK # relies on a static error that is a warning now.
 package/package_isolate_test: Skip # spawnUri does not work in dart2js. See issue 3051
+package/package_test: Fail, OK # dart2js does not support 'package:foo.dart' imports
+package/package1_test: Fail, OK # dart2js does not support 'package:foo.dart' imports
 debugger/*: Skip # Do not run standalone vm debugger tests with dart2js.
 full_coverage_test: Skip
 left_shift_bit_and_op_test: Skip # Integers exceed dart2js precision.
@@ -179,7 +173,7 @@ io/http_client_stays_alive_test: Skip  # Timeout.
 array_bounds_check_generalization_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 constant_left_shift_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/addlatexhash_test: Crash # (try {test(tempDir.path);}finally {tempDir.delete(recursive:true);}): try/finally
-io/create_recursive_test: Crash #  try/finally
+io/create_recursive_test: Crash # (try {var file=new F...  try/finally
 io/directory_chdir_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/directory_error_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/directory_fuzz_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -197,23 +191,23 @@ io/file_system_links_test: Crash # Instance of 'TypeOperator': type check unimpl
 io/file_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/file_typed_data_test: Crash # Please triage this failure.
 io/file_uri_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/http_bind_test: Crash #  cannot handle async/sync*/async* functions
+io/http_bind_test: Crash # (testBindShared(Stri...  cannot handle async/sync*/async* functions
 io/http_client_exception_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/http_content_length_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/http_cookie_date_test: Crash # Please triage this failure.
 io/http_date_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/http_detach_socket_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/http_headers_state_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/http_headers_test: Crash #  Unhandled node
-io/http_parser_test: Crash #  Unhandled node
+io/http_headers_test: Crash # (switch (name.length...  Unhandled node
+io/http_parser_test: Crash # (switch (_state){cas...  Unhandled node
 io/http_proxy_test: Crash # Please triage this failure.
 io/http_server_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/https_bad_certificate_test: Crash #  cannot handle async/sync*/async* functions
+io/https_bad_certificate_test: Crash # (main()async{var cli...  cannot handle async/sync*/async* functions
 io/https_server_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/internet_address_invalid_arguments_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/internet_address_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/issue_22636_test: Crash #  cannot handle async/sync*/async* functions
-io/issue_22637_test: Crash #  cannot handle async/sync*/async* functions
+io/issue_22636_test: Crash # (test()async{server=...  cannot handle async/sync*/async* functions
+io/issue_22637_test: Crash # (test()async{server=...  cannot handle async/sync*/async* functions
 io/link_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/link_uri_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/observatory_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -223,34 +217,34 @@ io/platform_executable_test/04: Crash # (try {test(tempDir);}finally {tempDir.de
 io/platform_executable_test/05: Crash # (try {test(tempDir);}finally {tempDir.deleteSync(recursive:true);}): try/finally
 io/platform_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/process_invalid_arguments_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/raw_datagram_socket_test: Crash #  Unhandled node
+io/raw_datagram_socket_test: Crash # (switch (event){case...  Unhandled node
 io/raw_secure_server_closing_test: Crash # Please triage this failure.
 io/raw_secure_server_socket_argument_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/raw_secure_server_socket_test: Crash # Please triage this failure.
-io/raw_secure_socket_pause_test: Crash #  Unhandled node
-io/raw_secure_socket_test: Crash #  Unhandled node
-io/raw_server_socket_cancel_test: Crash #  Unhandled node
-io/raw_socket_cross_process_test: Crash #  Unhandled node
+io/raw_secure_socket_pause_test: Crash # (switch (event){case...  Unhandled node
+io/raw_secure_socket_test: Crash # (switch (event){case...  Unhandled node
+io/raw_server_socket_cancel_test: Crash # (switch (event){case...  Unhandled node
+io/raw_socket_cross_process_test: Crash # (switch (event){case...  Unhandled node
 io/raw_socket_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/raw_socket_typed_data_test: Crash # Please triage this failure.
-io/regress_21160_test: Crash #  Unhandled node
-io/secure_client_raw_server_test: Crash #  Unhandled node
+io/regress_21160_test: Crash # (switch (event){case...  Unhandled node
+io/secure_client_raw_server_test: Crash # (switch (event){case...  Unhandled node
 io/secure_server_closing_test: Crash # Please triage this failure.
 io/secure_server_socket_test: Crash # Please triage this failure.
 io/secure_socket_argument_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/secure_socket_bad_data_test: Crash #  Unhandled node
-io/skipping_dart2js_compilations_test: Crash #  Unhandled node
+io/secure_socket_bad_data_test: Crash # (switch (event){case...  Unhandled node
+io/skipping_dart2js_compilations_test: Crash # (switch (segment){ca...  Unhandled node
 io/sleep_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/socket_bind_test: Crash #  cannot handle async/sync*/async* functions
-io/socket_close_test: Crash #  Unhandled node
+io/socket_bind_test: Crash # (testListenCloseList...  cannot handle async/sync*/async* functions
+io/socket_close_test: Crash # (switch (_mode){case...  Unhandled node
 io/socket_exception_test: Crash # Please triage this failure.
-io/socket_source_address_test: Crash #  cannot handle async/sync*/async* functions
+io/socket_source_address_test: Crash # (Future testConnect(...  cannot handle async/sync*/async* functions
 io/socket_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/socket_upgrade_to_secure_test: Crash # Please triage this failure.
 io/stdout_stderr_terminal_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/test_extension_fail_test: Crash #  Unhandled node
-io/test_extension_test: Crash #  Unhandled node
-io/test_runner_test: Crash #  Unhandled node
+io/test_extension_fail_test: Crash # (switch (Platform.op...  Unhandled node
+io/test_extension_test: Crash # (switch (Platform.op...  Unhandled node
+io/test_runner_test: Crash # (switch (arguments[0...  Unhandled node
 io/uri_platform_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/web_socket_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/windows_file_system_links_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.

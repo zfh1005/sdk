@@ -240,16 +240,14 @@ import 'libB.dart';''';
     });
   }
 
-  Future fail_computeResolvedCompilationUnitAsync_unrelatedLibrary() {
+  Future test_computeResolvedCompilationUnitAsync_noCacheEntry() {
     Source librarySource = addSource("/lib.dart", "library lib;");
     Source partSource = addSource("/part.dart", "part of foo;");
     bool completed = false;
     context
         .computeResolvedCompilationUnitAsync(partSource, librarySource)
-        .then((_) {
-      fail('Expected resolution to fail');
-    }, onError: (e) {
-      expect(e, new isInstanceOf<AnalysisNotScheduledError>());
+        .then((CompilationUnit unit) {
+      expect(unit, isNotNull);
       completed = true;
     });
     return pumpEventQueue().then((_) {
@@ -781,6 +779,36 @@ void g() { f(null); }''');
     AnalysisErrorInfo errors = context.getErrors(htmlSource);
     expect(_hasAnalysisErrorWithErrorSeverity(errors), isTrue,
         reason: "htmlSource has an error");
+  }
+
+  void test_performAnalysisTask_onResultComputed() {
+    Set<String> libraryElementUris = new Set<String>();
+    Set<String> parsedUnitUris = new Set<String>();
+    Set<String> resolvedUnitUris = new Set<String>();
+    // listen
+    context.onResultComputed(LIBRARY_ELEMENT).listen((event) {
+      Source librarySource = event.target;
+      libraryElementUris.add(librarySource.uri.toString());
+    });
+    context.onResultComputed(PARSED_UNIT).listen((event) {
+      Source source = event.target;
+      parsedUnitUris.add(source.uri.toString());
+    });
+    context.onResultComputed(RESOLVED_UNIT).listen((event) {
+      LibrarySpecificUnit target = event.target;
+      Source librarySource = target.library;
+      resolvedUnitUris.add(librarySource.uri.toString());
+    });
+    // analyze
+    addSource('/test.dart', 'main() {}');
+    _analyzeAll_assertFinished();
+    // verify
+    expect(libraryElementUris, contains('dart:core'));
+    expect(libraryElementUris, contains('file:///test.dart'));
+    expect(parsedUnitUris, contains('dart:core'));
+    expect(parsedUnitUris, contains('file:///test.dart'));
+    expect(resolvedUnitUris, contains('dart:core'));
+    expect(resolvedUnitUris, contains('file:///test.dart'));
   }
 
   void fail_performAnalysisTask_IOException() {
@@ -1927,7 +1955,7 @@ int a = 0;''');
     expect(context.sourcesNeedingProcessing.contains(source), isFalse);
   }
 
-  Future xtest_computeResolvedCompilationUnitAsync() {
+  Future test_computeResolvedCompilationUnitAsync() {
     Source source = addSource("/lib.dart", "library lib;");
     // Complete all pending analysis tasks and flush the AST so that it won't
     // be available immediately.
@@ -1948,7 +1976,7 @@ int a = 0;''');
     });
   }
 
-  Future xtest_computeResolvedCompilationUnitAsync_cancel() {
+  Future test_computeResolvedCompilationUnitAsync_cancel() {
     Source source = addSource("/lib.dart", "library lib;");
     // Complete all pending analysis tasks and flush the AST so that it won't
     // be available immediately.
@@ -2054,8 +2082,8 @@ int a = 0;''');
   }
 
   void _flushAst(Source source) {
-    CacheEntry entry = context
-        .getReadableSourceEntryOrNull(new LibrarySpecificUnit(source, source));
+    CacheEntry entry =
+        context.getCacheEntry(new LibrarySpecificUnit(source, source));
     entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);
   }
 

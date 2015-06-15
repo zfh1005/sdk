@@ -8,7 +8,6 @@ import 'dart:convert';
 
 import '../common.dart';
 
-import '../constants/expressions.dart';
 import '../constants/values.dart';
 
 import '../closure.dart' show
@@ -28,15 +27,16 @@ import '../elements/elements.dart' show
     FieldElement,
     ParameterElement,
     TypeVariableElement,
-    MethodElement;
+    MethodElement,
+    MemberElement;
 
 import '../hash/sha1.dart' show Hasher;
-
-import '../helpers/helpers.dart';  // Included for debug helpers.
 
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show
     js;
+
+import 'package:js_ast/src/precedence.dart' as js_precedence;
 
 import '../js_backend/js_backend.dart' show
     CheckedModeHelper,

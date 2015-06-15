@@ -646,6 +646,30 @@ class A {
     assertSuggestKeywords(STMT_START_OUTSIDE_CLASS, pseudoKeywords: ['await']);
   }
 
+  test_if_expression_in_class() {
+    addTestSource('class A {foo() {if (^) }}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(EXPRESSION_START_INSTANCE);
+  }
+
+  test_if_expression_in_class2() {
+    addTestSource('class A {foo() {if (n^) }}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(EXPRESSION_START_INSTANCE);
+  }
+
+  test_if_expression_in_function() {
+    addTestSource('foo() {if (^) }');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
+  test_if_expression_in_function2() {
+    addTestSource('foo() {if (n^) }');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
   test_if_in_class() {
     addTestSource('class A {foo() {if (true) ^}}');
     expect(computeFast(), isTrue);
@@ -797,6 +821,24 @@ class A {
     expect(computeFast(), isTrue);
     assertSuggestKeywords(DIRECTIVE_AND_DECLARATION_KEYWORDS,
         relevance: DART_RELEVANCE_HIGH);
+  }
+
+  test_library_declaration() {
+    addTestSource('library ^');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([]);
+  }
+
+  test_library_declaration2() {
+    addTestSource('library a^');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([]);
+  }
+
+  test_library_declaration3() {
+    addTestSource('library a.^');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([]);
   }
 
   test_library_name() {
@@ -996,6 +1038,12 @@ class A {
     assertSuggestKeywords([]);
   }
 
+  test_prefixed_library() {
+    addTestSource('import "b" as b; class A { foo() {b.^}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([]);
+  }
+
   test_prefixed_local() {
     addTestSource('class A { foo() {int x; x.^}}');
     expect(computeFast(), isTrue);
@@ -1004,6 +1052,12 @@ class A {
 
   test_prefixed_local2() {
     addTestSource('class A { foo() {int x; x.^ print("foo");}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([]);
+  }
+
+  test_property_access() {
+    addTestSource('class A { get x => 7; foo() {new A().^}}');
     expect(computeFast(), isTrue);
     assertSuggestKeywords([]);
   }

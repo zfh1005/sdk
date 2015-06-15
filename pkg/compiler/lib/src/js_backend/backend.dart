@@ -212,6 +212,12 @@ class FunctionInlineCache {
   }
 }
 
+enum SyntheticConstantKind {
+  DUMMY_INTERCEPTOR,
+  EMPTY_VALUE,
+  TYPEVARIABLE_REFERENCE,
+}
+
 class JavaScriptBackend extends Backend {
   static final Uri DART_JS_HELPER = new Uri(scheme: 'dart', path: '_js_helper');
   static final Uri DART_INTERCEPTORS =
@@ -608,8 +614,6 @@ class JavaScriptBackend extends Backend {
 
   PatchResolverTask patchResolverTask;
 
-  bool get canHandleCompilationFailed => true;
-
   bool enabledNoSuchMethod = false;
 
   JavaScriptBackend(Compiler compiler,
@@ -644,6 +648,7 @@ class JavaScriptBackend extends Backend {
   }
 
   FunctionElement resolveExternalFunction(FunctionElement element) {
+    if (isForeign(element)) return element;
     return patchResolverTask.measure(() {
       return patchResolverTask.resolveExternalFunction(element);
     });
@@ -1060,7 +1065,6 @@ class JavaScriptBackend extends Backend {
     if (cls == closureClass) {
       enqueue(enqueuer, findHelper('closureFromTearOff'), registry);
     }
-    ClassElement result = null;
     if (cls == compiler.stringClass || cls == jsStringClass) {
       addInterceptors(jsStringClass, enqueuer, registry);
     } else if (cls == compiler.listClass ||
@@ -1420,6 +1424,7 @@ class JavaScriptBackend extends Backend {
         compiler.enqueuer.codegen.registerStaticUse(getCyclicThrowHelper());
       }
     }
+
     generatedCode[element] = functionCompiler.compile(work);
     return const WorldImpact();
   }
@@ -2017,10 +2022,6 @@ class JavaScriptBackend extends Backend {
     }).then((_) {
       Uri uri = library.canonicalUri;
 
-      VariableElement findVariable(String name) {
-        return find(library, name);
-      }
-
       FunctionElement findMethod(String name) {
         return find(library, name);
       }
@@ -2032,29 +2033,25 @@ class JavaScriptBackend extends Backend {
       if (uri == DART_INTERCEPTORS) {
         getInterceptorMethod = findMethod('getInterceptor');
         getNativeInterceptorMethod = findMethod('getNativeInterceptor');
-
-        List<ClassElement> classes = [
-          jsInterceptorClass = findClass('Interceptor'),
-          jsStringClass = findClass('JSString'),
-          jsArrayClass = findClass('JSArray'),
-          // The int class must be before the double class, because the
-          // emitter relies on this list for the order of type checks.
-          jsIntClass = findClass('JSInt'),
-          jsPositiveIntClass = findClass('JSPositiveInt'),
-          jsUInt32Class = findClass('JSUInt32'),
-          jsUInt31Class = findClass('JSUInt31'),
-          jsDoubleClass = findClass('JSDouble'),
-          jsNumberClass = findClass('JSNumber'),
-          jsNullClass = findClass('JSNull'),
-          jsBoolClass = findClass('JSBool'),
-          jsMutableArrayClass = findClass('JSMutableArray'),
-          jsFixedArrayClass = findClass('JSFixedArray'),
-          jsExtendableArrayClass = findClass('JSExtendableArray'),
-          jsUnmodifiableArrayClass = findClass('JSUnmodifiableArray'),
-          jsPlainJavaScriptObjectClass = findClass('PlainJavaScriptObject'),
-          jsUnknownJavaScriptObjectClass = findClass('UnknownJavaScriptObject'),
-        ];
-
+        jsInterceptorClass = findClass('Interceptor');
+        jsStringClass = findClass('JSString');
+        jsArrayClass = findClass('JSArray');
+        // The int class must be before the double class, because the
+        // emitter relies on this list for the order of type checks.
+        jsIntClass = findClass('JSInt');
+        jsPositiveIntClass = findClass('JSPositiveInt');
+        jsUInt32Class = findClass('JSUInt32');
+        jsUInt31Class = findClass('JSUInt31');
+        jsDoubleClass = findClass('JSDouble');
+        jsNumberClass = findClass('JSNumber');
+        jsNullClass = findClass('JSNull');
+        jsBoolClass = findClass('JSBool');
+        jsMutableArrayClass = findClass('JSMutableArray');
+        jsFixedArrayClass = findClass('JSFixedArray');
+        jsExtendableArrayClass = findClass('JSExtendableArray');
+        jsUnmodifiableArrayClass = findClass('JSUnmodifiableArray');
+        jsPlainJavaScriptObjectClass = findClass('PlainJavaScriptObject');
+        jsUnknownJavaScriptObjectClass = findClass('UnknownJavaScriptObject');
         jsIndexableClass = findClass('JSIndexable');
         jsMutableIndexableClass = findClass('JSMutableIndexable');
       } else if (uri == DART_JS_HELPER) {
@@ -2679,8 +2676,21 @@ class JavaScriptBackend extends Backend {
   }
 
   @override
-  bool registerDeferredLoading(Spannable node, Registry registry) {
+  bool enableDeferredLoadingIfSupported(Spannable node, Registry registry) {
     registerCheckDeferredIsLoaded(registry);
+    return true;
+  }
+
+  @override
+  bool enableCodegenWithErrorsIfSupported(Spannable node) {
+    if (compiler.useCpsIr) {
+      compiler.reportHint(
+          node,
+          MessageKind.GENERIC,
+          {'text': "Generation of code with compile time errors is currently "
+                   "not supported with the CPS IR."});
+      return false;
+    }
     return true;
   }
 }

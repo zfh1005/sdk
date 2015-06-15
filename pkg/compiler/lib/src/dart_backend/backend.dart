@@ -49,7 +49,13 @@ class DartBackend extends Backend {
   final Set<ClassElement> _userImplementedPlatformClasses =
       new Set<ClassElement>();
 
-  bool get canHandleCompilationFailed => false;
+  bool enableCodegenWithErrorsIfSupported(Spannable node) {
+    compiler.reportHint(node,
+        MessageKind.GENERIC,
+        {'text': "Generation of code with compile time errors is not "
+                 "supported for dart2dart."});
+    return false;
+  }
 
   /**
    * Tells whether it is safe to remove type declarations from variables,
@@ -144,9 +150,6 @@ class DartBackend extends Backend {
   }
 
   int assembleProgram() {
-    ElementAstCreationContext context =
-        new _ElementAstCreationContext(compiler, constantSystem);
-
     ElementAst computeElementAst(AstElement element) {
       return new ElementAst(element.resolvedAst.node,
                             element.resolvedAst.elements);
@@ -290,13 +293,11 @@ class DartBackend extends Backend {
             // Register selectors for all instance methods since these might
             // be called on user classes from within the platform
             // implementation.
-            superclass.forEachLocalMember((Element element) {
+            superclass.forEachLocalMember((MemberElement element) {
               if (element.isConstructor || element.isStatic) return;
 
               FunctionElement function = element.asFunctionElement();
-              if (function != null) {
-                function.computeSignature(compiler);
-              }
+              element.computeType(compiler);
               Selector selector = new Selector.fromElement(element);
               if (selector.isGetter) {
                 registry.registerDynamicGetter(selector);
@@ -314,7 +315,7 @@ class DartBackend extends Backend {
   }
 
   @override
-  bool registerDeferredLoading(Spannable node, Registry registry) {
+  bool enableDeferredLoadingIfSupported(Spannable node, Registry registry) {
     // TODO(sigurdm): Implement deferred loading for dart2dart.
     compiler.reportWarning(node, MessageKind.DEFERRED_LIBRARY_DART_2_DART);
     return false;
@@ -506,21 +507,4 @@ class DartConstantTask extends ConstantCompilerTask
     constantCompiler.constantValueMap.addAll(
         task.constantCompiler.constantValueMap);
   }
-}
-
-abstract class ElementAstCreationContext {
-  DartTypes get dartTypes;
-  ConstantSystem get constantSystem;
-  InternalErrorFunction get internalError;
-}
-
-class _ElementAstCreationContext implements ElementAstCreationContext {
-  final Compiler compiler;
-  final ConstantSystem constantSystem;
-
-  _ElementAstCreationContext(this.compiler, this.constantSystem);
-
-  DartTypes get dartTypes => compiler.types;
-
-  InternalErrorFunction get internalError => compiler.internalError;
 }

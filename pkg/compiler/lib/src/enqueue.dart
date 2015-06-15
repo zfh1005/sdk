@@ -189,7 +189,7 @@ abstract class Enqueuer {
       }
     } else if (member.kind == ElementKind.FUNCTION) {
       FunctionElement function = member;
-      function.computeSignature(compiler);
+      function.computeType(compiler);
       if (function.name == Compiler.NO_SUCH_METHOD) {
         registerNoSuchMethod(function);
       }
@@ -215,7 +215,7 @@ abstract class Enqueuer {
       }
     } else if (member.kind == ElementKind.GETTER) {
       FunctionElement getter = member;
-      getter.computeSignature(compiler);
+      getter.computeType(compiler);
       if (universe.hasInvokedGetter(getter, compiler.world)) {
         addToWorkList(getter);
         return;
@@ -228,7 +228,7 @@ abstract class Enqueuer {
       }
     } else if (member.kind == ElementKind.SETTER) {
       FunctionElement setter = member;
-      setter.computeSignature(compiler);
+      setter.computeType(compiler);
       if (universe.hasInvokedSetter(setter, compiler.world)) {
         addToWorkList(setter);
         return;
@@ -613,14 +613,15 @@ abstract class Enqueuer {
     universe.callMethodsWithFreeTypeVariables.add(element);
   }
 
-  void registerClosurizedMember(Element element, Registry registry) {
+  void registerClosurizedMember(TypedElement element, Registry registry) {
     assert(element.isInstanceMember);
     registerClosureIfFreeTypeVariables(element, registry);
     compiler.backend.registerBoundClosure(this);
     universe.closurizedMembers.add(element);
   }
 
-  void registerClosureIfFreeTypeVariables(Element element, Registry registry) {
+  void registerClosureIfFreeTypeVariables(TypedElement element,
+                                          Registry registry) {
     if (element.computeType(compiler).containsTypeVariables) {
       compiler.backend.registerClosureWithFreeTypeVariables(
           element, this, registry);

@@ -426,8 +426,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     int inputPosition = 1;  // Skip receiver.
     bool canInline = true;
     signature.forEachParameter((ParameterElement element) {
-      if (inputPosition < inputs.length && canInline) {
-        HInstruction input = inputs[inputPosition++];
+      if (inputPosition++ < inputs.length && canInline) {
         DartType type = element.type.unalias(compiler);
         if (type is FunctionType) {
           canInline = false;
@@ -697,7 +696,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction visitTypeConversion(HTypeConversion node) {
-    HInstruction value = node.inputs[0];
     DartType type = node.typeExpression;
     if (type != null) {
       if (type.isMalformed) {
@@ -1037,6 +1035,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   Map<HInstruction, bool> trivialDeadStoreReceivers =
       new Maplet<HInstruction, bool>();
   bool eliminatedSideEffects = false;
+
   SsaDeadCodeEliminator(this.compiler, this.optimizer);
 
   HInstruction zapInstructionCache;
@@ -1044,7 +1043,9 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     if (zapInstructionCache == null) {
       // A constant with no type does not pollute types at phi nodes.
       ConstantValue constant =
-          new DummyConstantValue(const TypeMask.nonNullEmpty());
+          new SyntheticConstantValue(
+              SyntheticConstantKind.EMPTY_VALUE,
+              const TypeMask.nonNullEmpty());
       zapInstructionCache = analyzer.graph.addConstant(constant, compiler);
     }
     return zapInstructionCache;
@@ -1142,7 +1143,8 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
       }
       return false;
     }
-    return instruction is HForeignNew
+    return instruction.isAllocation
+        && instruction.isPure()
         && trivialDeadStoreReceivers.putIfAbsent(instruction,
             () => instruction.usedBy.every(isDeadUse));
   }
@@ -1156,14 +1158,14 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     if (!instruction.usedBy.isEmpty) return false;
     if (isTrivialDeadStore(instruction)) return true;
     if (instruction.sideEffects.hasSideEffects()) return false;
-    if (instruction.canThrow()
-        && instruction.onlyThrowsNSM()
-        && hasFollowingThrowingNSM(instruction)) {
+    if (instruction.canThrow() &&
+        instruction.onlyThrowsNSM() &&
+        hasFollowingThrowingNSM(instruction)) {
       return true;
     }
     return !instruction.canThrow()
-           && instruction is !HParameterValue
-           && instruction is !HLocalSet;
+        && instruction is !HParameterValue
+        && instruction is !HLocalSet;
   }
 
   void visitGraph(HGraph graph) {

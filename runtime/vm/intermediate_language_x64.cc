@@ -1438,6 +1438,7 @@ LocationSummary* GuardFieldClassInstr::MakeLocationSummary(Zone* zone,
 
 
 void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(sizeof(classid_t) == kInt32Size);
   const intptr_t value_cid = value()->Type()->ToCid();
   const intptr_t field_cid = field().guarded_cid();
   const intptr_t nullability = field().is_nullable() ? kNullCid : kIllegalCid;
@@ -1770,6 +1771,7 @@ static void EnsureMutableBox(FlowGraphCompiler* compiler,
 
 
 void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(sizeof(classid_t) == kInt32Size);
   Label skip_store;
 
   Register instance_reg = locs()->in(0).reg();
@@ -2164,6 +2166,7 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
 
 
 void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(sizeof(classid_t) == kInt32Size);
   Register instance_reg = locs()->in(0).reg();
   if (IsUnboxedLoad() && compiler->is_optimizing()) {
     XmmRegister result = locs()->out(0).fpu_reg();

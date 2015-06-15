@@ -130,30 +130,29 @@ class ContainerBuilder extends CodeEmitterHelper {
         ..add(js.number(requiredParameterCount))
         ..add(js.number(optionalParameterCount))
         ..add(memberTypeExpression == null ? js("null") : memberTypeExpression)
-        ..addAll(task.metadataCollector
-            .reifyDefaultArguments(member).map(js.number));
+        ..addAll(task.metadataCollector.reifyDefaultArguments(member));
 
     if (canBeReflected || canBeApplied) {
       parameters.forEachParameter((Element parameter) {
-        expressions.add(
-            js.number(task.metadataCollector.reifyName(parameter.name)));
+        expressions.add(task.metadataCollector.reifyName(parameter.name));
         if (backend.mustRetainMetadata) {
-          Iterable<int> metadataIndices =
+          Iterable<jsAst.Expression> metadataIndices =
               parameter.metadata.map((MetadataAnnotation annotation) {
             ConstantValue constant =
                 backend.constants.getConstantValueForMetadata(annotation);
             backend.constants.addCompileTimeConstantForEmission(constant);
             return task.metadataCollector.reifyMetadata(annotation);
           });
-          expressions.add(new jsAst.ArrayInitializer(
-              metadataIndices.map(js.number).toList()));
+          expressions.add(new jsAst.ArrayInitializer(metadataIndices.toList()));
         }
       });
     }
     if (canBeReflected) {
       jsAst.LiteralString reflectionName;
       if (member.isConstructor) {
-        String reflectionNameString = emitter.getReflectionName(member, name);
+        // TODO(herhut): This registers name as a mangled name. Do we need this
+        //               given that we use a different name below?
+        emitter.getReflectionName(member, name);
         reflectionName =
             new jsAst.LiteralString(
                 '"new ${Elements.reconstructConstructorName(member)}"');
@@ -163,8 +162,7 @@ class ContainerBuilder extends CodeEmitterHelper {
       }
       expressions
           ..add(reflectionName)
-          ..addAll(task.metadataCollector
-              .computeMetadata(member).map(js.number));
+          ..addAll(task.metadataCollector.computeMetadata(member));
     } else if (isClosure && canBeApplied) {
       expressions.add(js.string(namer.privateName(member.memberName)));
     }

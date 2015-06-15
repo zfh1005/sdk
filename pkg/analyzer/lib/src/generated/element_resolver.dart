@@ -591,6 +591,11 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       propagatedElement = null;
     } else if (methodName.name == FunctionElement.LOAD_LIBRARY_NAME &&
         _isDeferredPrefix(target)) {
+      if (node.operator.type == sc.TokenType.QUESTION_PERIOD) {
+        _resolver.reportErrorForNode(
+            CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, target,
+            [(target as SimpleIdentifier).name]);
+      }
       LibraryElement importedLibrary = _getImportedLibrary(target);
       methodName.staticElement = importedLibrary.loadLibraryFunction;
       return null;
@@ -609,10 +614,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         staticElement =
             propagatedElement = _resolveElement(typeReference, methodName);
       } else {
-        staticElement =
-            _resolveInvokedElementWithTarget(target, staticType, methodName);
+        staticElement = _resolveInvokedElementWithTarget(
+            target, staticType, methodName, isConditional);
         propagatedElement = _resolveInvokedElementWithTarget(
-            target, propagatedType, methodName);
+            target, propagatedType, methodName, isConditional);
       }
     }
     staticElement = _convertSetterToGetter(staticElement);
@@ -1002,6 +1007,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         Annotation annotation = node.parent as Annotation;
         _resolver.reportErrorForNode(
             CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
+      } else if (element is PrefixElement) {
+        _resolver.reportErrorForNode(
+            CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, node,
+            [element.name]);
       } else {
         _recordUndefinedNode(_resolver.enclosingClass,
             StaticWarningCode.UNDEFINED_IDENTIFIER, node, [node.name]);
@@ -1355,6 +1364,22 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
+   * Return the best type of the given [expression] that is to be used for
+   * type analysis.
+   */
+  DartType _getBestType(Expression expression) {
+    DartType bestType = _resolveTypeParameter(expression.bestType);
+    if (bestType is FunctionType) {
+      //
+      // All function types are subtypes of 'Function', which is itself a
+      // subclass of 'Object'.
+      //
+      bestType = _resolver.typeProvider.functionType;
+    }
+    return bestType;
+  }
+
+  /**
    * Assuming that the given [expression] is a prefix for a deferred import,
    * return the library that is being imported.
    */
@@ -1389,22 +1414,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     } else {
       return operator.lexeme;
     }
-  }
-
-  /**
-   * Return the best type of the given [expression] that is to be used for
-   * type analysis.
-   */
-  DartType _getBestType(Expression expression) {
-    DartType bestType = _resolveTypeParameter(expression.bestType);
-    if (bestType is FunctionType) {
-      //
-      // All function types are subtypes of 'Function', which is itself a
-      // subclass of 'Object'.
-      //
-      bestType = _resolver.typeProvider.functionType;
-    }
-    return bestType;
   }
 
   /**
@@ -2333,7 +2342,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     // Look first in the lexical scope.
     //
     Element element = _resolver.nameScope.lookup(methodName, _definingLibrary);
-    if (element == null) {
+    if (element == null || element is PrefixElement) {
       //
       // If it isn't defined in the lexical scope, and the invocation is within
       // a class, then look in the inheritance scope.
@@ -2362,10 +2371,11 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * invoked without arguments and the result of that invocation will then be
    * invoked with the arguments. The [target] is the target of the invocation
    * ('e'). The [targetType] is the type of the target. The [methodName] is th
-   *  name of the method being invoked ('m').
+   * name of the method being invoked ('m').  [isConditional] indicates
+   * whether the invocatoin uses a '?.' operator.
    */
-  Element _resolveInvokedElementWithTarget(
-      Expression target, DartType targetType, SimpleIdentifier methodName) {
+  Element _resolveInvokedElementWithTarget(Expression target,
+      DartType targetType, SimpleIdentifier methodName, bool isConditional) {
     if (targetType is InterfaceType) {
       Element element = _lookUpMethod(target, targetType, methodName.name);
       if (element == null) {
@@ -2381,6 +2391,11 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     } else if (target is SimpleIdentifier) {
       Element targetElement = target.staticElement;
       if (targetElement is PrefixElement) {
+        if (isConditional) {
+          _resolver.reportErrorForNode(
+              CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+              target, [target.name]);
+        }
         //
         // Look to see whether the name of the method is really part of a
         // prefixed identifier for an imported top-level function or top-level
@@ -2579,6 +2594,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     } else if (element == null &&
         (identifier.inSetterContext() ||
             identifier.parent is CommentReference)) {
+      element = _resolver.nameScope.lookup(
+          new SyntheticIdentifier("${identifier.name}=", identifier),
+          _definingLibrary);
+    } else if (element is PrefixElement && !identifier.inGetterContext()) {
       element = _resolver.nameScope.lookup(
           new SyntheticIdentifier("${identifier.name}=", identifier),
           _definingLibrary);

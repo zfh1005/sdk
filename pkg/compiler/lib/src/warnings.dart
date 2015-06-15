@@ -530,6 +530,9 @@ main() => new C(0);"""]);
   static const MessageKind NOT_INSTANCE_FIELD = const MessageKind(
       "'#{fieldName}' is not an instance field.");
 
+  static const MessageKind THIS_PROPERTY = const MessageKind(
+      "Expected an identifier.");
+
   static const MessageKind NO_CATCH_NOR_FINALLY = const MessageKind(
       "Expected 'catch' or 'finally'.");
 
@@ -1595,6 +1598,27 @@ main() {}
         """
 // can't have a '[' in a URI
 import '../../Udyn[mic ils/expect.dart';
+
+main() {}
+"""]);
+
+  static const MessageKind INVALID_PACKAGE_URI = const MessageKind(
+      "'#{uri}' is not a valid package URI (#{exception}).",
+      howToFix: DONT_KNOW_HOW_TO_FIX,
+      examples: const [
+        """
+// can't have a 'top level' package URI
+import 'package:foo.dart';
+
+main() {}
+""", """
+// can't have 2 slashes
+import 'package://foo/foo.dart';
+
+main() {}
+""", """
+// package name must be a valid identifier
+import 'package:not-valid/foo.dart';
 
 main() {}
 """]);

@@ -344,6 +344,12 @@ RawError* Compiler::CompileClass(const Class& cls) {
       ClassFinalizer::FinalizeClass(parse_class);
       parse_class.reset_is_marked_for_parsing();
     }
+    for (intptr_t i = (patch_list.Length() - 1); i >=0 ; i--) {
+      parse_class ^= patch_list.At(i);
+      ASSERT(!parse_class.IsNull());
+      ClassFinalizer::FinalizeClass(parse_class);
+      parse_class.reset_is_marked_for_parsing();
+    }
 
     return Error::null();
   } else {
@@ -880,15 +886,8 @@ static void DisassembleCode(const Function& function, bool optimized) {
     ISL_Print("}\n");
   }
 
-  const Array& object_pool = Array::Handle(code.ObjectPool());
-  if (object_pool.Length() > 0) {
-    ISL_Print("Object Pool: {\n");
-    for (intptr_t i = 0; i < object_pool.Length(); i++) {
-      ISL_Print("  %" Pd ": %s\n", i,
-          Object::Handle(object_pool.At(i)).ToCString());
-    }
-    ISL_Print("}\n");
-  }
+  const ObjectPool& object_pool = ObjectPool::Handle(code.GetObjectPool());
+  object_pool.DebugPrint();
 
   ISL_Print("Stackmaps for function '%s' {\n", function_fullname);
   if (code.stackmaps() != Array::null()) {

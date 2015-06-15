@@ -4,6 +4,7 @@
 
 library engine.compile_time_error_code_test;
 
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/source_io.dart';
@@ -19,15 +20,6 @@ main() {
 
 @reflectiveTest
 class CompileTimeErrorCodeTest extends ResolverTestCase {
-  /**
-   * Computes errors for the given [librarySource].
-   * This assumes that the given [librarySource] and its parts have already
-   * been added to the content provider using the method [addNamedSource].
-   */
-  void computeLibrarySourceErrors(Source librarySource) {
-    analysisContext.computeErrors(librarySource);
-  }
-
   void fail_awaitInWrongContext_sync() {
     // This test requires better error recovery than we currently have. In
     // particular, we need to be able to distinguish between an await expression
@@ -1036,6 +1028,47 @@ const C = a.m;''');
     Source source = addSource("const C = 1 ~/ 0;");
     computeLibrarySourceErrors(source);
     assertErrors(source, [CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE]);
+    verify([source]);
+  }
+
+  void test_constEvalThrowsException_finalAlreadySet_initializer() {
+    // If a final variable has an initializer at the site of its declaration,
+    // and at the site of the constructor, then invoking that constructor would
+    // produce a runtime error; hence invoking that constructor via the "const"
+    // keyword results in a compile-time error.
+    Source source = addSource('''
+class C {
+  final x = 1;
+  const C() : x = 2;
+}
+var x = const C();
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+      StaticWarningCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION
+    ]);
+    verify([source]);
+  }
+
+  void test_constEvalThrowsException_finalAlreadySet_initializing_formal() {
+    // If a final variable has an initializer at the site of its declaration,
+    // and it is initialized using an initializing formal at the site of the
+    // constructor, then invoking that constructor would produce a runtime
+    // error; hence invoking that constructor via the "const" keyword results
+    // in a compile-time error.
+    Source source = addSource('''
+class C {
+  final x = 1;
+  const C(this.x);
+}
+var x = const C(2);
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+      StaticWarningCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR
+    ]);
     verify([source]);
   }
 
@@ -3247,7 +3280,9 @@ class A<E> {
   }
 
   void test_invalidUri_part() {
-    Source source = addSource("part 'ht:';");
+    Source source = addSource(r'''
+library lib;
+part 'ht:';''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [CompileTimeErrorCode.INVALID_URI]);
   }
@@ -4661,6 +4696,132 @@ part 'l2.dart';''');
     verify([source]);
   }
 
+  void test_partOfNonPart_self() {
+    Source source = addSource(r'''
+library lib;
+part 'test.dart';''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.PART_OF_NON_PART]);
+    verify([source]);
+  }
+
+  void test_prefix_conditionalPropertyAccess_call() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableNullAwareOperators = true;
+    resetWithOptions(options);
+    addNamedSource('/lib.dart', '''
+library lib;
+g() {}
+''');
+    Source source = addSource('''
+import 'lib.dart' as p;
+f() {
+  p?.g();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
+    verify([source]);
+  }
+
+  void test_prefix_conditionalPropertyAccess_call_loadLibrary() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableNullAwareOperators = true;
+    resetWithOptions(options);
+    addNamedSource('/lib.dart', '''
+library lib;
+''');
+    Source source = addSource('''
+import 'lib.dart' deferred as p;
+f() {
+  p?.loadLibrary();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
+    verify([source]);
+  }
+
+  void test_prefix_conditionalPropertyAccess_get() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableNullAwareOperators = true;
+    resetWithOptions(options);
+    addNamedSource('/lib.dart', '''
+library lib;
+var x;
+''');
+    Source source = addSource('''
+import 'lib.dart' as p;
+f() {
+  return p?.x;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
+    verify([source]);
+  }
+
+  void test_prefix_conditionalPropertyAccess_get_loadLibrary() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableNullAwareOperators = true;
+    resetWithOptions(options);
+    addNamedSource('/lib.dart', '''
+library lib;
+''');
+    Source source = addSource('''
+import 'lib.dart' deferred as p;
+f() {
+  return p?.loadLibrary;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
+    verify([source]);
+  }
+
+  void test_prefix_conditionalPropertyAccess_set() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableNullAwareOperators = true;
+    resetWithOptions(options);
+    addNamedSource('/lib.dart', '''
+library lib;
+var x;
+''');
+    Source source = addSource('''
+import 'lib.dart' as p;
+f() {
+  p?.x = null;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
+    verify([source]);
+  }
+
+  void test_prefix_conditionalPropertyAccess_set_loadLibrary() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableNullAwareOperators = true;
+    resetWithOptions(options);
+    addNamedSource('/lib.dart', '''
+library lib;
+''');
+    Source source = addSource('''
+import 'lib.dart' deferred as p;
+f() {
+  p?.loadLibrary = null;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
+    verify([source]);
+  }
+
   void test_prefixCollidesWithTopLevelMembers_functionTypeAlias() {
     addNamedSource("/lib.dart", r'''
 library lib;
@@ -4714,6 +4875,54 @@ p.A a;''');
     computeLibrarySourceErrors(source);
     assertErrors(
         source, [CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER]);
+    verify([source]);
+  }
+
+  void test_prefixNotFollowedByDot() {
+    addNamedSource('/lib.dart', 'library lib;');
+    Source source = addSource('''
+import 'lib.dart' as p;
+f() {
+  return p;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
+    verify([source]);
+  }
+
+  void test_prefixNotFollowedByDot_compoundAssignment() {
+    addNamedSource('/lib.dart', 'library lib;');
+    Source source = addSource('''
+import 'lib.dart' as p;
+f() {
+  p += 1;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
+    verify([source]);
+  }
+
+  void test_prefixNotFollowedByDot_conditionalMethodInvocation() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableNullAwareOperators = true;
+    resetWithOptions(options);
+    addNamedSource('/lib.dart', '''
+library lib;
+g() {}
+''');
+    Source source = addSource('''
+import 'lib.dart' as p;
+f() {
+  p?.g();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
     verify([source]);
   }
 
@@ -5597,7 +5806,9 @@ main() {
   }
 
   void test_uriDoesNotExist_part() {
-    Source source = addSource("part 'unknown.dart';");
+    Source source = addSource(r'''
+library lib;
+part 'unknown.dart';''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
   }

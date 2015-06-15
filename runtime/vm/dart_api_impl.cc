@@ -71,6 +71,46 @@ const char* CanonicalFunction(const char* func) {
 }
 
 
+#if defined(DEBUG)
+// An object visitor which will iterate over all the function objects in the
+// heap and check if the result type and parameter types are canonicalized
+// or not. An assertion is raised if a type is not canonicalized.
+class FunctionVisitor : public ObjectVisitor {
+ public:
+  explicit FunctionVisitor(Isolate* isolate) :
+      ObjectVisitor(isolate),
+      classHandle_(Class::Handle(isolate)),
+      funcHandle_(Function::Handle(isolate)),
+      typeHandle_(AbstractType::Handle(isolate)) {}
+
+  void VisitObject(RawObject* obj) {
+    if (obj->IsFunction()) {
+      funcHandle_ ^= obj;
+      classHandle_ ^= funcHandle_.Owner();
+      // Verify that the result type of a function is canonical or a
+      // TypeParameter.
+      typeHandle_ ^= funcHandle_.result_type();
+      ASSERT(typeHandle_.IsNull() ||
+             typeHandle_.IsTypeParameter() ||
+             typeHandle_.IsCanonical());
+      // Verify that the types in the function signature are all canonical or
+      // a TypeParameter.
+      const intptr_t num_parameters = funcHandle_.NumParameters();
+      for (intptr_t i = 0; i < num_parameters; i++) {
+        typeHandle_ = funcHandle_.ParameterTypeAt(i);
+        ASSERT(typeHandle_.IsTypeParameter() || typeHandle_.IsCanonical());
+      }
+    }
+  }
+
+ private:
+  Class& classHandle_;
+  Function& funcHandle_;
+  AbstractType& typeHandle_;
+};
+#endif  // #if defined(DEBUG).
+
+
 static RawInstance* GetListInstance(Isolate* isolate, const Object& obj) {
   if (obj.IsInstance()) {
     const Library& core_lib = Library::Handle(Library::CoreLibrary());
@@ -1463,6 +1503,12 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(
   if (::Dart_IsError(state)) {
     return state;
   }
+  isolate->heap()->CollectAllGarbage();
+#if defined(DEBUG)
+  FunctionVisitor check_canonical(isolate);
+  isolate->heap()->VisitObjects(&check_canonical);
+#endif  // #if defined(DEBUG).
+
   // Since this is only a snapshot the root library should not be set.
   isolate->object_store()->set_root_library(Library::Handle(isolate));
   FullSnapshotWriter writer(vm_isolate_snapshot_buffer,
@@ -3195,9 +3241,19 @@ DART_EXPORT Dart_TypedData_Type Dart_GetTypeOfExternalTypedData(
     Dart_Handle object) {
   TRACE_API_CALL(CURRENT_FUNC);
   intptr_t class_id = Api::ClassId(object);
-  if (RawObject::IsExternalTypedDataClassId(class_id) ||
-      RawObject::IsTypedDataViewClassId(class_id)) {
+  if (RawObject::IsExternalTypedDataClassId(class_id)) {
     return GetType(class_id);
+  }
+  if (RawObject::IsTypedDataViewClassId(class_id)) {
+    // Check if data object of the view is external.
+    Isolate* isolate = Isolate::Current();
+    const Instance& view_obj = Api::UnwrapInstanceHandle(isolate, object);
+    ASSERT(!view_obj.IsNull());
+    const Instance& data_obj =
+        Instance::Handle(isolate, TypedDataView::Data(view_obj));
+    if (ExternalTypedData::IsExternalTypedData(data_obj)) {
+      return GetType(class_id);
+    }
   }
   return Dart_TypedData_kInvalid;
 }

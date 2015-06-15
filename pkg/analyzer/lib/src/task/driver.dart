@@ -42,6 +42,12 @@ class AnalysisDriver {
   final InternalAnalysisContext context;
 
   /**
+   * The map of [ComputedResult] controllers.
+   */
+  final Map<ResultDescriptor, StreamController<ComputedResult>> resultComputedControllers =
+      <ResultDescriptor, StreamController<ComputedResult>>{};
+
+  /**
    * The work order that was previously computed but that has not yet been
    * completed.
    */
@@ -187,6 +193,15 @@ class AnalysisDriver {
   }
 
   /**
+   * Return the stream that is notified when a new value for the given
+   * [descriptor] is computed.
+   */
+  Stream<ComputedResult> onResultComputed(ResultDescriptor descriptor) {
+    return resultComputedControllers.putIfAbsent(descriptor, () =>
+        new StreamController<ComputedResult>.broadcast(sync: true)).stream;
+  }
+
+  /**
    * Perform the next analysis task, and return `true` if there is more work to
    * be done in order to compute all of the required analysis information.
    */
@@ -243,7 +258,8 @@ class AnalysisDriver {
     AnalysisTask task = item.buildTask();
     _onTaskStartedController.add(task);
     task.perform();
-    CacheEntry entry = context.getCacheEntry(task.target);
+    AnalysisTarget target = task.target;
+    CacheEntry entry = context.getCacheEntry(target);
     if (task.caughtException == null) {
       List<TargetedResult> dependedOn = item.inputTargetedResults.toList();
       Map<ResultDescriptor, dynamic> outputs = task.outputs;
@@ -252,8 +268,17 @@ class AnalysisDriver {
         // and throw an exception if not (unless we want to allow null values).
         entry.setValue(result, outputs[result], dependedOn);
       }
+      outputs.forEach((ResultDescriptor descriptor, value) {
+        StreamController<ComputedResult> controller =
+            resultComputedControllers[descriptor];
+        if (controller != null) {
+          ComputedResult event =
+              new ComputedResult(context, descriptor, target, value);
+          controller.add(event);
+        }
+      });
       for (WorkManager manager in workManagers) {
-        manager.resultsComputed(task.target, outputs);
+        manager.resultsComputed(target, outputs);
       }
     } else {
       entry.setErrorState(task.caughtException, item.descriptor.results);

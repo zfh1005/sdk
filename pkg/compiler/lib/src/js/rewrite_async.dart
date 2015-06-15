@@ -15,8 +15,6 @@ import "js.dart" as js;
 import '../util/util.dart';
 import '../dart2jslib.dart' show DiagnosticListener;
 
-import "../helpers/helpers.dart";
-
 /// Rewrites a [js.Fun] with async/sync*/async* functions and await and yield
 /// (with dart-like semantics) to an equivalent function without these.
 /// await-for is not handled and must be rewritten before. (Currently handled
@@ -1183,9 +1181,21 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   js.Expression visitLiteralString(js.LiteralString node) => node;
 
   @override
+  js.Expression visitStringConcatenation(js.StringConcatenation node) => node;
+
+  @override
   visitNamedFunction(js.NamedFunction node) {
     unsupported(node);
   }
+
+  @override
+  js.Expression visitDeferredExpression(js.DeferredExpression node) => node;
+
+  @override
+  js.Expression visitDeferredNumber(js.DeferredNumber node) => node;
+
+  @override
+  js.Expression visitDeferredString(js.DeferredString node) => node;
 
   @override
   js.Expression visitNew(js.New node) {
@@ -2385,6 +2395,21 @@ class PreTranslationAnalysis extends js.NodeVisitor<bool> {
   }
 
   @override
+  bool visitDeferredExpression(js.DeferredExpression node) {
+    return false;
+  }
+
+  @override
+  bool visitDeferredNumber(js.DeferredNumber node) {
+    return false;
+  }
+
+  @override
+  bool visitDeferredString(js.DeferredString node) {
+    return false;
+  }
+
+  @override
   bool visitLiteralBool(js.LiteralBool node) {
     return false;
   }
@@ -2412,6 +2437,11 @@ class PreTranslationAnalysis extends js.NodeVisitor<bool> {
   @override
   bool visitLiteralString(js.LiteralString node) {
     return false;
+  }
+
+  @override
+  bool visitStringConcatenation(js.StringConcatenation node) {
+    return true;
   }
 
   @override

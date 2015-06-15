@@ -15,13 +15,16 @@ import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart' as cache;
 import 'package:analyzer/src/context/context.dart' as newContext;
 import 'package:analyzer/src/generated/incremental_resolution_validator.dart';
+import 'package:analyzer/src/plugin/command_line_plugin.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
+import 'package:analyzer/src/plugin/options_plugin.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/src/task/task_dart.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:plugin/manager.dart';
+import 'package:plugin/plugin.dart';
 
 import '../../instrumentation/instrumentation.dart';
 import 'ast.dart';
@@ -742,6 +745,12 @@ abstract class AnalysisContext {
   bool isServerLibrary(Source librarySource);
 
   /**
+   * Return the stream that is notified when a new value for the given
+   * [descriptor] is computed.
+   */
+  Stream<ComputedResult> onResultComputed(ResultDescriptor descriptor);
+
+  /**
    * Parse the content of the given [source] to produce an AST structure. The
    * resulting AST structure may or may not be resolved, and may have a slightly
    * different structure depending upon whether it is resolved.
@@ -767,6 +776,21 @@ abstract class AnalysisContext {
    * Perform the next unit of work required to keep the analysis results
    * up-to-date and return information about the consequent changes to the
    * analysis results. This method can be long running.
+   *
+   * The implementation that uses the task model notifies subscribers of
+   * [onResultComputed] about computed results.
+   *
+   * The following results are computed for Dart sources.
+   *
+   * 1. For explicit and implicit sources:
+   *    [PARSED_UNIT]
+   *    [RESOLVED_UNIT]
+   *
+   * 2. For explicit sources:
+   *    [DART_ERRORS].
+   *
+   * 3. For explicit and implicit library sources:
+   *    [LIBRARY_ELEMENT].
    */
   AnalysisResult performAnalysisTask();
 
@@ -2204,6 +2228,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           dartEntry.getValue(DartEntry.IS_LAUNCHABLE);
     }
     return false;
+  }
+
+  @override
+  Stream<ComputedResult> onResultComputed(ResultDescriptor descriptor) {
+    throw new NotImplementedException('In not task-based AnalysisContext.');
   }
 
   @override
@@ -5703,16 +5732,34 @@ class AnalysisEngine {
   Logger _logger = Logger.NULL;
 
   /**
+   * The plugin that defines the extension points and extensions that are defined by
+   * command-line applications using the analysis engine.
+   */
+  final CommandLinePlugin commandLinePlugin = new CommandLinePlugin();
+
+  /**
    * The plugin that defines the extension points and extensions that are
    * inherently defined by the analysis engine.
    */
   final EnginePlugin enginePlugin = new EnginePlugin();
+
+  /***
+   * The plugin that defines the extension points and extensions that are defined
+   * by applications that want to consume options defined in the analysis
+   * options file.
+   */
+  final OptionsPlugin optionsPlugin = new OptionsPlugin();
 
   /**
    * The instrumentation service that is to be used by this analysis engine.
    */
   InstrumentationService _instrumentationService =
       InstrumentationService.NULL_SERVICE;
+
+  /**
+   * The list of supported plugins for processing by clients.
+   */
+  List<Plugin> _supportedPlugins;
 
   /**
    * The partition manager being used to manage the shared partitions.
@@ -5768,6 +5815,20 @@ class AnalysisEngine {
    */
   void set logger(Logger logger) {
     this._logger = logger == null ? Logger.NULL : logger;
+  }
+
+  /**
+   * Return the list of supported plugins for processing by clients.
+   */
+  List<Plugin> get supportedPlugins {
+    if (_supportedPlugins == null) {
+      _supportedPlugins = <Plugin>[
+        enginePlugin,
+        commandLinePlugin,
+        optionsPlugin
+      ];
+    }
+    return _supportedPlugins;
   }
 
   /**
@@ -7180,6 +7241,36 @@ class ChangeSet_ContentChange {
    */
   ChangeSet_ContentChange(
       this.contents, this.offset, this.oldLength, this.newLength);
+}
+
+/**
+ * [ComputedResult] describes a value computed for a [ResultDescriptor].
+ */
+class ComputedResult<V> {
+  /**
+   * The context in which the value was computed.
+   */
+  final AnalysisContext context;
+
+  /**
+   * The descriptor of the result which was computed.
+   */
+  final ResultDescriptor<V> descriptor;
+
+  /**
+   * The target for which the result was computed.
+   */
+  final AnalysisTarget target;
+
+  /**
+   * The computed value.
+   */
+  final V value;
+
+  ComputedResult(this.context, this.descriptor, this.target, this.value);
+
+  @override
+  String toString() => '$descriptor of $target in $context';
 }
 
 /**
