@@ -278,7 +278,6 @@
       'include_dirs': [
         '..',
         '../../third_party',
-        '../../third_party/boring_ssl/src/include',
       ],
       'includes': [
         'io_impl_sources.gypi',
@@ -291,20 +290,13 @@
         ['dart_io_support==1', {
           'dependencies': [
             'bin/net/zlib.gyp:zlib_dart',
+            '../third_party/boringssl/boringssl_dart.gyp:boringssl',
           ],
         }],
         ['dart_io_secure_socket==0', {
           'defines': [
             'DART_IO_SECURE_SOCKET_DISABLED'
           ],
-        }],
-        ['OS=="linux"', {
-          'link_settings': {
-            'library_dirs' : [
-              '../third_party/boring_ssl/src/build/crypto',
-              '../third_party/boring_ssl/src/build/ssl'],
-            'libraries': [ '-lssl', '-lcrypto' ],
-          },
         }],
         ['OS=="win"', {
           'link_settings': {
