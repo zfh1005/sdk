@@ -4,6 +4,7 @@
 
 {
   'includes': [
+    '../../runtime/tools/gyp/runtime-configurations.gypi',
     'boringssl_configurations.gypi',
   ],
   'targets': [
