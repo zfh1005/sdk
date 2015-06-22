@@ -15,11 +15,9 @@
       'includes': [
         'boringssl.gypi',
       ],
-      'variables': {
-        'target_arch': 'combined',
-      },
       'sources': [
-        '<@(boringssl_lib_sources)',
+        '<@(boringssl_crypto_sources)',
+        '<@(boringssl_ssl_sources)',
       ],
       'defines': [
         'BORINGSSL_IMPLEMENTATION',
@@ -29,47 +27,22 @@
       # https://crbug.com/429039
       'msvs_disabled_warnings': [ 4267, ],
       'conditions': [
-        ['component == "shared_library"', {
-          'defines': [
-            'BORINGSSL_SHARED_LIBRARY',
+        ['OS == "mac"', {
+          'sources': [
+            '<@(boringssl_mac_x86_sources)',
+            '<@(boringssl_mac_x86_64_sources)'
           ],
         }],
-        ['target_arch == "arm" and msan == 0', {
-          'conditions': [
-            ['OS == "linux" or OS == "android"', {
-              'sources': [ '<@(boringssl_linux_arm_sources)' ],
-            }, {
-              'defines': [ 'OPENSSL_NO_ASM' ],
-            }],
+        ['OS == "linux" or OS == "android"', {
+          'sources': [
+            '<@(boringssl_linux_x86_64_sources)',
+            '<@(boringssl_linux_x86_sources)',
+            '<@(boringssl_linux_arm_sources)',
+            '<@(boringssl_linux_aarch64_sources)',
           ],
         }],
-        ['target_arch == "arm64" and msan == 0', {
-          'conditions': [
-            ['OS == "linux" or OS == "android"', {
-              'sources': [ '<@(boringssl_linux_aarch64_sources)' ],
-            }, {
-              'defines': [ 'OPENSSL_NO_ASM' ],
-            }],
-          ],
-        }],
-        ['target_arch == "combined"', {
-          'conditions': [
-            ['OS == "mac"', {
-              'sources': [
-                '<@(boringssl_mac_x86_sources)',
-                '<@(boringssl_mac_x86_64_sources)'
-              ],
-            }],
-            ['OS == "linux" or OS == "android"', {
-              'sources': [
-                '<@(boringssl_linux_x86_64_sources)',
-                '<@(boringssl_linux_x86_sources)',
-              ],
-            }],
-            ['OS != "mac" and OS != "linux"', {
-              'defines': [ 'OPENSSL_NO_ASM' ],
-            }],
-          ]
+        ['OS == "win"', {
+          'defines': [ 'OPENSSL_NO_ASM', 'WIN32_LEAN_AND_MEAN' ],
         }],
       ],
       'include_dirs': [
@@ -82,13 +55,6 @@
       'direct_dependent_settings': {
         'include_dirs': [
           'src/include',
-        ],
-        'conditions': [
-          ['component == "shared_library"', {
-            'defines': [
-              'BORINGSSL_SHARED_LIBRARY',
-            ],
-          }],
         ],
       },
     },
