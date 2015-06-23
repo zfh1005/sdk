@@ -116,9 +116,17 @@ abstract class int extends num {
    * modulo [modulus].
    *
    * The [modulus] must be positive.
-   * Returns 0 if no modular inverse exists.
+   * Throws a RangeError if no modular inverse exists.
    */
   int modInverse(int modulus);
+
+  /**
+   * Returns the greatest common divisor of the absolute value of
+   * this integer and the absolute value of [other].
+   *
+   * Both this and [other] must be non-zero.
+   */
+  int gcd(int other);
 
   /** Returns true if and only if this integer is even. */
   bool get isEven;

@@ -324,8 +324,8 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
   }
 
   String visitTypeExpression(TypeExpression node) {
-    String args = node.arguments.map(access).join(', ');
-    return '(TypeExpression ${node.dartType.toString()} $args)';
+    String args = node.arguments.map(access).join(' ');
+    return '(TypeExpression ${node.dartType} ($args))';
   }
 
   String visitNonTailThrow(NonTailThrow node) {
@@ -335,8 +335,22 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
 
   String visitCreateInvocationMirror(CreateInvocationMirror node) {
     String selector = node.selector.name;
-    String args = node.arguments.map(access).join(', ');
-    return '(CreateInvocationMirror $selector $args)';
+    String args = node.arguments.map(access).join(' ');
+    return '(CreateInvocationMirror $selector ($args))';
+  }
+
+  String visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
+    String operator = node.operator.toString();
+    String args = node.arguments.map(access).join(' ');
+    return '(ApplyBuiltinOperator $operator ($args))';
+  }
+
+  @override
+  String visitForeignCode(ForeignCode node) {
+    String arguments = node.arguments.map(access).join(' ');
+    String continuation = node.continuation == null ? ''
+        : ' ${access(node.continuation)}';
+    return '(JS ${node.type} ${node.codeTemplate} ($arguments)$continuation)';
   }
 }
 

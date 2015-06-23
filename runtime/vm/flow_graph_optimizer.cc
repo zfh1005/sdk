@@ -45,6 +45,8 @@ DEFINE_FLAG(bool, use_cha_deopt, true,
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_IA32)
 DEFINE_FLAG(bool, trace_smi_widening, false, "Trace Smi->Int32 widening pass.");
 #endif
+
+DECLARE_FLAG(bool, polymorphic_with_deopt);
 DECLARE_FLAG(bool, source_lines);
 DECLARE_FLAG(bool, trace_type_check_elimination);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
@@ -159,8 +161,11 @@ static bool IsNumberCid(intptr_t cid) {
 }
 
 
-// Attempt to build ICData for call using propagated class-ids.
 bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
+  // TODO(srdjan): Investigate failures in:
+  //  corelib/big_integer_arith_vm_test
+  //  dart2js/members_test
+  //  language/try_catch_optimized1_test
   ASSERT(call->HasICData());
   if (call->ic_data()->NumberOfUsedChecks() > 0) {
     // This occurs when an instance call has too many checks, will be converted
@@ -273,6 +278,10 @@ const ICData& FlowGraphOptimizer::TrySpecializeICData(const ICData& ic_data,
 
 void FlowGraphOptimizer::SpecializePolymorphicInstanceCall(
     PolymorphicInstanceCallInstr* call) {
+  if (!FLAG_polymorphic_with_deopt) {
+    // Specialization adds receiver checks which can lead to deoptimization.
+    return;
+  }
   if (!call->with_checks()) {
     return;  // Already specialized.
   }
@@ -3981,9 +3990,9 @@ bool FlowGraphOptimizer::TypeCheckAsClassEquality(const AbstractType& type) {
   // Signature classes have different type checking rules.
   if (type_class.IsSignatureClass()) return false;
   // Could be an interface check?
-  if (thread()->cha()->IsImplemented(type_class)) return false;
+  if (CHA::IsImplemented(type_class)) return false;
   // Check if there are subclasses.
-  if (thread()->cha()->HasSubclasses(type_class)) {
+  if (CHA::HasSubclasses(type_class)) {
     return false;
   }
 
@@ -4221,9 +4230,14 @@ void FlowGraphOptimizer::InstanceCallNoopt(InstanceCallInstr* instr) {
   // deoptimize.
   const Token::Kind op_kind = instr->token_kind();
   if (instr->HasICData() && (instr->ic_data()->NumberOfUsedChecks() > 0)) {
-    if ((op_kind == Token::kGET) && TryInlineInstanceGetter(instr, false)) {
-      return;
-    }
+    const ICData& unary_checks =
+        ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
+
+    PolymorphicInstanceCallInstr* call =
+        new(Z) PolymorphicInstanceCallInstr(instr, unary_checks,
+                                            true /* call_with_checks*/);
+    instr->ReplaceWith(call, current_iterator());
+    return;
   }
 
   // Type test is special as it always gets converted into inlined code.
@@ -4336,7 +4350,7 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
 
   if (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks) {
     bool call_with_checks;
-    if (has_one_target) {
+    if (has_one_target && FLAG_polymorphic_with_deopt) {
       // Type propagation has not run yet, we cannot eliminate the check.
       AddReceiverCheck(instr);
       // Call can still deoptimize, do not detach environment from instr.

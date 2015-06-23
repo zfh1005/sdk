@@ -20,6 +20,17 @@ import '../tree/tree.dart' as ast;
 import '../universe/universe.dart' show SelectorKind, CallStructure;
 import 'cps_ir_nodes.dart' as ir;
 import 'cps_ir_builder.dart';
+import '../native/native.dart' show NativeBehavior;
+
+// TODO(karlklose): remove.
+import '../js/js.dart' as js show js, Template, Expression;
+import '../ssa/ssa.dart' show TypeMaskFactory;
+import '../types/types.dart' show TypeMask;
+import '../util/util.dart';
+
+import 'package:_internal/compiler/js_lib/shared/embedded_names.dart'
+    show JsBuiltin, JsGetName;
+import '../constants/values.dart';
 
 typedef void IrBuilderCallback(Element element, ir.FunctionDefinition irNode);
 
@@ -377,6 +388,48 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     assert(invariant(node, node.beginToken.value != 'native'));
     irBuilder.buildReturn(build(node.expression));
     return null;
+  }
+
+  visitSwitchStatement(ast.SwitchStatement node) {
+    assert(irBuilder.isOpen);
+    // We do not handle switch statements with continue to labeled cases.
+    for (ast.SwitchCase switchCase in node.cases) {
+      for (ast.Node labelOrCase in switchCase.labelsAndCases) {
+        if (labelOrCase is ast.Label) {
+          LabelDefinition definition = elements.getLabelDefinition(labelOrCase);
+          if (definition != null && definition.isContinueTarget) {
+            return giveup(node, "continue to a labeled switch case");
+          }
+        }
+      }
+    }
+
+    // Each switch case contains a list of interleaved labels and expressions
+    // and a non-empty body.  We can ignore the labels because they are not
+    // jump targets.
+    List<SwitchCaseInfo> cases = <SwitchCaseInfo>[];
+    SwitchCaseInfo defaultCase;
+    for (ast.SwitchCase switchCase in node.cases) {
+      SwitchCaseInfo caseInfo =
+          new SwitchCaseInfo(subbuildSequence(switchCase.statements));
+      if (switchCase.isDefaultCase) {
+        defaultCase = caseInfo;
+      } else {
+        cases.add(caseInfo);
+        for (ast.Node labelOrCase in switchCase.labelsAndCases) {
+          if (labelOrCase is ast.CaseMatch) {
+            ir.Primitive constant = translateConstant(labelOrCase.expression);
+            caseInfo.addConstant(constant);
+          }
+        }
+      }
+    }
+    ir.Primitive value = visit(node.expression);
+    JumpTarget target = elements.getTargetDefinition(node);
+    Element error =
+        (compiler.backend as JavaScriptBackend).getFallThroughError();
+    irBuilder.buildSimpleSwitch(target, value, cases, defaultCase, error,
+        sourceInformationBuilder.buildGeneric(node));
   }
 
   visitTryStatement(ast.TryStatement node) {
@@ -762,10 +815,13 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return irBuilder.buildNegation(check);
   }
 
-  ir.Primitive translateBinary(ast.Node left,
+  ir.Primitive translateBinary(ast.Send node,
+                               ast.Node left,
                                op.BinaryOperator operator,
                                ast.Node right) {
-    Selector selector = new Selector.binaryOperator(operator.selectorName);
+    Selector selector = useSelectorTypeOfNode(
+        new Selector.binaryOperator(operator.selectorName),
+        node);
     ir.Primitive receiver = visit(left);
     List<ir.Primitive> arguments = <ir.Primitive>[visit(right)];
     arguments = normalizeDynamicArguments(selector.callStructure, arguments);
@@ -777,14 +833,14 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
                            ast.Node left,
                            op.BinaryOperator operator,
                            ast.Node right, _) {
-    return translateBinary(left, operator, right);
+    return translateBinary(node, left, operator, right);
   }
 
   @override
   ir.Primitive visitIndex(ast.Send node,
                           ast.Node receiver,
                           ast.Node index, _) {
-    Selector selector = new Selector.index();
+    Selector selector = useSelectorTypeOfNode(new Selector.index(), node);
     ir.Primitive target = visit(receiver);
     List<ir.Primitive> arguments = <ir.Primitive>[visit(index)];
     arguments = normalizeDynamicArguments(selector.callStructure, arguments);
@@ -826,7 +882,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.Node left,
       ast.Node right,
       _) {
-    return translateBinary(left, op.BinaryOperator.EQ, right);
+    return translateBinary(node, left, op.BinaryOperator.EQ, right);
   }
 
   @override
@@ -853,7 +909,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.Node right,
       _) {
     return irBuilder.buildNegation(
-        translateBinary(left, op.BinaryOperator.NOT_EQ, right));
+        translateBinary(node, left, op.BinaryOperator.NOT_EQ, right));
   }
 
   @override
@@ -994,15 +1050,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       MethodElement function,
       ast.NodeList arguments,
       CallStructure callStructure,
-      _) {
-    // TODO(karlklose): support foreign functions.
-    if (compiler.backend.isForeign(function)) {
-      return giveup(node, 'handleStaticFunctionInvoke: foreign: $function');
-    }
-    return irBuilder.buildStaticFunctionInvocation(function, callStructure,
-        translateStaticArguments(arguments, function, callStructure),
-        sourceInformation: sourceInformationBuilder.buildCall(node));
-  }
+      _);
 
   @override
   ir.Primitive handleStaticFunctionIncompatibleInvoke(
@@ -1861,7 +1909,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     }
   }
 
-  void internalError(ast.Node node, String message) {
+  internalError(ast.Node node, String message) {
     giveup(node, message);
   }
 
@@ -2054,6 +2102,12 @@ class GlobalProgramInformation {
   FunctionElement get throwTypeErrorHelper => _backend.getThrowTypeError();
 
   ClassElement get nullClass => _compiler.nullClass;
+
+  DartType unaliasType(DartType type) => type.unalias(_compiler);
+
+  TypeMask getTypeMaskForForeign(NativeBehavior behavior) {
+    return TypeMaskFactory.fromNativeBehavior(behavior, _compiler);
+  }
 }
 
 /// IR builder specific to the JavaScript backend, coupled to the [JsIrBuilder].
@@ -2068,10 +2122,6 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   /// Will be initialized upon entering the body of a function.
   /// It is computed by the [ClosureTranslator].
   ClosureClassMap closureClassMap;
-
-  /// During construction of a constructor factory, [fieldValues] maps fields
-  /// to the primitive containing their initial value.
-  Map<FieldElement, ir.Primitive> fieldValues = <FieldElement, ir.Primitive>{};
 
   JsIrBuilderVisitor(TreeElements elements,
                      Compiler compiler,
@@ -2215,15 +2265,23 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     });
   }
 
+  /// Make a visitor suitable for translating ASTs taken from [context].
+  ///
+  /// Every visitor can only be applied to nodes in one context, because
+  /// the [elements] field is specific to that context.
+  JsIrBuilderVisitor makeVisitorForContext(AstElement context) {
+    return new JsIrBuilderVisitor(
+        context.resolvedAst.elements,
+        compiler,
+        sourceInformationBuilder.forContext(context));
+  }
+
   /// Builds the IR for an [expression] taken from a different [context].
   ///
   /// Such expressions need to be compiled with a different [sourceFile] and
   /// [elements] mapping.
   ir.Primitive inlineExpression(AstElement context, ast.Expression expression) {
-    JsIrBuilderVisitor visitor = new JsIrBuilderVisitor(
-        context.resolvedAst.elements,
-        compiler,
-        sourceInformationBuilder.forContext(context));
+    JsIrBuilderVisitor visitor = makeVisitorForContext(context);
     return visitor.withBuilder(irBuilder, () => visitor.visit(expression));
   }
 
@@ -2232,10 +2290,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   /// Such constants need to be compiled with a different [sourceFile] and
   /// [elements] mapping.
   ir.Primitive inlineConstant(AstElement context, ast.Expression exp) {
-    JsIrBuilderVisitor visitor = new JsIrBuilderVisitor(
-        context.resolvedAst.elements,
-        compiler,
-        sourceInformationBuilder.forContext(context));
+    JsIrBuilderVisitor visitor = makeVisitorForContext(context);
     return visitor.withBuilder(irBuilder, () => visitor.translateConstant(exp));
   }
 
@@ -2304,11 +2359,16 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
       // get it out of the way here to avoid complications with mixins.
       loadTypeVariablesForSuperClasses(classElement);
 
+      /// Maps each field from this class or a superclass to its initial value.
+      Map<FieldElement, ir.Primitive> fieldValues =
+          <FieldElement, ir.Primitive>{};
+
       // -- Evaluate field initializers ---
       // Evaluate field initializers in constructor and super constructors.
       irBuilder.enterInitializers();
       List<ConstructorElement> constructorList = <ConstructorElement>[];
-      evaluateConstructorFieldInitializers(constructor, constructorList);
+      evaluateConstructorFieldInitializers(
+          constructor, constructorList, fieldValues);
       irBuilder.leaveInitializers();
 
       // All parameters in all constructors are now bound in the environment.
@@ -2364,8 +2424,12 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   /// the environment, but will be put there by this procedure.
   ///
   /// All constructors will be added to [supers], with superconstructors first.
-  void evaluateConstructorFieldInitializers(ConstructorElement constructor,
-                                            List<ConstructorElement> supers) {
+  void evaluateConstructorFieldInitializers(
+      ConstructorElement constructor,
+      List<ConstructorElement> supers,
+      Map<FieldElement, ir.Primitive> fieldValues) {
+    assert(constructor.isImplementation);
+    assert(constructor == elements.analyzedElement);
     ClassElement enclosingClass = constructor.enclosingClass.implementation;
     // Evaluate declaration-site field initializers, unless this constructor
     // redirects to another using a `this()` initializer. In that case, these
@@ -2402,19 +2466,18 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         if (initializer is ast.SendSet) {
           // Field initializer.
           FieldElement field = elements[initializer];
-          fieldValues[field] =
-              inlineExpression(constructor, initializer.arguments.head);
+          fieldValues[field] = visit(initializer.arguments.head);
         } else if (initializer is ast.Send) {
           // Super or this initializer.
           ConstructorElement target = elements[initializer].implementation;
           Selector selector = elements.getSelector(initializer);
-          ir.Primitive evaluateArgument(ast.Node arg) {
-            return inlineExpression(constructor, arg);
-          }
-          List<ir.Primitive> arguments =
-              initializer.arguments.mapToList(evaluateArgument);
-          loadArguments(target, selector, arguments);
-          evaluateConstructorFieldInitializers(target, supers);
+          List<ir.Primitive> arguments = initializer.arguments.mapToList(visit);
+          evaluateConstructorCallFromInitializer(
+              target,
+              selector.callStructure,
+              arguments,
+              supers,
+              fieldValues);
           hasConstructorCall = true;
         } else {
           compiler.internalError(initializer,
@@ -2429,10 +2492,33 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
       if (target == null) {
         compiler.internalError(superClass, "No default constructor available.");
       }
-      evaluateConstructorFieldInitializers(target, supers);
+      target = target.implementation;
+      evaluateConstructorCallFromInitializer(
+          target,
+          CallStructure.NO_ARGS,
+          const [],
+          supers,
+          fieldValues);
     }
     // Add this constructor after the superconstructors.
     supers.add(constructor);
+  }
+
+  /// Evaluates a call to the given constructor from an initializer list.
+  ///
+  /// Calls [loadArguments] and [evaluateConstructorFieldInitializers] in a
+  /// visitor that has the proper [TreeElements] mapping.
+  void evaluateConstructorCallFromInitializer(
+      ConstructorElement target,
+      CallStructure call,
+      List<ir.Primitive> arguments,
+      List<ConstructorElement> supers,
+      Map<FieldElement, ir.Primitive> fieldValues) {
+    JsIrBuilderVisitor visitor = makeVisitorForContext(target);
+    return visitor.withBuilder(irBuilder, () {
+      visitor.loadArguments(target, call, arguments);
+      visitor.evaluateConstructorFieldInitializers(target, supers, fieldValues);
+    });
   }
 
   /// Loads the type variables for all super classes of [superClass] into the
@@ -2473,9 +2559,10 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   /// Defaults for optional arguments are evaluated in order to ensure
   /// all parameters are available in the environment.
   void loadArguments(ConstructorElement target,
-                     Selector selector,
+                     CallStructure call,
                      List<ir.Primitive> arguments) {
-    target = target.implementation;
+    assert(target.isImplementation);
+    assert(target == elements.analyzedElement);
     FunctionSignature signature = target.functionSignature;
 
     // Establish a scope in case parameters are captured.
@@ -2494,9 +2581,9 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
       ir.Primitive value;
       // Load argument if provided.
       if (signature.optionalParametersAreNamed) {
-        int nameIndex = selector.namedArguments.indexOf(param.name);
+        int nameIndex = call.namedArguments.indexOf(param.name);
         if (nameIndex != -1) {
-          int translatedIndex = selector.positionalArgumentCount + nameIndex;
+          int translatedIndex = call.positionalArgumentCount + nameIndex;
           value = arguments[translatedIndex];
         }
       } else if (index < arguments.length) {
@@ -2505,7 +2592,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
       // Load default if argument was not provided.
       if (value == null) {
         if (param.initializer != null) {
-          value = inlineExpression(target, param.initializer);
+          value = visit(param.initializer);
         } else {
           value = irBuilder.buildNullConstant();
         }
@@ -2527,9 +2614,8 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     // cannot add a BoxLocal as parameter, because BoxLocal is not an element.
     // Instead of forging ParameterElements to forge a FunctionSignature, we
     // need a way to create backend methods without creating more fake elements.
-
     assert(constructor.isGenerativeConstructor);
-    assert(invariant(constructor, constructor.isImplementation));
+    assert(constructor.isImplementation);
     if (constructor.isSynthesized) return null;
     ast.FunctionExpression node = constructor.node;
     // If we know the body doesn't have any code, we don't generate it.
@@ -2803,6 +2889,232 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
       return irBuilder.buildStaticFieldLazyGet(field, src);
     } else {
       return irBuilder.buildStaticFieldGet(field, src);
+    }
+  }
+
+  /// Build code to handle foreign code, that is, native JavaScript code, or
+  /// builtin values and operations of the backend.
+  ir.Primitive handleForeignCode(ast.Send node,
+                                 MethodElement function,
+                                 ast.NodeList argumentList,
+                                 CallStructure callStructure) {
+
+    void validateArgumentCount({int minimum, int exactly}) {
+      assert((minimum == null) != (exactly == null));
+      int count = 0;
+      int maximum;
+      if (exactly != null) {
+        minimum = exactly;
+        maximum = exactly;
+      }
+      for (ast.Node argument in argumentList) {
+        count++;
+        if (maximum != null && count > maximum) {
+          internalError(argument, 'Additional argument.');
+        }
+      }
+      if (count < minimum) {
+        internalError(node, 'Expected at least $minimum arguments.');
+      }
+    }
+
+    /// Call a helper method from the isolate library. The isolate library uses
+    /// its own isolate structure, that encapsulates dart2js's isolate.
+    ir.Primitive buildIsolateHelperInvocation(String helperName,
+                                              CallStructure callStructure) {
+      Element element = backend.isolateHelperLibrary.find(helperName);
+      if (element == null) {
+        compiler.internalError(node,
+            'Isolate library and compiler mismatch.');
+      }
+      List<ir.Primitive> arguments = translateStaticArguments(argumentList,
+          element, CallStructure.TWO_ARGS);
+      return irBuilder.buildStaticFunctionInvocation(element,
+          CallStructure.TWO_ARGS, arguments,
+          sourceInformation: sourceInformationBuilder.buildCall(node));
+    }
+
+    /// Lookup the value of the enum described by [node].
+    getEnumValue(ast.Node node, EnumClassElement enumClass, List values) {
+      Element element = elements[node];
+      if (element is! FieldElement || element.enclosingClass != enumClass) {
+        internalError(node, 'expected a JsBuiltin enum value');
+      }
+
+      int index = enumClass.enumValues.indexOf(element);
+      return values[index];
+    }
+
+    /// Returns the String the node evaluates to, or throws an error if the
+    /// result is not a string constant.
+    String expectStringConstant(ast.Node node) {
+      ir.Primitive nameValue = visit(node);
+      if (nameValue is ir.Constant && nameValue.value.isString) {
+        StringConstantValue constantValue = nameValue.value;
+        return constantValue.primitiveValue.slowToString();
+      } else {
+        return internalError(node, 'expected a literal string');
+      }
+    }
+
+    Link<ast.Node> argumentNodes  = argumentList.nodes;
+    NativeBehavior behavior =
+        compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
+    switch (function.name) {
+      case 'JS':
+        validateArgumentCount(minimum: 2);
+        // The first two arguments are the type and the foreign code template,
+        // which already have been analyzed by the resolver and can be retrieved
+        // using [NativeBehavior]. We can ignore these arguments in the backend.
+        List<ir.Primitive> arguments =
+            argumentNodes.skip(2).mapToList(visit, growable: false);
+        return irBuilder.buildForeignCode(behavior.codeTemplate, arguments,
+            behavior);
+
+      case 'DART_CLOSURE_TO_JS':
+        // TODO(ahe): This should probably take care to wrap the closure in
+        // another closure that saves the current isolate.
+      case 'RAW_DART_FUNCTION_REF':
+        validateArgumentCount(exactly: 1);
+
+        ast.Node argument = node.arguments.single;
+        FunctionElement closure = elements[argument].implementation;
+        if (!Elements.isStaticOrTopLevelFunction(closure)) {
+          internalError(argument,
+              'only static or toplevel function supported');
+        }
+        if (closure.functionSignature.hasOptionalParameters) {
+          internalError(argument,
+              'closures with optional parameters not supported');
+        }
+        return irBuilder.buildForeignCode(
+            js.js.expressionTemplateYielding(
+                        backend.emitter.staticFunctionAccess(function)),
+            <ir.Primitive>[],
+            NativeBehavior.PURE,
+            dependency: closure);
+
+      case 'JS_BUILTIN':
+        // The first argument is a description of the type and effect of the
+        // builtin, which has already been analyzed in the frontend.  The second
+        // argument must be a [JsBuiltin] value.  All other arguments are
+        // values used by the JavaScript template that is associated with the
+        // builtin.
+        validateArgumentCount(minimum: 2);
+
+        ast.Node builtin = argumentNodes.tail.head;
+        JsBuiltin value = getEnumValue(argumentNodes.tail.head,
+            backend.jsBuiltinEnum, JsBuiltin.values);
+        js.Template template = backend.emitter.builtinTemplateFor(value);
+        List<ir.Primitive> arguments =
+            argumentNodes.skip(2).mapToList(visit, growable: false);
+        return irBuilder.buildForeignCode(template, arguments, behavior);
+
+      case 'JS_EMBEDDED_GLOBAL':
+        validateArgumentCount(exactly: 2);
+
+        String name = expectStringConstant(argumentNodes.tail.head);
+        js.Expression access =
+            backend.emitter.generateEmbeddedGlobalAccess(name);
+        js.Template template = js.js.expressionTemplateYielding(access);
+        return irBuilder.buildForeignCode(template, <ir.Primitive>[], behavior);
+
+      case 'JS_INTERCEPTOR_CONSTANT':
+        validateArgumentCount(exactly: 1);
+
+        ast.Node argument = argumentNodes.head;
+        ir.Primitive argumentValue = visit(argument);
+        if (argumentValue is ir.Constant && argumentValue.value.isType) {
+          TypeConstantValue constant = argumentValue.value;
+          ConstantValue interceptorValue =
+              new InterceptorConstantValue(constant.representedType);
+          return irBuilder.buildConstant(argumentValue.expression,
+              interceptorValue);
+        } else {
+          internalError(argument, 'expected Type as argument');
+        }
+        break;
+
+      case 'JS_EFFECT':
+        return irBuilder.buildNullConstant();
+
+      case 'JS_GET_NAME':
+        validateArgumentCount(exactly: 1);
+
+        ast.Node argument = argumentNodes.head;
+        JsGetName id = getEnumValue(argument, backend.jsGetNameEnum,
+            JsGetName.values);
+        String name = backend.namer.getNameForJsGetName(argument, id);
+        return irBuilder.buildStringConstant(name);
+
+      case 'JS_GET_FLAG':
+        validateArgumentCount(exactly: 1);
+
+        String name = expectStringConstant(argumentNodes.first);
+        bool value = false;
+        switch (name) {
+          case 'MUST_RETAIN_METADATA':
+            value = backend.mustRetainMetadata;
+            break;
+          case 'USE_CONTENT_SECURITY_POLICY':
+            value = compiler.useContentSecurityPolicy;
+            break;
+          default:
+            internalError(node, 'Unknown internal flag "$name".');
+        }
+        return irBuilder.buildBooleanConstant(value);
+
+      case 'JS_STRING_CONCAT':
+        validateArgumentCount(exactly: 2);
+        List<ir.Primitive> arguments = argumentNodes.mapToList(visit);
+        return irBuilder.buildStringConcatenation(arguments);
+
+      case 'JS_CURRENT_ISOLATE_CONTEXT':
+        validateArgumentCount(exactly: 0);
+
+        if (!compiler.hasIsolateSupport) {
+          // If the isolate library is not used, we just generate code
+          // to fetch the current isolate.
+          String name = backend.namer.currentIsolate;
+          return irBuilder.buildForeignCode(js.js.parseForeignJS(name),
+              const <ir.Primitive>[], NativeBehavior.PURE);
+        } else {
+          return buildIsolateHelperInvocation('_currentIsolate',
+              CallStructure.NO_ARGS);
+        }
+        break;
+
+      case 'JS_CALL_IN_ISOLATE':
+        validateArgumentCount(exactly: 2);
+
+        if (!compiler.hasIsolateSupport) {
+          ir.Primitive closure = visit(argumentNodes.tail.head);
+          return irBuilder.buildCallInvocation(closure, CallStructure.NO_ARGS,
+              const <ir.Primitive>[]);
+        } else {
+          return buildIsolateHelperInvocation('_callInIsolate',
+              CallStructure.TWO_ARGS);
+        }
+        break;
+
+      default:
+        giveup(node, 'unplemented native construct: ${function.name}');
+        break;
+    }
+  }
+
+  @override
+  ir.Primitive handleStaticFunctionInvoke(ast.Send node,
+                                          MethodElement function,
+                                          ast.NodeList argumentList,
+                                          CallStructure callStructure,
+                                          _) {
+    if (compiler.backend.isForeign(function)) {
+      return handleForeignCode(node, function, argumentList, callStructure);
+    } else {
+      return irBuilder.buildStaticFunctionInvocation(function, callStructure,
+          translateStaticArguments(argumentList, function, callStructure),
+          sourceInformation: sourceInformationBuilder.buildCall(node));
     }
   }
 }

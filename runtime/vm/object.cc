@@ -380,12 +380,31 @@ static type SpecialCharacter(type value) {
 }
 
 
-void Object::InitOnce(Isolate* isolate) {
+void Object::InitNull(Isolate* isolate) {
   // Should only be run by the vm isolate.
   ASSERT(isolate == Dart::vm_isolate());
 
   // TODO(iposva): NoSafepointScope needs to be added here.
   ASSERT(class_class() == null_);
+
+  Heap* heap = isolate->heap();
+
+  // Allocate and initialize the null instance.
+  // 'null_' must be the first object allocated as it is used in allocation to
+  // clear the object.
+  {
+    uword address = heap->Allocate(Instance::InstanceSize(), Heap::kOld);
+    null_ = reinterpret_cast<RawInstance*>(address + kHeapObjectTag);
+    // The call below is using 'null_' to initialize itself.
+    InitializeObject(address, kNullCid, Instance::InstanceSize());
+  }
+}
+
+
+void Object::InitOnce(Isolate* isolate) {
+  // Should only be run by the vm isolate.
+  ASSERT(isolate == Dart::vm_isolate());
+
   // Initialize the static vtable values.
   {
     Object fake_object;
@@ -420,17 +439,6 @@ void Object::InitOnce(Isolate* isolate) {
   snapshot_writer_error_ = LanguageError::ReadOnlyHandle();
   branch_offset_error_ = LanguageError::ReadOnlyHandle();
   vm_isolate_snapshot_object_table_ = Array::ReadOnlyHandle();
-
-
-  // Allocate and initialize the null instance.
-  // 'null_' must be the first object allocated as it is used in allocation to
-  // clear the object.
-  {
-    uword address = heap->Allocate(Instance::InstanceSize(), Heap::kOld);
-    null_ = reinterpret_cast<RawInstance*>(address + kHeapObjectTag);
-    // The call below is using 'null_' to initialize itself.
-    InitializeObject(address, kNullCid, Instance::InstanceSize());
-  }
 
   *null_object_ = Object::null();
   *null_array_ = Array::null();
@@ -2868,7 +2876,7 @@ static RawFunction* EvaluateHelper(const Class& cls,
   Script& script = Script::Handle();
   script = Script::New(Symbols::EvalSourceUri(),
                        func_src,
-                       RawScript::kSourceTag);
+                       RawScript::kEvaluateTag);
   // In order to tokenize the source, we need to get the key to mangle
   // private names from the library from which the class originates.
   const Library& lib = Library::Handle(cls.library());
@@ -6292,7 +6300,7 @@ RawFunction* Function::NewEvalFunction(const Class& owner,
                     0));
   ASSERT(!script.IsNull());
   result.set_is_debuggable(false);
-  result.set_is_visible(false);
+  result.set_is_visible(true);
   result.set_eval_script(script);
   return result.raw();
 }
@@ -6601,6 +6609,12 @@ bool Function::HasOptimizedCode() const {
 RawString* Function::PrettyName() const {
   const String& str = String::Handle(name());
   return String::IdentifierPrettyName(str);
+}
+
+
+const char* Function::QualifiedUserVisibleNameCString() const {
+  const String& str = String::Handle(QualifiedUserVisibleName());
+  return str.ToCString();
 }
 
 
@@ -8317,6 +8331,8 @@ const char* Script::GetKindAsCString() const {
       return "source";
     case RawScript::kPatchTag:
       return "patch";
+    case RawScript::kEvaluateTag:
+      return "evaluate";
     default:
       UNIMPLEMENTED();
   }
@@ -8592,16 +8608,22 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const String& encoded_uri = String::Handle(String::EncodeIRI(uri));
   ASSERT(!encoded_uri.IsNull());
   const Library& lib = Library::Handle(FindLibrary());
-  // TODO(rmacnak): This can fail for eval scripts. Use a ring-id for those.
-  intptr_t lib_index = (lib.IsNull()) ? -1 : lib.index();
-  jsobj.AddFixedServiceId("libraries/%" Pd "/scripts/%s",
-      lib_index, encoded_uri.ToCString());
+  if (lib.IsNull()) {
+    ASSERT(kind() == RawScript::kEvaluateTag);
+    jsobj.AddServiceId(*this);
+  } else {
+    ASSERT(kind() != RawScript::kEvaluateTag);
+    jsobj.AddFixedServiceId("libraries/%" Pd "/scripts/%s",
+        lib.index(), encoded_uri.ToCString());
+  }
   jsobj.AddPropertyStr("uri", uri);
   jsobj.AddProperty("_kind", GetKindAsCString());
   if (ref) {
     return;
   }
-  jsobj.AddProperty("library", lib);
+  if (!lib.IsNull()) {
+    jsobj.AddProperty("library", lib);
+  }
   const String& source = String::Handle(Source());
   jsobj.AddProperty("lineOffset", line_offset());
   jsobj.AddProperty("columnOffset", col_offset());
@@ -10820,6 +10842,25 @@ RawPcDescriptors* PcDescriptors::New(GrowableArray<uint8_t>* data) {
 }
 
 
+RawPcDescriptors* PcDescriptors::New(intptr_t length) {
+  ASSERT(Object::pc_descriptors_class() != Class::null());
+  Isolate* isolate = Isolate::Current();
+  PcDescriptors& result = PcDescriptors::Handle(isolate);
+  {
+    uword size = PcDescriptors::InstanceSize(length);
+    RawObject* raw = Object::Allocate(PcDescriptors::kClassId,
+                                      size,
+                                      Heap::kOld);
+    INC_STAT(isolate, total_code_size, size);
+    INC_STAT(isolate, pc_desc_size, size);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+    result.SetLength(length);
+  }
+  return result.raw();
+}
+
+
 const char* PcDescriptors::KindAsStr(RawPcDescriptors::Kind kind) {
   switch (kind) {
     case RawPcDescriptors::kDeopt:           return "deopt        ";
@@ -11012,6 +11053,40 @@ RawStackmap* Stackmap::New(intptr_t pc_offset,
   for (intptr_t i = 0; i < length; ++i) {
     result.SetBit(i, bmap->Get(i));
   }
+  result.SetRegisterBitCount(register_bit_count);
+  return result.raw();
+}
+
+
+RawStackmap* Stackmap::New(intptr_t length,
+                           intptr_t register_bit_count,
+                           intptr_t pc_offset) {
+  ASSERT(Object::stackmap_class() != Class::null());
+  Stackmap& result = Stackmap::Handle();
+  // Guard against integer overflow of the instance size computation.
+  intptr_t payload_size =
+  Utils::RoundUp(length, kBitsPerByte) / kBitsPerByte;
+  if ((payload_size < 0) ||
+      (payload_size > kMaxLengthInBytes)) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in Stackmap::New: invalid length %" Pd "\n",
+           length);
+  }
+  {
+    // Stackmap data objects are associated with a code object, allocate them
+    // in old generation.
+    RawObject* raw = Object::Allocate(Stackmap::kClassId,
+                                      Stackmap::InstanceSize(length),
+                                      Heap::kOld);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+    result.SetLength(length);
+  }
+  // When constructing a stackmap we store the pc offset in the stackmap's
+  // PC. StackmapTableBuilder::FinalizeStackmaps will replace it with the pc
+  // address.
+  ASSERT(pc_offset >= 0);
+  result.SetPcOffset(pc_offset);
   result.SetRegisterBitCount(register_bit_count);
   return result.raw();
 }
@@ -11333,6 +11408,29 @@ RawExceptionHandlers* ExceptionHandlers::New(intptr_t num_handlers) {
   const Array& handled_types_data = (num_handlers == 0) ?
       Object::empty_array() :
       Array::Handle(Array::New(num_handlers));
+  result.set_handled_types_data(handled_types_data);
+  return result.raw();
+}
+
+
+RawExceptionHandlers* ExceptionHandlers::New(const Array& handled_types_data) {
+  ASSERT(Object::exception_handlers_class() != Class::null());
+  const intptr_t num_handlers = handled_types_data.Length();
+  if ((num_handlers < 0) || (num_handlers >= kMaxHandlers)) {
+    FATAL1("Fatal error in ExceptionHandlers::New(): "
+           "invalid num_handlers %" Pd "\n",
+           num_handlers);
+  }
+  ExceptionHandlers& result = ExceptionHandlers::Handle();
+  {
+    uword size = ExceptionHandlers::InstanceSize(num_handlers);
+    RawObject* raw = Object::Allocate(ExceptionHandlers::kClassId,
+                                      size,
+                                      Heap::kOld);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+    result.StoreNonPointer(&result.raw_ptr()->num_entries_, num_handlers);
+  }
   result.set_handled_types_data(handled_types_data);
   return result.raw();
 }
@@ -13342,6 +13440,7 @@ RawMegamorphicCache* MegamorphicCache::New() {
   }
   const intptr_t capacity = kInitialCapacity;
   const Array& buckets = Array::Handle(Array::New(kEntryLength * capacity));
+  ASSERT(Isolate::Current()->megamorphic_cache_table()->miss_handler() != NULL);
   const Function& handler = Function::Handle(
       Isolate::Current()->megamorphic_cache_table()->miss_handler());
   for (intptr_t i = 0; i < capacity; ++i) {
@@ -14348,6 +14447,13 @@ void Instance::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
   if (ref) {
     return;
+  }
+  if (IsClosure()) {
+    Debugger* debugger = Isolate::Current()->debugger();
+    Breakpoint* bpt = debugger->BreakpointAtActivation(*this);
+    if (bpt != NULL) {
+      jsobj.AddProperty("_activationBreakpoint", bpt);
+    }
   }
 }
 

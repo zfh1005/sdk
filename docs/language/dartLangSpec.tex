@@ -3870,6 +3870,8 @@ Let $T$ be the  static type of $o$. It is a static type warning if $T$ does not 
 \item
 $T$ or a superinterface of $T$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \code{dart:core}.  Or
 \item  $T$ is \code{Type}, $e$ is a constant type literal and the class corresponding to $e$ has a static getter named $m$.
+\item $T$ is \code{Function} and $m$ is \CALL. \rationale {The type \code{Function} is treated as if it has a \code{call} method for any possible signature of \CALL. The expectation is that any concrete subclass of \code{Function} will implement \CALL. Note that a warning will be issue if this is not the case. Furthermore, any use of \CALL on a subclass of \code{Function} that fails to implement \CALL{} will also provoke a a warning, as this exemption is limited to type \code{Function}, and does not apply to its subtypes. 
+}
 \end{itemize}
 
 \LMHash{}
@@ -4158,12 +4160,14 @@ Let $T$ be the static type of $e$. It is a static type warning if $T$ does not h
 \begin{itemize}
 \item $T$ or a superinterface of $T$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \cd{dart:core}. Or
 \item $T$ is \cd{Type}, $e$ is a constant type literal and the class corresponding to $e$ declares an accessible static method or getter named $m$.
+\item $T$ is \code{Function} and $m$ is \CALL.
 \end{itemize}
 
 The static type of $i$ is:
 \begin{itemize}
 \item The static type of function $T.m$, if $T$ has an accessible instance member named $m$.
 \item The static type of function $T.m$, if $T$ is \cd{Type}, $e$ is a constant type literal and the class corresponding to $e$ declares an accessible static member or constructor named $m$.
+\item \code{Function} if $T$ is \code{Function} and $m$ is \CALL.
 \item The type  \DYNAMIC{} otherwise. 
 \end{itemize}
 
@@ -5010,55 +5014,92 @@ Postfix expressions invoke the postfix operators on objects.
  A {\em postfix expression} is either a primary expression, a function, method or getter invocation, or an invocation of a postfix operator on an expression $e$.
 
 \LMHash{}
-A postfix expression of the form \code{$v$++}, where $v$ is an identifier, is equivalent to \code{()\{\VAR{} r = $v$; $v$ = r + 1; \RETURN{} r\}()}.
+Execution of a postfix expression of the form \code{$v$++}, where $v$ is an identifier, is equivalent to executing \code{()\{\VAR{} r = $v$; $v$ = r + 1; \RETURN{} r\}()}.
+
+\LMHash{}
+The static type of such an expression is the static type of $v$.
+
 
 \rationale{The above ensures that if $v$ is a field, the getter gets called exactly once. Likewise in the cases below. 
 }
 
 \LMHash{}
-A postfix expression of the form \code{$C.v$ ++} is equivalent to 
+Execution of a postfix expression of the form \code{$C.v$ ++} is equivalent to executing 
 
 \code{()\{\VAR{} r = $C.v$; $C.v$ = r + 1; \RETURN{} r\}()}.
 
 \LMHash{}
-A postfix expression of the form \code{$e_1.v$++} is equivalent to 
+The static type of such an expression is the static type of $C.v$.
+
+
+\LMHash{}
+Execution of a postfix expression of the form \code{$e_1.v$++} is equivalent to executing 
 
 \code{(x)\{\VAR{} r = x.v; x.v = r + 1; \RETURN{} r\}($e_1$)}.
 
 \LMHash{}
-A postfix expression of the form \code{$e_1[e_2]$++},  is equivalent to 
+The static type of such an expression is the static type of $e_1.v$.
+
+
+\LMHash{}
+Execution of a postfix expression of the form \code{$e_1[e_2]$++},  is equivalent to executing 
 
 \code{(a, i)\{\VAR{} r = a[i]; a[i] = r + 1; \RETURN{} r\}($e_1$, $e_2$)}.
 
 \LMHash{}
-A postfix expression of the form \code{$v$-{}-}, where $v$ is an identifier, is equivalent to 
+The static type of such an expression is the static type of $e_1[e_2]$.
+
+
+\LMHash{}
+Execution of a postfix expression of the form \code{$v$-{}-}, where $v$ is an identifier, is equivalent to executing 
 
 \code{()\{\VAR{} r = $v$; $v$ = r - 1; \RETURN{} r\}()}.
 
 \LMHash{}
-A postfix expression of the form \code{$C.v$-{}-} is equivalent to 
+The static type of such an expression is the static type of $v$.
+
+
+\LMHash{}
+Execution of a postfix expression of the form \code{$C.v$-{}-} is equivalent to executing 
 
 \code{()\{\VAR{} r = $C.v$; $C.v$ = r - 1; \RETURN{} r\}()}.
 
 \LMHash{}
-A postfix expression of the form \code{$e_1.v$-{}-} is equivalent to 
+The static type of such an expression is the static type of $C.v$.
+
+
+\LMHash{}
+Execution of a postfix expression of the form \code{$e_1.v$-{}-} is equivalent to executing 
 
 \code{(x)\{\VAR{} r = x.v; x.v = r - 1; \RETURN{} r\}($e_1$)}.
 
 \LMHash{}
-A postfix expression of the form \code{$e_1[e_2]$-{}-},  is equivalent to 
+The static type of such an expression is the static type of $e_1.v$.
+
+
+\LMHash{}
+Execution of a postfix expression of the form \code{$e_1[e_2]$-{}-},  is equivalent to executing 
 
 \code{(a, i)\{\VAR{} r = a[i]; a[i] = r - 1; \RETURN{} r\}($e_1$, $e_2$)}.
 
 \LMHash{}
-A postfix expression of the form \code{$e_1?.v$++} is equivalent to 
+The static type of such an expression is the static type of $e_1[e_2]$.
+
+\LMHash{}
+Execution of a postfix expression of the form \code{$e_1?.v$++} is equivalent to executing 
 
 \code{((x) =$>$ x == \NULL? \NULL : x.v++)($e_1$)}.
 
 \LMHash{}
-A postfix expression of the form \code{$e_1?.v$-{}-} is equivalent to 
+The static type of such an expression is the static type of $e_1.v$.
+
+\LMHash{}
+Execution of a postfix expression of the form \code{$e_1?.v$-{}-} is equivalent to executing 
 
 \code{((x) =$>$ x == \NULL? \NULL : x.v-{}-)($e_1$)}.
+
+\LMHash{}
+The static type of such an expression is the static type of $e_1.v$.
 
 
 \subsection{ Assignable Expressions}
@@ -5642,18 +5683,8 @@ var n0 = $e$.iterator;
    $s$ 
 \}
 \end{dartCode}
-where \code{n0} is an identifier that does not occur anywhere in the program.
+where \code{n0} is an identifier that does not occur anywhere in the program, except that for purposes of static typechecking, it is checked under the assumption that $n0$ is declared to be of type $T$, where $T$ is the static type of $e.iterator$.
 
-\commentary{
-Note that in fact, using a  \CONST{} variable would give rise to a compile time error since \cd{n0.current} is not a constant expression.  
-}
-
-It is a static warning if the static type of $e$ does not have a member \cd{iterator}. It is a static warning if the static type of \cd{$e$.iterator} does not have a method \cd{moveNext}. It is a static warning if static return type of  \cd{$e$.iterator.moveNext()} is not assignable to the static type of \cd{id}.
-
-
-\commentary {
-One might have required that \cd{n0} had type \cd{Iterable$<T>$} where $T$ was the static type of \cd{id}. However, that would cause failure in checked mode if $e$ was merely emulating the  \cd{Iterable} interface. 
-}
  
  
 \subsubsection{Asynchronous For-in}
@@ -5741,7 +5772,7 @@ The {\em switch statement} supports dispatching control among a large number of 
 
 
 {\bf switchCase:}
-      label* (\CASE{} expression `{\escapegrammar :}') statements
+      label* \CASE{} expression `{\escapegrammar :}' statements
     .
 
 {\bf defaultCase:}
@@ -5753,21 +5784,21 @@ The {\em switch statement} supports dispatching control among a large number of 
  Given a switch statement of the form 
  
 \begin{dartCode}
-\SWITCH{} ($e$) \{ 
-   \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1$ 
-   $\ldots$  
-   \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ 
-   \DEFAULT{}: $s_{n+1}$ 
+\SWITCH{} ($e$) \{
+   $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
+   $\ldots$
+   $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
+   $label_{(n+1)1} \ldots label_{(n+1)j_{n+1}}$ \DEFAULT{}: $s_{n+1}$
 \}
 \end{dartCode}
  
  or the form 
  
 \begin{dartCode}
-\SWITCH{} ($e$) \{ 
-   \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1$
-   $\ldots$  
-   \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ 
+\SWITCH{} ($e$) \{
+   $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
+   $\ldots$
+   $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
 \}
 \end{dartCode}
  
@@ -5797,21 +5828,21 @@ The \SWITCH{}  statement should only be used in very limited situations (e.g., i
 Execution of a switch statement of the form
 
 \begin{dartCode}
-\SWITCH{} ($e$) \{ 
-   \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1$ 
-   $\ldots$  
-   \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ 
-   \DEFAULT{}: $s_{n+1}$ 
+\SWITCH{} ($e$) \{
+   $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
+   $\ldots$
+   $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
+   $label_{(n+1)1} \ldots label_{(n+1)j_{n+1}}$ \DEFAULT{}: $s_{n+1}$
 \}
 \end{dartCode}
  
 or the form 
  
 \begin{dartCode}
-\SWITCH{} ($e$) \{ 
-   \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1$
-   $\ldots$  
-   \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ 
+\SWITCH{} ($e$) \{
+   $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
+   $\ldots$
+   $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
 \}
 \end{dartCode}
 
@@ -5832,11 +5863,11 @@ A case clause introduces a new scope, nested in the lexically surrounding scope.
 Execution of a \CASE{} clause \CASE{} $e_{k}: s_{k}$ of a  switch statement  
 
 \begin{dartCode}
-\SWITCH{} ($e$) \{ 
-   \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1$ 
-   $\ldots$  
-   \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ 
-   \DEFAULT{}: $s_{n+1}$ 
+\SWITCH{} ($e$) \{
+   $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
+   $\ldots$
+   $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
+   $label_{(n+1)1} \ldots label_{(n+1)j_{n+1}}$ \DEFAULT{}: $s_{n+1}$
 \}
 \end{dartCode}
 
@@ -5852,10 +5883,10 @@ If execution reaches the point after $s_h$  then  a runtime error occurs, unless
 Execution of a \CASE{} clause \CASE{} $e_{k}: s_{k}$ of a  switch statement  
 
 \begin{dartCode}
-\SWITCH{} ($e$) \{ 
-   \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1$
-   $\ldots$  
-   \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ 
+\SWITCH{} ($e$) \{
+   $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
+   $\ldots$
+   $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
 \}
 \end{dartCode}
 
@@ -5869,7 +5900,7 @@ If execution reaches the point after $s_h$  then  a runtime error occurs, unless
 
 
 \commentary{
-In other words, there is no implicit fall-through between cases. The last case in a switch (default or otherwise) can `fall-through' to the end of the statement.
+In other words, there is no implicit fall-through between non-empty cases. The last case in a switch (default or otherwise) can `fall-through' to the end of the statement.
 }
 
 \LMHash{}
@@ -7469,7 +7500,8 @@ where $depth(T)$ is the number of steps in the longest inheritance path from $T$
 \LMHash{}
 The least upper bound of \DYNAMIC{} and any type $T$ is \DYNAMIC{}.
 The least upper bound of \VOID{} and any type $T \ne \DYNAMIC{}$ is \VOID{}.
-Let $U$ be a type variable with upper bound $B$. The least upper bound of $U$ and a type $T$ is the least upper bound of $B$ and $T$. 
+The least upper bound of $\bot$ and any type $T$ is $T$.
+Let $U$ be a type variable with upper bound $B$. The least upper bound of $U$ and a type $T \ne \bot$ is the least upper bound of $B$ and $T$. 
 
 \LMHash{}
 The least upper bound relation is symmetric and reflexive.

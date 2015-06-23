@@ -36,6 +36,7 @@
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
+#include "vm/timeline.h"
 #include "vm/timer.h"
 #include "vm/unicode.h"
 #include "vm/verifier.h"
@@ -349,7 +350,7 @@ Dart_Handle Api::InitNewHandle(Isolate* isolate, RawObject* raw) {
   ASSERT(local_handles != NULL);
   LocalHandle* ref = local_handles->AllocateHandle();
   ref->set_raw(raw);
-  return reinterpret_cast<Dart_Handle>(ref);
+  return ref->apiHandle();
 }
 
 
@@ -375,7 +376,7 @@ RawObject* Api::UnwrapHandle(Dart_Handle object) {
   ASSERT(state != NULL);
   ASSERT(!FLAG_verify_handles ||
          state->IsValidLocalHandle(object) ||
-         Dart::vm_isolate()->api_state()->IsValidLocalHandle(object));
+         Dart::IsReadOnlyApiHandle(object));
   ASSERT(FinalizablePersistentHandle::raw_offset() == 0 &&
          PersistentHandle::raw_offset() == 0 &&
          LocalHandle::raw_offset() == 0);
@@ -492,23 +493,32 @@ void Api::InitOnce() {
 }
 
 
+static Dart_Handle InitNewReadOnlyApiHandle(RawObject* raw) {
+  ASSERT(raw->IsVMHeapObject());
+  LocalHandle* ref = Dart::AllocateReadOnlyApiHandle();
+  ref->set_raw(raw);
+  return ref->apiHandle();
+}
+
+
 void Api::InitHandles() {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   ASSERT(isolate == Dart::vm_isolate());
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
+
   ASSERT(true_handle_ == NULL);
-  true_handle_ = Api::InitNewHandle(isolate, Bool::True().raw());
+  true_handle_ = InitNewReadOnlyApiHandle(Bool::True().raw());
 
   ASSERT(false_handle_ == NULL);
-  false_handle_ = Api::InitNewHandle(isolate, Bool::False().raw());
+  false_handle_ = InitNewReadOnlyApiHandle(Bool::False().raw());
 
   ASSERT(null_handle_ == NULL);
-  null_handle_ = Api::InitNewHandle(isolate, Object::null());
+  null_handle_ = InitNewReadOnlyApiHandle(Object::null());
 
   ASSERT(empty_string_handle_ == NULL);
-  empty_string_handle_ = Api::InitNewHandle(isolate, Symbols::Empty().raw());
+  empty_string_handle_ = InitNewReadOnlyApiHandle(Symbols::Empty().raw());
 }
 
 
@@ -804,9 +814,15 @@ DART_EXPORT Dart_Handle Dart_NewUnhandledExceptionError(Dart_Handle exception) {
   DARTSCOPE(isolate);
   CHECK_CALLBACK_STATE(isolate);
 
-  const Instance& obj = Api::UnwrapInstanceHandle(isolate, exception);
-  if (obj.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, exception, Instance);
+  Instance& obj = Instance::Handle(isolate);
+  intptr_t class_id = Api::ClassId(exception);
+  if ((class_id == kApiErrorCid) || (class_id == kLanguageErrorCid)) {
+    obj = String::New(::Dart_GetError(exception));
+  } else {
+    obj = Api::UnwrapInstanceHandle(isolate, exception).raw();
+    if (obj.IsNull()) {
+      RETURN_TYPE_ERROR(isolate, exception, Instance);
+    }
   }
   const Stacktrace& stacktrace = Stacktrace::Handle(isolate);
   return Api::NewHandle(isolate, UnhandledException::New(obj, stacktrace));
@@ -3631,6 +3647,11 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
     }
   }
   if (FLAG_verify_acquired_data) {
+    if (external) {
+      ASSERT(!isolate->heap()->Contains(reinterpret_cast<uword>(data_tmp)));
+    } else {
+      ASSERT(isolate->heap()->Contains(reinterpret_cast<uword>(data_tmp)));
+    }
     const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
     WeakTable* table = isolate->api_state()->acquired_table();
     intptr_t current = table->GetValue(obj.raw());
@@ -5666,6 +5687,110 @@ DART_EXPORT void Dart_RegisterRootServiceRequestCallback(
     Dart_ServiceRequestCallback callback,
     void* user_data) {
   Service::RegisterRootEmbedderCallback(name, callback, user_data);
+}
+
+
+DART_EXPORT Dart_Handle Dart_TimelineDuration(const char* label,
+                                              int64_t start_micros,
+                                              int64_t end_micros) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  if (label == NULL) {
+    RETURN_NULL_ERROR(label);
+  }
+  if (start_micros > end_micros) {
+    const char* msg = "%s: start_micros must be <= end_micros";
+    return Api::NewError(msg, CURRENT_FUNC);
+  }
+  TimelineStream* stream = isolate->GetEmbedderStream();
+  ASSERT(stream != NULL);
+  TimelineEvent* event = stream->StartEvent();
+  if (event != NULL) {
+    event->Duration(label, start_micros, end_micros);
+    event->Complete();
+  }
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_TimelineInstant(const char* label) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  if (label == NULL) {
+    RETURN_NULL_ERROR(label);
+  }
+  TimelineStream* stream = isolate->GetEmbedderStream();
+  ASSERT(stream != NULL);
+  TimelineEvent* event = stream->StartEvent();
+  if (event != NULL) {
+    event->Instant(label);
+    event->Complete();
+  }
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_TimelineAsyncBegin(const char* label,
+                                                int64_t* async_id) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  if (label == NULL) {
+    RETURN_NULL_ERROR(label);
+  }
+  if (async_id == NULL) {
+    RETURN_NULL_ERROR(async_id);
+  }
+  *async_id = -1;
+  TimelineStream* stream = isolate->GetEmbedderStream();
+  ASSERT(stream != NULL);
+  TimelineEvent* event = stream->StartEvent();
+  if (event != NULL) {
+    *async_id = event->AsyncBegin(label);
+    event->Complete();
+  }
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_TimelineAsyncInstant(const char* label,
+                                                  int64_t async_id) {
+  if (async_id < 0) {
+    return Api::Success();
+  }
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  if (label == NULL) {
+    RETURN_NULL_ERROR(label);
+  }
+  TimelineStream* stream = isolate->GetEmbedderStream();
+  ASSERT(stream != NULL);
+  TimelineEvent* event = stream->StartEvent();
+  if (event != NULL) {
+    event->AsyncInstant(label, async_id);
+    event->Complete();
+  }
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_TimelineAsyncEnd(const char* label,
+                                              int64_t async_id) {
+  if (async_id < 0) {
+    return Api::Success();
+  }
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  if (label == NULL) {
+    RETURN_NULL_ERROR(label);
+  }
+  TimelineStream* stream = isolate->GetEmbedderStream();
+  ASSERT(stream != NULL);
+  TimelineEvent* event = stream->StartEvent();
+  if (event != NULL) {
+    event->AsyncEnd(label, async_id);
+    event->Complete();
+  }
+  return Api::Success();
 }
 
 }  // namespace dart

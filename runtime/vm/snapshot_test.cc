@@ -4,7 +4,7 @@
 
 #include "platform/globals.h"
 
-#include "include/dart_debugger_api.h"
+#include "include/dart_tools_api.h"
 #include "platform/assert.h"
 #include "vm/class_finalizer.h"
 #include "vm/dart_api_impl.h"
@@ -152,9 +152,9 @@ TEST_CASE(SerializeNull) {
   StackZone zone(Isolate::Current());
 
   // Write snapshot with object content.
+  const Object& null_object = Object::Handle();
   uint8_t* buffer;
   MessageWriter writer(&buffer, &zone_allocator, true);
-  const Object& null_object = Object::Handle();
   writer.WriteMessage(null_object);
   intptr_t buffer_len = writer.BytesWritten();
 
@@ -180,9 +180,9 @@ TEST_CASE(SerializeSmi1) {
   StackZone zone(Isolate::Current());
 
   // Write snapshot with object content.
+  const Smi& smi = Smi::Handle(Smi::New(124));
   uint8_t* buffer;
   MessageWriter writer(&buffer, &zone_allocator, true);
-  const Smi& smi = Smi::Handle(Smi::New(124));
   writer.WriteMessage(smi);
   intptr_t buffer_len = writer.BytesWritten();
 
@@ -209,9 +209,9 @@ TEST_CASE(SerializeSmi2) {
   StackZone zone(Isolate::Current());
 
   // Write snapshot with object content.
+  const Smi& smi = Smi::Handle(Smi::New(-1));
   uint8_t* buffer;
   MessageWriter writer(&buffer, &zone_allocator, true);
-  const Smi& smi = Smi::Handle(Smi::New(-1));
   writer.WriteMessage(smi);
   intptr_t buffer_len = writer.BytesWritten();
 
@@ -241,13 +241,17 @@ Dart_CObject* SerializeAndDeserializeMint(const Mint& mint) {
   writer.WriteMessage(mint);
   intptr_t buffer_len = writer.BytesWritten();
 
-  // Read object back from the snapshot.
-  MessageSnapshotReader reader(buffer,
-                               buffer_len,
-                               Isolate::Current(),
-                               Thread::Current()->zone());
-  const Object& serialized_object = Object::Handle(reader.ReadObject());
-  EXPECT(serialized_object.IsMint());
+  {
+    // Switch to a regular zone, where VM handle allocation is allowed.
+    StackZone zone(Isolate::Current());
+    // Read object back from the snapshot.
+    MessageSnapshotReader reader(buffer,
+                                 buffer_len,
+                                 Isolate::Current(),
+                                 Thread::Current()->zone());
+    const Object& serialized_object = Object::Handle(reader.ReadObject());
+    EXPECT(serialized_object.IsMint());
+  }
 
   // Read object back from the snapshot into a C structure.
   ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
@@ -308,9 +312,9 @@ TEST_CASE(SerializeDouble) {
   StackZone zone(Isolate::Current());
 
   // Write snapshot with object content.
+  const Double& dbl = Double::Handle(Double::New(101.29));
   uint8_t* buffer;
   MessageWriter writer(&buffer, &zone_allocator, true);
-  const Double& dbl = Double::Handle(Double::New(101.29));
   writer.WriteMessage(dbl);
   intptr_t buffer_len = writer.BytesWritten();
 
@@ -337,9 +341,9 @@ TEST_CASE(SerializeTrue) {
   StackZone zone(Isolate::Current());
 
   // Write snapshot with true object.
+  const Bool& bl = Bool::True();
   uint8_t* buffer;
   MessageWriter writer(&buffer, &zone_allocator, true);
-  const Bool& bl = Bool::True();
   writer.WriteMessage(bl);
   intptr_t buffer_len = writer.BytesWritten();
 
@@ -368,9 +372,9 @@ TEST_CASE(SerializeFalse) {
   StackZone zone(Isolate::Current());
 
   // Write snapshot with false object.
+  const Bool& bl = Bool::False();
   uint8_t* buffer;
   MessageWriter writer(&buffer, &zone_allocator, true);
-  const Bool& bl = Bool::False();
   writer.WriteMessage(bl);
   intptr_t buffer_len = writer.BytesWritten();
 
@@ -402,12 +406,12 @@ TEST_CASE(SerializeBigint) {
   StackZone zone(Isolate::Current());
 
   // Write snapshot with object content.
-  uint8_t* buffer;
-  MessageWriter writer(&buffer, &zone_allocator, true);
   const char* cstr = "0x270FFFFFFFFFFFFFD8F0";
   const String& str = String::Handle(String::New(cstr));
   Bigint& bigint = Bigint::Handle();
   bigint ^= Integer::NewCanonical(str);
+  uint8_t* buffer;
+  MessageWriter writer(&buffer, &zone_allocator, true);
   writer.WriteMessage(bigint);
   intptr_t buffer_len = writer.BytesWritten();
 
@@ -441,18 +445,22 @@ Dart_CObject* SerializeAndDeserializeBigint(const Bigint& bigint) {
   writer.WriteMessage(bigint);
   intptr_t buffer_len = writer.BytesWritten();
 
-  // Read object back from the snapshot.
-  MessageSnapshotReader reader(buffer,
-                               buffer_len,
-                               Isolate::Current(),
-                               Thread::Current()->zone());
-  Bigint& serialized_bigint = Bigint::Handle();
-  serialized_bigint ^= reader.ReadObject();
-  const char* str1 = bigint.ToHexCString(allocator);
-  const char* str2 = serialized_bigint.ToHexCString(allocator);
-  EXPECT_STREQ(str1, str2);
-  free(const_cast<char*>(str1));
-  free(const_cast<char*>(str2));
+  {
+    // Switch to a regular zone, where VM handle allocation is allowed.
+    StackZone zone(Isolate::Current());
+    // Read object back from the snapshot.
+    MessageSnapshotReader reader(buffer,
+                                 buffer_len,
+                                 Isolate::Current(),
+                                 Thread::Current()->zone());
+    Bigint& serialized_bigint = Bigint::Handle();
+    serialized_bigint ^= reader.ReadObject();
+    const char* str1 = bigint.ToHexCString(allocator);
+    const char* str2 = serialized_bigint.ToHexCString(allocator);
+    EXPECT_STREQ(str1, str2);
+    free(const_cast<char*>(str1));
+    free(const_cast<char*>(str2));
+  }
 
   // Read object back from the snapshot into a C structure.
   ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
@@ -466,10 +474,9 @@ Dart_CObject* SerializeAndDeserializeBigint(const Bigint& bigint) {
 
 void CheckBigint(const char* bigint_value) {
   StackZone zone(Isolate::Current());
-  ApiNativeScope scope;
-
   Bigint& bigint = Bigint::Handle();
   bigint ^= Bigint::NewFromCString(bigint_value);
+  ApiNativeScope scope;
   Dart_CObject* bigint_cobject = SerializeAndDeserializeBigint(bigint);
   EXPECT_EQ(Dart_CObject_kBigint, bigint_cobject->type);
   char* hex_value = TestCase::BigintToHexValue(bigint_cobject);
@@ -534,9 +541,9 @@ static void TestString(const char* cstr) {
   StackZone zone(Isolate::Current());
   EXPECT(Utf8::IsValid(reinterpret_cast<const uint8_t*>(cstr), strlen(cstr)));
   // Write snapshot with object content.
+  String& str = String::Handle(String::New(cstr));
   uint8_t* buffer;
   MessageWriter writer(&buffer, &zone_allocator, true);
-  String& str = String::Handle(String::New(cstr));
   writer.WriteMessage(str);
   intptr_t buffer_len = writer.BytesWritten();
 
@@ -578,8 +585,6 @@ TEST_CASE(SerializeArray) {
   StackZone zone(Isolate::Current());
 
   // Write snapshot with object content.
-  uint8_t* buffer;
-  MessageWriter writer(&buffer, &zone_allocator, true);
   const int kArrayLength = 10;
   Array& array = Array::Handle(Array::New(kArrayLength));
   Smi& smi = Smi::Handle();
@@ -587,6 +592,8 @@ TEST_CASE(SerializeArray) {
     smi ^= Smi::New(i);
     array.SetAt(i, smi);
   }
+  uint8_t* buffer;
+  MessageWriter writer(&buffer, &zone_allocator, true);
   writer.WriteMessage(array);
   intptr_t buffer_len = writer.BytesWritten();
 
@@ -670,10 +677,10 @@ TEST_CASE(SerializeEmptyArray) {
   StackZone zone(Isolate::Current());
 
   // Write snapshot with object content.
-  uint8_t* buffer;
-  MessageWriter writer(&buffer, &zone_allocator, true);
   const int kArrayLength = 0;
   Array& array = Array::Handle(Array::New(kArrayLength));
+  uint8_t* buffer;
+  MessageWriter writer(&buffer, &zone_allocator, true);
   writer.WriteMessage(array);
   intptr_t buffer_len = writer.BytesWritten();
 
@@ -701,14 +708,14 @@ TEST_CASE(SerializeByteArray) {
   StackZone zone(Isolate::Current());
 
   // Write snapshot with object content.
-  uint8_t* buffer;
-  MessageWriter writer(&buffer, &zone_allocator, true);
   const int kTypedDataLength = 256;
   TypedData& typed_data = TypedData::Handle(
       TypedData::New(kTypedDataUint8ArrayCid, kTypedDataLength));
   for (int i = 0; i < kTypedDataLength; i++) {
     typed_data.SetUint8(i, i);
   }
+  uint8_t* buffer;
+  MessageWriter writer(&buffer, &zone_allocator, true);
   writer.WriteMessage(typed_data);
   intptr_t buffer_len = writer.BytesWritten();
 
@@ -737,8 +744,6 @@ TEST_CASE(SerializeByteArray) {
 #define TEST_TYPED_ARRAY(darttype, ctype)                                     \
   {                                                                           \
     StackZone zone(Isolate::Current());                                       \
-    uint8_t* buffer;                                                          \
-    MessageWriter writer(&buffer, &zone_allocator, true);                     \
     const int kArrayLength = 127;                                             \
     TypedData& array = TypedData::Handle(                                     \
         TypedData::New(kTypedData##darttype##ArrayCid, kArrayLength));        \
@@ -746,6 +751,8 @@ TEST_CASE(SerializeByteArray) {
     for (int i = 0; i < kArrayLength; i++) {                                  \
       array.Set##darttype((i * scale), i);                                    \
     }                                                                         \
+    uint8_t* buffer;                                                          \
+    MessageWriter writer(&buffer, &zone_allocator, true);                     \
     writer.WriteMessage(array);                                               \
     intptr_t buffer_len = writer.BytesWritten();                              \
     MessageSnapshotReader reader(buffer, buffer_len,                          \
@@ -817,11 +824,11 @@ TEST_CASE(SerializeEmptyByteArray) {
   StackZone zone(Isolate::Current());
 
   // Write snapshot with object content.
-  uint8_t* buffer;
-  MessageWriter writer(&buffer, &zone_allocator, true);
   const int kTypedDataLength = 0;
   TypedData& typed_data = TypedData::Handle(
       TypedData::New(kTypedDataUint8ArrayCid, kTypedDataLength));
+  uint8_t* buffer;
+  MessageWriter writer(&buffer, &zone_allocator, true);
   writer.WriteMessage(typed_data);
   intptr_t buffer_len = writer.BytesWritten();
 
@@ -1087,10 +1094,12 @@ UNIT_TEST_CASE(FullSnapshot) {
     OS::PrintErr("Without Snapshot: %" Pd64 "us\n", timer1.TotalElapsedTime());
 
     // Write snapshot with object content.
-    FullSnapshotWriter writer(NULL,
-                              &isolate_snapshot_buffer,
-                              &malloc_allocator);
-    writer.WriteFullSnapshot();
+    {
+      FullSnapshotWriter writer(NULL,
+                                &isolate_snapshot_buffer,
+                                &malloc_allocator);
+      writer.WriteFullSnapshot();
+    }
   }
 
   // Now Create another isolate using the snapshot and execute a method
@@ -1143,10 +1152,12 @@ UNIT_TEST_CASE(FullSnapshot1) {
     OS::PrintErr("Without Snapshot: %" Pd64 "us\n", timer1.TotalElapsedTime());
 
     // Write snapshot with object content.
-    FullSnapshotWriter writer(NULL,
-                              &isolate_snapshot_buffer,
-                              &malloc_allocator);
-    writer.WriteFullSnapshot();
+    {
+      FullSnapshotWriter writer(NULL,
+                                &isolate_snapshot_buffer,
+                                &malloc_allocator);
+      writer.WriteFullSnapshot();
+    }
 
     // Invoke a function which returns an object.
     Dart_Handle cls = Dart_GetClass(lib, NewString("FieldsTest"));
@@ -1585,21 +1596,26 @@ TEST_CASE(IntArrayMessage) {
 }
 
 
-// Helper function to call a top level Dart function, serialize the
-// result and deserialize the result into a Dart_CObject structure.
-static Dart_CObject* GetDeserializedDartMessage(Dart_Handle lib,
-                                                const char* dart_function) {
+// Helper function to call a top level Dart function and serialize the result.
+static uint8_t* GetSerialized(Dart_Handle lib,
+                              const char* dart_function,
+                              intptr_t* buffer_len) {
   Dart_Handle result;
   result = Dart_Invoke(lib, NewString(dart_function), 0, NULL);
   EXPECT_VALID(result);
+  Object& obj = Object::Handle(Api::UnwrapHandle(result));
 
-  // Serialize the list into a message.
+  // Serialize the object into a message.
   uint8_t* buffer;
   MessageWriter writer(&buffer, &zone_allocator, false);
-  const Object& list = Object::Handle(Api::UnwrapHandle(result));
-  writer.WriteMessage(list);
-  intptr_t buffer_len = writer.BytesWritten();
+  writer.WriteMessage(obj);
+  *buffer_len = writer.BytesWritten();
+  return buffer;
+}
 
+
+// Helper function to deserialize the result into a Dart_CObject structure.
+static Dart_CObject* GetDeserialized(uint8_t* buffer, intptr_t buffer_len) {
   // Read object back from the snapshot into a C structure.
   ApiMessageReader api_reader(buffer, buffer_len, &zone_allocator);
   return api_reader.ReadMessage();
@@ -1608,10 +1624,10 @@ static Dart_CObject* GetDeserializedDartMessage(Dart_Handle lib,
 
 static void CheckString(Dart_Handle dart_string, const char* expected) {
   StackZone zone(Isolate::Current());
-  uint8_t* buffer;
-  MessageWriter writer(&buffer, &zone_allocator, false);
   String& str = String::Handle();
   str ^= Api::UnwrapHandle(dart_string);
+  uint8_t* buffer;
+  MessageWriter writer(&buffer, &zone_allocator, false);
   writer.WriteMessage(str);
   intptr_t buffer_len = writer.BytesWritten();
 
@@ -1628,10 +1644,10 @@ static void CheckString(Dart_Handle dart_string, const char* expected) {
 
 static void CheckStringInvalid(Dart_Handle dart_string) {
   StackZone zone(Isolate::Current());
-  uint8_t* buffer;
-  MessageWriter writer(&buffer, &zone_allocator, false);
   String& str = String::Handle();
   str ^= Api::UnwrapHandle(dart_string);
+  uint8_t* buffer;
+  MessageWriter writer(&buffer, &zone_allocator, false);
   writer.WriteMessage(str);
   intptr_t buffer_len = writer.BytesWritten();
 
@@ -1738,10 +1754,10 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
 
     {
       StackZone zone(Isolate::Current());
-      uint8_t* buffer;
-      MessageWriter writer(&buffer, &zone_allocator, false);
       Smi& smi = Smi::Handle();
       smi ^= Api::UnwrapHandle(smi_result);
+      uint8_t* buffer;
+      MessageWriter writer(&buffer, &zone_allocator, false);
       writer.WriteMessage(smi);
       intptr_t buffer_len = writer.BytesWritten();
 
@@ -1756,10 +1772,10 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
     }
     {
       StackZone zone(Isolate::Current());
-      uint8_t* buffer;
-      MessageWriter writer(&buffer, &zone_allocator, false);
       Bigint& bigint = Bigint::Handle();
       bigint ^= Api::UnwrapHandle(bigint_result);
+      uint8_t* buffer;
+      MessageWriter writer(&buffer, &zone_allocator, false);
       writer.WriteMessage(bigint);
       intptr_t buffer_len = writer.BytesWritten();
 
@@ -1827,10 +1843,13 @@ UNIT_TEST_CASE(DartGeneratedListMessages) {
 
   {
     DARTSCOPE(isolate);
+    StackZone zone(isolate);
+    intptr_t buf_len = 0;
     {
       // Generate a list of nulls from Dart code.
+      uint8_t* buf = GetSerialized(lib, "getList", &buf_len);
       ApiNativeScope scope;
-      Dart_CObject* root = GetDeserializedDartMessage(lib, "getList");
+      Dart_CObject* root = GetDeserialized(buf, buf_len);
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
@@ -1841,8 +1860,9 @@ UNIT_TEST_CASE(DartGeneratedListMessages) {
     }
     {
       // Generate a list of ints from Dart code.
+      uint8_t* buf = GetSerialized(lib, "getIntList", &buf_len);
       ApiNativeScope scope;
-      Dart_CObject* root = GetDeserializedDartMessage(lib, "getIntList");
+      Dart_CObject* root = GetDeserialized(buf, buf_len);
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
@@ -1854,8 +1874,9 @@ UNIT_TEST_CASE(DartGeneratedListMessages) {
     }
     {
       // Generate a list of strings from Dart code.
+      uint8_t* buf = GetSerialized(lib, "getStringList", &buf_len);
       ApiNativeScope scope;
-      Dart_CObject* root = GetDeserializedDartMessage(lib, "getStringList");
+      Dart_CObject* root = GetDeserialized(buf, buf_len);
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
@@ -1868,8 +1889,9 @@ UNIT_TEST_CASE(DartGeneratedListMessages) {
     }
     {
       // Generate a list of objects of different types from Dart code.
+      uint8_t* buf = GetSerialized(lib, "getMixedList", &buf_len);
       ApiNativeScope scope;
-      Dart_CObject* root = GetDeserializedDartMessage(lib, "getMixedList");
+      Dart_CObject* root = GetDeserialized(buf, buf_len);
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
@@ -1945,10 +1967,13 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
 
   {
     DARTSCOPE(isolate);
+    StackZone zone(isolate);
+    intptr_t buf_len = 0;
     {
       // Generate a list of nulls from Dart code.
+      uint8_t* buf = GetSerialized(lib, "getList", &buf_len);
       ApiNativeScope scope;
-      Dart_CObject* root = GetDeserializedDartMessage(lib, "getList");
+      Dart_CObject* root = GetDeserialized(buf, buf_len);
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
@@ -1959,8 +1984,9 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
     }
     {
       // Generate a list of ints from Dart code.
+      uint8_t* buf = GetSerialized(lib, "getIntList", &buf_len);
       ApiNativeScope scope;
-      Dart_CObject* root = GetDeserializedDartMessage(lib, "getIntList");
+      Dart_CObject* root = GetDeserialized(buf, buf_len);
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
@@ -1972,8 +1998,9 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
     }
     {
       // Generate a list of strings from Dart code.
+      uint8_t* buf = GetSerialized(lib, "getStringList", &buf_len);
       ApiNativeScope scope;
-      Dart_CObject* root = GetDeserializedDartMessage(lib, "getStringList");
+      Dart_CObject* root = GetDeserialized(buf, buf_len);
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
@@ -1986,8 +2013,9 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
     }
     {
       // Generate a list of lists from Dart code.
+      uint8_t* buf = GetSerialized(lib, "getListList", &buf_len);
       ApiNativeScope scope;
-      Dart_CObject* root = GetDeserializedDartMessage(lib, "getListList");
+      Dart_CObject* root = GetDeserialized(buf, buf_len);
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
@@ -2004,8 +2032,9 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
     }
     {
       // Generate a list of objects of different types from Dart code.
+      uint8_t* buf = GetSerialized(lib, "getMixedList", &buf_len);
       ApiNativeScope scope;
-      Dart_CObject* root = GetDeserializedDartMessage(lib, "getMixedList");
+      Dart_CObject* root = GetDeserialized(buf, buf_len);
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
@@ -2177,11 +2206,13 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
 
   {
     DARTSCOPE(isolate);
-
+    StackZone zone(isolate);
+    intptr_t buf_len = 0;
     {
       // Generate a list of strings from Dart code.
+      uint8_t* buf = GetSerialized(lib, "getStringList", &buf_len);
       ApiNativeScope scope;
-      Dart_CObject* root = GetDeserializedDartMessage(lib, "getStringList");
+      Dart_CObject* root = GetDeserialized(buf, buf_len);
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
@@ -2194,8 +2225,9 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
     }
     {
       // Generate a list of medium ints from Dart code.
+      uint8_t* buf = GetSerialized(lib, "getMintList", &buf_len);
       ApiNativeScope scope;
-      Dart_CObject* root = GetDeserializedDartMessage(lib, "getMintList");
+      Dart_CObject* root = GetDeserialized(buf, buf_len);
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
@@ -2208,8 +2240,9 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
     }
     {
       // Generate a list of bigints from Dart code.
+      uint8_t* buf = GetSerialized(lib, "getBigintList", &buf_len);
       ApiNativeScope scope;
-      Dart_CObject* root = GetDeserializedDartMessage(lib, "getBigintList");
+      Dart_CObject* root = GetDeserialized(buf, buf_len);
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
@@ -2224,8 +2257,9 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
     }
     {
       // Generate a list of doubles from Dart code.
+      uint8_t* buf = GetSerialized(lib, "getDoubleList", &buf_len);
       ApiNativeScope scope;
-      Dart_CObject* root = GetDeserializedDartMessage(lib, "getDoubleList");
+      Dart_CObject* root = GetDeserialized(buf, buf_len);
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
@@ -2242,8 +2276,9 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
     }
     {
       // Generate a list of Uint8Lists from Dart code.
+      uint8_t* buf = GetSerialized(lib, "getTypedDataList", &buf_len);
       ApiNativeScope scope;
-      Dart_CObject* root = GetDeserializedDartMessage(lib, "getTypedDataList");
+      Dart_CObject* root = GetDeserialized(buf, buf_len);
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
@@ -2257,9 +2292,9 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
     }
     {
       // Generate a list of Uint8List views from Dart code.
+      uint8_t* buf = GetSerialized(lib, "getTypedDataViewList", &buf_len);
       ApiNativeScope scope;
-      Dart_CObject* root =
-          GetDeserializedDartMessage(lib, "getTypedDataViewList");
+      Dart_CObject* root = GetDeserialized(buf, buf_len);
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
@@ -2275,8 +2310,9 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
     }
     {
       // Generate a list of objects of different types from Dart code.
+      uint8_t* buf = GetSerialized(lib, "getMixedList", &buf_len);
       ApiNativeScope scope;
-      Dart_CObject* root = GetDeserializedDartMessage(lib, "getMixedList");
+      Dart_CObject* root = GetDeserialized(buf, buf_len);
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
@@ -2302,8 +2338,9 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
     }
     {
       // Generate a list of objects of different types from Dart code.
+      uint8_t* buf = GetSerialized(lib, "getSelfRefList", &buf_len);
       ApiNativeScope scope;
-      Dart_CObject* root = GetDeserializedDartMessage(lib, "getSelfRefList");
+      Dart_CObject* root = GetDeserialized(buf, buf_len);
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
@@ -2394,10 +2431,13 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
 
   {
     DARTSCOPE(isolate);
+    StackZone zone(isolate);
+    intptr_t buf_len = 0;
     {
       // Generate a list of strings from Dart code.
+      uint8_t* buf = GetSerialized(lib, "getStringList", &buf_len);
       ApiNativeScope scope;
-      Dart_CObject* root = GetDeserializedDartMessage(lib, "getStringList");
+      Dart_CObject* root = GetDeserialized(buf, buf_len);
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
@@ -2410,8 +2450,9 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
     }
     {
       // Generate a list of medium ints from Dart code.
+      uint8_t* buf = GetSerialized(lib, "getMintList", &buf_len);
       ApiNativeScope scope;
-      Dart_CObject* root = GetDeserializedDartMessage(lib, "getMintList");
+      Dart_CObject* root = GetDeserialized(buf, buf_len);
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
@@ -2424,8 +2465,9 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
     }
     {
       // Generate a list of bigints from Dart code.
+      uint8_t* buf = GetSerialized(lib, "getBigintList", &buf_len);
       ApiNativeScope scope;
-      Dart_CObject* root = GetDeserializedDartMessage(lib, "getBigintList");
+      Dart_CObject* root = GetDeserialized(buf, buf_len);
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
@@ -2440,8 +2482,9 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
     }
     {
       // Generate a list of doubles from Dart code.
+      uint8_t* buf = GetSerialized(lib, "getDoubleList", &buf_len);
       ApiNativeScope scope;
-      Dart_CObject* root = GetDeserializedDartMessage(lib, "getDoubleList");
+      Dart_CObject* root = GetDeserialized(buf, buf_len);
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
@@ -2459,8 +2502,9 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
     }
     {
       // Generate a list of Uint8Lists from Dart code.
+      uint8_t* buf = GetSerialized(lib, "getTypedDataList", &buf_len);
       ApiNativeScope scope;
-      Dart_CObject* root = GetDeserializedDartMessage(lib, "getTypedDataList");
+      Dart_CObject* root = GetDeserialized(buf, buf_len);
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
@@ -2474,9 +2518,9 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
     }
     {
       // Generate a list of Uint8List views from Dart code.
+      uint8_t* buf = GetSerialized(lib, "getTypedDataViewList", &buf_len);
       ApiNativeScope scope;
-      Dart_CObject* root =
-          GetDeserializedDartMessage(lib, "getTypedDataViewList");
+      Dart_CObject* root = GetDeserialized(buf, buf_len);
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
@@ -2492,8 +2536,9 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
     }
     {
       // Generate a list of objects of different types from Dart code.
+      uint8_t* buf = GetSerialized(lib, "getMixedList", &buf_len);
       ApiNativeScope scope;
-      Dart_CObject* root = GetDeserializedDartMessage(lib, "getMixedList");
+      Dart_CObject* root = GetDeserialized(buf, buf_len);
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
@@ -2519,8 +2564,9 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
     }
     {
       // Generate a list of objects of different types from Dart code.
+      uint8_t* buf = GetSerialized(lib, "getSelfRefList", &buf_len);
       ApiNativeScope scope;
-      Dart_CObject* root = GetDeserializedDartMessage(lib, "getSelfRefList");
+      Dart_CObject* root = GetDeserialized(buf, buf_len);
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       EXPECT_EQ(kArrayLength, root->value.as_array.length);
@@ -2626,10 +2672,13 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithTypedData) {
 
   {
     DARTSCOPE(isolate);
+    StackZone zone(isolate);
+    intptr_t buf_len = 0;
     {
       // Generate a list of Uint8Lists from Dart code.
+      uint8_t* buf = GetSerialized(lib, "getTypedDataList", &buf_len);
       ApiNativeScope scope;
-      Dart_CObject* root = GetDeserializedDartMessage(lib, "getTypedDataList");
+      Dart_CObject* root = GetDeserialized(buf, buf_len);
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       struct {
@@ -2660,10 +2709,9 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithTypedData) {
     }
     {
       // Generate a list of Uint8List views from Dart code.
-
+      uint8_t* buf = GetSerialized(lib, "getTypedDataViewList", &buf_len);
       ApiNativeScope scope;
-      Dart_CObject* root =
-          GetDeserializedDartMessage(lib, "getTypedDataViewList");
+      Dart_CObject* root = GetDeserialized(buf, buf_len);
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       struct {
@@ -2717,9 +2765,10 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithTypedData) {
     }
     {
       // Generate a list of Uint8Lists from Dart code.
+      uint8_t* buf =
+          GetSerialized(lib, "getMultipleTypedDataViewList", &buf_len);
       ApiNativeScope scope;
-      Dart_CObject* root =
-          GetDeserializedDartMessage(lib, "getMultipleTypedDataViewList");
+      Dart_CObject* root = GetDeserialized(buf, buf_len);
       EXPECT_NOTNULL(root);
       EXPECT_EQ(Dart_CObject_kArray, root->type);
       struct {

@@ -308,7 +308,11 @@ DART_EXPORT Dart_Handle Dart_NewApiError(const char* error);
  *
  * Requires there to be a current isolate.
  *
- * \param exception An instance of a Dart object to be thrown.
+ * \param exception An instance of a Dart object to be thrown or
+ *        an ApiError or CompilationError handle.
+ *        When an ApiError or CompilationError handle is passed in
+ *        a string object of the error message is created and it becomes
+ *        the Dart object to be thrown.
  */
 DART_EXPORT Dart_Handle Dart_NewUnhandledExceptionError(Dart_Handle exception);
 
@@ -2834,65 +2838,5 @@ DART_EXPORT bool Dart_IsServiceIsolate(Dart_Isolate isolate);
  * isolate failed to startup or does not support load requests.
  */
 DART_EXPORT Dart_Port Dart_ServiceWaitForLoadPort();
-
-
-/**
- * A service request callback function.
- *
- * These callbacks, registered by the embedder, are called when the VM receives
- * a service request it can't handle and the service request command name
- * matches one of the embedder registered handlers.
- *
- * \param method The rpc method name.
- * \param param_keys Service requests can have key-value pair parameters. The
- *   keys and values are flattened and stored in arrays.
- * \param param_values The values associated with the keys.
- * \param num_params The length of the param_keys and param_values arrays.
- * \param user_data The user_data pointer registered with this handler.
- *
- * \return Returns a C string containing a valid JSON object. The returned
- * pointer will be freed by the VM by calling free.
- */
-typedef const char* (*Dart_ServiceRequestCallback)(
-    const char* method,
-    const char** param_keys,
-    const char** param_values,
-    intptr_t num_params,
-    void* user_data);
-
-/**
- * Register a Dart_ServiceRequestCallback to be called to handle
- * requests for the named rpc on a specific isolate. The callback will
- * be invoked with the current isolate set to the request target.
- *
- * \param method The name of the method that this callback is responsible for.
- * \param callback The callback to invoke.
- * \param user_data The user data passed to the callback.
- *
- * NOTE: If multiple callbacks with the same name are registered, only
- * the last callback registered will be remembered.
- */
-DART_EXPORT void Dart_RegisterIsolateServiceRequestCallback(
-    const char* method,
-    Dart_ServiceRequestCallback callback,
-    void* user_data);
-
-/**
- * Register a Dart_ServiceRequestCallback to be called to handle
- * requests for the named rpc. The callback will be invoked without a
- * current isolate.
- *
- * \param method The name of the command that this callback is responsible for.
- * \param callback The callback to invoke.
- * \param user_data The user data passed to the callback.
- *
- * NOTE: If multiple callbacks with the same name are registered, only
- * the last callback registered will be remembered.
- */
-DART_EXPORT void Dart_RegisterRootServiceRequestCallback(
-    const char* method,
-    Dart_ServiceRequestCallback callback,
-    void* user_data);
-
 
 #endif  /* INCLUDE_DART_API_H_ */  /* NOLINT */

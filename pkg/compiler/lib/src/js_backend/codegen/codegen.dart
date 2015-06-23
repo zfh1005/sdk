@@ -7,6 +7,7 @@ library code_generator;
 import 'glue.dart';
 
 import '../../tree_ir/tree_ir_nodes.dart' as tree_ir;
+import '../../tree_ir/tree_ir_nodes.dart' show BuiltinOperator;
 import '../../js/js.dart' as js;
 import '../../elements/elements.dart';
 import '../../io/source_information.dart' show SourceInformation;
@@ -14,6 +15,7 @@ import '../../util/maplet.dart';
 import '../../constants/values.dart';
 import '../../dart2jslib.dart';
 import '../../dart_types.dart';
+import '../../closure.dart' show ClosureClassElement;
 
 class CodegenBailout {
   final tree_ir.Node node;
@@ -384,7 +386,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
       return buildStaticHelperInvocation(
           function,
           <js.Expression>[value, isT, typeArgumentArray, asT]);
-    } else if (type is TypeVariableType) {
+    } else if (type is TypeVariableType || type is FunctionType) {
       glue.registerIsCheck(type, registry);
 
       Element function = node.isTypeTest
@@ -574,19 +576,22 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   js.Expression visitCreateInstance(tree_ir.CreateInstance node) {
-    ClassElement cls = node.classElement;
+    ClassElement classElement = node.classElement;
     // TODO(asgerf): To allow inlining of InvokeConstructor, CreateInstance must
     //               carry a DartType so we can register the instantiated type
     //               with its type arguments. Otherwise dataflow analysis is
     //               needed to reconstruct the instantiated type.
-    registry.registerInstantiatedClass(cls);
+    registry.registerInstantiatedClass(classElement);
+    if (classElement is ClosureClassElement) {
+      registry.registerInstantiatedClosure(classElement.methodElement);
+    }
     js.Expression instance = new js.New(
-        glue.constructorAccess(cls),
+        glue.constructorAccess(classElement),
         visitExpressionList(node.arguments));
 
     List<tree_ir.Expression> typeInformation = node.typeInformation;
     assert(typeInformation.isEmpty ||
-        typeInformation.length == cls.typeVariables.length);
+        typeInformation.length == classElement.typeVariables.length);
     if (typeInformation.isNotEmpty) {
       FunctionElement helper = glue.getAddRuntimeTypeInformation();
       js.Expression typeArguments = new js.ArrayInitializer(
@@ -609,7 +614,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
     js.Expression argumentNames = new js.ArrayInitializer(
         node.selector.namedArguments.map(js.string).toList(growable: false));
     return buildStaticHelperInvocation(glue.createInvocationMirrorMethod,
-        [name, internalName, kind, arguments, argumentNames]);
+        <js.Expression>[name, internalName, kind, arguments, argumentNames]);
   }
 
   @override
@@ -693,6 +698,66 @@ class CodeGenerator extends tree_ir.StatementVisitor
   js.Expression visitTypeExpression(tree_ir.TypeExpression node) {
     List<js.Expression> arguments = visitExpressionList(node.arguments);
     return glue.generateTypeRepresentation(node.dartType, arguments);
+  }
+
+  js.Node handleForeignCode(tree_ir.ForeignCode node) {
+    registry.registerStaticUse(node.dependency);
+    return node.codeTemplate.instantiate(visitExpressionList(node.arguments));
+  }
+
+  @override
+  js.Expression visitForeignExpression(tree_ir.ForeignExpression node) {
+    return handleForeignCode(node);
+  }
+
+  @override
+  visitForeignStatement(tree_ir.ForeignStatement node) {
+    return handleForeignCode(node);
+  }
+
+  @override
+  js.Expression visitApplyBuiltinOperator(tree_ir.ApplyBuiltinOperator node) {
+    List<js.Expression> args = visitExpressionList(node.arguments);
+    switch (node.operator) {
+      case BuiltinOperator.NumAdd:
+        return new js.Binary('+', args[0], args[1]);
+      case BuiltinOperator.NumSubtract:
+        return new js.Binary('-', args[0], args[1]);
+      case BuiltinOperator.NumMultiply:
+        return new js.Binary('*', args[0], args[1]);
+      case BuiltinOperator.NumAnd:
+        return js.js('(# & #) >>> 0', args);
+      case BuiltinOperator.NumOr:
+        return js.js('(# | #) >>> 0', args);
+      case BuiltinOperator.NumXor:
+        return js.js('(# ^ #) >>> 0', args);
+      case BuiltinOperator.NumLt:
+        return new js.Binary('<', args[0], args[1]);
+      case BuiltinOperator.NumLe:
+        return new js.Binary('<=', args[0], args[1]);
+      case BuiltinOperator.NumGt:
+        return new js.Binary('>', args[0], args[1]);
+      case BuiltinOperator.NumGe:
+        return new js.Binary('>=', args[0], args[1]);
+      case BuiltinOperator.StrictEq:
+        return new js.Binary('===', args[0], args[1]);
+      case BuiltinOperator.StrictNeq:
+        return new js.Binary('!==', args[0], args[1]);
+      case BuiltinOperator.LooseEq:
+        return new js.Binary('==', args[0], args[1]);
+      case BuiltinOperator.LooseNeq:
+        return new js.Binary('!=', args[0], args[1]);
+      case BuiltinOperator.IsFalsy:
+        return new js.Prefix('!', args[0]);
+      case BuiltinOperator.IsNumber:
+        return js.js("typeof # === 'number'", args);
+      case BuiltinOperator.IsNotNumber:
+        return js.js("typeof # !== 'number'", args);
+      case BuiltinOperator.IsFloor:
+        return js.js("Math.floor(#) === #", args);
+      case BuiltinOperator.IsNumberAndFloor:
+        return js.js("typeof # === 'number' && Math.floor(#) === #", args);
+    }
   }
 
   visitFunctionExpression(tree_ir.FunctionExpression node) {

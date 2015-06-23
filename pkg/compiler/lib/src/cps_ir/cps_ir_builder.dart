@@ -19,6 +19,10 @@ import 'cps_ir_nodes.dart' as ir;
 import 'cps_ir_builder_task.dart' show DartCapturedVariables,
     GlobalProgramInformation;
 
+import '../common.dart' as types show TypeMask;
+import '../js/js.dart' as js show Template;
+import '../native/native.dart' show NativeBehavior;
+
 /// A mapping from variable elements to their compile-time values.
 ///
 /// Map elements denoted by parameters and local variables to the
@@ -1644,6 +1648,78 @@ abstract class IrBuilder {
     environment = breakCollector.environment;
   }
 
+  void buildSimpleSwitch(JumpTarget target,
+                         ir.Primitive value,
+                         List<SwitchCaseInfo> cases,
+                         SwitchCaseInfo defaultCase,
+                         Element error,
+                         SourceInformation sourceInformation) {
+    assert(isOpen);
+    JumpCollector join = new ForwardJumpCollector(environment, target: target);
+
+    IrBuilder casesBuilder = makeDelimitedBuilder();
+    casesBuilder.state.breakCollectors.add(join);
+    for (SwitchCaseInfo caseInfo in cases) {
+      buildConditionsFrom(int index) => (IrBuilder builder) {
+        ir.Primitive comparison = builder.addPrimitive(
+            new ir.Identical(value, caseInfo.constants[index]));
+        return (index == caseInfo.constants.length - 1)
+            ? comparison
+            : builder.buildLogicalOperator(
+                comparison, buildConditionsFrom(index + 1), isLazyOr: true);
+      };
+
+      ir.Primitive condition = buildConditionsFrom(0)(casesBuilder);
+      IrBuilder thenBuilder = makeDelimitedBuilder();
+      caseInfo.buildBody(thenBuilder);
+      if (thenBuilder.isOpen) {
+        // It is a runtime error to reach the end of a switch case, unless
+        // it is the last case.
+        if (caseInfo == cases.last && defaultCase == null) {
+          thenBuilder.jumpTo(join);
+        } else {
+          ir.Primitive exception = thenBuilder._buildInvokeStatic(
+              error,
+              new Selector.fromElement(error),
+              <ir.Primitive>[],
+              sourceInformation);
+          thenBuilder.buildThrow(exception);
+        }
+      }
+
+      ir.Continuation thenContinuation = new ir.Continuation([]);
+      thenContinuation.body = thenBuilder._root;
+      ir.Continuation elseContinuation = new ir.Continuation([]);
+      // A LetCont.many term has a hole as the body of the first listed
+      // continuation, to be plugged by the translation.  Therefore put the
+      // else continuation first.
+      casesBuilder.add(
+          new ir.LetCont.many(<ir.Continuation>[elseContinuation,
+                                                thenContinuation],
+              new ir.Branch(new ir.IsTrue(condition),
+                            thenContinuation,
+                            elseContinuation)));
+    }
+
+    if (defaultCase != null) {
+      defaultCase.buildBody(casesBuilder);
+    }
+    if (casesBuilder.isOpen) casesBuilder.jumpTo(join);
+
+    casesBuilder.state.breakCollectors.removeLast();
+
+    if (!join.isEmpty) {
+      add(new ir.LetCont(join.continuation, casesBuilder._root));
+      environment = join.environment;
+    } else if (casesBuilder._root != null) {
+      add(casesBuilder._root);
+      _current = casesBuilder._current;
+      environment = casesBuilder.environment;
+    } else {
+      // The translation of the cases did not emit any code.
+    }
+  }
+
   /// Creates a try-statement.
   ///
   /// [tryInfo] provides information on local variables declared and boxed
@@ -2333,9 +2409,10 @@ class JsIrBuilder extends IrBuilder {
   }
 
   ir.Primitive buildTypeExpression(DartType type) {
+    type = program.unaliasType(type);
     if (type is TypeVariableType) {
       return buildTypeVariableAccess(type);
-    } else if (type is InterfaceType) {
+    } else if (type is InterfaceType || type is FunctionType) {
       List<ir.Primitive> arguments = <ir.Primitive>[];
       type.forEachTypeVariable((TypeVariableType variable) {
         ir.Primitive value = buildTypeVariableAccess(variable);
@@ -2390,12 +2467,35 @@ class JsIrBuilder extends IrBuilder {
     return addPrimitive(new ir.CreateInvocationMirror(selector, arguments));
   }
 
+  ir.Primitive buildForeignCode(js.Template codeTemplate,
+                                List<ir.Primitive> arguments,
+                                NativeBehavior behavior,
+                                {Element dependency}) {
+    types.TypeMask type = program.getTypeMaskForForeign(behavior);
+    if (codeTemplate.isExpression) {
+      return _continueWithExpression((k) => new ir.ForeignCode(
+        codeTemplate,
+        type,
+        arguments,
+        behavior,
+        continuation: k,
+        dependency: dependency));
+    } else {
+      assert(isOpen);
+      add(new ir.ForeignCode(codeTemplate, type, arguments, behavior,
+          dependency: dependency));
+      _current = null;
+    }
+  }
+
   @override
   ir.Primitive buildTypeOperator(ir.Primitive value,
                                  DartType type,
                                  {bool isTypeTest}) {
     assert(isOpen);
     assert(isTypeTest != null);
+
+    type = program.unaliasType(type);
 
     if (type.isMalformed) {
       FunctionElement helper = program.throwTypeErrorHelper;
@@ -2412,6 +2512,8 @@ class JsIrBuilder extends IrBuilder {
       typeArguments = type.typeArguments.map(buildTypeExpression).toList();
     } else if (type is TypeVariableType) {
       typeArguments = <ir.Primitive>[buildTypeVariableAccess(type)];
+    } else if (type is FunctionType) {
+      typeArguments = <ir.Primitive>[buildTypeExpression(type)];
     }
 
     if (isTypeTest) {
@@ -2525,4 +2627,13 @@ class CatchClauseInfo {
                    this.exceptionVariable,
                    this.stackTraceVariable,
                    this.buildCatchBlock});
+}
+
+class SwitchCaseInfo {
+  final List<ir.Primitive> constants = <ir.Primitive>[];
+  final SubbuildFunction buildBody;
+
+  SwitchCaseInfo(this.buildBody);
+
+  void addConstant(ir.Primitive constant) => constants.add(constant);
 }

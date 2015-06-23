@@ -11,6 +11,16 @@ import '../elements/elements.dart';
 import '../io/source_information.dart' show SourceInformation;
 import '../universe/universe.dart' show Selector;
 
+import '../cps_ir/builtin_operator.dart';
+export '../cps_ir/builtin_operator.dart';
+
+// These imports are only used for the JavaScript specific nodes.  If we want to
+// support more than one native backend, we should probably create better
+// abstractions for native code and its type and effect system.
+import '../js/js.dart' as js show Template;
+import '../native/native.dart' as native show NativeBehavior;
+import '../types/types.dart' as types show TypeMask;
+
 // The Tree language is the target of translation out of the CPS-based IR.
 //
 // The translation from CPS to Dart consists of several stages.  Among the
@@ -344,6 +354,26 @@ class TypeOperator extends Expression {
   String get operator => isTypeTest ? 'is' : 'as';
 }
 
+/**
+ * Apply a built-in operator.
+ *
+ * It must be known that the arguments have the proper types.
+ * Null is not a valid argument to any of the built-in operators.
+ */
+class ApplyBuiltinOperator extends Expression {
+  BuiltinOperator operator;
+  List<Expression> arguments;
+
+  ApplyBuiltinOperator(this.operator, this.arguments);
+
+  accept(ExpressionVisitor visitor) {
+    return visitor.visitApplyBuiltinOperator(this);
+  }
+  accept1(ExpressionVisitor1 visitor, arg) {
+    return visitor.visitApplyBuiltinOperator(this, arg);
+  }
+}
+
 /// A conditional expression.
 class Conditional extends Expression {
   Expression condition;
@@ -378,6 +408,8 @@ class LogicalOperator extends Expression {
 }
 
 /// Logical negation.
+// TODO(asgerf): Replace this class with the IsFalsy builtin operator?
+//               Right now the tree builder compiles IsFalsy to Not.
 class Not extends Expression {
   Expression operand;
 
@@ -751,6 +783,55 @@ class CreateInvocationMirror extends Expression {
   }
 }
 
+class ForeignCode extends Node {
+  final js.Template codeTemplate;
+  final types.TypeMask type;
+  final List<Expression> arguments;
+  final native.NativeBehavior nativeBehavior;
+  final Element dependency;
+
+  ForeignCode(this.codeTemplate, this.type, this.arguments, this.nativeBehavior,
+      this.dependency);
+}
+
+class ForeignExpression extends ForeignCode implements Expression {
+  ForeignExpression(js.Template codeTemplate, types.TypeMask type,
+      List<Expression> arguments, native.NativeBehavior nativeBehavior,
+      Element dependency)
+      : super(codeTemplate, type, arguments, nativeBehavior,
+          dependency);
+
+  accept(ExpressionVisitor visitor) {
+    return visitor.visitForeignExpression(this);
+  }
+
+  accept1(ExpressionVisitor1 visitor, arg) {
+    return visitor.visitForeignExpression(this, arg);
+  }
+}
+
+class ForeignStatement extends ForeignCode implements Statement {
+  ForeignStatement(js.Template codeTemplate, types.TypeMask type,
+      List<Expression> arguments, native.NativeBehavior nativeBehavior,
+      Element dependency)
+      : super(codeTemplate, type, arguments, nativeBehavior,
+          dependency);
+
+  accept(StatementVisitor visitor) {
+    return visitor.visitForeignStatement(this);
+  }
+
+  accept1(StatementVisitor1 visitor, arg) {
+    return visitor.visitForeignStatement(this, arg);
+  }
+
+  @override
+  Statement get next => null;
+
+  @override
+  void set next(Statement s) => throw 'UNREACHABLE';
+}
+
 /// Denotes the internal representation of [dartType], where all type variables
 /// are replaced by the values in [arguments].
 /// (See documentation on the TypeExpression CPS node for more details.)
@@ -797,6 +878,8 @@ abstract class ExpressionVisitor<E> {
   E visitReadTypeVariable(ReadTypeVariable node);
   E visitTypeExpression(TypeExpression node);
   E visitCreateInvocationMirror(CreateInvocationMirror node);
+  E visitApplyBuiltinOperator(ApplyBuiltinOperator node);
+  E visitForeignExpression(ForeignExpression node);
 }
 
 abstract class ExpressionVisitor1<E, A> {
@@ -827,6 +910,8 @@ abstract class ExpressionVisitor1<E, A> {
   E visitReadTypeVariable(ReadTypeVariable node, A arg);
   E visitTypeExpression(TypeExpression node, A arg);
   E visitCreateInvocationMirror(CreateInvocationMirror node, A arg);
+  E visitApplyBuiltinOperator(ApplyBuiltinOperator node, A arg);
+  E visitForeignExpression(ForeignExpression node, A arg);
 }
 
 abstract class StatementVisitor<S> {
@@ -843,6 +928,7 @@ abstract class StatementVisitor<S> {
   S visitExpressionStatement(ExpressionStatement node);
   S visitTry(Try node);
   S visitUnreachable(Unreachable node);
+  S visitForeignStatement(ForeignStatement node);
 }
 
 abstract class StatementVisitor1<S, A> {
@@ -859,6 +945,7 @@ abstract class StatementVisitor1<S, A> {
   S visitExpressionStatement(ExpressionStatement node, A arg);
   S visitTry(Try node, A arg);
   S visitUnreachable(Unreachable node, A arg);
+  S visitForeignStatement(ForeignStatement node, A arg);
 }
 
 abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
@@ -1024,7 +1111,19 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
     node.arguments.forEach(visitExpression);
   }
 
-  visitUnreachable(Unreachable node) {}
+  visitUnreachable(Unreachable node) {
+  }
+
+  visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
+    node.arguments.forEach(visitExpression);
+  }
+
+  visitForeignCode(ForeignCode node) {
+    node.arguments.forEach(visitExpression);
+  }
+
+  visitForeignExpression(ForeignExpression node) => visitForeignCode(node);
+  visitForeignStatement(ForeignStatement node) => visitForeignCode(node);
 }
 
 abstract class Transformer implements ExpressionVisitor<Expression>,
@@ -1222,7 +1321,22 @@ class RecursiveTransformer extends Transformer {
     return node;
   }
 
+  visitForeignExpression(ForeignExpression node) {
+    _replaceExpressions(node.arguments);
+    return node;
+  }
+
+  visitForeignStatement(ForeignStatement node) {
+    _replaceExpressions(node.arguments);
+    return node;
+  }
+
   visitUnreachable(Unreachable node) {
+    return node;
+  }
+
+  visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
+    _replaceExpressions(node.arguments);
     return node;
   }
 }

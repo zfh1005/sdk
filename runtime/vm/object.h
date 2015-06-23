@@ -538,6 +538,7 @@ class Object {
   static RawClass* subtypetestcache_class() { return subtypetestcache_class_; }
 
   // Initialize the VM isolate.
+  static void InitNull(Isolate* isolate);
   static void InitOnce(Isolate* isolate);
   static void FinalizeVMIsolate(Isolate* isolate);
 
@@ -2039,6 +2040,7 @@ class Function : public Object {
   RawString* UserVisibleName() const;
   RawString* QualifiedPrettyName() const;
   RawString* QualifiedUserVisibleName() const;
+  const char* QualifiedUserVisibleNameCString() const;
   virtual RawString* DictionaryName() const { return name(); }
 
   RawString* GetSource() const;
@@ -3814,6 +3816,8 @@ class PcDescriptors : public Object {
  private:
   static const char* KindAsStr(RawPcDescriptors::Kind kind);
 
+  static RawPcDescriptors* New(intptr_t length);
+
   intptr_t Length() const;
   void SetLength(intptr_t value) const;
   void CopyData(GrowableArray<uint8_t>* data);
@@ -3864,6 +3868,10 @@ class Stackmap : public Object {
   static RawStackmap* New(intptr_t pc_offset,
                           BitmapBuilder* bmap,
                           intptr_t register_bit_count);
+
+  static RawStackmap* New(intptr_t length,
+                          intptr_t register_bit_count,
+                          intptr_t pc_offset);
 
  private:
   void SetLength(intptr_t length) const {
@@ -3916,6 +3924,7 @@ class ExceptionHandlers : public Object {
   }
 
   static RawExceptionHandlers* New(intptr_t num_handlers);
+  static RawExceptionHandlers* New(const Array& handled_types_data);
 
   // We would have a VisitPointers function here to traverse the
   // exception handler table to visit objects if any in the table.
@@ -6416,6 +6425,8 @@ class ExternalOneByteString : public AllStatic {
   static void SetExternalData(const String& str,
                               ExternalStringData<uint8_t>* data) {
     ASSERT(str.IsExternalOneByteString());
+    ASSERT(!Isolate::Current()->heap()->Contains(
+        reinterpret_cast<uword>(data->data())));
     str.StoreNonPointer(&raw_ptr(str)->external_data_, data);
   }
 
@@ -6492,6 +6503,8 @@ class ExternalTwoByteString : public AllStatic {
   static void SetExternalData(const String& str,
                               ExternalStringData<uint16_t>* data) {
     ASSERT(str.IsExternalTwoByteString());
+    ASSERT(!Isolate::Current()->heap()->Contains(
+        reinterpret_cast<uword>(data->data())));
     str.StoreNonPointer(&raw_ptr(str)->external_data_, data);
   }
 
@@ -7173,6 +7186,8 @@ class ExternalTypedData : public Instance {
   }
 
   void SetData(uint8_t* data) const {
+    ASSERT(!Isolate::Current()->heap()->Contains(
+        reinterpret_cast<uword>(data)));
     StoreNonPointer(&raw_ptr()->data_, data);
   }
 

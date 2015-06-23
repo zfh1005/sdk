@@ -797,11 +797,11 @@ class OldEmitter implements Emitter {
     return js.statement('''
       function init() {
         $isolatePropertiesName = Object.create(null);
-        #allClasses = Object.create(null);
+        #allClasses = map();
         #getTypeFromName = function(name) {return #allClasses[name];};
-        #interceptorsByTag = Object.create(null);
-        #leafTags = Object.create(null);
-        #finishedClasses = Object.create(null);
+        #interceptorsByTag = map();
+        #leafTags = map();
+        #finishedClasses = map();
 
         if (#needsLazyInitializer) {
           // [staticName] is only provided in non-minified mode. If missing, we 
@@ -1039,7 +1039,8 @@ class OldEmitter implements Emitter {
     cspPrecompiledFunctionFor(outputUnit).add(js.statement(r'''
         {
           #constructorName.#typeNameProperty = #constructorNameString;
-          if (!"name" in #constructorName)
+          // IE does not have a name property.
+          if (!("name" in #constructorName))
               #constructorName.name = #constructorNameString;
           $desc = $collectedClasses$.#constructorName[1];
           #constructorName.prototype = $desc;
@@ -1654,8 +1655,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
 
   void finalizeTokensInAst(jsAst.Program main,
                            Iterable<jsAst.Program> deferredParts) {
-    task.metadataCollector.countTokensInProgram(main);
-    deferredParts.forEach(task.metadataCollector.countTokensInProgram);
+    task.metadataCollector.countTokensInAst(main);
+    deferredParts.forEach(task.metadataCollector.countTokensInAst);
     task.metadataCollector.finalizeTokens();
   }
 
