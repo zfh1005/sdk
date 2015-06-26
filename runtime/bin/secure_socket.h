@@ -26,6 +26,10 @@
 namespace dart {
 namespace bin {
 
+/* These are defined in root_certificates.cc. */
+extern const unsigned char* root_certificates_pem;
+extern unsigned int root_certificates_pem_length;
+
 /*
  * SSLFilter encapsulates the NSS SSL(TLS) code in a filter, that communicates
  * with the containing _SecureFilterImpl Dart object through four shared

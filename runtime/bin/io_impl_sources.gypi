@@ -39,6 +39,7 @@
     'process_linux.cc',
     'process_macos.cc',
     'process_win.cc',
+    'root_certificates.cc',
     'secure_socket.cc',
     'secure_socket.h',
     'secure_socket_unsupported.cc',
@@ -64,6 +65,7 @@
           ],
         }, {  # else dart_io_secure_socket == 0
           'sources!' : [
+            'root_certificates.cc',
             'secure_socket.cc',
             'secure_socket.h',
           ],
@@ -79,6 +81,7 @@
         'filter.h',
         'io_service.cc',
         'io_service.h',
+        'root_certificates.cc',
         'secure_socket.cc',
         'secure_socket.h',
       ],

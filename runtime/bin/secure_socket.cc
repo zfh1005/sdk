@@ -366,6 +366,21 @@ void FUNCTION_NAME(SecurityContext_SetTrustedCertificates)(
 }
 
 
+void FUNCTION_NAME(SecurityContext_TrustBuiltinRoots)(
+    Dart_NativeArguments args) {
+  SSL_CTX* context = GetSecurityContext(args);
+  X509_STORE* store = SSL_CTX_get_cert_store(context);
+  BIO* roots_bio =
+      BIO_new_mem_buf(const_cast<unsigned char*>(root_certificates_pem),
+                      root_certificates_pem_length);
+  X509* root_cert;
+  while ((root_cert = PEM_read_bio_X509(roots_bio, NULL, NULL, NULL))) {
+    X509_STORE_add_cert(store, root_cert);
+  }
+  BIO_free(roots_bio);
+}
+
+
 void FUNCTION_NAME(SecurityContext_UseCertificateChain)(
     Dart_NativeArguments args) {
   SSL_CTX* context = GetSecurityContext(args);

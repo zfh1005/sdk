@@ -70,6 +70,7 @@ namespace bin {
   V(SecurityContext_SetAlpnProtocols, 3)                                       \
   V(SecurityContext_SetClientAuthorities, 2)                                   \
   V(SecurityContext_SetTrustedCertificates, 3)                                 \
+  V(SecurityContext_TrustBuiltinRoots, 1)                                      \
   V(SecurityContext_UseCertificateChain, 2)                                    \
   V(ServerSocket_Accept, 2)                                                    \
   V(ServerSocket_CreateBindListen, 6)                                          \

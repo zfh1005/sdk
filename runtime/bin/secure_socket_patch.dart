@@ -137,9 +137,8 @@ class _SecurityContext
 
   void _createNativeContext() native "SecurityContext_Allocate";
 
-  static SecurityContext get defaultContext {
-    return null;
-  }
+  static final SecurityContext defaultContext =
+      new _SecurityContext().._trustBuiltinRoots();
 
   void usePrivateKey(String keyFile, {String password})
       native "SecurityContext_UsePrivateKey";
@@ -156,6 +155,8 @@ class _SecurityContext
   }
   void _setAlpnProtocols(Uint8List protocols, bool isServer)
       native "SecurityContext_SetAlpnProtocols";
+  void _trustBuiltinRoots()
+      native "SecurityContext_TrustBuiltinRoots";
 }
 
 /**

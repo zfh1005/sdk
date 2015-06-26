@@ -460,6 +460,9 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
       this.requireClientCertificate,
       this.onBadCertificate(X509Certificate certificate),
       List<String> supportedProtocols) {
+    if (context == null) {
+      context = SecurityContext.defaultContext;
+    }
     _controller = new StreamController<RawSocketEvent>(
         sync: true,
         onListen: _onSubscriptionStateChange,

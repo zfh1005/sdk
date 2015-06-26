@@ -366,7 +366,6 @@ verified_mem_test: RuntimeError # Please triage this failure.
 io/https_bad_certificate_test: RuntimeError
 io/https_client_certificate_test: RuntimeError
 io/secure_bad_certificate_test: RuntimeError
-io/secure_builtin_roots_test: RuntimeError
 io/secure_server_client_certificate_test: RuntimeError
 io/secure_server_client_no_certificate_test: RuntimeError
 io/secure_socket_renegotiate_test: RuntimeError
