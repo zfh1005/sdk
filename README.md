@@ -1,17 +1,3 @@
-# Temporary branch of the Dart SDK.
-
-This branch is used by the [Fletch project](https://github.com/dart-lang/fletch) and may be deleted without warning. The patches applied in here are under development and unstable.
-
-The branch exists to track the following features:
-
-* Unix Domain Sockets (https://codereview.chromium.org/1061283003/)
-
-* vfork (https://codereview.chromium.org/1095903003/)
-
-Once these features have landed in master, this branch will be deleted.
-
-Below follows the original text from the Dart SDK README.md:
-
 # Dart
 
 [Dart][website] is an open-source, scalable programming language, with robust

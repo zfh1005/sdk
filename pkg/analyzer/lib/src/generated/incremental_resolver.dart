@@ -20,6 +20,7 @@ import 'package:analyzer/src/task/dart.dart'
         SCAN_ERRORS,
         USED_IMPORTED_ELEMENTS,
         USED_LOCAL_ELEMENTS,
+        VARIABLE_REFERENCE_ERRORS,
         VERIFY_ERRORS;
 import 'package:analyzer/task/dart.dart'
     show DART_ERRORS, LibrarySpecificUnit, PARSED_UNIT, TOKEN_STREAM;
@@ -519,6 +520,29 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     }
   }
 
+  /**
+   * Asserts that there is an import with the same prefix as the given
+   * [prefixNode], which exposes the given [element].
+   */
+  void _assertElementVisibleWithPrefix(
+      SimpleIdentifier prefixNode, Element element) {
+    if (prefixNode == null) {
+      return;
+    }
+    String prefixName = prefixNode.name;
+    for (ImportElement import in _enclosingLibrary.imports) {
+      if (import.prefix != null && import.prefix.name == prefixName) {
+        Namespace namespace =
+            new NamespaceBuilder().createImportNamespaceForDirective(import);
+        Iterable<Element> visibleElements = namespace.definedNames.values;
+        if (visibleElements.contains(element)) {
+          return;
+        }
+      }
+    }
+    _assertTrue(false);
+  }
+
   void _assertEquals(Object a, Object b) {
     if (a != b) {
       throw new _DeclarationMismatchException();
@@ -616,29 +640,6 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       logger.log('node: $node type: $type  type.type: ${type.runtimeType}');
       _assertTrue(false);
     }
-  }
-
-  /**
-   * Asserts that there is an import with the same prefix as the given
-   * [prefixNode], which exposes the given [element].
-   */
-  void _assertElementVisibleWithPrefix(
-      SimpleIdentifier prefixNode, Element element) {
-    if (prefixNode == null) {
-      return;
-    }
-    String prefixName = prefixNode.name;
-    for (ImportElement import in _enclosingLibrary.imports) {
-      if (import.prefix != null && import.prefix.name == prefixName) {
-        Namespace namespace =
-            new NamespaceBuilder().createImportNamespaceForDirective(import);
-        Iterable<Element> visibleElements = namespace.definedNames.values;
-        if (visibleElements.contains(element)) {
-          return;
-        }
-      }
-    }
-    _assertTrue(false);
   }
 
   void _assertSameTypeParameter(
@@ -836,7 +837,7 @@ class IncrementalResolver {
   /**
    * The context the compilation unit being resolved in.
    */
-  AnalysisContextImpl _context;
+  AnalysisContext _context;
 
   /**
    * The object used to access the types from the core library.
@@ -1133,10 +1134,11 @@ class IncrementalResolver {
   }
 
   void _shiftEntryErrors_NEW() {
-    _shiftErrors_NEW(RESOLVE_TYPE_NAMES_ERRORS);
-    _shiftErrors_NEW(RESOLVE_REFERENCES_ERRORS);
-    _shiftErrors_NEW(VERIFY_ERRORS);
     _shiftErrors_NEW(HINTS);
+    _shiftErrors_NEW(RESOLVE_REFERENCES_ERRORS);
+    _shiftErrors_NEW(RESOLVE_TYPE_NAMES_ERRORS);
+    _shiftErrors_NEW(VARIABLE_REFERENCE_ERRORS);
+    _shiftErrors_NEW(VERIFY_ERRORS);
   }
 
   void _shiftEntryErrors_OLD() {
@@ -1185,8 +1187,9 @@ class IncrementalResolver {
   }
 
   void _updateEntry_NEW() {
-    _updateErrors_NEW(RESOLVE_TYPE_NAMES_ERRORS, []);
     _updateErrors_NEW(RESOLVE_REFERENCES_ERRORS, _resolveErrors);
+    _updateErrors_NEW(RESOLVE_TYPE_NAMES_ERRORS, []);
+    _updateErrors_NEW(VARIABLE_REFERENCE_ERRORS, []);
     _updateErrors_NEW(VERIFY_ERRORS, _verifyErrors);
     // invalidate results we don't update incrementally
     newUnitEntry.setState(USED_IMPORTED_ELEMENTS, CacheState.INVALID);
@@ -1468,6 +1471,8 @@ class PoorMansIncrementalResolver {
       Token token = _scan(code);
       RecordingErrorListener errorListener = new RecordingErrorListener();
       Parser parser = new Parser(_unitSource, errorListener);
+      AnalysisOptions options = _unitElement.context.analysisOptions;
+      parser.parseGenericMethods = options.enableGenericMethods;
       CompilationUnit unit = parser.parseCompilationUnit(token);
       _newParseErrors = errorListener.errors;
       return unit;

@@ -159,7 +159,12 @@ File* File::Open(const char* name, FileOpenMode mode) {
   }
   int flags = O_RDONLY;
   if ((mode & kWrite) != 0) {
+    ASSERT((mode & kWriteOnly) == 0);
     flags = (O_RDWR | O_CREAT);
+  }
+  if ((mode & kWriteOnly) != 0) {
+    ASSERT((mode & kWrite) == 0);
+    flags = (O_WRONLY | O_CREAT);
   }
   if ((mode & kTruncate) != 0) {
     flags = flags | O_TRUNC;
@@ -169,7 +174,8 @@ File* File::Open(const char* name, FileOpenMode mode) {
     return NULL;
   }
   FDUtils::SetCloseOnExec(fd);
-  if (((mode & kWrite) != 0) && ((mode & kTruncate) == 0)) {
+  if ((((mode & kWrite) != 0) && ((mode & kTruncate) == 0)) ||
+      (((mode & kWriteOnly) != 0) && ((mode & kTruncate) == 0))) {
     int64_t position = lseek(fd, 0, SEEK_END);
     if (position < 0) {
       return NULL;
@@ -411,7 +417,6 @@ File::Type File::GetType(const char* pathname, bool follow_links) {
   if (S_ISDIR(entry_info.st_mode)) return File::kIsDirectory;
   if (S_ISREG(entry_info.st_mode)) return File::kIsFile;
   if (S_ISLNK(entry_info.st_mode)) return File::kIsLink;
-  if (S_ISSOCK(entry_info.st_mode)) return File::kIsFile;  // HACK.
   return File::kDoesNotExist;
 }
 

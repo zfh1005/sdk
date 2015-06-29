@@ -40,6 +40,7 @@ namespace bin {
   V(Platform_PathSeparator, 0)                                                 \
   V(Platform_LocalHostname, 0)                                                 \
   V(Platform_ExecutableName, 0)                                                \
+  V(Platform_ResolvedExecutableName, 0)                                        \
   V(Platform_Environment, 0)                                                   \
   V(Platform_ExecutableArguments, 0)                                           \
   V(Platform_PackageRoot, 0)                                                   \
@@ -67,10 +68,8 @@ namespace bin {
   V(SecureSocket_Renegotiate, 4)                                               \
   V(ServerSocket_Accept, 2)                                                    \
   V(ServerSocket_CreateBindListen, 6)                                          \
-  V(ServerSocket_CreateBindListenUnix, 3)                                      \
   V(Socket_CreateConnect, 3)                                                   \
   V(Socket_CreateBindConnect, 4)                                               \
-  V(Socket_CreateConnectUnix, 2)                                               \
   V(Socket_CreateBindDatagram, 4)                                              \
   V(Socket_Available, 1)                                                       \
   V(Socket_Read, 2)                                                            \

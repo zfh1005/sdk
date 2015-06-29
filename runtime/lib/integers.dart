@@ -275,7 +275,6 @@ class _IntegerImplementation extends _Num {
     if (e is _Bigint || m is _Bigint) {
       return _toBigint().modPow(e, m);
     }
-    if (e < 1) return 1;
     int b = this;
     if (b < 0 || b > m) {
       b %= m;
@@ -289,6 +288,107 @@ class _IntegerImplementation extends _Num {
       b = (b * b) % m;
     }
     return r;
+  }
+
+  // If inv is false, returns gcd(x, y).
+  // If inv is true and gcd(x, y) = 1, returns d, so that c*x + d*y = 1.
+  // If inv is true and gcd(x, y) != 1, throws RangeError("Not coprime").
+  static int _binaryGcd(int x, int y, bool inv) {
+    int s = 0;
+    if (!inv) {
+      while (x.isEven && y.isEven) {
+        x >>= 1;
+        y >>= 1;
+        s++;
+      }
+      if (y.isOdd) {
+        var t = x;
+        x = y;
+        y = t;
+      }
+    }
+    final bool ac = x.isEven;
+    int u = x;
+    int v = y;
+    int a = 1,
+        b = 0,
+        c = 0,
+        d = 1;
+    do {
+      while (u.isEven) {
+        u >>= 1;
+        if (ac) {
+          if (!a.isEven || !b.isEven) {
+            a += y;
+            b -= x;
+          }
+          a >>= 1;
+        } else if (!b.isEven) {
+          b -= x;
+        }
+        b >>= 1;
+      }
+      while (v.isEven) {
+        v >>= 1;
+        if (ac) {
+          if (!c.isEven || !d.isEven) {
+            c += y;
+            d -= x;
+          }
+          c >>= 1;
+        } else if (!d.isEven) {
+          d -= x;
+        }
+        d >>= 1;
+      }
+      if (u >= v) {
+        u -= v;
+        if (ac) a -= c;
+        b -= d;
+      } else {
+        v -= u;
+        if (ac) c -= a;
+        d -= b;
+      }
+    } while (u != 0);
+    if (!inv) return v << s;
+    if (v != 1) throw new RangeError("Not coprime");
+    if (d < 0) {
+      d += x;
+      if (d < 0) d += x;
+    } else if (d > x) {
+      d -= x;
+      if (d > x) d -= x;
+    }
+    return d;
+  }
+
+  // Returns 1/this % m, with m > 0.
+  int modInverse(int m) {
+    if (m is! int) throw new ArgumentError(m);
+    if (m <= 0) throw new RangeError(m);
+    if (m == 1) return 0;
+    if (m is _Bigint) {
+      return _toBigint().modInverse(m);
+    }
+    int t = this;
+    if ((t < 0) || (t >= m)) t %= m;
+    if (t == 1) return 1;
+    if ((t == 0) || (t.isEven && m.isEven)) throw new RangeError("Not coprime");
+    return _binaryGcd(m, t, true);
+  }
+
+  // Returns gcd of abs(this) and abs(other), with this != 0 and other !=0.
+  int gcd(int other) {
+    if (other is! int) throw new ArgumentError(other);
+    if ((this == 0) || (other == 0)) throw new RangeError(0);
+    int x = this.abs();
+    int y = other.abs();
+    if ((x == 1) || (y == 1)) return 1;
+    if (other is _Bigint) {
+      return _toBigint().gcd(other);
+    }
+    return _binaryGcd(x, y, false);
   }
 }
 

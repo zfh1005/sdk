@@ -1229,6 +1229,21 @@ class @Instance extends @Object {
   //
   // Provided for instance kinds:
   //   List
+  //   Map
+  //   Uint8ClampedList
+  //   Uint8List
+  //   Uint16List
+  //   Uint32List
+  //   Uint64List
+  //   Int8List
+  //   Int16List
+  //   Int32List
+  //   Int64List
+  //   Float32List
+  //   Float64List
+  //   Int32x4List
+  //   Float32x4List
+  //   Float64x2List
   int length [optional];
 
   // The name of a Type instance.
@@ -1248,6 +1263,13 @@ class @Instance extends @Object {
   // Provided for instance kinds:
   //   TypeParameter
   @Class parameterizedClass [optional];
+
+
+  // The pattern of a RegExp instance.
+  //
+  // Provided for instance kinds:
+  //   RegExp
+  @String pattern [optional];
 }
 ```
 
@@ -1278,6 +1300,21 @@ class Instance extends Object {
   //
   // Provided for instance kinds:
   //   List
+  //   Map
+  //   Uint8ClampedList
+  //   Uint8List
+  //   Uint16List
+  //   Uint32List
+  //   Uint64List
+  //   Int8List
+  //   Int16List
+  //   Int32List
+  //   Int64List
+  //   Float32List
+  //   Float64List
+  //   Int32x4List
+  //   Float32x4List
+  //   Float64x2List
   int length [optional];
 
   // The name of a Type instance.
@@ -1313,6 +1350,25 @@ class Instance extends Object {
   //   Map
   MapAssociation[] associations [optional];
 
+  // The bytes of a TypedData instance.
+  //
+  // Provided for instance kinds:
+  //   Uint8ClampedList
+  //   Uint8List
+  //   Uint16List
+  //   Uint32List
+  //   Uint64List
+  //   Int8List
+  //   Int16List
+  //   Int32List
+  //   Int64List
+  //   Float32List
+  //   Float64List
+  //   Int32x4List
+  //   Float32x4List
+  //   Float64x2List
+  int[] bytes [optional];
+
   // The function associated with a Closure instance.
   //
   // Provided for instance kinds:
@@ -1330,6 +1386,12 @@ class Instance extends Object {
   // Provided for instance kinds:
   //   MirrorReference
   @Instance mirrorReferent [optional];
+
+  // The pattern of a RegExp instance.
+  //
+  // Provided for instance kinds:
+  //   RegExp
+  @String pattern [optional];
   
   // The key for a WeakProperty instance.
   //
@@ -1411,12 +1473,32 @@ enum {
   // Maps will be PlainInstance.
   Map,
 
+  // An instance of the built-in VM TypedData implementations.  User-defined
+  // TypedDatas will be PlainInstance.
+  Uint8ClampedList,
+  Uint8List,
+  Uint16List,
+  Uint32List,
+  Uint64List,
+  Int8List,
+  Int16List,
+  Int32List,
+  Int64List,
+  Float32List,
+  Float64List,
+  Int32x4List,
+  Float32x4List,
+  Float64x2List,
+
   // An instance of the built-in VM Closure implementation. User-defined
   // Closures will be PlainInstance.
   Closure,
 
   // An instance of the Dart class MirrorReference.
   MirrorReference,
+
+  // An instance of the Dart class RegExp.
+  RegExp,
 
   // An instance of the Dart class WeakProperty.
   WeakProperty,

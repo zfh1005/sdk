@@ -530,6 +530,9 @@ main() => new C(0);"""]);
   static const MessageKind NOT_INSTANCE_FIELD = const MessageKind(
       "'#{fieldName}' is not an instance field.");
 
+  static const MessageKind THIS_PROPERTY = const MessageKind(
+      "Expected an identifier.");
+
   static const MessageKind NO_CATCH_NOR_FINALLY = const MessageKind(
       "Expected 'catch' or 'finally'.");
 
@@ -637,10 +640,11 @@ main() => new C<String>();
       "Not a compile-time constant.");
 
   static const MessageKind DEFERRED_COMPILE_TIME_CONSTANT = const MessageKind(
-      "A Deferred value cannot be used as a compile-time constant.");
+      "A deferred value cannot be used as a compile-time constant.");
 
   static const MessageKind DEFERRED_COMPILE_TIME_CONSTANT_CONSTRUCTION =
-      const MessageKind("A deferred class cannot be used to create a"
+      const MessageKind(
+          "A deferred class cannot be used to create a "
           "compile-time constant.");
 
   static const MessageKind CYCLIC_COMPILE_TIME_CONSTANTS = const MessageKind(
@@ -1364,7 +1368,7 @@ main() => A.A = 1;
 
   static const MessageKind DEFERRED_LIBRARY_DART_2_DART =
       const MessageKind(
-          "Deferred loading is not supported by the dart backend yet."
+          "Deferred loading is not supported by the dart backend yet. "
           "The output will not be split.");
 
   static const MessageKind DEFERRED_LIBRARY_WITHOUT_PREFIX =
@@ -1614,8 +1618,8 @@ import 'package://foo/foo.dart';
 
 main() {}
 """, """
-// package name must be a valid identifier
-import 'package:not-valid/foo.dart';
+// package name must be valid
+import 'package:not\valid/foo.dart';
 
 main() {}
 """]);

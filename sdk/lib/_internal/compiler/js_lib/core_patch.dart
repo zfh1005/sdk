@@ -180,7 +180,9 @@ class DateTime {
                      bool isUtc)
         // checkBool is manually inlined here because dart2js doesn't inline it
         // and [isUtc] is usually a constant.
-      : this.isUtc = isUtc is bool ? isUtc : throw new ArgumentError(isUtc),
+      : this.isUtc = isUtc is bool
+            ? isUtc
+            : throw new ArgumentError.value(isUtc, 'isUtc'),
         millisecondsSinceEpoch = checkInt(Primitives.valueFromDecomposedDate(
             year, month, day, hour, minute, second, millisecond, isUtc));
 
@@ -506,5 +508,73 @@ class Uri {
     String uri = Primitives.currentUri();
     if (uri != null) return Uri.parse(uri);
     throw new UnsupportedError("'Uri.base' is not supported");
+  }
+}
+
+@patch
+class Resource {
+  @patch
+  const factory Resource(String uri) = _Resource;
+}
+
+Uri _resolvePackageUri(Uri packageUri) {
+  assert(packageUri.scheme == "package");
+  if (packageUri.hasAuthority) {
+    throw new ArgumentError("Package-URI must not have a host: $packageUri");
+  }
+  var resolved = Uri.base.resolve("packages/${packageUri.path}");
+  return resolved;
+}
+
+class _Resource implements Resource {
+  final String _location;
+
+  const _Resource(String uri) : _location = uri;
+
+  Uri get uri => Uri.base.resolve(_location);
+
+  Stream<List<int>> openRead() {
+    Uri uri = this.uri;
+    if (uri.scheme == "package") {
+      uri = _resolvePackageUri(uri);
+    }
+    if (uri.scheme == "http" || uri.scheme == "https") {
+      return _readAsStream(uri);
+    }
+    throw new StateError("Unable to find resource, unknown scheme: $_location");
+  }
+
+  Future<List<int>> readAsBytes() {
+    Uri uri = this.uri;
+    if (uri.scheme == "package") {
+      uri = _resolvePackageUri(uri);
+    }
+    if (uri.scheme == "http" || uri.scheme == "https") {
+      return _readAsBytes(uri);
+    }
+    throw new StateError("Unable to find resource, unknown scheme: $_location");
+  }
+
+  Future<String> readAsString({Encoding encoding: UTF8}) {
+    Uri uri = this.uri;
+    if (uri.scheme == "package") {
+      uri = _resolvePackageUri(uri);
+    }
+    if (uri.scheme == "http" || uri.scheme == "https") {
+      return _readAsString(uri);
+    }
+    throw new StateError("Unable to find resource, unknown scheme: $_location");
+  }
+
+  Stream<List<int>> _readAsStream(Uri uri) {
+    throw new UnimplementedError("Streaming bytes via HTTP");
+  }
+
+  Future<List<int>> _readAsBytes(Uri uri) {
+    throw new UnimplementedError("Reading bytes via HTTP");
+  }
+
+  Future<String> _readAsString(Uri uri) {
+    throw new UnimplementedError("Reading string via HTTP");
   }
 }
