@@ -267,15 +267,37 @@ class Builder implements cps_ir.Visitor<Node> {
     internalError(CURRENT_ELEMENT_SPANNABLE, 'Unexpected IR node: $node');
   }
 
-  // JS-specific nodes are handled by a subclass.
-  visitSetField(cps_ir.SetField node) => unexpectedNode(node);
-  visitIdentical(cps_ir.Identical node) => unexpectedNode(node);
-  visitInterceptor(cps_ir.Interceptor node) => unexpectedNode(node);
-  visitCreateInstance(cps_ir.CreateInstance node) => unexpectedNode(node);
-  visitGetField(cps_ir.GetField node) => unexpectedNode(node);
-  visitCreateBox(cps_ir.CreateBox node) => unexpectedNode(node);
+  Statement visitSetField(cps_ir.SetField node) {
+    return new ExpressionStatement(
+        new SetField(getVariableUse(node.object),
+                     node.field,
+                     getVariableUse(node.value)),
+        visit(node.body));
+  }
+
+  Expression visitInterceptor(cps_ir.Interceptor node) {
+    return new Interceptor(getVariableUse(node.input), node.interceptedClasses);
+  }
+
+  Expression visitCreateInstance(cps_ir.CreateInstance node) {
+    return new CreateInstance(
+        node.classElement,
+        translateArguments(node.arguments),
+        translateArguments(node.typeInformation));
+  }
+
+  Expression visitGetField(cps_ir.GetField node) {
+    return new GetField(getVariableUse(node.object), node.field);
+  }
+
+  Expression visitCreateBox(cps_ir.CreateBox node) {
+    return new CreateBox();
+  }
+
   visitCreateInvocationMirror(cps_ir.CreateInvocationMirror node) {
-    return unexpectedNode(node);
+    return new CreateInvocationMirror(
+        node.selector,
+        translateArguments(node.arguments));
   }
 
   // Executable definitions are not visited directly.  They have 'build'
@@ -351,6 +373,7 @@ class Builder implements cps_ir.Visitor<Node> {
   Statement visitInvokeMethod(cps_ir.InvokeMethod node) {
     InvokeMethod invoke = new InvokeMethod(getVariableUse(node.receiver),
                                            node.selector,
+                                           node.mask,
                                            translateArguments(node.arguments));
     invoke.receiverIsNotNull = node.receiverIsNotNull;
     return continueWithExpression(node.continuation, invoke);
@@ -362,12 +385,6 @@ class Builder implements cps_ir.Visitor<Node> {
     Expression invoke = new InvokeMethodDirectly(receiver, node.target,
         node.selector, arguments);
     return continueWithExpression(node.continuation, invoke);
-  }
-
-  Statement visitConcatenateStrings(cps_ir.ConcatenateStrings node) {
-    List<Expression> arguments = translateArguments(node.arguments);
-    Expression concat = new ConcatenateStrings(arguments);
-    return continueWithExpression(node.continuation, concat);
   }
 
   Statement visitThrow(cps_ir.Throw node) {
@@ -499,7 +516,7 @@ class Builder implements cps_ir.Visitor<Node> {
   }
 
   Expression visitConstant(cps_ir.Constant node) {
-    return new Constant(node.expression, node.value);
+    return new Constant(node.value);
   }
 
   Expression visitLiteralList(cps_ir.LiteralList node) {
@@ -592,9 +609,24 @@ class Builder implements cps_ir.Visitor<Node> {
                                     translateArguments(node.arguments));
   }
 
-  @override
-  visitForeignCode(cps_ir.ForeignCode node) {
-    unexpectedNode(node);
+  Statement visitForeignCode(cps_ir.ForeignCode node) {
+    if (node.codeTemplate.isExpression) {
+      Expression foreignCode = new ForeignExpression(
+          node.codeTemplate,
+          node.type,
+          node.arguments.map(getVariableUse).toList(growable: false),
+          node.nativeBehavior,
+          node.dependency);
+      return continueWithExpression(node.continuation, foreignCode);
+    } else {
+      assert(node.continuation == null);
+      return new ForeignStatement(
+          node.codeTemplate,
+          node.type,
+          node.arguments.map(getVariableUse).toList(growable: false),
+          node.nativeBehavior,
+          node.dependency);
+    }
   }
 }
 

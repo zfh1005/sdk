@@ -173,12 +173,6 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     return '$indentation(InvokeConstructor $callName $args $cont)';
   }
 
-  String visitConcatenateStrings(ConcatenateStrings node) {
-    String cont = access(node.continuation);
-    String args = node.arguments.map(access).join(' ');
-    return '$indentation(ConcatenateStrings ($args) $cont)';
-  }
-
   String visitInvokeContinuation(InvokeContinuation node) {
     String name = access(node.continuation);
     if (node.isRecursive) name = 'rec $name';
@@ -303,12 +297,6 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     String arguments = node.arguments.map(access).join(' ');
     String typeInformation = node.typeInformation.map(access).join(' ');
     return '(CreateInstance $className ($arguments)$typeInformation)';
-  }
-
-  String visitIdentical(Identical node) {
-    String left = access(node.left);
-    String right = access(node.right);
-    return '(Identical $left $right)';
   }
 
   String visitInterceptor(Interceptor node) {

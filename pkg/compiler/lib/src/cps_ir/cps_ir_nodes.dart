@@ -8,6 +8,7 @@ import '../constants/values.dart' as values show ConstantValue;
 import '../dart_types.dart' show DartType, InterfaceType, TypeVariableType;
 import '../elements/elements.dart';
 import '../io/source_information.dart' show SourceInformation;
+import '../types/types.dart' show TypeMask;
 import '../universe/universe.dart' show Selector, SelectorKind;
 
 import 'builtin_operator.dart';
@@ -282,6 +283,7 @@ class InvokeStatic extends Expression implements Invoke {
 class InvokeMethod extends Expression implements Invoke {
   Reference<Primitive> receiver;
   Selector selector;
+  TypeMask mask;
   final List<Reference<Primitive>> arguments;
   final Reference<Continuation> continuation;
   final SourceInformation sourceInformation;
@@ -293,6 +295,7 @@ class InvokeMethod extends Expression implements Invoke {
 
   InvokeMethod(Primitive receiver,
                this.selector,
+               this.mask,
                List<Primitive> arguments,
                Continuation continuation,
                {this.sourceInformation})
@@ -434,18 +437,6 @@ class TypeCast extends Expression {
         this.continuation = new Reference<Continuation>(cont);
 
   accept(Visitor visitor) => visitor.visitTypeCast(this);
-}
-
-/// Invoke [toString] on each argument and concatenate the results.
-class ConcatenateStrings extends Expression {
-  final List<Reference<Primitive>> arguments;
-  final Reference<Continuation> continuation;
-
-  ConcatenateStrings(List<Primitive> args, Continuation cont)
-      : arguments = _referenceList(args),
-        continuation = new Reference<Continuation>(cont);
-
-  accept(Visitor visitor) => visitor.visitConcatenateStrings(this);
 }
 
 /// Apply a built-in operator.
@@ -716,19 +707,6 @@ class CreateInstance extends Primitive {
   accept(Visitor visitor) => visitor.visitCreateInstance(this);
 }
 
-/// Compare objects for identity.
-///
-/// It is an error pass in a value that does not correspond to a Dart value,
-/// such as an interceptor or a box.
-class Identical extends Primitive {
-  final Reference<Primitive> left;
-  final Reference<Primitive> right;
-  Identical(Primitive left, Primitive right)
-      : left = new Reference<Primitive>(left),
-        right = new Reference<Primitive>(right);
-  accept(Visitor visitor) => visitor.visitIdentical(this);
-}
-
 class Interceptor extends Primitive {
   final Reference<Primitive> input;
   final Set<ClassElement> interceptedClasses;
@@ -769,10 +747,9 @@ class ForeignCode extends Expression {
 }
 
 class Constant extends Primitive {
-  final ConstantExpression expression;
   final values.ConstantValue value;
 
-  Constant(this.expression, this.value);
+  Constant(this.value);
 
   accept(Visitor visitor) => visitor.visitConstant(this);
 }
@@ -966,7 +943,6 @@ abstract class Visitor<T> {
   T visitInvokeMethod(InvokeMethod node);
   T visitInvokeMethodDirectly(InvokeMethodDirectly node);
   T visitInvokeConstructor(InvokeConstructor node);
-  T visitConcatenateStrings(ConcatenateStrings node);
   T visitThrow(Throw node);
   T visitRethrow(Rethrow node);
   T visitBranch(Branch node);
@@ -988,7 +964,6 @@ abstract class Visitor<T> {
   T visitMutableVariable(MutableVariable node);
   T visitNonTailThrow(NonTailThrow node);
   T visitGetStatic(GetStatic node);
-  T visitIdentical(Identical node);
   T visitInterceptor(Interceptor node);
   T visitCreateInstance(CreateInstance node);
   T visitGetField(GetField node);
@@ -1089,13 +1064,6 @@ class RecursiveVisitor implements Visitor {
   processInvokeConstructor(InvokeConstructor node) {}
   visitInvokeConstructor(InvokeConstructor node) {
     processInvokeConstructor(node);
-    processReference(node.continuation);
-    node.arguments.forEach(processReference);
-  }
-
-  processConcatenateStrings(ConcatenateStrings node) {}
-  visitConcatenateStrings(ConcatenateStrings node) {
-    processConcatenateStrings(node);
     processReference(node.continuation);
     node.arguments.forEach(processReference);
   }
@@ -1201,13 +1169,6 @@ class RecursiveVisitor implements Visitor {
   visitIsTrue(IsTrue node) {
     processIsTrue(node);
     processReference(node.value);
-  }
-
-  processIdentical(Identical node) {}
-  visitIdentical(Identical node) {
-    processIdentical(node);
-    processReference(node.left);
-    processReference(node.right);
   }
 
   processInterceptor(Interceptor node) {}

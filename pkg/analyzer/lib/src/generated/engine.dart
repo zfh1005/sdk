@@ -2271,6 +2271,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  @deprecated
   ht.HtmlUnit parseHtmlUnit(Source source) =>
       _getHtmlParseData(source, HtmlEntry.PARSED_UNIT, null);
 
@@ -2576,6 +2577,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     } else {
       return true;
     }
+  }
+
+  @override
+  void test_flushAstStructures(Source source) {
+    DartEntry dartEntry = getReadableSourceEntryOrNull(source);
+    dartEntry.flushAstStructures();
   }
 
   @override
@@ -5803,6 +5810,12 @@ class AnalysisEngine {
   bool useTaskModel = false;
 
   /**
+   * A flag indicating whether the task model should attempt to limit
+   * invalidation after a change.
+   */
+  bool limitInvalidationInTaskModel = false;
+
+  /**
    * The task manager used to manage the tasks used to analyze code.
    */
   TaskManager _taskManager;
@@ -6025,6 +6038,7 @@ abstract class AnalysisListener {
   /**
    * Reports that the given HTML [source] was parsed in the given [context].
    */
+  @deprecated
   void parsedHtml(AnalysisContext context, Source source, ht.HtmlUnit unit);
 
   /**
@@ -6036,6 +6050,7 @@ abstract class AnalysisListener {
   /**
    * Reports that the given HTML [source] was resolved in the given [context].
    */
+  @deprecated
   void resolvedHtml(AnalysisContext context, Source source, ht.HtmlUnit unit);
 }
 
@@ -6099,6 +6114,11 @@ abstract class AnalysisOptions {
    */
   @deprecated // Always true
   bool get enableEnum;
+
+  /**
+   * Return `true` to enable generic methods (DEP 22).
+   */
+  bool get enableGenericMethods => null;
 
   /**
    * Return `true` to enable null-aware operators (DEP 9).
@@ -6197,6 +6217,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * results.
    */
   bool dart2jsHint = true;
+
+  /**
+   * A flag indicating whether generic methods are to be supported (DEP 22).
+   */
+  bool enableGenericMethods = false;
 
   /**
    * A flag indicating whether null-aware operators should be parsed (DEP 9).
@@ -6938,6 +6963,7 @@ abstract class ChangeNotice implements AnalysisErrorInfo {
    * The fully resolved HTML AST that changed as a result of the analysis, or
    * `null` if the AST was not changed.
    */
+  @deprecated
   ht.HtmlUnit get resolvedHtmlUnit;
 
   /**
@@ -6976,6 +7002,7 @@ class ChangeNoticeImpl implements ChangeNotice {
    * The fully resolved HTML AST that changed as a result of the analysis, or
    * `null` if the AST was not changed.
    */
+  @deprecated
   ht.HtmlUnit resolvedHtmlUnit;
 
   /**
@@ -9302,6 +9329,12 @@ abstract class InternalAnalysisContext implements AnalysisContext {
   bool shouldErrorsBeAnalyzed(Source source, Object entry);
 
   /**
+   * For testing only: flush all representations of the AST (both resolved and
+   * unresolved) for the given [source] out of the cache.
+   */
+  void test_flushAstStructures(Source source);
+
+  /**
    * Call the given callback function for eache cache item in the context.
    */
   void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
@@ -9537,6 +9570,7 @@ class ParseDartTask extends AnalysisTask {
       AnalysisOptions options = context.analysisOptions;
       parser.parseFunctionBodies =
           options.analyzeFunctionBodiesPredicate(source);
+      parser.parseGenericMethods = options.enableGenericMethods;
       _unit = parser.parseCompilationUnit(_tokenStream);
       _unit.lineInfo = lineInfo;
       AnalysisContext analysisContext = context;

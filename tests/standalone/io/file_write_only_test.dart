@@ -35,7 +35,7 @@ Future expectThrowsAsync(Future future, String message) {
 
 
 Future write(Directory dir) async {
-  var f = new File('x');
+  var f = new File("${dir.path}${Platform.pathSeparator}write");
   var raf = await f.open(mode: WRITE_ONLY);
   await raf.writeString('Hello');
   await raf.setPosition(0);
@@ -55,17 +55,18 @@ Future write(Directory dir) async {
 }
 
 void writeSync(Directory dir) {
-  var f = new File('x');
+  var f = new File("${dir.path}${Platform.pathSeparator}write_sync");
   var raf = f.openSync(mode: WRITE_ONLY);
   raf.writeStringSync('Hello');
   raf.setPositionSync(0);
   raf.writeStringSync('Hello');
   raf.setPositionSync(0);
   Expect.throws(() => raf.readByteSync());
+  raf.closeSync();
 }
 
 Future openWrite(Directory dir) async {
-  var f = new File('x');
+  var f = new File("${dir.path}${Platform.pathSeparator}open_write");
   var sink = f.openWrite(mode: WRITE_ONLY);
   sink.write('Hello');
   await sink.close();
@@ -77,8 +78,8 @@ Future openWrite(Directory dir) async {
 
 main() async {
   asyncStart();
-  await withTempDir('file_write_only_test', write);
-  withTempDirSync('file_write_only_test', writeSync);
-  await withTempDir('file_write_only_test', openWrite);
+  await withTempDir('file_write_only_test_1_', write);
+  withTempDirSync('file_write_only_test_2_', writeSync);
+  await withTempDir('file_write_only_test_3_', openWrite);
   asyncEnd();
 }

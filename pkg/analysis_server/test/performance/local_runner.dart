@@ -64,10 +64,10 @@ main(List<String> args) {
     //'-vv', // very verbose
     '-i',
     inputFile.path,
-    '--mapFrom',
-    gitDir.path,
-    '--mapTo',
-    tmpSrcDirPath
+    '-t',
+    tmpSrcDirPath,
+    '-m',
+    '${gitDir.path},$tmpSrcDirPath',
   ]);
 }
 

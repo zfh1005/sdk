@@ -4,13 +4,14 @@
 
 library input.transformer;
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as path;
 
 import 'instrumentation_input_converter.dart';
 import 'log_file_input_converter.dart';
@@ -25,9 +26,36 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
   final Set<String> eventsSeen = new Set<String>();
 
   /**
-   * A mapping from request/response id to expected error message.
+   * A mapping from request/response id to request json
+   * for those requests for which a response has not been processed.
    */
-  final Map<String, dynamic> expectedErrors = new Map<String, dynamic>();
+  final Map<String, dynamic> requestMap = {};
+
+  /**
+   * A mapping from request/response id to a completer
+   * for those requests for which a response has not been processed.
+   * The completer is called with the actual json response
+   * when it becomes available.
+   */
+  final Map<String, Completer> responseCompleters = {};
+
+  /**
+   * A mapping from request/response id to the actual response result
+   * for those responses that have not been processed.
+   */
+  final Map<String, dynamic> responseMap = {};
+
+  /**
+   * A mapping of current overlay content
+   * parallel to what is in the analysis server
+   * so that we can update the file system.
+   */
+  final Map<String, String> overlays = {};
+
+  /**
+   * The prefix used to determine if a request parameter is a file path.
+   */
+  final String rootPrefix = path.rootPrefix(path.current);
 
   /**
    * A mapping of source path prefixes
@@ -37,13 +65,12 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
   final Map<String, String> srcPathMap;
 
   /**
-   * A mapping of current overlay content
-   * parallel to what is in the analysis server
-   * so that we can update the file system.
+   * The root directory for all source being modified
+   * during performance measurement.
    */
-  final Map<String, String> overlays = new Map<String, String>();
+  final String tmpSrcDirPath;
 
-  CommonInputConverter(this.srcPathMap);
+  CommonInputConverter(this.tmpSrcDirPath, this.srcPathMap);
 
   /**
    * Return an operation for the notification or `null` if none.
@@ -75,13 +102,54 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
    */
   Operation convertRequest(Map<String, dynamic> origJson) {
     Map<String, dynamic> json = translateSrcPaths(origJson);
+    requestMap[json['id']] = json;
     String method = json['method'];
+    // Sanity check operations that modify source
+    // to ensure that the operation is on source in temp space
+    if (method == ANALYSIS_UPDATE_CONTENT) {
+      // Track overlays in parallel with the analysis server
+      // so that when an overlay is removed, the file can be updated on disk
+      Request request = new Request.fromJson(json);
+      var params = new AnalysisUpdateContentParams.fromRequest(request);
+      params.files.forEach((String filePath, change) {
+        if (change is AddContentOverlay) {
+          String content = change.content;
+          if (content == null) {
+            throw 'expected new overlay content\n$json';
+          }
+          overlays[filePath] = content;
+        } else if (change is ChangeContentOverlay) {
+          String content = overlays[filePath];
+          if (content == null) {
+            throw 'expected cached overlay content\n$json';
+          }
+          overlays[filePath] = SourceEdit.applySequence(content, change.edits);
+        } else if (change is RemoveContentOverlay) {
+          String content = overlays.remove(filePath);
+          if (content == null) {
+            throw 'expected cached overlay content\n$json';
+          }
+          if (!path.isWithin(tmpSrcDirPath, filePath)) {
+            throw 'found path referencing source outside temp space\n$filePath\n$json';
+          }
+          new File(filePath).writeAsStringSync(content);
+        } else {
+          throw 'unknown overlay change $change\n$json';
+        }
+      });
+      return new RequestOperation(this, json);
+    }
+    // Track performance for completion notifications
+    if (method == COMPLETION_GET_SUGGESTIONS) {
+      return new CompletionRequestOperation(this, json);
+    }
+    // TODO(danrubel) replace this with code
+    // that just forwards the translated request
     if (method == ANALYSIS_GET_HOVER ||
         method == ANALYSIS_SET_ANALYSIS_ROOTS ||
         method == ANALYSIS_SET_PRIORITY_FILES ||
         method == ANALYSIS_SET_SUBSCRIPTIONS ||
         method == ANALYSIS_UPDATE_OPTIONS ||
-        method == COMPLETION_GET_SUGGESTIONS ||
         method == EDIT_GET_ASSISTS ||
         method == EDIT_GET_AVAILABLE_REFACTORINGS ||
         method == EDIT_GET_FIXES ||
@@ -91,96 +159,73 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
         method == EXECUTION_DELETE_CONTEXT ||
         method == EXECUTION_MAP_URI ||
         method == EXECUTION_SET_SUBSCRIPTIONS ||
+        method == SEARCH_FIND_ELEMENT_REFERENCES ||
+        method == SEARCH_FIND_MEMBER_DECLARATIONS ||
         method == SERVER_GET_VERSION ||
         method == SERVER_SET_SUBSCRIPTIONS) {
-      return new RequestOperation(this, json);
-    }
-    // Sanity check operations that modify source
-    // to ensure that the operation is on source in temp space
-    if (method == ANALYSIS_UPDATE_CONTENT) {
-      try {
-        validateSrcPaths(json);
-      } catch (e, s) {
-        throw new AnalysisException('invalid src path in update request\n$json',
-            new CaughtException(e, s));
-      }
-      // Track overlays in parallel with the analysis server
-      // so that when an overlay is removed, the file can be updated on disk
-      Request request = new Request.fromJson(json);
-      var params = new AnalysisUpdateContentParams.fromRequest(request);
-      params.files.forEach((String path, change) {
-        if (change is AddContentOverlay) {
-          String content = change.content;
-          if (content == null) {
-            throw 'expected new overlay content\n$json';
-          }
-          overlays[path] = content;
-        } else if (change is ChangeContentOverlay) {
-          String content = overlays[path];
-          if (content == null) {
-            throw 'expected cached overlay content\n$json';
-          }
-          overlays[path] = SourceEdit.applySequence(content, change.edits);
-        } else if (change is RemoveContentOverlay) {
-          String content = overlays.remove(path);
-          if (content == null) {
-            throw 'expected cached overlay content\n$json';
-          }
-          validateSrcPaths(path);
-          new File(path).writeAsStringSync(content);
-        } else {
-          throw 'unknown overlay change $change\n$json';
-        }
-      });
       return new RequestOperation(this, json);
     }
     throw 'unknown request: $method\n  $json';
   }
 
   /**
-   * Determine if the given request is expected to fail
-   * and log an exception if not.
+   * Return an operation for the recorded/expected response.
    */
-  void recordErrorResponse(Map<String, dynamic> jsonRequest, exception) {
-    var actualErr;
-    if (exception is UnimplementedError) {
-      if (exception.message.startsWith(ERROR_PREFIX)) {
-        Map<String, dynamic> jsonResponse =
-            JSON.decode(exception.message.substring(ERROR_PREFIX.length));
-        actualErr = jsonResponse['error'];
-      }
-    }
-    String id = jsonRequest['id'];
-    if (id != null && actualErr != null) {
-      var expectedErr = expectedErrors[id];
-      if (expectedErr != null && actualErr == expectedErr) {
-        return;
-      }
-//      if (jsonRequest['method'] == EDIT_SORT_MEMBERS) {
-//        var params = jsonRequest['params'];
-//        if (params is Map) {
-//          var filePath = params['file'];
-//          if (filePath is String) {
-//            var content = overlays[filePath];
-//            if (content is String) {
-//              logger.log(Level.WARNING, 'sort failed: $filePath\n$content');
-//            }
-//          }
-//        }
-//      }
-    }
-    logger.log(
-        Level.SEVERE, 'Send request failed for $id\n$exception\n$jsonRequest');
+  Operation convertResponse(Map<String, dynamic> json) {
+    return new ResponseOperation(
+        this, requestMap.remove(json['id']), translateSrcPaths(json));
   }
 
   /**
-   * Examine recorded responses and record any expected errors.
+   * Process an error response from the server by either
+   * completing the associated completer in the [responseCompleters]
+   * or stashing it in [responseMap] if no completer exists.
    */
-  void recordResponse(Map<String, dynamic> json) {
-    var error = json['error'];
-    if (error != null) {
-      String id = json['id'];
-      print('expected error for $id is $error');
+  void processErrorResponse(String id, exception) {
+    var result = exception;
+    if (exception is UnimplementedError) {
+      if (exception.message.startsWith(ERROR_PREFIX)) {
+        result = JSON.decode(exception.message.substring(ERROR_PREFIX.length));
+      }
+    }
+    processResponseResult(id, result);
+  }
+
+  /**
+   * Process the expected response by completing the given completer
+   * with the result if it has alredy been received,
+   * or caching the completer to be completed when the server
+   * returns the associated result.
+   * Return a future that completes when the response is received
+   * or `null` if the response has already been received
+   * and the completer completed.
+   */
+  Future processExpectedResponse(String id, Completer completer) {
+    if (responseMap.containsKey(id)) {
+      logger.log(Level.INFO, 'processing cached response $id');
+      completer.complete(responseMap.remove(id));
+      return null;
+    } else {
+      logger.log(Level.INFO, 'waiting for response $id');
+      responseCompleters[id] = completer;
+      return completer.future;
+    }
+  }
+
+  /**
+   * Process a success response result from the server by either
+   * completing the associated completer in the [responseCompleters]
+   * or stashing it in [responseMap] if no completer exists.
+   * The response result may be `null`.
+   */
+  void processResponseResult(String id, result) {
+    Completer completer = responseCompleters[id];
+    if (completer != null) {
+      logger.log(Level.INFO, 'processing response $id');
+      completer.complete(result);
+    } else {
+      logger.log(Level.INFO, 'caching response $id');
+      responseMap[id] = result;
     }
   }
 
@@ -215,29 +260,6 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
     }
     return json;
   }
-
-  /**
-   * Recursively verify that the source paths in the specified JSON
-   * only reference the temporary source used during performance measurement.
-   */
-  void validateSrcPaths(json) {
-    if (json is String) {
-      if (json != null &&
-          json.startsWith('/Users/') &&
-          !srcPathMap.values.any((String prefix) => json.startsWith(prefix))) {
-        throw 'found path referencing source outside temp space\n$json';
-      }
-    } else if (json is List) {
-      for (int i = json.length - 1; i >= 0; --i) {
-        validateSrcPaths(json[i]);
-      }
-    } else if (json is Map) {
-      json.forEach((String key, value) {
-        validateSrcPaths(key);
-        validateSrcPaths(value);
-      });
-    }
-  }
 }
 
 /**
@@ -254,6 +276,12 @@ class InputConverter extends Converter<String, Operation> {
    * to the target location of the source using during performance measurement.
    */
   final Map<String, String> srcPathMap;
+
+  /**
+   * The root directory for all source being modified
+   * during performance measurement.
+   */
+  final String tmpSrcDirPath;
 
   /**
    * The number of lines read before the underlying converter was determined
@@ -273,7 +301,7 @@ class InputConverter extends Converter<String, Operation> {
    */
   bool active = true;
 
-  InputConverter(this.srcPathMap);
+  InputConverter(this.tmpSrcDirPath, this.srcPathMap);
 
   @override
   Operation convert(String line) {
@@ -292,9 +320,9 @@ class InputConverter extends Converter<String, Operation> {
       throw 'Failed to determine input file format';
     }
     if (InstrumentationInputConverter.isFormat(line)) {
-      converter = new InstrumentationInputConverter(srcPathMap);
+      converter = new InstrumentationInputConverter(tmpSrcDirPath, srcPathMap);
     } else if (LogFileInputConverter.isFormat(line)) {
-      converter = new LogFileInputConverter(srcPathMap);
+      converter = new LogFileInputConverter(tmpSrcDirPath, srcPathMap);
     }
     if (converter != null) {
       return converter.convert(line);

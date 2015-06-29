@@ -34,7 +34,6 @@ main() {
   runReflectiveTests(BuildEnumMemberElementsTaskTest);
   runReflectiveTests(BuildSourceClosuresTaskTest);
   runReflectiveTests(BuildExportNamespaceTaskTest);
-  runReflectiveTests(BuildFunctionTypeAliasesTaskTest);
   runReflectiveTests(BuildLibraryConstructorsTaskTest);
   runReflectiveTests(BuildLibraryElementTaskTest);
   runReflectiveTests(BuildPublicNamespaceTaskTest);
@@ -711,49 +710,6 @@ int topLevelB;
       Iterable<String> definedKeys = namespace.definedNames.keys;
       expect(definedKeys, unorderedEquals(['A', 'topLevelB', 'topLevelB=']));
     }
-  }
-}
-
-@reflectiveTest
-class BuildFunctionTypeAliasesTaskTest extends _AbstractDartTaskTest {
-  test_perform() {
-    Source source = newSource('/test.dart', '''
-typedef int F(G g);
-typedef String G(int p);
-''');
-    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT3);
-    expect(task, new isInstanceOf<BuildFunctionTypeAliasesTask>());
-    // validate
-    CompilationUnit unit = outputs[RESOLVED_UNIT3];
-    FunctionTypeAlias nodeF = unit.declarations[0];
-    FunctionTypeAlias nodeG = unit.declarations[1];
-    {
-      FormalParameter parameter = nodeF.parameters.parameters[0];
-      DartType parameterType = parameter.element.type;
-      Element returnTypeElement = nodeF.returnType.type.element;
-      expect(returnTypeElement.displayName, 'int');
-      expect(parameterType.element, nodeG.element);
-    }
-    {
-      FormalParameter parameter = nodeG.parameters.parameters[0];
-      DartType parameterType = parameter.element.type;
-      expect(nodeG.returnType.type.element.displayName, 'String');
-      expect(parameterType.element.displayName, 'int');
-    }
-  }
-
-  test_perform_errors() {
-    Source source = newSource('/test.dart', '''
-typedef int F(NoSuchType p);
-''');
-    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, BUILD_FUNCTION_TYPE_ALIASES_ERRORS);
-    expect(task, new isInstanceOf<BuildFunctionTypeAliasesTask>());
-    // validate
-    _fillErrorListener(BUILD_FUNCTION_TYPE_ALIASES_ERRORS);
-    errorListener
-        .assertErrorsWithCodes(<ErrorCode>[StaticWarningCode.UNDEFINED_CLASS]);
   }
 }
 
@@ -2141,7 +2097,6 @@ class LibraryUnitErrorsTaskTest extends _AbstractDartTaskTest {
         .buildInputs(new LibrarySpecificUnit(emptySource, emptySource));
     expect(inputs, isNotNull);
     expect(inputs.keys, unorderedEquals([
-      LibraryUnitErrorsTask.BUILD_FUNCTION_TYPE_ALIASES_ERRORS_INPUT,
       LibraryUnitErrorsTask.CONSTRUCTORS_ERRORS_INPUT,
       LibraryUnitErrorsTask.HINTS_INPUT,
       LibraryUnitErrorsTask.RESOLVE_REFERENCES_ERRORS_INPUT,
@@ -2209,6 +2164,7 @@ class ParseDartTaskTest extends _AbstractDartTaskTest {
     expect(inputs, isNotNull);
     expect(inputs.keys, unorderedEquals([
       ParseDartTask.LINE_INFO_INPUT_NAME,
+      ParseDartTask.MODIFICATION_TIME_INPUT_NAME,
       ParseDartTask.TOKEN_STREAM_INPUT_NAME
     ]));
   }
@@ -2277,7 +2233,7 @@ part 'test.dart';
     expect(outputs[INCLUDED_PARTS], hasLength(0));
     expect(outputs[PARSE_ERRORS], hasLength(0));
     expect(outputs[PARSED_UNIT], isNotNull);
-    expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
+    expect(outputs[SOURCE_KIND], SourceKind.UNKNOWN);
     expect(outputs[UNITS], hasLength(1));
   }
 
@@ -2382,7 +2338,7 @@ class C extends A {}
     }
   }
 
-  test_perform_deep() {
+  test_perform_external() {
     Source sourceA = newSource('/a.dart', '''
 library a;
 import 'b.dart';
@@ -2390,18 +2346,10 @@ class A extends B {}
 ''');
     newSource('/b.dart', '''
 library b;
-import 'c.dart';
-part 'b2.dart';
-class B extends B2 {}
+class B {}
 ''');
-    newSource('/b2.dart', '''
-part of b;
-class B2 extends C {}
-''');
-    newSource('/c.dart', '''
-library c;
-class C {}
-''');
+    // The reference A to B should be resolved, but there's no requirement that
+    // the full class hierarchy be resolved.
     computeResult(sourceA, LIBRARY_ELEMENT5);
     expect(task, new isInstanceOf<ResolveLibraryTypeNamesTask>());
     // validate
@@ -2411,13 +2359,6 @@ class C {}
       expect(clazz.displayName, 'A');
       clazz = clazz.supertype.element;
       expect(clazz.displayName, 'B');
-      clazz = clazz.supertype.element;
-      expect(clazz.displayName, 'B2');
-      clazz = clazz.supertype.element;
-      expect(clazz.displayName, 'C');
-      clazz = clazz.supertype.element;
-      expect(clazz.displayName, 'Object');
-      expect(clazz.supertype, isNull);
     }
   }
 }
@@ -2435,15 +2376,15 @@ main(A a) {
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     // prepare unit and "a.m()" invocation
-    computeResult(target, RESOLVED_UNIT6);
-    CompilationUnit unit = outputs[RESOLVED_UNIT6];
+    computeResult(target, RESOLVED_UNIT5);
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
     // walk the AST
     FunctionDeclaration function = unit.declarations[1];
     BlockFunctionBody body = function.functionExpression.body;
     ExpressionStatement statement = body.block.statements[0];
     MethodInvocation invocation = statement.expression;
     expect(task, new isInstanceOf<ResolveUnitReferencesTask>());
-    expect(unit, same(outputs[RESOLVED_UNIT6]));
+    expect(unit, same(outputs[RESOLVED_UNIT5]));
     // a.m() is resolved now
     expect(invocation.methodName.staticElement, isNotNull);
   }
@@ -2457,7 +2398,7 @@ main(A a) {
 }
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT6);
+    computeResult(target, RESOLVED_UNIT5);
     expect(task, new isInstanceOf<ResolveUnitReferencesTask>());
     // validate
     _fillErrorListener(RESOLVE_REFERENCES_ERRORS);
@@ -2483,10 +2424,10 @@ main() {
   new A<int>().m();
 }
 ''');
-    computeResult(new LibrarySpecificUnit(sourceC, sourceC), RESOLVED_UNIT6);
+    computeResult(new LibrarySpecificUnit(sourceC, sourceC), RESOLVED_UNIT5);
     expect(task, new isInstanceOf<ResolveUnitReferencesTask>());
     // validate
-    CompilationUnit unit = outputs[RESOLVED_UNIT6];
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
     expect(unit, isNotNull);
     {
       FunctionDeclaration functionDeclaration = unit.declarations[0];
@@ -2511,10 +2452,10 @@ class B extends A {}
 int f(String p) => p.length;
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT4);
+    computeResult(target, RESOLVED_UNIT3);
     expect(task, new isInstanceOf<ResolveUnitTypeNamesTask>());
     // validate
-    CompilationUnit unit = outputs[RESOLVED_UNIT4];
+    CompilationUnit unit = outputs[RESOLVED_UNIT3];
     {
       ClassDeclaration nodeA = unit.declarations[0];
       ClassDeclaration nodeB = unit.declarations[1];
@@ -2534,6 +2475,46 @@ int f(String p) => p.length;
   test_perform_errors() {
     Source source = newSource('/test.dart', '''
 NoSuchClass f() => null;
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVE_TYPE_NAMES_ERRORS);
+    expect(task, new isInstanceOf<ResolveUnitTypeNamesTask>());
+    // validate
+    _fillErrorListener(RESOLVE_TYPE_NAMES_ERRORS);
+    errorListener
+        .assertErrorsWithCodes(<ErrorCode>[StaticWarningCode.UNDEFINED_CLASS]);
+  }
+
+  test_perform_typedef() {
+    Source source = newSource('/test.dart', '''
+typedef int F(G g);
+typedef String G(int p);
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT3);
+    expect(task, new isInstanceOf<ResolveUnitTypeNamesTask>());
+    // validate
+    CompilationUnit unit = outputs[RESOLVED_UNIT3];
+    FunctionTypeAlias nodeF = unit.declarations[0];
+    FunctionTypeAlias nodeG = unit.declarations[1];
+    {
+      FormalParameter parameter = nodeF.parameters.parameters[0];
+      DartType parameterType = parameter.element.type;
+      Element returnTypeElement = nodeF.returnType.type.element;
+      expect(returnTypeElement.displayName, 'int');
+      expect(parameterType.element, nodeG.element);
+    }
+    {
+      FormalParameter parameter = nodeG.parameters.parameters[0];
+      DartType parameterType = parameter.element.type;
+      expect(nodeG.returnType.type.element.displayName, 'String');
+      expect(parameterType.element.displayName, 'int');
+    }
+  }
+
+  test_perform_typedef_errors() {
+    Source source = newSource('/test.dart', '''
+typedef int F(NoSuchType p);
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     computeResult(target, RESOLVE_TYPE_NAMES_ERRORS);
@@ -2563,7 +2544,7 @@ main() {
 }
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT5);
+    computeResult(target, RESOLVED_UNIT4);
     expect(task, new isInstanceOf<ResolveVariableReferencesTask>());
   }
 
@@ -2583,10 +2564,10 @@ main() {
 }
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT5);
+    computeResult(target, RESOLVED_UNIT4);
     expect(task, new isInstanceOf<ResolveVariableReferencesTask>());
     // validate
-    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    CompilationUnit unit = outputs[RESOLVED_UNIT4];
     FunctionElement main = unit.element.functions[0];
     expectMutated(main.localVariables[0], isFalse, isFalse);
     expectMutated(main.localVariables[1], isFalse, isTrue);
@@ -2606,10 +2587,10 @@ main(p1, p2, p3, p4) {
 }
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT5);
+    computeResult(target, RESOLVED_UNIT4);
     expect(task, new isInstanceOf<ResolveVariableReferencesTask>());
     // validate
-    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    CompilationUnit unit = outputs[RESOLVED_UNIT4];
     FunctionElement main = unit.element.functions[0];
     expectMutated(main.parameters[0], isFalse, isFalse);
     expectMutated(main.parameters[1], isFalse, isTrue);

@@ -195,14 +195,6 @@ class AnalysisContextImplTest extends EngineTestCase {
    */
   SourceFactory _sourceFactory;
 
-  void fail_extractContext() {
-    fail("Implement this");
-  }
-
-  void fail_mergeContext() {
-    fail("Implement this");
-  }
-
   void fail_performAnalysisTask_importedLibraryDelete_html() {
     Source htmlSource = _addSource("/page.html", r'''
 <html><body><script type="application/dart">
@@ -5815,6 +5807,11 @@ class TestAnalysisContext implements InternalAnalysisContext {
   bool shouldErrorsBeAnalyzed(Source source, Object entry) {
     fail("Unexpected invocation of shouldErrorsBeAnalyzed");
     return false;
+  }
+
+  @override
+  void test_flushAstStructures(Source source) {
+    fail("Unexpected invocation of test_flushAstStructures");
   }
 
   @override

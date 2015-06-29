@@ -557,11 +557,6 @@ class ParentVisitor extends RecursiveVisitor {
     node.arguments.forEach((Reference ref) => ref.parent = node);
   }
 
-  processConcatenateStrings(ConcatenateStrings node) {
-    node.continuation.parent = node;
-    node.arguments.forEach((Reference ref) => ref.parent = node);
-  }
-
   processBranch(Branch node) {
     node.condition.parent = node;
     node.trueContinuation.parent = node;
@@ -619,11 +614,6 @@ class ParentVisitor extends RecursiveVisitor {
 
   processIsTrue(IsTrue node) {
     node.value.parent = node;
-  }
-
-  processIdentical(Identical node) {
-    node.left.parent = node;
-    node.right.parent = node;
   }
 
   processInterceptor(Interceptor node) {

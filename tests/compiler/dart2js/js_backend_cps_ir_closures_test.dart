@@ -24,7 +24,6 @@ function(x) {
   _box_0._captured_x_0 = x;
   _box_0._captured_x_0 = J.getInterceptor$ns(x = _box_0._captured_x_0).$add(x, "1");
   P.print(a.call$0());
-  return null;
 }"""),
 
   const TestEntry("""
@@ -38,7 +37,6 @@ main(x) {
 r"""
 function(x) {
   P.print(new V.main_a(x).call$0());
-  return null;
 }"""),
 
   const TestEntry("""
@@ -55,7 +53,6 @@ function() {
   _box_0._captured_x_0 = 122;
   _box_0._captured_x_0 = _box_0._captured_x_0 + 1;
   P.print(a.call$0());
-  return null;
 }"""),
 
   const TestEntry("""
@@ -75,7 +72,6 @@ function() {
   _box_0._captured_x_0 = 122;
   _box_0._captured_x_0 = _box_0._captured_x_0 + 1;
   P.print(a.call$0().call$0());
-  return null;
 }"""),
 
   const TestEntry("""
@@ -90,12 +86,11 @@ main() {
 r"""
 function() {
   var a = null, i = 0;
-  while (J.getInterceptor$n(i).$lt(i, 10)) {
+  while (i < 10) {
     a = new V.main_closure(i);
-    i = J.getInterceptor$ns(i).$add(i, 1);
+    i = i + 1;
   }
   P.print(a.call$0());
-  return null;
 }"""),
 
   const TestEntry.forMethod('function(A#b)', """

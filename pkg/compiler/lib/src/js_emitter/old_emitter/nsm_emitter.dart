@@ -25,7 +25,7 @@ class NsmEmitter extends CodeEmitterHelper {
 
     // Keep track of the JavaScript names we've already added so we
     // do not introduce duplicates (bad for code size).
-    Map<String, Selector> addedJsNames
+    Map<jsAst.Name, Selector> addedJsNames
         = generator.computeSelectorsForNsmHandlers();
 
     // Set flag used by generateMethod helper below.  If we have very few
@@ -33,7 +33,9 @@ class NsmEmitter extends CodeEmitterHelper {
     // them at runtime.
     bool haveVeryFewNoSuchMemberHandlers =
         (addedJsNames.length < VERY_FEW_NO_SUCH_METHOD_HANDLERS);
-    for (String jsName in addedJsNames.keys.toList()..sort()) {
+    List<jsAst.Name> names = addedJsNames.keys.toList()
+        ..sort();
+    for (jsAst.Name jsName in names) {
       Selector selector = addedJsNames[jsName];
       String reflectionName = emitter.getReflectionName(selector, jsName);
 
@@ -54,9 +56,11 @@ class NsmEmitter extends CodeEmitterHelper {
             generator.generateStubForNoSuchMethod(jsName, selector);
         addProperty(method.name, method.code);
         if (reflectionName != null) {
-          bool accessible = compiler.world.allFunctions.filter(selector).any(
+          bool accessible =
+              compiler.world.allFunctions.filter(selector, null).any(
               (Element e) => backend.isAccessibleByReflection(e));
-          addProperty('+$reflectionName', js(accessible ? '2' : '0'));
+          addProperty(namer.asName('+$reflectionName'),
+                      js(accessible ? '2' : '0'));
         }
       }
     }
@@ -65,23 +69,13 @@ class NsmEmitter extends CodeEmitterHelper {
   // Identify the noSuchMethod handlers that are so simple that we can
   // generate them programatically.
   bool isTrivialNsmHandler(
-      int type, List argNames, Selector selector, String internalName) {
+      int type, List argNames, Selector selector, jsAst.Name internalName) {
     if (!generateTrivialNsmHandlers) return false;
-    // Check for interceptor calling convention.
-    if (backend.isInterceptedName(selector.name)) {
-      // We can handle the calling convention used by intercepted names in the
-      // diff encoding, but we don't use that for non-minified code.
-      if (!compiler.enableMinification) return false;
-      String shortName = namer.invocationMirrorInternalName(selector);
-      if (shortName.length > MAX_MINIFIED_LENGTH_FOR_DIFF_ENCODING) {
-        return false;
-      }
-    }
     // Check for named arguments.
     if (argNames.length != 0) return false;
     // Check for unexpected name (this doesn't really happen).
-    if (internalName.startsWith(namer.getterPrefix[0])) return type == 1;
-    if (internalName.startsWith(namer.setterPrefix[0])) return type == 2;
+    if (internalName is GetterName) return type == 1;
+    if (internalName is SetterName) return type == 2;
     return type == 0;
   }
 
@@ -127,92 +121,43 @@ class NsmEmitter extends CodeEmitterHelper {
   List<jsAst.Statement> buildTrivialNsmHandlers() {
     List<jsAst.Statement> statements = <jsAst.Statement>[];
     if (trivialNsmHandlers.length == 0) return statements;
-    // Sort by calling convention, JS name length and by JS name.
-    trivialNsmHandlers.sort((a, b) {
-      bool aIsIntercepted = backend.isInterceptedName(a.name);
-      bool bIsIntercepted = backend.isInterceptedName(b.name);
-      if (aIsIntercepted != bIsIntercepted) return aIsIntercepted ? -1 : 1;
-      String aName = namer.invocationMirrorInternalName(a);
-      String bName = namer.invocationMirrorInternalName(b);
-      if (aName.length != bName.length) return aName.length - bName.length;
-      return aName.compareTo(bName);
-    });
+
+    bool minify = compiler.enableMinification;
+    bool useDiffEncoding = minify && trivialNsmHandlers.length > 30;
 
     // Find out how many selectors there are with the special calling
     // convention.
-    int firstNormalSelector = trivialNsmHandlers.length;
-    for (int i = 0; i < trivialNsmHandlers.length; i++) {
-      if (!backend.isInterceptedName(trivialNsmHandlers[i].name)) {
-        firstNormalSelector = i;
-        break;
-      }
-    }
+    Iterable<Selector> interceptedSelectors = trivialNsmHandlers.where(
+            (Selector s) => backend.isInterceptedName(s.name));
+    Iterable<Selector> ordinarySelectors = trivialNsmHandlers.where(
+            (Selector s) => !backend.isInterceptedName(s.name));
 
     // Get the short names (JS names, perhaps minified).
-    Iterable<String> shorts = trivialNsmHandlers.map((selector) =>
-         namer.invocationMirrorInternalName(selector));
-    var diffEncoding = new StringBuffer();
+    Iterable<jsAst.Name> interceptedShorts =
+        interceptedSelectors.map(namer.invocationMirrorInternalName);
+    Iterable<jsAst.Name> ordinaryShorts =
+        ordinarySelectors.map(namer.invocationMirrorInternalName);
 
-    // Treat string as a number in base 88 with digits in ASCII order from # to
-    // z.  The short name sorting is based on length, and uses ASCII order for
-    // equal length strings so this means that names are ascending.  The hash
-    // character, #, is never given as input, but we need it because it's the
-    // implicit leading zero (otherwise we could not code names with leading
-    // dollar signs).
-    int fromBase88(String x) {
-      int answer = 0;
-      for (int i = 0; i < x.length; i++) {
-        int c = x.codeUnitAt(i);
-        // No support for Unicode minified identifiers in JS.
-        assert(c >= $$ && c <= $z);
-        answer *= 88;
-        answer += c - $HASH;
+    jsAst.Expression sortedShorts;
+    Iterable<String> sortedLongs;
+    if (useDiffEncoding) {
+      assert(minify);
+      sortedShorts = new _DiffEncodedListOfNames(
+          [interceptedShorts, ordinaryShorts]);
+    } else {
+      Iterable<Selector> sorted =
+          [interceptedSelectors, ordinarySelectors].expand((e) => (e));
+      sortedShorts = js.concatenateStrings(
+          js.joinLiterals(
+              sorted.map(namer.invocationMirrorInternalName),
+              js.stringPart(",")),
+          addQuotes: true);
+
+      if (!minify) {
+        sortedLongs = sorted.map((selector) =>
+            selector.invocationMirrorMemberName);
       }
-      return answer;
     }
-
-    // Big endian encoding, A = 0, B = 1...
-    // A lower case letter terminates the number.
-    String toBase26(int x) {
-      int c = x;
-      var encodingChars = <int>[];
-      encodingChars.add($a + (c % 26));
-      while (true) {
-        c ~/= 26;
-        if (c == 0) break;
-        encodingChars.add($A + (c % 26));
-      }
-      return new String.fromCharCodes(encodingChars.reversed.toList());
-    }
-
-    bool minify = compiler.enableMinification;
-    bool useDiffEncoding = minify && shorts.length > 30;
-
-    int previous = 0;
-    int nameCounter = 0;
-    for (String short in shorts) {
-      // Emit period that resets the diff base to zero when we switch to normal
-      // calling convention (this avoids the need to code negative diffs).
-      if (useDiffEncoding && nameCounter == firstNormalSelector) {
-        diffEncoding.write(".");
-        previous = 0;
-      }
-      if (short.length <= MAX_MINIFIED_LENGTH_FOR_DIFF_ENCODING &&
-          useDiffEncoding) {
-        int base63 = fromBase88(short);
-        int diff = base63 - previous;
-        previous = base63;
-        String base26Diff = toBase26(diff);
-        diffEncoding.write(base26Diff);
-      } else {
-        if (useDiffEncoding || diffEncoding.length != 0) {
-          diffEncoding.write(",");
-        }
-        diffEncoding.write(short);
-      }
-      nameCounter++;
-    }
-
     // Startup code that loops over the method names and puts handlers on the
     // Object class to catch noSuchMethod invocations.
     ClassElement objectClass = compiler.objectClass;
@@ -221,25 +166,24 @@ class NsmEmitter extends CodeEmitterHelper {
     if (useDiffEncoding) {
       statements.add(js.statement('''{
           var objectClassObject = processedClasses.collected[#objectClass],
-              shortNames = #diffEncoding.split(","),
-              nameNumber = 0,
-              diffEncodedString = shortNames[0],
-              calculatedShortNames = [0, 1];    // 0, 1 are args for splice.
-          // If we are loading a deferred library the object class will not be in
-          // the collectedClasses so objectClassObject is undefined, and we skip
-          // setting up the names.
-
-          if (objectClassObject) {
-            if (objectClassObject instanceof Array)
+              nameSequences = #diffEncoding.split("."),
+              shortNames = [];
+          if (objectClassObject instanceof Array)
               objectClassObject = objectClassObject[1];
+          for (var j = 0; j < nameSequences.length; ++j) {
+              var sequence = nameSequences[j].split(","),
+                nameNumber = 0;
+            // If we are loading a deferred library the object class will not be
+            // in the collectedClasses so objectClassObject is undefined, and we
+            // skip setting up the names.
+            if (!objectClassObject) break;
+            // Likewise, if the current sequence is empty, we don't process it.
+            if (sequence.length == 0) continue;
+            var diffEncodedString = sequence[0];
             for (var i = 0; i < diffEncodedString.length; i++) {
               var codes = [],
                   diff = 0,
                   digit = diffEncodedString.charCodeAt(i);
-              if (digit == ${$PERIOD}) {
-                nameNumber = 0;
-                digit = diffEncodedString.charCodeAt(++i);
-              }
               for (; digit <= ${$Z};) {
                 diff *= 26;
                 diff += (digit - ${$A});
@@ -253,25 +197,25 @@ class NsmEmitter extends CodeEmitterHelper {
                    remaining = (remaining / 88) | 0) {
                 codes.unshift(${$HASH} + remaining % 88);
               }
-              calculatedShortNames.push(
+              shortNames.push(
                 String.fromCharCode.apply(String, codes));
             }
-            shortNames.splice.apply(shortNames, calculatedShortNames);
+            if (sequence.length > 1) {
+              Array.prototype.push.apply(shortNames, sequence.shift());
+            }
           }
-        }''', {'objectClass': js.string(namer.className(objectClass)),
-               'diffEncoding': js.string('$diffEncoding')}));
+        }''', {'objectClass': js.quoteName(namer.className(objectClass)),
+               'diffEncoding': sortedShorts}));
     } else {
       // No useDiffEncoding version.
-      Iterable<String> longs = trivialNsmHandlers.map((selector) =>
-             selector.invocationMirrorMemberName);
       statements.add(js.statement(
           'var objectClassObject = processedClasses.collected[#objectClass],'
           '    shortNames = #diffEncoding.split(",")',
-          {'objectClass': js.string(namer.className(objectClass)),
-           'diffEncoding': js.string('$diffEncoding')}));
+          {'objectClass': js.quoteName(namer.className(objectClass)),
+           'diffEncoding': sortedShorts}));
       if (!minify) {
         statements.add(js.statement('var longNames = #longs.split(",")',
-                {'longs': js.string(longs.join(','))}));
+                {'longs': js.string(sortedLongs.join(','))}));
       }
       statements.add(js.statement(
           'if (objectClassObject instanceof Array)'
@@ -279,11 +223,11 @@ class NsmEmitter extends CodeEmitterHelper {
     }
 
     dynamic isIntercepted =  // jsAst.Expression or bool.
-        firstNormalSelector == 0
+        interceptedSelectors.isEmpty
         ? false
-        : firstNormalSelector == shorts.length
+        : ordinarySelectors.isEmpty
             ? true
-            : js('j < #', js.number(firstNormalSelector));
+            : js('j < #', js.number(interceptedSelectors.length));
 
     statements.add(js.statement('''
       // If we are loading a deferred library the object class will not be in
@@ -339,5 +283,108 @@ class NsmEmitter extends CodeEmitterHelper {
           'isIntercepted': isIntercepted}));
 
     return statements;
+  }
+}
+
+/// When pretty printed, this node computes a diff-encoded string for the list
+/// of given names.
+///
+/// See [buildTrivialNsmHandlers].
+class _DiffEncodedListOfNames extends jsAst.DeferredString
+                              implements AstContainer {
+  String _cachedValue;
+  jsAst.ArrayInitializer ast;
+
+  _DiffEncodedListOfNames(Iterable<Iterable<jsAst.Name>> names) {
+    // Store the names in ArrayInitializer nodes to make them discoverable
+    // by traversals of the ast.
+    ast = new jsAst.ArrayInitializer(
+        names.map((Iterable i) => new jsAst.ArrayInitializer(i.toList()))
+             .toList());
+  }
+
+  void _computeDiffEncodingForList(Iterable<jsAst.Name> names,
+                                   StringBuffer diffEncoding) {
+    // Treat string as a number in base 88 with digits in ASCII order from # to
+    // z.  The short name sorting is based on length, and uses ASCII order for
+    // equal length strings so this means that names are ascending.  The hash
+    // character, #, is never given as input, but we need it because it's the
+    // implicit leading zero (otherwise we could not code names with leading
+    // dollar signs).
+    int fromBase88(String x) {
+      int answer = 0;
+      for (int i = 0; i < x.length; i++) {
+        int c = x.codeUnitAt(i);
+        // No support for Unicode minified identifiers in JS.
+        assert(c >= $$ && c <= $z);
+        answer *= 88;
+        answer += c - $HASH;
+      }
+      return answer;
+    }
+
+    // Big endian encoding, A = 0, B = 1...
+    // A lower case letter terminates the number.
+    String toBase26(int x) {
+      int c = x;
+      var encodingChars = <int>[];
+      encodingChars.add($a + (c % 26));
+      while (true) {
+        c ~/= 26;
+        if (c == 0) break;
+        encodingChars.add($A + (c % 26));
+      }
+      return new String.fromCharCodes(encodingChars.reversed.toList());
+    }
+
+    // Sort by length, then lexicographic.
+    int compare(String a, String b) {
+      if (a.length != b.length) return a.length - b.length;
+      return a.compareTo(b);
+    }
+
+    List<String> shorts =
+        names.map((jsAst.Name name) => name.name)
+        .toList()
+        ..sort(compare);
+
+    int previous = 0;
+    for (String short in shorts) {
+      if (short.length <= NsmEmitter.MAX_MINIFIED_LENGTH_FOR_DIFF_ENCODING) {
+        int base63 = fromBase88(short);
+        int diff = base63 - previous;
+        previous = base63;
+        String base26Diff = toBase26(diff);
+        diffEncoding.write(base26Diff);
+      } else {
+        if (diffEncoding.length != 0) {
+          diffEncoding.write(',');
+        }
+        diffEncoding.write(short);
+      }
+    }
+  }
+
+  String _computeDiffEncoding() {
+    StringBuffer buffer = new StringBuffer();
+    for (jsAst.ArrayInitializer list in ast.elements) {
+      if (buffer.isNotEmpty) {
+        // Emit period that resets the diff base to zero when we switch to
+        // normal calling convention (this avoids the need to code negative
+        // diffs).
+        buffer.write(".");
+      }
+      List<jsAst.Name> names = list.elements;
+      _computeDiffEncodingForList(names, buffer);
+    }
+    return '"${buffer.toString()}"';
+  }
+
+  String get value {
+    if (_cachedValue == null) {
+      _cachedValue = _computeDiffEncoding();
+    }
+
+    return _cachedValue;
   }
 }

@@ -175,13 +175,6 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     printStmt(dummy, "InvokeConstructor $callName ($args) $kont");
   }
 
-  visitConcatenateStrings(cps_ir.ConcatenateStrings node) {
-    String dummy = names.name(node);
-    String args = node.arguments.map(formatReference).join(', ');
-    String kont = formatReference(node.continuation);
-    printStmt(dummy, "ConcatenateStrings ($args) $kont");
-  }
-
   visitThrow(cps_ir.Throw node) {
     String dummy = names.name(node);
     String value = formatReference(node.value);
@@ -323,12 +316,6 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     return 'CreateInstance $className ($arguments) <$typeInformation>';
   }
 
-  visitIdentical(cps_ir.Identical node) {
-    String left = formatReference(node.left);
-    String right = formatReference(node.right);
-    return "Identical($left, $right)";
-  }
-
   visitInterceptor(cps_ir.Interceptor node) {
     return "Interceptor(${formatReference(node.input)})";
   }
@@ -384,8 +371,8 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     String arguments = node.arguments.map(formatReference).join(', ');
     String continuation = node.continuation == null ? ''
         : ' ${formatReference(node.continuation)}';
-    printStmt(id, "ForeignCode ${node.type} ${node.codeTemplate} $arguments"
-        "$continuation");
+    printStmt(id, "ForeignCode ${node.type} ${node.codeTemplate.source} "
+        "$arguments $continuation");
   }
 }
 
@@ -513,10 +500,6 @@ class BlockCollector implements cps_ir.Visitor {
     addEdgeToContinuation(exp.continuation);
   }
 
-  visitConcatenateStrings(cps_ir.ConcatenateStrings exp) {
-    addEdgeToContinuation(exp.continuation);
-  }
-
   visitThrow(cps_ir.Throw exp) {
   }
 
@@ -615,10 +598,6 @@ class BlockCollector implements cps_ir.Visitor {
   }
 
   visitIsTrue(cps_ir.IsTrue node) {
-    unexpectedNode(node);
-  }
-
-  visitIdentical(cps_ir.Identical node) {
     unexpectedNode(node);
   }
 

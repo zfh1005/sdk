@@ -288,6 +288,7 @@ class StatementRewriter extends Transformer implements Pass {
            exp is This ||
            exp is CreateInvocationMirror ||
            exp is InvokeStatic && exp.isEffectivelyConstant ||
+           exp is Interceptor ||
            exp is ApplyBuiltinOperator ||
            exp is VariableUse && constantEnvironment.containsKey(exp.variable);
   }
@@ -384,11 +385,6 @@ class StatementRewriter extends Transformer implements Pass {
   }
 
   Expression visitInvokeConstructor(InvokeConstructor node) {
-    _rewriteList(node.arguments);
-    return node;
-  }
-
-  Expression visitConcatenateStrings(ConcatenateStrings node) {
     _rewriteList(node.arguments);
     return node;
   }
@@ -632,6 +628,11 @@ class StatementRewriter extends Transformer implements Pass {
 
   Expression visitCreateInvocationMirror(CreateInvocationMirror node) {
     _rewriteList(node.arguments);
+    return node;
+  }
+
+  Expression visitInterceptor(Interceptor node) {
+    node.input = visitExpression(node.input);
     return node;
   }
 

@@ -34,6 +34,7 @@
 #include "vm/intrinsifier.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
+#include "vm/profiler.h"
 #include "vm/report.h"
 #include "vm/reusable_handles.h"
 #include "vm/runtime_entry.h"
@@ -1731,10 +1732,15 @@ RawObject* Object::Allocate(intptr_t cls_id,
     Exceptions::Throw(thread, exception);
     UNREACHABLE();
   }
+  ClassTable* class_table = isolate->class_table();
   if (space == Heap::kNew) {
-    isolate->class_table()->UpdateAllocatedNew(cls_id, size);
+    class_table->UpdateAllocatedNew(cls_id, size);
   } else {
-    isolate->class_table()->UpdateAllocatedOld(cls_id, size);
+    class_table->UpdateAllocatedOld(cls_id, size);
+  }
+  const Class& cls = Class::Handle(class_table->At(cls_id));
+  if (cls.trace_allocation()) {
+    Profiler::RecordAllocation(isolate, cls_id);
   }
   NoSafepointScope no_safepoint;
   InitializeObject(address, cls_id, size);
@@ -2725,6 +2731,16 @@ void Class::DisableCHAOptimizedCode() {
 }
 
 
+void Class::SetTraceAllocation(bool trace_allocation) const {
+  const bool changed = trace_allocation != this->trace_allocation();
+  set_state_bits(
+      TraceAllocationBit::update(trace_allocation, raw_ptr()->state_bits_));
+  if (changed) {
+    DisableAllocationStub();
+  }
+}
+
+
 void Class::set_cha_codes(const Array& cache) const {
   StorePointer(&raw_ptr()->cha_codes_, cache.raw());
 }
@@ -3617,6 +3633,14 @@ void Class::set_allocation_stub(const Code& value) const {
 
 
 void Class::DisableAllocationStub() const {
+  const Code& existing_stub = Code::Handle(allocation_stub());
+  if (existing_stub.IsNull()) {
+    return;
+  }
+  ASSERT(!CodePatcher::IsEntryPatched(existing_stub));
+  // Patch the stub so that the next caller will regenerate the stub.
+  CodePatcher::PatchEntry(existing_stub);
+  // Disassociate the existing stub from class.
   StorePointer(&raw_ptr()->allocation_stub_, Code::null());
 }
 
@@ -6962,6 +6986,10 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Code& code = Code::Handle(CurrentCode());
   if (!code.IsNull()) {
     jsobj.AddProperty("code", code);
+  }
+  Array& ics = Array::Handle(ic_data_array());
+  if (!ics.IsNull()) {
+    jsobj.AddProperty("_icDataArray", ics);
   }
   jsobj.AddProperty("_optimizable", is_optimizable());
   jsobj.AddProperty("_inlinable", is_inlinable());
@@ -10693,7 +10721,14 @@ const char* Instructions::ToCString() const {
 
 
 void Instructions::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Object::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  AddCommonObjectProperties(&jsobj, "Object", ref);
+  jsobj.AddServiceId(*this);
+  jsobj.AddProperty("_code", Code::Handle(code()));
+  if (ref) {
+    return;
+  }
+  jsobj.AddProperty("_objectPool", ObjectPool::Handle(object_pool()));
 }
 
 
@@ -10784,7 +10819,35 @@ const char* ObjectPool::ToCString() const {
 
 
 void ObjectPool::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Object::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  AddCommonObjectProperties(&jsobj, "Object", ref);
+  jsobj.AddServiceId(*this);
+  jsobj.AddProperty("length", Length());
+  if (ref) {
+    return;
+  }
+
+  {
+    JSONArray jsarr(&jsobj, "_entries");
+    uword imm;
+    Object& obj = Object::Handle();
+    for (intptr_t i = 0; i < Length(); i++) {
+      switch (InfoAt(i)) {
+      case ObjectPool::kTaggedObject:
+        obj = ObjectAt(i);
+        jsarr.AddValue(obj);
+        break;
+      case ObjectPool::kImmediate:
+        // We might want to distingiush between immediates and addresses
+        // in the future.
+        imm = RawValueAt(i);
+        jsarr.AddValue64(imm);
+        break;
+      default:
+        UNREACHABLE();
+      }
+    }
+  }
 }
 
 
@@ -12196,7 +12259,17 @@ RawICData* ICData::NewFrom(const ICData& from, intptr_t num_args_tested) {
 
 
 void ICData::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Object::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  AddCommonObjectProperties(&jsobj, "Object", ref);
+  jsobj.AddServiceId(*this);
+  jsobj.AddProperty("_owner", Object::Handle(owner()));
+  jsobj.AddProperty("_selector", String::Handle(target_name()).ToCString());
+  if (ref) {
+    return;
+  }
+  jsobj.AddProperty("_argumentsDescriptor",
+                    Object::Handle(arguments_descriptor()));
+  jsobj.AddProperty("_entries", Object::Handle(ic_data()));
 }
 
 
@@ -12958,7 +13031,7 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
     // Generate a fake function reference.
     JSONObject func(&jsobj, "function");
     func.AddProperty("type", "@Function");
-    func.AddProperty("kind", "Stub");
+    func.AddProperty("_kind", "Stub");
     func.AddProperty("name", user_name.ToCString());
     AddNameProperties(&func, user_name, vm_name);
   }
@@ -20834,7 +20907,26 @@ const char* JSRegExp::ToCString() const {
 
 
 void JSRegExp::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Instance::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "RegExp");
+  jsobj.AddServiceId(*this);
+
+  jsobj.AddProperty("pattern", String::Handle(pattern()));
+
+  if (ref) {
+    return;
+  }
+
+  Function& func = Function::Handle();
+  func = function(kOneByteStringCid);
+  jsobj.AddProperty("_oneByteFunction", func);
+  func = function(kTwoByteStringCid);
+  jsobj.AddProperty("_twoByteFunction", func);
+  func = function(kExternalOneByteStringCid);
+  jsobj.AddProperty("_externalOneByteFunction", func);
+  func = function(kExternalTwoByteStringCid);
+  jsobj.AddProperty("_externalTwoByteFunction", func);
 }
 
 

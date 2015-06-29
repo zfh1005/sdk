@@ -640,10 +640,11 @@ main() => new C<String>();
       "Not a compile-time constant.");
 
   static const MessageKind DEFERRED_COMPILE_TIME_CONSTANT = const MessageKind(
-      "A Deferred value cannot be used as a compile-time constant.");
+      "A deferred value cannot be used as a compile-time constant.");
 
   static const MessageKind DEFERRED_COMPILE_TIME_CONSTANT_CONSTRUCTION =
-      const MessageKind("A deferred class cannot be used to create a"
+      const MessageKind(
+          "A deferred class cannot be used to create a "
           "compile-time constant.");
 
   static const MessageKind CYCLIC_COMPILE_TIME_CONSTANTS = const MessageKind(
@@ -1617,8 +1618,8 @@ import 'package://foo/foo.dart';
 
 main() {}
 """, """
-// package name must be a valid identifier
-import 'package:not-valid/foo.dart';
+// package name must be valid
+import 'package:not\valid/foo.dart';
 
 main() {}
 """]);

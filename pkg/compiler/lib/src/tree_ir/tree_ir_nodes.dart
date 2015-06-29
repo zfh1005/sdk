@@ -9,6 +9,7 @@ import '../constants/values.dart' as values;
 import '../dart_types.dart' show DartType, InterfaceType, TypeVariableType;
 import '../elements/elements.dart';
 import '../io/source_information.dart' show SourceInformation;
+import '../types/types.dart' show TypeMask;
 import '../universe/universe.dart' show Selector;
 
 import '../cps_ir/builtin_operator.dart';
@@ -167,7 +168,6 @@ class Assign extends Expression {
  */
 abstract class Invoke {
   List<Expression> get arguments;
-  Selector get selector;
 }
 
 /**
@@ -207,12 +207,13 @@ class InvokeStatic extends Expression implements Invoke {
 class InvokeMethod extends Expression implements Invoke {
   Expression receiver;
   final Selector selector;
+  final TypeMask mask;
   final List<Expression> arguments;
 
   /// If true, it is known that the receiver cannot be `null`.
   bool receiverIsNotNull = false;
 
-  InvokeMethod(this.receiver, this.selector, this.arguments) {
+  InvokeMethod(this.receiver, this.selector, this.mask, this.arguments) {
     assert(receiver != null);
   }
 
@@ -267,31 +268,16 @@ class InvokeConstructor extends Expression implements Invoke {
   }
 }
 
-/// Calls [toString] on each argument and concatenates the results.
-class ConcatenateStrings extends Expression {
-  final List<Expression> arguments;
-
-  ConcatenateStrings(this.arguments);
-
-  accept(ExpressionVisitor visitor) => visitor.visitConcatenateStrings(this);
-  accept1(ExpressionVisitor1 visitor, arg) {
-    return visitor.visitConcatenateStrings(this, arg);
-  }
-}
-
 /**
  * A constant.
  */
 class Constant extends Expression {
-  final ConstantExpression expression;
   final values.ConstantValue value;
 
-  Constant(this.expression, this.value);
+  Constant(this.value);
 
   Constant.bool(values.BoolConstantValue constantValue)
-      : expression = new BoolConstantExpression(
-          constantValue.primitiveValue),
-        value = constantValue;
+      : value = constantValue;
 
   accept(ExpressionVisitor visitor) => visitor.visitConstant(this);
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitConstant(this, arg);
@@ -783,6 +769,21 @@ class CreateInvocationMirror extends Expression {
   }
 }
 
+class Interceptor extends Expression {
+  Expression input;
+  Set<ClassElement> interceptedClasses;
+
+  Interceptor(this.input, this.interceptedClasses);
+
+  accept(ExpressionVisitor visitor) {
+    return visitor.visitInterceptor(this);
+  }
+
+  accept1(ExpressionVisitor1 visitor, arg) {
+    return visitor.visitInterceptor(this, arg);
+  }
+}
+
 class ForeignCode extends Node {
   final js.Template codeTemplate;
   final types.TypeMask type;
@@ -858,7 +859,6 @@ abstract class ExpressionVisitor<E> {
   E visitInvokeMethod(InvokeMethod node);
   E visitInvokeMethodDirectly(InvokeMethodDirectly node);
   E visitInvokeConstructor(InvokeConstructor node);
-  E visitConcatenateStrings(ConcatenateStrings node);
   E visitConstant(Constant node);
   E visitThis(This node);
   E visitConditional(Conditional node);
@@ -878,6 +878,7 @@ abstract class ExpressionVisitor<E> {
   E visitReadTypeVariable(ReadTypeVariable node);
   E visitTypeExpression(TypeExpression node);
   E visitCreateInvocationMirror(CreateInvocationMirror node);
+  E visitInterceptor(Interceptor node);
   E visitApplyBuiltinOperator(ApplyBuiltinOperator node);
   E visitForeignExpression(ForeignExpression node);
 }
@@ -890,7 +891,6 @@ abstract class ExpressionVisitor1<E, A> {
   E visitInvokeMethod(InvokeMethod node, A arg);
   E visitInvokeMethodDirectly(InvokeMethodDirectly node, A arg);
   E visitInvokeConstructor(InvokeConstructor node, A arg);
-  E visitConcatenateStrings(ConcatenateStrings node, A arg);
   E visitConstant(Constant node, A arg);
   E visitThis(This node, A arg);
   E visitConditional(Conditional node, A arg);
@@ -910,6 +910,7 @@ abstract class ExpressionVisitor1<E, A> {
   E visitReadTypeVariable(ReadTypeVariable node, A arg);
   E visitTypeExpression(TypeExpression node, A arg);
   E visitCreateInvocationMirror(CreateInvocationMirror node, A arg);
+  E visitInterceptor(Interceptor node, A arg);
   E visitApplyBuiltinOperator(ApplyBuiltinOperator node, A arg);
   E visitForeignExpression(ForeignExpression node, A arg);
 }
@@ -980,10 +981,6 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
   }
 
   visitInvokeConstructor(InvokeConstructor node) {
-    node.arguments.forEach(visitExpression);
-  }
-
-  visitConcatenateStrings(ConcatenateStrings node) {
     node.arguments.forEach(visitExpression);
   }
 
@@ -1118,6 +1115,10 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
     node.arguments.forEach(visitExpression);
   }
 
+  visitInterceptor(Interceptor node) {
+    visitExpression(node.input);
+  }
+
   visitForeignCode(ForeignCode node) {
     node.arguments.forEach(visitExpression);
   }
@@ -1168,11 +1169,6 @@ class RecursiveTransformer extends Transformer {
   }
 
   visitInvokeConstructor(InvokeConstructor node) {
-    _replaceExpressions(node.arguments);
-    return node;
-  }
-
-  visitConcatenateStrings(ConcatenateStrings node) {
     _replaceExpressions(node.arguments);
     return node;
   }
@@ -1338,5 +1334,46 @@ class RecursiveTransformer extends Transformer {
   visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
     _replaceExpressions(node.arguments);
     return node;
+  }
+
+  visitInterceptor(Interceptor node) {
+    node.input = visitExpression(node.input);
+    return node;
+  }
+}
+
+class FallthroughTarget {
+  final Statement target;
+  int useCount = 0;
+
+  FallthroughTarget(this.target);
+}
+
+/// A stack machine for tracking fallthrough while traversing the Tree IR.
+class FallthroughStack {
+  final List<FallthroughTarget> _stack =
+    <FallthroughTarget>[new FallthroughTarget(null)];
+
+  /// Set a new fallthrough target.
+  void push(Statement newFallthrough) {
+    _stack.add(new FallthroughTarget(newFallthrough));
+  }
+
+  /// Remove the current fallthrough target.
+  void pop() {
+    _stack.removeLast();
+  }
+
+  /// The current fallthrough target, or `null` if control will fall over
+  /// the end of the method.
+  Statement get target => _stack.last.target;
+
+  /// Number of uses of the current fallthrough target.
+  int get useCount => _stack.last.useCount;
+
+  /// Indicate that a statement will fall through to the current fallthrough
+  /// target.
+  void use() {
+    ++_stack.last.useCount;
   }
 }

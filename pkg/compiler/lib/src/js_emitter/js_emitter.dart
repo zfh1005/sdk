@@ -5,6 +5,7 @@
 library dart2js.js_emitter;
 
 import 'dart:convert';
+import 'dart:collection' show HashMap;
 
 import '../common.dart';
 
@@ -40,12 +41,15 @@ import 'package:js_ast/src/precedence.dart' as js_precedence;
 
 import '../js_backend/js_backend.dart' show
     CheckedModeHelper,
+    CompoundName,
     ConstantEmitter,
     CustomElementsAnalysis,
+    GetterName,
     JavaScriptBackend,
     JavaScriptConstantCompiler,
     Namer,
     RuntimeTypes,
+    SetterName,
     Substitution,
     TypeCheck,
     TypeChecks,
@@ -62,6 +66,10 @@ import '../io/line_column_provider.dart' show
 
 import '../io/source_map_builder.dart' show
     SourceMapBuilder;
+
+import '../universe/universe.dart' show
+    TypeMaskSet,
+    TypedSelector;
 
 import '../util/characters.dart' show
     $$,

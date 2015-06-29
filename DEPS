@@ -38,7 +38,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "7zip_rev" : "@19997",
-  "analyzer_cli_rev" : "@090c4859a2f88e62ae71a11583ba31e9999c74f6",
+  "analyzer_cli_rev" : "@8bf3516dd645ca289d7ebc641f7c228d5b3d37c4",
   "args_tag": "@0.13.0",
   "barback_rev" : "@29ee90dbcf77cfd64632fa2797a4c8a4f29a4b51",
   "boringssl_rev" : "@2b23eaa478aa533a93dca93c33e51de07afcbf96",
@@ -76,7 +76,7 @@ vars = {
   "oauth2_rev": "@1bff41f4d54505c36f2d1a001b83b8b745c452f5",
   "observe_rev": "@eee2b8ec34236fa46982575fbccff84f61202ac6",
   "observatory_pub_packages_rev": "@45565",
-  "package_config_tag": "@0.0.3+1",
+  "package_config_tag": "@0.1.1",
   "path_rev": "@93b3e2aa1db0ac0c8bab9d341588d77acda60320",
   "petitparser_rev" : "@37878",
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",

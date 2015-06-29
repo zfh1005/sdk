@@ -23,7 +23,8 @@ final int ZERO = '0'.codeUnitAt(0);
  * into a series of operations to be sent to the analysis server.
  */
 class LogFileInputConverter extends CommonInputConverter {
-  LogFileInputConverter(Map<String, String> srcPathMap) : super(srcPathMap);
+  LogFileInputConverter(String tmpSrcDirPath, Map<String, String> srcPathMap)
+      : super(tmpSrcDirPath, srcPathMap);
 
   @override
   Operation convert(String line) {
@@ -34,8 +35,9 @@ class LogFileInputConverter extends CommonInputConverter {
         Map<String, dynamic> json = JSON.decode(data.substring(4));
         if (json.containsKey('event')) {
           return convertNotification(json);
+        } else {
+          return convertResponse(json);
         }
-        return null;
       } else if (data.startsWith(SENT_FRAGMENT)) {
         Map<String, dynamic> json = JSON.decode(data.substring(4));
         if (json.containsKey('method')) {
