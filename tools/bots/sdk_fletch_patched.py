@@ -24,6 +24,7 @@ def BuildConfig(name, is_buildbot):
   x64_pattern = re.match(PATCHED_X64_BUILDER, name)
   if x64_pattern:
     system = x64_pattern.group(1)
+    if system == 'mac': system = 'macos'
     return bot.BuildInfo('none', 'none', 'release', system, arch='x64')
 
   arm_pattern = re.match(PATCHED_ARM_BUILDER, name)
@@ -34,17 +35,17 @@ def BuildConfig(name, is_buildbot):
 
 
 def BuildSteps(build_info):
-  sdk_bin_path = utils.GetBuildSdkBin(build_info.system,
-                                      build_info.mode,
-                                      build_info.arch)
-  revision = utils.GetGitRevision()
-  name = 'fletch-archive/%s/dart-vm-%s-%s' % (
-      revision, build_info.arch, build_info.system)
-  download_link = 'http://gsdview.appspot.com/%s' % name
-  gcs_path = 'gs://%s' % name
-  vm_path = os.path.join(sdk_bin_path, 'dart')
-
   with bot.BuildStep('Upload binary Dart VM to GCS'):
+    sdk_bin_path = utils.GetBuildSdkBin(build_info.system,
+                                        build_info.mode,
+                                        build_info.arch)
+    revision = utils.GetGitRevision()
+    name = 'fletch-archive/%s/dart-vm-%s-%s' % (
+        revision, build_info.arch, build_info.system)
+    download_link = 'http://gsdview.appspot.com/%s' % name
+    gcs_path = 'gs://%s' % name
+    vm_path = os.path.join(sdk_bin_path, 'dart')
+
     gsutil = bot_utils.GSUtil()
     gsutil.upload(vm_path, gcs_path)
     print '@@@STEP_LINK %s @@@' % download_link
