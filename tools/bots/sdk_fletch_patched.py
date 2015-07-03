@@ -35,7 +35,7 @@ def BuildConfig(name, is_buildbot):
 
 
 def BuildSteps(build_info):
-  with bot.BuildStep('Upload binary Dart VM to GCS'):
+  with bot.BuildStep('Upload VM to GCS'):
     sdk_bin_path = utils.GetBuildSdkBin(build_info.system,
                                         build_info.mode,
                                         build_info.arch)
@@ -48,7 +48,7 @@ def BuildSteps(build_info):
 
     gsutil = bot_utils.GSUtil()
     gsutil.upload(vm_path, gcs_path)
-    print '@@@STEP_LINK@Download@%s@@@' % download_link
+    print '@@@STEP_LINK@download@%s@@@' % download_link
     sys.stdout.flush()
 
 
