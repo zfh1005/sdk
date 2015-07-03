@@ -42,7 +42,7 @@ def BuildSteps(build_info):
     revision = utils.GetGitRevision()
     name = 'fletch-archive/%s/dart-vm-%s-%s' % (
         revision, build_info.arch, build_info.system)
-    download_link = 'http://gsdview.appspot.com/%s' % name
+    download_link = 'https://storage.googleapis.com/%s' % name
     gcs_path = 'gs://%s' % name
     vm_path = os.path.join(sdk_bin_path, 'dart')
 
