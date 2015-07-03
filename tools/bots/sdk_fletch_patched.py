@@ -9,18 +9,14 @@ Buildbot steps for building Dart SDK with Fletch-specific patches.
 """
 import bot
 import bot_utils
+import os
 import re
+import sys
 
 utils = bot_utils.GetUtils()
 
 PATCHED_X64_BUILDER = r'dart-sdk-fletch-patched-(linux|mac)-x64'
 PATCHED_ARM_BUILDER = r'dart-sdk-fletch-patched-cross-linux-arm'
-
-
-def Run(command):
-  print "Running: %s" % ' '.join(command)
-  sys.stdout.flush()
-  bot.RunProcess(command)
 
 
 def BuildConfig(name, is_buildbot):
@@ -38,8 +34,21 @@ def BuildConfig(name, is_buildbot):
 
 
 def BuildSteps(build_info):
-  # TODO(kasperl): Do something useful here.
-  pass
+  sdk_bin_path = utils.GetBuildSdkBin(build_info.system,
+                                      build_info.mode,
+                                      build_info.arch)
+  revision = utils.GetGitRevision()
+  name = 'fletch-archive/%s/dart-vm-%s-%s' % (
+      revision, build_info.arch, build_info.system)
+  download_link = 'http://gsdview.appspot.com/%s' % name
+  gcs_path = 'gs://%s' % name
+  vm_path = os.path.join(sdk_bin_path, 'dart')
+
+  with bot.BuildStep('Upload binary Dart VM to GCS'):
+    gsutil = bot_utils.GSUtil()
+    gsutil.upload(vm_path, gcs_path)
+    print '@@@STEP_LINK %s @@@' % download_link
+    sys.stdout.flush()
 
 
 if __name__ == '__main__':
