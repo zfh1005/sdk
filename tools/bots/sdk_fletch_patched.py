@@ -48,7 +48,7 @@ def BuildSteps(build_info):
 
     gsutil = bot_utils.GSUtil()
     gsutil.upload(vm_path, gcs_path)
-    print '@@@STEP_LINK %s @@@' % download_link
+    print '@@@STEP_LINK@Download@%s@@@' % download_link
     sys.stdout.flush()
 
 
