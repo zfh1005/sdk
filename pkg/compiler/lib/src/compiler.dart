@@ -272,6 +272,11 @@ abstract class Backend {
   /// Backend callback methods for the resolution phase.
   ResolutionCallbacks get resolutionCallbacks;
 
+  /// The strategy used for collecting and emitting source information.
+  SourceInformationStrategy get sourceInformationStrategy {
+    return const SourceInformationStrategy();
+  }
+
   // TODO(johnniwinther): Move this to the JavaScriptBackend.
   String get patchVersion => null;
 
@@ -699,6 +704,8 @@ abstract class Compiler implements DiagnosticListener {
 
   final bool enableMinification;
 
+  final bool useFrequencyNamer;
+
   /// When `true` emits URIs in the reflection metadata.
   final bool preserveUris;
 
@@ -1042,6 +1049,7 @@ abstract class Compiler implements DiagnosticListener {
             bool analyzeSignaturesOnly: false,
             this.preserveComments: false,
             this.useCpsIr: false,
+            this.useFrequencyNamer: false,
             this.verbose: false,
             this.sourceMapUri: null,
             this.outputUri: null,
@@ -1093,17 +1101,10 @@ abstract class Compiler implements DiagnosticListener {
     globalDependencies =
         new CodegenRegistry(this, new TreeElementMapping(null));
 
-    SourceInformationFactory sourceInformationFactory =
-        const SourceInformationFactory();
-    if (generateSourceMap) {
-      sourceInformationFactory =
-          const bool.fromEnvironment('USE_NEW_SOURCE_INFO', defaultValue: false)
-              ? const PositionSourceInformationFactory()
-              : const StartEndSourceInformationFactory();
-    }
     if (emitJavaScript) {
-      js_backend.JavaScriptBackend jsBackend = new js_backend.JavaScriptBackend(
-      this, sourceInformationFactory, generateSourceMap: generateSourceMap);
+      js_backend.JavaScriptBackend jsBackend =
+          new js_backend.JavaScriptBackend(
+              this, generateSourceMap: generateSourceMap);
       backend = jsBackend;
     } else {
       backend = new dart_backend.DartBackend(this, strips,
@@ -1122,7 +1123,7 @@ abstract class Compiler implements DiagnosticListener {
       resolver = new ResolverTask(this, backend.constantCompilerTask),
       closureToClassMapper = new closureMapping.ClosureTask(this),
       checker = new TypeCheckerTask(this),
-      irBuilder = new IrBuilderTask(this, sourceInformationFactory),
+      irBuilder = new IrBuilderTask(this, backend.sourceInformationStrategy),
       typesTask = new ti.TypesTask(this),
       constants = backend.constantCompilerTask,
       deferredLoadTask = new DeferredLoadTask(this),
@@ -1196,7 +1197,7 @@ abstract class Compiler implements DiagnosticListener {
     } else if (node is Element) {
       return spanFromElement(node);
     } else if (node is MetadataAnnotation) {
-      Uri uri = node.annotatedElement.compilationUnit.script.readableUri;
+      Uri uri = node.annotatedElement.compilationUnit.script.resourceUri;
       return spanFromTokens(node.beginToken, node.endToken, uri);
     } else if (node is Local) {
       Local local = node;
@@ -1922,7 +1923,7 @@ abstract class Compiler implements DiagnosticListener {
       throw 'Cannot find tokens to produce error message.';
     }
     if (uri == null && currentElement != null) {
-      uri = currentElement.compilationUnit.script.readableUri;
+      uri = currentElement.compilationUnit.script.resourceUri;
     }
     return SourceSpan.withCharacterOffsets(begin, end,
       (beginOffset, endOffset) => new SourceSpan(uri, beginOffset, endOffset));
@@ -1962,7 +1963,7 @@ abstract class Compiler implements DiagnosticListener {
       return element.sourcePosition;
     }
     Token position = element.position;
-    Uri uri = element.compilationUnit.script.readableUri;
+    Uri uri = element.compilationUnit.script.resourceUri;
     return (position == null)
         ? new SourceSpan(uri, 0, 0)
         : spanFromTokens(position, position, uri);

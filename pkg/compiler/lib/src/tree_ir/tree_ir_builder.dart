@@ -320,7 +320,7 @@ class Builder implements cps_ir.Visitor<Node> {
     // Introduce labels for continuations that need them.
     int safeForInliningLengthOnEntry = safeForInlining.length;
     for (cps_ir.Continuation continuation in node.continuations) {
-      if (continuation.hasMultipleUses) {
+      if (continuation.hasMultipleUses || continuation.isRecursive) {
         labels[continuation] = new Label();
       } else {
         safeForInlining.add(continuation);
@@ -366,7 +366,7 @@ class Builder implements cps_ir.Visitor<Node> {
     // Calls are translated to direct style.
     List<Expression> arguments = translateArguments(node.arguments);
     Expression invoke = new InvokeStatic(node.target, node.selector, arguments,
-        sourceInformation: node.sourceInformation);
+                                         node.sourceInformation);
     return continueWithExpression(node.continuation, invoke);
   }
 

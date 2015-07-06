@@ -11,8 +11,8 @@ import '../compiler.dart' as api;
 import 'dart2jslib.dart' as leg;
 import 'tree/tree.dart' as tree;
 import 'elements/elements.dart' as elements;
-import 'package:_internal/libraries.dart' hide LIBRARIES;
-import 'package:_internal/libraries.dart' as library_info show LIBRARIES;
+import 'package:sdk_library_metadata/libraries.dart' hide LIBRARIES;
+import 'package:sdk_library_metadata/libraries.dart' as library_info show LIBRARIES;
 import 'io/source_file.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart' as pkgs;
@@ -60,6 +60,8 @@ class Compiler extends leg.Compiler {
             trustPrimitives:
                 hasOption(options, '--trust-primitives'),
             enableMinification: hasOption(options, '--minify'),
+            useFrequencyNamer:
+                !hasOption(options, "--no-frequency-based-minification"),
             preserveUris: hasOption(options, '--preserve-uris'),
             enableNativeLiveTypeAnalysis:
                 !hasOption(options, '--disable-native-live-type-analysis'),

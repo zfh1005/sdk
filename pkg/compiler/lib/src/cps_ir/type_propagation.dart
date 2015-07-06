@@ -53,6 +53,15 @@ class TypeMaskSystem {
     return mask.locateSingleElement(selector, mask, classWorld.compiler);
   }
 
+  bool needsNoSuchMethodHandling(TypeMask mask, Selector selector) {
+    return mask.needsNoSuchMethodHandling(selector, classWorld);
+  }
+
+  TypeMask getReceiverType(MethodElement method) {
+    assert(method.isInstanceMember);
+    return nonNullSubclass(method.enclosingClass);
+  }
+
   TypeMask getParameterType(ParameterElement parameter) {
     return inferrer.getGuaranteedTypeOfElement(parameter);
   }
@@ -82,7 +91,12 @@ class TypeMaskSystem {
     // closure conversion, so just treat those as a subtypes of Function.
     // TODO(asgerf): Maybe closure conversion should create a new ClassWorld?
     if (element.isClosure) return functionType;
-    return new TypeMask.nonNullExact(element, classWorld);
+    return new TypeMask.nonNullExact(element.declaration, classWorld);
+  }
+
+  TypeMask nonNullSubclass(ClassElement element) {
+    if (element.isClosure) return functionType;
+    return new TypeMask.nonNullSubclass(element.declaration, classWorld);
   }
 
   bool isDefinitelyBool(TypeMask t, {bool allowNull: false}) {
@@ -416,8 +430,7 @@ class TypePropagator extends Pass {
     TransformingVisitor transformer = new TransformingVisitor(
         _compiler,
         _lattice,
-        analyzer.reachableNodes,
-        analyzer.values,
+        analyzer,
         replacements,
         _internalError);
     transformer.transform(root);
@@ -445,8 +458,7 @@ final Map<String, BuiltinOperator> NumBinaryBuiltins =
  * actual transformations on the CPS graph.
  */
 class TransformingVisitor extends RecursiveVisitor {
-  final Set<Node> reachable;
-  final Map<Node, AbstractValue> values;
+  final TypePropagationVisitor analyzer;
   final Map<Expression, ConstantValue> replacements;
   final ConstantPropagationLattice lattice;
   final dart2js.Compiler compiler;
@@ -454,13 +466,14 @@ class TransformingVisitor extends RecursiveVisitor {
   JavaScriptBackend get backend => compiler.backend;
   TypeMaskSystem get typeSystem => lattice.typeSystem;
   types.DartTypes get dartTypes => lattice.dartTypes;
+  Set<Node> get reachable => analyzer.reachableNodes;
+  Map<Node, AbstractValue> get values => analyzer.values;
 
   final dart2js.InternalErrorFunction internalError;
 
   TransformingVisitor(this.compiler,
                       this.lattice,
-                      this.reachable,
-                      this.values,
+                      this.analyzer,
                       this.replacements,
                       this.internalError);
 
@@ -468,20 +481,34 @@ class TransformingVisitor extends RecursiveVisitor {
     visit(root);
   }
 
+  /// Sets parent pointers and computes types for the given subtree.
+  void reanalyze(Node node) {
+    new ParentVisitor().visit(node);
+    analyzer.reanalyzeSubtree(node);
+  }
+
   /// Removes the entire subtree of [node] and inserts [replacement].
-  /// All references in the [node] subtree are unlinked, and parent pointers
-  /// in [replacement] are initialized.
+  ///
+  /// By default, all references in the [node] subtree are unlinked, and parent
+  /// pointers in [replacement] are initialized and its types recomputed.
+  ///
+  /// If the caller needs to manually unlink the node, because some references
+  /// were adopted by other nodes, it can be disabled by passing `false`
+  /// as the [unlink] parameter.
   ///
   /// [replacement] must be "fresh", i.e. it must not contain significant parts
   /// of the original IR inside of it since the [ParentVisitor] will
   /// redundantly reprocess it.
-  void replaceSubtree(Expression node, Expression replacement) {
+  void replaceSubtree(Expression node, Expression replacement,
+                      {bool unlink: true}) {
     InteriorNode parent = node.parent;
     parent.body = replacement;
     replacement.parent = parent;
     node.parent = null;
-    RemovalVisitor.remove(node);
-    new ParentVisitor().visit(replacement);
+    if (unlink) {
+      RemovalVisitor.remove(node);
+    }
+    reanalyze(replacement);
   }
 
   /// Make a constant primitive for [constant] and set its entry in [values].
@@ -502,6 +529,7 @@ class TransformingVisitor extends RecursiveVisitor {
     InvokeContinuation invoke =
         new InvokeContinuation(continuation, <Primitive>[primitive]);
     letPrim.body = invoke;
+    values[primitive] = values[continuation.parameters.single];
     primitive.hint = continuation.parameters.single.hint;
 
     return letPrim;
@@ -514,7 +542,8 @@ class TransformingVisitor extends RecursiveVisitor {
   /// The new expression will be visited.
   ///
   /// Returns true if the node was replaced.
-  bool constifyExpression(Expression node, Continuation continuation) {
+  bool constifyExpression(Invoke node) {
+    Continuation continuation = node.continuation.definition;
     ConstantValue constant = replacements[node];
     if (constant == null) return false;
     Constant primitive = makeConstantPrimitive(constant);
@@ -566,7 +595,6 @@ class TransformingVisitor extends RecursiveVisitor {
   /// True if all uses of [prim] only use its value after boolean conversion.
   bool isAlwaysBoolified(Primitive prim) {
     for (Reference ref = prim.firstRef; ref != null; ref = ref.next) {
-      Node use = ref.parent;
       if (!isBoolifyingUse(ref)) return false;
     }
     return true;
@@ -575,7 +603,7 @@ class TransformingVisitor extends RecursiveVisitor {
   /// Replaces [node] with a more specialized instruction, if possible.
   ///
   /// Returns `true` if the node was replaced.
-  bool specializeInvoke(InvokeMethod node) {
+  bool specializeOperatorCall(InvokeMethod node) {
     Continuation cont = node.continuation.definition;
     bool replaceWithBinary(BuiltinOperator operator,
                            Primitive left,
@@ -688,10 +716,9 @@ class TransformingVisitor extends RecursiveVisitor {
   /// invocation with a direct access to a field.
   ///
   /// Returns `true` if the node was replaced.
-  bool inlineFieldAccess(InvokeMethod node) {
+  bool specializeFieldAccess(InvokeMethod node) {
     if (!node.selector.isGetter && !node.selector.isSetter) return false;
     AbstractValue receiver = getValue(getDartReceiver(node));
-    if (receiver.isNothing) return false;
     Element target =
         typeSystem.locateSingleElement(receiver.type, node.selector);
     if (target is! FieldElement) return false;
@@ -701,7 +728,6 @@ class TransformingVisitor extends RecursiveVisitor {
     Continuation cont = node.continuation.definition;
     if (node.selector.isGetter) {
       GetField get = new GetField(getDartReceiver(node), target);
-      get.objectIsNotNull = receiver.isDefinitelyNotNull;
       LetPrim let = makeLetPrimInvoke(get, cont);
       replaceSubtree(node, let);
       visitLetPrim(let);
@@ -720,11 +746,144 @@ class TransformingVisitor extends RecursiveVisitor {
     }
   }
 
+  /// If [prim] is the parameter to a call continuation, returns the
+  /// corresponding call.
+  Invoke getInvocationWithResult(Primitive prim) {
+    if (prim is Parameter && prim.parent is Continuation) {
+      Continuation cont = prim.parent;
+      if (cont.hasExactlyOneUse) {
+        Node use = cont.firstRef.parent;
+        if (use is Invoke) {
+          return use;
+        }
+      }
+    }
+    return null;
+  }
+
+  /// True if any side effect immediately before [current] can safely be
+  /// postponed until immediately before [target].
+  ///
+  /// An expression `e` can be moved right before [target] if
+  /// `canPostponeSideEffects(e.body, target)` is true and no reference
+  /// falls out of scope.
+  ///
+  /// A more sophisticated analysis would track side-effect dependencies
+  /// between `e` and the expressions between `e` and the target.
+  bool canPostponeSideEffects(Expression current, Expression target) {
+    Expression exp = current;
+    while (exp != target) {
+      if (exp is LetPrim && exp.primitive.isSafeForReordering) {
+        LetPrim let = exp;
+        exp = let.body;
+      } else if (exp is LetCont) {
+        LetCont let = exp;
+        exp = let.body;
+      } else {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /// Rewrites an invocation of a torn-off method into a method call directly
+  /// on the receiver. For example:
+  ///
+  ///     obj.get$foo().call$<n>(<args>)
+  ///       =>
+  ///     obj.foo$<n>(<args>)
+  ///
+  bool specializeClosureCall(InvokeMethod node) {
+    Selector call = node.selector;
+    if (!call.isClosureCall) return false;
+
+    assert(!isInterceptedSelector(call));
+    assert(call.argumentCount == node.arguments.length);
+
+    Primitive tearOff = node.receiver.definition;
+    // Note: We don't know if [tearOff] is actually a tear-off.
+    // We name variables based on the pattern we are trying to match.
+
+    if (tearOff is GetStatic && tearOff.element.isFunction) {
+      FunctionElement target = tearOff.element;
+      FunctionSignature signature = target.functionSignature;
+
+      // If the selector does not apply, don't bother (will throw at runtime).
+      if (!call.signatureApplies(target)) return false;
+
+      // If some optional arguments are missing, give up.
+      // TODO(asgerf): Improve optimization by inserting default arguments.
+      if (call.argumentCount != signature.parameterCount) return false;
+
+      InvokeStatic invoke = new InvokeStatic.byReference(
+          target,
+          new Selector.fromElement(target),
+          node.arguments,
+          node.continuation,
+          node.sourceInformation);
+      node.receiver.unlink();
+      replaceSubtree(node, invoke, unlink: false);
+      visitInvokeStatic(invoke);
+      return true;
+    }
+    Invoke tearOffInvoke = getInvocationWithResult(tearOff);
+    if (tearOffInvoke is InvokeMethod && tearOffInvoke.selector.isGetter) {
+      Selector getter = tearOffInvoke.selector;
+      Continuation getterCont = tearOffInvoke.continuation.definition;
+      Primitive object = tearOffInvoke.receiver.definition;
+
+      // Ensure that the object actually has a foo member, since we might
+      // otherwise alter a noSuchMethod call.
+      TypeMask type = getValue(object).type;
+      if (typeSystem.needsNoSuchMethodHandling(type, getter)) return false;
+
+      // Determine if the getter invocation can have side-effects.
+      Element element = typeSystem.locateSingleElement(type, getter);
+      bool isPure = element != null && !element.isGetter;
+
+      // If there are multiple uses, we cannot eliminate the getter call and
+      // therefore risk duplicating its side effects.
+      if (!isPure && tearOff.hasMultipleUses) return false;
+
+      // If the getter call is impure, we risk reordering side effects.
+      if (!isPure && !canPostponeSideEffects(getterCont.body, node)) {
+        return false;
+      }
+
+      InvokeMethod invoke = new InvokeMethod.byReference(
+        new Reference<Primitive>(object),
+        new Selector(SelectorKind.CALL, getter.memberName, call.callStructure),
+        type,
+        node.arguments,
+        node.continuation,
+        node.sourceInformation);
+      node.receiver.unlink();
+      replaceSubtree(node, invoke, unlink: false);
+
+      if (tearOff.hasNoUses) {
+        // Eliminate the getter call if it has no more uses.
+        // This cannot be delegated to other optimizations because we need to
+        // avoid duplication of side effects.
+        getterCont.parameters.clear();
+        replaceSubtree(tearOffInvoke, new InvokeContinuation(getterCont, []));
+      } else {
+        // There are more uses, so we cannot eliminate the getter call. This
+        // means we duplicated the effects of the getter call, but we should
+        // only get here if the getter has no side effects.
+        assert(isPure);
+      }
+
+      visitInvokeMethod(invoke);
+      return true;
+    }
+    return false;
+  }
+
   void visitInvokeMethod(InvokeMethod node) {
-    Continuation cont = node.continuation.definition;
-    if (constifyExpression(node, cont)) return;
-    if (specializeInvoke(node)) return;
-    if (inlineFieldAccess(node)) return;
+    if (constifyExpression(node)) return;
+    if (specializeOperatorCall(node)) return;
+    if (specializeFieldAccess(node)) return;
+    if (specializeClosureCall(node)) return;
 
     AbstractValue receiver = getValue(node.receiver.definition);
     node.receiverIsNotNull = receiver.isDefinitelyNotNull;
@@ -758,10 +917,10 @@ class TransformingVisitor extends RecursiveVisitor {
     super.visitTypeCast(node);
   }
 
-  /// Specialize calls to static methods.
+  /// Specialize calls to internal static methods.
   ///
   /// Returns true if the call was replaced.
-  bool specializeInvokeStatic(InvokeStatic node) {
+  bool specializeInternalMethodCall(InvokeStatic node) {
     // TODO(asgerf): This is written to easily scale to more cases,
     //               either add more cases or clean up.
     Continuation cont = node.continuation.definition;
@@ -784,8 +943,8 @@ class TransformingVisitor extends RecursiveVisitor {
   }
 
   void visitInvokeStatic(InvokeStatic node) {
-    if (constifyExpression(node, node.continuation.definition)) return;
-    if (specializeInvokeStatic(node)) return;
+    if (constifyExpression(node)) return;
+    if (specializeInternalMethodCall(node)) return;
   }
 
   AbstractValue getValue(Primitive primitive) {
@@ -838,6 +997,7 @@ class TransformingVisitor extends RecursiveVisitor {
             node.arguments[k] = null; // Remove the argument after the loop.
           }
           node.arguments[startOfSequence] = new Reference<Primitive>(prim);
+          node.arguments[startOfSequence].parent = node;
           argumentsWereRemoved = true;
         }
         if (argumentsWereRemoved) {
@@ -901,16 +1061,15 @@ class TransformingVisitor extends RecursiveVisitor {
       newPrim.substituteFor(node.primitive);
       RemovalVisitor.remove(node.primitive);
       node.primitive = newPrim;
+      newPrim.parent = node;
     } else {
       Primitive newPrim = visit(node.primitive);
       if (newPrim != null) {
-        if (!values.containsKey(newPrim)) {
-          // If the type was not set, default to the same type as before.
-          values[newPrim] = values[node.primitive];
-        }
         newPrim.substituteFor(node.primitive);
         RemovalVisitor.remove(node.primitive);
         node.primitive = newPrim;
+        newPrim.parent = node;
+        reanalyze(newPrim);
       }
       if (node.primitive.hasNoUses && node.primitive.isSafeForElimination) {
         // Remove unused primitives before entering the body.
@@ -976,12 +1135,20 @@ class TypePropagationVisitor implements Visitor {
 
   void analyze(FunctionDefinition root) {
     reachableNodes.clear();
-    defWorkset.clear();
-    nodeWorklist.clear();
 
     // Initially, only the root node is reachable.
     setReachable(root);
 
+    iterateWorklist();
+  }
+
+  void reanalyzeSubtree(Node node) {
+    new ResetAnalysisInfo(reachableNodes, values).visit(node);
+    setReachable(node);
+    iterateWorklist();
+  }
+
+  void iterateWorklist() {
     while (true) {
       if (nodeWorklist.isNotEmpty) {
         // Process a new reachable expression.
@@ -1045,8 +1212,8 @@ class TypePropagationVisitor implements Visitor {
 
   void visitFunctionDefinition(FunctionDefinition node) {
     if (node.thisParameter != null) {
-      // TODO(asgerf): Use a more precise type for 'this'.
-      setValue(node.thisParameter, nonConstant(typeSystem.nonNullType));
+      setValue(node.thisParameter,
+               nonConstant(typeSystem.getReceiverType(node.element)));
     }
     node.parameters.forEach(visit);
     setReachable(node.body);
@@ -1185,8 +1352,6 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
-    // Note that most built-in operators do not exist before the transformation
-    // pass after this analysis has finished.
     switch (node.operator) {
       case BuiltinOperator.StringConcatenate:
         DartString stringValue = const LiteralDartString('');
@@ -1242,8 +1407,31 @@ class TypePropagationVisitor implements Visitor {
         }
         break;
 
-      default:
-        setValue(node, nonConstant());
+      // TODO(asgerf): Implement constant propagation for builtins.
+      case BuiltinOperator.NumAdd:
+      case BuiltinOperator.NumSubtract:
+      case BuiltinOperator.NumMultiply:
+      case BuiltinOperator.NumAnd:
+      case BuiltinOperator.NumOr:
+      case BuiltinOperator.NumXor:
+        setValue(node, nonConstant(typeSystem.numType));
+        break;
+
+      case BuiltinOperator.NumLt:
+      case BuiltinOperator.NumLe:
+      case BuiltinOperator.NumGt:
+      case BuiltinOperator.NumGe:
+      case BuiltinOperator.StrictEq:
+      case BuiltinOperator.StrictNeq:
+      case BuiltinOperator.LooseEq:
+      case BuiltinOperator.LooseNeq:
+      case BuiltinOperator.IsFalsy:
+      case BuiltinOperator.IsNumber:
+      case BuiltinOperator.IsNotNumber:
+      case BuiltinOperator.IsFloor:
+      case BuiltinOperator.IsNumberAndFloor:
+        setValue(node, nonConstant(typeSystem.boolType));
+        break;
     }
   }
 
@@ -1531,7 +1719,7 @@ class AbstractValue {
   }
 
   AbstractValue.nothing()
-      : this._internal(NOTHING, null, null);
+      : this._internal(NOTHING, null, new TypeMask.nonNullEmpty());
 
   AbstractValue.constantValue(ConstantValue constant, TypeMask type)
       : this._internal(CONSTANT, constant, type);
@@ -1572,4 +1760,17 @@ class AbstractValue {
 /// Enum-like class with the names of internal methods we care about.
 abstract class InternalMethod {
   static const String Stringify = 'S';
+}
+
+class ResetAnalysisInfo extends RecursiveVisitor {
+  Set<Node> reachableNodes;
+  Map<Definition, AbstractValue> values;
+
+  ResetAnalysisInfo(this.reachableNodes, this.values);
+
+  visit(Node node) {
+    reachableNodes.remove(node);
+    if (node is Definition) values.remove(node);
+    node.accept(this);
+  }
 }

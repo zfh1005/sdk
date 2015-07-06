@@ -678,6 +678,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     _pendingFutureTargets.clear();
+    _privatePartition.dispose();
   }
 
   @override
@@ -1094,7 +1095,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       setValue(LIBRARY_ELEMENT3, library);
       setValue(LIBRARY_ELEMENT4, library);
       setValue(LIBRARY_ELEMENT5, library);
-      setValue(LIBRARY_ELEMENT6, library);
       setValue(LINE_INFO, new LineInfo(<int>[0]));
       setValue(PARSE_ERRORS, AnalysisError.NO_ERRORS);
       entry.setState(PARSED_UNIT, CacheState.FLUSHED);
@@ -1247,6 +1247,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return changedSources.length > 0;
   }
 
+  @deprecated
   @override
   void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
       DataDescriptor rowDesc, CacheState state)) {
@@ -1312,9 +1313,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 //    }
   }
 
-  /**
-   * Visit all entries of the content cache.
-   */
+  @override
   void visitContentCache(ContentCacheVisitor visitor) {
     _contentCache.accept(visitor);
   }
@@ -1719,8 +1718,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               dartDelta.hasDirectiveChange = unitDelta.hasDirectiveChange;
               unitDelta.addedDeclarations.forEach(dartDelta.elementAdded);
               unitDelta.removedDeclarations.forEach(dartDelta.elementRemoved);
-              print(
-                  'dartDelta: add=${dartDelta.addedNames} remove=${dartDelta.removedNames}');
+//              print(
+//                  'dartDelta: add=${dartDelta.addedNames} remove=${dartDelta.removedNames}');
               delta = dartDelta;
               entry.setState(CONTENT, CacheState.INVALID, delta: delta);
               return;
@@ -1779,9 +1778,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * TODO(scheglov) A hackish, limited incremental resolution implementation.
    */
   bool _tryPoorMansIncrementalResolution(Source unitSource, String newCode) {
-    if (AnalysisEngine.instance.limitInvalidationInTaskModel) {
-      return false;
-    }
     return PerformanceStatistics.incrementalAnalysis.makeCurrentWhile(() {
       incrementalResolutionValidation_lastUnitSource = null;
       incrementalResolutionValidation_lastLibrarySource = null;

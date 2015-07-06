@@ -18,7 +18,7 @@ import 'filenames.dart';
 import 'util/uri_extras.dart';
 import 'util/util.dart' show stackTraceFilePrefix;
 import 'util/command_line.dart';
-import 'package:_internal/libraries.dart';
+import 'package:sdk_library_metadata/libraries.dart';
 import 'package:package_config/discovery.dart' show findPackages;
 
 const String LIBRARY_ROOT = '../../../../../sdk';
@@ -311,6 +311,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
         '--output-type=dart|--output-type=dart-multi|--output-type=js',
         setOutputType),
     new OptionHandler('--use-cps-ir', passThrough),
+    new OptionHandler('--no-frequency-based-minification', passThrough),
     new OptionHandler('--verbose', setVerbose),
     new OptionHandler('--version', (_) => wantVersion = true),
     new OptionHandler('--library-root=.+', setLibraryRoot),
@@ -648,6 +649,10 @@ be removed in a future version:
 
   --use-cps-ir
     Experimental.  Use the new CPS based backend for code generation.
+
+  --no-frequency-based-minification
+    Experimental.  Disabled the new frequency based minifying namer and use the
+    old namer instead.
 '''.trim());
 }
 

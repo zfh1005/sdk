@@ -3551,6 +3551,7 @@ RawObject* Class::canonical_types() const {
   return raw_ptr()->canonical_types_;
 }
 
+
 void Class::set_canonical_types(const Object& value) const {
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->canonical_types_, value.raw());
@@ -6508,6 +6509,21 @@ RawInstance* Function::ImplicitStaticClosure() const {
     set_implicit_static_closure(closure);
   }
   return implicit_static_closure();
+}
+
+
+RawInstance* Function::ImplicitInstanceClosure(const Instance& receiver) const {
+  ASSERT(IsImplicitClosureFunction());
+  const Class& cls = Class::Handle(signature_class());
+  const Context& context = Context::Handle(Context::New(1));
+  context.SetAt(0, receiver);
+  const Instance& result = Instance::Handle(Closure::New(*this, context));
+  if (cls.NumTypeArguments() > 0) {
+    const TypeArguments& type_arguments =
+        TypeArguments::Handle(receiver.GetTypeArguments());
+    result.SetTypeArguments(type_arguments);
+  }
+  return result.raw();
 }
 
 

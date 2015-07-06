@@ -34,8 +34,7 @@ import '../elements/elements.dart' show
 import '../hash/sha1.dart' show Hasher;
 
 import '../js/js.dart' as jsAst;
-import '../js/js.dart' show
-    js;
+import '../js/js.dart' show js;
 
 import 'package:js_ast/src/precedence.dart' as js_precedence;
 
@@ -93,10 +92,8 @@ import '../util/util.dart' show
 import '../deferred_load.dart' show
     OutputUnit;
 
-import 'package:_internal/compiler/js_lib/shared/embedded_names.dart'
-    as embeddedNames;
-import 'package:_internal/compiler/js_lib/shared/embedded_names.dart' show
-    JsBuiltin;
+import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
+import 'package:js_runtime/shared/embedded_names.dart' show JsBuiltin;
 
 import '../native/native.dart' as native;
 part 'class_stub_generator.dart';
