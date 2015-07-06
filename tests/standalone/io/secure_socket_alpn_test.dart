@@ -85,30 +85,31 @@ void testInvalidArgumentClientContext(List<String> protocols,
 }
 
 void testInvalidArgumentClientConnect(List<String> protocols,
-                                      String errorIncludes) async {
+                                      String errorIncludes) {
   asyncStart();
   var sContext = serverContext()..setAlpnProtocols(['abc'], true);
-  var server = await SecureServerSocket.bind('localhost', 0, sContext);
-  asyncStart();
-  server.listen((SecureSocket socket) {
-    Expect.fail(
-        "Unexpected connection made to server, with bad client argument");
-  }, onError: (e) {
-    Expect.fail("Unexpected error on server stream: $e");
-  }, onDone: () { asyncEnd();});
+  SecureServerSocket.bind('localhost', 0, sContext).then((server) async {
+    asyncStart();
+    server.listen((SecureSocket socket) {
+      Expect.fail(
+          "Unexpected connection made to server, with bad client argument");
+    }, onError: (e) {
+      Expect.fail("Unexpected error on server stream: $e");
+    }, onDone: () { asyncEnd();});
 
-  asyncStart();
-  SecureSocket.connect('localhost', server.port, context: clientContext(),
-        supportedProtocols: protocols).then((socket) {
-    Expect.fail(
-        "Unexpected connection made from client, with bad client argument");
-  }, onError: (e) {
-    Expect.isTrue(e is ArgumentError);
-    Expect.isTrue(e.toString().contains(errorIncludes));
-    server.close();
+    asyncStart();
+    SecureSocket.connect('localhost', server.port, context: clientContext(),
+          supportedProtocols: protocols).then((socket) {
+      Expect.fail(
+          "Unexpected connection made from client, with bad client argument");
+    }, onError: (e) {
+      Expect.isTrue(e is ArgumentError);
+      Expect.isTrue(e.toString().contains(errorIncludes));
+      server.close();
+      asyncEnd();
+    });
     asyncEnd();
   });
-  asyncEnd();
 }
 
 main() {
