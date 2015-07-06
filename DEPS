@@ -73,6 +73,8 @@ vars = {
   "metatest_rev": "@e5aa8e4e19fc4188ac2f6d38368a47d8f07c3df1",
   "mime_rev": "@75890811d4af5af080351ba8a2853ad4c8df98dd",
   "mustache4dart_rev" : "@5724cfd85151e5b6b53ddcd3380daf188fe47f92",
+  "net_nss_rev": "@f81948e9a402db94287a43bb34a07ee0daf56cb5",
+  "nss_rev": "@87b96db4268293187d7cf741907a6d5d1d8080e0",
   "oauth2_rev": "@1bff41f4d54505c36f2d1a001b83b8b745c452f5",
   "observe_rev": "@eee2b8ec34236fa46982575fbccff84f61202ac6",
   "observatory_pub_packages_rev": "@45565",
@@ -86,10 +88,12 @@ vars = {
   "pub_cache_tag": "@v0.0.1+2",
   "pub_semver_tag": "@1.2.1",
   "quiver_tag": "@0.21.4",
+  "root_certificates_rev": "@c3a41df63afacec62fcb8135196177e35fe72f71",
   "scheduled_test_tag": "@0.11.8+1",
   "shelf_rev": "@1e87b79b21ac5e6fa2f93576d6c06eaa65285ef4",
   "smoke_rev" : "@f3361191cc2a85ebc1e4d4c33aec672d7915aba9",
   "source_maps_rev": "@379b4f31c4e2987eb15934d1ad8b419c6cc897b3",
+  "sqlite_rev": "@38811b79f42801662adc0458a25270ab690a6b81",
   "shelf_static_rev": "@v0.2.1",
   "shelf_web_socket_rev": "@ff170cec2c0e4e5722cdf47c557be63b5035a602",
   "source_span_rev": "@42501132e43599a151ba6727d340e44442f86c05",
@@ -123,13 +127,28 @@ deps = {
   Var("dart_root") + "/tests/co19/src":
       (Var("github_mirror") % "co19") + Var("co19_rev"),
 
+  Var("dart_root") + "/third_party/nss":
+      Var("chromium_git") + "/chromium/deps/nss.git" + Var("nss_rev"),
+
+  Var("dart_root") + "/third_party/sqlite":
+      Var("chromium_git") + "/chromium/src/third_party/sqlite.git" +
+      Var("sqlite_rev"),
+
   Var("dart_root") + "/third_party/zlib":
       Var("chromium_git") + "/chromium/src/third_party/zlib.git" +
       Var("zlib_rev"),
 
+  Var("dart_root") + "/third_party/net_nss":
+      Var("chromium_git") + "/chromium/src/net/third_party/nss.git" +
+      Var("net_nss_rev"),
+
   Var("dart_root") + "/third_party/boringssl/src":
       "https://boringssl.googlesource.com/boringssl.git" +
       Var("boringssl_rev"),
+
+  Var("dart_root") + "/third_party/root_certificates":
+      "https://github.com/dart-lang/root_certificates.git" +
+      Var("root_certificates_rev"),
 
   Var("dart_root") + "/third_party/jinja2":
       Var("chromium_git") + "/chromium/src/third_party/jinja2.git" +
