@@ -12,6 +12,7 @@ import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/computer/computer_overrides.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
+import 'package:analysis_server/src/services/dependencies/library_dependencies.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -98,6 +99,30 @@ void scheduleNotificationOperations(AnalysisServer server, String file,
   }
 }
 
+void sendAnalysisNotificationAnalyzedFiles(AnalysisServer server) {
+  _sendNotification(server, () {
+    // TODO(paulberry): if it proves to be too inefficient to recompute the set
+    // of analyzed files each time analysis is complete, consider modifying the
+    // analysis engine to update this set incrementally as analysis is
+    // performed.
+    LibraryDependencyCollector collector =
+        new LibraryDependencyCollector(server.getAnalysisContexts().toList());
+    Set<String> analyzedFiles = collector.collectLibraryDependencies();
+    Set<String> prevAnalyzedFiles = server.prevAnalyzedFiles;
+    if (prevAnalyzedFiles != null &&
+        prevAnalyzedFiles.length == analyzedFiles.length &&
+        prevAnalyzedFiles.difference(analyzedFiles).isEmpty) {
+      // No change to the set of analyzed files.  No need to send another
+      // notification.
+      return;
+    }
+    server.prevAnalyzedFiles = analyzedFiles;
+    protocol.AnalysisAnalyzedFilesParams params =
+        new protocol.AnalysisAnalyzedFilesParams(analyzedFiles.toList());
+    server.sendNotification(params.toNotification());
+  });
+}
+
 void sendAnalysisNotificationErrors(AnalysisServer server, String file,
     LineInfo lineInfo, List<AnalysisError> errors) {
   _sendNotification(server, () {
@@ -133,8 +158,8 @@ void sendAnalysisNotificationHighlights(
 void sendAnalysisNotificationNavigation(
     AnalysisServer server, String file, CompilationUnit dartUnit) {
   _sendNotification(server, () {
-    var computer = new DartUnitNavigationComputer(dartUnit);
-    computer.compute();
+    var computer = new DartUnitNavigationComputer();
+    computer.compute(dartUnit);
     var params = new protocol.AnalysisNavigationParams(
         file, computer.regions, computer.targets, computer.files);
     server.sendNotification(params.toNotification());

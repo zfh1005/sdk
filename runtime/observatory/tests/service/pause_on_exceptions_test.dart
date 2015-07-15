@@ -7,7 +7,6 @@ import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
 import 'dart:async';
-import 'dart:developer';
 
 doThrow() {
   throw "TheException"; // Line 13.
@@ -34,8 +33,9 @@ var tests = [
   var onPaused = null;
   var onResume = null;
 
+  var stream = await isolate.vm.getEventStream(VM.kDebugStream);
   var subscription;
-  subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
+  subscription = stream.listen((ServiceEvent event) {
     print("Event $event");
     if (event.kind == ServiceEvent.kPauseException) {
       if (onPaused == null) throw "Unexpected pause event $event";

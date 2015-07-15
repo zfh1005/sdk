@@ -10,7 +10,6 @@ import 'dart:math' as math;
 import 'package:analyzer/src/context/cache.dart'
     show CacheEntry, TargetedResult;
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/dart.dart'
     show
         HINTS,
@@ -1508,7 +1507,6 @@ class PoorMansIncrementalResolver {
     RecordingErrorListener errorListener = new RecordingErrorListener();
     CharSequenceReader reader = new CharSequenceReader(code);
     Scanner scanner = new Scanner(_unitSource, reader, errorListener);
-    scanner.enableNullAwareOperators = _options.enableNullAwareOperators;
     Token token = scanner.tokenize();
     _newScanErrors = errorListener.errors;
     return token;

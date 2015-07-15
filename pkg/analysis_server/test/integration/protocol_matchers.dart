@@ -243,6 +243,23 @@ final Matcher isAnalysisSetAnalysisRootsParams = new LazyMatcher(() => new Match
 final Matcher isAnalysisSetAnalysisRootsResult = isNull;
 
 /**
+ * analysis.setGeneralSubscriptions params
+ *
+ * {
+ *   "subscriptions": List<GeneralAnalysisService>
+ * }
+ */
+final Matcher isAnalysisSetGeneralSubscriptionsParams = new LazyMatcher(() => new MatchesJsonObject(
+  "analysis.setGeneralSubscriptions params", {
+    "subscriptions": isListOf(isGeneralAnalysisService)
+  }));
+
+/**
+ * analysis.setGeneralSubscriptions result
+ */
+final Matcher isAnalysisSetGeneralSubscriptionsResult = isNull;
+
+/**
  * analysis.setPriorityFiles params
  *
  * {
@@ -313,6 +330,18 @@ final Matcher isAnalysisUpdateOptionsParams = new LazyMatcher(() => new MatchesJ
  * analysis.updateOptions result
  */
 final Matcher isAnalysisUpdateOptionsResult = isNull;
+
+/**
+ * analysis.analyzedFiles params
+ *
+ * {
+ *   "directories": List<FilePath>
+ * }
+ */
+final Matcher isAnalysisAnalyzedFilesParams = new LazyMatcher(() => new MatchesJsonObject(
+  "analysis.analyzedFiles params", {
+    "directories": isListOf(isFilePath)
+  }));
 
 /**
  * analysis.errors params
@@ -1345,6 +1374,17 @@ final Matcher isFoldingRegion = new LazyMatcher(() => new MatchesJsonObject(
   }));
 
 /**
+ * GeneralAnalysisService
+ *
+ * enum {
+ *   ANALYZED_FILES
+ * }
+ */
+final Matcher isGeneralAnalysisService = new MatchesEnum("GeneralAnalysisService", [
+  "ANALYZED_FILES"
+]);
+
+/**
  * HighlightRegion
  *
  * {
@@ -1829,6 +1869,7 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  *   FORMAT_INVALID_FILE
  *   FORMAT_WITH_ERRORS
  *   GET_ERRORS_INVALID_FILE
+ *   GET_NAVIGATION_INVALID_FILE
  *   INVALID_ANALYSIS_ROOT
  *   INVALID_EXECUTION_CONTEXT
  *   INVALID_OVERLAY_CHANGE
@@ -1851,6 +1892,7 @@ final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
   "FORMAT_INVALID_FILE",
   "FORMAT_WITH_ERRORS",
   "GET_ERRORS_INVALID_FILE",
+  "GET_NAVIGATION_INVALID_FILE",
   "INVALID_ANALYSIS_ROOT",
   "INVALID_EXECUTION_CONTEXT",
   "INVALID_OVERLAY_CHANGE",

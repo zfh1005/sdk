@@ -26,6 +26,12 @@ import 'package:compiler/src/elements/elements.dart' show
 import 'package:compiler/src/js_backend/js_backend.dart' show
     JavaScriptBackend;
 
+import 'package:compiler/src/js_emitter/full_emitter/emitter.dart'
+    as full show Emitter;
+
+import 'package:compiler/src/old_to_new_api.dart' show
+    LegacyCompilerDiagnostics;
+
 void expectOnlyVerboseInfo(Uri uri, int begin, int end, String message, kind) {
   if (kind.name == 'verbose info') {
     print(message);
@@ -45,7 +51,8 @@ void expectOnlyVerboseInfo(Uri uri, int begin, int end, String message, kind) {
 
 void main() {
   Compiler compiler = compilerFor(
-      MEMORY_SOURCE_FILES, diagnosticHandler: expectOnlyVerboseInfo,
+      MEMORY_SOURCE_FILES,
+      diagnosticHandler: new LegacyCompilerDiagnostics(expectOnlyVerboseInfo),
       options: ['--enable-experimental-mirrors']);
   asyncTest(() => compiler.runCompiler(Uri.parse('memory:main.dart')).then((_) {
     print('');
@@ -89,10 +96,13 @@ void main() {
     expectedNames = expectedNames.map(backend.namer.asName).toList();
     expectedNames.addAll(nativeNames);
 
+    // Mirrors only work in the full emitter. We can thus be certain that the
+    // emitter is the full emitter.
+    full.Emitter fullEmitter = backend.emitter.emitter;
     Set recordedNames = new Set()
-        ..addAll(backend.emitter.oldEmitter.recordedMangledNames)
-        ..addAll(backend.emitter.oldEmitter.mangledFieldNames.keys)
-        ..addAll(backend.emitter.oldEmitter.mangledGlobalFieldNames.keys);
+        ..addAll(fullEmitter.recordedMangledNames)
+        ..addAll(fullEmitter.mangledFieldNames.keys)
+        ..addAll(fullEmitter.mangledGlobalFieldNames.keys);
     Expect.setEquals(new Set.from(expectedNames), recordedNames);
 
     for (var library in compiler.libraryLoader.libraries) {

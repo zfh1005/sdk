@@ -26,8 +26,6 @@ abstract class WorkItem {
    */
   final AstElement element;
 
-  TreeElements get resolutionTree;
-
   WorkItem(this.element, this.compilationContext) {
     assert(invariant(element, element.isDeclaration));
   }
@@ -37,7 +35,7 @@ abstract class WorkItem {
 
 /// [WorkItem] used exclusively by the [ResolutionEnqueuer].
 class ResolutionWorkItem extends WorkItem {
-  TreeElements resolutionTree;
+  bool _isAnalyzed = false;
 
   ResolutionWorkItem(AstElement element,
                      ItemCompilationContext compilationContext)
@@ -45,11 +43,11 @@ class ResolutionWorkItem extends WorkItem {
 
   WorldImpact run(Compiler compiler, ResolutionEnqueuer world) {
     WorldImpact impact = compiler.analyze(this, world);
-    resolutionTree = element.resolvedAst.elements;
+    _isAnalyzed = true;
     return impact;
   }
 
-  bool isAnalyzed() => resolutionTree != null;
+  bool get isAnalyzed => _isAnalyzed;
 }
 
 // TODO(johnniwinther): Split this class into interface and implementation.
@@ -793,12 +791,8 @@ abstract class Compiler implements DiagnosticListener {
   /// If `true` native extension syntax is supported by the frontend.
   final bool allowNativeExtensions;
 
-  /// Temporary flag to enable `?.`, `??`, and `??=` until it becomes part of
-  /// the spec.
-  final bool enableNullAwareOperators;
-
   /// Output provider from user of Compiler API.
-  api.CompilerOutputProvider userOutputProvider;
+  api.CompilerOutput userOutputProvider;
 
   /// Generate output even when there are compile-time errors.
   final bool generateCodeWithCompileTimeErrors;
@@ -951,6 +945,7 @@ abstract class Compiler implements DiagnosticListener {
   ParserTask parser;
   PatchParserTask patchParser;
   LibraryLoaderTask libraryLoader;
+  SerializationTask serialization;
   ResolverTask resolver;
   closureMapping.ClosureTask closureToClassMapper;
   TypeCheckerTask checker;
@@ -1064,10 +1059,9 @@ abstract class Compiler implements DiagnosticListener {
             bool hasIncrementalSupport: false,
             this.enableExperimentalMirrors: false,
             this.allowNativeExtensions: false,
-            this.enableNullAwareOperators: false,
             this.generateCodeWithCompileTimeErrors: false,
             this.testMode: false,
-            api.CompilerOutputProvider outputProvider,
+            api.CompilerOutput outputProvider,
             List<String> strips: const []})
       : this.disableTypeInferenceFlag =
           disableTypeInferenceFlag || !emitJavaScript,
@@ -1077,9 +1071,8 @@ abstract class Compiler implements DiagnosticListener {
         this.analyzeAllFlag = analyzeAllFlag,
         this.hasIncrementalSupport = hasIncrementalSupport,
         cacheStrategy = new CacheStrategy(hasIncrementalSupport),
-        this.userOutputProvider = (outputProvider == null)
-            ? NullSink.outputProvider
-            : outputProvider {
+        this.userOutputProvider = outputProvider == null
+            ? const NullCompilerOutput() : outputProvider {
     if (hasIncrementalSupport) {
       // TODO(ahe): This is too much. Any method from platform and package
       // libraries can be inlined.
@@ -1116,6 +1109,7 @@ abstract class Compiler implements DiagnosticListener {
 
     tasks = [
       libraryLoader = new LibraryLoaderTask(this),
+      serialization = new SerializationTask(this),
       scanner = new ScannerTask(this),
       dietParser = new DietParserTask(this),
       parser = new ParserTask(this),
@@ -1816,7 +1810,7 @@ abstract class Compiler implements DiagnosticListener {
 
   WorldImpact analyze(ResolutionWorkItem work, ResolutionEnqueuer world) {
     assert(invariant(work.element, identical(world, enqueuer.resolution)));
-    assert(invariant(work.element, !work.isAnalyzed(),
+    assert(invariant(work.element, !work.isAnalyzed,
         message: 'Element ${work.element} has already been analyzed'));
     if (shouldPrintProgress) {
       // TODO(ahe): Add structured diagnostics to the compiler API and
@@ -2175,7 +2169,7 @@ abstract class Compiler implements DiagnosticListener {
         return new NullSink('$name.$extension');
       }
     }
-    return userOutputProvider(name, extension);
+    return userOutputProvider.createEventSink(name, extension);
   }
 }
 
@@ -2240,6 +2234,20 @@ class SourceSpan implements Spannable {
     return f(beginOffset, endOffset);
   }
 
+  int get hashCode {
+    return 13 * uri.hashCode +
+           17 * begin.hashCode +
+           19 * end.hashCode;
+  }
+
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! SourceSpan) return false;
+    return uri == other.uri &&
+           begin == other.begin &&
+           end == other.end;
+  }
+
   String toString() => 'SourceSpan($uri, $begin, $end)';
 }
 
@@ -2294,26 +2302,6 @@ bool isPrivateName(String s) => !s.isEmpty && s.codeUnitAt(0) == $_;
 
 /// Returns `true` when [s] is public if used as an identifier.
 bool isPublicName(String s) => !isPrivateName(s);
-
-/// A sink that drains into /dev/null.
-class NullSink implements EventSink<String> {
-  final String name;
-
-  NullSink(this.name);
-
-  add(String value) {}
-
-  void addError(Object error, [StackTrace stackTrace]) {}
-
-  void close() {}
-
-  toString() => name;
-
-  /// Convenience method for getting an [api.CompilerOutputProvider].
-  static NullSink outputProvider(String name, String extension) {
-    return new NullSink('$name.$extension');
-  }
-}
 
 /// Information about suppressed warnings and hints for a given library.
 class SuppressionInfo {
@@ -2414,22 +2402,22 @@ class AnyLocation implements CodeLocation {
 class _CompilerCoreTypes implements CoreTypes {
   final Compiler compiler;
 
-  ClassElementX objectClass;
-  ClassElementX boolClass;
-  ClassElementX numClass;
-  ClassElementX intClass;
-  ClassElementX doubleClass;
-  ClassElementX stringClass;
-  ClassElementX functionClass;
-  ClassElementX nullClass;
-  ClassElementX listClass;
-  ClassElementX typeClass;
-  ClassElementX mapClass;
-  ClassElementX symbolClass;
-  ClassElementX stackTraceClass;
-  ClassElementX futureClass;
-  ClassElementX iterableClass;
-  ClassElementX streamClass;
+  ClassElement objectClass;
+  ClassElement boolClass;
+  ClassElement numClass;
+  ClassElement intClass;
+  ClassElement doubleClass;
+  ClassElement stringClass;
+  ClassElement functionClass;
+  ClassElement nullClass;
+  ClassElement listClass;
+  ClassElement typeClass;
+  ClassElement mapClass;
+  ClassElement symbolClass;
+  ClassElement stackTraceClass;
+  ClassElement futureClass;
+  ClassElement iterableClass;
+  ClassElement streamClass;
 
   _CompilerCoreTypes(this.compiler);
 

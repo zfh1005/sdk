@@ -2,6 +2,9 @@
 
 ### Core library changes
 
+* `dart:convert`
+  * `LineSplitter` added a `split` static method returning an `Iterable`.
+
 * `dart:html`
   * `NodeTreeSanitizer` added the `const trusted` field. It can be used
     instead of defining a `NullTreeSanitizer` class when calling
@@ -12,20 +15,46 @@
   * Added two new file modes, `WRITE_ONLY` and `WRITE_ONLY_APPEND` for
     opening a file write only.
     [eaeecf2](https://github.com/dart-lang/sdk/commit/eaeecf2ed13ba6c7fbfd653c3c592974a7120960)
+  * Change stdout/stderr to binary mode on Windows.
+    [4205b29](https://github.com/dart-lang/sdk/commit/4205b2997e01f2cea8e2f44c6f46ed6259ab7277)
 
 ### Tool changes
 
 * Pub
 
-  * Pub will now generate a ".packages" file in addition to the "packages"
-    directory when running `pub get` or similar operations, per the
-    [package spec proposal][]. Pub now has a `--no-package-symlinks` flag that
-    will stop "packages" directories from being generated at all.
-
-  * When `pub publish` finds a violation, it will emit a non-zero exit code.
-
   * `pub run` starts up faster for executables that don't import transformed
     code.
+
+  * `pub get` and `pub upgrade`
+
+    * Pub will now generate a ".packages" file in addition to the "packages"
+      directory when running `pub get` or similar operations, per the
+      [package spec proposal][]. Pub now has a `--no-package-symlinks` flag that
+      will stop "packages" directories from being generated at all.
+
+    * An issue where HTTP requests were sometimes made even though `--offline`
+      was passed has been fixed.
+
+    * A bug with `--offline` that caused an unhelpful error message has been
+      fixed.
+
+    * Pub will no longer time out when a package takes a long time to download.
+
+  * `pub publish`
+
+    * Pub will emit a non-zero exit code when it finds a violation while
+      publishing.
+
+    * `.gitignore` files will be respected even if the package isn't at the top
+      level of the Git repository.
+
+  * Barback integration
+
+    * A crashing bug involving transformers that only apply to non-public code
+      has been fixed.
+
+    * A stack overflow caused by a transformer being run multiple times on the
+      package that defines it has been fixed.
 
 [package spec proposal]: https://github.com/lrhn/dep-pkgspec
 
@@ -43,6 +72,8 @@
 * `dart:core`
   * `Iterable` added an `empty` constructor.
     [dcf0286](https://github.com/dart-lang/sdk/commit/dcf0286f5385187a68ce9e66318d3bf19abf454b)
+  * `Iterable` can now be extended directly. An alternative to extending
+    `IterableBase` from `dart:collection`.
   * `List` added an `unmodifiable` constructor.
     [r45334](https://code.google.com/p/dart/source/detail?r=45334)
   * `Map` added an `unmodifiable` constructor.

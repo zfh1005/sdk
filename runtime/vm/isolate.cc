@@ -36,6 +36,7 @@
 #include "vm/symbols.h"
 #include "vm/tags.h"
 #include "vm/thread_interrupter.h"
+#include "vm/thread_registry.h"
 #include "vm/timeline.h"
 #include "vm/timer.h"
 #include "vm/visitor.h"
@@ -484,7 +485,7 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
 
 
 void IsolateMessageHandler::NotifyPauseOnStart() {
-  if (Service::NeedsDebugEvents()) {
+  if (Service::debug_stream.enabled()) {
     StartIsolateScope start_isolate(isolate());
     StackZone zone(I);
     HandleScope handle_scope(I);
@@ -495,7 +496,7 @@ void IsolateMessageHandler::NotifyPauseOnStart() {
 
 
 void IsolateMessageHandler::NotifyPauseOnExit() {
-  if (Service::NeedsDebugEvents()) {
+  if (Service::debug_stream.enabled()) {
     StartIsolateScope start_isolate(isolate());
     StackZone zone(I);
     HandleScope handle_scope(I);
@@ -622,9 +623,9 @@ void BaseIsolate::AssertCurrentThreadIsMutator() const {
   object##_handle_(NULL),
 
 Isolate::Isolate(const Dart_IsolateFlags& api_flags)
-  :   mutator_thread_(NULL),
-      vm_tag_(0),
+  :   vm_tag_(0),
       store_buffer_(new StoreBuffer()),
+      thread_registry_(new ThreadRegistry()),
       message_notify_callback_(NULL),
       name_(NULL),
       debugger_name_(NULL),
@@ -726,6 +727,7 @@ Isolate::~Isolate() {
     compiler_stats_ = NULL;
   }
   RemoveTimelineEventRecorder();
+  delete thread_registry_;
 }
 
 
@@ -1426,12 +1428,6 @@ void Isolate::Shutdown() {
   ASSERT(top_resource() == NULL);
 #if defined(DEBUG)
   if (heap_ != NULL) {
-    // Wait for concurrent GC tasks to finish before final verification.
-    PageSpace* old_space = heap_->old_space();
-    MonitorLocker ml(old_space->tasks_lock());
-    while (old_space->tasks() > 0) {
-      ml.Wait();
-    }
     // The VM isolate keeps all objects marked.
     heap_->Verify(this == Dart::vm_isolate() ? kRequireMarked : kForbidMarked);
   }
@@ -1440,6 +1436,15 @@ void Isolate::Shutdown() {
   // Remove this isolate from the list *before* we start tearing it down, to
   // avoid exposing it in a state of decay.
   RemoveIsolateFromList(this);
+
+  if (heap_ != NULL) {
+    // Wait for any concurrent GC tasks to finish before shutting down.
+    PageSpace* old_space = heap_->old_space();
+    MonitorLocker ml(old_space->tasks_lock());
+    while (old_space->tasks() > 0) {
+      ml.Wait();
+    }
+  }
 
   // Create an area where we do have a zone and a handle scope so that we can
   // call VM functions while tearing this isolate down.
@@ -1494,6 +1499,8 @@ void Isolate::Shutdown() {
   // TODO(5411455): For now just make sure there are no current isolates
   // as we are shutting down the isolate.
   Thread::ExitIsolate();
+  // All threads should have exited by now.
+  thread_registry()->CheckNotScheduled(this);
   Profiler::ShutdownProfilingForIsolate(this);
 }
 
@@ -1513,6 +1520,14 @@ Monitor* Isolate::isolates_list_monitor_ = NULL;
 Isolate* Isolate::isolates_list_head_ = NULL;
 
 
+void Isolate::IterateObjectPointers(ObjectPointerVisitor* visitor,
+                                    bool visit_prologue_weak_handles,
+                                    bool validate_frames) {
+  HeapIterationScope heap_iteration_scope;
+  VisitObjectPointers(visitor, visit_prologue_weak_handles, validate_frames);
+}
+
+
 void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
                                   bool visit_prologue_weak_handles,
                                   bool validate_frames) {
@@ -1529,9 +1544,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
 
   // Visit objects in per isolate stubs.
   StubCode::VisitObjectPointers(visitor);
-
-  // Visit objects in zones.
-  current_zone()->VisitObjectPointers(visitor);
 
   // Visit objects in isolate specific handles area.
   reusable_handles_.VisitObjectPointers(visitor);
@@ -1569,6 +1581,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   if (deopt_context() != NULL) {
     deopt_context()->VisitObjectPointers(visitor);
   }
+
+  // Visit objects in thread registry (e.g., handles in zones).
+  thread_registry()->VisitObjectPointers(visitor);
 }
 
 

@@ -1,7 +1,7 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--compile-all --error_on_bad_type --error_on_bad_override --checked
+// VMOptions=--compile_all --error_on_bad_type --error_on_bad_override --checked
 
 library test_helper;
 
@@ -141,17 +141,23 @@ typedef void ServiceEventHandler(ServiceEvent event,
                                  StreamSubscription subscription,
                                  Completer completer);
 
-Future processServiceEvents(VM vm, ServiceEventHandler handler) {
+Future processServiceEvents(VM vm,
+                            String streamId,
+                            ServiceEventHandler handler) {
   Completer completer = new Completer();
-  var subscription;
-  subscription = vm.events.stream.listen((ServiceEvent event) {
-    handler(event, subscription, completer);
+  vm.getEventStream(streamId).then((stream) {
+    var subscription;
+    subscription = stream.listen((ServiceEvent event) {
+      handler(event, subscription, completer);
+    });
   });
   return completer.future;
 }
 
 
-Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) {
+Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) async {
+  await isolate.reload();  // Might have missed pauseEvent.
+
   if ((isolate.pauseEvent != null) &&
       (isolate.pauseEvent.kind == ServiceEvent.kPauseBreakpoint)) {
     // Already waiting at a breakpoint.
@@ -161,13 +167,15 @@ Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) {
 
   // Set up a listener to wait for breakpoint events.
   Completer completer = new Completer();
-  var subscription;
-  subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
-    if (event.kind == ServiceEvent.kPauseBreakpoint) {
-      print('Breakpoint reached');
-      subscription.cancel();
-      completer.complete(isolate);
-    }
+  isolate.vm.getEventStream(VM.kDebugStream).then((stream) {
+    var subscription;
+    subscription = stream.listen((ServiceEvent event) {
+        if (event.kind == ServiceEvent.kPauseBreakpoint) {
+          print('Breakpoint reached');
+          subscription.cancel();
+          completer.complete();
+        }
+    });
   });
 
   return completer.future;  // Will complete when breakpoint hit.
@@ -176,15 +184,29 @@ Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) {
 
 Future<Isolate> resumeIsolate(Isolate isolate) {
   Completer completer = new Completer();
-  var subscription;
-  subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
-    if (event.kind == ServiceEvent.kResume) {
-      subscription.cancel();
-      completer.complete();
-    }
+  isolate.vm.getEventStream(VM.kDebugStream).then((stream) {
+    var subscription;
+    subscription = stream.listen((ServiceEvent event) {
+      if (event.kind == ServiceEvent.kResume) {
+        subscription.cancel();
+        completer.complete();
+      }
+    });
   });
   isolate.resume();
   return completer.future;
+}
+
+
+Future<Class> getClassFromRootLib(Isolate isolate, String className) async {
+  Library rootLib = await isolate.rootLibrary.load();
+  for (var i = 0; i < rootLib.classes.length; i++) {
+    Class cls = rootLib.classes[i];
+    if (cls.name == className) {
+      return cls;
+    }
+  }
+  return null;
 }
 
 

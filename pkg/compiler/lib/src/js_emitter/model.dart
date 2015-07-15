@@ -83,7 +83,9 @@ class Program {
 class Holder {
   final String name;
   final int index;
-  Holder(this.name, this.index);
+  final bool isStaticStateHolder;
+
+  Holder(this.name, this.index, {this.isStaticStateHolder: false});
 }
 
 /**
@@ -243,8 +245,14 @@ class Class implements FieldContainer {
   /// Whether the class must be evaluated eagerly.
   bool isEager = false;
 
-  /// Data that must be emitted with the class for native interop.
-  js.Literal nativeInfo;
+  /// Leaf tags. See [NativeEmitter.prepareNativeClasses].
+  List<String> nativeLeafTags;
+
+  /// Non-leaf tags. See [NativeEmitter.prepareNativeClasses].
+  List<String> nativeNonLeafTags;
+
+  /// Native extensions. See [NativeEmitter.prepareNativeClasses].
+  List<Class> nativeExtensions;
 
   Class(this.element, this.name, this.holder,
         this.methods,

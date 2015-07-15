@@ -31,8 +31,10 @@ import 'io/source_map_builder.dart' as io;
 import 'js/js.dart' as js;
 import 'js_backend/js_backend.dart' as js_backend;
 import 'js_emitter/js_emitter.dart' as js_emitter;
-import 'js_emitter/program_builder.dart' as program_builder;
+import 'js_emitter/full_emitter/emitter.dart' as full;
+import 'js_emitter/program_builder/program_builder.dart' as program_builder;
 import 'resolution/semantic_visitor.dart' as semantic_visitor;
+import 'resolution/operators.dart' as operators;
 import 'source_file_provider.dart' as source_file_provider;
 import 'ssa/ssa.dart' as ssa;
 import 'tree/tree.dart' as tree;
@@ -50,7 +52,7 @@ void main(List<String> arguments) {
   useApi(null);
   dart2js.main(arguments);
   dart2jslib.isPublicName(null);
-  useConstant(null, null, null, null, null);
+  useConstant();
   useNode(null);
   useUtil(null);
   useSetlet(null);
@@ -81,16 +83,38 @@ void main(List<String> arguments) {
 useApi(api.ReadStringFromUri uri) {
 }
 
-void useConstant(constants.ConstantValue constant,
-                 constants.ConstantExpression expression,
-                 constants.ConstructedConstantExpression constructedConstant,
-                 constants.ConstantSystem cs,
-                 constants.Environment env) {
+class NullConstantConstructorVisitor extends constants.ConstantConstructorVisitor {
+  @override
+  visitGenerative(constants.GenerativeConstantConstructor constructor, arg) {
+  }
+
+  @override
+  visitRedirectingFactory(
+      constants.RedirectingFactoryConstantConstructor constructor, arg) {
+  }
+
+  @override
+  visitRedirectingGenerative(
+      constants.RedirectingGenerativeConstantConstructor constructor, arg) {
+  }
+}
+
+void useConstant([constants.ConstantValue constant,
+                  constants.ConstantExpression expression,
+                  constants.ConstructedConstantExpression constructedConstant,
+                  constants.ConstantSystem cs,
+                  constants.Environment env]) {
   constant.isObject;
   cs.isBool(constant);
   constructedConstant.computeInstanceType();
   constructedConstant.computeInstanceFields();
   expression.evaluate(null, null);
+  new NullConstantConstructorVisitor()
+      ..visit(null, null)
+      ..visitGenerative(null, null)
+      ..visitRedirectingFactory(null, null)
+      ..visitRedirectingGenerative(null, null);
+
 }
 
 void useNode(tree.Node node) {
@@ -278,9 +302,9 @@ useTypes() {
 }
 
 useCodeEmitterTask(js_emitter.CodeEmitterTask codeEmitterTask) {
-  codeEmitterTask.oldEmitter.clearCspPrecompiledNodes();
-  codeEmitterTask.oldEmitter.
-      buildLazilyInitializedStaticField(null, isolateProperties: null);
+  full.Emitter fullEmitter = codeEmitterTask.emitter;
+  fullEmitter.clearCspPrecompiledNodes();
+  fullEmitter.buildLazilyInitializedStaticField(null, isolateProperties: null);
 }
 
 useScript(dart2jslib.Script script) {
@@ -293,6 +317,8 @@ useProgramBuilder(program_builder.ProgramBuilder builder) {
 }
 
 useSemanticVisitor() {
+  operators.UnaryOperator.fromKind(null);
+  operators.BinaryOperator.fromKind(null);
   new semantic_visitor.BulkSendVisitor()
       ..apply(null, null)
       ..visitSuperFieldFieldCompound(null, null, null, null, null, null);

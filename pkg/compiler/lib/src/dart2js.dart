@@ -359,7 +359,12 @@ Future<api.CompilationResult> compile(List<String> argv) {
           "Async-await is supported by default.",
           api.Diagnostic.HINT);
     }),
-    new OptionHandler('--enable-null-aware-operators', passThrough),
+    new OptionHandler('--enable-null-aware-operators',  (_) {
+      diagnosticHandler.info(
+          "Option '--enable-null-aware-operators' is no longer needed. "
+          "Null aware operators are supported by default.",
+          api.Diagnostic.HINT);
+    }),
     new OptionHandler('--enable-enum', (_) {
       diagnosticHandler.info(
           "Option '--enable-enum' is no longer needed. "
@@ -497,7 +502,7 @@ void writeString(Uri uri, String text) {
 
 void fail(String message) {
   if (diagnosticHandler != null) {
-    diagnosticHandler.diagnosticHandler(
+    diagnosticHandler.report(
         null, -1, -1, message, api.Diagnostic.ERROR);
   } else {
     print('Error: $message');

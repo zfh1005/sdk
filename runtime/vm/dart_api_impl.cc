@@ -439,7 +439,9 @@ Dart_Isolate Api::CastIsolate(Isolate* isolate) {
 
 
 Dart_Handle Api::NewError(const char* format, ...) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
   DARTSCOPE(isolate);
   CHECK_CALLBACK_STATE(isolate);
 
@@ -448,13 +450,13 @@ Dart_Handle Api::NewError(const char* format, ...) {
   intptr_t len = OS::VSNPrint(NULL, 0, format, args);
   va_end(args);
 
-  char* buffer = isolate->current_zone()->Alloc<char>(len + 1);
+  char* buffer = zone->Alloc<char>(len + 1);
   va_list args2;
   va_start(args2, format);
   OS::VSNPrint(buffer, (len + 1), format, args2);
   va_end(args2);
 
-  const String& message = String::Handle(isolate, String::New(buffer));
+  const String& message = String::Handle(zone, String::New(buffer));
   return Api::NewHandle(isolate, ApiError::New(message));
 }
 
@@ -1522,7 +1524,7 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(
   isolate->heap()->CollectAllGarbage();
 #if defined(DEBUG)
   FunctionVisitor check_canonical(isolate);
-  isolate->heap()->VisitObjects(&check_canonical);
+  isolate->heap()->IterateObjects(&check_canonical);
 #endif  // #if defined(DEBUG).
 
   // Since this is only a snapshot the root library should not be set.
@@ -5687,6 +5689,67 @@ DART_EXPORT void Dart_RegisterRootServiceRequestCallback(
     Dart_ServiceRequestCallback callback,
     void* user_data) {
   Service::RegisterRootEmbedderCallback(name, callback, user_data);
+}
+
+
+DART_EXPORT Dart_Handle Dart_SetServiceStreamCallbacks(
+    Dart_ServiceStreamListenCallback listen_callback,
+    Dart_ServiceStreamCancelCallback cancel_callback) {
+  if (listen_callback != NULL) {
+    if (Service::stream_listen_callback() != NULL) {
+      return Api::NewError(
+          "%s permits only one listen callback to be registered, please "
+          "remove the existing callback and then add this callback",
+          CURRENT_FUNC);
+    }
+  } else {
+    if (Service::stream_listen_callback() == NULL) {
+      return Api::NewError(
+          "%s expects 'listen_callback' to be present in the callback set.",
+          CURRENT_FUNC);
+    }
+  }
+  if (cancel_callback != NULL) {
+    if (Service::stream_cancel_callback() != NULL) {
+      return Api::NewError(
+          "%s permits only one cancel callback to be registered, please "
+          "remove the existing callback and then add this callback",
+          CURRENT_FUNC);
+    }
+  } else {
+    if (Service::stream_cancel_callback() == NULL) {
+      return Api::NewError(
+          "%s expects 'cancel_callback' to be present in the callback set.",
+          CURRENT_FUNC);
+    }
+  }
+  Service::SetEmbedderStreamCallbacks(listen_callback, cancel_callback);
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
+                                                  const char* event_kind,
+                                                  const uint8_t* bytes,
+                                                  intptr_t bytes_length) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  if (stream_id == NULL) {
+    RETURN_NULL_ERROR(stream_id);
+  }
+  if (event_kind == NULL) {
+    RETURN_NULL_ERROR(event_kind);
+  }
+  if (bytes == NULL) {
+    RETURN_NULL_ERROR(bytes);
+  }
+  if (bytes_length < 0) {
+    return Api::NewError("%s expects argument 'bytes_length' to be >= 0.",
+                         CURRENT_FUNC);
+  }
+  Service::SendEmbedderEvent(isolate, stream_id, event_kind,
+                             bytes, bytes_length);
+  return Api::Success();
 }
 
 

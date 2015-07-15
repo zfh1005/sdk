@@ -8,6 +8,7 @@ import 'dart:collection';
 
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/source/optimizing_pub_package_map_provider.dart';
+import 'package:analysis_server/uri/resolver_provider.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -23,11 +24,11 @@ import 'mocks.dart';
 
 main() {
   groupSep = ' | ';
-  defineReflectiveTests(ContextManagerTest);
+  defineReflectiveTests(AbstractContextManagerTest);
 }
 
 @reflectiveTest
-class ContextManagerTest {
+class AbstractContextManagerTest {
   /**
    * The name of the 'bin' directory.
    */
@@ -59,6 +60,8 @@ class ContextManagerTest {
 
   MockPackageMapProvider packageMapProvider;
 
+  UriResolver packageResolver = null;
+
   String projPath = '/my/proj';
 
   String newFile(List<String> pathComponents, [String content = '']) {
@@ -73,10 +76,15 @@ class ContextManagerTest {
     return folderPath;
   }
 
+  UriResolver providePackageResolver(Folder folder) {
+    return packageResolver;
+  }
+
   void setUp() {
     resourceProvider = new MemoryResourceProvider();
     packageMapProvider = new MockPackageMapProvider();
-    manager = new TestContextManager(resourceProvider, packageMapProvider);
+    manager = new TestContextManager(
+        resourceProvider, providePackageResolver, packageMapProvider);
     resourceProvider.newFolder(projPath);
   }
 
@@ -195,6 +203,14 @@ class ContextManagerTest {
     var filePaths = manager.currentContextFilePaths[projPath];
     expect(filePaths, hasLength(1));
     expect(filePaths, contains(filePath));
+    List<AnalysisContext> contextsInAnalysisRoot =
+        manager.contextsInAnalysisRoot(resourceProvider.newFolder(projPath));
+    expect(contextsInAnalysisRoot, hasLength(1));
+    AnalysisContext context = contextsInAnalysisRoot[0];
+    expect(context, isNotNull);
+    Source result = context.sourceFactory.forUri('package:foo/foo.dart');
+    expect(result, isNotNull);
+    expect(result.exists(), isFalse);
   }
 
   void test_setRoots_addFolderWithDartFileInSubfolder() {
@@ -220,9 +236,9 @@ class ContextManagerTest {
     String examplePath = newFolder([projPath, EXAMPLE_NAME]);
     String libPath = newFolder([projPath, LIB_NAME]);
 
-    newFile([projPath, PUBSPEC_NAME]);
+    newFile([projPath, AbstractContextManager.PUBSPEC_NAME]);
     newFile([libPath, 'main.dart']);
-    newFile([examplePath, PUBSPEC_NAME]);
+    newFile([examplePath, AbstractContextManager.PUBSPEC_NAME]);
     newFile([examplePath, 'example.dart']);
 
     packageMapProvider.packageMap['proj'] =
@@ -269,7 +285,7 @@ class ContextManagerTest {
     String srcPath = newFolder([libPath, SRC_NAME]);
     String testPath = newFolder([projPath, TEST_NAME]);
 
-    newFile([projPath, PUBSPEC_NAME]);
+    newFile([projPath, AbstractContextManager.PUBSPEC_NAME]);
     String appPath = newFile([binPath, 'app.dart']);
     newFile([libPath, 'main.dart']);
     newFile([srcPath, 'internal.dart']);
@@ -494,6 +510,23 @@ class ContextManagerTest {
     packageMapProvider.packageMap = {'foo': [packageFolder]};
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
     _checkPackageMap(projPath, equals(packageMapProvider.packageMap));
+  }
+
+  void test_setRoots_packageResolver() {
+    Uri uri = Uri.parse('package:foo/foo.dart');
+    Source source = new TestSource();
+    packageResolver = new TestUriResolver({uri: source});
+    String filePath = posix.join(projPath, 'foo.dart');
+    resourceProvider.newFile(filePath, 'contents');
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+
+    List<AnalysisContext> contextsInAnalysisRoot =
+        manager.contextsInAnalysisRoot(resourceProvider.newFolder(projPath));
+    expect(contextsInAnalysisRoot, hasLength(1));
+    AnalysisContext context = contextsInAnalysisRoot[0];
+    expect(context, isNotNull);
+    Source result = context.sourceFactory.forUri2(uri);
+    expect(result, same(source));
   }
 
   void test_setRoots_removeFolderWithoutPubspec() {
@@ -945,7 +978,7 @@ class ContextManagerTest {
   }
 }
 
-class TestContextManager extends ContextManager {
+class TestContextManager extends AbstractContextManager {
   /**
    * Source of timestamps stored in [currentContextFilePaths].
    */
@@ -981,8 +1014,9 @@ class TestContextManager extends ContextManager {
       <String, UriResolver>{};
 
   TestContextManager(MemoryResourceProvider resourceProvider,
+      ResolverProvider packageResolverProvider,
       OptimizingPubPackageMapProvider packageMapProvider)
-      : super(resourceProvider, packageMapProvider,
+      : super(resourceProvider, packageResolverProvider, packageMapProvider,
           InstrumentationService.NULL_SERVICE);
 
   /**
@@ -1064,5 +1098,26 @@ class TestContextManager extends ContextManager {
   void updateContextPackageUriResolver(
       Folder contextFolder, UriResolver packageUriResolver) {
     currentContextPackageUriResolvers[contextFolder.path] = packageUriResolver;
+  }
+}
+
+/**
+ * A [Source] that knows it's [fullName].
+ */
+class TestSource implements Source {
+  TestSource();
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class TestUriResolver extends UriResolver {
+  Map<Uri, Source> uriMap;
+
+  TestUriResolver(this.uriMap);
+
+  @override
+  Source resolveAbsolute(Uri uri) {
+    return uriMap[uri];
   }
 }

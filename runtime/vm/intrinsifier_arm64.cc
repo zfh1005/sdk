@@ -17,6 +17,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, interpret_irregexp);
+
 // When entering intrinsics code:
 // R5: IC Data
 // R4: Arguments descriptor
@@ -196,6 +198,7 @@ static int GetScaleFactor(intptr_t size) {
 #define TYPED_ARRAY_ALLOCATION(type_name, cid, max_len, scale_shift)           \
   Label fall_through;                                                          \
   const intptr_t kArrayLengthStackOffset = 0 * kWordSize;                      \
+  __ MaybeTraceAllocation(cid, R2, kNoPP, &fall_through);                      \
   __ ldr(R2, Address(SP, kArrayLengthStackOffset));  /* Array length. */       \
   /* Check that length is a positive Smi. */                                   \
   /* R2: requested array length argument. */                                   \
@@ -1840,7 +1843,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                                      Label* failure) {
   const Register length_reg = R2;
   Label fail;
-
+  __ MaybeTraceAllocation(kOneByteStringCid, R0, kNoPP, failure);
   __ mov(R6, length_reg);  // Save the length register.
   // TODO(koda): Protect against negative length and overflow here.
   __ SmiUntag(length_reg);
@@ -2067,6 +2070,8 @@ void Intrinsifier::TwoByteString_equality(Assembler* assembler) {
 
 
 void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
+  if (FLAG_interpret_irregexp) return;
+
   static const intptr_t kRegExpParamOffset = 2 * kWordSize;
   static const intptr_t kStringParamOffset = 1 * kWordSize;
   // start_index smi is located at offset 0.

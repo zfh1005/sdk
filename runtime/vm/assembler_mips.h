@@ -312,6 +312,10 @@ class Assembler : public ValueObject {
                                      Heap::Space space);
 
 
+  void MaybeTraceAllocation(intptr_t cid,
+                            Register temp_reg,
+                            Label* trace);
+
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.
   // Allocated instance is returned in 'instance_reg'.
@@ -1539,6 +1543,7 @@ class Assembler : public ValueObject {
 
   void LoadWordFromPoolOffset(Register rd, int32_t offset);
   void LoadObject(Register rd, const Object& object);
+  void LoadUniqueObject(Register rd, const Object& object);
   void LoadExternalLabel(Register rd,
                          const ExternalLabel* label,
                          Patchability patchable);
@@ -1650,6 +1655,8 @@ class Assembler : public ValueObject {
   GrowableArray<CodeComment*> comments_;
 
   bool allow_constant_pool_;
+
+  void LoadObjectHelper(Register rd, const Object& object, bool is_unique);
 
   void Emit(int32_t value) {
     // Emitting an instruction clears the delay slot state.

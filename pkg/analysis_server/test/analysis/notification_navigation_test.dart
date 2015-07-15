@@ -19,154 +19,7 @@ main() {
 }
 
 @reflectiveTest
-class AnalysisNotificationNavigationTest extends AbstractAnalysisTest {
-  List<NavigationRegion> regions;
-  List<NavigationTarget> targets;
-  List<String> targetFiles;
-
-  NavigationRegion testRegion;
-  List<int> testTargetIndexes;
-  NavigationTarget testTarget;
-
-  /**
-   * Validates that there is a target in [testTargetIndexes] with [file],
-   * at [offset] and with the given [length].
-   */
-  void assertHasFileTarget(String file, int offset, int length) {
-    List<NavigationTarget> testTargets =
-        testTargetIndexes.map((int index) => targets[index]).toList();
-    for (NavigationTarget target in testTargets) {
-      if (targetFiles[target.fileIndex] == file &&
-          target.offset == offset &&
-          target.length == length) {
-        testTarget = target;
-        return;
-      }
-    }
-    fail(
-        'Expected to find target (file=$file; offset=$offset; length=$length) in\n'
-        '${testRegion} in\n' '${testTargets.join('\n')}');
-  }
-
-  void assertHasOperatorRegion(String regionSearch, int regionLength,
-      String targetSearch, int targetLength) {
-    assertHasRegion(regionSearch, regionLength);
-    assertHasTarget(targetSearch, targetLength);
-  }
-
-  /**
-   * Validates that there is a region at the offset of [search] in [testFile].
-   * If [length] is not specified explicitly, then length of an identifier
-   * from [search] is used.
-   */
-  void assertHasRegion(String search, [int length = -1]) {
-    int offset = findOffset(search);
-    if (length == -1) {
-      length = findIdentifierLength(search);
-    }
-    findRegion(offset, length, true);
-  }
-
-  /**
-   * Validates that there is a region at the offset of [search] in [testFile]
-   * with the given [length] or the length of [search].
-   */
-  void assertHasRegionString(String search, [int length = -1]) {
-    int offset = findOffset(search);
-    if (length == -1) {
-      length = search.length;
-    }
-    findRegion(offset, length, true);
-  }
-
-  /**
-   * Validates that there is an identifier region at [regionSearch] with target
-   * at [targetSearch].
-   */
-  void assertHasRegionTarget(String regionSearch, String targetSearch) {
-    assertHasRegion(regionSearch);
-    assertHasTarget(targetSearch);
-  }
-
-  /**
-   * Validates that there is a target in [testTargets]  with [testFile], at the
-   * offset of [search] in [testFile], and with the given [length] or the length
-   * of an leading identifier in [search].
-   */
-  void assertHasTarget(String search, [int length = -1]) {
-    int offset = findOffset(search);
-    if (length == -1) {
-      length = findIdentifierLength(search);
-    }
-    assertHasFileTarget(testFile, offset, length);
-  }
-
-  /**
-   * Validates that there is no a region at [search] and with the given
-   * [length].
-   */
-  void assertNoRegion(String search, int length) {
-    int offset = findOffset(search);
-    findRegion(offset, length, false);
-  }
-
-  /**
-   * Validates that there is no a region at [search] with any length.
-   */
-  void assertNoRegionAt(String search) {
-    int offset = findOffset(search);
-    findRegion(offset, -1, false);
-  }
-
-  /**
-   * Validates that there is no a region for [search] string.
-   */
-  void assertNoRegionString(String search) {
-    int offset = findOffset(search);
-    int length = search.length;
-    findRegion(offset, length, false);
-  }
-
-  void assertRegionsSorted() {
-    int lastEnd = -1;
-    for (NavigationRegion region in regions) {
-      int offset = region.offset;
-      if (offset < lastEnd) {
-        fail('$lastEnd was expected to be > $offset in\n' + regions.join('\n'));
-      }
-      lastEnd = offset + region.length;
-    }
-  }
-
-  /**
-   * Finds the navigation region with the given [offset] and [length].
-   * If [length] is `-1`, then it is ignored.
-   *
-   * If [exists] is `true`, then fails if such region does not exist.
-   * Otherwise remembers this it into [testRegion].
-   * Also fills [testTargets] with its targets.
-   *
-   * If [exists] is `false`, then fails if such region exists.
-   */
-  void findRegion(int offset, int length, bool exists) {
-    for (NavigationRegion region in regions) {
-      if (region.offset == offset &&
-          (length == -1 || region.length == length)) {
-        if (exists == false) {
-          fail('Not expected to find (offset=$offset; length=$length) in\n'
-              '${regions.join('\n')}');
-        }
-        testRegion = region;
-        testTargetIndexes = region.targets;
-        return;
-      }
-    }
-    if (exists == true) {
-      fail('Expected to find (offset=$offset; length=$length) in\n'
-          '${regions.join('\n')}');
-    }
-  }
-
+class AnalysisNotificationNavigationTest extends AbstractNavigationTest {
   Future prepareNavigation() {
     addAnalysisSubscription(AnalysisService.NAVIGATION, testFile);
     return waitForTasksFinished().then((_) {
@@ -295,8 +148,14 @@ class B {
 }
 ''');
     return prepareNavigation().then((_) {
-      assertHasRegionString('B.named');
-      assertHasTarget('named();');
+      {
+        assertHasRegionString('B.named;', 'B'.length);
+        assertHasTarget('named();');
+      }
+      {
+        assertHasRegionString('named;', 'named'.length);
+        assertHasTarget('named();');
+      }
     });
   }
 
@@ -320,7 +179,7 @@ class C<T> {
         assertHasTarget('A {');
       }
       {
-        assertHasRegion('.named;', '.named'.length);
+        assertHasRegion('named;', 'named'.length);
         assertHasTarget('named() {}');
       }
     });
@@ -445,7 +304,7 @@ main() {
 }
 ''');
     return prepareNavigation().then((_) {
-      assertHasRegionString('new A');
+      assertHasRegionString('A()', 'A'.length);
       assertHasTarget('A {');
     });
   }
@@ -460,7 +319,7 @@ main() {
 ''');
     return prepareNavigation().then((_) {
       {
-        assertHasRegion('new B<A>', 'new B'.length);
+        assertHasRegion('B<A>', 'B'.length);
         assertHasTarget('B<T> {');
       }
       {
@@ -480,8 +339,14 @@ main() {
 }
 ''');
     return prepareNavigation().then((_) {
-      assertHasRegionString('new A.named');
-      assertHasTarget('named() {}');
+      {
+        assertHasRegionString('A.named();', 'A'.length);
+        assertHasTarget('named() {}');
+      }
+      {
+        assertHasRegionString('named();', 'named'.length);
+        assertHasTarget('named() {}');
+      }
     });
   }
 
@@ -497,7 +362,7 @@ main() {
 ''');
     return prepareNavigation().then((_) {
       {
-        assertHasRegionString('new B');
+        assertHasRegionString('B<A>', 'B'.length);
         assertHasTarget('named() {}');
       }
       {
@@ -505,7 +370,7 @@ main() {
         assertHasTarget('A {');
       }
       {
-        assertHasRegion('.named();', '.named'.length);
+        assertHasRegion('named();', 'named'.length);
         assertHasTarget('named() {}');
       }
     });
@@ -521,7 +386,7 @@ main() {
 }
 ''');
     return prepareNavigation().then((_) {
-      assertHasRegionString('new A');
+      assertHasRegionString('A();', 'A'.length);
       assertHasTarget('A() {}', 0);
     });
   }
@@ -538,7 +403,7 @@ main() {
 ''');
     return prepareNavigation().then((_) {
       {
-        assertHasRegionString('new B');
+        assertHasRegionString('B<A>();', 'B'.length);
         assertHasTarget('B() {}', 0);
       }
       {
@@ -771,5 +636,154 @@ void main() {
     return prepareNavigation().then((_) {
       assertNoRegionAt('void');
     });
+  }
+}
+
+class AbstractNavigationTest extends AbstractAnalysisTest {
+  List<NavigationRegion> regions;
+  List<NavigationTarget> targets;
+  List<String> targetFiles;
+
+  NavigationRegion testRegion;
+  List<int> testTargetIndexes;
+  NavigationTarget testTarget;
+
+  /**
+   * Validates that there is a target in [testTargetIndexes] with [file],
+   * at [offset] and with the given [length].
+   */
+  void assertHasFileTarget(String file, int offset, int length) {
+    List<NavigationTarget> testTargets =
+        testTargetIndexes.map((int index) => targets[index]).toList();
+    for (NavigationTarget target in testTargets) {
+      if (targetFiles[target.fileIndex] == file &&
+          target.offset == offset &&
+          target.length == length) {
+        testTarget = target;
+        return;
+      }
+    }
+    fail(
+        'Expected to find target (file=$file; offset=$offset; length=$length) in\n'
+        '${testRegion} in\n' '${testTargets.join('\n')}');
+  }
+
+  void assertHasOperatorRegion(String regionSearch, int regionLength,
+      String targetSearch, int targetLength) {
+    assertHasRegion(regionSearch, regionLength);
+    assertHasTarget(targetSearch, targetLength);
+  }
+
+  /**
+   * Validates that there is a region at the offset of [search] in [testFile].
+   * If [length] is not specified explicitly, then length of an identifier
+   * from [search] is used.
+   */
+  void assertHasRegion(String search, [int length = -1]) {
+    int offset = findOffset(search);
+    if (length == -1) {
+      length = findIdentifierLength(search);
+    }
+    findRegion(offset, length, true);
+  }
+
+  /**
+   * Validates that there is a region at the offset of [search] in [testFile]
+   * with the given [length] or the length of [search].
+   */
+  void assertHasRegionString(String search, [int length = -1]) {
+    int offset = findOffset(search);
+    if (length == -1) {
+      length = search.length;
+    }
+    findRegion(offset, length, true);
+  }
+
+  /**
+   * Validates that there is an identifier region at [regionSearch] with target
+   * at [targetSearch].
+   */
+  void assertHasRegionTarget(String regionSearch, String targetSearch) {
+    assertHasRegion(regionSearch);
+    assertHasTarget(targetSearch);
+  }
+
+  /**
+   * Validates that there is a target in [testTargets]  with [testFile], at the
+   * offset of [search] in [testFile], and with the given [length] or the length
+   * of an leading identifier in [search].
+   */
+  void assertHasTarget(String search, [int length = -1]) {
+    int offset = findOffset(search);
+    if (length == -1) {
+      length = findIdentifierLength(search);
+    }
+    assertHasFileTarget(testFile, offset, length);
+  }
+
+  /**
+   * Validates that there is no a region at [search] and with the given
+   * [length].
+   */
+  void assertNoRegion(String search, int length) {
+    int offset = findOffset(search);
+    findRegion(offset, length, false);
+  }
+
+  /**
+   * Validates that there is no a region at [search] with any length.
+   */
+  void assertNoRegionAt(String search) {
+    int offset = findOffset(search);
+    findRegion(offset, -1, false);
+  }
+
+  /**
+   * Validates that there is no a region for [search] string.
+   */
+  void assertNoRegionString(String search) {
+    int offset = findOffset(search);
+    int length = search.length;
+    findRegion(offset, length, false);
+  }
+
+  void assertRegionsSorted() {
+    int lastEnd = -1;
+    for (NavigationRegion region in regions) {
+      int offset = region.offset;
+      if (offset < lastEnd) {
+        fail('$lastEnd was expected to be > $offset in\n' + regions.join('\n'));
+      }
+      lastEnd = offset + region.length;
+    }
+  }
+
+  /**
+   * Finds the navigation region with the given [offset] and [length].
+   * If [length] is `-1`, then it is ignored.
+   *
+   * If [exists] is `true`, then fails if such region does not exist.
+   * Otherwise remembers this it into [testRegion].
+   * Also fills [testTargets] with its targets.
+   *
+   * If [exists] is `false`, then fails if such region exists.
+   */
+  void findRegion(int offset, int length, bool exists) {
+    for (NavigationRegion region in regions) {
+      if (region.offset == offset &&
+          (length == -1 || region.length == length)) {
+        if (exists == false) {
+          fail('Not expected to find (offset=$offset; length=$length) in\n'
+              '${regions.join('\n')}');
+        }
+        testRegion = region;
+        testTargetIndexes = region.targets;
+        return;
+      }
+    }
+    if (exists == true) {
+      fail('Expected to find (offset=$offset; length=$length) in\n'
+          '${regions.join('\n')}');
+    }
   }
 }
