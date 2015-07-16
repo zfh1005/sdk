@@ -34,6 +34,7 @@ namespace bin {
 bool SSLFilter::library_initialized_ = false;
 // To protect library initialization.
 Mutex* SSLFilter::mutex_ = new Mutex();
+int SSLFilter::filter_ssl_index;
 
 static const int kSSLFilterNativeFieldIndex = 0;
 static const int kSecurityContextNativeFieldIndex = 0;
@@ -256,11 +257,44 @@ void FUNCTION_NAME(SecureSocket_FilterPointer)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, Dart_NewInteger(filter_pointer));
 }
 
+// Forward declaration
+static Dart_Handle WrappedX509(X509* certificate);
+
+int CertificateCallback(int preverify_ok, X509_STORE_CTX* store_ctx) {
+  if (preverify_ok == 1) return 1;
+  Dart_Isolate isolate = Dart_CurrentIsolate();
+  if (isolate == NULL) {
+    FATAL("CertificateCallback called with no current isolate\n");
+  }
+  X509* certificate = X509_STORE_CTX_get_current_cert(store_ctx);
+  int ssl_index = SSL_get_ex_data_X509_STORE_CTX_idx();
+  SSL* ssl = static_cast<SSL*>(
+      X509_STORE_CTX_get_ex_data(store_ctx, ssl_index));
+  SSLFilter* filter = static_cast<SSLFilter*>(
+      SSL_get_ex_data(ssl, SSLFilter::filter_ssl_index));
+  Dart_Handle callback = filter->bad_certificate_callback();
+  if (Dart_IsNull(callback)) return 0;
+  Dart_Handle args[1];
+  args[0] = WrappedX509(certificate);
+  Dart_Handle result = Dart_InvokeClosure(callback, 1, args);
+  if (!Dart_IsError(result) && !Dart_IsBoolean(result)) {
+    result = Dart_NewUnhandledExceptionError(DartUtils::NewDartIOException(
+        "HandshakeException",
+        "BadCertificateCallback returned a value that was not a boolean",
+        Dart_Null()));
+  }
+  if (Dart_IsError(result)) {
+    filter->callback_error = result;
+    return 0;
+  }
+  return DartUtils::GetBooleanValue(result);
+}
+
 
 void FUNCTION_NAME(SecurityContext_Allocate)(Dart_NativeArguments args) {
   SSLFilter::InitializeLibrary();
   SSL_CTX* context = SSL_CTX_new(TLS_method());
-  SSL_CTX_set_verify(context, SSL_VERIFY_PEER, NULL);
+  SSL_CTX_set_verify(context, SSL_VERIFY_PEER, CertificateCallback);
   SSL_CTX_set_min_version(context, TLS1_VERSION);
   SSL_CTX_set_cipher_list(context, "HIGH:MEDIUM");
   SSL_CTX_set_cipher_list_tls11(context, "HIGH:MEDIUM");
@@ -707,6 +741,8 @@ void SSLFilter::InitializeLibrary() {
   MutexLocker locker(mutex_);
   if (!library_initialized_) {
     SSL_library_init();
+    filter_ssl_index = SSL_get_ex_new_index(0, NULL, NULL, NULL, NULL);
+    ASSERT(filter_ssl_index >= 0);
     library_initialized_ = true;
   }
 }
@@ -841,6 +877,7 @@ void SSLFilter::Connect(const char* hostname,
   ssl_ = SSL_new(context);
   SSL_set_bio(ssl_, ssl_side, ssl_side);
   SSL_set_mode(ssl_, SSL_MODE_AUTO_RETRY);
+  SSL_set_ex_data(ssl_, filter_ssl_index, this);
 
   if (!is_server_) {
     SetAlpnProtocolList(protocols_handle, ssl_, NULL, false);
@@ -866,14 +903,7 @@ void SSLFilter::Connect(const char* hostname,
       if (SSL_LOG_STATUS) Log::Print("SSL_connect error: %d\n", error);
     }
   }
-  status = SSL_do_handshake(ssl_);
-  if (SSL_LOG_STATUS) Log::Print("SSL_handshake status: %d\n", status);
-  if (status != 1) {
-    error = SSL_get_error(ssl_, status);
-    if (SSL_LOG_STATUS) Log::Print("SSL_handshake error: %d\n", error);
-  }
-
-  if (is_server) {
+  if (is_server_) {
     // Set up certificate and private key
     if (request_client_certificate) {
       Dart_ThrowException(DartUtils::NewDartArgumentError(
@@ -885,6 +915,7 @@ void SSLFilter::Connect(const char* hostname,
           "sendClientCertificate not implemented."));
     }
   }
+  Handshake();
 }
 
 
@@ -898,6 +929,9 @@ void SSLFilter::Handshake() {
   int status;
   int error;
   status = SSL_do_handshake(ssl_);
+  if (callback_error != NULL) {
+    Dart_PropagateError(callback_error);
+  }
   if (SSL_LOG_STATUS) Log::Print("SSL_handshake status: %d\n", status);
   if (status != 1) {
     error = SSL_get_error(ssl_, status);

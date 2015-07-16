@@ -697,7 +697,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     if (onBadCertificate == null) return false;
     var result = onBadCertificate(certificate);
     if (result is bool) return result;
-    throw new ArgumentError(
+    throw new HandshakeException(
         "onBadCertificate callback returned non-boolean $result");
   }
 

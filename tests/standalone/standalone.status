@@ -185,9 +185,7 @@ priority_queue_stress_test: RuntimeError # Cannot read property 'any$1' of undef
 
 [ $runtime == vm ]
 # Failures in secure networking while NSS is replaced with BoringSSL
-io/https_bad_certificate_test: RuntimeError
 io/https_client_certificate_test: RuntimeError
-io/secure_bad_certificate_test: RuntimeError
 io/secure_server_client_certificate_test: RuntimeError
 io/secure_server_client_no_certificate_test: RuntimeError
 io/secure_socket_renegotiate_test: RuntimeError

@@ -1633,7 +1633,7 @@ class _ConnectionTarget {
       return completer.future;
     }
     var currentBadCertificateCallback = client._badCertificateCallback;
-    bool callback(X509Certificate certificate) =>
+    callback(X509Certificate certificate) =>
         currentBadCertificateCallback == null ? false :
         currentBadCertificateCallback(certificate, uriHost, uriPort);
     Future socketFuture = (isSecure && proxy.isDirect

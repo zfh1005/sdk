@@ -94,6 +94,9 @@ class SSLFilter {
 
   static CObject* ProcessFilterRequest(const CObjectArray& request);
 
+  // The index of the external data field in _ssl that points to the SSLFilter.
+  static int filter_ssl_index;
+
   // TODO(whesse): make private:
   SSL* ssl_;
   BIO* socket_side_;
