@@ -14,15 +14,17 @@ import "package:expect/expect.dart";
 import "package:path/path.dart";
 
 const HOST_NAME = "localhost";
-String localFile(path) => Platform.script.resolve(path).toFilePath();
+const CERTIFICATE = "localhost_cert";
 
-SecurityContext serverContext = new SecurityContext()
-  ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-                  password: 'dartdart');
+
+String certificateDatabase() => Platform.script.resolve('pkcert').toFilePath();
+
 
 Future<SecureServerSocket> runServer() {
-  return SecureServerSocket.bind(HOST_NAME, 0, serverContext)
+  SecureSocket.initialize(database: certificateDatabase(),
+                          password: 'dartdart');
+
+  return SecureServerSocket.bind(HOST_NAME, 0, CERTIFICATE)
     .then((SecureServerSocket server) {
       server.listen((SecureSocket socket) {
         Expect.isNull(socket.peerCertificate);

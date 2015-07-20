@@ -2736,9 +2736,9 @@ void Class::DisableCHAOptimizedCode() {
 
 void Class::SetTraceAllocation(bool trace_allocation) const {
   const bool changed = trace_allocation != this->trace_allocation();
-  set_state_bits(
-      TraceAllocationBit::update(trace_allocation, raw_ptr()->state_bits_));
   if (changed) {
+    set_state_bits(
+        TraceAllocationBit::update(trace_allocation, raw_ptr()->state_bits_));
     Isolate* isolate = Isolate::Current();
     ClassTable* class_table = isolate->class_table();
     class_table->TraceAllocationsFor(id(), trace_allocation);
@@ -11247,6 +11247,9 @@ static const char* VarKindString(int kind) {
     case RawLocalVarDescriptors::kSavedCurrentContext:
       return "CurrentCtx";
       break;
+    case RawLocalVarDescriptors::kAsyncOperation:
+      return "AsyncOperation";
+      break;
     default:
       UNREACHABLE();
       return "Unknown";
@@ -11360,6 +11363,8 @@ const char* LocalVarDescriptors::KindToStr(intptr_t kind) {
       return "ContextLevel";
     case RawLocalVarDescriptors::kSavedCurrentContext:
       return "SavedCurrentContext";
+    case RawLocalVarDescriptors::kAsyncOperation:
+      return "AsyncOperation";
     default:
       UNIMPLEMENTED();
       return NULL;

@@ -14,20 +14,11 @@ import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
 InternetAddress HOST;
-
-String localFile(path) => Platform.script.resolve(path).toFilePath();
-
-SecurityContext serverContext = new SecurityContext()
-  ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-                  password: 'dartdart');
-
-SecurityContext clientContext = new SecurityContext()
-  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
+const CERTIFICATE = "localhost_cert";
 
 void testSimpleBind() {
   asyncStart();
-  SecureServerSocket.bind(HOST, 0, serverContext).then((s) {
+  SecureServerSocket.bind(HOST, 0, CERTIFICATE).then((s) {
     Expect.isTrue(s.port > 0);
     s.close();
     asyncEnd();
@@ -39,7 +30,7 @@ void testInvalidBind() {
 
   // Bind to a unknown DNS name.
   asyncStart();
-  SecureServerSocket.bind("ko.faar.__hest__", 0, serverContext).then((_) {
+  SecureServerSocket.bind("ko.faar.__hest__", 0, CERTIFICATE).then((_) {
     Expect.fail("Failure expected");
   }).catchError((error) {
     Expect.isTrue(error is SocketException);
@@ -48,7 +39,7 @@ void testInvalidBind() {
 
   // Bind to an unavaliable IP-address.
   asyncStart();
-  SecureServerSocket.bind("8.8.8.8", 0, serverContext).then((_) {
+  SecureServerSocket.bind("8.8.8.8", 0, CERTIFICATE).then((_) {
     Expect.fail("Failure expected");
   }).catchError((error) {
     Expect.isTrue(error is SocketException);
@@ -57,10 +48,10 @@ void testInvalidBind() {
 
   // Bind to a port already in use.
   asyncStart();
-  SecureServerSocket.bind(HOST, 0, serverContext).then((s) {
+  SecureServerSocket.bind(HOST, 0, CERTIFICATE).then((s) {
     SecureServerSocket.bind(HOST,
                             s.port,
-                            serverContext).then((t) {
+                            CERTIFICATE).then((t) {
       Expect.fail("Multiple listens on same port");
     }).catchError((error) {
       Expect.isTrue(error is SocketException);
@@ -70,18 +61,12 @@ void testInvalidBind() {
   });
 }
 
-void testSimpleConnect() {
+void testSimpleConnect(String certificate) {
   asyncStart();
-  SecureServerSocket.bind(HOST, 0, serverContext).then((server) {
-    var clientEndFuture =
-        SecureSocket.connect(HOST, server.port, context: clientContext);
+  SecureServerSocket.bind(HOST, 0, certificate).then((server) {
+    var clientEndFuture = SecureSocket.connect(HOST, server.port);
     server.listen((serverEnd) {
       clientEndFuture.then((clientEnd) {
-        var x5 = clientEnd.peerCertificate;
-        print(x5.subject);
-        print(x5.issuer);
-        print(x5.startValidity);
-        print(x5.endValidity);
         clientEnd.close();
         serverEnd.close();
         server.close();
@@ -91,32 +76,22 @@ void testSimpleConnect() {
   });
 }
 
-void testSimpleConnectFail(SecurityContext serverContext,
-                           SecurityContext clientContext,
-                           bool cancelOnError) {
-  print('$serverContext $clientContext $cancelOnError');
+void testSimpleConnectFail(String certificate, bool cancelOnError) {
   asyncStart();
-  SecureServerSocket.bind(HOST, 0, serverContext).then((server) {
-    var clientEndFuture =
-        SecureSocket.connect(HOST, server.port, context: clientContext)
+  SecureServerSocket.bind(HOST, 0, certificate).then((server) {
+    var clientEndFuture = SecureSocket.connect(HOST, server.port)
       .then((clientEnd) {
         Expect.fail("No client connection expected.");
       })
       .catchError((error) {
-        // TODO(whesse): When null context is supported, disallow
-        // the ArgumentError type here.
-        Expect.isTrue(error is ArgumentError ||
-                      error is HandshakeException ||
+        Expect.isTrue(error is HandshakeException ||
                       error is SocketException);
       });
     server.listen((serverEnd) {
       Expect.fail("No server connection expected.");
     },
     onError: (error) {
-      // TODO(whesse): When null context is supported, disallow
-      // the ArgumentError type here.
-      Expect.isTrue(error is ArgumentError ||
-                    error is HandshakeException);
+      Expect.isTrue(error is CertificateException);
       clientEndFuture.then((_) {
         if (!cancelOnError) server.close();
         asyncEnd();
@@ -128,10 +103,9 @@ void testSimpleConnectFail(SecurityContext serverContext,
 
 void testServerListenAfterConnect() {
   asyncStart();
-  SecureServerSocket.bind(HOST, 0, serverContext).then((server) {
+  SecureServerSocket.bind(HOST, 0, CERTIFICATE).then((server) {
     Expect.isTrue(server.port > 0);
-    var clientEndFuture =
-        SecureSocket.connect(HOST, server.port, context: clientContext);
+    var clientEndFuture = SecureSocket.connect(HOST, server.port);
     new Timer(const Duration(milliseconds: 500), () {
       server.listen((serverEnd) {
         clientEndFuture.then((clientEnd) {
@@ -170,7 +144,7 @@ void testSimpleReadWrite() {
     }
   }
 
-  SecureServerSocket.bind(HOST, 0, serverContext).then((server) {
+  SecureServerSocket.bind(HOST, 0, CERTIFICATE).then((server) {
     server.listen((client) {
       int bytesRead = 0;
       int bytesWritten = 0;
@@ -192,8 +166,7 @@ void testSimpleReadWrite() {
         });
     });
 
-    SecureSocket.connect(HOST, server.port, context: clientContext)
-    .then((socket) {
+    SecureSocket.connect(HOST, server.port).then((socket) {
       int bytesRead = 0;
       int bytesWritten = 0;
       List<int> dataSent = createTestData();
@@ -216,6 +189,10 @@ void testSimpleReadWrite() {
 
 main() {
   asyncStart();
+  String certificateDatabase = Platform.script.resolve('pkcert').toFilePath();
+  SecureSocket.initialize(database: certificateDatabase,
+                          password: 'dartdart',
+                          useBuiltinRoots: false);
   InternetAddress.lookup("localhost").then((hosts) {
     HOST = hosts.first;
     runTests();
@@ -226,16 +203,12 @@ main() {
 runTests() {
   testSimpleBind();
   testInvalidBind();
-  testSimpleConnect();
-  for (var server in [serverContext, null]) {
-    for (var client in [clientContext, null]) {
-      for (bool cancelOnError in [true, false]) {
-        if (server == null || client == null) {
-          testSimpleConnectFail(server, client, cancelOnError);
-        }
-      }
-    }
-  }
+  testSimpleConnect(CERTIFICATE);
+  testSimpleConnect("CN=localhost");
+  testSimpleConnectFail("not_a_nickname", false);
+  testSimpleConnectFail("CN=notARealDistinguishedName", false);
+  testSimpleConnectFail("not_a_nickname", true);
+  testSimpleConnectFail("CN=notARealDistinguishedName", true);
   testServerListenAfterConnect();
   testSimpleReadWrite();
 }

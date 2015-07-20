@@ -13,21 +13,12 @@ import "dart:io";
 import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
-String localFile(path) => Platform.script.resolve(path).toFilePath();
-
-SecurityContext serverContext = new SecurityContext()
-  ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-                  password: 'dartdart');
-
-SecurityContext clientContext = new SecurityContext()
-  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
-
 InternetAddress HOST;
+const CERTIFICATE = "localhost_cert";
 Future<RawSecureServerSocket> startEchoServer() {
   return RawSecureServerSocket.bind(HOST,
                                     0,
-                                    serverContext).then((server) {
+                                    CERTIFICATE).then((server) {
     server.listen((RawSecureSocket client) {
       List<List<int>> readChunks = <List<int>>[];
       List<int> dataToWrite = null;
@@ -69,8 +60,7 @@ Future<RawSecureServerSocket> startEchoServer() {
 Future testClient(server) {
   Completer success = new Completer();
   List<String> chunks = <String>[];
-  SecureSocket.connect(HOST, server.port, context: clientContext)
-  .then((socket) {
+  SecureSocket.connect(HOST, server.port).then((socket) {
     socket.write("Hello server.");
     socket.close();
     socket.listen(
@@ -89,6 +79,9 @@ Future testClient(server) {
 
 void main() {
   asyncStart();
+  String certificateDatabase = Platform.script.resolve('pkcert').toFilePath();
+  SecureSocket.initialize(database: certificateDatabase,
+                          password: 'dartdart');
   InternetAddress.lookup("localhost").then((hosts) => HOST = hosts.first)
       .then((_) => startEchoServer())
       .then(testClient)

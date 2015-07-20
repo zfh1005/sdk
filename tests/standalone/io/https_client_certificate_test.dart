@@ -10,27 +10,14 @@ import "package:expect/expect.dart";
 import "package:path/path.dart";
 
 const HOST_NAME = "localhost";
-String localFile(path) => Platform.script.resolve(path).toFilePath();
 
-SecurityContext serverContext = new SecurityContext()
-  ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-                  password: 'dartdart');
-// TODO: Specify which client certificate roots to trust.
 
-SecurityContext clientContext = new SecurityContext()
-  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'))
-// TODO: Set a client certificate here.
-  ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-                  password: 'dartdart');
-
-void main() {
+Function test() {
   asyncStart();
   HttpServer.bindSecure(HOST_NAME,
                         0,
-                        serverContext,
                         backlog: 5,
+                        certificateName: 'localhost_cert',
                         requestClientCertificate: true).then((server) {
     server.listen((HttpRequest request) {
       Expect.isNotNull(request.certificate);
@@ -39,7 +26,7 @@ void main() {
       request.response.close();
     });
 
-    HttpClient client = new HttpClient(context: clientContext);
+    HttpClient client = new HttpClient();
     client.getUrl(Uri.parse("https://$HOST_NAME:${server.port}/"))
         .then((request) => request.close())
         .then((response) {
@@ -56,4 +43,15 @@ void main() {
           asyncEnd();
         });
   });
+}
+
+void InitializeSSL() {
+  var testPkcertDatabase = Platform.script.resolve('pkcert').toFilePath();
+  SecureSocket.initialize(database: testPkcertDatabase,
+                          password: 'dartdart');
+}
+
+void main() {
+  InitializeSSL();
+  test();
 }

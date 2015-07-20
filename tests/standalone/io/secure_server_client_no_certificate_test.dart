@@ -9,25 +9,16 @@ import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
 InternetAddress HOST;
-String localFile(path) => Platform.script.resolve(path).toFilePath();
-
-SecurityContext serverContext = new SecurityContext()
-  ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-                  password: 'dartdart');
-
-SecurityContext clientContext = new SecurityContext()
-  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
+const CERTIFICATE = "localhost_cert";
 
 Future testNoClientCertificate() {
   var completer = new Completer();
   SecureServerSocket.bind(HOST,
                           0,
-                          serverContext,
+                          CERTIFICATE,
                           requestClientCertificate: true).then((server) {
     var clientEndFuture = SecureSocket.connect(HOST,
-                                               server.port,
-                                               context: clientContext);
+                                               server.port);
     server.listen((serverEnd) {
       X509Certificate certificate = serverEnd.peerCertificate;
       Expect.isNull(certificate);
@@ -47,11 +38,10 @@ Future testNoRequiredClientCertificate() {
   bool clientError = false;
   SecureServerSocket.bind(HOST,
                           0,
-                          serverContext,
+                          CERTIFICATE,
                           requireClientCertificate: true).then((server) {
-    Future clientDone =
-        SecureSocket.connect(HOST, server.port, context: clientContext)
-        .catchError((e) { clientError = true; });
+    Future clientDone = SecureSocket.connect(HOST, server.port)
+      .catchError((e) { clientError = true; });
     server.listen((serverEnd) {
       Expect.fail("Got a unverifiable connection");
     },
@@ -67,6 +57,11 @@ Future testNoRequiredClientCertificate() {
 }
 
 void main() {
+  String certificateDatabase = Platform.script.resolve('pkcert').toFilePath();
+  SecureSocket.initialize(database: certificateDatabase,
+                          password: 'dartdart',
+                          useBuiltinRoots: false);
+
   asyncStart();
   InternetAddress.lookup("localhost").then((hosts) => HOST = hosts.first)
     .then((_) => testNoRequiredClientCertificate())

@@ -9,23 +9,14 @@ import "dart:isolate";
 import "package:expect/expect.dart";
 
 InternetAddress HOST;
-
-String localFile(path) => Platform.script.resolve(path).toFilePath();
-
-SecurityContext serverContext = new SecurityContext()
-  ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-                  password: 'dartdart');
-
-SecurityContext clientContext = new SecurityContext()
-  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
+const CERTIFICATE = "localhost_cert";
 
 void testListenOn() {
   void test(void onDone()) {
     HttpServer.bindSecure(HOST,
                           0,
-                          serverContext,
-                          backlog: 5).then((server) {
+                          backlog: 5,
+                          certificateName: CERTIFICATE).then((server) {
       ReceivePort serverPort = new ReceivePort();
       server.listen((HttpRequest request) {
         request.listen(
@@ -36,7 +27,7 @@ void testListenOn() {
           });
       });
 
-      HttpClient client = new HttpClient(context: clientContext);
+      HttpClient client = new HttpClient();
       ReceivePort clientPort = new ReceivePort();
       client.getUrl(Uri.parse("https://${HOST.host}:${server.port}/"))
         .then((HttpClientRequest request) {
@@ -67,10 +58,16 @@ void testListenOn() {
   });
 }
 
+void InitializeSSL() {
+  var testPkcertDatabase = Platform.script.resolve('pkcert').toFilePath();
+  SecureSocket.initialize(database: testPkcertDatabase,
+                          password: 'dartdart');
+}
+
 void testEarlyClientClose() {
   HttpServer.bindSecure(HOST,
                         0,
-                        serverContext).then((server) {
+                        certificateName: 'localhost_cert').then((server) {
     server.listen(
       (request) {
         String name = Platform.script.toFilePath();
@@ -99,6 +96,7 @@ void testEarlyClientClose() {
 }
 
 void main() {
+  InitializeSSL();
   InternetAddress.lookup("localhost").then((hosts) {
     HOST = hosts.first;
     testListenOn();

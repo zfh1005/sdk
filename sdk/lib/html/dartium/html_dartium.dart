@@ -12435,7 +12435,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
       if (treeSanitizer is _TrustedHtmlTreeSanitizer) {
         _insertAdjacentHtml(where, html);
       } else {
-        _insertAdjacentNode(where, new DocumentFragment.html(html,
+        _insertAdjacentNode(where, createFragment(html,
             validator: validator, treeSanitizer: treeSanitizer));
       }
   }
@@ -12638,10 +12638,11 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
     if (_parseDocument == null) {
       _parseDocument = document.implementation.createHtmlDocument('');
       _parseRange = _parseDocument.createRange();
-
-      // Workaround for Chrome bug 229142- URIs are not resolved in new doc.
-      var base = _parseDocument.createElement('base');
-      base.href = document.baseUri;
+	
+      // Workaround for Safari bug. Was also previously Chrome bug 229142
+      // - URIs are not resolved in new doc.	
+      var base = _parseDocument.createElement('base');	
+      base.href = document.baseUri;	
       _parseDocument.head.append(base);
     }
     var contextElement;
@@ -12652,7 +12653,8 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
       _parseDocument.body.append(contextElement);
     }
     var fragment;
-    if (Range.supportsCreateContextualFragment) {
+    if (Range.supportsCreateContextualFragment &&
+        _canBeUsedToCreateContextualFragment) {
       _parseRange.selectNodeContents(contextElement);
       fragment = _parseRange.createContextualFragment(html);
     } else {
@@ -12673,6 +12675,24 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
     return fragment;
   }
+
+  /** Test if createContextualFragment is supported for this element type */
+  bool get _canBeUsedToCreateContextualFragment =>
+      !_cannotBeUsedToCreateContextualFragment;
+
+  /** Test if createContextualFragment is NOT supported for this element type */
+  bool get _cannotBeUsedToCreateContextualFragment =>
+      _tagsForWhichCreateContextualFragmentIsNotSupported.contains(tagName);
+
+  /**
+   * A hard-coded list of the tag names for which createContextualFragment
+   * isn't supported.
+   */
+  static const _tagsForWhichCreateContextualFragmentIsNotSupported =
+      const ['HEAD', 'AREA',
+      'BASE', 'BASEFONT', 'BR', 'COL', 'COLGROUP', 'EMBED', 'FRAME', 'FRAMESET',
+      'HR', 'IMAGE', 'IMG', 'INPUT', 'ISINDEX', 'LINK', 'META', 'PARAM',
+      'SOURCE', 'STYLE', 'TITLE', 'WBR'];
 
   /**
    * Parses the HTML fragment and sets it as the contents of this element.
@@ -31952,10 +31972,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");

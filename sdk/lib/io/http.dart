@@ -93,28 +93,23 @@ abstract class HttpStatus {
  *
  * Use [bindSecure] to create an HTTPS server.
  *
- * The server presents a certificate to the client. The certificate
- * chain and the private key are set in the SecurityContext
- * object that is passed to [bindSecure].
+ * The server presents a certificate to the client. In the following
+ * example, the certificate is named `localhost_cert` and comes from
+ * the database found in the `pkcert` directory.
  *
  *     import 'dart:io';
  *     import "dart:isolate";
  *
  *     main() {
- *       SecurityContext context = new SecurityContext();
- *       var chain =
- *           Platform.script.resolve('certificates/server_chain.pem')
- *           .toFilePath();
- *       var key =
- *           Platform.script.resolve('certificates/server_key.pem')
- *           .toFilePath();
- *       context.useCertificateChain(chain);
- *       context.usePrivateKey(key, password: 'dartdart');
+ *       var testPkcertDatabase = Platform.script.resolve('pkcert')
+ *                                        .toFilePath();
+ *       SecureSocket.initialize(database: testPkcertDatabase,
+ *                               password: 'dartdart');
  *
  *       HttpServer
  *           .bindSecure(InternetAddress.ANY_IP_V6,
  *                       443,
- *                       context)
+ *                       certificateName: 'localhost_cert')
  *           .then((server) {
  *             server.listen((HttpRequest request) {
  *               request.response.write('Hello, world!');
@@ -123,8 +118,10 @@ abstract class HttpStatus {
  *           });
  *     }
  *
- *  The certificates and keys are pem files, which can be created and
- *  managed with the tools in OpenSSL and BoringSSL.
+ * The certificate database is managed using the Mozilla certutil tool (see
+ * [NSS Tools certutil](https://developer.mozilla.org/en-US/docs/NSS/tools/NSS_Tools_certutil)).
+ * Dart uses the NSS library to handle SSL, and the Mozilla certutil
+ * must be used to manipulate the certificate database.
  *
  * ## Connect to a server socket
  *
@@ -294,7 +291,6 @@ abstract class HttpServer implements Stream<HttpRequest> {
 
   static Future<HttpServer> bindSecure(address,
                                        int port,
-                                       SecurityContext context,
                                        {int backlog: 0,
                                         bool v6Only: false,
                                         String certificateName,
@@ -302,7 +298,6 @@ abstract class HttpServer implements Stream<HttpRequest> {
                                         bool shared: false})
       => _HttpServer.bindSecure(address,
                                 port,
-                                context,
                                 backlog,
                                 v6Only,
                                 certificateName,
@@ -1336,7 +1331,7 @@ abstract class HttpClient {
    */
   String userAgent;
 
-  factory HttpClient({SecurityContext context}) => new _HttpClient(context);
+  factory HttpClient() => new _HttpClient();
 
   /**
    * Opens a HTTP connection.

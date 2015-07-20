@@ -14,19 +14,11 @@ import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 
 InternetAddress HOST;
-String localFile(path) => Platform.script.resolve(path).toFilePath();
-
-SecurityContext serverContext = new SecurityContext()
-  ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-                  password: 'dartdart');
-
-SecurityContext clientContext = new SecurityContext()
-  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
+const CERTIFICATE = "localhost_cert";
 
 void testSimpleBind() {
   asyncStart();
-  RawSecureServerSocket.bind(HOST, 0, serverContext).then((s) {
+  RawSecureServerSocket.bind(HOST, 0, CERTIFICATE).then((s) {
     Expect.isTrue(s.port > 0);
     s.close();
     asyncEnd();
@@ -38,7 +30,7 @@ void testInvalidBind() {
 
   // Bind to a unknown DNS name.
   asyncStart();
-  RawSecureServerSocket.bind("ko.faar.__hest__", 0, serverContext).then((_) {
+  RawSecureServerSocket.bind("ko.faar.__hest__", 0, CERTIFICATE).then((_) {
     Expect.fail("Failure expected");
   }).catchError((error) {
     Expect.isTrue(error is SocketException);
@@ -47,7 +39,7 @@ void testInvalidBind() {
 
   // Bind to an unavaliable IP-address.
   asyncStart();
-  RawSecureServerSocket.bind("8.8.8.8", 0, serverContext).then((_) {
+  RawSecureServerSocket.bind("8.8.8.8", 0, CERTIFICATE).then((_) {
     Expect.fail("Failure expected");
   }).catchError((error) {
     Expect.isTrue(error is SocketException);
@@ -56,10 +48,10 @@ void testInvalidBind() {
 
   // Bind to a port already in use.
   asyncStart();
-  RawSecureServerSocket.bind(HOST, 0, serverContext).then((s) {
+  RawSecureServerSocket.bind(HOST, 0, CERTIFICATE).then((s) {
     RawSecureServerSocket.bind(HOST,
                                s.port,
-                               serverContext).then((t) {
+                               CERTIFICATE).then((t) {
       s.close();
       t.close();
       Expect.fail("Multiple listens on same port");
@@ -72,14 +64,12 @@ void testInvalidBind() {
   });
 }
 
-void testSimpleConnect() {
+void testSimpleConnect(String certificate) {
   asyncStart();
-  RawSecureServerSocket.bind(HOST, 0, serverContext).then((server) {
-    var clientEndFuture =
-    RawSecureSocket.connect(HOST, server.port, context: clientContext);
+  RawSecureServerSocket.bind(HOST, 0, certificate).then((server) {
+    var clientEndFuture = RawSecureSocket.connect(HOST, server.port);
     server.listen((serverEnd) {
       clientEndFuture.then((clientEnd) {
-        // TODO(whesse): Shutdown(SEND) not supported on secure sockets.
         clientEnd.shutdown(SocketDirection.SEND);
         serverEnd.shutdown(SocketDirection.SEND);
         server.close();
@@ -89,11 +79,10 @@ void testSimpleConnect() {
   });
 }
 
-void testSimpleConnectFail(SecurityContext context, bool cancelOnError) {
+void testSimpleConnectFail(String certificate, bool cancelOnError) {
   asyncStart();
-  RawSecureServerSocket.bind(HOST, 0, context).then((server) {
-    var clientEndFuture =
-        RawSecureSocket.connect(HOST, server.port, context: clientContext)
+  RawSecureServerSocket.bind(HOST, 0, certificate).then((server) {
+    var clientEndFuture = RawSecureSocket.connect(HOST, server.port)
       .then((clientEnd) {
         Expect.fail("No client connection expected.");
       })
@@ -105,7 +94,7 @@ void testSimpleConnectFail(SecurityContext context, bool cancelOnError) {
       Expect.fail("No server connection expected.");
     },
     onError: (error) {
-      Expect.isTrue(error is HandshakeException);
+      Expect.isTrue(error is CertificateException);
       clientEndFuture.then((_) {
         if (!cancelOnError) server.close();
         asyncEnd();
@@ -117,10 +106,9 @@ void testSimpleConnectFail(SecurityContext context, bool cancelOnError) {
 
 void testServerListenAfterConnect() {
   asyncStart();
-  RawSecureServerSocket.bind(HOST, 0, serverContext).then((server) {
+  RawSecureServerSocket.bind(HOST, 0, CERTIFICATE).then((server) {
     Expect.isTrue(server.port > 0);
-    var clientEndFuture =
-        RawSecureSocket.connect(HOST, server.port, context: clientContext);
+    var clientEndFuture = RawSecureSocket.connect(HOST, server.port);
     new Timer(const Duration(milliseconds: 500), () {
       server.listen((serverEnd) {
         clientEndFuture.then((clientEnd) {
@@ -434,17 +422,15 @@ void testSimpleReadWrite({bool listenSecure,
 
   Future<RawSecureSocket> connectClient(int port) {
     if (connectSecure) {
-      return RawSecureSocket.connect(HOST, port, context: clientContext);
+      return RawSecureSocket.connect(HOST, port);
     } else if (!handshakeBeforeSecure) {
       return RawSocket.connect(HOST, port).then((socket) {
-        return RawSecureSocket.secure(socket, context: clientContext);
+        return RawSecureSocket.secure(socket);
       });
     } else {
       return RawSocket.connect(HOST, port).then((socket) {
         return runClientHandshake(socket).then((subscription) {
-            return RawSecureSocket.secure(socket,
-                                          context: clientContext,
-                                          subscription: subscription);
+            return RawSecureSocket.secure(socket, subscription: subscription);
         });
       });
     }
@@ -455,14 +441,14 @@ void testSimpleReadWrite({bool listenSecure,
       if (listenSecure) {
         runServer(client).then((_) => server.close());
       } else if (!handshakeBeforeSecure) {
-        RawSecureSocket.secureServer(client, serverContext).then((client) {
+        RawSecureSocket.secureServer(client, CERTIFICATE).then((client) {
           runServer(client).then((_) => server.close());
         });
       } else {
         runServerHandshake(client).then((secure) {
             RawSecureSocket.secureServer(
                 client,
-                serverContext,
+                CERTIFICATE,
                 subscription: secure[0],
                 bufferedData: secure[1]).then((client) {
             runServer(client).then((_) => server.close());
@@ -479,7 +465,7 @@ void testSimpleReadWrite({bool listenSecure,
 
   if (listenSecure) {
     RawSecureServerSocket.bind(
-        HOST, 0, serverContext).then(serverReady);
+        HOST, 0, CERTIFICATE).then(serverReady);
   } else {
     RawServerSocket.bind(HOST, 0).then(serverReady);
   }
@@ -504,7 +490,7 @@ testPausedSecuringSubscription(bool pausedServer, bool pausedClient) {
         }
         try {
           RawSecureSocket.secureServer(
-              client, serverContext, subscription: subscription)
+              client, CERTIFICATE, subscription: subscription)
             .catchError((_) {})
             .whenComplete(() {
               if (pausedServer) {
@@ -557,6 +543,10 @@ testPausedSecuringSubscription(bool pausedServer, bool pausedClient) {
 
 main() {
   asyncStart();
+  var certificateDatabase = Platform.script.resolve('pkcert').toFilePath();
+  SecureSocket.initialize(database: certificateDatabase,
+                          password: 'dartdart',
+                          useBuiltinRoots: false);
   InternetAddress.lookup("localhost").then((hosts) {
     HOST = hosts.first;
     runTests();
@@ -567,22 +557,12 @@ main() {
 runTests() {
   testSimpleBind();
   testInvalidBind();
-  testSimpleConnect();
-  SecurityContext context = new SecurityContext();
-  testSimpleConnectFail(context, false);
-  testSimpleConnectFail(context, true);
-  var chain =
-      Platform.script.resolve('certificates/untrusted_server_chain.pem')
-      .toFilePath();
-  context.useCertificateChain(chain);
-  testSimpleConnectFail(context, false);
-  testSimpleConnectFail(context, true);
-  var key =
-      Platform.script.resolve('certificates/untrusted_server_key.pem')
-       .toFilePath();
-  context.usePrivateKey(key, password: 'dartdart');
-  testSimpleConnectFail(context, false);
-  testSimpleConnectFail(context, true);
+  testSimpleConnect(CERTIFICATE);
+  testSimpleConnect("CN=localhost");
+  testSimpleConnectFail("not_a_nickname", false);
+  testSimpleConnectFail("CN=notARealDistinguishedName", false);
+  testSimpleConnectFail("not_a_nickname", true);
+  testSimpleConnectFail("CN=notARealDistinguishedName", true);
   testServerListenAfterConnect();
 
   testSimpleReadWrite(listenSecure: true,
@@ -595,13 +575,11 @@ runTests() {
                       handshakeBeforeSecure: false,
                       postponeSecure: false,
                       dropReads: false);
-
   testSimpleReadWrite(listenSecure: false,
                       connectSecure: true,
                       handshakeBeforeSecure: false,
                       postponeSecure: false,
                       dropReads: false);
-
   testSimpleReadWrite(listenSecure: false,
                       connectSecure: false,
                       handshakeBeforeSecure: false,

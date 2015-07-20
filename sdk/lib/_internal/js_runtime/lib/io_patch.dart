@@ -403,26 +403,12 @@ class SecureSocket {
   factory SecureSocket._(RawSecureSocket rawSocket) {
     throw new UnsupportedError("SecureSocket constructor");
   }
-}
-
-@patch
-class SecurityContext {
-  @patch
-  factory SecurityContext() {
-    throw new UnsupportedError("SecurityContext constructor");
-  }
 
   @patch
-  static SecurityContext get defaultContext {
-    throw new UnsupportedError("default SecurityContext getter");
-  }
-}
-
-@patch
-class X509Certificate {
-  @patch
-  factory X509Certificate() {
-    throw new UnsupportedError("X509Certificate constructor");
+  static void initialize({String database,
+                          String password,
+                          bool useBuiltinRoots: true}) {
+    throw new UnsupportedError("SecureSocket.initialize");
   }
 }
 

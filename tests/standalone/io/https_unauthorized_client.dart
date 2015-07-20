@@ -15,9 +15,9 @@ class ExpectException implements Exception {
   String message;
 }
 
-void expect(condition, message) {
+void expect(condition) {
   if (!condition) {
-    throw new ExpectException(message);
+    throw new ExpectException('');
   }
 }
 
@@ -31,19 +31,16 @@ Future runClients(int port) {
     testFutures.add(
         client.getUrl(Uri.parse('https://$HOST_NAME:$port/'))
           .then((HttpClientRequest request) {
-            expect(false, "Request succeeded");
+            expect(false);
           }, onError: (e) {
-            // Remove ArgumentError once null default context is supported.
-            expect(e is HandshakeException ||
-                   e is SocketException ||
-                   e is ArgumentError,
-                   "Error is wrong type: $e");
+            expect(e is HandshakeException || e is SocketException);
           }));
   }
   return Future.wait(testFutures);
 }
 
 void main(List<String> args) {
+  SecureSocket.initialize();
   runClients(int.parse(args[0]))
     .then((_) => print('SUCCESS'));
 }

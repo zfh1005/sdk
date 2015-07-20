@@ -13,19 +13,13 @@ import "dart:io";
 const HOST_NAME = "localhost";
 const CERTIFICATE = "localhost_cert";
 
-String localFile(path) => Platform.script.resolve(path).toFilePath();
-
-SecurityContext untrustedServerContext = new SecurityContext()
-  ..useCertificateChain(localFile('certificates/untrusted_server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/untrusted_server_key.pem'),
-                  password: 'dartdart');
-
-SecurityContext clientContext = new SecurityContext()
-  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
-
 Future<SecureServerSocket> runServer() {
+  SecureSocket.initialize(
+      database: Platform.script.resolve('pkcert').toFilePath(),
+      password: 'dartdart');
+
   return HttpServer.bindSecure(
-      HOST_NAME, 0, untrustedServerContext, backlog: 5)
+      HOST_NAME, 0, backlog: 5, certificateName: 'localhost_cert')
   .then((server) {
     server.listen((HttpRequest request) {
       request.listen((_) { }, onDone: () { request.response.close(); });
