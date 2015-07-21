@@ -13920,7 +13920,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *       element.style.background = 'red'; // Turns every child of body red.
    *     }
    */
-  List<Element> get children => new FilteredElementList(this);
+  List<Element> get children => new _ChildrenElementList._wrap(this);
 
   void set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
@@ -27712,8 +27712,6 @@ class Node extends EventTarget {
     return value == null ? super.toString() : value;
   }
 
-  List<Node> _childNodes;
-
   /**
    * A list of this node's children.
    *
@@ -27727,18 +27725,7 @@ class Node extends EventTarget {
   @DocsEditable()
   @Returns('NodeList')
   @Creates('NodeList')
-  List<Node> get childNodes {
-    if (_childNodes == null) {
-       List<Node> nodes = new List<Node>();
-       var jsCollection = _blink.BlinkNode.instance.childNodes_Getter_(unwrap_jso(this));
-       var collectionLen = jsCollection['length'];
-       for (var i = 0; i < collectionLen; i++) {
-         nodes.add(wrap_jso(jsCollection.callMethod('item', [i])));
-       }
-      _childNodes = nodes;
-    }
-    return _childNodes;
-  }
+  List<Node> get childNodes => _blink.BlinkNode.instance.childNodes_Getter_(unwrap_jso(this));
   // To suppress missing implicit constructor warnings.
   factory Node._() { throw new UnsupportedError("Not supported"); }
 
@@ -36756,10 +36743,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
