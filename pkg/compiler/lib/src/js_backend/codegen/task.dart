@@ -20,7 +20,7 @@ import '../../types/types.dart' show TypeMask, UnionTypeMask, FlatTypeMask,
     ForwardingTypeMask;
 import '../../elements/elements.dart';
 import '../../js/js.dart' as js;
-import '../../io/source_information.dart' show SourceInformationFactory;
+import '../../io/source_information.dart' show SourceInformationStrategy;
 import '../../tree_ir/tree_ir_builder.dart' as tree_builder;
 import '../../cps_ir/optimizers.dart';
 import '../../cps_ir/optimizers.dart' as cps_opt;
@@ -36,7 +36,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
   final ConstantSystem constantSystem;
   final Compiler compiler;
   final Glue glue;
-  final SourceInformationFactory sourceInformationFactory;
+  final SourceInformationStrategy sourceInformationFactory;
 
   // TODO(karlklose,sigurm): remove and update dart-doc of [compile].
   final FunctionCompiler fallbackCompiler;
@@ -46,7 +46,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
   IrBuilderTask get irBuilderTask => compiler.irBuilder;
 
   CpsFunctionCompiler(Compiler compiler, JavaScriptBackend backend,
-                      SourceInformationFactory sourceInformationFactory)
+                      SourceInformationStrategy sourceInformationFactory)
       : fallbackCompiler =
             new ssa.SsaFunctionCompiler(backend, sourceInformationFactory),
         this.sourceInformationFactory = sourceInformationFactory,
@@ -72,19 +72,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
         // switch.
         if (element.isNative ||
             element.isPatched ||
-            libraryName == 'origin library(dart:typed_data)' ||
-            // Using switch or try-finally.
-            library.isInternalLibrary && name == 'unwrapException' ||
-            library.isPlatformLibrary && className == 'IterableBase' ||
-            library.isInternalLibrary && className == 'Closure' ||
-            libraryName == 'origin library(dart:collection)' &&
-               name == 'mapToString' ||
-            libraryName == 'library(dart:html)' && name == 'sanitizeNode' ||
-            className == '_IsolateContext' ||
-            className == 'IsolateNatives' ||
-            className == '_Deserializer' ||
-            name == '_rootRun' ||
-            name == '_microtaskLoopEntry') {
+            libraryName == 'origin library(dart:typed_data)') {
           compiler.log('Using SSA compiler for platform element $element');
           return fallbackCompiler.compile(work);
         }
@@ -130,6 +118,10 @@ class CpsFunctionCompiler implements FunctionCompiler {
       }
     }
     traceGraph("IR Builder", cpsNode);
+    // Eliminating redundant phis before the unsugaring pass will make it
+    // insert fewer getInterceptor calls.
+    new RedundantPhiEliminator().rewrite(cpsNode);
+    traceGraph("Redundant phi elimination", cpsNode);
     new UnsugarVisitor(glue).rewrite(cpsNode);
     traceGraph("Unsugaring", cpsNode);
     return cpsNode;
@@ -184,8 +176,12 @@ class CpsFunctionCompiler implements FunctionCompiler {
     TypePropagator typePropagator = new TypePropagator(compiler);
     applyCpsPass(typePropagator);
     dumpTypedIR(cpsNode, typePropagator);
+    applyCpsPass(new ShrinkingReducer());
+    applyCpsPass(new MutableVariableEliminator());
+    applyCpsPass(new RedundantJoinEliminator());
     applyCpsPass(new RedundantPhiEliminator());
     applyCpsPass(new ShrinkingReducer());
+    applyCpsPass(new LetSinker());
 
     return cpsNode;
   }
@@ -234,7 +230,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
 
   js.Node attachPosition(js.Node node, AstElement element) {
     return node.withSourceInformation(
-        sourceInformationFactory.forContext(element)
+        sourceInformationFactory.createBuilderForContext(element)
             .buildDeclaration(element));
   }
 }

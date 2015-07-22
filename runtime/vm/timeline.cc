@@ -197,12 +197,12 @@ void TimelineEvent::PrintJSON(JSONStream* stream) const {
   obj.AddProperty("cat", stream_->name());
   obj.AddProperty64("tid", tid);
   obj.AddProperty64("pid", pid);
-  obj.AddProperty("ts", static_cast<double>(TimeOrigin()));
+  obj.AddPropertyTimeMillis("ts", TimeOrigin());
 
   switch (event_type()) {
     case kDuration: {
       obj.AddProperty("ph", "X");
-      obj.AddProperty("dur", static_cast<double>(TimeDuration()));
+      obj.AddPropertyTimeMillis("dur", TimeDuration());
     }
     break;
     case kInstant: {
@@ -371,7 +371,7 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
   intptr_t pid = OS::ProcessId();
   intptr_t len = OS::SNPrint(NULL, 0, format,
                              directory, pid, isolate->main_port());
-  char* filename = isolate->current_zone()->Alloc<char>(len + 1);
+  char* filename = Thread::Current()->zone()->Alloc<char>(len + 1);
   OS::SNPrint(filename, len + 1, format,
               directory, pid, isolate->main_port());
   void* file = (*file_open)(filename, true);

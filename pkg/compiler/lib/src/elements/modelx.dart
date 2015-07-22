@@ -8,6 +8,7 @@ import 'common.dart';
 import 'elements.dart';
 import '../constants/expressions.dart';
 import '../constants/constructors.dart';
+import '../helpers/helpers.dart';
 import '../tree/tree.dart';
 import '../util/util.dart';
 import '../resolution/resolution.dart';
@@ -114,7 +115,7 @@ abstract class ElementX extends Element with ElementCommon {
 
   SourceSpan get sourcePosition {
     if (position == null) return null;
-    Uri uri = compilationUnit.script.readableUri;
+    Uri uri = compilationUnit.script.resourceUri;
     return new SourceSpan(
         uri, position.charOffset, position.charOffset + position.charCount);
   }
@@ -651,6 +652,7 @@ class ScopeX {
 }
 
 class CompilationUnitElementX extends ElementX
+    with CompilationUnitElementCommon
     implements CompilationUnitElement {
   final Script script;
   PartOf partTag;
@@ -716,11 +718,6 @@ class CompilationUnitElementX extends ElementX
   }
 
   bool get hasMembers => !localMembers.isEmpty;
-
-  int compareTo(CompilationUnitElement other) {
-    if (this == other) return 0;
-    return '${script.readableUri}'.compareTo('${other.script.readableUri}');
-  }
 
   Element get analyzableElement => library;
 
@@ -1069,24 +1066,6 @@ class LibraryElementX
     return libraryTag.name.toString();
   }
 
-  /**
-   * Returns the library name (as defined by the library tag) or for script
-   * (which have no library tag) the script file name. The latter case is used
-   * to private 'library name' for scripts to use for instance in dartdoc.
-   *
-   * Note: the returned filename will still be escaped ("a%20b.dart" instead of
-   * "a b.dart").
-   */
-  String getLibraryOrScriptName() {
-    if (libraryTag != null) {
-      return libraryTag.name.toString();
-    } else {
-      // Use the file name as script name.
-      String path = canonicalUri.path;
-      return path.substring(path.lastIndexOf('/') + 1);
-    }
-  }
-
   Scope buildScope() => new LibraryScope(this);
 
   String toString() {
@@ -1097,11 +1076,6 @@ class LibraryElementX
     } else {
       return 'library(${canonicalUri})';
     }
-  }
-
-  int compareTo(LibraryElement other) {
-    if (this == other) return 0;
-    return getLibraryOrScriptName().compareTo(other.getLibraryOrScriptName());
   }
 
   accept(ElementVisitor visitor, arg) {
@@ -1146,6 +1120,8 @@ class PrefixElementX extends ElementX implements PrefixElement {
   void markAsDeferred(Import deferredImport) {
     _deferredImport = deferredImport;
   }
+
+  String toString() => '$kind($name)';
 }
 
 class TypedefElementX extends ElementX
@@ -1248,16 +1224,16 @@ class VariableList implements DeclarationSite {
 }
 
 abstract class ConstantVariableMixin implements VariableElement {
-  ConstantExpression _constant;
+  ConstantExpression constantCache;
 
   ConstantExpression get constant {
     if (isPatch) {
       ConstantVariableMixin originVariable = origin;
       return originVariable.constant;
     }
-    assert(invariant(this, _constant != null,
+    assert(invariant(this, constantCache != null,
         message: "Constant has not been computed for $this."));
-    return _constant;
+    return constantCache;
   }
 
   void set constant(ConstantExpression value) {
@@ -1266,9 +1242,13 @@ abstract class ConstantVariableMixin implements VariableElement {
       originVariable.constant = value;
       return null;
     }
-    assert(invariant(this, _constant == null || _constant == value,
-        message: "Constant has already been computed for $this."));
-    _constant = value;
+    assert(invariant(
+        this, constantCache == null || constantCache == value,
+        message: "Constant has already been computed for $this. "
+                 "Existing constant: "
+                 "${constantCache != null ? constantCache.getText() : ''}, "
+                 "New constant: ${value != null ? value.getText() : ''}."));
+    constantCache = value;
   }
 }
 
@@ -1966,6 +1946,25 @@ abstract class ConstantConstructorMixin implements ConstructorElement {
     return _constantConstructor;
   }
 
+  void set constantConstructor(ConstantConstructor value) {
+    if (isPatch) {
+      ConstantConstructorMixin originConstructor = origin;
+      originConstructor.constantConstructor = value;
+    } else {
+      assert(invariant(this, isConst,
+          message: "Constant constructor set on non-constant "
+                   "constructor $this."));
+      assert(invariant(this, !isFromEnvironmentConstructor,
+          message: "Constant constructor set on fromEnvironment "
+                   "constructor: $this."));
+      assert(invariant(this,
+          _constantConstructor == null || _constantConstructor == value,
+          message: "Constant constructor already computed for $this:"
+                   "Existing: $_constantConstructor, new: $value"));
+      _constantConstructor = value;
+    }
+  }
+
   bool get isFromEnvironmentConstructor {
     return name == 'fromEnvironment' &&
            library.isDartCore &&
@@ -2174,7 +2173,7 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
   }
 
   accept(ElementVisitor visitor, arg) {
-    return visitor.visitFunctionElement(this, arg);
+    return visitor.visitConstructorElement(this, arg);
   }
 }
 
@@ -2255,12 +2254,12 @@ abstract class TypeDeclarationElementX<T extends GenericType>
     // Create types and elements for type variable.
     Link<Node> nodes = parameters.nodes;
     List<DartType> arguments =
-        new List.generate(nodes.slowLength(), (_) {
+        new List.generate(nodes.slowLength(), (int index) {
       TypeVariable node = nodes.head;
       String variableName = node.name.source;
       nodes = nodes.tail;
       TypeVariableElementX variableElement =
-          new TypeVariableElementX(variableName, this, node);
+          new TypeVariableElementX(variableName, this, index, node);
       TypeVariableType variableType = new TypeVariableType(variableElement);
       variableElement.typeCache = variableType;
       return variableType;
@@ -2740,11 +2739,15 @@ class JumpTargetX implements JumpTarget {
 
 class TypeVariableElementX extends ElementX with AstElementMixin
     implements TypeVariableElement {
+  final int index;
   final Node node;
   TypeVariableType typeCache;
   DartType boundCache;
 
-  TypeVariableElementX(String name, TypeDeclarationElement enclosing, this.node)
+  TypeVariableElementX(String name,
+                       TypeDeclarationElement enclosing,
+                       this.index,
+                       this.node)
     : super(name, ElementKind.TYPE_VARIABLE, enclosing);
 
   TypeDeclarationElement get typeDeclaration => enclosingElement;

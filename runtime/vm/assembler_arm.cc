@@ -1563,7 +1563,16 @@ void Assembler::LoadIsolate(Register rd) {
 }
 
 
-void Assembler::LoadObject(Register rd, const Object& object, Condition cond) {
+void Assembler::LoadObjectHelper(Register rd,
+                                 const Object& object,
+                                 Condition cond,
+                                 bool is_unique) {
+  // Load common VM constants from the thread. This works also in places where
+  // no constant pool is set up (e.g. intrinsic code).
+  if (Thread::CanLoadFromThread(object)) {
+    ldr(rd, Address(THR, Thread::OffsetFromThread(object)), cond);
+    return;
+  }
   // Smis and VM heap objects are never relocated; do not use object pool.
   if (object.IsSmi()) {
     LoadImmediate(rd, reinterpret_cast<int32_t>(object.raw()), cond);
@@ -1574,10 +1583,23 @@ void Assembler::LoadObject(Register rd, const Object& object, Condition cond) {
   } else {
     // Make sure that class CallPattern is able to decode this load from the
     // object pool.
-    const int32_t offset =
-        ObjectPool::element_offset(object_pool_wrapper_.FindObject(object));
+    const int32_t offset = ObjectPool::element_offset(
+       is_unique ? object_pool_wrapper_.AddObject(object)
+                 : object_pool_wrapper_.FindObject(object));
     LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, cond);
   }
+}
+
+
+void Assembler::LoadObject(Register rd, const Object& object, Condition cond) {
+  LoadObjectHelper(rd, object, cond, false);
+}
+
+
+void Assembler::LoadUniqueObject(Register rd,
+                                 const Object& object,
+                                 Condition cond) {
+  LoadObjectHelper(rd, object, cond, true);
 }
 
 
@@ -1792,8 +1814,8 @@ void Assembler::StoreIntoObject(Register object,
   if (object != R0) {
     mov(R0, Operand(object));
   }
-  StubCode* stub_code = Isolate::Current()->stub_code();
-  BranchLink(&stub_code->UpdateStoreBufferLabel());
+  ldr(LR, Address(THR, Thread::update_store_buffer_entry_point_offset()));
+  blx(LR);
   PopList(regs);
   Bind(&done);
 }
@@ -1945,8 +1967,10 @@ void Assembler::LoadClassId(Register result, Register object, Condition cond) {
 
 void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(result != class_id);
-  LoadImmediate(result, Isolate::Current()->class_table()->TableAddress());
-  LoadFromOffset(kWord, result, result, 0);
+  LoadIsolate(result);
+  const intptr_t offset =
+      Isolate::class_table_offset() + ClassTable::table_offset();
+  LoadFromOffset(kWord, result, result, offset);
   ldr(result, Address(result, class_id, LSL, 2));
 }
 
@@ -1966,13 +1990,18 @@ void Assembler::CompareClassId(Register object,
 }
 
 
-void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
+void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
   static const intptr_t kSmiCidSource = kSmiCid << RawObject::kClassIdTagPos;
 
   LoadImmediate(TMP, reinterpret_cast<int32_t>(&kSmiCidSource) + 1);
   tst(object, Operand(kSmiTagMask));
   mov(TMP, Operand(object), NE);
   LoadClassId(result, TMP);
+}
+
+
+void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
+  LoadClassIdMayBeSmi(result, object);
   SmiTag(result);
 }
 
@@ -3317,23 +3346,39 @@ void Assembler::LeaveStubFrame() {
 
 void Assembler::LoadAllocationStatsAddress(Register dest,
                                            intptr_t cid,
-                                           Heap::Space space) {
+                                           bool inline_isolate) {
   ASSERT(dest != kNoRegister);
   ASSERT(dest != TMP);
   ASSERT(cid > 0);
-  Isolate* isolate = Isolate::Current();
-  ClassTable* class_table = isolate->class_table();
-  if (cid < kNumPredefinedCids) {
-    const uword class_heap_stats_table_address =
-        class_table->PredefinedClassHeapStatsTableAddress();
-    const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
-    LoadImmediate(dest, class_heap_stats_table_address + class_offset);
+  const intptr_t class_offset = ClassTable::ClassOffsetFor(cid);
+  if (inline_isolate) {
+    ClassTable* class_table = Isolate::Current()->class_table();
+    ClassHeapStats** table_ptr = class_table->TableAddressFor(cid);
+    if (cid < kNumPredefinedCids) {
+      LoadImmediate(dest, reinterpret_cast<uword>(*table_ptr) + class_offset);
+    } else {
+      LoadImmediate(dest, reinterpret_cast<uword>(table_ptr));
+      ldr(dest, Address(dest, 0));
+      AddImmediate(dest, class_offset);
+    }
   } else {
-    const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
-    LoadImmediate(dest, class_table->ClassStatsTableAddress());
-    ldr(dest, Address(dest, 0));
+    LoadIsolate(dest);
+    intptr_t table_offset =
+        Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+    ldr(dest, Address(dest, table_offset));
     AddImmediate(dest, class_offset);
   }
+}
+
+
+void Assembler::MaybeTraceAllocation(intptr_t cid,
+                                     Register temp_reg,
+                                     Label* trace) {
+  LoadAllocationStatsAddress(temp_reg, cid);
+  const uword state_offset = ClassHeapStats::state_offset();
+  ldr(temp_reg, Address(temp_reg, state_offset));
+  tst(temp_reg, Operand(ClassHeapStats::TraceAllocationMask()));
+  b(trace, NE);
 }
 
 
@@ -3355,11 +3400,9 @@ void Assembler::IncrementAllocationStats(Register stats_addr_reg,
 
 void Assembler::IncrementAllocationStatsWithSize(Register stats_addr_reg,
                                                  Register size_reg,
-                                                 intptr_t cid,
                                                  Heap::Space space) {
   ASSERT(stats_addr_reg != kNoRegister);
   ASSERT(stats_addr_reg != TMP);
-  ASSERT(cid > 0);
   const uword count_field_offset = (space == Heap::kNew) ?
     ClassHeapStats::allocated_since_gc_new_space_offset() :
     ClassHeapStats::allocated_since_gc_old_space_offset();
@@ -3387,6 +3430,10 @@ void Assembler::TryAllocate(const Class& cls,
     ASSERT(temp_reg != IP);
     const intptr_t instance_size = cls.instance_size();
     ASSERT(instance_size != 0);
+    // If this allocation is traced, program will jump to failure path
+    // (i.e. the allocation stub) which will allocate the object and trace the
+    // allocation call site.
+    MaybeTraceAllocation(cls.id(), temp_reg, failure);
     Heap* heap = Isolate::Current()->heap();
     Heap::Space space = heap->SpaceForAllocation(cls.id());
     const uword top_address = heap->TopAddress(space);
@@ -3408,7 +3455,7 @@ void Assembler::TryAllocate(const Class& cls,
     // next object start and store the class in the class field of object.
     str(instance_reg, Address(temp_reg));
 
-    LoadAllocationStatsAddress(temp_reg, cls.id(), space);
+    LoadAllocationStatsAddress(temp_reg, cls.id());
 
     ASSERT(instance_size >= kHeapObjectTag);
     AddImmediate(instance_reg, -instance_size + kHeapObjectTag);
@@ -3435,6 +3482,10 @@ void Assembler::TryAllocateArray(intptr_t cid,
                                  Register temp1,
                                  Register temp2) {
   if (FLAG_inline_alloc) {
+    // If this allocation is traced, program will jump to failure path
+    // (i.e. the allocation stub) which will allocate the object and trace the
+    // allocation call site.
+    MaybeTraceAllocation(cid, temp1, failure);
     Isolate* isolate = Isolate::Current();
     Heap* heap = isolate->heap();
     Heap::Space space = heap->SpaceForAllocation(cid);
@@ -3451,7 +3502,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     cmp(end_address, Operand(temp2));
     b(failure, CS);
 
-    LoadAllocationStatsAddress(temp2, cid, space);
+    LoadAllocationStatsAddress(temp2, cid);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
@@ -3467,7 +3518,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     str(temp1, FieldAddress(instance, Array::tags_offset()));  // Store tags.
 
     LoadImmediate(temp1, instance_size);
-    IncrementAllocationStatsWithSize(temp2, temp1, cid, space);
+    IncrementAllocationStatsWithSize(temp2, temp1, space);
   } else {
     b(failure);
   }

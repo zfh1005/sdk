@@ -4,6 +4,17 @@
 
 part of service;
 
+/// Helper function for canceling a Future<StreamSubscription>.
+Future cancelFutureSubscription(
+    Future<StreamSubscription> subscriptionFuture) async {
+  if (subscriptionFuture != null) {
+    var subscription = await subscriptionFuture;
+    return subscription.cancel();
+  } else {
+    return null;
+  }
+}
+
 /// An RpcException represents an exceptional event that happened
 /// while invoking an rpc.
 abstract class RpcException implements Exception {
@@ -426,6 +437,62 @@ class SourceLocation extends ServiceObject {
   }
 }
 
+class _EventStreamState {
+  VM _vm;
+  String streamId;
+
+  Function _onDone;
+
+  // A list of all subscribed controllers for this stream.
+  List _controllers = [];
+
+  // Completes when the listen rpc is finished.
+  Future _listenFuture;
+
+  // Completes when then cancel rpc is finished.
+  Future _cancelFuture;
+
+  _EventStreamState(this._vm, this.streamId, this._onDone);
+
+  Future _cancelController(StreamController controller) {
+    _controllers.remove(controller);
+    if (_controllers.isEmpty) {
+      assert(_listenFuture != null);
+      _listenFuture = null;
+      _cancelFuture = _vm._streamCancel(streamId);
+      _cancelFuture.then((_) {
+        if (_controllers.isEmpty) {
+          // No new listeners showed up during cancelation.
+          _onDone();
+        }
+      });
+    }
+    // No need to wait for _cancelFuture here.
+    return new Future.value(null);
+  }
+
+  Future<Stream> addStream() async {
+    var controller;
+    controller = new StreamController(
+        onCancel:() => _cancelController(controller));
+    _controllers.add(controller);
+    if (_cancelFuture != null) {
+      await _cancelFuture;
+    }
+    if (_listenFuture == null) {
+      _listenFuture = _vm._streamListen(streamId);
+    }
+    await _listenFuture;
+    return controller.stream;
+  }
+
+  void addEvent(ServiceEvent event) {
+    for (var controller in _controllers) {
+      controller.add(event);
+    }
+  }
+}
+
 /// State for a VM being inspected.
 abstract class VM extends ServiceObjectOwner {
   @reflectable VM get vm => this;
@@ -459,10 +526,7 @@ abstract class VM extends ServiceObjectOwner {
     update(toObservable({'id':'vm', 'type':'@VM'}));
   }
 
-  final StreamController<ServiceEvent> events =
-      new StreamController.broadcast();
-
-  void postServiceEvent(Map response, ByteData data) {
+  void postServiceEvent(String streamId, Map response, ByteData data) {
     var map = toObservable(response);
     assert(!map.containsKey('_data'));
     if (data != null) {
@@ -475,18 +539,22 @@ abstract class VM extends ServiceObjectOwner {
     }
 
     var eventIsolate = map['isolate'];
+    var event;
     if (eventIsolate == null) {
-      var event = new ServiceObject._fromMap(vm, map);
-      events.add(event);
+      event = new ServiceObject._fromMap(vm, map);
     } else {
       // getFromMap creates the Isolate if it hasn't been seen already.
       var isolate = getFromMap(map['isolate']);
-      var event = new ServiceObject._fromMap(isolate, map);
+      event = new ServiceObject._fromMap(isolate, map);
       if (event.kind == ServiceEvent.kIsolateExit) {
         _removeIsolate(isolate.id);
       }
-      isolate._onEvent(event);
-      events.add(event);
+    }
+    var eventStream = _eventStreams[streamId];
+    if (eventStream != null) {
+      eventStream.addEvent(event);
+    } else {
+      Logger.root.warning("Ignoring unexpected event on stream '${streamId}'");
     }
   }
 
@@ -586,16 +654,20 @@ abstract class VM extends ServiceObjectOwner {
     });
   }
 
+  void _dispatchEventToIsolate(ServiceEvent event) {
+    var isolate = event.isolate;
+    if (isolate != null) {
+      isolate._onEvent(event);
+    }
+  }
+
   Future<ObservableMap> _fetchDirect() async {
     if (!loaded) {
-      // TODO(turnidge): Instead of always listening to all streams,
-      // implement a stream abstraction in the service library so
-      // that we only subscribe to the streams we want.
-      await _streamListen('Isolate');
-      await _streamListen('Debug');
-      await _streamListen('GC');
-      await _streamListen('_Echo');
-      await _streamListen('_Graph');
+      // The vm service relies on these events to keep the VM and
+      // Isolate types up to date.
+      await listenEventStream(kIsolateStream, _dispatchEventToIsolate);
+      await listenEventStream(kDebugStream, _dispatchEventToIsolate);
+      await listenEventStream(_kGraphStream, _dispatchEventToIsolate);
     }
     return await invokeRpcNoUpgrade('getVM', {});
   }
@@ -609,6 +681,39 @@ abstract class VM extends ServiceObjectOwner {
       'streamId': streamId,
     };
     return invokeRpc('streamListen', params);
+  }
+
+  Future<ServiceObject> _streamCancel(String streamId) {
+    Map params = {
+      'streamId': streamId,
+    };
+    return invokeRpc('streamCancel', params);
+  }
+
+  // A map from stream id to event stream state.
+  Map<String,_EventStreamState> _eventStreams = {};
+
+  // Well-known stream ids.
+  static const kIsolateStream = 'Isolate';
+  static const kDebugStream = 'Debug';
+  static const kGCStream = 'GC';
+  static const kStdoutStream = 'Stdout';
+  static const kStderrStream = 'Stderr';
+  static const _kGraphStream = '_Graph';
+
+  /// Returns a single-subscription Stream object for a VM event stream.
+  Future<Stream> getEventStream(String streamId) async {
+    var eventStream = _eventStreams.putIfAbsent(
+        streamId, () => new _EventStreamState(
+            this, streamId, () => _eventStreams.remove(streamId)));
+    return eventStream.addStream();
+  }
+
+  /// Helper function for listening to an event stream.
+  Future<StreamSubscription> listenEventStream(String streamId,
+                                               Function function) async {
+    var stream = await getEventStream(streamId);
+    return stream.listen(function);
   }
 
   /// Force the VM to disconnect.
@@ -833,7 +938,7 @@ class HeapSnapshot {
     var result = [];
     for (ObjectVertex v in graph.getMostRetained(classId: classId,
                                                  limit: limit)) {
-      result.add(isolate.getObjectByAddress(v.address.toRadixString(16))
+      result.add(isolate.getObjectByAddress(v.address)
                         .then((ServiceObject obj) {
         if (obj is Instance) {
           // TODO(rmacnak): size/retainedSize are properties of all heap
@@ -849,6 +954,7 @@ class HeapSnapshot {
 
 /// State for a running isolate.
 class Isolate extends ServiceObjectOwner with Coverage {
+  static const kLoggingStream = '_Logging';
   @reflectable VM get vm => owner;
   @reflectable Isolate get isolate => this;
   @observable int number;
@@ -1291,6 +1397,67 @@ class Isolate extends ServiceObjectOwner with Coverage {
     return invokeRpc('resume', {'step': 'Out'});
   }
 
+
+  static const int kFirstResume = 0;
+  static const int kSecondResume = 1;
+  /// result[kFirstResume] completes after the inital resume. The UI should
+  /// wait on this future because some other breakpoint may be hit before the
+  /// async continuation.
+  /// result[kSecondResume] completes after the second resume. Tests should
+  /// wait on this future to avoid confusing the pause event at the
+  /// state-machine switch with the pause event after the state-machine switch.
+  List<Future> asyncStepOver() {
+    Completer firstResume = new Completer();
+    Completer secondResume = new Completer();
+    var subscription;
+
+    handleError(error) {
+      if (subscription != null) {
+        subscription.cancel();
+        subscription = null;
+      }
+      firstResume.completeError(error);
+      secondResume.completeError(error);
+    }
+
+    if ((pauseEvent == null) ||
+        (pauseEvent.kind != ServiceEvent.kPauseBreakpoint) ||
+        (pauseEvent.asyncContinuation == null)) {
+      handleError(new Exception("No async continuation available"));
+    } else {
+      Instance continuation = pauseEvent.asyncContinuation;
+      assert(continuation.isClosure);
+      addBreakOnActivation(continuation).then((Breakpoint continuationBpt) {
+        vm.getEventStream(VM.kDebugStream).then((stream) {
+          var onResume = firstResume;
+          subscription = stream.listen((ServiceEvent event) {
+            if ((event.kind == ServiceEvent.kPauseBreakpoint) &&
+                (event.breakpoint == continuationBpt)) {
+              // We are stopped before state-machine dispatch; step-over to
+              // reach user code.
+              removeBreakpoint(continuationBpt).then((_) {
+                onResume = secondResume;
+                stepOver().catchError(handleError);
+              });
+            } else if (event.kind == ServiceEvent.kResume) {
+              if (onResume == secondResume) {
+                subscription.cancel();
+                subscription = null;
+              }
+              if (onResume != null) {
+                onResume.complete(this);
+                onResume = null;
+              }
+            }
+          });
+          resume().catchError(handleError);
+        }).catchError(handleError);
+      }).catchError(handleError);
+    }
+
+    return [firstResume.future, secondResume.future];
+  }
+
   Future setName(String newName) {
     return invokeRpc('setName', {'name': newName});
   }
@@ -1486,6 +1653,15 @@ class DartError extends ServiceObject {
   String toString() => 'DartError($message)';
 }
 
+Level _findLogLevel(int value) {
+  for (var level in Level.LEVELS) {
+    if (level.value == value) {
+      return level;
+    }
+  }
+  return new Level('$value', value);
+}
+
 /// A [ServiceEvent] is an asynchronous event notification from the vm.
 class ServiceEvent extends ServiceObject {
   /// The possible 'kind' values.
@@ -1506,6 +1682,7 @@ class ServiceEvent extends ServiceObject {
   static const kInspect                = 'Inspect';
   static const kDebuggerSettingsUpdate = '_DebuggerSettingsUpdate';
   static const kConnectionClosed       = 'ConnectionClosed';
+  static const kLogging                = '_Logging';
 
   ServiceEvent._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -1517,11 +1694,14 @@ class ServiceEvent extends ServiceObject {
   @observable Breakpoint breakpoint;
   @observable Frame topFrame;
   @observable Instance exception;
+  @observable Instance asyncContinuation;
   @observable ServiceObject inspectee;
   @observable ByteData data;
   @observable int count;
   @observable String reason;
   @observable String exceptions;
+  @observable String bytesAsString;
+  @observable Map logRecord;
   int chunkIndex, chunkCount, nodeCount;
 
   @observable bool get isPauseEvent {
@@ -1555,6 +1735,9 @@ class ServiceEvent extends ServiceObject {
     if (map['exception'] != null) {
       exception = map['exception'];
     }
+    if (map['_asyncContinuation'] != null) {
+      asyncContinuation = map['_asyncContinuation'];
+    }
     if (map['inspectee'] != null) {
       inspectee = map['inspectee'];
     }
@@ -1576,6 +1759,16 @@ class ServiceEvent extends ServiceObject {
     if (map['_debuggerSettings'] != null &&
         map['_debuggerSettings']['_exceptions'] != null) {
       exceptions = map['_debuggerSettings']['_exceptions'];
+    }
+    if (map['bytes'] != null) {
+      var bytes = decodeBase64(map['bytes']);
+      bytesAsString = UTF8.decode(bytes);
+    }
+    if (map['logRecord'] != null) {
+      logRecord = map['logRecord'];
+      logRecord['time'] =
+          new DateTime.fromMillisecondsSinceEpoch(logRecord['time'].toInt());
+      logRecord['level'] = _findLogLevel(logRecord['level']);
     }
   }
 
@@ -1793,7 +1986,7 @@ class Class extends ServiceObject with Coverage {
   final AllocationCount promotedByLastNewGC = new AllocationCount();
 
   @observable bool get hasNoAllocations => newSpace.empty && oldSpace.empty;
-
+  @observable bool traceAllocations = false;
   @reflectable final fields = new ObservableList<Field>();
   @reflectable final functions = new ObservableList<ServiceFunction>();
 
@@ -1860,6 +2053,9 @@ class Class extends ServiceObject with Coverage {
     }
     error = map['error'];
 
+    traceAllocations =
+        (map['_traceAllocations'] != null) ? map['_traceAllocations'] : false;
+
     var allocationStats = map['_allocationStats'];
     if (allocationStats != null) {
       newSpace.update(allocationStats['new']);
@@ -1880,6 +2076,19 @@ class Class extends ServiceObject with Coverage {
 
   Future<ServiceObject> evaluate(String expression) {
     return isolate._eval(this, expression);
+  }
+
+  Future<ServiceObject> setTraceAllocations(bool enable) {
+    return isolate.invokeRpc('_setTraceClassAllocation', {
+        'enable': enable,
+        'classId': id,
+      });
+  }
+
+  Future<ServiceObject> getAllocationSamples([String tags = 'None']) {
+    var params = { 'tags': tags,
+                   'classId': id };
+    return isolate.invokeRpc('_getAllocationSamples', params);
   }
 
   String toString() => 'Class($vmName)';

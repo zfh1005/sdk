@@ -9,7 +9,7 @@ import 'dart:collection' show Queue;
 import 'dart:profiler' show
     UserTag;
 
-import '../compiler.dart' as api;
+import '../compiler_new.dart' as api;
 import 'cache_strategy.dart';
 import 'closure.dart' as closureMapping;
 import 'compile_time_constants.dart';
@@ -43,6 +43,7 @@ import 'library_loader.dart'
          LibraryLoaderTask,
          LoadedLibraries;
 import 'mirrors_used.dart' show MirrorUsageAnalyzerTask;
+import 'null_compiler_output.dart';
 import 'native/native.dart' as native;
 import 'ordered_typeset.dart';
 import 'patch_parser.dart';
@@ -52,12 +53,14 @@ import 'resolution/semantic_visitor.dart';
 import 'resolution/send_structure.dart';
 import 'resolution/operators.dart' as op;
 import 'scanner/scannerlib.dart';
+import 'serialization/task.dart';
 import 'ssa/ssa.dart';
 import 'io/source_file.dart' show SourceFile;
 import 'tracer.dart' show Tracer;
 import 'tree/tree.dart';
 import 'types/types.dart' as ti;
 import 'universe/universe.dart';
+import 'universe/class_set.dart';
 import 'util/characters.dart' show $_;
 import 'util/uri_extras.dart' as uri_extras show relativize;
 import 'util/util.dart';

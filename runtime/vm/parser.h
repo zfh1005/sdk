@@ -41,7 +41,7 @@ struct TopLevel;
 class ParsedFunction : public ZoneAllocated {
  public:
   ParsedFunction(Thread* thread, const Function& function)
-      : isolate_(thread->isolate()),
+      : thread_(thread),
         function_(function),
         code_(Code::Handle(zone(), function.unoptimized_code())),
         node_sequence_(NULL),
@@ -150,11 +150,11 @@ class ParsedFunction : public ZoneAllocated {
   void record_await() { have_seen_await_expr_ = true; }
   bool have_seen_await() const { return have_seen_await_expr_; }
 
-  Isolate* isolate() const { return isolate_; }
-  Zone* zone() const { return isolate()->current_zone(); }
+  Isolate* isolate() const { return thread_->isolate(); }
+  Zone* zone() const { return thread_->zone(); }
 
  private:
-  Isolate* isolate_;
+  Thread* thread_;
   const Function& function_;
   Code& code_;
   SequenceNode* node_sequence_;
@@ -432,6 +432,12 @@ class Parser : public ValueObject {
   RawAbstractType* ParseType(ClassFinalizer::FinalizationKind finalization,
                              bool allow_deferred_type = false,
                              bool consume_unresolved_prefix = true);
+  RawAbstractType* ParseType(
+      ClassFinalizer::FinalizationKind finalization,
+      bool allow_deferred_type,
+      bool consume_unresolved_prefix,
+      LibraryPrefix* prefix);
+
   void ParseTypeParameters(const Class& cls);
   RawTypeArguments* ParseTypeArguments(
       ClassFinalizer::FinalizationKind finalization);
@@ -763,14 +769,16 @@ class Parser : public ValueObject {
                           ArgumentListNode* arguments);
   String& Interpolate(const GrowableArray<AstNode*>& values);
   AstNode* MakeAssertCall(intptr_t begin, intptr_t end);
-  AstNode* ThrowTypeError(intptr_t type_pos, const AbstractType& type);
+  AstNode* ThrowTypeError(intptr_t type_pos, const AbstractType& type,
+                           LibraryPrefix* prefix = NULL);
   AstNode* ThrowNoSuchMethodError(intptr_t call_pos,
                                   const Class& cls,
                                   const String& function_name,
                                   ArgumentListNode* function_arguments,
                                   InvocationMirror::Call call,
                                   InvocationMirror::Type type,
-                                  const Function* func);
+                                  const Function* func,
+                                  const LibraryPrefix* prefix = NULL);
 
   void SetupSavedTryContext(LocalVariable* saved_try_context);
 
@@ -799,9 +807,10 @@ class Parser : public ValueObject {
   RawInstance* TryCanonicalize(const Instance& instance, intptr_t token_pos);
 
   Isolate* isolate() const { return isolate_; }
-  Zone* zone() const { return isolate()->current_zone(); }
+  Zone* zone() const { return thread_->zone(); }
 
   Isolate* isolate_;  // Cached current isolate.
+  Thread* thread_;
 
   Script& script_;
   TokenStream::Iterator tokens_iterator_;

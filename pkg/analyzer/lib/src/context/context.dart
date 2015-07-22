@@ -167,6 +167,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   StreamController<SourcesChangedEvent> _onSourcesChangedController;
 
   /**
+   * A subscription for a stream of events indicating when files are (and are
+   * not) being implicitly analyzed.
+   */
+  StreamController<ImplicitAnalysisEvent> _implicitAnalysisEventsController;
+
+  /**
    * The listeners that are to be notified when various analysis results are
    * produced in this context.
    */
@@ -220,6 +226,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _taskManager, <WorkManager>[dartWorkManager, htmlWorkManager], this);
     _onSourcesChangedController =
         new StreamController<SourcesChangedEvent>.broadcast();
+    _implicitAnalysisEventsController =
+        new StreamController<ImplicitAnalysisEvent>.broadcast();
   }
 
   @override
@@ -239,8 +247,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         (this._options.hint && !options.hint) ||
         (this._options.lint && !options.lint) ||
         this._options.preserveComments != options.preserveComments ||
-        this._options.enableNullAwareOperators !=
-            options.enableNullAwareOperators ||
         this._options.enableStrictCallChecks != options.enableStrictCallChecks;
     int cacheSize = options.cacheSize;
     if (this._options.cacheSize != cacheSize) {
@@ -251,7 +257,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.generateImplicitErrors = options.generateImplicitErrors;
     this._options.generateSdkErrors = options.generateSdkErrors;
     this._options.dart2jsHint = options.dart2jsHint;
-    this._options.enableNullAwareOperators = options.enableNullAwareOperators;
     this._options.enableStrictCallChecks = options.enableStrictCallChecks;
     this._options.hint = options.hint;
     this._options.incremental = options.incremental;
@@ -305,6 +310,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   List<Source> get htmlSources => _getSources(SourceKind.HTML);
+
+  @override
+  Stream<ImplicitAnalysisEvent> get implicitAnalysisEvents =>
+      _implicitAnalysisEventsController.stream;
 
   @override
   bool get isDisposed => _disposed;
@@ -678,6 +687,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     _pendingFutureTargets.clear();
+    _privatePartition.dispose();
   }
 
   @override
@@ -730,6 +740,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         entry.modificationTime = getModificationStamp(target);
       }
       _cache.put(entry);
+      if (target is Source) {
+        _implicitAnalysisEventsController
+            .add(new ImplicitAnalysisEvent(target, true));
+      }
     }
     return entry;
   }
@@ -954,7 +968,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     bool changed = newContents != originalContents;
     if (newContents != null) {
-      if (newContents != originalContents) {
+      if (changed) {
         if (!analysisOptions.incremental ||
             !_tryPoorMansIncrementalResolution(source, newContents)) {
           _sourceChanged(source);
@@ -965,22 +979,24 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         entry.modificationTime = _contentCache.getModificationStamp(source);
       }
     } else if (originalContents != null) {
-      changed = newContents != originalContents;
       // We are removing the overlay for the file, check if the file's
       // contents is the same as it was in the overlay.
       try {
         TimestampedData<String> fileContents = getContents(source);
-        String fileContentsData = fileContents.data;
-        if (fileContentsData == originalContents) {
-          entry.setValue(CONTENT, fileContentsData, TargetedResult.EMPTY_LIST);
-          entry.modificationTime = fileContents.modificationTime;
+        newContents = fileContents.data;
+        entry.modificationTime = fileContents.modificationTime;
+        if (newContents == originalContents) {
+          entry.setValue(CONTENT, newContents, TargetedResult.EMPTY_LIST);
           changed = false;
         }
       } catch (e) {}
       // If not the same content (e.g. the file is being closed without save),
       // then force analysis.
       if (changed) {
-        _sourceChanged(source);
+        if (!analysisOptions.incremental ||
+            !_tryPoorMansIncrementalResolution(source, newContents)) {
+          _sourceChanged(source);
+        }
       }
     }
     if (notify && changed) {
@@ -1094,7 +1110,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       setValue(LIBRARY_ELEMENT3, library);
       setValue(LIBRARY_ELEMENT4, library);
       setValue(LIBRARY_ELEMENT5, library);
-      setValue(LIBRARY_ELEMENT6, library);
       setValue(LINE_INFO, new LineInfo(<int>[0]));
       setValue(PARSE_ERRORS, AnalysisError.NO_ERRORS);
       entry.setState(PARSED_UNIT, CacheState.FLUSHED);
@@ -1220,7 +1235,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     for (Source source in missingSources) {
       if (getLibrariesContaining(source).isEmpty &&
           getLibrariesDependingOn(source).isEmpty) {
-        _cache.remove(source);
+        _removeFromCache(source);
         removalCount++;
       }
     }
@@ -1247,6 +1262,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return changedSources.length > 0;
   }
 
+  @deprecated
   @override
   void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
       DataDescriptor rowDesc, CacheState state)) {
@@ -1312,9 +1328,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 //    }
   }
 
-  /**
-   * Visit all entries of the content cache.
-   */
+  @override
   void visitContentCache(ContentCacheVisitor visitor) {
     _contentCache.accept(visitor);
   }
@@ -1429,6 +1443,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     entry.modificationTime = getModificationStamp(source);
     entry.explicitlyAdded = explicitlyAdded;
     _cache.put(entry);
+    if (!explicitlyAdded) {
+      _implicitAnalysisEventsController
+          .add(new ImplicitAnalysisEvent(source, true));
+    }
     return entry;
   }
 
@@ -1639,6 +1657,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
   }
 
+  void _removeFromCache(Source source) {
+    CacheEntry entry = _cache.remove(source);
+    if (entry != null && !entry.explicitlyAdded) {
+      _implicitAnalysisEventsController
+          .add(new ImplicitAnalysisEvent(source, false));
+    }
+  }
+
   /**
    * Remove the given [source] from the priority order if it is in the list.
    */
@@ -1660,6 +1686,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * that referenced the source before it existed.
    */
   void _sourceAvailable(Source source) {
+    // TODO(brianwilkerson) This method needs to check whether the source was
+    // previously being implicitly analyzed. If so, the cache entry needs to be
+    // update to reflect the new status and an event needs to be generated to
+    // inform clients that it is no longer being implicitly analyzed.
     CacheEntry entry = _cache.get(source);
     if (entry == null) {
       _createCacheEntry(source, true);
@@ -1719,8 +1749,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               dartDelta.hasDirectiveChange = unitDelta.hasDirectiveChange;
               unitDelta.addedDeclarations.forEach(dartDelta.elementAdded);
               unitDelta.removedDeclarations.forEach(dartDelta.elementRemoved);
-              print(
-                  'dartDelta: add=${dartDelta.addedNames} remove=${dartDelta.removedNames}');
+//              print(
+//                  'dartDelta: add=${dartDelta.addedNames} remove=${dartDelta.removedNames}');
               delta = dartDelta;
               entry.setState(CONTENT, CacheState.INVALID, delta: delta);
               return;
@@ -1740,7 +1770,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * Record that the give [source] has been deleted.
    */
   void _sourceDeleted(Source source) {
-    // TODO(brianwilkerson) Implement this.
+    // TODO(brianwilkerson) Implement or remove this.
 //    SourceEntry sourceEntry = _cache.get(source);
 //    if (sourceEntry is HtmlEntry) {
 //      HtmlEntry htmlEntry = sourceEntry;
@@ -1771,7 +1801,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * Record that the given [source] has been removed.
    */
   void _sourceRemoved(Source source) {
-    _cache.remove(source);
+    _removeFromCache(source);
     _removeFromPriorityOrder(source);
   }
 
@@ -1779,9 +1809,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * TODO(scheglov) A hackish, limited incremental resolution implementation.
    */
   bool _tryPoorMansIncrementalResolution(Source unitSource, String newCode) {
-    if (AnalysisEngine.instance.limitInvalidationInTaskModel) {
-      return false;
-    }
     return PerformanceStatistics.incrementalAnalysis.makeCurrentWhile(() {
       incrementalResolutionValidation_lastUnitSource = null;
       incrementalResolutionValidation_lastLibrarySource = null;

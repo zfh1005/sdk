@@ -620,6 +620,15 @@ Isolate | IsolateStart, IsolateExit, IsolateUpdate
 Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect
 GC | GC
 
+Additionally, some embedders provide the _Stdout_ and _Stderr_
+streams.  These streams allow the client to subscribe to writes to
+stdout and stderr.
+
+streamId | event types provided
+-------- | -----------
+Stdout | WriteEvent
+Stderr | WriteEvent
+
 It is considered a _backwards compatible_ change to add a new type of event to an existing stream.
 Clients should be written to handle this gracefully, perhaps by warning and ignoring.
 
@@ -796,7 +805,9 @@ class Class extends Object {
   @Class super [optional];
 
   // A list of interface types for this class.
-  @Type[] interfaces;
+  //
+  // The value will be of the kind: Type.
+  @Instance[] interfaces;
 
   // A list of fields in this class. Does not include fields from
   // superclasses.
@@ -836,7 +847,7 @@ class @Code extends @Object {
 _@Code_ is a reference to a _Code_ object.
 
 ```
-class @Code extends @Object {
+class Code extends @Object {
   // A name for this code object.
   string name;
 
@@ -990,6 +1001,11 @@ class Event extends Response {
   // The exception associated with this event, if this is a
   // PauseException event.
   @Instance exception [optional];
+
+  // An array of bytes, encoded as a base64 string.
+  //
+  // This is provided for the WriteEvent event.
+  string bytes [optional];
 }
 ```
 
@@ -1042,7 +1058,10 @@ enum EventKind {
   BreakpointRemoved,
 
   // A garbage collection event.
-  GC
+  GC,
+
+  // Notification of bytes written, for example, to stdout/stderr.
+  WriteEvent
 }
 ```
 
@@ -1061,7 +1080,10 @@ class @Field extends @Object {
   @Object owner;
 
   // The declared type of this field.
-  @Type declaredType;
+  //
+  // The value will always be of one of the kinds:
+  // Type, TypeRef, TypeParameter, BoundedType.
+  @Instance declaredType;
 
   // Is this field const?
   bool const;
@@ -1086,7 +1108,10 @@ class Field extends Object {
   @Object owner;
 
   // The declared type of this field.
-  @Type declaredType;
+  //
+  // The value will always be of one of the kinds:
+  // Type, TypeRef, TypeParameter, BoundedType.
+  @Instance declaredType;
 
   // Is this field const?
   bool const;
@@ -1136,10 +1161,10 @@ A _Flag_ represents a single VM command line flag.
 ```
 class FlagList extends Response {
   // A list of all flags which are set to default values.
-  unmodifiedFlags []Flag
+  Flag[] unmodifiedFlags;
 
   // A list of all flags which have been modified by the user.
-  modifiedFlags []Flag
+  Flag[] modifiedFlags;
 }
 ```
 
@@ -1170,11 +1195,10 @@ class @Function extends @Object {
   @Library|@Class|@Function owner;
 
   // Is this function static?
-  bool static
+  bool static;
 
   // Is this function const?
   bool const;
-
 }
 ```
 
@@ -1182,7 +1206,6 @@ An _@Function_ is a reference to a _Function_.
 
 
 ```
-// A Dart language function.
 class Function extends Object {
   // The name of this function.
   string name;
@@ -1269,7 +1292,7 @@ class @Instance extends @Object {
   //
   // Provided for instance kinds:
   //   RegExp
-  @String pattern [optional];
+  String pattern [optional];
 }
 ```
 
@@ -1391,14 +1414,14 @@ class Instance extends Object {
   //
   // Provided for instance kinds:
   //   RegExp
-  @String pattern [optional];
-  
+  String pattern [optional];
+
   // The key for a WeakProperty instance.
   //
   // Provided for instance kinds:
   //   WeakProperty
   @Instance propertyKey [optional];
-  
+
   // The key for a WeakProperty instance.
   //
   // Provided for instance kinds:
@@ -1421,7 +1444,7 @@ class Instance extends Object {
   // - or -
   // the referent of a TypeRef instance.
   //
-  // The value will always be one of:
+  // The value will always be of one of the kinds:
   // Type, TypeRef, TypeParameter, BoundedType.
   //
   // Provided for instance kinds:
@@ -1431,7 +1454,7 @@ class Instance extends Object {
 
   // The bound of a TypeParameter or BoundedType.
   //
-  // The value will always be one of:
+  // The value will always be of one of the kinds:
   // Type, TypeRef, TypeParameter, BoundedType.
   //
   // Provided for instance kinds:
@@ -1446,7 +1469,7 @@ An _Instance_ represents an instance of the Dart language class _Object_.
 ### InstanceKind
 
 ```
-enum {
+enum InstanceKind {
   // A general instance of the Dart class Object.
   PlainInstance,
 
@@ -1698,7 +1721,7 @@ A _Null_ object represents the Dart language value null.
 class @Object extends Response {
   // A unique identifier for an Object. Passed to the
   // getObject RPC to load this Object.
-  string id
+  string id;
 }
 ```
 
@@ -1832,7 +1855,7 @@ tokenPos | line | column
 
 ```
 class SourceLocation extends Response {
-  // The script contaiinging the source location.
+  // The script containing the source location.
   @Script script;
 
   // The first token of the location.
@@ -1849,7 +1872,7 @@ some script.
 ### Stack
 
 ```
-class Stack {
+class Stack extends Response {
   Frame[] frames;
   Message[] messages;
 }
@@ -1893,7 +1916,10 @@ class TypeArguments extends Object {
   string name;
 
   // A list of types.
-  @Type[] types;
+  //
+  // The value will always be one of the kinds:
+  // Type, TypeRef, TypeParameter, BoundedType.
+  @Instance[] types;
 }
 ```
 
@@ -1953,10 +1979,10 @@ class VM extends Response {
   // The time that the VM started in milliseconds since the epoch.
   //
   // Suitable to pass to DateTime.fromMillisecondsSinceEpoch.
-  int startTime
+  int startTime;
 
   // A list of isolates running in the VM.
-  @Isolate[] isolates
+  @Isolate[] isolates;
 }
 ```
 

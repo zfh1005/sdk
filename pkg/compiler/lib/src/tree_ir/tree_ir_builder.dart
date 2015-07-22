@@ -54,15 +54,6 @@ class Builder implements cps_ir.Visitor<Node> {
   // is the mapping from continuations to labels.
   final Map<cps_ir.Continuation, Label> labels = <cps_ir.Continuation, Label>{};
 
-  /// A stack of singly-used labels that can be safely inlined at their use
-  /// site.
-  ///
-  /// Code for continuations with exactly one use is inlined at the use site.
-  /// This is not safe if the code is moved inside the scope of an exception
-  /// handler (i.e., into a try block).  We keep a stack of singly-referenced
-  /// continuations that are in scope without crossing a binding for a handler.
-  List<cps_ir.Continuation> safeForInlining = <cps_ir.Continuation>[];
-
   ExecutableElement currentElement;
   /// The 'this' Parameter for currentElement or the enclosing method.
   cps_ir.Parameter thisParameter;
@@ -267,14 +258,12 @@ class Builder implements cps_ir.Visitor<Node> {
     internalError(CURRENT_ELEMENT_SPANNABLE, 'Unexpected IR node: $node');
   }
 
-  Statement visitSetField(cps_ir.SetField node) {
-    return new ExpressionStatement(
-        new SetField(getVariableUse(node.object),
-                     node.field,
-                     getVariableUse(node.value)),
-        visit(node.body));
+  Expression visitSetField(cps_ir.SetField node) {
+    return new SetField(getVariableUse(node.object),
+                        node.field,
+                        getVariableUse(node.value));
   }
-
+  
   Expression visitInterceptor(cps_ir.Interceptor node) {
     return new Interceptor(getVariableUse(node.input), node.interceptedClasses);
   }
@@ -283,11 +272,13 @@ class Builder implements cps_ir.Visitor<Node> {
     return new CreateInstance(
         node.classElement,
         translateArguments(node.arguments),
-        translateArguments(node.typeInformation));
+        translateArguments(node.typeInformation),
+        node.sourceInformation);
   }
 
   Expression visitGetField(cps_ir.GetField node) {
-    return new GetField(getVariableUse(node.object), node.field);
+    return new GetField(getVariableUse(node.object), node.field,
+        objectIsNotNull: node.objectIsNotNull);
   }
 
   Expression visitCreateBox(cps_ir.CreateBox node) {
@@ -308,26 +299,22 @@ class Builder implements cps_ir.Visitor<Node> {
 
   Statement visitLetPrim(cps_ir.LetPrim node) {
     Variable variable = getVariable(node.primitive);
-
-    // Don't translate unused primitives.
-    if (variable == null) return visit(node.body);
-
     Expression value = visit(node.primitive);
-    return Assign.makeStatement(variable, value, visit(node.body));
+    if (node.primitive.hasAtLeastOneUse) {
+      return Assign.makeStatement(variable, value, visit(node.body));
+    } else {
+      return new ExpressionStatement(value, visit(node.body));
+    }
   }
 
   Statement visitLetCont(cps_ir.LetCont node) {
     // Introduce labels for continuations that need them.
-    int safeForInliningLengthOnEntry = safeForInlining.length;
     for (cps_ir.Continuation continuation in node.continuations) {
-      if (continuation.hasMultipleUses) {
+      if (continuation.hasMultipleUses || continuation.isRecursive) {
         labels[continuation] = new Label();
-      } else {
-        safeForInlining.add(continuation);
       }
     }
     Statement body = visit(node.body);
-    safeForInlining.length = safeForInliningLengthOnEntry;
     // Continuations are bound at the same level, but they have to be
     // translated as if nested.  This is because the body can invoke any
     // of them from anywhere, so it must be nested inside all of them.
@@ -352,10 +339,7 @@ class Builder implements cps_ir.Visitor<Node> {
   }
 
   Statement visitLetHandler(cps_ir.LetHandler node) {
-    List<cps_ir.Continuation> saved = safeForInlining;
-    safeForInlining = <cps_ir.Continuation>[];
     Statement tryBody = visit(node.body);
-    safeForInlining = saved;
     List<Variable> catchParameters =
         node.handler.parameters.map(getVariable).toList();
     Statement catchBody = visit(node.handler.body);
@@ -366,15 +350,17 @@ class Builder implements cps_ir.Visitor<Node> {
     // Calls are translated to direct style.
     List<Expression> arguments = translateArguments(node.arguments);
     Expression invoke = new InvokeStatic(node.target, node.selector, arguments,
-        sourceInformation: node.sourceInformation);
+                                         node.sourceInformation);
     return continueWithExpression(node.continuation, invoke);
   }
 
   Statement visitInvokeMethod(cps_ir.InvokeMethod node) {
-    InvokeMethod invoke = new InvokeMethod(getVariableUse(node.receiver),
-                                           node.selector,
-                                           node.mask,
-                                           translateArguments(node.arguments));
+    InvokeMethod invoke = new InvokeMethod(
+        getVariableUse(node.receiver),
+        node.selector,
+        node.mask,
+        translateArguments(node.arguments),
+        node.sourceInformation);
     invoke.receiverIsNotNull = node.receiverIsNotNull;
     return continueWithExpression(node.continuation, invoke);
   }
@@ -383,7 +369,7 @@ class Builder implements cps_ir.Visitor<Node> {
     Expression receiver = getVariableUse(node.receiver);
     List<Expression> arguments = translateArguments(node.arguments);
     Expression invoke = new InvokeMethodDirectly(receiver, node.target,
-        node.selector, arguments);
+        node.selector, arguments, node.sourceInformation);
     return continueWithExpression(node.continuation, invoke);
   }
 
@@ -398,10 +384,6 @@ class Builder implements cps_ir.Visitor<Node> {
 
   Statement visitUnreachable(cps_ir.Unreachable node) {
     return new Unreachable();
-  }
-
-  Expression visitNonTailThrow(cps_ir.NonTailThrow node) {
-    return unexpectedNode(node);
   }
 
   Statement continueWithExpression(cps_ir.Reference continuation,
@@ -425,14 +407,14 @@ class Builder implements cps_ir.Visitor<Node> {
     return Assign.makeStatement(variable, value, body);
   }
 
-  Expression visitGetMutableVariable(cps_ir.GetMutableVariable node) {
+  Expression visitGetMutable(cps_ir.GetMutable node) {
     return getMutableVariableUse(node.variable);
   }
 
-  Statement visitSetMutableVariable(cps_ir.SetMutableVariable node) {
+  Expression visitSetMutable(cps_ir.SetMutable node) {
     Variable variable = getMutableVariable(node.variable.definition);
     Expression value = getVariableUse(node.value);
-    return Assign.makeStatement(variable, value, visit(node.body));
+    return new Assign(variable, value);
   }
 
   Statement visitTypeCast(cps_ir.TypeCast node) {
@@ -455,7 +437,8 @@ class Builder implements cps_ir.Visitor<Node> {
         node.type,
         node.target,
         node.selector,
-        arguments);
+        arguments,
+        node.sourceInformation);
     return continueWithExpression(node.continuation, invoke);
   }
 
@@ -468,7 +451,8 @@ class Builder implements cps_ir.Visitor<Node> {
     cps_ir.Continuation cont = node.continuation.definition;
     if (cont == returnContinuation) {
       assert(node.arguments.length == 1);
-      return new Return(getVariableUse(node.arguments.single));
+      return new Return(getVariableUse(node.arguments.single),
+                        sourceInformation: node.sourceInformation);
     } else {
       List<Expression> arguments = translateArguments(node.arguments);
       return buildPhiAssignments(cont.parameters, arguments,
@@ -490,7 +474,7 @@ class Builder implements cps_ir.Visitor<Node> {
                   : new WhileTrue(labels[cont], visit(cont.body));
             } else {
               if (cont.hasExactlyOneUse) {
-                if (safeForInlining.contains(cont)) {
+                if (!node.isEscapingTry) {
                   return visit(cont.body);
                 }
                 labels[cont] = new Label();
@@ -516,7 +500,7 @@ class Builder implements cps_ir.Visitor<Node> {
   }
 
   Expression visitConstant(cps_ir.Constant node) {
-    return new Constant(node.value);
+    return new Constant(node.value, sourceInformation: node.sourceInformation);
   }
 
   Expression visitLiteralList(cps_ir.LiteralList node) {
@@ -568,11 +552,15 @@ class Builder implements cps_ir.Visitor<Node> {
   }
 
   Expression visitReifyRuntimeType(cps_ir.ReifyRuntimeType node) {
-    return new ReifyRuntimeType(getVariableUse(node.value));
+    return new ReifyRuntimeType(
+        getVariableUse(node.value), node.sourceInformation);
   }
 
   Expression visitReadTypeVariable(cps_ir.ReadTypeVariable node) {
-    return new ReadTypeVariable(node.variable, getVariableUse(node.target));
+    return new ReadTypeVariable(
+        node.variable,
+        getVariableUse(node.target),
+        node.sourceInformation);
   }
 
   @override
@@ -593,12 +581,11 @@ class Builder implements cps_ir.Visitor<Node> {
     return continueWithExpression(node.continuation, value);
   }
 
-  Statement visitSetStatic(cps_ir.SetStatic node) {
-    SetStatic setStatic = new SetStatic(
+  Expression visitSetStatic(cps_ir.SetStatic node) {
+    return new SetStatic(
         node.element,
         getVariableUse(node.value),
         node.sourceInformation);
-    return new ExpressionStatement(setStatic, visit(node.body));
   }
 
   Expression visitApplyBuiltinOperator(cps_ir.ApplyBuiltinOperator node) {
@@ -619,7 +606,7 @@ class Builder implements cps_ir.Visitor<Node> {
           node.dependency);
       return continueWithExpression(node.continuation, foreignCode);
     } else {
-      assert(node.continuation == null);
+      assert(node.continuation.definition.body is cps_ir.Unreachable);
       return new ForeignStatement(
           node.codeTemplate,
           node.type,
@@ -627,6 +614,21 @@ class Builder implements cps_ir.Visitor<Node> {
           node.nativeBehavior,
           node.dependency);
     }
+  }
+
+  Expression visitGetLength(cps_ir.GetLength node) {
+    return new GetLength(getVariableUse(node.object));
+  }
+
+  Expression visitGetIndex(cps_ir.GetIndex node) {
+    return new GetIndex(getVariableUse(node.object),
+                        getVariableUse(node.index));
+  }
+
+  Expression visitSetIndex(cps_ir.SetIndex node) {
+    return new SetIndex(getVariableUse(node.object),
+                        getVariableUse(node.index),
+                        getVariableUse(node.value));
   }
 }
 

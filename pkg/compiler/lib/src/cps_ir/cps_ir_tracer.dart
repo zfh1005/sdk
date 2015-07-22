@@ -110,10 +110,14 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   visitLetCont(cps_ir.LetCont node) {
     if (IR_TRACE_LET_CONT) {
       String dummy = names.name(node);
-      for (cps_ir.Continuation continuation in node.continuations) {
-        String id = names.name(continuation);
-        printStmt(dummy, "LetCont $id = <$id>");
+
+      String nameContinuation(cps_ir.Continuation cont) {
+        String name = names.name(cont);
+        return cont.isRecursive ? '$name*' : name;
       }
+      
+      String ids = node.continuations.map(nameContinuation).join(', ');
+      printStmt(dummy, "LetCont $ids");
     }
     visit(node.body);
   }
@@ -192,20 +196,18 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   }
 
   visitLiteralList(cps_ir.LiteralList node) {
-    String dummy = names.name(node);
     String values = node.values.map(formatReference).join(', ');
-    printStmt(dummy, "LiteralList ($values)");
+    return "LiteralList ($values)";
   }
 
   visitLiteralMap(cps_ir.LiteralMap node) {
-    String dummy = names.name(node);
     List<String> entries = new List<String>();
     for (cps_ir.LiteralMapEntry entry in node.entries) {
       String key = formatReference(entry.key);
       String value = formatReference(entry.value);
       entries.add("$key: $value");
     }
-    printStmt(dummy, "LiteralMap (${entries.join(', ')})");
+    return "LiteralMap (${entries.join(', ')})";
   }
 
   visitTypeCast(cps_ir.TypeCast node) {
@@ -231,12 +233,10 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     printStmt(dummy, "Branch $condition ($trueCont, $falseCont)");
   }
 
-  visitSetMutableVariable(cps_ir.SetMutableVariable node) {
-    String dummy = names.name(node);
+  visitSetMutable(cps_ir.SetMutable node) {
     String variable = names.name(node.variable.definition);
     String value = formatReference(node.value);
-    printStmt(dummy, 'SetMutableVariable $variable := $value');
-    visit(node.body);
+    return 'SetMutable $variable := $value';
   }
 
   String formatReference(cps_ir.Reference ref) {
@@ -271,12 +271,10 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   }
 
   visitSetField(cps_ir.SetField node) {
-    String dummy = names.name(node);
     String object = formatReference(node.object);
     String field = node.field.name;
     String value = formatReference(node.value);
-    printStmt(dummy, 'SetField $object.$field = $value');
-    visit(node.body);
+    return 'SetField $object.$field = $value';
   }
 
   visitGetField(cps_ir.GetField node) {
@@ -291,11 +289,9 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   }
 
   visitSetStatic(cps_ir.SetStatic node) {
-    String dummy = names.name(node);
     String element = node.element.name;
     String value = formatReference(node.value);
-    printStmt(dummy, 'SetStatic $element = $value');
-    visit(node.body);
+    return 'SetStatic $element = $value';
   }
 
   visitGetLazyStatic(cps_ir.GetLazyStatic node) {
@@ -324,9 +320,9 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     return "CreateFunction ${node.definition.element.name}";
   }
 
-  visitGetMutableVariable(cps_ir.GetMutableVariable node) {
+  visitGetMutable(cps_ir.GetMutable node) {
     String variable = names.name(node.variable.definition);
-    return 'GetMutableVariable $variable';
+    return 'GetMutable $variable';
   }
 
   visitReadTypeVariable(cps_ir.ReadTypeVariable node) {
@@ -341,11 +337,6 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   visitTypeExpression(cps_ir.TypeExpression node) {
     return "TypeExpression ${node.dartType} "
         "${node.arguments.map(formatReference).join(', ')}";
-  }
-
-  visitNonTailThrow(cps_ir.NonTailThrow node) {
-    String value = formatReference(node.value);
-    return "NonTailThrow($value)";
   }
 
   visitCreateInvocationMirror(cps_ir.CreateInvocationMirror node) {
@@ -369,10 +360,27 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   visitForeignCode(cps_ir.ForeignCode node) {
     String id = names.name(node);
     String arguments = node.arguments.map(formatReference).join(', ');
-    String continuation = node.continuation == null ? ''
-        : ' ${formatReference(node.continuation)}';
+    String continuation = formatReference(node.continuation);
     printStmt(id, "ForeignCode ${node.type} ${node.codeTemplate.source} "
         "$arguments $continuation");
+  }
+
+  visitGetLength(cps_ir.GetLength node) {
+    String object = formatReference(node.object);
+    return 'GetLength $object';
+  }
+
+  visitGetIndex(cps_ir.GetIndex node) {
+    String object = formatReference(node.object);
+    String index = formatReference(node.index);
+    return 'GetIndex $object $index';
+  }
+
+  visitSetIndex(cps_ir.SetIndex node) {
+    String object = formatReference(node.object);
+    String index = formatReference(node.index);
+    String value = formatReference(node.value);
+    return 'SetIndex $object $index $value';
   }
 }
 
@@ -509,18 +517,6 @@ class BlockCollector implements cps_ir.Visitor {
   visitUnreachable(cps_ir.Unreachable node) {
   }
 
-  visitSetMutableVariable(cps_ir.SetMutableVariable exp) {
-    visit(exp.body);
-  }
-
-  visitSetField(cps_ir.SetField exp) {
-    visit(exp.body);
-  }
-
-  visitSetStatic(cps_ir.SetStatic exp) {
-    visit(exp.body);
-  }
-
   visitGetLazyStatic(cps_ir.GetLazyStatic exp) {
     addEdgeToContinuation(exp.continuation);
   }
@@ -569,7 +565,7 @@ class BlockCollector implements cps_ir.Visitor {
     unexpectedNode(node);
   }
 
-  visitGetMutableVariable(cps_ir.GetMutableVariable node) {
+  visitGetMutable(cps_ir.GetMutable node) {
     unexpectedNode(node);
   }
 
@@ -617,10 +613,6 @@ class BlockCollector implements cps_ir.Visitor {
     unexpectedNode(node);
   }
 
-  visitNonTailThrow(cps_ir.NonTailThrow node) {
-    unexpectedNode(node);
-  }
-
   visitCreateInvocationMirror(cps_ir.CreateInvocationMirror node) {
     unexpectedNode(node);
   }
@@ -633,10 +625,32 @@ class BlockCollector implements cps_ir.Visitor {
     unexpectedNode(node);
   }
 
+  visitGetLength(cps_ir.GetLength node) {
+    unexpectedNode(node);
+  }
+
+  visitGetIndex(cps_ir.GetIndex node) {
+    unexpectedNode(node);
+  }
+
+  visitSetIndex(cps_ir.SetIndex node) {
+    unexpectedNode(node);
+  }
+
+  visitSetMutable(cps_ir.SetMutable node) {
+    unexpectedNode(node);
+  }
+
+  visitSetField(cps_ir.SetField node) {
+    unexpectedNode(node);
+  }
+
+  visitSetStatic(cps_ir.SetStatic node) {
+    unexpectedNode(node);
+  }
+
   @override
   visitForeignCode(cps_ir.ForeignCode node) {
-    if (node.continuation != null) {
-      addEdgeToContinuation(node.continuation);
-    }
+    addEdgeToContinuation(node.continuation);
   }
 }

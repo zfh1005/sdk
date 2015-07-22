@@ -1912,10 +1912,7 @@ class C = a.A with M;'''
 class M {}
 class C = bool with M;''');
     computeLibrarySourceErrors(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
-      CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS
-    ]);
+    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -1933,10 +1930,7 @@ class C = double with M;''');
 class M {}
 class C = int with M;''');
     computeLibrarySourceErrors(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
-      CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS
-    ]);
+    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -1963,10 +1957,7 @@ class C = num with M;''');
 class M {}
 class C = String with M;''');
     computeLibrarySourceErrors(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
-      CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS
-    ]);
+    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -4766,9 +4757,6 @@ f() {
   }
 
   void test_prefix_conditionalPropertyAccess_call() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableNullAwareOperators = true;
-    resetWithOptions(options);
     addNamedSource('/lib.dart', '''
 library lib;
 g() {}
@@ -4786,9 +4774,6 @@ f() {
   }
 
   void test_prefix_conditionalPropertyAccess_call_loadLibrary() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableNullAwareOperators = true;
-    resetWithOptions(options);
     addNamedSource('/lib.dart', '''
 library lib;
 ''');
@@ -4805,9 +4790,6 @@ f() {
   }
 
   void test_prefix_conditionalPropertyAccess_get() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableNullAwareOperators = true;
-    resetWithOptions(options);
     addNamedSource('/lib.dart', '''
 library lib;
 var x;
@@ -4825,9 +4807,6 @@ f() {
   }
 
   void test_prefix_conditionalPropertyAccess_get_loadLibrary() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableNullAwareOperators = true;
-    resetWithOptions(options);
     addNamedSource('/lib.dart', '''
 library lib;
 ''');
@@ -4844,9 +4823,6 @@ f() {
   }
 
   void test_prefix_conditionalPropertyAccess_set() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableNullAwareOperators = true;
-    resetWithOptions(options);
     addNamedSource('/lib.dart', '''
 library lib;
 var x;
@@ -4864,9 +4840,6 @@ f() {
   }
 
   void test_prefix_conditionalPropertyAccess_set_loadLibrary() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableNullAwareOperators = true;
-    resetWithOptions(options);
     addNamedSource('/lib.dart', '''
 library lib;
 ''');
@@ -4997,9 +4970,6 @@ f() {
   }
 
   void test_prefixNotFollowedByDot_conditionalMethodInvocation() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableNullAwareOperators = true;
-    resetWithOptions(options);
     addNamedSource('/lib.dart', '''
 library lib;
 g() {}
@@ -5274,6 +5244,22 @@ class B implements A {}''');
     Source source = addSource(r'''
 class M1 = Object with M2;
 class M2 = Object with M1;''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE
+    ]);
+    verify([source]);
+  }
+
+  void test_recursiveInterfaceInheritance_mixin_superclass() {
+    // Make sure we don't get CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS in
+    // addition--that would just be confusing.
+    Source source = addSource('''
+class C = D with M;
+class D = C with M;
+class M {}
+''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [
       CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE,

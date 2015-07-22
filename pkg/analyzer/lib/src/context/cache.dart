@@ -216,8 +216,10 @@ class AnalysisCache {
 
   /**
    * Remove all information related to the given [target] from this cache.
+   * Return the entry associated with the target, or `null` if there was cache
+   * entry for the target.
    */
-  void remove(AnalysisTarget target) {
+  CacheEntry remove(AnalysisTarget target) {
     int count = _partitions.length;
     for (int i = 0; i < count; i++) {
       CachePartition partition = _partitions[i];
@@ -226,10 +228,10 @@ class AnalysisCache {
           AnalysisEngine.instance.logger
               .logInformation('Removed the cache entry for $target.');
         }
-        partition.remove(target);
-        return;
+        return partition.remove(target);
       }
     }
+    return null;
   }
 
   /**
@@ -310,6 +312,28 @@ class CacheEntry {
    */
   void set explicitlyAdded(bool explicitlyAdded) {
     _setFlag(_EXPLICITLY_ADDED_FLAG, explicitlyAdded);
+  }
+
+  /**
+   * Return a list of result descriptors for results whose state is not
+   * [CacheState.INVALID].
+   */
+  List<ResultDescriptor> get nonInvalidResults => _resultMap.keys.toList();
+
+  /**
+   * Notifies the entry that the client is going to stop using it.
+   */
+  void dispose() {
+    _resultMap.forEach((descriptor, data) {
+      TargetedResult result = new TargetedResult(target, descriptor);
+      for (TargetedResult dependedOnResult in data.dependedOnResults) {
+        ResultData dependedOnData = _partition._getDataFor(dependedOnResult);
+        if (dependedOnData != null) {
+          dependedOnData.dependentResults.remove(result);
+        }
+      }
+    });
+    _resultMap.clear();
   }
 
   /**
@@ -514,7 +538,7 @@ class CacheEntry {
     // Stop depending on other results.
     TargetedResult thisResult = new TargetedResult(target, descriptor);
     for (TargetedResult dependedOnResult in thisData.dependedOnResults) {
-      ResultData data = _partition._getDataFor(dependedOnResult, orNull: true);
+      ResultData data = _partition._getDataFor(dependedOnResult);
       if (data != null) {
         data.dependentResults.remove(thisResult);
       }
@@ -553,14 +577,14 @@ class CacheEntry {
   void _setDependedOnResults(ResultData thisData, TargetedResult thisResult,
       List<TargetedResult> dependedOn) {
     thisData.dependedOnResults.forEach((TargetedResult dependedOnResult) {
-      ResultData data = _partition._getDataFor(dependedOnResult, orNull: true);
+      ResultData data = _partition._getDataFor(dependedOnResult);
       if (data != null) {
         data.dependentResults.remove(thisResult);
       }
     });
     thisData.dependedOnResults = dependedOn;
     thisData.dependedOnResults.forEach((TargetedResult dependedOnResult) {
-      ResultData data = _partition._getDataFor(dependedOnResult, orNull: true);
+      ResultData data = _partition._getDataFor(dependedOnResult);
       if (data != null) {
         data.dependentResults.add(thisResult);
       }
@@ -823,6 +847,16 @@ abstract class CachePartition {
       _onResultInvalidated.stream;
 
   /**
+   * Notifies the partition that the client is going to stop using it.
+   */
+  void dispose() {
+    for (CacheEntry entry in _targetMap.values) {
+      entry.dispose();
+    }
+    _targetMap.clear();
+  }
+
+  /**
    * Return the entry associated with the given [target].
    */
   CacheEntry get(AnalysisTarget target) => _targetMap[target];
@@ -864,9 +898,11 @@ abstract class CachePartition {
   }
 
   /**
-   * Remove all information related to the given [target] from this cache.
+   * Remove all information related to the given [target] from this partition.
+   * Return the entry associated with the target, or `null` if there was cache
+   * entry for the target.
    */
-  void remove(AnalysisTarget target) {
+  CacheEntry remove(AnalysisTarget target) {
     for (CacheFlushManager flushManager in _flushManagerMap.values) {
       flushManager.targetRemoved(target);
     }
@@ -875,6 +911,7 @@ abstract class CachePartition {
       entry._invalidateAll();
     }
     _removeIfSource(target);
+    return entry;
   }
 
   /**
@@ -923,13 +960,9 @@ abstract class CachePartition {
     }
   }
 
-  ResultData _getDataFor(TargetedResult result, {bool orNull: false}) {
+  ResultData _getDataFor(TargetedResult result) {
     CacheEntry entry = context.analysisCache.get(result.target);
-    if (orNull) {
-      return entry != null ? entry._resultMap[result.result] : null;
-    } else {
-      return entry.getResultData(result.result);
-    }
+    return entry != null ? entry._resultMap[result.result] : null;
   }
 
   /**
@@ -953,19 +986,17 @@ abstract class CachePartition {
   }
 
   /**
-   * If the given [target] is a [Source], removes it from [_sources].
+   * If the given [target] is a [Source], remove it from the list of [_sources].
    */
   void _removeIfSource(AnalysisTarget target) {
     if (target is Source) {
       _sources.remove(target);
-      {
-        String fullName = target.fullName;
-        List<Source> sources = _pathToSources[fullName];
-        if (sources != null) {
-          sources.remove(target);
-          if (sources.isEmpty) {
-            _pathToSources.remove(fullName);
-          }
+      String fullName = target.fullName;
+      List<Source> sources = _pathToSources[fullName];
+      if (sources != null) {
+        sources.remove(target);
+        if (sources.isEmpty) {
+          _pathToSources.remove(fullName);
         }
       }
     }

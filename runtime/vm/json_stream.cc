@@ -131,14 +131,12 @@ void JSONStream::PrintError(intptr_t code,
     JSONObject data(&jsobj, "data");
     PrintRequest(&data, this);
     if (details_format != NULL) {
-      Isolate* isolate = Isolate::Current();
-
       va_list args;
       va_start(args, details_format);
       intptr_t len = OS::VSNPrint(NULL, 0, details_format, args);
       va_end(args);
 
-      char* buffer = isolate->current_zone()->Alloc<char>(len + 1);
+      char* buffer = Thread::Current()->zone()->Alloc<char>(len + 1);
       va_list args2;
       va_start(args2, details_format);
       OS::VSNPrint(buffer, (len + 1), details_format, args2);
@@ -269,6 +267,11 @@ void JSONStream::PrintValue(intptr_t i) {
 void JSONStream::PrintValue64(int64_t i) {
   PrintCommaIfNeeded();
   buffer_.Printf("%" Pd64 "", i);
+}
+
+
+void JSONStream::PrintValueTimeMillis(int64_t millis) {
+  PrintValue(static_cast<double>(millis));
 }
 
 
@@ -421,6 +424,11 @@ void JSONStream::PrintProperty64(const char* name, int64_t i) {
   ASSERT(Utils::IsJavascriptInt64(i));
   PrintPropertyName(name);
   PrintValue64(i);
+}
+
+
+void JSONStream::PrintPropertyTimeMillis(const char* name, int64_t millis) {
+  PrintProperty(name, static_cast<double>(millis));
 }
 
 

@@ -92,6 +92,7 @@ class FunctionVisitor : public ObjectVisitor {
       // TypeParameter.
       typeHandle_ ^= funcHandle_.result_type();
       ASSERT(typeHandle_.IsNull() ||
+             !typeHandle_.IsResolved() ||
              typeHandle_.IsTypeParameter() ||
              typeHandle_.IsCanonical());
       // Verify that the types in the function signature are all canonical or
@@ -99,7 +100,9 @@ class FunctionVisitor : public ObjectVisitor {
       const intptr_t num_parameters = funcHandle_.NumParameters();
       for (intptr_t i = 0; i < num_parameters; i++) {
         typeHandle_ = funcHandle_.ParameterTypeAt(i);
-        ASSERT(typeHandle_.IsTypeParameter() || typeHandle_.IsCanonical());
+        ASSERT(typeHandle_.IsTypeParameter() ||
+               !typeHandle_.IsResolved() ||
+               typeHandle_.IsCanonical());
       }
     }
   }
@@ -439,7 +442,9 @@ Dart_Isolate Api::CastIsolate(Isolate* isolate) {
 
 
 Dart_Handle Api::NewError(const char* format, ...) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
   DARTSCOPE(isolate);
   CHECK_CALLBACK_STATE(isolate);
 
@@ -448,13 +453,13 @@ Dart_Handle Api::NewError(const char* format, ...) {
   intptr_t len = OS::VSNPrint(NULL, 0, format, args);
   va_end(args);
 
-  char* buffer = isolate->current_zone()->Alloc<char>(len + 1);
+  char* buffer = zone->Alloc<char>(len + 1);
   va_list args2;
   va_start(args2, format);
   OS::VSNPrint(buffer, (len + 1), format, args2);
   va_end(args2);
 
-  const String& message = String::Handle(isolate, String::New(buffer));
+  const String& message = String::Handle(zone, String::New(buffer));
   return Api::NewHandle(isolate, ApiError::New(message));
 }
 
@@ -1522,7 +1527,7 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(
   isolate->heap()->CollectAllGarbage();
 #if defined(DEBUG)
   FunctionVisitor check_canonical(isolate);
-  isolate->heap()->VisitObjects(&check_canonical);
+  isolate->heap()->IterateObjects(&check_canonical);
 #endif  // #if defined(DEBUG).
 
   // Since this is only a snapshot the root library should not be set.
@@ -1768,19 +1773,20 @@ DART_EXPORT Dart_Port Dart_GetMainPortId() {
 // --- Scopes ----
 
 DART_EXPORT void Dart_EnterScope() {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   CHECK_ISOLATE(isolate);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   ApiLocalScope* new_scope = state->reusable_scope();
   if (new_scope == NULL) {
     new_scope = new ApiLocalScope(state->top_scope(),
-                                  isolate->top_exit_frame_info());
+                                  thread->top_exit_frame_info());
     ASSERT(new_scope != NULL);
   } else {
-    new_scope->Reinit(isolate,
+    new_scope->Reinit(thread,
                       state->top_scope(),
-                      isolate->top_exit_frame_info());
+                      thread->top_exit_frame_info());
     state->set_reusable_scope(NULL);
   }
   state->set_top_scope(new_scope);  // New scope is now the top scope.
@@ -1788,14 +1794,15 @@ DART_EXPORT void Dart_EnterScope() {
 
 
 DART_EXPORT void Dart_ExitScope() {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   CHECK_ISOLATE_SCOPE(isolate);
   ApiState* state = isolate->api_state();
   ApiLocalScope* scope = state->top_scope();
   ApiLocalScope* reusable_scope = state->reusable_scope();
   state->set_top_scope(scope->previous());  // Reset top scope to previous.
   if (reusable_scope == NULL) {
-    scope->Reset(isolate);  // Reset the old scope which we just exited.
+    scope->Reset(thread);  // Reset the old scope which we just exited.
     state->set_reusable_scope(scope);
   } else {
     ASSERT(reusable_scope != scope);
@@ -5687,6 +5694,67 @@ DART_EXPORT void Dart_RegisterRootServiceRequestCallback(
     Dart_ServiceRequestCallback callback,
     void* user_data) {
   Service::RegisterRootEmbedderCallback(name, callback, user_data);
+}
+
+
+DART_EXPORT Dart_Handle Dart_SetServiceStreamCallbacks(
+    Dart_ServiceStreamListenCallback listen_callback,
+    Dart_ServiceStreamCancelCallback cancel_callback) {
+  if (listen_callback != NULL) {
+    if (Service::stream_listen_callback() != NULL) {
+      return Api::NewError(
+          "%s permits only one listen callback to be registered, please "
+          "remove the existing callback and then add this callback",
+          CURRENT_FUNC);
+    }
+  } else {
+    if (Service::stream_listen_callback() == NULL) {
+      return Api::NewError(
+          "%s expects 'listen_callback' to be present in the callback set.",
+          CURRENT_FUNC);
+    }
+  }
+  if (cancel_callback != NULL) {
+    if (Service::stream_cancel_callback() != NULL) {
+      return Api::NewError(
+          "%s permits only one cancel callback to be registered, please "
+          "remove the existing callback and then add this callback",
+          CURRENT_FUNC);
+    }
+  } else {
+    if (Service::stream_cancel_callback() == NULL) {
+      return Api::NewError(
+          "%s expects 'cancel_callback' to be present in the callback set.",
+          CURRENT_FUNC);
+    }
+  }
+  Service::SetEmbedderStreamCallbacks(listen_callback, cancel_callback);
+  return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
+                                                  const char* event_kind,
+                                                  const uint8_t* bytes,
+                                                  intptr_t bytes_length) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  if (stream_id == NULL) {
+    RETURN_NULL_ERROR(stream_id);
+  }
+  if (event_kind == NULL) {
+    RETURN_NULL_ERROR(event_kind);
+  }
+  if (bytes == NULL) {
+    RETURN_NULL_ERROR(bytes);
+  }
+  if (bytes_length < 0) {
+    return Api::NewError("%s expects argument 'bytes_length' to be >= 0.",
+                         CURRENT_FUNC);
+  }
+  Service::SendEmbedderEvent(isolate, stream_id, event_kind,
+                             bytes, bytes_length);
+  return Api::Success();
 }
 
 

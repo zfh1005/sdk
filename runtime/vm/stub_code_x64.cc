@@ -52,7 +52,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
-  __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), RBP);
+  __ movq(Address(THR, Thread::top_exit_frame_info_offset()), RBP);
 
 #if defined(DEBUG)
   { Label ok;
@@ -94,7 +94,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
           Immediate(VMTag::kDartTagId));
 
   // Reset exit frame information in Isolate structure.
-  __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), Immediate(0));
+  __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
 
   __ LeaveStubFrame();
   __ ret();
@@ -149,7 +149,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
-  __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), RBP);
+  __ movq(Address(THR, Thread::top_exit_frame_info_offset()), RBP);
 
 #if defined(DEBUG)
   { Label ok;
@@ -191,7 +191,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
           Immediate(VMTag::kDartTagId));
 
   // Reset exit frame information in Isolate structure.
-  __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), Immediate(0));
+  __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
 
   __ LeaveStubFrame();
   __ ret();
@@ -223,7 +223,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
-  __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), RBP);
+  __ movq(Address(THR, Thread::top_exit_frame_info_offset()), RBP);
 
 #if defined(DEBUG)
   { Label ok;
@@ -263,7 +263,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
           Immediate(VMTag::kDartTagId));
 
   // Reset exit frame information in Isolate structure.
-  __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), Immediate(0));
+  __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
 
   __ LeaveStubFrame();
   __ ret();
@@ -611,13 +611,20 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   __ LoadPoolPointer(new_pp);
   *entry_patch_offset = assembler->CodeSize();
   Label slow_case;
+  Isolate* isolate = Isolate::Current();
+  const Class& cls = Class::Handle(isolate->object_store()->array_class());
+  ASSERT(!cls.IsNull());
   // Compute the size to be allocated, it is based on the array length
   // and is computed as:
   // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
   __ movq(RDI, R10);  // Array Length.
   // Check that length is a positive Smi.
   __ testq(RDI, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &slow_case);
+  if (FLAG_use_slow_path || cls.trace_allocation()) {
+    __ jmp(&slow_case);
+  } else {
+    __ j(NOT_ZERO, &slow_case);
+  }
   __ cmpq(RDI, Immediate(0));
   __ j(LESS, &slow_case);
   // Check for maximum allowed length.
@@ -630,10 +637,9 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   ASSERT(kSmiTagShift == 1);
   __ andq(RDI, Immediate(-kObjectAlignment));
 
-  Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
   const intptr_t cid = kArrayCid;
-  Heap::Space space = heap->SpaceForAllocation(cid);
+  Heap::Space space = Heap::SpaceForAllocation(cid);
   __ movq(RAX, Immediate(heap->TopAddress(space)));
   __ movq(RAX, Address(RAX, 0));
 
@@ -787,11 +793,11 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Save top resource and top exit frame info. Use RAX as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
-  __ movq(RAX, Address(kIsolateReg, Isolate::top_resource_offset()));
+  __ movq(RAX, Address(THR, Thread::top_resource_offset()));
   __ pushq(RAX);
-  __ movq(Address(kIsolateReg, Isolate::top_resource_offset()),
+  __ movq(Address(THR, Thread::top_resource_offset()),
           Immediate(0));
-  __ movq(RAX, Address(kIsolateReg, Isolate::top_exit_frame_info_offset()));
+  __ movq(RAX, Address(THR, Thread::top_exit_frame_info_offset()));
   // The constant kExitLinkSlotFromEntryFp must be kept in sync with the
   // code below.
   __ pushq(RAX);
@@ -805,7 +811,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
     __ Bind(&ok);
   }
 #endif
-  __ movq(Address(kIsolateReg, Isolate::top_exit_frame_info_offset()),
+  __ movq(Address(THR, Thread::top_exit_frame_info_offset()),
           Immediate(0));
 
   // Load arguments descriptor array into R10, which is passed to Dart code.
@@ -849,8 +855,8 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Restore the saved top exit frame info and top resource back into the
   // Isolate structure.
   __ LoadIsolate(kIsolateReg);
-  __ popq(Address(kIsolateReg, Isolate::top_exit_frame_info_offset()));
-  __ popq(Address(kIsolateReg, Isolate::top_resource_offset()));
+  __ popq(Address(THR, Thread::top_exit_frame_info_offset()));
+  __ popq(Address(THR, Thread::top_resource_offset()));
 
   // Restore the current VMTag from the stack.
   __ popq(Address(kIsolateReg, Isolate::vm_tag_offset()));
@@ -875,8 +881,6 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   __ LoadObject(R12, Object::null_object(), PP);
   if (FLAG_inline_alloc) {
     Label slow_case;
-    Isolate* isolate = Isolate::Current();
-    Heap* heap = isolate->heap();
     // First compute the rounded instance size.
     // R10: number of context variables.
     intptr_t fixed_size = (sizeof(RawContext) + kObjectAlignment - 1);
@@ -886,16 +890,17 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // Now allocate the object.
     // R10: number of context variables.
     const intptr_t cid = kContextCid;
-    Heap::Space space = heap->SpaceForAllocation(cid);
-    __ movq(RAX, Immediate(heap->TopAddress(space)));
-    __ movq(RAX, Address(RAX, 0));
+    Heap::Space space = Heap::SpaceForAllocation(cid);
+    __ LoadIsolate(RCX);
+    __ movq(RCX, Address(RCX, Isolate::heap_offset()));
+    __ movq(RAX, Address(RCX, Heap::TopOffset(space)));
     __ addq(R13, RAX);
     // Check if the allocation fits into the remaining space.
     // RAX: potential new object.
     // R13: potential next object start.
     // R10: number of context variables.
-    __ movq(RDI, Immediate(heap->EndAddress(space)));
-    __ cmpq(R13, Address(RDI, 0));
+    // RCX: heap.
+    __ cmpq(R13, Address(RCX, Heap::EndOffset(space)));
     if (FLAG_use_slow_path) {
       __ jmp(&slow_case);
     } else {
@@ -907,12 +912,14 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // RAX: new object.
     // R13: next object start.
     // R10: number of context variables.
-    __ movq(RDI, Immediate(heap->TopAddress(space)));
-    __ movq(Address(RDI, 0), R13);
-    __ addq(RAX, Immediate(kHeapObjectTag));
+    // RCX: heap.
+    __ movq(Address(RCX, Heap::TopOffset(space)), R13);
     // R13: Size of allocation in bytes.
     __ subq(R13, RAX);
-    __ UpdateAllocationStatsWithSize(cid, R13, space);
+    __ addq(RAX, Immediate(kHeapObjectTag));
+    // Generate isolate-independent code to allow sharing between isolates.
+    __ UpdateAllocationStatsWithSize(cid, R13, space,
+                                     /* inline_isolate */ false);
 
     // Calculate the size tag.
     // RAX: new object.
@@ -1096,7 +1103,7 @@ void StubCode::GenerateAllocationStubForClass(
     // next object start and initialize the allocated object.
     // RDX: instantiated type arguments (if is_cls_parameterized).
     Heap* heap = Isolate::Current()->heap();
-    Heap::Space space = heap->SpaceForAllocation(cls.id());
+    Heap::Space space = Heap::SpaceForAllocation(cls.id());
     __ movq(RCX, Immediate(heap->TopAddress(space)));
     __ movq(RAX, Address(RCX, 0));
     __ leaq(RBX, Address(RAX, instance_size));
@@ -1985,7 +1992,7 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   __ movq(Address(isolate_reg, Isolate::vm_tag_offset()),
           Immediate(VMTag::kDartTagId));
   // Clear top exit frame.
-  __ movq(Address(isolate_reg, Isolate::top_exit_frame_info_offset()),
+  __ movq(Address(THR, Thread::top_exit_frame_info_offset()),
           Immediate(0));
   __ jmp(CallingConventions::kArg1Reg);  // Jump to the exception handler code.
 }

@@ -191,7 +191,8 @@ SnapshotReader::SnapshotReader(
       typed_data_(TypedData::Handle(isolate)),
       error_(UnhandledException::Handle(isolate)),
       max_vm_isolate_object_id_(
-          Object::vm_isolate_snapshot_object_table().Length()),
+          (kind == Snapshot::kFull) ?
+              Object::vm_isolate_snapshot_object_table().Length() : 0),
       backward_references_(backward_refs) {
 }
 
@@ -1567,11 +1568,11 @@ FullSnapshotWriter::FullSnapshotWriter(uint8_t** vm_isolate_snapshot_buffer,
   // and then fill it up with the script objects.
   ASSERT(isolate_ != NULL);
   ScriptVisitor scripts_counter(isolate_);
-  heap->old_space()->VisitObjects(&scripts_counter);
+  heap->IterateOldObjects(&scripts_counter);
   intptr_t count = scripts_counter.count();
   scripts_ = Array::New(count, Heap::kOld);
   ScriptVisitor script_visitor(isolate_, &scripts_);
-  heap->old_space()->VisitObjects(&script_visitor);
+  heap->IterateOldObjects(&script_visitor);
 
   // Stash the symbol table away for writing and reading into the vm isolate,
   // and reset the symbol table for the regular isolate so that we do not
@@ -2075,7 +2076,7 @@ RawFunction* SnapshotWriter::IsSerializableClosure(RawClass* cls,
     UnmarkAll();  // Unmark objects now as we are about to print stuff.
     intptr_t len = OS::SNPrint(NULL, 0, format,
                                clazz.ToCString(), errorFunc.ToCString()) + 1;
-    char* chars = isolate()->current_zone()->Alloc<char>(len);
+    char* chars = Thread::Current()->zone()->Alloc<char>(len);
     OS::SNPrint(chars, len, format, clazz.ToCString(), errorFunc.ToCString());
     SetWriteException(Exceptions::kArgument, chars);
   }
@@ -2104,7 +2105,7 @@ void SnapshotWriter::CheckForNativeFields(RawClass* cls) {
     UnmarkAll();  // Unmark objects now as we are about to print stuff.
     const Class& clazz = Class::Handle(isolate(), cls);
     intptr_t len = OS::SNPrint(NULL, 0, format, clazz.ToCString()) + 1;
-    char* chars = isolate()->current_zone()->Alloc<char>(len);
+    char* chars = Thread::Current()->zone()->Alloc<char>(len);
     OS::SNPrint(chars, len, format, clazz.ToCString());
     SetWriteException(Exceptions::kArgument, chars);
   }
@@ -2266,7 +2267,7 @@ ScriptSnapshotWriter::ScriptSnapshotWriter(uint8_t** buffer,
                      kInitialSize,
                      &forward_list_,
                      true),
-      forward_list_(SnapshotWriter::FirstObjectId()) {
+      forward_list_(kMaxPredefinedObjectIds) {
   ASSERT(buffer != NULL);
   ASSERT(alloc != NULL);
 }
@@ -2324,7 +2325,7 @@ MessageWriter::MessageWriter(uint8_t** buffer,
                      kInitialSize,
                      &forward_list_,
                      can_send_any_object),
-      forward_list_(SnapshotWriter::FirstObjectId()) {
+      forward_list_(kMaxPredefinedObjectIds) {
   ASSERT(buffer != NULL);
   ASSERT(alloc != NULL);
 }

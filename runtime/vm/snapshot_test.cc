@@ -61,7 +61,7 @@ static uint8_t* malloc_allocator(
 
 static uint8_t* zone_allocator(
     uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
-  Zone* zone = Isolate::Current()->current_zone();
+  Zone* zone = Thread::Current()->zone();
   return zone->Realloc<uint8_t>(ptr, old_size, new_size);
 }
 
@@ -863,7 +863,7 @@ class TestSnapshotWriter : public SnapshotWriter {
                        kInitialSize,
                        &forward_list_,
                        true),
-        forward_list_(SnapshotWriter::FirstObjectId()) {
+        forward_list_(kMaxPredefinedObjectIds) {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
   }
@@ -1582,8 +1582,7 @@ TEST_CASE(IntArrayMessage) {
   ApiNativeScope scope;
   ApiMessageReader api_reader(buffer,
                               writer.BytesWritten(),
-                              &zone_allocator,
-                              false);
+                              &zone_allocator);
   Dart_CObject* root = api_reader.ReadMessage();
   EXPECT_EQ(Dart_CObject_kArray, root->type);
   EXPECT_EQ(kArrayLength, root->value.as_array.length);

@@ -31,35 +31,6 @@ Assembler::Assembler(bool use_far_branches)
       use_far_branches_(use_far_branches),
       comments_(),
       allow_constant_pool_(true) {
-  if (Isolate::Current() != Dart::vm_isolate()) {
-    // These objects and labels need to be accessible through every pool-pointer
-    // at the same index.
-    intptr_t index =
-        object_pool_wrapper_.AddObject(Object::null_object());
-    ASSERT(index == 0);
-
-    index = object_pool_wrapper_.AddObject(Bool::True());
-    ASSERT(index == 1);
-
-    index = object_pool_wrapper_.AddObject(Bool::False());
-    ASSERT(index == 2);
-
-    const Smi& vacant = Smi::Handle(Smi::New(0xfa >> kSmiTagShift));
-    StubCode* stub_code = Isolate::Current()->stub_code();
-    if (stub_code->UpdateStoreBuffer_entry() != NULL) {
-      object_pool_wrapper_.AddExternalLabel(
-          &stub_code->UpdateStoreBufferLabel(), kNotPatchable);
-    } else {
-      object_pool_wrapper_.AddObject(vacant);
-    }
-
-    if (stub_code->CallToRuntime_entry() != NULL) {
-      object_pool_wrapper_.AddExternalLabel(
-          &stub_code->CallToRuntimeLabel(), kNotPatchable);
-    } else {
-      object_pool_wrapper_.AddObject(vacant);
-    }
-  }
 }
 
 
@@ -389,23 +360,14 @@ void Assembler::LoadWordFromPoolOffsetFixed(Register dst, Register pp,
 
 
 intptr_t Assembler::FindImmediate(int64_t imm) {
-  ASSERT(Isolate::Current() != Dart::vm_isolate());
   return object_pool_wrapper_.FindImmediate(imm);
 }
 
 
-// A set of VM objects that are present in every constant pool.
-static bool IsAlwaysInConstantPool(const Object& object) {
-  // TODO(zra): Evaluate putting all VM heap objects into the pool.
-  return (object.raw() == Object::null())
-      || (object.raw() == Bool::True().raw())
-      || (object.raw() == Bool::False().raw());
-}
-
-
-bool Assembler::CanLoadObjectFromPool(const Object& object) {
+bool Assembler::CanLoadFromObjectPool(const Object& object) const {
+  ASSERT(!Thread::CanLoadFromThread(object));
   if (!allow_constant_pool()) {
-    return IsAlwaysInConstantPool(object);
+    return false;
   }
 
   // TODO(zra, kmillikin): Also load other large immediates from the object
@@ -417,7 +379,7 @@ bool Assembler::CanLoadObjectFromPool(const Object& object) {
   }
   ASSERT(object.IsNotTemporaryScopedHandle());
   ASSERT(object.IsOld());
-  return (Isolate::Current() != Dart::vm_isolate());
+  return true;
 }
 
 
@@ -425,12 +387,7 @@ bool Assembler::CanLoadImmediateFromPool(int64_t imm, Register pp) {
   if (!allow_constant_pool()) {
     return false;
   }
-  return !Utils::IsInt(32, imm) &&
-         (pp != kNoPP) &&
-         // We *could* put constants in the pool in a VM isolate, but it is
-         // simpler to maintain the invariant that the object pool is not used
-         // in the VM isolate.
-         (Isolate::Current() != Dart::vm_isolate());
+  return !Utils::IsInt(32, imm) && (pp != kNoPP);
 }
 
 
@@ -459,27 +416,46 @@ void Assembler::LoadExternalLabelFixed(Register dst,
 }
 
 
-void Assembler::LoadIsolate(Register dst, Register pp) {
+void Assembler::LoadIsolate(Register dst) {
   ldr(dst, Address(THR, Thread::isolate_offset()));
 }
 
 
-void Assembler::LoadObject(Register dst, const Object& object, Register pp) {
-  if (CanLoadObjectFromPool(object)) {
-    const int32_t offset =
-        ObjectPool::element_offset(object_pool_wrapper_.FindObject(object));
+void Assembler::LoadObjectHelper(Register dst,
+                                 const Object& object,
+                                 Register pp,
+                                 bool is_unique) {
+  if (Thread::CanLoadFromThread(object)) {
+    ldr(dst, Address(THR, Thread::OffsetFromThread(object)));
+  } else if (CanLoadFromObjectPool(object)) {
+    const int32_t offset = ObjectPool::element_offset(
+        is_unique ? object_pool_wrapper_.AddObject(object)
+                  : object_pool_wrapper_.FindObject(object));
     LoadWordFromPoolOffset(dst, pp, offset);
   } else {
-    ASSERT((Isolate::Current() == Dart::vm_isolate()) ||
-           object.IsSmi() ||
-           object.InVMHeap());
+    ASSERT(object.IsSmi() || object.InVMHeap());
     LoadDecodableImmediate(dst, reinterpret_cast<int64_t>(object.raw()), pp);
   }
 }
 
 
+void Assembler::LoadObject(Register dst, const Object& object, Register pp) {
+  LoadObjectHelper(dst, object, pp, false);
+}
+
+
+void Assembler::LoadUniqueObject(Register dst,
+                                 const Object& object,
+                                 Register pp) {
+  LoadObjectHelper(dst, object, pp, true);
+}
+
+
 void Assembler::CompareObject(Register reg, const Object& object, Register pp) {
-  if (CanLoadObjectFromPool(object)) {
+  if (Thread::CanLoadFromThread(object)) {
+    ldr(TMP, Address(THR, Thread::OffsetFromThread(object)));
+    CompareRegisters(reg, TMP);
+  } else if (CanLoadFromObjectPool(object)) {
     LoadObject(TMP, object, pp);
     CompareRegisters(reg, TMP);
   } else {
@@ -489,17 +465,9 @@ void Assembler::CompareObject(Register reg, const Object& object, Register pp) {
 
 
 void Assembler::LoadDecodableImmediate(Register reg, int64_t imm, Register pp) {
-  if ((pp != kNoPP) &&
-      (Isolate::Current() != Dart::vm_isolate()) &&
-      allow_constant_pool()) {
-    int64_t val_smi_tag = imm & kSmiTagMask;
-    imm &= ~kSmiTagMask;  // Mask off the tag bits.
+  if ((pp != kNoPP) && allow_constant_pool()) {
     const int32_t offset = ObjectPool::element_offset(FindImmediate(imm));
     LoadWordFromPoolOffset(reg, pp, offset);
-    if (val_smi_tag != 0) {
-      // Add back the tag bits.
-      orri(reg, reg, Immediate(val_smi_tag));
-    }
   } else {
     // TODO(zra): Since this sequence only needs to be decodable, it can be
     // of variable length.
@@ -922,8 +890,8 @@ void Assembler::StoreIntoObject(Register object,
   if (object != R0) {
     mov(R0, object);
   }
-  StubCode* stub_code = Isolate::Current()->stub_code();
-  BranchLink(&stub_code->UpdateStoreBufferLabel(), PP);
+  ldr(TMP, Address(THR, Thread::update_store_buffer_entry_point_offset()));
+  blr(TMP);
   Pop(LR);
   if (value != R0) {
     // Restore R0.
@@ -996,8 +964,10 @@ void Assembler::LoadClassId(Register result, Register object, Register pp) {
 
 void Assembler::LoadClassById(Register result, Register class_id, Register pp) {
   ASSERT(result != class_id);
-  LoadImmediate(result, Isolate::Current()->class_table()->TableAddress(), pp);
-  LoadFromOffset(result, result, 0, pp);
+  LoadIsolate(result);
+  const intptr_t offset =
+      Isolate::class_table_offset() + ClassTable::table_offset();
+  LoadFromOffset(result, result, offset, pp);
   ldr(result, Address(result, class_id, UXTX, Address::Scaled));
 }
 
@@ -1016,7 +986,7 @@ void Assembler::CompareClassId(
 }
 
 
-void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
+void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
   // Load up a null object. We only need it so we can use LoadClassId on it in
   // the case that object is a Smi..
   LoadObject(TMP, Object::null_object(), PP);
@@ -1031,6 +1001,11 @@ void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
   LoadImmediate(TMP, kSmiCid, PP);
   // If object is a Smi, move the Smi cid into result. o/w leave alone.
   csel(result, TMP, result, EQ);
+}
+
+
+void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
+  LoadClassIdMayBeSmi(result, object);
   // Finally, tag the result.
   SmiTag(result);
 }
@@ -1255,81 +1230,96 @@ void Assembler::LeaveStubFrame() {
 
 void Assembler::UpdateAllocationStats(intptr_t cid,
                                       Register pp,
-                                      Heap::Space space) {
+                                      Heap::Space space,
+                                      bool inline_isolate) {
   ASSERT(cid > 0);
-  Isolate* isolate = Isolate::Current();
-  ClassTable* class_table = isolate->class_table();
-  if (cid < kNumPredefinedCids) {
-    const uword class_heap_stats_table_address =
-        class_table->PredefinedClassHeapStatsTableAddress();
-    const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
-    const uword count_field_offset = (space == Heap::kNew) ?
-      ClassHeapStats::allocated_since_gc_new_space_offset() :
-      ClassHeapStats::allocated_since_gc_old_space_offset();
-    LoadImmediate(TMP2, class_heap_stats_table_address + class_offset, pp);
-    const Address& count_address = Address(TMP2, count_field_offset);
-    ldr(TMP, count_address);
-    AddImmediate(TMP, TMP, 1, pp);
-    str(TMP, count_address);
+  intptr_t counter_offset =
+      ClassTable::CounterOffsetFor(cid, space == Heap::kNew);
+  if (inline_isolate) {
+    ClassTable* class_table = Isolate::Current()->class_table();
+    ClassHeapStats** table_ptr = class_table->TableAddressFor(cid);
+    if (cid < kNumPredefinedCids) {
+      LoadImmediate(
+          TMP2, reinterpret_cast<uword>(*table_ptr) + counter_offset, pp);
+    } else {
+      LoadImmediate(TMP2, reinterpret_cast<uword>(table_ptr), pp);
+      ldr(TMP, Address(TMP2));
+      AddImmediate(TMP2, TMP, counter_offset, pp);
+    }
   } else {
-    const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
-    const uword count_field_offset = (space == Heap::kNew) ?
-      ClassHeapStats::allocated_since_gc_new_space_offset() :
-      ClassHeapStats::allocated_since_gc_old_space_offset();
-    LoadImmediate(TMP2, class_table->ClassStatsTableAddress(), pp);
-    ldr(TMP, Address(TMP2));
-    AddImmediate(TMP2, TMP, class_offset, pp);
-    ldr(TMP, Address(TMP2, count_field_offset));
-    AddImmediate(TMP, TMP, 1, pp);
-    str(TMP, Address(TMP2, count_field_offset));
+    LoadIsolate(TMP2);
+    intptr_t table_offset =
+        Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+    ldr(TMP, Address(TMP2, table_offset));
+    AddImmediate(TMP2, TMP, counter_offset, pp);
   }
+  ldr(TMP, Address(TMP2, 0));
+  AddImmediate(TMP, TMP, 1, pp);
+  str(TMP, Address(TMP2, 0));
 }
 
 
 void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
                                               Register size_reg,
                                               Register pp,
-                                              Heap::Space space) {
+                                              Heap::Space space,
+                                              bool inline_isolate) {
   ASSERT(cid > 0);
-  Isolate* isolate = Isolate::Current();
-  ClassTable* class_table = isolate->class_table();
-  if (cid < kNumPredefinedCids) {
-    const uword class_heap_stats_table_address =
-        class_table->PredefinedClassHeapStatsTableAddress();
-    const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
-    const uword count_field_offset = (space == Heap::kNew) ?
-      ClassHeapStats::allocated_since_gc_new_space_offset() :
-      ClassHeapStats::allocated_since_gc_old_space_offset();
-    const uword size_field_offset = (space == Heap::kNew) ?
-      ClassHeapStats::allocated_size_since_gc_new_space_offset() :
-      ClassHeapStats::allocated_size_since_gc_old_space_offset();
-    LoadImmediate(TMP2, class_heap_stats_table_address + class_offset, pp);
-    const Address& count_address = Address(TMP2, count_field_offset);
-    const Address& size_address = Address(TMP2, size_field_offset);
-    ldr(TMP, count_address);
-    AddImmediate(TMP, TMP, 1, pp);
-    str(TMP, count_address);
-    ldr(TMP, size_address);
-    add(TMP, TMP, Operand(size_reg));
-    str(TMP, size_address);
+  const uword class_offset = ClassTable::ClassOffsetFor(cid);
+  const uword count_field_offset = (space == Heap::kNew) ?
+    ClassHeapStats::allocated_since_gc_new_space_offset() :
+    ClassHeapStats::allocated_since_gc_old_space_offset();
+  const uword size_field_offset = (space == Heap::kNew) ?
+    ClassHeapStats::allocated_size_since_gc_new_space_offset() :
+    ClassHeapStats::allocated_size_since_gc_old_space_offset();
+  if (inline_isolate) {
+    ClassTable* class_table = Isolate::Current()->class_table();
+    ClassHeapStats** table_ptr = class_table->TableAddressFor(cid);
+    if (cid < kNumPredefinedCids) {
+      LoadImmediate(TMP2,
+                    reinterpret_cast<uword>(*table_ptr) + class_offset, pp);
+    } else {
+      LoadImmediate(TMP2, reinterpret_cast<uword>(table_ptr), pp);
+      ldr(TMP, Address(TMP2));
+      AddImmediate(TMP2, TMP, class_offset, pp);
+    }
   } else {
-    const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
-    const uword count_field_offset = (space == Heap::kNew) ?
-      ClassHeapStats::allocated_since_gc_new_space_offset() :
-      ClassHeapStats::allocated_since_gc_old_space_offset();
-    const uword size_field_offset = (space == Heap::kNew) ?
-      ClassHeapStats::allocated_size_since_gc_new_space_offset() :
-      ClassHeapStats::allocated_size_since_gc_old_space_offset();
-    LoadImmediate(TMP2, class_table->ClassStatsTableAddress(), pp);
-    ldr(TMP, Address(TMP2));
+    LoadIsolate(TMP2);
+    intptr_t table_offset =
+        Isolate::class_table_offset() + ClassTable::TableOffsetFor(cid);
+    ldr(TMP, Address(TMP2, table_offset));
     AddImmediate(TMP2, TMP, class_offset, pp);
-    ldr(TMP, Address(TMP2, count_field_offset));
-    AddImmediate(TMP, TMP, 1, pp);
-    str(TMP, Address(TMP2, count_field_offset));
-    ldr(TMP, Address(TMP2, size_field_offset));
-    add(TMP, TMP, Operand(size_reg));
-    str(TMP, Address(TMP2, size_field_offset));
   }
+  ldr(TMP, Address(TMP2, count_field_offset));
+  AddImmediate(TMP, TMP, 1, pp);
+  str(TMP, Address(TMP2, count_field_offset));
+  ldr(TMP, Address(TMP2, size_field_offset));
+  add(TMP, TMP, Operand(size_reg));
+  str(TMP, Address(TMP2, size_field_offset));
+}
+
+
+void Assembler::MaybeTraceAllocation(intptr_t cid,
+                                     Register temp_reg,
+                                     Register pp,
+                                     Label* trace) {
+  ASSERT(cid > 0);
+  intptr_t state_offset;
+  ClassTable* class_table = Isolate::Current()->class_table();
+  ClassHeapStats** table_ptr =
+      class_table->StateAddressFor(cid, &state_offset);
+
+  if (cid < kNumPredefinedCids) {
+    LoadImmediate(
+        temp_reg, reinterpret_cast<uword>(*table_ptr) + state_offset, pp);
+  } else {
+    LoadImmediate(temp_reg, reinterpret_cast<uword>(table_ptr), pp);
+    ldr(temp_reg, Address(temp_reg, 0));
+    AddImmediate(temp_reg, temp_reg, state_offset, pp);
+  }
+  ldr(temp_reg, Address(temp_reg, 0));
+  tsti(temp_reg, Immediate(ClassHeapStats::TraceAllocationMask()));
+  b(trace, NE);
 }
 
 
@@ -1340,6 +1330,10 @@ void Assembler::TryAllocate(const Class& cls,
                             Register pp) {
   ASSERT(failure != NULL);
   if (FLAG_inline_alloc) {
+    // If this allocation is traced, program will jump to failure path
+    // (i.e. the allocation stub) which will allocate the object and trace the
+    // allocation call site.
+    MaybeTraceAllocation(cls.id(), temp_reg, pp, failure);
     const intptr_t instance_size = cls.instance_size();
     Heap* heap = Isolate::Current()->heap();
     Heap::Space space = heap->SpaceForAllocation(cls.id());
@@ -1387,6 +1381,10 @@ void Assembler::TryAllocateArray(intptr_t cid,
                                  Register temp1,
                                  Register temp2) {
   if (FLAG_inline_alloc) {
+    // If this allocation is traced, program will jump to failure path
+    // (i.e. the allocation stub) which will allocate the object and trace the
+    // allocation call site.
+    MaybeTraceAllocation(cid, temp1, PP, failure);
     Isolate* isolate = Isolate::Current();
     Heap* heap = isolate->heap();
     Heap::Space space = heap->SpaceForAllocation(cid);

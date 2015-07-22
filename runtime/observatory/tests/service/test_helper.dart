@@ -1,7 +1,6 @@
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--compile-all --error_on_bad_type --error_on_bad_override --checked
 
 library test_helper;
 
@@ -9,6 +8,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:observatory/service_io.dart';
+import 'package:unittest/unittest.dart';
 
 bool _isWebSocketDisconnect(e) {
   return e is NetworkRpcException;
@@ -141,50 +141,135 @@ typedef void ServiceEventHandler(ServiceEvent event,
                                  StreamSubscription subscription,
                                  Completer completer);
 
-Future processServiceEvents(VM vm, ServiceEventHandler handler) {
+Future processServiceEvents(VM vm,
+                            String streamId,
+                            ServiceEventHandler handler) {
   Completer completer = new Completer();
-  var subscription;
-  subscription = vm.events.stream.listen((ServiceEvent event) {
-    handler(event, subscription, completer);
+  vm.getEventStream(streamId).then((stream) {
+    var subscription;
+    subscription = stream.listen((ServiceEvent event) {
+      handler(event, subscription, completer);
+    });
   });
   return completer.future;
 }
 
 
 Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) {
-  if ((isolate.pauseEvent != null) &&
-      (isolate.pauseEvent.kind == ServiceEvent.kPauseBreakpoint)) {
-    // Already waiting at a breakpoint.
-    print('Breakpoint reached');
-    return new Future.value(isolate);
-  }
-
   // Set up a listener to wait for breakpoint events.
   Completer completer = new Completer();
-  var subscription;
-  subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
-    if (event.kind == ServiceEvent.kPauseBreakpoint) {
-      print('Breakpoint reached');
-      subscription.cancel();
-      completer.complete(isolate);
-    }
+  isolate.vm.getEventStream(VM.kDebugStream).then((stream) {
+    var subscription;
+    subscription = stream.listen((ServiceEvent event) {
+        print("Event: $event");
+        if (event.kind == ServiceEvent.kPauseBreakpoint) {
+          print('Breakpoint reached');
+          subscription.cancel();
+          if (completer != null) {
+            // Reload to update isolate.pauseEvent.
+            completer.complete(isolate.reload());
+            completer = null;
+          }
+        }
+    });
+
+    // Pause may have happened before we subscribed.
+    isolate.reload().then((_) {
+      if ((isolate.pauseEvent != null) &&
+         (isolate.pauseEvent.kind == ServiceEvent.kPauseBreakpoint)) {
+        // Already waiting at a breakpoint.
+        print('Breakpoint reached');
+        subscription.cancel();
+        if (completer != null) {
+          completer.complete(isolate);
+          completer = null;
+        }
+      }
+    });
   });
 
   return completer.future;  // Will complete when breakpoint hit.
 }
 
 
+// Currying is your friend.
+IsolateTest setBreakpointAtLine(int line) {
+  return (Isolate isolate) async {
+    print("Setting breakpoint for line $line");
+    Library lib = await isolate.rootLibrary.load();
+    Script script = lib.scripts.single;
+
+    Breakpoint bpt = await isolate.addBreakpoint(script, line);
+    print("Breakpoint is $bpt");
+    expect(bpt, isNotNull);
+    expect(bpt is Breakpoint, isTrue);
+  };
+}
+
+IsolateTest stoppedAtLine(int line) {
+  return (Isolate isolate) async {
+    print("Checking we are at line $line");
+
+    ServiceMap stack = await isolate.getStack();
+    expect(stack.type, equals('Stack'));
+    expect(stack['frames'].length, greaterThanOrEqualTo(1));
+
+    Frame top = stack['frames'][0];
+    Script script = await top.location.script.load();
+    expect(script.tokenToLine(top.location.tokenPos), equals(line));
+  };
+}
+
+
 Future<Isolate> resumeIsolate(Isolate isolate) {
   Completer completer = new Completer();
-  var subscription;
-  subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
-    if (event.kind == ServiceEvent.kResume) {
-      subscription.cancel();
-      completer.complete();
-    }
+  isolate.vm.getEventStream(VM.kDebugStream).then((stream) {
+    var subscription;
+    subscription = stream.listen((ServiceEvent event) {
+      if (event.kind == ServiceEvent.kResume) {
+        subscription.cancel();
+        completer.complete();
+      }
+    });
   });
   isolate.resume();
   return completer.future;
+}
+
+
+Future resumeAndAwaitEvent(Isolate isolate, stream, onEvent) async {
+  Completer completer = new Completer();
+  var sub;
+  sub = await isolate.vm.listenEventStream(
+    stream,
+    (ServiceEvent event) {
+      var r = onEvent(event);
+      if (r is! Future) {
+        r = new Future.value(r);
+      }
+      r.then((x) => sub.cancel().then((_) {
+        completer.complete();
+      }));
+    });
+  await isolate.resume();
+  return completer.future;
+}
+
+IsolateTest resumeIsolateAndAwaitEvent(stream, onEvent) {
+  return (Isolate isolate) async =>
+      resumeAndAwaitEvent(isolate, stream, onEvent);
+}
+
+
+Future<Class> getClassFromRootLib(Isolate isolate, String className) async {
+  Library rootLib = await isolate.rootLibrary.load();
+  for (var i = 0; i < rootLib.classes.length; i++) {
+    Class cls = rootLib.classes[i];
+    if (cls.name == className) {
+      return cls;
+    }
+  }
+  return null;
 }
 
 

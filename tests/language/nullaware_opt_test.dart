@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// SharedOptions=--enable-null-aware-operators
 // VMOptions=--optimization_counter_threshold=5
 //
 // Basic null-aware operator test that invokes the optimizing compiler.
@@ -36,7 +35,7 @@ test() {
   Expect.equals(d, d ?? bomb());
 
   var e;
-  // The assginment to e is not executed since d != null.
+  // The assignment to e is not executed since d != null.
   d ??= e ??= new C(100);
   Expect.equals(null, e);
   e ??= new C(100);

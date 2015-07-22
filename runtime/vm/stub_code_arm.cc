@@ -51,7 +51,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
-  __ StoreToOffset(kWord, FP, R9, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, FP, THR, Thread::top_exit_frame_info_offset());
 
 #if defined(DEBUG)
   { Label ok;
@@ -101,7 +101,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Reset exit frame information in Isolate structure.
   __ LoadImmediate(R2, 0);
-  __ StoreToOffset(kWord, R2, R9, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, R2, THR, Thread::top_exit_frame_info_offset());
 
   __ LeaveStubFrame();
   __ Ret();
@@ -146,7 +146,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
-  __ StoreToOffset(kWord, FP, R9, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, FP, THR, Thread::top_exit_frame_info_offset());
 
 #if defined(DEBUG)
   { Label ok;
@@ -209,7 +209,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   // Reset exit frame information in Isolate structure.
   __ LoadImmediate(R2, 0);
-  __ StoreToOffset(kWord, R2, R9, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, R2, THR, Thread::top_exit_frame_info_offset());
 
   __ LeaveStubFrame();
   __ Ret();
@@ -235,7 +235,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
-  __ StoreToOffset(kWord, FP, R9, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, FP, THR, Thread::top_exit_frame_info_offset());
 
 #if defined(DEBUG)
   { Label ok;
@@ -289,7 +289,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   // Reset exit frame information in Isolate structure.
   __ LoadImmediate(R2, 0);
-  __ StoreToOffset(kWord, R2, R9, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, R2, THR, Thread::top_exit_frame_info_offset());
 
   __ LeaveStubFrame();
   __ Ret();
@@ -632,15 +632,20 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
     uword* entry_patch_offset, uword* patch_code_pc_offset) {
   *entry_patch_offset = assembler->CodeSize();
   Label slow_case;
-
+  Isolate* isolate = Isolate::Current();
   // Compute the size to be allocated, it is based on the array length
   // and is computed as:
   // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
   __ MoveRegister(R3, R2);   // Array length.
-
+  const Class& cls = Class::Handle(isolate->object_store()->array_class());
+  ASSERT(!cls.IsNull());
   // Check that length is a positive Smi.
   __ tst(R3, Operand(kSmiTagMask));
-  __ b(&slow_case, NE);
+  if (FLAG_use_slow_path || cls.trace_allocation()) {
+    __ b(&slow_case);
+  } else {
+    __ b(&slow_case, NE);
+  }
   __ cmp(R3, Operand(0));
   __ b(&slow_case, LT);
 
@@ -658,10 +663,9 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
 
   // R9: Allocation size.
 
-  Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
   const intptr_t cid = kArrayCid;
-  Heap::Space space = heap->SpaceForAllocation(cid);
+  Heap::Space space = Heap::SpaceForAllocation(cid);
   __ LoadImmediate(R6, heap->TopAddress(space));
   __ ldr(R0, Address(R6, 0));  // Potential new object start.
   __ adds(R7, R0, Operand(R9));  // Potential next object start.
@@ -678,7 +682,7 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ LoadAllocationStatsAddress(R3, cid, space);
+  __ LoadAllocationStatsAddress(R3, cid);
   __ str(R7, Address(R6, 0));
   __ add(R0, R0, Operand(kHeapObjectTag));
 
@@ -726,7 +730,7 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   __ mov(R5, Operand(R4));
   __ AddImmediate(R6, R0, sizeof(RawArray) - kHeapObjectTag);
   __ InitializeFieldsNoBarrier(R0, R6, R7, R4, R5);
-  __ IncrementAllocationStatsWithSize(R3, R9, cid, space);
+  __ IncrementAllocationStatsWithSize(R3, R9, space);
   __ Ret();  // Returns the newly allocated object in R0.
   // Unable to allocate the array using the fast inline code, just call
   // into the runtime.
@@ -795,11 +799,11 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Save top resource and top exit frame info. Use R4-6 as temporary registers.
   // StackFrameIterator reads the top exit frame info saved in this frame.
-  __ LoadFromOffset(kWord, R5, R9, Isolate::top_exit_frame_info_offset());
-  __ LoadFromOffset(kWord, R4, R9, Isolate::top_resource_offset());
+  __ LoadFromOffset(kWord, R5, THR, Thread::top_exit_frame_info_offset());
+  __ LoadFromOffset(kWord, R4, THR, Thread::top_resource_offset());
   __ LoadImmediate(R6, 0);
-  __ StoreToOffset(kWord, R6, R9, Isolate::top_resource_offset());
-  __ StoreToOffset(kWord, R6, R9, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, R6, THR, Thread::top_resource_offset());
+  __ StoreToOffset(kWord, R6, THR, Thread::top_exit_frame_info_offset());
 
   // kExitLinkSlotFromEntryFp must be kept in sync with the code below.
   __ Push(R4);
@@ -842,9 +846,9 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Restore the saved top exit frame info and top resource back into the
   // Isolate structure. Uses R5 as a temporary register for this.
   __ Pop(R5);
-  __ StoreToOffset(kWord, R5, R9, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, R5, THR, Thread::top_exit_frame_info_offset());
   __ Pop(R5);
-  __ StoreToOffset(kWord, R5, R9, Isolate::top_resource_offset());
+  __ StoreToOffset(kWord, R5, THR, Thread::top_resource_offset());
 
   // Restore the current VMTag from the stack.
   __ Pop(R4);
@@ -874,7 +878,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   if (FLAG_inline_alloc) {
     Label slow_case;
-    Heap* heap = Isolate::Current()->heap();
     // First compute the rounded instance size.
     // R1: number of context variables.
     intptr_t fixed_size = sizeof(RawContext) + kObjectAlignment - 1;
@@ -887,18 +890,18 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R1: number of context variables.
     // R2: object size.
     const intptr_t cid = kContextCid;
-    Heap::Space space = heap->SpaceForAllocation(cid);
-    __ LoadImmediate(R5, heap->TopAddress(space));
-    __ ldr(R0, Address(R5, 0));
+    Heap::Space space = Heap::SpaceForAllocation(cid);
+    __ LoadIsolate(R5);
+    __ ldr(R5, Address(R5, Isolate::heap_offset()));
+    __ ldr(R0, Address(R5, Heap::TopOffset(space)));
     __ add(R3, R2, Operand(R0));
     // Check if the allocation fits into the remaining space.
     // R0: potential new object.
     // R1: number of context variables.
     // R2: object size.
     // R3: potential next object start.
-    // R5: top address.
-    __ LoadImmediate(IP, heap->EndAddress(space));
-    __ ldr(IP, Address(IP, 0));
+    // R5: heap.
+    __ ldr(IP, Address(R5, Heap::EndOffset(space)));
     __ cmp(R3, Operand(IP));
     if (FLAG_use_slow_path) {
       __ b(&slow_case);
@@ -912,9 +915,9 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R1: number of context variables.
     // R2: object size.
     // R3: next object start.
-    // R5: top address.
-    __ LoadAllocationStatsAddress(R6, cid, space);
-    __ str(R3, Address(R5, 0));
+    // R5: heap.
+    __ LoadAllocationStatsAddress(R6, cid, /* inline_isolate = */ false);
+    __ str(R3, Address(R5, Heap::TopOffset(space)));
     __ add(R0, R0, Operand(kHeapObjectTag));
 
     // Calculate the size tag.
@@ -963,7 +966,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     Label loop;
     __ AddImmediate(R7, R0, Context::variable_offset(0) - kHeapObjectTag);
     __ InitializeFieldsNoBarrier(R0, R7, R3, R4, R5);
-    __ IncrementAllocationStatsWithSize(R6, R2, cid, space);
+    __ IncrementAllocationStatsWithSize(R6, R2, space);
 
     // Done allocating and initializing the context.
     // R0: new object.
@@ -1089,7 +1092,7 @@ void StubCode::GenerateAllocationStubForClass(
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
     Heap* heap = Isolate::Current()->heap();
-    Heap::Space space = heap->SpaceForAllocation(cls.id());
+    Heap::Space space = Heap::SpaceForAllocation(cls.id());
     __ LoadImmediate(R5, heap->TopAddress(space));
     __ ldr(R0, Address(R5, 0));
     __ AddImmediate(R1, R0, instance_size);
@@ -1108,7 +1111,7 @@ void StubCode::GenerateAllocationStubForClass(
 
     // Load the address of the allocation stats table. We split up the load
     // and the increment so that the dependent load is not too nearby.
-    __ LoadAllocationStatsAddress(R5, cls.id(), space);
+    __ LoadAllocationStatsAddress(R5, cls.id());
 
     // R0: new object start.
     // R1: next object start.
@@ -1922,7 +1925,7 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   __ StoreToOffset(kWord, R2, R3, Isolate::vm_tag_offset());
   // Clear top exit frame.
   __ LoadImmediate(R2, 0);
-  __ StoreToOffset(kWord, R2, R3, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, R2, THR, Thread::top_exit_frame_info_offset());
   __ bx(LR);  // Jump to the exception handler code.
 }
 

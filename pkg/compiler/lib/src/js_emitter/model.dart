@@ -4,7 +4,8 @@
 
 library dart2js.new_js_emitter.model;
 
-import '../js/js.dart' as js show Expression, Statement, Name, Literal;
+import '../js/js.dart' as js show Expression, Statement, Name, Literal,
+    TokenFinalizer;
 import '../constants/values.dart' show ConstantValue;
 
 import '../deferred_load.dart' show OutputUnit;
@@ -29,13 +30,14 @@ class Program {
   // TODO(floitsch): we should store the metadata directly instead of storing
   // the collector. However, the old emitter still updates the data.
   final MetadataCollector _metadataCollector;
-  TokenFinalizer get metadataFinalizer => _metadataCollector;
+  final Iterable<js.TokenFinalizer> finalizers;
 
   Program(this.fragments,
           this.holders,
           this.loadMap,
           this.typeToInterceptorMap,
           this._metadataCollector,
+          this.finalizers,
           {this.needsNativeSupport,
            this.outputContainsConstantList,
            this.hasIsolateSupport}) {
@@ -81,7 +83,11 @@ class Program {
 class Holder {
   final String name;
   final int index;
-  Holder(this.name, this.index);
+  final bool isStaticStateHolder;
+  final bool isConstantsHolder;
+
+  Holder(this.name, this.index,
+      {this.isStaticStateHolder: false, this.isConstantsHolder: false});
 }
 
 /**
@@ -220,6 +226,7 @@ class Class implements FieldContainer {
   final List<Method> methods;
   final List<Field> fields;
   final List<StubMethod> isChecks;
+  final List<StubMethod> checkedSetters;
 
   /// Stub methods for this class that are call stubs for getters.
   final List<StubMethod> callStubs;
@@ -241,8 +248,14 @@ class Class implements FieldContainer {
   /// Whether the class must be evaluated eagerly.
   bool isEager = false;
 
-  /// Data that must be emitted with the class for native interop.
-  js.Literal nativeInfo;
+  /// Leaf tags. See [NativeEmitter.prepareNativeClasses].
+  List<String> nativeLeafTags;
+
+  /// Non-leaf tags. See [NativeEmitter.prepareNativeClasses].
+  List<String> nativeNonLeafTags;
+
+  /// Native extensions. See [NativeEmitter.prepareNativeClasses].
+  List<Class> nativeExtensions;
 
   Class(this.element, this.name, this.holder,
         this.methods,
@@ -251,6 +264,7 @@ class Class implements FieldContainer {
         this.callStubs,
         this.typeVariableReaderStubs,
         this.noSuchMethodStubs,
+        this.checkedSetters,
         this.isChecks,
         this.functionTypeIndex,
         {this.onlyForRti,
@@ -283,6 +297,7 @@ class MixinApplication extends Class {
                    List<Field> staticFieldsForReflection,
                    List<StubMethod> callStubs,
                    List<StubMethod> typeVariableReaderStubs,
+                   List<StubMethod> checkedSetters,
                    List<StubMethod> isChecks,
                    js.Expression functionTypeIndex,
                    {bool onlyForRti,
@@ -295,7 +310,9 @@ class MixinApplication extends Class {
               callStubs,
               typeVariableReaderStubs,
               const <StubMethod>[],
-              isChecks, functionTypeIndex,
+              checkedSetters,
+              isChecks,
+              functionTypeIndex,
               onlyForRti: onlyForRti,
               isDirectlyInstantiated: isDirectlyInstantiated,
               isNative: false);

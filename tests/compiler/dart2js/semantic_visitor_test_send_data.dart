@@ -107,6 +107,20 @@ const Map<String, List<Test>> SEND_TESTS = const {
         'm() => p.C.o;',
         const Visit(VisitKind.VISIT_STATIC_FIELD_GET,
                     element: 'field(C#o)')),
+    const Test.prefix(
+        '''
+        class C {
+          static var o;
+        }
+        ''',
+        'm() => p.C.o;',
+        const [
+          const Visit(VisitKind.PREVISIT_DEFERRED_ACCESS,
+                      element: 'prefix(p)'),
+          const Visit(VisitKind.VISIT_STATIC_FIELD_GET,
+                      element: 'field(C#o)'),
+        ],
+        isDeferred: true),
     const Test(
         '''
         class C {
@@ -125,6 +139,48 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_UNRESOLVED_GET,
                     name: 'o')),
+    const Test.prefix(
+        '''
+        ''',
+        'm() => p.C.o;',
+        const [
+          const Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_GET,
+                      receiver: 'p.C', name: 'o'),
+          const Visit(VisitKind.VISIT_UNRESOLVED_GET, name: 'C'),
+        ]),
+    const Test.prefix(
+        '''
+        class C {
+        }
+        ''',
+        'm() => p.C.o;',
+        const Visit(VisitKind.VISIT_UNRESOLVED_GET, name: 'o')),
+    const Test.prefix(
+        '''
+        ''',
+        'm() => p.C.o;',
+        const [
+          const Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_GET,
+                      receiver: 'p.C', name: 'o'),
+          const Visit(VisitKind.PREVISIT_DEFERRED_ACCESS,
+                      element: 'prefix(p)'),
+          const Visit(VisitKind.VISIT_UNRESOLVED_GET,
+                      name: 'C'),
+        ],
+        isDeferred: true),
+    const Test.prefix(
+        '''
+        class C {
+        }
+        ''',
+        'm() => p.C.o;',
+        const [
+          const Visit(VisitKind.PREVISIT_DEFERRED_ACCESS,
+                      element: 'prefix(p)'),
+          const Visit(VisitKind.VISIT_UNRESOLVED_GET,
+                      name: 'o'),
+        ],
+        isDeferred: true),
     const Test(
         '''
         class C {}
@@ -659,6 +715,35 @@ const Map<String, List<Test>> SEND_TESTS = const {
         'm() => p.o;',
         const Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_GET,
                     element: 'field(o)')),
+    const Test.prefix(
+        '''
+        var o;
+        ''',
+        'm() => p.o;',
+        const [
+          const Visit(VisitKind.PREVISIT_DEFERRED_ACCESS,
+                      element: 'prefix(p)'),
+          const Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_GET,
+                      element: 'field(o)'),
+        ],
+        isDeferred: true),
+    const Test.prefix(
+        '''
+        ''',
+        'm() => p.o;',
+        const Visit(VisitKind.VISIT_UNRESOLVED_GET,
+                    name: 'o')),
+    const Test.prefix(
+        '''
+        ''',
+        'm() => p.o;',
+        const [
+          const Visit(VisitKind.PREVISIT_DEFERRED_ACCESS,
+                      element: 'prefix(p)'),
+          const Visit(VisitKind.VISIT_UNRESOLVED_GET,
+                      name: 'o'),
+        ],
+        isDeferred: true),
     const Test(
         '''
         var o;
@@ -749,7 +834,6 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_TOP_LEVEL_GETTER_GET,
                     element: 'getter(o)')),
-    // TODO(johnniwinther): Expect [VISIT_TOP_LEVEL_SETTER_GET] instead.
     const Test(
         '''
         set o(_) {}
@@ -764,8 +848,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
         '''
         m() => p.o;
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_GET,
-                    name: 'o')),
+        const Visit(VisitKind.VISIT_TOP_LEVEL_SETTER_GET,
+                    element: 'setter(o)')),
     // TODO(johnniwinther): Expect [VISIT_TOP_LEVEL_GETTER_SET] instead.
     const Test(
         '''
@@ -815,7 +899,6 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_TOP_LEVEL_GETTER_INVOKE,
                     element: 'getter(o)',
                     arguments: '(null,42)')),
-    // TODO(johnniwinther): Expected [VISIT_TOP_LEVEL_SETTER_INVOKE] instead.
     const Test(
         '''
         set o(_) {}
@@ -829,8 +912,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
         set o(_) {}
         ''',
         'm() { p.o(null, 42); }',
-        const Visit(VisitKind.VISIT_UNRESOLVED_INVOKE,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_TOP_LEVEL_SETTER_INVOKE,
+                    element: 'setter(o)',
                     arguments: '(null,42)')),
   ],
   'Top level functions': const [

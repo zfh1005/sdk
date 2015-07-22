@@ -6,6 +6,7 @@ library test.src.context.context_test;
 
 import 'dart:async';
 
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
@@ -54,6 +55,32 @@ main() {
 
 @reflectiveTest
 class AnalysisContextImplTest extends AbstractContextTest {
+  Future fail_implicitAnalysisEvents_removed() async {
+    AnalyzedSourcesListener listener = new AnalyzedSourcesListener();
+    context.implicitAnalysisEvents.listen(listener.onData);
+    //
+    // Create a file that references an file that is not explicitly being
+    // analyzed and fully analyze it. Ensure that the listener is told about
+    // the implicitly analyzed file.
+    //
+    Source sourceA = newSource('/a.dart', "library a; import 'b.dart';");
+    Source sourceB = newSource('/b.dart', "library b;");
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.addedSource(sourceA);
+    context.applyChanges(changeSet);
+    context.computeErrors(sourceA);
+    await pumpEventQueue();
+    listener.expectAnalyzed(sourceB);
+    //
+    // Remove the reference and ensure that the listener is told that we're no
+    // longer implicitly analyzing the file.
+    //
+    context.setContents(sourceA, "library a;");
+    context.computeErrors(sourceA);
+    await pumpEventQueue();
+    listener.expectNotAnalyzed(sourceB);
+  }
+
   void fail_performAnalysisTask_importedLibraryDelete_html() {
     // NOTE: This was failing before converting to the new task model.
     Source htmlSource = addSource("/page.html", r'''
@@ -275,6 +302,41 @@ import 'libB.dart';''';
       listener.assertEvent(wereSourcesRemovedOrDeleted: true);
       listener.assertNoMoreEvents();
     });
+  }
+
+  /**
+   * IDEA uses the following scenario:
+   * 1. Add overlay.
+   * 2. Change overlay.
+   * 3. If the contents of the document buffer is the same as the contents
+   *    of the file, remove overlay.
+   * So, we need to try to use incremental resolution for removing overlays too.
+   */
+  void test_applyChanges_remove_incremental() {
+    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+    Source source = resourceProvider.newFile('/test.dart', r'''
+main() {
+  print(1);
+}
+''').createSource();
+    context.analysisOptions = new AnalysisOptionsImpl()..incremental = true;
+    context.applyChanges(new ChangeSet()..addedSource(source));
+    // remember compilation unit
+    _analyzeAll_assertFinished();
+    CompilationUnit unit = context.getResolvedCompilationUnit2(source, source);
+    // add overlay
+    context.setContents(source, r'''
+main() {
+  print(12);
+}
+''');
+    _analyzeAll_assertFinished();
+    expect(context.getResolvedCompilationUnit2(source, source), unit);
+    // remove overlay
+    context.setContents(source, null);
+    context.validateCacheConsistency();
+    _analyzeAll_assertFinished();
+    expect(context.getResolvedCompilationUnit2(source, source), unit);
   }
 
   Future test_applyChanges_removeContainer() {
@@ -1170,6 +1232,24 @@ main() {}''');
     expect(analysisResult.changeNotices, isNotNull);
   }
 
+  Future test_implicitAnalysisEvents_added() async {
+    AnalyzedSourcesListener listener = new AnalyzedSourcesListener();
+    context.implicitAnalysisEvents.listen(listener.onData);
+    //
+    // Create a file that references an file that is not explicitly being
+    // analyzed and fully analyze it. Ensure that the listener is told about
+    // the implicitly analyzed file.
+    //
+    Source sourceA = newSource('/a.dart', "library a; import 'b.dart';");
+    Source sourceB = newSource('/b.dart', "library b;");
+    ChangeSet changeSet = new ChangeSet();
+    changeSet.addedSource(sourceA);
+    context.applyChanges(changeSet);
+    context.computeErrors(sourceA);
+    await pumpEventQueue();
+    listener.expectAnalyzed(sourceB);
+  }
+
   void test_isClientLibrary_dart() {
     Source source = addSource("/test.dart", r'''
 import 'dart:html';
@@ -1586,7 +1666,11 @@ void g() { f(null); }''');
     _changeSource(source, "");
     source.generateExceptionOnRead = true;
     _analyzeAll_assertFinished();
-    expect(source.readCount, 3);
+    if (AnalysisEngine.instance.limitInvalidationInTaskModel) {
+      expect(source.readCount, 5);
+    } else {
+      expect(source.readCount, 3);
+    }
   }
 
   void test_performAnalysisTask_missingPart() {
@@ -2000,6 +2084,10 @@ class LimitedInvalidateTest extends AbstractContextTest {
   void setUp() {
     AnalysisEngine.instance.limitInvalidationInTaskModel = true;
     super.setUp();
+    AnalysisOptionsImpl options =
+        new AnalysisOptionsImpl.from(context.analysisOptions);
+    options.incremental = true;
+    context.analysisOptions = options;
   }
 
   @override
@@ -2161,6 +2249,33 @@ class C {}
     _performPendingAnalysisTasks();
     // Now b.dart is analyzed and it again has the error.
     expect(context.getErrors(sourceB).errors, hasLength(1));
+  }
+
+  void test_usedName_directUser_withIncremental() {
+    Source sourceA = addSource("/a.dart", r'''
+library lib_a;
+class A {
+  m() {}
+}
+''');
+    Source sourceB = addSource("/b.dart", r'''
+library lib_b;
+import 'a.dart';
+main() {
+  A a = new A();
+  a.m();
+}
+''');
+    _performPendingAnalysisTasks();
+    // Update A.
+    context.setContents(sourceA, r'''
+library lib_a;
+class A {
+  m2() {}
+}
+''');
+    _assertInvalid(sourceA, LIBRARY_ERRORS_READY);
+    _assertInvalid(sourceB, LIBRARY_ERRORS_READY);
   }
 
   void test_usedName_indirectUser() {
