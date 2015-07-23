@@ -242,23 +242,6 @@ void FUNCTION_NAME(Socket_CreateBindConnect)(Dart_NativeArguments args) {
 }
 
 
-void FUNCTION_NAME(Socket_CreateConnectUnix)(Dart_NativeArguments args) {
-  RawAddr addr;
-  const char* path =
-      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
-  addr.un.sun_family = AF_UNIX;
-  snprintf(addr.un.sun_path, sizeof(addr.un.sun_path), "%s", path);
-  intptr_t socket = Socket::CreateConnectUnix(addr);
-  OSError error;
-  if (socket >= 0) {
-    Socket::SetSocketIdNativeField(Dart_GetNativeArgument(args, 0), socket);
-    Dart_SetReturnValue(args, Dart_True());
-  } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError(&error));
-  }
-}
-
-
 void FUNCTION_NAME(Socket_CreateBindDatagram)(Dart_NativeArguments args) {
   RawAddr addr;
   SocketAddress::GetSockAddr(Dart_GetNativeArgument(args, 1), &addr);
@@ -584,29 +567,6 @@ void FUNCTION_NAME(ServerSocket_CreateBindListen)(Dart_NativeArguments args) {
   Dart_Handle result = ListeningSocketRegistry::Instance()->CreateBindListen(
       socket_object, addr, backlog, v6_only, shared);
   Dart_SetReturnValue(args, result);
-}
-
-
-void FUNCTION_NAME(ServerSocket_CreateBindListenUnix)(
-    Dart_NativeArguments args) {
-  const char* path =
-      DartUtils::GetStringValue(Dart_GetNativeArgument(args, 1));
-  int64_t backlog = DartUtils::GetInt64ValueCheckRange(
-      Dart_GetNativeArgument(args, 2),
-      0,
-      65535);
-  RawAddr addr;
-  addr.un.sun_family = AF_UNIX;
-  snprintf(addr.un.sun_path, sizeof(addr.un.sun_path), "%s", path);
-
-  intptr_t socketfd = ServerSocket::CreateBindListenUnix(addr, backlog);
-  if (socketfd >= 0) {
-    Dart_Handle socket_object = Dart_GetNativeArgument(args, 0);
-    Socket::SetSocketIdNativeField(socket_object, socketfd);
-    Dart_SetReturnValue(args, Dart_True());
-  } else {
-    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
-  }
 }
 
 

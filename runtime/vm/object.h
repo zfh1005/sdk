@@ -684,7 +684,7 @@ class Object {
     ASSERT(Contains(reinterpret_cast<uword>(addr) - 1) &&
            Contains(reinterpret_cast<uword>(addr) - kWordSize));
     // At least check that there is a NoSafepointScope and hope it's big enough.
-    ASSERT(Isolate::Current()->no_safepoint_scope_depth() > 0);
+    ASSERT(Thread::Current()->no_safepoint_scope_depth() > 0);
     return const_cast<FieldType*>(addr);
   }
 
@@ -2943,6 +2943,12 @@ class Field : public Object {
   bool IsUninitialized() const;
 
   void EvaluateInitializer() const;
+
+  // For static fields only. Constructs a closure that gets/sets the
+  // field value.
+  RawInstance* GetterClosure() const;
+  RawInstance* SetterClosure() const;
+  RawInstance* AccessorClosure(bool make_setter) const;
 
   // Constructs getter and setter names for fields and vice versa.
   static RawString* GetterName(const String& field_name);

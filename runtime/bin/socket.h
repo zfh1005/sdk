@@ -33,7 +33,6 @@ namespace bin {
 union RawAddr {
   struct sockaddr_in in;
   struct sockaddr_in6 in6;
-  struct sockaddr_un un;
   struct sockaddr_storage ss;
   struct sockaddr addr;
 };
@@ -257,7 +256,6 @@ class Socket {
   // specified as the port component of the passed RawAddr structure.
   static intptr_t CreateBindConnect(const RawAddr& addr,
                                     const RawAddr& source_addr);
-  static intptr_t CreateConnectUnix(const RawAddr& addr);
   // Creates a datagram socket which is bound. The port to bind
   // to is specified as the port component of the RawAddr structure.
   static intptr_t CreateBindDatagram(const RawAddr& addr, bool reuseAddress);
@@ -334,9 +332,6 @@ class ServerSocket {
   static intptr_t CreateBindListen(const RawAddr& addr,
                                    intptr_t backlog,
                                    bool v6_only = false);
-
-  static intptr_t CreateBindListenUnix(const RawAddr& addr,
-                                       intptr_t backlog);
 
   // Start accepting on a newly created listening socket. If it was unable to
   // start accepting incoming sockets, the fd is invalidated.

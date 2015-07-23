@@ -899,7 +899,7 @@ void Object::InitVmIsolateSnapshotObjectTable(intptr_t len) {
 void Object::MakeUnusedSpaceTraversable(const Object& obj,
                                         intptr_t original_size,
                                         intptr_t used_size) {
-  ASSERT(Isolate::Current()->no_safepoint_scope_depth() > 0);
+  ASSERT(Thread::Current()->no_safepoint_scope_depth() > 0);
   ASSERT(!obj.IsNull());
   ASSERT(original_size >= used_size);
   if (original_size > used_size) {
@@ -7384,6 +7384,73 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (!script.IsNull()) {
     jsobj.AddLocation(script, token_pos());
   }
+}
+
+// Build a closure object that gets (or sets) the contents of a static
+// field f and cache the closure in a newly created static field
+// named #f (or #f= in case of a setter).
+RawInstance* Field::AccessorClosure(bool make_setter) const {
+  ASSERT(is_static());
+  const Class& field_owner = Class::Handle(owner());
+
+  String& closure_name = String::Handle(this->name());
+  closure_name = Symbols::FromConcat(Symbols::HashMark(), closure_name);
+  if (make_setter) {
+    closure_name = Symbols::FromConcat(Symbols::HashMark(), closure_name);
+  }
+
+  Field& closure_field = Field::Handle();
+  closure_field = field_owner.LookupStaticField(closure_name);
+  if (!closure_field.IsNull()) {
+    ASSERT(closure_field.is_static());
+    const Instance& closure = Instance::Handle(closure_field.value());
+    ASSERT(!closure.IsNull());
+    ASSERT(closure.IsClosure());
+    return closure.raw();
+  }
+
+  // This is the first time a closure for this field is requested.
+  // Create the closure and a new static field in which it is stored.
+  const char* field_name = String::Handle(name()).ToCString();
+  String& expr_src = String::Handle();
+  if (make_setter) {
+    expr_src =
+        String::NewFormatted("(%s_) { return %s = %s_; }",
+                             field_name, field_name, field_name);
+  } else {
+    expr_src = String::NewFormatted("() { return %s; }", field_name);
+  }
+  Object& result =
+      Object::Handle(field_owner.Evaluate(expr_src,
+                                          Object::empty_array(),
+                                          Object::empty_array()));
+  ASSERT(result.IsInstance());
+  // The caller may expect the closure to be allocated in old space. Copy
+  // the result here, since Object::Clone() is a private method.
+  result = Object::Clone(result, Heap::kOld);
+
+  closure_field = Field::New(closure_name,
+                             true,  // is_static
+                             true,  // is_final
+                             true,  // is_const
+                             true,  // is_synthetic
+                             field_owner,
+                             this->token_pos());
+  closure_field.set_value(Instance::Cast(result));
+  closure_field.set_type(Type::Handle(Type::DynamicType()));
+  field_owner.AddField(closure_field);
+
+  return Instance::RawCast(result.raw());
+}
+
+
+RawInstance* Field::GetterClosure() const {
+  return AccessorClosure(false);
+}
+
+
+RawInstance* Field::SetterClosure() const {
+  return AccessorClosure(true);
 }
 
 
@@ -14301,7 +14368,7 @@ bool Instance::IsIdenticalTo(const Instance& other) const {
 
 
 intptr_t* Instance::NativeFieldsDataAddr() const {
-  ASSERT(Isolate::Current()->no_safepoint_scope_depth() > 0);
+  ASSERT(Thread::Current()->no_safepoint_scope_depth() > 0);
   RawTypedData* native_fields =
       reinterpret_cast<RawTypedData*>(*NativeFieldsAddr());
   if (native_fields == TypedData::null()) {
@@ -14450,7 +14517,7 @@ const char* Instance::ToCString() const {
     return "unknown_constant";
   } else if (raw() == Object::non_constant().raw()) {
     return "non_constant";
-  } else if (Isolate::Current()->no_safepoint_scope_depth() > 0) {
+  } else if (Thread::Current()->no_safepoint_scope_depth() > 0) {
     // Can occur when running disassembler.
     return "Instance";
   } else {
