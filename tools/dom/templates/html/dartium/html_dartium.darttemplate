@@ -427,6 +427,12 @@ List<Node> wrap_jso_list(jso_nodes) {
   frozen_nodes.dartClass_instance = jso_nodes;
   return frozen_nodes;
 }
+
+// Need a default constructor for constructing classes with mixins that are
+// also extending NativeFieldWrapperClass2.  NativeFieldWrapperClassXX don't
+// have a default constructor.
+class JsoNativeFieldWrapper2 extends NativeFieldWrapperClass2 {}
+
 $else
 unwrap_jso(dartClass_instance) => dartClass_instance;
 wrap_jso(jsObject) => jsObject;

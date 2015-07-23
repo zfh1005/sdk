@@ -1197,6 +1197,12 @@ List<Node> wrap_jso_list(jso_nodes) {
   frozen_nodes.dartClass_instance = jso_nodes;
   return frozen_nodes;
 }
+
+// Need a default constructor for constructing classes with mixins that are
+// also extending NativeFieldWrapperClass2.  NativeFieldWrapperClassXX don't
+// have a default constructor.
+class JsoNativeFieldWrapper2 extends NativeFieldWrapperClass2 {}
+
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -5536,7 +5542,7 @@ class CssRule extends NativeFieldWrapperClass2 {
 
 
 @DomName('CSSStyleDeclaration')
- class CssStyleDeclaration extends
+class CssStyleDeclaration  extends JsoNativeFieldWrapper2 with
     CssStyleDeclarationBase  {
   factory CssStyleDeclaration() => new CssStyleDeclaration.css('');
 
@@ -5692,7 +5698,7 @@ class CssRule extends NativeFieldWrapperClass2 {
   
 }
 
-class _CssStyleDeclarationSet extends CssStyleDeclarationBase {
+class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
   final Iterable<Element> _elementIterable;
   Iterable<CssStyleDeclaration> _elementCssStyleDeclarationSetIterable;
 
@@ -27725,7 +27731,7 @@ class Node extends EventTarget {
   @DocsEditable()
   @Returns('NodeList')
   @Creates('NodeList')
-  List<Node> get childNodes => _blink.BlinkNode.instance.childNodes_Getter_(unwrap_jso(this));
+  List<Node> get childNodes => wrap_jso_list(_blink.BlinkNode.instance.childNodes_Getter_(unwrap_jso(this)));
   // To suppress missing implicit constructor warnings.
   factory Node._() { throw new UnsupportedError("Not supported"); }
 
@@ -41844,7 +41850,7 @@ abstract class _MutationEvent extends Event {
 @DomName('NamedNodeMap')
 // http://dom.spec.whatwg.org/#namednodemap
 @deprecated // deprecated
-class _NamedNodeMap extends NativeFieldWrapperClass2 implements List<Node> {
+class _NamedNodeMap extends JsoNativeFieldWrapper2 with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
   // To suppress missing implicit constructor warnings.
   factory _NamedNodeMap._() { throw new UnsupportedError("Not supported"); }
 

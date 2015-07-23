@@ -494,6 +494,7 @@ class HtmlDartInterfaceGenerator(object):
 
   def GenerateInterface(self):
     interface_name = self._interface_type_info.interface_name()
+
     implementation_name = self._interface_type_info.implementation_name()
     self._library_emitter.AddTypeEntry(self._library_name,
                                        self._interface.id, implementation_name)
@@ -559,10 +560,6 @@ class HtmlDartInterfaceGenerator(object):
 
     mixins = self._backend.Mixins()
 
-    # TODO(terry): Do we need a more generic solution other than handling NamedNodeMap
-    #              we can't call super on a mixin interface - yet.
-    if self._options.templates._conditions['DARTIUM'] and self._options.dart_js_interop and self._interface.id == 'NamedNodeMap':
-      mixins = None
     mixins_str = ''
     if mixins:
       mixins_str = ' with ' + ', '.join(mixins)
@@ -630,6 +627,14 @@ class HtmlDartInterfaceGenerator(object):
   {0}._internal() {{ }}
 
 {1}'''.format(class_name, js_interop_equivalence_op)
+        # Change to use the synthesized class so we can construct with a mixin
+        # classes prefixed with name of NativeFieldWrapperClass don't have a
+        # default constructor so classes with mixins can't be new'd.
+        if (self._options.templates._conditions['DARTIUM'] and
+            self._options.dart_js_interop and
+            (self._interface.id == 'NamedNodeMap' or
+             self._interface.id == 'CSSStyleDeclaration')):
+            base_class = 'JsoNativeFieldWrapper2'
 
     implementation_members_emitter = implementation_emitter.Emit(
         self._backend.ImplementationTemplate(),
