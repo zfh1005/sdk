@@ -112,10 +112,10 @@ class SqlDatabase extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory SqlDatabase._internalWrap() {
-    return new SqlDatabase._internal();
+    return new SqlDatabase.internal_();
   }
 
-  SqlDatabase._internal() { }
+  SqlDatabase.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -192,10 +192,10 @@ class SqlError extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory SqlError._internalWrap() {
-    return new SqlError._internal();
+    return new SqlError.internal_();
   }
 
-  SqlError._internal() { }
+  SqlError.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -262,10 +262,10 @@ class SqlResultSet extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory SqlResultSet._internalWrap() {
-    return new SqlResultSet._internal();
+    return new SqlResultSet.internal_();
   }
 
-  SqlResultSet._internal() { }
+  SqlResultSet.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -304,10 +304,10 @@ class SqlResultSetRowList extends NativeFieldWrapperClass2 with ListMixin<Map>, 
   JsObject blink_jsObject = null;
 
   factory SqlResultSetRowList._internalWrap() {
-    return new SqlResultSetRowList._internal();
+    return new SqlResultSetRowList.internal_();
   }
 
-  SqlResultSetRowList._internal() { }
+  SqlResultSetRowList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -391,10 +391,10 @@ class SqlTransaction extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory SqlTransaction._internalWrap() {
-    return new SqlTransaction._internal();
+    return new SqlTransaction.internal_();
   }
 
-  SqlTransaction._internal() { }
+  SqlTransaction.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 

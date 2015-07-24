@@ -601,10 +601,10 @@ class HtmlDartInterfaceGenerator(object):
   }}
 
   factory {0}._internalWrap() {{
-    return new {0}._internal();
+    return new {0}.internal_();
   }}
 
-  {0}._internal() : super._internal();
+  {0}.internal_() : super.internal_();
 
 '''.format(class_name)
     """
@@ -621,10 +621,10 @@ class HtmlDartInterfaceGenerator(object):
   JsObject blink_jsObject = null;
 
   factory {0}._internalWrap() {{
-    return new {0}._internal();
+    return new {0}.internal_();
   }}
 
-  {0}._internal() {{ }}
+  {0}.internal_() {{ }}
 
 {1}'''.format(class_name, js_interop_equivalence_op)
         # Change to use the synthesized class so we can construct with a mixin

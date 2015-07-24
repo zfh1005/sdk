@@ -419,10 +419,10 @@ class ActiveInfo extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory ActiveInfo._internalWrap() {
-    return new ActiveInfo._internal();
+    return new ActiveInfo.internal_();
   }
 
-  ActiveInfo._internal() { }
+  ActiveInfo.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -460,10 +460,10 @@ class AngleInstancedArrays extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory AngleInstancedArrays._internalWrap() {
-    return new AngleInstancedArrays._internal();
+    return new AngleInstancedArrays.internal_();
   }
 
-  AngleInstancedArrays._internal() { }
+  AngleInstancedArrays.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -509,10 +509,10 @@ class Buffer extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Buffer._internalWrap() {
-    return new Buffer._internal();
+    return new Buffer.internal_();
   }
 
-  Buffer._internal() { }
+  Buffer.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -539,10 +539,10 @@ class CompressedTextureAtc extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory CompressedTextureAtc._internalWrap() {
-    return new CompressedTextureAtc._internal();
+    return new CompressedTextureAtc.internal_();
   }
 
-  CompressedTextureAtc._internal() { }
+  CompressedTextureAtc.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -580,10 +580,10 @@ class CompressedTextureETC1 extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory CompressedTextureETC1._internalWrap() {
-    return new CompressedTextureETC1._internal();
+    return new CompressedTextureETC1.internal_();
   }
 
-  CompressedTextureETC1._internal() { }
+  CompressedTextureETC1.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -615,10 +615,10 @@ class CompressedTexturePvrtc extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory CompressedTexturePvrtc._internalWrap() {
-    return new CompressedTexturePvrtc._internal();
+    return new CompressedTexturePvrtc.internal_();
   }
 
-  CompressedTexturePvrtc._internal() { }
+  CompressedTexturePvrtc.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -661,10 +661,10 @@ class CompressedTextureS3TC extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory CompressedTextureS3TC._internalWrap() {
-    return new CompressedTextureS3TC._internal();
+    return new CompressedTextureS3TC.internal_();
   }
 
-  CompressedTextureS3TC._internal() { }
+  CompressedTextureS3TC.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -728,10 +728,10 @@ class ContextAttributes extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory ContextAttributes._internalWrap() {
-    return new ContextAttributes._internal();
+    return new ContextAttributes.internal_();
   }
 
-  ContextAttributes._internal() { }
+  ContextAttributes.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -814,10 +814,10 @@ class ContextEvent extends Event {
   }
 
   factory ContextEvent._internalWrap() {
-    return new ContextEvent._internal();
+    return new ContextEvent.internal_();
   }
 
-  ContextEvent._internal() : super._internal();
+  ContextEvent.internal_() : super.internal_();
 
 
   @DomName('WebGLContextEvent.statusMessage')
@@ -847,10 +847,10 @@ class DebugRendererInfo extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory DebugRendererInfo._internalWrap() {
-    return new DebugRendererInfo._internal();
+    return new DebugRendererInfo.internal_();
   }
 
-  DebugRendererInfo._internal() { }
+  DebugRendererInfo.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -885,10 +885,10 @@ class DebugShaders extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory DebugShaders._internalWrap() {
-    return new DebugShaders._internal();
+    return new DebugShaders.internal_();
   }
 
-  DebugShaders._internal() { }
+  DebugShaders.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -919,10 +919,10 @@ class DepthTexture extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory DepthTexture._internalWrap() {
-    return new DepthTexture._internal();
+    return new DepthTexture.internal_();
   }
 
-  DepthTexture._internal() { }
+  DepthTexture.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -953,10 +953,10 @@ class DrawBuffers extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory DrawBuffers._internalWrap() {
-    return new DrawBuffers._internal();
+    return new DrawBuffers.internal_();
   }
 
-  DrawBuffers._internal() { }
+  DrawBuffers.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -1122,10 +1122,10 @@ class ExtBlendMinMax extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory ExtBlendMinMax._internalWrap() {
-    return new ExtBlendMinMax._internal();
+    return new ExtBlendMinMax.internal_();
   }
 
-  ExtBlendMinMax._internal() { }
+  ExtBlendMinMax.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -1162,10 +1162,10 @@ class ExtFragDepth extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory ExtFragDepth._internalWrap() {
-    return new ExtFragDepth._internal();
+    return new ExtFragDepth.internal_();
   }
 
-  ExtFragDepth._internal() { }
+  ExtFragDepth.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -1191,10 +1191,10 @@ class ExtShaderTextureLod extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory ExtShaderTextureLod._internalWrap() {
-    return new ExtShaderTextureLod._internal();
+    return new ExtShaderTextureLod.internal_();
   }
 
-  ExtShaderTextureLod._internal() { }
+  ExtShaderTextureLod.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -1221,10 +1221,10 @@ class ExtTextureFilterAnisotropic extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory ExtTextureFilterAnisotropic._internalWrap() {
-    return new ExtTextureFilterAnisotropic._internal();
+    return new ExtTextureFilterAnisotropic.internal_();
   }
 
-  ExtTextureFilterAnisotropic._internal() { }
+  ExtTextureFilterAnisotropic.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -1258,10 +1258,10 @@ class Framebuffer extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Framebuffer._internalWrap() {
-    return new Framebuffer._internal();
+    return new Framebuffer.internal_();
   }
 
-  Framebuffer._internal() { }
+  Framebuffer.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -1288,10 +1288,10 @@ class LoseContext extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory LoseContext._internalWrap() {
-    return new LoseContext._internal();
+    return new LoseContext.internal_();
   }
 
-  LoseContext._internal() { }
+  LoseContext.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -1326,10 +1326,10 @@ class OesElementIndexUint extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory OesElementIndexUint._internalWrap() {
-    return new OesElementIndexUint._internal();
+    return new OesElementIndexUint.internal_();
   }
 
-  OesElementIndexUint._internal() { }
+  OesElementIndexUint.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -1356,10 +1356,10 @@ class OesStandardDerivatives extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory OesStandardDerivatives._internalWrap() {
-    return new OesStandardDerivatives._internal();
+    return new OesStandardDerivatives.internal_();
   }
 
-  OesStandardDerivatives._internal() { }
+  OesStandardDerivatives.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -1390,10 +1390,10 @@ class OesTextureFloat extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory OesTextureFloat._internalWrap() {
-    return new OesTextureFloat._internal();
+    return new OesTextureFloat.internal_();
   }
 
-  OesTextureFloat._internal() { }
+  OesTextureFloat.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -1420,10 +1420,10 @@ class OesTextureFloatLinear extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory OesTextureFloatLinear._internalWrap() {
-    return new OesTextureFloatLinear._internal();
+    return new OesTextureFloatLinear.internal_();
   }
 
-  OesTextureFloatLinear._internal() { }
+  OesTextureFloatLinear.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -1450,10 +1450,10 @@ class OesTextureHalfFloat extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory OesTextureHalfFloat._internalWrap() {
-    return new OesTextureHalfFloat._internal();
+    return new OesTextureHalfFloat.internal_();
   }
 
-  OesTextureHalfFloat._internal() { }
+  OesTextureHalfFloat.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -1484,10 +1484,10 @@ class OesTextureHalfFloatLinear extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory OesTextureHalfFloatLinear._internalWrap() {
-    return new OesTextureHalfFloatLinear._internal();
+    return new OesTextureHalfFloatLinear.internal_();
   }
 
-  OesTextureHalfFloatLinear._internal() { }
+  OesTextureHalfFloatLinear.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -1514,10 +1514,10 @@ class OesVertexArrayObject extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory OesVertexArrayObject._internalWrap() {
-    return new OesVertexArrayObject._internal();
+    return new OesVertexArrayObject.internal_();
   }
 
-  OesVertexArrayObject._internal() { }
+  OesVertexArrayObject.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -1563,10 +1563,10 @@ class Program extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Program._internalWrap() {
-    return new Program._internal();
+    return new Program.internal_();
   }
 
-  Program._internal() { }
+  Program.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -1592,10 +1592,10 @@ class Renderbuffer extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Renderbuffer._internalWrap() {
-    return new Renderbuffer._internal();
+    return new Renderbuffer.internal_();
   }
 
-  Renderbuffer._internal() { }
+  Renderbuffer.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -1621,10 +1621,10 @@ class RenderingContext extends NativeFieldWrapperClass2 implements CanvasRenderi
   JsObject blink_jsObject = null;
 
   factory RenderingContext._internalWrap() {
-    return new RenderingContext._internal();
+    return new RenderingContext.internal_();
   }
 
-  RenderingContext._internal() { }
+  RenderingContext.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -3567,10 +3567,10 @@ class Shader extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Shader._internalWrap() {
-    return new Shader._internal();
+    return new Shader.internal_();
   }
 
-  Shader._internal() { }
+  Shader.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -3595,10 +3595,10 @@ class ShaderPrecisionFormat extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory ShaderPrecisionFormat._internalWrap() {
-    return new ShaderPrecisionFormat._internal();
+    return new ShaderPrecisionFormat.internal_();
   }
 
-  ShaderPrecisionFormat._internal() { }
+  ShaderPrecisionFormat.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -3635,10 +3635,10 @@ class Texture extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Texture._internalWrap() {
-    return new Texture._internal();
+    return new Texture.internal_();
   }
 
-  Texture._internal() { }
+  Texture.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -3663,10 +3663,10 @@ class UniformLocation extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory UniformLocation._internalWrap() {
-    return new UniformLocation._internal();
+    return new UniformLocation.internal_();
   }
 
-  UniformLocation._internal() { }
+  UniformLocation.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -3693,10 +3693,10 @@ class VertexArrayObject extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory VertexArrayObject._internalWrap() {
-    return new VertexArrayObject._internal();
+    return new VertexArrayObject.internal_();
   }
 
-  VertexArrayObject._internal() { }
+  VertexArrayObject.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -3722,10 +3722,10 @@ abstract class _WebGLRenderingContextBase extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory _WebGLRenderingContextBase._internalWrap() {
-    return new _WebGLRenderingContextBase._internal();
+    return new _WebGLRenderingContextBase.internal_();
   }
 
-  _WebGLRenderingContextBase._internal() { }
+  _WebGLRenderingContextBase.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 

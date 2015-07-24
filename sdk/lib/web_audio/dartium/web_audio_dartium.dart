@@ -101,10 +101,10 @@ class AnalyserNode extends AudioNode {
   }
 
   factory AnalyserNode._internalWrap() {
-    return new AnalyserNode._internal();
+    return new AnalyserNode.internal_();
   }
 
-  AnalyserNode._internal() : super._internal();
+  AnalyserNode.internal_() : super.internal_();
 
 
   @DomName('AnalyserNode.fftSize')
@@ -183,10 +183,10 @@ class AudioBuffer extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory AudioBuffer._internalWrap() {
-    return new AudioBuffer._internal();
+    return new AudioBuffer.internal_();
   }
 
-  AudioBuffer._internal() { }
+  AudioBuffer.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -256,10 +256,10 @@ class AudioBufferSourceNode extends AudioSourceNode {
   }
 
   factory AudioBufferSourceNode._internalWrap() {
-    return new AudioBufferSourceNode._internal();
+    return new AudioBufferSourceNode.internal_();
   }
 
-  AudioBufferSourceNode._internal() : super._internal();
+  AudioBufferSourceNode.internal_() : super.internal_();
 
 
   @DomName('AudioBufferSourceNode.buffer')
@@ -367,10 +367,10 @@ class AudioContext extends EventTarget {
   }
 
   factory AudioContext._internalWrap() {
-    return new AudioContext._internal();
+    return new AudioContext.internal_();
   }
 
-  AudioContext._internal() : super._internal();
+  AudioContext.internal_() : super.internal_();
 
 
   /// Checks if this type is supported on the current platform.
@@ -532,10 +532,10 @@ class AudioDestinationNode extends AudioNode {
   }
 
   factory AudioDestinationNode._internalWrap() {
-    return new AudioDestinationNode._internal();
+    return new AudioDestinationNode.internal_();
   }
 
-  AudioDestinationNode._internal() : super._internal();
+  AudioDestinationNode.internal_() : super.internal_();
 
 
   @DomName('AudioDestinationNode.maxChannelCount')
@@ -565,10 +565,10 @@ class AudioListener extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory AudioListener._internalWrap() {
-    return new AudioListener._internal();
+    return new AudioListener.internal_();
   }
 
-  AudioListener._internal() { }
+  AudioListener.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -619,10 +619,10 @@ class AudioNode extends EventTarget {
   }
 
   factory AudioNode._internalWrap() {
-    return new AudioNode._internal();
+    return new AudioNode.internal_();
   }
 
-  AudioNode._internal() : super._internal();
+  AudioNode.internal_() : super.internal_();
 
 
   @DomName('AudioNode.channelCount')
@@ -707,10 +707,10 @@ class AudioParam extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory AudioParam._internalWrap() {
-    return new AudioParam._internal();
+    return new AudioParam.internal_();
   }
 
-  AudioParam._internal() { }
+  AudioParam.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -772,10 +772,10 @@ class AudioProcessingEvent extends Event {
   }
 
   factory AudioProcessingEvent._internalWrap() {
-    return new AudioProcessingEvent._internal();
+    return new AudioProcessingEvent.internal_();
   }
 
-  AudioProcessingEvent._internal() : super._internal();
+  AudioProcessingEvent.internal_() : super.internal_();
 
 
   @DomName('AudioProcessingEvent.inputBuffer')
@@ -813,10 +813,10 @@ class AudioSourceNode extends AudioNode {
   }
 
   factory AudioSourceNode._internalWrap() {
-    return new AudioSourceNode._internal();
+    return new AudioSourceNode.internal_();
   }
 
-  AudioSourceNode._internal() : super._internal();
+  AudioSourceNode.internal_() : super.internal_();
 
 
 }
@@ -841,10 +841,10 @@ class BiquadFilterNode extends AudioNode {
   }
 
   factory BiquadFilterNode._internalWrap() {
-    return new BiquadFilterNode._internal();
+    return new BiquadFilterNode.internal_();
   }
 
-  BiquadFilterNode._internal() : super._internal();
+  BiquadFilterNode.internal_() : super.internal_();
 
 
   @DomName('BiquadFilterNode.Q')
@@ -897,10 +897,10 @@ class ChannelMergerNode extends AudioNode {
   }
 
   factory ChannelMergerNode._internalWrap() {
-    return new ChannelMergerNode._internal();
+    return new ChannelMergerNode.internal_();
   }
 
-  ChannelMergerNode._internal() : super._internal();
+  ChannelMergerNode.internal_() : super.internal_();
 
 
 }
@@ -925,10 +925,10 @@ class ChannelSplitterNode extends AudioNode {
   }
 
   factory ChannelSplitterNode._internalWrap() {
-    return new ChannelSplitterNode._internal();
+    return new ChannelSplitterNode.internal_();
   }
 
-  ChannelSplitterNode._internal() : super._internal();
+  ChannelSplitterNode.internal_() : super.internal_();
 
 
 }
@@ -953,10 +953,10 @@ class ConvolverNode extends AudioNode {
   }
 
   factory ConvolverNode._internalWrap() {
-    return new ConvolverNode._internal();
+    return new ConvolverNode.internal_();
   }
 
-  ConvolverNode._internal() : super._internal();
+  ConvolverNode.internal_() : super.internal_();
 
 
   @DomName('ConvolverNode.buffer')
@@ -997,10 +997,10 @@ class DelayNode extends AudioNode {
   }
 
   factory DelayNode._internalWrap() {
-    return new DelayNode._internal();
+    return new DelayNode.internal_();
   }
 
-  DelayNode._internal() : super._internal();
+  DelayNode.internal_() : super.internal_();
 
 
   @DomName('DelayNode.delayTime')
@@ -1029,10 +1029,10 @@ class DynamicsCompressorNode extends AudioNode {
   }
 
   factory DynamicsCompressorNode._internalWrap() {
-    return new DynamicsCompressorNode._internal();
+    return new DynamicsCompressorNode.internal_();
   }
 
-  DynamicsCompressorNode._internal() : super._internal();
+  DynamicsCompressorNode.internal_() : super.internal_();
 
 
   @DomName('DynamicsCompressorNode.attack')
@@ -1081,10 +1081,10 @@ class GainNode extends AudioNode {
   }
 
   factory GainNode._internalWrap() {
-    return new GainNode._internal();
+    return new GainNode.internal_();
   }
 
-  GainNode._internal() : super._internal();
+  GainNode.internal_() : super.internal_();
 
 
   @DomName('GainNode.gain')
@@ -1113,10 +1113,10 @@ class MediaElementAudioSourceNode extends AudioSourceNode {
   }
 
   factory MediaElementAudioSourceNode._internalWrap() {
-    return new MediaElementAudioSourceNode._internal();
+    return new MediaElementAudioSourceNode.internal_();
   }
 
-  MediaElementAudioSourceNode._internal() : super._internal();
+  MediaElementAudioSourceNode.internal_() : super.internal_();
 
 
   @DomName('MediaElementAudioSourceNode.mediaElement')
@@ -1146,10 +1146,10 @@ class MediaStreamAudioDestinationNode extends AudioNode {
   }
 
   factory MediaStreamAudioDestinationNode._internalWrap() {
-    return new MediaStreamAudioDestinationNode._internal();
+    return new MediaStreamAudioDestinationNode.internal_();
   }
 
-  MediaStreamAudioDestinationNode._internal() : super._internal();
+  MediaStreamAudioDestinationNode.internal_() : super.internal_();
 
 
   @DomName('MediaStreamAudioDestinationNode.stream')
@@ -1178,10 +1178,10 @@ class MediaStreamAudioSourceNode extends AudioSourceNode {
   }
 
   factory MediaStreamAudioSourceNode._internalWrap() {
-    return new MediaStreamAudioSourceNode._internal();
+    return new MediaStreamAudioSourceNode.internal_();
   }
 
-  MediaStreamAudioSourceNode._internal() : super._internal();
+  MediaStreamAudioSourceNode.internal_() : super.internal_();
 
 
   @DomName('MediaStreamAudioSourceNode.mediaStream')
@@ -1210,10 +1210,10 @@ class OfflineAudioCompletionEvent extends Event {
   }
 
   factory OfflineAudioCompletionEvent._internalWrap() {
-    return new OfflineAudioCompletionEvent._internal();
+    return new OfflineAudioCompletionEvent.internal_();
   }
 
-  OfflineAudioCompletionEvent._internal() : super._internal();
+  OfflineAudioCompletionEvent.internal_() : super.internal_();
 
 
   @DomName('OfflineAudioCompletionEvent.renderedBuffer')
@@ -1248,10 +1248,10 @@ class OfflineAudioContext extends AudioContext {
   }
 
   factory OfflineAudioContext._internalWrap() {
-    return new OfflineAudioContext._internal();
+    return new OfflineAudioContext.internal_();
   }
 
-  OfflineAudioContext._internal() : super._internal();
+  OfflineAudioContext.internal_() : super.internal_();
 
 
 }
@@ -1287,10 +1287,10 @@ class OscillatorNode extends AudioSourceNode {
   }
 
   factory OscillatorNode._internalWrap() {
-    return new OscillatorNode._internal();
+    return new OscillatorNode.internal_();
   }
 
-  OscillatorNode._internal() : super._internal();
+  OscillatorNode.internal_() : super.internal_();
 
 
   @DomName('OscillatorNode.detune')
@@ -1368,10 +1368,10 @@ class PannerNode extends AudioNode {
   }
 
   factory PannerNode._internalWrap() {
-    return new PannerNode._internal();
+    return new PannerNode.internal_();
   }
 
-  PannerNode._internal() : super._internal();
+  PannerNode.internal_() : super.internal_();
 
 
   @DomName('PannerNode.coneInnerAngle')
@@ -1472,10 +1472,10 @@ class PeriodicWave extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory PeriodicWave._internalWrap() {
-    return new PeriodicWave._internal();
+    return new PeriodicWave.internal_();
   }
 
-  PeriodicWave._internal() { }
+  PeriodicWave.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -1512,10 +1512,10 @@ class ScriptProcessorNode extends AudioNode {
   }
 
   factory ScriptProcessorNode._internalWrap() {
-    return new ScriptProcessorNode._internal();
+    return new ScriptProcessorNode.internal_();
   }
 
-  ScriptProcessorNode._internal() : super._internal();
+  ScriptProcessorNode.internal_() : super.internal_();
 
 
   @DomName('ScriptProcessorNode.bufferSize')
@@ -1562,10 +1562,10 @@ class WaveShaperNode extends AudioNode {
   }
 
   factory WaveShaperNode._internalWrap() {
-    return new WaveShaperNode._internal();
+    return new WaveShaperNode.internal_();
   }
 
-  WaveShaperNode._internal() : super._internal();
+  WaveShaperNode.internal_() : super.internal_();
 
 
   @DomName('WaveShaperNode.curve')

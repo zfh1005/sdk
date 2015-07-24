@@ -173,10 +173,10 @@ class Cursor extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Cursor._internalWrap() {
-    return new Cursor._internal();
+    return new Cursor.internal_();
   }
 
-  Cursor._internal() { }
+  Cursor.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -243,10 +243,10 @@ class CursorWithValue extends Cursor {
   }
 
   factory CursorWithValue._internalWrap() {
-    return new CursorWithValue._internal();
+    return new CursorWithValue.internal_();
   }
 
-  CursorWithValue._internal() : super._internal();
+  CursorWithValue.internal_() : super.internal_();
 
 
   @DomName('IDBCursorWithValue.value')
@@ -338,10 +338,10 @@ class Database extends EventTarget {
   }
 
   factory Database._internalWrap() {
-    return new Database._internal();
+    return new Database.internal_();
   }
 
-  Database._internal() : super._internal();
+  Database.internal_() : super.internal_();
 
 
   @DomName('IDBDatabase.name')
@@ -533,10 +533,10 @@ class IdbFactory extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory IdbFactory._internalWrap() {
-    return new IdbFactory._internal();
+    return new IdbFactory.internal_();
   }
 
-  IdbFactory._internal() { }
+  IdbFactory.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -685,10 +685,10 @@ class Index extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Index._internalWrap() {
-    return new Index._internal();
+    return new Index.internal_();
   }
 
-  Index._internal() { }
+  Index.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -775,10 +775,10 @@ class KeyRange extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory KeyRange._internalWrap() {
-    return new KeyRange._internal();
+    return new KeyRange.internal_();
   }
 
-  KeyRange._internal() { }
+  KeyRange.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -973,10 +973,10 @@ class ObjectStore extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory ObjectStore._internalWrap() {
-    return new ObjectStore._internal();
+    return new ObjectStore.internal_();
   }
 
-  ObjectStore._internal() { }
+  ObjectStore.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -1136,10 +1136,10 @@ class OpenDBRequest extends Request {
   }
 
   factory OpenDBRequest._internalWrap() {
-    return new OpenDBRequest._internal();
+    return new OpenDBRequest.internal_();
   }
 
-  OpenDBRequest._internal() : super._internal();
+  OpenDBRequest.internal_() : super.internal_();
 
 
   /// Stream of `blocked` events handled by this [OpenDBRequest].
@@ -1193,10 +1193,10 @@ class Request extends EventTarget {
   }
 
   factory Request._internalWrap() {
-    return new Request._internal();
+    return new Request.internal_();
   }
 
-  Request._internal() : super._internal();
+  Request.internal_() : super.internal_();
 
 
   @DomName('IDBRequest.error')
@@ -1306,10 +1306,10 @@ class Transaction extends EventTarget {
   }
 
   factory Transaction._internalWrap() {
-    return new Transaction._internal();
+    return new Transaction.internal_();
   }
 
-  Transaction._internal() : super._internal();
+  Transaction.internal_() : super.internal_();
 
 
   @DomName('IDBTransaction.db')
@@ -1368,10 +1368,10 @@ class VersionChangeEvent extends Event {
   }
 
   factory VersionChangeEvent._internalWrap() {
-    return new VersionChangeEvent._internal();
+    return new VersionChangeEvent.internal_();
   }
 
-  VersionChangeEvent._internal() : super._internal();
+  VersionChangeEvent.internal_() : super.internal_();
 
 
   @DomName('IDBVersionChangeEvent.dataLoss')

@@ -1231,10 +1231,10 @@ abstract class AbstractWorker extends NativeFieldWrapperClass2 implements EventT
   JsObject blink_jsObject = null;
 
   factory AbstractWorker._internalWrap() {
-    return new AbstractWorker._internal();
+    return new AbstractWorker.internal_();
   }
 
-  AbstractWorker._internal() { }
+  AbstractWorker.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -1270,10 +1270,10 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   }
 
   factory AnchorElement._internalWrap() {
-    return new AnchorElement._internal();
+    return new AnchorElement.internal_();
   }
 
-  AnchorElement._internal() : super._internal();
+  AnchorElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -1462,10 +1462,10 @@ class Animation extends AnimationNode {
   }
 
   factory Animation._internalWrap() {
-    return new Animation._internal();
+    return new Animation.internal_();
   }
 
-  Animation._internal() : super._internal();
+  Animation.internal_() : super.internal_();
 
 
 }
@@ -1490,10 +1490,10 @@ class AnimationEffect extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory AnimationEffect._internalWrap() {
-    return new AnimationEffect._internal();
+    return new AnimationEffect.internal_();
   }
 
-  AnimationEffect._internal() { }
+  AnimationEffect.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -1520,10 +1520,10 @@ class AnimationEvent extends Event {
   }
 
   factory AnimationEvent._internalWrap() {
-    return new AnimationEvent._internal();
+    return new AnimationEvent.internal_();
   }
 
-  AnimationEvent._internal() : super._internal();
+  AnimationEvent.internal_() : super.internal_();
 
 
   @DomName('WebKitAnimationEvent.animationName')
@@ -1556,10 +1556,10 @@ class AnimationNode extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory AnimationNode._internalWrap() {
-    return new AnimationNode._internal();
+    return new AnimationNode.internal_();
   }
 
-  AnimationNode._internal() { }
+  AnimationNode.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -1624,10 +1624,10 @@ class AnimationPlayer extends EventTarget {
   }
 
   factory AnimationPlayer._internalWrap() {
-    return new AnimationPlayer._internal();
+    return new AnimationPlayer.internal_();
   }
 
-  AnimationPlayer._internal() : super._internal();
+  AnimationPlayer.internal_() : super.internal_();
 
 
   /// Checks if this type is supported on the current platform.
@@ -1724,10 +1724,10 @@ class AnimationPlayerEvent extends Event {
   }
 
   factory AnimationPlayerEvent._internalWrap() {
-    return new AnimationPlayerEvent._internal();
+    return new AnimationPlayerEvent.internal_();
   }
 
-  AnimationPlayerEvent._internal() : super._internal();
+  AnimationPlayerEvent.internal_() : super.internal_();
 
 
   @DomName('AnimationPlayerEvent.currentTime')
@@ -1762,10 +1762,10 @@ class AnimationTimeline extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory AnimationTimeline._internalWrap() {
-    return new AnimationTimeline._internal();
+    return new AnimationTimeline.internal_();
   }
 
-  AnimationTimeline._internal() { }
+  AnimationTimeline.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -1893,10 +1893,10 @@ class ApplicationCache extends EventTarget {
   }
 
   factory ApplicationCache._internalWrap() {
-    return new ApplicationCache._internal();
+    return new ApplicationCache.internal_();
   }
 
-  ApplicationCache._internal() : super._internal();
+  ApplicationCache.internal_() : super.internal_();
 
 
   /// Checks if this type is supported on the current platform.
@@ -2003,10 +2003,10 @@ class ApplicationCacheErrorEvent extends Event {
   }
 
   factory ApplicationCacheErrorEvent._internalWrap() {
-    return new ApplicationCacheErrorEvent._internal();
+    return new ApplicationCacheErrorEvent.internal_();
   }
 
-  ApplicationCacheErrorEvent._internal() : super._internal();
+  ApplicationCacheErrorEvent.internal_() : super.internal_();
 
 
   @DomName('ApplicationCacheErrorEvent.message')
@@ -2063,10 +2063,10 @@ class AreaElement extends HtmlElement implements UrlUtils {
   }
 
   factory AreaElement._internalWrap() {
-    return new AreaElement._internal();
+    return new AreaElement.internal_();
   }
 
-  AreaElement._internal() : super._internal();
+  AreaElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -2227,10 +2227,10 @@ class AudioElement extends MediaElement {
   }
 
   factory AudioElement._internalWrap() {
-    return new AudioElement._internal();
+    return new AudioElement.internal_();
   }
 
-  AudioElement._internal() : super._internal();
+  AudioElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -2261,10 +2261,10 @@ class AudioTrack extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory AudioTrack._internalWrap() {
-    return new AudioTrack._internal();
+    return new AudioTrack.internal_();
   }
 
-  AudioTrack._internal() { }
+  AudioTrack.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -2324,10 +2324,10 @@ class AudioTrackList extends EventTarget {
   }
 
   factory AudioTrackList._internalWrap() {
-    return new AudioTrackList._internal();
+    return new AudioTrackList.internal_();
   }
 
-  AudioTrackList._internal() : super._internal();
+  AudioTrackList.internal_() : super.internal_();
 
 
   @DomName('AudioTrackList.length')
@@ -2372,10 +2372,10 @@ class AutocompleteErrorEvent extends Event {
   }
 
   factory AutocompleteErrorEvent._internalWrap() {
-    return new AutocompleteErrorEvent._internal();
+    return new AutocompleteErrorEvent.internal_();
   }
 
-  AutocompleteErrorEvent._internal() : super._internal();
+  AutocompleteErrorEvent.internal_() : super.internal_();
 
 
   @DomName('AutocompleteErrorEvent.reason')
@@ -2406,10 +2406,10 @@ class BRElement extends HtmlElement {
   }
 
   factory BRElement._internalWrap() {
-    return new BRElement._internal();
+    return new BRElement.internal_();
   }
 
-  BRElement._internal() : super._internal();
+  BRElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -2441,10 +2441,10 @@ class BarProp extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory BarProp._internalWrap() {
-    return new BarProp._internal();
+    return new BarProp.internal_();
   }
 
-  BarProp._internal() { }
+  BarProp.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -2476,10 +2476,10 @@ class BaseElement extends HtmlElement {
   }
 
   factory BaseElement._internalWrap() {
-    return new BaseElement._internal();
+    return new BaseElement.internal_();
   }
 
-  BaseElement._internal() : super._internal();
+  BaseElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -2526,10 +2526,10 @@ class BatteryManager extends EventTarget {
   }
 
   factory BatteryManager._internalWrap() {
-    return new BatteryManager._internal();
+    return new BatteryManager.internal_();
   }
 
-  BatteryManager._internal() : super._internal();
+  BatteryManager.internal_() : super.internal_();
 
 
   @DomName('BatteryManager.charging')
@@ -2568,10 +2568,10 @@ class BeforeUnloadEvent extends Event {
   }
 
   factory BeforeUnloadEvent._internalWrap() {
-    return new BeforeUnloadEvent._internal();
+    return new BeforeUnloadEvent.internal_();
   }
 
-  BeforeUnloadEvent._internal() : super._internal();
+  BeforeUnloadEvent.internal_() : super.internal_();
 
 
   @DomName('BeforeUnloadEvent.returnValue')
@@ -2607,10 +2607,10 @@ class Blob extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Blob._internalWrap() {
-    return new Blob._internal();
+    return new Blob.internal_();
   }
 
-  Blob._internal() { }
+  Blob.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -2662,10 +2662,10 @@ class Body extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Body._internalWrap() {
-    return new Body._internal();
+    return new Body.internal_();
   }
 
-  Body._internal() { }
+  Body.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -2843,10 +2843,10 @@ class BodyElement extends HtmlElement implements WindowEventHandlers {
   }
 
   factory BodyElement._internalWrap() {
-    return new BodyElement._internal();
+    return new BodyElement.internal_();
   }
 
-  BodyElement._internal() : super._internal();
+  BodyElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -2944,10 +2944,10 @@ class ButtonElement extends HtmlElement {
   }
 
   factory ButtonElement._internalWrap() {
-    return new ButtonElement._internal();
+    return new ButtonElement.internal_();
   }
 
-  ButtonElement._internal() : super._internal();
+  ButtonElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -3087,10 +3087,10 @@ class CDataSection extends Text {
   }
 
   factory CDataSection._internalWrap() {
-    return new CDataSection._internal();
+    return new CDataSection.internal_();
   }
 
-  CDataSection._internal() : super._internal();
+  CDataSection.internal_() : super.internal_();
 
 
 }
@@ -3115,10 +3115,10 @@ class CacheStorage extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory CacheStorage._internalWrap() {
-    return new CacheStorage._internal();
+    return new CacheStorage.internal_();
   }
 
-  CacheStorage._internal() { }
+  CacheStorage.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -3170,10 +3170,10 @@ class Canvas2DContextAttributes extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Canvas2DContextAttributes._internalWrap() {
-    return new Canvas2DContextAttributes._internal();
+    return new Canvas2DContextAttributes.internal_();
   }
 
-  Canvas2DContextAttributes._internal() { }
+  Canvas2DContextAttributes.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -3241,10 +3241,10 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   }
 
   factory CanvasElement._internalWrap() {
-    return new CanvasElement._internal();
+    return new CanvasElement.internal_();
   }
 
-  CanvasElement._internal() : super._internal();
+  CanvasElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -3418,10 +3418,10 @@ class CanvasGradient extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory CanvasGradient._internalWrap() {
-    return new CanvasGradient._internal();
+    return new CanvasGradient.internal_();
   }
 
-  CanvasGradient._internal() { }
+  CanvasGradient.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -3486,10 +3486,10 @@ class CanvasPattern extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory CanvasPattern._internalWrap() {
-    return new CanvasPattern._internal();
+    return new CanvasPattern.internal_();
   }
 
-  CanvasPattern._internal() { }
+  CanvasPattern.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -3520,10 +3520,10 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   JsObject blink_jsObject = null;
 
   factory CanvasRenderingContext2D._internalWrap() {
-    return new CanvasRenderingContext2D._internal();
+    return new CanvasRenderingContext2D.internal_();
   }
 
-  CanvasRenderingContext2D._internal() { }
+  CanvasRenderingContext2D.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -4307,10 +4307,10 @@ class CharacterData extends Node implements ChildNode {
   }
 
   factory CharacterData._internalWrap() {
-    return new CharacterData._internal();
+    return new CharacterData.internal_();
   }
 
-  CharacterData._internal() : super._internal();
+  CharacterData.internal_() : super.internal_();
 
 
   @DomName('CharacterData.data')
@@ -4375,10 +4375,10 @@ abstract class ChildNode extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory ChildNode._internalWrap() {
-    return new ChildNode._internal();
+    return new ChildNode.internal_();
   }
 
-  ChildNode._internal() { }
+  ChildNode.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -4424,10 +4424,10 @@ class CircularGeofencingRegion extends GeofencingRegion {
   }
 
   factory CircularGeofencingRegion._internalWrap() {
-    return new CircularGeofencingRegion._internal();
+    return new CircularGeofencingRegion.internal_();
   }
 
-  CircularGeofencingRegion._internal() : super._internal();
+  CircularGeofencingRegion.internal_() : super.internal_();
 
 
   @DomName('CircularGeofencingRegion.MAX_RADIUS')
@@ -4475,10 +4475,10 @@ class CloseEvent extends Event {
   }
 
   factory CloseEvent._internalWrap() {
-    return new CloseEvent._internal();
+    return new CloseEvent.internal_();
   }
 
-  CloseEvent._internal() : super._internal();
+  CloseEvent.internal_() : super.internal_();
 
 
   @DomName('CloseEvent.code')
@@ -4520,10 +4520,10 @@ class Comment extends CharacterData {
   }
 
   factory Comment._internalWrap() {
-    return new Comment._internal();
+    return new Comment.internal_();
   }
 
-  Comment._internal() : super._internal();
+  Comment.internal_() : super.internal_();
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -4557,10 +4557,10 @@ class CompositionEvent extends UIEvent {
   }
 
   factory CompositionEvent._internalWrap() {
-    return new CompositionEvent._internal();
+    return new CompositionEvent.internal_();
   }
 
-  CompositionEvent._internal() : super._internal();
+  CompositionEvent.internal_() : super.internal_();
 
 
   @DomName('CompositionEvent.activeSegmentEnd')
@@ -4606,10 +4606,10 @@ class Console extends ConsoleBase {
   }
 
   factory Console._internalWrap() {
-    return new Console._internal();
+    return new Console.internal_();
   }
 
-  Console._internal() : super._internal();
+  Console.internal_() : super.internal_();
 
 
   @DomName('Console.memory')
@@ -4639,10 +4639,10 @@ class ConsoleBase extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory ConsoleBase._internalWrap() {
-    return new ConsoleBase._internal();
+    return new ConsoleBase.internal_();
   }
 
-  ConsoleBase._internal() { }
+  ConsoleBase.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -4788,10 +4788,10 @@ class ContentElement extends HtmlElement {
   }
 
   factory ContentElement._internalWrap() {
-    return new ContentElement._internal();
+    return new ContentElement.internal_();
   }
 
-  ContentElement._internal() : super._internal();
+  ContentElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -4836,10 +4836,10 @@ class Coordinates extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Coordinates._internalWrap() {
-    return new Coordinates._internal();
+    return new Coordinates.internal_();
   }
 
-  Coordinates._internal() { }
+  Coordinates.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -4893,10 +4893,10 @@ class Credential extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Credential._internalWrap() {
-    return new Credential._internal();
+    return new Credential.internal_();
   }
 
-  Credential._internal() { }
+  Credential.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -4937,10 +4937,10 @@ class CredentialsContainer extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory CredentialsContainer._internalWrap() {
-    return new CredentialsContainer._internal();
+    return new CredentialsContainer.internal_();
   }
 
-  CredentialsContainer._internal() { }
+  CredentialsContainer.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -4991,10 +4991,10 @@ class Crypto extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Crypto._internalWrap() {
-    return new Crypto._internal();
+    return new Crypto.internal_();
   }
 
-  Crypto._internal() { }
+  Crypto.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -5032,10 +5032,10 @@ class CryptoKey extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory CryptoKey._internalWrap() {
-    return new CryptoKey._internal();
+    return new CryptoKey.internal_();
   }
 
-  CryptoKey._internal() { }
+  CryptoKey.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -5082,10 +5082,10 @@ class Css extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Css._internalWrap() {
-    return new Css._internal();
+    return new Css.internal_();
   }
 
-  Css._internal() { }
+  Css.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -5119,10 +5119,10 @@ class CssCharsetRule extends CssRule {
   }
 
   factory CssCharsetRule._internalWrap() {
-    return new CssCharsetRule._internal();
+    return new CssCharsetRule.internal_();
   }
 
-  CssCharsetRule._internal() : super._internal();
+  CssCharsetRule.internal_() : super.internal_();
 
 
   @DomName('CSSCharsetRule.encoding')
@@ -5157,10 +5157,10 @@ class CssFilterRule extends CssRule {
   }
 
   factory CssFilterRule._internalWrap() {
-    return new CssFilterRule._internal();
+    return new CssFilterRule.internal_();
   }
 
-  CssFilterRule._internal() : super._internal();
+  CssFilterRule.internal_() : super.internal_();
 
 
   @DomName('WebKitCSSFilterRule.style')
@@ -5187,10 +5187,10 @@ class CssFontFaceRule extends CssRule {
   }
 
   factory CssFontFaceRule._internalWrap() {
-    return new CssFontFaceRule._internal();
+    return new CssFontFaceRule.internal_();
   }
 
-  CssFontFaceRule._internal() : super._internal();
+  CssFontFaceRule.internal_() : super.internal_();
 
 
   @DomName('CSSFontFaceRule.style')
@@ -5217,10 +5217,10 @@ class CssImportRule extends CssRule {
   }
 
   factory CssImportRule._internalWrap() {
-    return new CssImportRule._internal();
+    return new CssImportRule.internal_();
   }
 
-  CssImportRule._internal() : super._internal();
+  CssImportRule.internal_() : super.internal_();
 
 
   @DomName('CSSImportRule.href')
@@ -5256,10 +5256,10 @@ class CssKeyframeRule extends CssRule {
   }
 
   factory CssKeyframeRule._internalWrap() {
-    return new CssKeyframeRule._internal();
+    return new CssKeyframeRule.internal_();
   }
 
-  CssKeyframeRule._internal() : super._internal();
+  CssKeyframeRule.internal_() : super.internal_();
 
 
   @DomName('CSSKeyframeRule.keyText')
@@ -5298,10 +5298,10 @@ class CssKeyframesRule extends CssRule {
   }
 
   factory CssKeyframesRule._internalWrap() {
-    return new CssKeyframesRule._internal();
+    return new CssKeyframesRule.internal_();
   }
 
-  CssKeyframesRule._internal() : super._internal();
+  CssKeyframesRule.internal_() : super.internal_();
 
 
   @DomName('CSSKeyframesRule.cssRules')
@@ -5359,10 +5359,10 @@ class CssMediaRule extends CssRule {
   }
 
   factory CssMediaRule._internalWrap() {
-    return new CssMediaRule._internal();
+    return new CssMediaRule.internal_();
   }
 
-  CssMediaRule._internal() : super._internal();
+  CssMediaRule.internal_() : super.internal_();
 
 
   @DomName('CSSMediaRule.cssRules')
@@ -5401,10 +5401,10 @@ class CssPageRule extends CssRule {
   }
 
   factory CssPageRule._internalWrap() {
-    return new CssPageRule._internal();
+    return new CssPageRule.internal_();
   }
 
-  CssPageRule._internal() : super._internal();
+  CssPageRule.internal_() : super.internal_();
 
 
   @DomName('CSSPageRule.selectorText')
@@ -5440,10 +5440,10 @@ class CssRule extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory CssRule._internalWrap() {
-    return new CssRule._internal();
+    return new CssRule.internal_();
   }
 
-  CssRule._internal() { }
+  CssRule.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -5639,10 +5639,10 @@ class CssStyleDeclaration  extends JsoNativeFieldWrapper2 with
   JsObject blink_jsObject = null;
 
   factory CssStyleDeclaration._internalWrap() {
-    return new CssStyleDeclaration._internal();
+    return new CssStyleDeclaration.internal_();
   }
 
-  CssStyleDeclaration._internal() { }
+  CssStyleDeclaration.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -8834,10 +8834,10 @@ class CssStyleRule extends CssRule {
   }
 
   factory CssStyleRule._internalWrap() {
-    return new CssStyleRule._internal();
+    return new CssStyleRule.internal_();
   }
 
-  CssStyleRule._internal() : super._internal();
+  CssStyleRule.internal_() : super.internal_();
 
 
   @DomName('CSSStyleRule.selectorText')
@@ -8872,10 +8872,10 @@ class CssStyleSheet extends StyleSheet {
   }
 
   factory CssStyleSheet._internalWrap() {
-    return new CssStyleSheet._internal();
+    return new CssStyleSheet.internal_();
   }
 
-  CssStyleSheet._internal() : super._internal();
+  CssStyleSheet.internal_() : super.internal_();
 
 
   @DomName('CSSStyleSheet.cssRules')
@@ -8934,10 +8934,10 @@ class CssSupportsRule extends CssRule {
   }
 
   factory CssSupportsRule._internalWrap() {
-    return new CssSupportsRule._internal();
+    return new CssSupportsRule.internal_();
   }
 
-  CssSupportsRule._internal() : super._internal();
+  CssSupportsRule.internal_() : super.internal_();
 
 
   @DomName('CSSSupportsRule.conditionText')
@@ -8977,10 +8977,10 @@ class CssViewportRule extends CssRule {
   }
 
   factory CssViewportRule._internalWrap() {
-    return new CssViewportRule._internal();
+    return new CssViewportRule.internal_();
   }
 
-  CssViewportRule._internal() : super._internal();
+  CssViewportRule.internal_() : super.internal_();
 
 
   @DomName('CSSViewportRule.style')
@@ -9038,10 +9038,10 @@ class CustomEvent extends Event {
   }
 
   factory CustomEvent._internalWrap() {
-    return new CustomEvent._internal();
+    return new CustomEvent.internal_();
   }
 
-  CustomEvent._internal() : super._internal();
+  CustomEvent.internal_() : super.internal_();
 
 
   @DomName('CustomEvent.detail')
@@ -9076,10 +9076,10 @@ class DListElement extends HtmlElement {
   }
 
   factory DListElement._internalWrap() {
-    return new DListElement._internal();
+    return new DListElement.internal_();
   }
 
-  DListElement._internal() : super._internal();
+  DListElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -9116,10 +9116,10 @@ class DataListElement extends HtmlElement {
   }
 
   factory DataListElement._internalWrap() {
-    return new DataListElement._internal();
+    return new DataListElement.internal_();
   }
 
-  DataListElement._internal() : super._internal();
+  DataListElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -9157,10 +9157,10 @@ class DataTransfer extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory DataTransfer._internalWrap() {
-    return new DataTransfer._internal();
+    return new DataTransfer.internal_();
   }
 
-  DataTransfer._internal() { }
+  DataTransfer.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -9246,10 +9246,10 @@ class DataTransferItem extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory DataTransferItem._internalWrap() {
-    return new DataTransferItem._internal();
+    return new DataTransferItem.internal_();
   }
 
-  DataTransferItem._internal() { }
+  DataTransferItem.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -9304,10 +9304,10 @@ class DataTransferItemList extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory DataTransferItemList._internalWrap() {
-    return new DataTransferItemList._internal();
+    return new DataTransferItemList.internal_();
   }
 
-  DataTransferItemList._internal() { }
+  DataTransferItemList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -9395,10 +9395,10 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
   }
 
   factory DedicatedWorkerGlobalScope._internalWrap() {
-    return new DedicatedWorkerGlobalScope._internal();
+    return new DedicatedWorkerGlobalScope.internal_();
   }
 
-  DedicatedWorkerGlobalScope._internal() : super._internal();
+  DedicatedWorkerGlobalScope.internal_() : super.internal_();
 
 
   @DomName('DedicatedWorkerGlobalScope.postMessage')
@@ -9434,10 +9434,10 @@ class DeprecatedStorageInfo extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory DeprecatedStorageInfo._internalWrap() {
-    return new DeprecatedStorageInfo._internal();
+    return new DeprecatedStorageInfo.internal_();
   }
 
-  DeprecatedStorageInfo._internal() { }
+  DeprecatedStorageInfo.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -9499,10 +9499,10 @@ class DeprecatedStorageQuota extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory DeprecatedStorageQuota._internalWrap() {
-    return new DeprecatedStorageQuota._internal();
+    return new DeprecatedStorageQuota.internal_();
   }
 
-  DeprecatedStorageQuota._internal() { }
+  DeprecatedStorageQuota.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -9555,10 +9555,10 @@ class DetailsElement extends HtmlElement {
   }
 
   factory DetailsElement._internalWrap() {
-    return new DetailsElement._internal();
+    return new DetailsElement.internal_();
   }
 
-  DetailsElement._internal() : super._internal();
+  DetailsElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -9601,10 +9601,10 @@ class DeviceAcceleration extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory DeviceAcceleration._internalWrap() {
-    return new DeviceAcceleration._internal();
+    return new DeviceAcceleration.internal_();
   }
 
-  DeviceAcceleration._internal() { }
+  DeviceAcceleration.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -9641,10 +9641,10 @@ class DeviceLightEvent extends Event {
   }
 
   factory DeviceLightEvent._internalWrap() {
-    return new DeviceLightEvent._internal();
+    return new DeviceLightEvent.internal_();
   }
 
-  DeviceLightEvent._internal() : super._internal();
+  DeviceLightEvent.internal_() : super.internal_();
 
 
   @DomName('DeviceLightEvent.value')
@@ -9674,10 +9674,10 @@ class DeviceMotionEvent extends Event {
   }
 
   factory DeviceMotionEvent._internalWrap() {
-    return new DeviceMotionEvent._internal();
+    return new DeviceMotionEvent.internal_();
   }
 
-  DeviceMotionEvent._internal() : super._internal();
+  DeviceMotionEvent.internal_() : super.internal_();
 
 
   @DomName('DeviceMotionEvent.acceleration')
@@ -9729,10 +9729,10 @@ class DeviceOrientationEvent extends Event {
   }
 
   factory DeviceOrientationEvent._internalWrap() {
-    return new DeviceOrientationEvent._internal();
+    return new DeviceOrientationEvent.internal_();
   }
 
-  DeviceOrientationEvent._internal() : super._internal();
+  DeviceOrientationEvent.internal_() : super.internal_();
 
 
   @DomName('DeviceOrientationEvent.absolute')
@@ -9778,10 +9778,10 @@ class DeviceRotationRate extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory DeviceRotationRate._internalWrap() {
-    return new DeviceRotationRate._internal();
+    return new DeviceRotationRate.internal_();
   }
 
-  DeviceRotationRate._internal() { }
+  DeviceRotationRate.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -9818,10 +9818,10 @@ class DialogElement extends HtmlElement {
   }
 
   factory DialogElement._internalWrap() {
-    return new DialogElement._internal();
+    return new DialogElement.internal_();
   }
 
-  DialogElement._internal() : super._internal();
+  DialogElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -9916,10 +9916,10 @@ class DirectoryEntry extends Entry {
   }
 
   factory DirectoryEntry._internalWrap() {
-    return new DirectoryEntry._internal();
+    return new DirectoryEntry.internal_();
   }
 
-  DirectoryEntry._internal() : super._internal();
+  DirectoryEntry.internal_() : super.internal_();
 
 
   @DomName('DirectoryEntry.createReader')
@@ -10016,10 +10016,10 @@ class DirectoryReader extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory DirectoryReader._internalWrap() {
-    return new DirectoryReader._internal();
+    return new DirectoryReader.internal_();
   }
 
-  DirectoryReader._internal() { }
+  DirectoryReader.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -10086,10 +10086,10 @@ class DivElement extends HtmlElement {
   }
 
   factory DivElement._internalWrap() {
-    return new DivElement._internal();
+    return new DivElement.internal_();
   }
 
-  DivElement._internal() : super._internal();
+  DivElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -10169,10 +10169,10 @@ class Document extends Node
   }
 
   factory Document._internalWrap() {
-    return new Document._internal();
+    return new Document.internal_();
   }
 
-  Document._internal() : super._internal();
+  Document.internal_() : super.internal_();
 
 
   @DomName('Document.activeElement')
@@ -11067,10 +11067,10 @@ class DocumentFragment extends Node implements ParentNode {
   }
 
   factory DocumentFragment._internalWrap() {
-    return new DocumentFragment._internal();
+    return new DocumentFragment.internal_();
   }
 
-  DocumentFragment._internal() : super._internal();
+  DocumentFragment.internal_() : super.internal_();
 
 
   @DomName('DocumentFragment.getElementById')
@@ -11137,10 +11137,10 @@ class DomError extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory DomError._internalWrap() {
-    return new DomError._internal();
+    return new DomError.internal_();
   }
 
-  DomError._internal() { }
+  DomError.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -11195,10 +11195,10 @@ class DomException extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory DomException._internalWrap() {
-    return new DomException._internal();
+    return new DomException.internal_();
   }
 
-  DomException._internal() { }
+  DomException.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -11235,10 +11235,10 @@ class DomImplementation extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory DomImplementation._internalWrap() {
-    return new DomImplementation._internal();
+    return new DomImplementation.internal_();
   }
 
-  DomImplementation._internal() { }
+  DomImplementation.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -11280,10 +11280,10 @@ class DomIterator extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory DomIterator._internalWrap() {
-    return new DomIterator._internal();
+    return new DomIterator.internal_();
   }
 
-  DomIterator._internal() { }
+  DomIterator.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -11327,10 +11327,10 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
   factory DomMatrix._internalWrap() {
-    return new DomMatrix._internal();
+    return new DomMatrix.internal_();
   }
 
-  DomMatrix._internal() : super._internal();
+  DomMatrix.internal_() : super.internal_();
 
 
   @DomName('DOMMatrix.a')
@@ -11634,10 +11634,10 @@ class DomMatrixReadOnly extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory DomMatrixReadOnly._internalWrap() {
-    return new DomMatrixReadOnly._internal();
+    return new DomMatrixReadOnly.internal_();
   }
 
-  DomMatrixReadOnly._internal() { }
+  DomMatrixReadOnly.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -11852,10 +11852,10 @@ class DomParser extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory DomParser._internalWrap() {
-    return new DomParser._internal();
+    return new DomParser.internal_();
   }
 
-  DomParser._internal() { }
+  DomParser.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -11905,10 +11905,10 @@ class DomPoint extends DomPointReadOnly {
   }
 
   factory DomPoint._internalWrap() {
-    return new DomPoint._internal();
+    return new DomPoint.internal_();
   }
 
-  DomPoint._internal() : super._internal();
+  DomPoint.internal_() : super.internal_();
 
 
   /// Checks if this type is supported on the current platform.
@@ -11982,10 +11982,10 @@ class DomPointReadOnly extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory DomPointReadOnly._internalWrap() {
-    return new DomPointReadOnly._internal();
+    return new DomPointReadOnly.internal_();
   }
 
-  DomPointReadOnly._internal() { }
+  DomPointReadOnly.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -12125,10 +12125,10 @@ class DomRectReadOnly extends NativeFieldWrapperClass2 implements Rectangle {
   JsObject blink_jsObject = null;
 
   factory DomRectReadOnly._internalWrap() {
-    return new DomRectReadOnly._internal();
+    return new DomRectReadOnly.internal_();
   }
 
-  DomRectReadOnly._internal() { }
+  DomRectReadOnly.internal_() { }
 
 
   @DomName('DOMRectReadOnly.bottom')
@@ -12191,10 +12191,10 @@ class DomSettableTokenList extends DomTokenList {
   }
 
   factory DomSettableTokenList._internalWrap() {
-    return new DomSettableTokenList._internal();
+    return new DomSettableTokenList.internal_();
   }
 
-  DomSettableTokenList._internal() : super._internal();
+  DomSettableTokenList.internal_() : super.internal_();
 
 
   @DomName('DOMSettableTokenList.value')
@@ -12230,10 +12230,10 @@ class DomStringList extends NativeFieldWrapperClass2 with ListMixin<String>, Imm
   JsObject blink_jsObject = null;
 
   factory DomStringList._internalWrap() {
-    return new DomStringList._internal();
+    return new DomStringList.internal_();
   }
 
-  DomStringList._internal() { }
+  DomStringList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -12316,10 +12316,10 @@ abstract class DomStringMap extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory DomStringMap._internalWrap() {
-    return new DomStringMap._internal();
+    return new DomStringMap.internal_();
   }
 
-  DomStringMap._internal() { }
+  DomStringMap.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -12376,10 +12376,10 @@ class DomTokenList extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory DomTokenList._internalWrap() {
-    return new DomTokenList._internal();
+    return new DomTokenList.internal_();
   }
 
-  DomTokenList._internal() { }
+  DomTokenList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -15300,10 +15300,10 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   }
 
   factory Element._internalWrap() {
-    return new Element._internal();
+    return new Element.internal_();
   }
 
-  Element._internal() : super._internal();
+  Element.internal_() : super.internal_();
 
 
   String contentEditable;
@@ -16194,10 +16194,10 @@ class EmbedElement extends HtmlElement {
   }
 
   factory EmbedElement._internalWrap() {
-    return new EmbedElement._internal();
+    return new EmbedElement.internal_();
   }
 
-  EmbedElement._internal() : super._internal();
+  EmbedElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -16301,10 +16301,10 @@ class Entry extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Entry._internalWrap() {
-    return new Entry._internal();
+    return new Entry.internal_();
   }
 
-  Entry._internal() { }
+  Entry.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -16480,10 +16480,10 @@ class ErrorEvent extends Event {
   }
 
   factory ErrorEvent._internalWrap() {
-    return new ErrorEvent._internal();
+    return new ErrorEvent.internal_();
   }
 
-  ErrorEvent._internal() : super._internal();
+  ErrorEvent.internal_() : super.internal_();
 
 
   @DomName('ErrorEvent.colno')
@@ -16577,10 +16577,10 @@ class Event extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Event._internalWrap() {
-    return new Event._internal();
+    return new Event.internal_();
   }
 
-  Event._internal() { }
+  Event.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -16766,10 +16766,10 @@ class EventSource extends EventTarget {
   }
 
   factory EventSource._internalWrap() {
-    return new EventSource._internal();
+    return new EventSource.internal_();
   }
 
-  EventSource._internal() : super._internal();
+  EventSource.internal_() : super.internal_();
 
 
   @DomName('EventSource.CLOSED')
@@ -16947,10 +16947,10 @@ class EventTarget extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory EventTarget._internalWrap() {
-    return new EventTarget._internal();
+    return new EventTarget.internal_();
   }
 
-  EventTarget._internal() { }
+  EventTarget.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -17013,10 +17013,10 @@ class ExtendableEvent extends Event {
   }
 
   factory ExtendableEvent._internalWrap() {
-    return new ExtendableEvent._internal();
+    return new ExtendableEvent.internal_();
   }
 
-  ExtendableEvent._internal() : super._internal();
+  ExtendableEvent.internal_() : super.internal_();
 
 
   @DomName('ExtendableEvent.waitUntil')
@@ -17051,10 +17051,10 @@ class FederatedCredential extends Credential {
   }
 
   factory FederatedCredential._internalWrap() {
-    return new FederatedCredential._internal();
+    return new FederatedCredential.internal_();
   }
 
-  FederatedCredential._internal() : super._internal();
+  FederatedCredential.internal_() : super.internal_();
 
 
   @DomName('FederatedCredential.federation')
@@ -17083,10 +17083,10 @@ class FetchEvent extends Event {
   }
 
   factory FetchEvent._internalWrap() {
-    return new FetchEvent._internal();
+    return new FetchEvent.internal_();
   }
 
-  FetchEvent._internal() : super._internal();
+  FetchEvent.internal_() : super.internal_();
 
 
   @DomName('FetchEvent.isReload')
@@ -17129,10 +17129,10 @@ class FieldSetElement extends HtmlElement {
   }
 
   factory FieldSetElement._internalWrap() {
-    return new FieldSetElement._internal();
+    return new FieldSetElement.internal_();
   }
 
-  FieldSetElement._internal() : super._internal();
+  FieldSetElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -17209,10 +17209,10 @@ class File extends Blob {
   }
 
   factory File._internalWrap() {
-    return new File._internal();
+    return new File.internal_();
   }
 
-  File._internal() : super._internal();
+  File.internal_() : super.internal_();
 
 
   @DomName('File.lastModified')
@@ -17269,10 +17269,10 @@ class FileEntry extends Entry {
   }
 
   factory FileEntry._internalWrap() {
-    return new FileEntry._internal();
+    return new FileEntry.internal_();
   }
 
-  FileEntry._internal() : super._internal();
+  FileEntry.internal_() : super.internal_();
 
 
   void _createWriter(_FileWriterCallback successCallback, [_ErrorCallback errorCallback]) {
@@ -17331,10 +17331,10 @@ class FileError extends DomError {
   }
 
   factory FileError._internalWrap() {
-    return new FileError._internal();
+    return new FileError.internal_();
   }
 
-  FileError._internal() : super._internal();
+  FileError.internal_() : super.internal_();
 
 
   @DomName('FileError.ABORT_ERR')
@@ -17410,10 +17410,10 @@ class FileList extends NativeFieldWrapperClass2 with ListMixin<File>, ImmutableL
   JsObject blink_jsObject = null;
 
   factory FileList._internalWrap() {
-    return new FileList._internal();
+    return new FileList.internal_();
   }
 
-  FileList._internal() { }
+  FileList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -17566,10 +17566,10 @@ class FileReader extends EventTarget {
   }
 
   factory FileReader._internalWrap() {
-    return new FileReader._internal();
+    return new FileReader.internal_();
   }
 
-  FileReader._internal() : super._internal();
+  FileReader.internal_() : super.internal_();
 
 
   @DomName('FileReader.DONE')
@@ -17669,10 +17669,10 @@ class FileStream extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory FileStream._internalWrap() {
-    return new FileStream._internal();
+    return new FileStream.internal_();
   }
 
-  FileStream._internal() { }
+  FileStream.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -17705,10 +17705,10 @@ class FileSystem extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory FileSystem._internalWrap() {
-    return new FileSystem._internal();
+    return new FileSystem.internal_();
   }
 
-  FileSystem._internal() { }
+  FileSystem.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -17816,10 +17816,10 @@ class FileWriter extends EventTarget {
   }
 
   factory FileWriter._internalWrap() {
-    return new FileWriter._internal();
+    return new FileWriter.internal_();
   }
 
-  FileWriter._internal() : super._internal();
+  FileWriter.internal_() : super.internal_();
 
 
   @DomName('FileWriter.DONE')
@@ -17927,10 +17927,10 @@ class FocusEvent extends UIEvent {
   }
 
   factory FocusEvent._internalWrap() {
-    return new FocusEvent._internal();
+    return new FocusEvent.internal_();
   }
 
-  FocusEvent._internal() : super._internal();
+  FocusEvent.internal_() : super.internal_();
 
 
   @DomName('FocusEvent.relatedTarget')
@@ -17983,10 +17983,10 @@ class FontFace extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory FontFace._internalWrap() {
-    return new FontFace._internal();
+    return new FontFace.internal_();
   }
 
-  FontFace._internal() { }
+  FontFace.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -18096,10 +18096,10 @@ class FontFaceSet extends EventTarget {
   }
 
   factory FontFaceSet._internalWrap() {
-    return new FontFaceSet._internal();
+    return new FontFaceSet.internal_();
   }
 
-  FontFaceSet._internal() : super._internal();
+  FontFaceSet.internal_() : super.internal_();
 
 
   @DomName('FontFaceSet.size')
@@ -18179,10 +18179,10 @@ class FontFaceSetLoadEvent extends Event {
   }
 
   factory FontFaceSetLoadEvent._internalWrap() {
-    return new FontFaceSetLoadEvent._internal();
+    return new FontFaceSetLoadEvent.internal_();
   }
 
-  FontFaceSetLoadEvent._internal() : super._internal();
+  FontFaceSetLoadEvent.internal_() : super.internal_();
 
 
   @DomName('FontFaceSetLoadEvent.fontfaces')
@@ -18222,10 +18222,10 @@ class FormData extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory FormData._internalWrap() {
-    return new FormData._internal();
+    return new FormData.internal_();
   }
 
-  FormData._internal() { }
+  FormData.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -18264,10 +18264,10 @@ class FormElement extends HtmlElement {
   }
 
   factory FormElement._internalWrap() {
-    return new FormElement._internal();
+    return new FormElement.internal_();
   }
 
-  FormElement._internal() : super._internal();
+  FormElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -18407,10 +18407,10 @@ class Gamepad extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Gamepad._internalWrap() {
-    return new Gamepad._internal();
+    return new Gamepad.internal_();
   }
 
-  Gamepad._internal() { }
+  Gamepad.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -18462,10 +18462,10 @@ class GamepadButton extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory GamepadButton._internalWrap() {
-    return new GamepadButton._internal();
+    return new GamepadButton.internal_();
   }
 
-  GamepadButton._internal() { }
+  GamepadButton.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -18500,10 +18500,10 @@ class GamepadEvent extends Event {
   }
 
   factory GamepadEvent._internalWrap() {
-    return new GamepadEvent._internal();
+    return new GamepadEvent.internal_();
   }
 
-  GamepadEvent._internal() : super._internal();
+  GamepadEvent.internal_() : super.internal_();
 
 
   @DomName('GamepadEvent.gamepad')
@@ -18533,10 +18533,10 @@ class Geofencing extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Geofencing._internalWrap() {
-    return new Geofencing._internal();
+    return new Geofencing.internal_();
   }
 
-  Geofencing._internal() { }
+  Geofencing.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -18577,10 +18577,10 @@ class GeofencingRegion extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory GeofencingRegion._internalWrap() {
-    return new GeofencingRegion._internal();
+    return new GeofencingRegion.internal_();
   }
 
-  GeofencingRegion._internal() { }
+  GeofencingRegion.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -18680,10 +18680,10 @@ class Geolocation extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Geolocation._internalWrap() {
-    return new Geolocation._internal();
+    return new Geolocation.internal_();
   }
 
-  Geolocation._internal() { }
+  Geolocation.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -18736,10 +18736,10 @@ class Geoposition extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Geoposition._internalWrap() {
-    return new Geoposition._internal();
+    return new Geoposition.internal_();
   }
 
-  Geoposition._internal() { }
+  Geoposition.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -19031,10 +19031,10 @@ abstract class GlobalEventHandlers extends EventTarget {
   JsObject blink_jsObject = null;
 
   factory GlobalEventHandlers._internalWrap() {
-    return new GlobalEventHandlers._internal();
+    return new GlobalEventHandlers.internal_();
   }
 
-  GlobalEventHandlers._internal() { }
+  GlobalEventHandlers.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -19324,10 +19324,10 @@ class HRElement extends HtmlElement {
   }
 
   factory HRElement._internalWrap() {
-    return new HRElement._internal();
+    return new HRElement.internal_();
   }
 
-  HRElement._internal() : super._internal();
+  HRElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -19375,10 +19375,10 @@ class HashChangeEvent extends Event {
   }
 
   factory HashChangeEvent._internalWrap() {
-    return new HashChangeEvent._internal();
+    return new HashChangeEvent.internal_();
   }
 
-  HashChangeEvent._internal() : super._internal();
+  HashChangeEvent.internal_() : super.internal_();
 
 
   /// Checks if this type is supported on the current platform.
@@ -19420,10 +19420,10 @@ class HeadElement extends HtmlElement {
   }
 
   factory HeadElement._internalWrap() {
-    return new HeadElement._internal();
+    return new HeadElement.internal_();
   }
 
-  HeadElement._internal() : super._internal();
+  HeadElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -19469,10 +19469,10 @@ class Headers extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Headers._internalWrap() {
-    return new Headers._internal();
+    return new Headers.internal_();
   }
 
-  Headers._internal() { }
+  Headers.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -19544,10 +19544,10 @@ class HeadingElement extends HtmlElement {
   }
 
   factory HeadingElement._internalWrap() {
-    return new HeadingElement._internal();
+    return new HeadingElement.internal_();
   }
 
-  HeadingElement._internal() : super._internal();
+  HeadingElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -19585,10 +19585,10 @@ class History extends NativeFieldWrapperClass2 implements HistoryBase {
   JsObject blink_jsObject = null;
 
   factory History._internalWrap() {
-    return new History._internal();
+    return new History.internal_();
   }
 
-  History._internal() { }
+  History.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -19648,10 +19648,10 @@ class HtmlCollection extends NativeFieldWrapperClass2 with ListMixin<Node>, Immu
   JsObject blink_jsObject = null;
 
   factory HtmlCollection._internalWrap() {
-    return new HtmlCollection._internal();
+    return new HtmlCollection.internal_();
   }
 
-  HtmlCollection._internal() { }
+  HtmlCollection.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -19732,10 +19732,10 @@ class HtmlDocument extends Document {
   }
 
   factory HtmlDocument._internalWrap() {
-    return new HtmlDocument._internal();
+    return new HtmlDocument.internal_();
   }
 
-  HtmlDocument._internal() : super._internal();
+  HtmlDocument.internal_() : super.internal_();
 
 
 
@@ -20274,10 +20274,10 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   }
 
   factory HtmlElement._internalWrap() {
-    return new HtmlElement._internal();
+    return new HtmlElement.internal_();
   }
 
-  HtmlElement._internal() : super._internal();
+  HtmlElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -20681,10 +20681,10 @@ class HtmlFormControlsCollection extends HtmlCollection {
   }
 
   factory HtmlFormControlsCollection._internalWrap() {
-    return new HtmlFormControlsCollection._internal();
+    return new HtmlFormControlsCollection.internal_();
   }
 
-  HtmlFormControlsCollection._internal() : super._internal();
+  HtmlFormControlsCollection.internal_() : super.internal_();
 
 
   @DomName('HTMLFormControlsCollection.namedItem')
@@ -20715,10 +20715,10 @@ class HtmlHtmlElement extends HtmlElement {
   }
 
   factory HtmlHtmlElement._internalWrap() {
-    return new HtmlHtmlElement._internal();
+    return new HtmlHtmlElement.internal_();
   }
 
-  HtmlHtmlElement._internal() : super._internal();
+  HtmlHtmlElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -20747,10 +20747,10 @@ class HtmlOptionsCollection extends HtmlCollection {
   }
 
   factory HtmlOptionsCollection._internalWrap() {
-    return new HtmlOptionsCollection._internal();
+    return new HtmlOptionsCollection.internal_();
   }
 
-  HtmlOptionsCollection._internal() : super._internal();
+  HtmlOptionsCollection.internal_() : super.internal_();
 
 
 }
@@ -21132,10 +21132,10 @@ class HttpRequest extends HttpRequestEventTarget {
   }
 
   factory HttpRequest._internalWrap() {
-    return new HttpRequest._internal();
+    return new HttpRequest.internal_();
   }
 
-  HttpRequest._internal() : super._internal();
+  HttpRequest.internal_() : super.internal_();
 
 
   @DomName('XMLHttpRequest.DONE')
@@ -21564,10 +21564,10 @@ class HttpRequestEventTarget extends EventTarget {
   }
 
   factory HttpRequestEventTarget._internalWrap() {
-    return new HttpRequestEventTarget._internal();
+    return new HttpRequestEventTarget.internal_();
   }
 
-  HttpRequestEventTarget._internal() : super._internal();
+  HttpRequestEventTarget.internal_() : super.internal_();
 
 
   /// Stream of `abort` events handled by this [HttpRequestEventTarget].
@@ -21642,10 +21642,10 @@ class HttpRequestUpload extends HttpRequestEventTarget {
   }
 
   factory HttpRequestUpload._internalWrap() {
-    return new HttpRequestUpload._internal();
+    return new HttpRequestUpload.internal_();
   }
 
-  HttpRequestUpload._internal() : super._internal();
+  HttpRequestUpload.internal_() : super.internal_();
 
 
 }
@@ -21672,10 +21672,10 @@ class IFrameElement extends HtmlElement {
   }
 
   factory IFrameElement._internalWrap() {
-    return new IFrameElement._internal();
+    return new IFrameElement.internal_();
   }
 
-  IFrameElement._internal() : super._internal();
+  IFrameElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -21778,10 +21778,10 @@ class ImageBitmap extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory ImageBitmap._internalWrap() {
-    return new ImageBitmap._internal();
+    return new ImageBitmap.internal_();
   }
 
-  ImageBitmap._internal() { }
+  ImageBitmap.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -21833,10 +21833,10 @@ class ImageData extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory ImageData._internalWrap() {
-    return new ImageData._internal();
+    return new ImageData.internal_();
   }
 
-  ImageData._internal() { }
+  ImageData.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -21879,10 +21879,10 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   }
 
   factory ImageElement._internalWrap() {
-    return new ImageElement._internal();
+    return new ImageElement.internal_();
   }
 
-  ImageElement._internal() : super._internal();
+  ImageElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -22016,10 +22016,10 @@ class InjectedScriptHost extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory InjectedScriptHost._internalWrap() {
-    return new InjectedScriptHost._internal();
+    return new InjectedScriptHost.internal_();
   }
 
-  InjectedScriptHost._internal() { }
+  InjectedScriptHost.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -22078,10 +22078,10 @@ class InputElement extends HtmlElement implements
   }
 
   factory InputElement._internalWrap() {
-    return new InputElement._internal();
+    return new InputElement.internal_();
   }
 
-  InputElement._internal() : super._internal();
+  InputElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -23098,10 +23098,10 @@ class InputMethodContext extends EventTarget {
   }
 
   factory InputMethodContext._internalWrap() {
-    return new InputMethodContext._internal();
+    return new InputMethodContext.internal_();
   }
 
-  InputMethodContext._internal() : super._internal();
+  InputMethodContext.internal_() : super.internal_();
 
 
   @DomName('InputMethodContext.compositionEndOffset')
@@ -23148,10 +23148,10 @@ class InstallEvent extends ExtendableEvent {
   }
 
   factory InstallEvent._internalWrap() {
-    return new InstallEvent._internal();
+    return new InstallEvent.internal_();
   }
 
-  InstallEvent._internal() : super._internal();
+  InstallEvent.internal_() : super.internal_();
 
 
   @DomName('InstallEvent.reloadAll')
@@ -23200,10 +23200,10 @@ class KeyboardEvent extends UIEvent {
   }
 
   factory KeyboardEvent._internalWrap() {
-    return new KeyboardEvent._internal();
+    return new KeyboardEvent.internal_();
   }
 
-  KeyboardEvent._internal() : super._internal();
+  KeyboardEvent.internal_() : super.internal_();
 
 
   @DomName('KeyboardEvent.DOM_KEY_LOCATION_LEFT')
@@ -23299,10 +23299,10 @@ class KeygenElement extends HtmlElement {
   }
 
   factory KeygenElement._internalWrap() {
-    return new KeygenElement._internal();
+    return new KeygenElement.internal_();
   }
 
-  KeygenElement._internal() : super._internal();
+  KeygenElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -23411,10 +23411,10 @@ class LIElement extends HtmlElement {
   }
 
   factory LIElement._internalWrap() {
-    return new LIElement._internal();
+    return new LIElement.internal_();
   }
 
-  LIElement._internal() : super._internal();
+  LIElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -23455,10 +23455,10 @@ class LabelElement extends HtmlElement {
   }
 
   factory LabelElement._internalWrap() {
-    return new LabelElement._internal();
+    return new LabelElement.internal_();
   }
 
-  LabelElement._internal() : super._internal();
+  LabelElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -23507,10 +23507,10 @@ class LegendElement extends HtmlElement {
   }
 
   factory LegendElement._internalWrap() {
-    return new LegendElement._internal();
+    return new LegendElement.internal_();
   }
 
-  LegendElement._internal() : super._internal();
+  LegendElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -23545,10 +23545,10 @@ class LinkElement extends HtmlElement {
   }
 
   factory LinkElement._internalWrap() {
-    return new LinkElement._internal();
+    return new LinkElement.internal_();
   }
 
-  LinkElement._internal() : super._internal();
+  LinkElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -23671,10 +23671,10 @@ class LocalCredential extends Credential {
   }
 
   factory LocalCredential._internalWrap() {
-    return new LocalCredential._internal();
+    return new LocalCredential.internal_();
   }
 
-  LocalCredential._internal() : super._internal();
+  LocalCredential.internal_() : super.internal_();
 
 
   @DomName('LocalCredential.password')
@@ -23701,10 +23701,10 @@ class Location extends NativeFieldWrapperClass2 implements LocationBase {
   JsObject blink_jsObject = null;
 
   factory Location._internalWrap() {
-    return new Location._internal();
+    return new Location.internal_();
   }
 
-  Location._internal() { }
+  Location.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -23846,10 +23846,10 @@ class MapElement extends HtmlElement {
   }
 
   factory MapElement._internalWrap() {
-    return new MapElement._internal();
+    return new MapElement.internal_();
   }
 
-  MapElement._internal() : super._internal();
+  MapElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -23898,10 +23898,10 @@ class MediaController extends EventTarget {
   }
 
   factory MediaController._internalWrap() {
-    return new MediaController._internal();
+    return new MediaController.internal_();
   }
 
-  MediaController._internal() : super._internal();
+  MediaController.internal_() : super.internal_();
 
 
   @DomName('MediaController.buffered')
@@ -24002,10 +24002,10 @@ class MediaDeviceInfo extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory MediaDeviceInfo._internalWrap() {
-    return new MediaDeviceInfo._internal();
+    return new MediaDeviceInfo.internal_();
   }
 
-  MediaDeviceInfo._internal() { }
+  MediaDeviceInfo.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -24116,10 +24116,10 @@ class MediaElement extends HtmlElement {
   }
 
   factory MediaElement._internalWrap() {
-    return new MediaElement._internal();
+    return new MediaElement.internal_();
   }
 
-  MediaElement._internal() : super._internal();
+  MediaElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -24480,10 +24480,10 @@ class MediaError extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory MediaError._internalWrap() {
-    return new MediaError._internal();
+    return new MediaError.internal_();
   }
 
-  MediaError._internal() { }
+  MediaError.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -24536,10 +24536,10 @@ class MediaKeyError extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory MediaKeyError._internalWrap() {
-    return new MediaKeyError._internal();
+    return new MediaKeyError.internal_();
   }
 
-  MediaKeyError._internal() { }
+  MediaKeyError.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -24598,10 +24598,10 @@ class MediaKeyEvent extends Event {
   }
 
   factory MediaKeyEvent._internalWrap() {
-    return new MediaKeyEvent._internal();
+    return new MediaKeyEvent.internal_();
   }
 
-  MediaKeyEvent._internal() : super._internal();
+  MediaKeyEvent.internal_() : super.internal_();
 
 
   @DomName('MediaKeyEvent.defaultURL')
@@ -24654,10 +24654,10 @@ class MediaKeyMessageEvent extends Event {
   }
 
   factory MediaKeyMessageEvent._internalWrap() {
-    return new MediaKeyMessageEvent._internal();
+    return new MediaKeyMessageEvent.internal_();
   }
 
-  MediaKeyMessageEvent._internal() : super._internal();
+  MediaKeyMessageEvent.internal_() : super.internal_();
 
 
   @DomName('MediaKeyMessageEvent.destinationURL')
@@ -24690,10 +24690,10 @@ class MediaKeyNeededEvent extends Event {
   }
 
   factory MediaKeyNeededEvent._internalWrap() {
-    return new MediaKeyNeededEvent._internal();
+    return new MediaKeyNeededEvent.internal_();
   }
 
-  MediaKeyNeededEvent._internal() : super._internal();
+  MediaKeyNeededEvent.internal_() : super.internal_();
 
 
   @DomName('MediaKeyNeededEvent.contentType')
@@ -24727,10 +24727,10 @@ class MediaKeySession extends EventTarget {
   }
 
   factory MediaKeySession._internalWrap() {
-    return new MediaKeySession._internal();
+    return new MediaKeySession.internal_();
   }
 
-  MediaKeySession._internal() : super._internal();
+  MediaKeySession.internal_() : super.internal_();
 
 
   @DomName('MediaKeySession.closed')
@@ -24798,10 +24798,10 @@ class MediaKeys extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory MediaKeys._internalWrap() {
-    return new MediaKeys._internal();
+    return new MediaKeys.internal_();
   }
 
-  MediaKeys._internal() { }
+  MediaKeys.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -24848,10 +24848,10 @@ class MediaList extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory MediaList._internalWrap() {
-    return new MediaList._internal();
+    return new MediaList.internal_();
   }
 
-  MediaList._internal() { }
+  MediaList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -24905,10 +24905,10 @@ class MediaQueryList extends EventTarget {
   }
 
   factory MediaQueryList._internalWrap() {
-    return new MediaQueryList._internal();
+    return new MediaQueryList.internal_();
   }
 
-  MediaQueryList._internal() : super._internal();
+  MediaQueryList.internal_() : super.internal_();
 
 
   @DomName('MediaQueryList.matches')
@@ -24953,10 +24953,10 @@ class MediaQueryListEvent extends Event {
   }
 
   factory MediaQueryListEvent._internalWrap() {
-    return new MediaQueryListEvent._internal();
+    return new MediaQueryListEvent.internal_();
   }
 
-  MediaQueryListEvent._internal() : super._internal();
+  MediaQueryListEvent.internal_() : super.internal_();
 
 
   @DomName('MediaQueryListEvent.matches')
@@ -24999,10 +24999,10 @@ class MediaSource extends EventTarget {
   }
 
   factory MediaSource._internalWrap() {
-    return new MediaSource._internal();
+    return new MediaSource.internal_();
   }
 
-  MediaSource._internal() : super._internal();
+  MediaSource.internal_() : super.internal_();
 
 
   /// Checks if this type is supported on the current platform.
@@ -25114,10 +25114,10 @@ class MediaStream extends EventTarget {
   }
 
   factory MediaStream._internalWrap() {
-    return new MediaStream._internal();
+    return new MediaStream.internal_();
   }
 
-  MediaStream._internal() : super._internal();
+  MediaStream.internal_() : super.internal_();
 
 
   @DomName('MediaStream.ended')
@@ -25214,10 +25214,10 @@ class MediaStreamEvent extends Event {
   }
 
   factory MediaStreamEvent._internalWrap() {
-    return new MediaStreamEvent._internal();
+    return new MediaStreamEvent.internal_();
   }
 
-  MediaStreamEvent._internal() : super._internal();
+  MediaStreamEvent.internal_() : super.internal_();
 
 
   /// Checks if this type is supported on the current platform.
@@ -25280,10 +25280,10 @@ class MediaStreamTrack extends EventTarget {
   }
 
   factory MediaStreamTrack._internalWrap() {
-    return new MediaStreamTrack._internal();
+    return new MediaStreamTrack.internal_();
   }
 
-  MediaStreamTrack._internal() : super._internal();
+  MediaStreamTrack.internal_() : super.internal_();
 
 
   @DomName('MediaStreamTrack.enabled')
@@ -25375,10 +25375,10 @@ class MediaStreamTrackEvent extends Event {
   }
 
   factory MediaStreamTrackEvent._internalWrap() {
-    return new MediaStreamTrackEvent._internal();
+    return new MediaStreamTrackEvent.internal_();
   }
 
-  MediaStreamTrackEvent._internal() : super._internal();
+  MediaStreamTrackEvent.internal_() : super.internal_();
 
 
   /// Checks if this type is supported on the current platform.
@@ -25420,10 +25420,10 @@ class MemoryInfo extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory MemoryInfo._internalWrap() {
-    return new MemoryInfo._internal();
+    return new MemoryInfo.internal_();
   }
 
-  MemoryInfo._internal() { }
+  MemoryInfo.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -25473,10 +25473,10 @@ class MenuElement extends HtmlElement {
   }
 
   factory MenuElement._internalWrap() {
-    return new MenuElement._internal();
+    return new MenuElement.internal_();
   }
 
-  MenuElement._internal() : super._internal();
+  MenuElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -25526,10 +25526,10 @@ class MenuItemElement extends HtmlElement {
   }
 
   factory MenuItemElement._internalWrap() {
-    return new MenuItemElement._internal();
+    return new MenuItemElement.internal_();
   }
 
-  MenuItemElement._internal() : super._internal();
+  MenuItemElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -25610,10 +25610,10 @@ class MessageChannel extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory MessageChannel._internalWrap() {
-    return new MessageChannel._internal();
+    return new MessageChannel.internal_();
   }
 
-  MessageChannel._internal() { }
+  MessageChannel.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -25656,10 +25656,10 @@ class MessageEvent extends Event {
   }
 
   factory MessageEvent._internalWrap() {
-    return new MessageEvent._internal();
+    return new MessageEvent.internal_();
   }
 
-  MessageEvent._internal() : super._internal();
+  MessageEvent.internal_() : super.internal_();
 
 
   @DomName('MessageEvent.data')
@@ -25714,10 +25714,10 @@ class MessagePort extends EventTarget {
   }
 
   factory MessagePort._internalWrap() {
-    return new MessagePort._internal();
+    return new MessagePort.internal_();
   }
 
-  MessagePort._internal() : super._internal();
+  MessagePort.internal_() : super.internal_();
 
 
   @DomName('MessagePort.close')
@@ -25761,10 +25761,10 @@ class MetaElement extends HtmlElement {
   }
 
   factory MetaElement._internalWrap() {
-    return new MetaElement._internal();
+    return new MetaElement.internal_();
   }
 
-  MetaElement._internal() : super._internal();
+  MetaElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -25820,10 +25820,10 @@ class Metadata extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Metadata._internalWrap() {
-    return new Metadata._internal();
+    return new Metadata.internal_();
   }
 
-  Metadata._internal() { }
+  Metadata.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -25874,10 +25874,10 @@ class MeterElement extends HtmlElement {
   }
 
   factory MeterElement._internalWrap() {
-    return new MeterElement._internal();
+    return new MeterElement.internal_();
   }
 
-  MeterElement._internal() : super._internal();
+  MeterElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -25984,10 +25984,10 @@ class MidiAccess extends EventTarget {
   }
 
   factory MidiAccess._internalWrap() {
-    return new MidiAccess._internal();
+    return new MidiAccess.internal_();
   }
 
-  MidiAccess._internal() : super._internal();
+  MidiAccess.internal_() : super.internal_();
 
 
   @DomName('MIDIAccess.inputs')
@@ -26035,10 +26035,10 @@ class MidiConnectionEvent extends Event {
   }
 
   factory MidiConnectionEvent._internalWrap() {
-    return new MidiConnectionEvent._internal();
+    return new MidiConnectionEvent.internal_();
   }
 
-  MidiConnectionEvent._internal() : super._internal();
+  MidiConnectionEvent.internal_() : super.internal_();
 
 
   @DomName('MIDIConnectionEvent.port')
@@ -26077,10 +26077,10 @@ class MidiInput extends MidiPort {
   }
 
   factory MidiInput._internalWrap() {
-    return new MidiInput._internal();
+    return new MidiInput.internal_();
   }
 
-  MidiInput._internal() : super._internal();
+  MidiInput.internal_() : super.internal_();
 
 
   /// Stream of `midimessage` events handled by this [MidiInput].
@@ -26110,10 +26110,10 @@ class MidiInputMap extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory MidiInputMap._internalWrap() {
-    return new MidiInputMap._internal();
+    return new MidiInputMap.internal_();
   }
 
-  MidiInputMap._internal() { }
+  MidiInputMap.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -26169,10 +26169,10 @@ class MidiMessageEvent extends Event {
   }
 
   factory MidiMessageEvent._internalWrap() {
-    return new MidiMessageEvent._internal();
+    return new MidiMessageEvent.internal_();
   }
 
-  MidiMessageEvent._internal() : super._internal();
+  MidiMessageEvent.internal_() : super.internal_();
 
 
   @DomName('MIDIMessageEvent.data')
@@ -26205,10 +26205,10 @@ class MidiOutput extends MidiPort {
   }
 
   factory MidiOutput._internalWrap() {
-    return new MidiOutput._internal();
+    return new MidiOutput.internal_();
   }
 
-  MidiOutput._internal() : super._internal();
+  MidiOutput.internal_() : super.internal_();
 
 
   void send(Uint8List data, [num timestamp]) {
@@ -26242,10 +26242,10 @@ class MidiOutputMap extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory MidiOutputMap._internalWrap() {
-    return new MidiOutputMap._internal();
+    return new MidiOutputMap.internal_();
   }
 
-  MidiOutputMap._internal() { }
+  MidiOutputMap.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -26311,10 +26311,10 @@ class MidiPort extends EventTarget {
   }
 
   factory MidiPort._internalWrap() {
-    return new MidiPort._internal();
+    return new MidiPort.internal_();
   }
 
-  MidiPort._internal() : super._internal();
+  MidiPort.internal_() : super.internal_();
 
 
   @DomName('MIDIPort.id')
@@ -26364,10 +26364,10 @@ class MimeType extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory MimeType._internalWrap() {
-    return new MimeType._internal();
+    return new MimeType.internal_();
   }
 
-  MimeType._internal() { }
+  MimeType.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -26409,10 +26409,10 @@ class MimeTypeArray extends NativeFieldWrapperClass2 with ListMixin<MimeType>, I
   JsObject blink_jsObject = null;
 
   factory MimeTypeArray._internalWrap() {
-    return new MimeTypeArray._internal();
+    return new MimeTypeArray.internal_();
   }
 
-  MimeTypeArray._internal() { }
+  MimeTypeArray.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -26499,10 +26499,10 @@ class ModElement extends HtmlElement {
   }
 
   factory ModElement._internalWrap() {
-    return new ModElement._internal();
+    return new ModElement.internal_();
   }
 
-  ModElement._internal() : super._internal();
+  ModElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -26561,10 +26561,10 @@ class MouseEvent extends UIEvent {
   }
 
   factory MouseEvent._internalWrap() {
-    return new MouseEvent._internal();
+    return new MouseEvent.internal_();
   }
 
-  MouseEvent._internal() : super._internal();
+  MouseEvent.internal_() : super.internal_();
 
 
   @DomName('MouseEvent.altKey')
@@ -26753,10 +26753,10 @@ class MutationObserver extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory MutationObserver._internalWrap() {
-    return new MutationObserver._internal();
+    return new MutationObserver.internal_();
   }
 
-  MutationObserver._internal() { }
+  MutationObserver.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -26870,10 +26870,10 @@ class MutationRecord extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory MutationRecord._internalWrap() {
-    return new MutationRecord._internal();
+    return new MutationRecord.internal_();
   }
 
-  MutationRecord._internal() { }
+  MutationRecord.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -26988,10 +26988,10 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorCpu, Naviga
   JsObject blink_jsObject = null;
 
   factory Navigator._internalWrap() {
-    return new Navigator._internal();
+    return new Navigator.internal_();
   }
 
-  Navigator._internal() { }
+  Navigator.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -27212,10 +27212,10 @@ abstract class NavigatorCpu extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory NavigatorCpu._internalWrap() {
-    return new NavigatorCpu._internal();
+    return new NavigatorCpu.internal_();
   }
 
-  NavigatorCpu._internal() { }
+  NavigatorCpu.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -27246,10 +27246,10 @@ abstract class NavigatorID extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory NavigatorID._internalWrap() {
-    return new NavigatorID._internal();
+    return new NavigatorID.internal_();
   }
 
-  NavigatorID._internal() { }
+  NavigatorID.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -27310,10 +27310,10 @@ abstract class NavigatorLanguage extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory NavigatorLanguage._internalWrap() {
-    return new NavigatorLanguage._internal();
+    return new NavigatorLanguage.internal_();
   }
 
-  NavigatorLanguage._internal() { }
+  NavigatorLanguage.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -27349,10 +27349,10 @@ abstract class NavigatorOnLine extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory NavigatorOnLine._internalWrap() {
-    return new NavigatorOnLine._internal();
+    return new NavigatorOnLine.internal_();
   }
 
-  NavigatorOnLine._internal() { }
+  NavigatorOnLine.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -27384,10 +27384,10 @@ class NavigatorUserMediaError extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory NavigatorUserMediaError._internalWrap() {
-    return new NavigatorUserMediaError._internal();
+    return new NavigatorUserMediaError.internal_();
   }
 
-  NavigatorUserMediaError._internal() { }
+  NavigatorUserMediaError.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -27446,10 +27446,10 @@ class NetworkInformation extends EventTarget {
   }
 
   factory NetworkInformation._internalWrap() {
-    return new NetworkInformation._internal();
+    return new NetworkInformation.internal_();
   }
 
-  NetworkInformation._internal() : super._internal();
+  NetworkInformation.internal_() : super.internal_();
 
 
   @DomName('NetworkInformation.type')
@@ -27741,10 +27741,10 @@ class Node extends EventTarget {
   }
 
   factory Node._internalWrap() {
-    return new Node._internal();
+    return new Node.internal_();
   }
 
-  Node._internal() : super._internal();
+  Node.internal_() : super.internal_();
 
 
   @DomName('Node.ATTRIBUTE_NODE')
@@ -28085,10 +28085,10 @@ class NodeFilter extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory NodeFilter._internalWrap() {
-    return new NodeFilter._internal();
+    return new NodeFilter.internal_();
   }
 
-  NodeFilter._internal() { }
+  NodeFilter.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -28158,10 +28158,10 @@ class NodeIterator extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory NodeIterator._internalWrap() {
-    return new NodeIterator._internal();
+    return new NodeIterator.internal_();
   }
 
-  NodeIterator._internal() { }
+  NodeIterator.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -28214,10 +28214,10 @@ class NodeList extends NativeFieldWrapperClass2 with ListMixin<Node>, ImmutableL
   JsObject blink_jsObject = null;
 
   factory NodeList._internalWrap() {
-    return new NodeList._internal();
+    return new NodeList.internal_();
   }
 
-  NodeList._internal() { }
+  NodeList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -28355,10 +28355,10 @@ class Notification extends EventTarget {
   }
 
   factory Notification._internalWrap() {
-    return new Notification._internal();
+    return new Notification.internal_();
   }
 
-  Notification._internal() : super._internal();
+  Notification.internal_() : super.internal_();
 
 
   /// Checks if this type is supported on the current platform.
@@ -28473,10 +28473,10 @@ class OListElement extends HtmlElement {
   }
 
   factory OListElement._internalWrap() {
-    return new OListElement._internal();
+    return new OListElement.internal_();
   }
 
-  OListElement._internal() : super._internal();
+  OListElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -28537,10 +28537,10 @@ class ObjectElement extends HtmlElement {
   }
 
   factory ObjectElement._internalWrap() {
-    return new ObjectElement._internal();
+    return new ObjectElement.internal_();
   }
 
-  ObjectElement._internal() : super._internal();
+  ObjectElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -28666,10 +28666,10 @@ class OptGroupElement extends HtmlElement {
   }
 
   factory OptGroupElement._internalWrap() {
-    return new OptGroupElement._internal();
+    return new OptGroupElement.internal_();
   }
 
-  OptGroupElement._internal() : super._internal();
+  OptGroupElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -28718,10 +28718,10 @@ class OptionElement extends HtmlElement {
   }
 
   factory OptionElement._internalWrap() {
-    return new OptionElement._internal();
+    return new OptionElement.internal_();
   }
 
-  OptionElement._internal() : super._internal();
+  OptionElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -28805,10 +28805,10 @@ class OutputElement extends HtmlElement {
   }
 
   factory OutputElement._internalWrap() {
-    return new OutputElement._internal();
+    return new OutputElement.internal_();
   }
 
-  OutputElement._internal() : super._internal();
+  OutputElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -28902,10 +28902,10 @@ class OverflowEvent extends Event {
   }
 
   factory OverflowEvent._internalWrap() {
-    return new OverflowEvent._internal();
+    return new OverflowEvent.internal_();
   }
 
-  OverflowEvent._internal() : super._internal();
+  OverflowEvent.internal_() : super.internal_();
 
 
   @DomName('OverflowEvent.BOTH')
@@ -28954,10 +28954,10 @@ class PageTransitionEvent extends Event {
   }
 
   factory PageTransitionEvent._internalWrap() {
-    return new PageTransitionEvent._internal();
+    return new PageTransitionEvent.internal_();
   }
 
-  PageTransitionEvent._internal() : super._internal();
+  PageTransitionEvent.internal_() : super.internal_();
 
 
   @DomName('PageTransitionEvent.persisted')
@@ -28988,10 +28988,10 @@ class ParagraphElement extends HtmlElement {
   }
 
   factory ParagraphElement._internalWrap() {
-    return new ParagraphElement._internal();
+    return new ParagraphElement.internal_();
   }
 
-  ParagraphElement._internal() : super._internal();
+  ParagraphElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -29025,10 +29025,10 @@ class ParamElement extends HtmlElement {
   }
 
   factory ParamElement._internalWrap() {
-    return new ParamElement._internal();
+    return new ParamElement.internal_();
   }
 
-  ParamElement._internal() : super._internal();
+  ParamElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -29075,10 +29075,10 @@ abstract class ParentNode extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory ParentNode._internalWrap() {
-    return new ParentNode._internal();
+    return new ParentNode.internal_();
   }
 
-  ParentNode._internal() { }
+  ParentNode.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -29149,10 +29149,10 @@ class Path2D extends NativeFieldWrapperClass2 implements _CanvasPathMethods {
   JsObject blink_jsObject = null;
 
   factory Path2D._internalWrap() {
-    return new Path2D._internal();
+    return new Path2D.internal_();
   }
 
-  Path2D._internal() { }
+  Path2D.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -29247,10 +29247,10 @@ class Performance extends EventTarget {
   }
 
   factory Performance._internalWrap() {
-    return new Performance._internal();
+    return new Performance.internal_();
   }
 
-  Performance._internal() : super._internal();
+  Performance.internal_() : super.internal_();
 
 
   /// Checks if this type is supported on the current platform.
@@ -29361,10 +29361,10 @@ class PerformanceEntry extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory PerformanceEntry._internalWrap() {
-    return new PerformanceEntry._internal();
+    return new PerformanceEntry.internal_();
   }
 
-  PerformanceEntry._internal() { }
+  PerformanceEntry.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -29406,10 +29406,10 @@ class PerformanceMark extends PerformanceEntry {
   }
 
   factory PerformanceMark._internalWrap() {
-    return new PerformanceMark._internal();
+    return new PerformanceMark.internal_();
   }
 
-  PerformanceMark._internal() : super._internal();
+  PerformanceMark.internal_() : super.internal_();
 
 
 }
@@ -29434,10 +29434,10 @@ class PerformanceMeasure extends PerformanceEntry {
   }
 
   factory PerformanceMeasure._internalWrap() {
-    return new PerformanceMeasure._internal();
+    return new PerformanceMeasure.internal_();
   }
 
-  PerformanceMeasure._internal() : super._internal();
+  PerformanceMeasure.internal_() : super.internal_();
 
 
 }
@@ -29462,10 +29462,10 @@ class PerformanceNavigation extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory PerformanceNavigation._internalWrap() {
-    return new PerformanceNavigation._internal();
+    return new PerformanceNavigation.internal_();
   }
 
-  PerformanceNavigation._internal() { }
+  PerformanceNavigation.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -29515,10 +29515,10 @@ class PerformanceResourceTiming extends PerformanceEntry {
   }
 
   factory PerformanceResourceTiming._internalWrap() {
-    return new PerformanceResourceTiming._internal();
+    return new PerformanceResourceTiming.internal_();
   }
 
-  PerformanceResourceTiming._internal() : super._internal();
+  PerformanceResourceTiming.internal_() : super.internal_();
 
 
   @DomName('PerformanceResourceTiming.connectEnd')
@@ -29594,10 +29594,10 @@ class PerformanceTiming extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory PerformanceTiming._internalWrap() {
-    return new PerformanceTiming._internal();
+    return new PerformanceTiming.internal_();
   }
 
-  PerformanceTiming._internal() { }
+  PerformanceTiming.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -29706,10 +29706,10 @@ class PictureElement extends HtmlElement {
   }
 
   factory PictureElement._internalWrap() {
-    return new PictureElement._internal();
+    return new PictureElement.internal_();
   }
 
-  PictureElement._internal() : super._internal();
+  PictureElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -29740,10 +29740,10 @@ class Plugin extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Plugin._internalWrap() {
-    return new Plugin._internal();
+    return new Plugin.internal_();
   }
 
-  Plugin._internal() { }
+  Plugin.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -29797,10 +29797,10 @@ class PluginArray extends NativeFieldWrapperClass2 with ListMixin<Plugin>, Immut
   JsObject blink_jsObject = null;
 
   factory PluginArray._internalWrap() {
-    return new PluginArray._internal();
+    return new PluginArray.internal_();
   }
 
-  PluginArray._internal() { }
+  PluginArray.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -29891,10 +29891,10 @@ class PluginPlaceholderElement extends DivElement {
   }
 
   factory PluginPlaceholderElement._internalWrap() {
-    return new PluginPlaceholderElement._internal();
+    return new PluginPlaceholderElement.internal_();
   }
 
-  PluginPlaceholderElement._internal() : super._internal();
+  PluginPlaceholderElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -29942,10 +29942,10 @@ class PopStateEvent extends Event {
   }
 
   factory PopStateEvent._internalWrap() {
-    return new PopStateEvent._internal();
+    return new PopStateEvent.internal_();
   }
 
-  PopStateEvent._internal() : super._internal();
+  PopStateEvent.internal_() : super.internal_();
 
 
   @DomName('PopStateEvent.state')
@@ -29984,10 +29984,10 @@ class PositionError extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory PositionError._internalWrap() {
-    return new PositionError._internal();
+    return new PositionError.internal_();
   }
 
-  PositionError._internal() { }
+  PositionError.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -30045,10 +30045,10 @@ class PreElement extends HtmlElement {
   }
 
   factory PreElement._internalWrap() {
-    return new PreElement._internal();
+    return new PreElement.internal_();
   }
 
-  PreElement._internal() : super._internal();
+  PreElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -30078,10 +30078,10 @@ class Presentation extends EventTarget {
   }
 
   factory Presentation._internalWrap() {
-    return new Presentation._internal();
+    return new Presentation.internal_();
   }
 
-  Presentation._internal() : super._internal();
+  Presentation.internal_() : super.internal_();
 
 
 }
@@ -30105,10 +30105,10 @@ class ProcessingInstruction extends CharacterData {
   }
 
   factory ProcessingInstruction._internalWrap() {
-    return new ProcessingInstruction._internal();
+    return new ProcessingInstruction.internal_();
   }
 
-  ProcessingInstruction._internal() : super._internal();
+  ProcessingInstruction.internal_() : super.internal_();
 
 
   @DomName('ProcessingInstruction.sheet')
@@ -30148,10 +30148,10 @@ class ProgressElement extends HtmlElement {
   }
 
   factory ProgressElement._internalWrap() {
-    return new ProgressElement._internal();
+    return new ProgressElement.internal_();
   }
 
-  ProgressElement._internal() : super._internal();
+  ProgressElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -30208,10 +30208,10 @@ class ProgressEvent extends Event {
   }
 
   factory ProgressEvent._internalWrap() {
-    return new ProgressEvent._internal();
+    return new ProgressEvent.internal_();
   }
 
-  ProgressEvent._internal() : super._internal();
+  ProgressEvent.internal_() : super.internal_();
 
 
   @DomName('ProgressEvent.lengthComputable')
@@ -30247,10 +30247,10 @@ class PushEvent extends Event {
   }
 
   factory PushEvent._internalWrap() {
-    return new PushEvent._internal();
+    return new PushEvent.internal_();
   }
 
-  PushEvent._internal() : super._internal();
+  PushEvent.internal_() : super.internal_();
 
 
   @DomName('PushEvent.data')
@@ -30280,10 +30280,10 @@ class PushManager extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory PushManager._internalWrap() {
-    return new PushManager._internal();
+    return new PushManager.internal_();
   }
 
-  PushManager._internal() { }
+  PushManager.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -30314,10 +30314,10 @@ class PushRegistration extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory PushRegistration._internalWrap() {
-    return new PushRegistration._internal();
+    return new PushRegistration.internal_();
   }
 
-  PushRegistration._internal() { }
+  PushRegistration.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -30355,10 +30355,10 @@ class QuoteElement extends HtmlElement {
   }
 
   factory QuoteElement._internalWrap() {
-    return new QuoteElement._internal();
+    return new QuoteElement.internal_();
   }
 
-  QuoteElement._internal() : super._internal();
+  QuoteElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -30433,10 +30433,10 @@ class Range extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Range._internalWrap() {
-    return new Range._internal();
+    return new Range.internal_();
   }
 
-  Range._internal() { }
+  Range.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -30630,10 +30630,10 @@ class ReadableStream extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory ReadableStream._internalWrap() {
-    return new ReadableStream._internal();
+    return new ReadableStream.internal_();
   }
 
-  ReadableStream._internal() { }
+  ReadableStream.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -30683,10 +30683,10 @@ class RelatedEvent extends Event {
   }
 
   factory RelatedEvent._internalWrap() {
-    return new RelatedEvent._internal();
+    return new RelatedEvent.internal_();
   }
 
-  RelatedEvent._internal() : super._internal();
+  RelatedEvent.internal_() : super.internal_();
 
 
   @DomName('RelatedEvent.relatedTarget')
@@ -30725,10 +30725,10 @@ class ResourceProgressEvent extends ProgressEvent {
   }
 
   factory ResourceProgressEvent._internalWrap() {
-    return new ResourceProgressEvent._internal();
+    return new ResourceProgressEvent.internal_();
   }
 
-  ResourceProgressEvent._internal() : super._internal();
+  ResourceProgressEvent.internal_() : super.internal_();
 
 
   @DomName('ResourceProgressEvent.url')
@@ -30797,10 +30797,10 @@ class RtcDataChannel extends EventTarget {
   }
 
   factory RtcDataChannel._internalWrap() {
-    return new RtcDataChannel._internal();
+    return new RtcDataChannel.internal_();
   }
 
-  RtcDataChannel._internal() : super._internal();
+  RtcDataChannel.internal_() : super.internal_();
 
 
   @DomName('RTCDataChannel.binaryType')
@@ -30939,10 +30939,10 @@ class RtcDataChannelEvent extends Event {
   }
 
   factory RtcDataChannelEvent._internalWrap() {
-    return new RtcDataChannelEvent._internal();
+    return new RtcDataChannelEvent.internal_();
   }
 
-  RtcDataChannelEvent._internal() : super._internal();
+  RtcDataChannelEvent.internal_() : super.internal_();
 
 
   @DomName('RTCDataChannelEvent.channel')
@@ -30981,10 +30981,10 @@ class RtcDtmfSender extends EventTarget {
   }
 
   factory RtcDtmfSender._internalWrap() {
-    return new RtcDtmfSender._internal();
+    return new RtcDtmfSender.internal_();
   }
 
-  RtcDtmfSender._internal() : super._internal();
+  RtcDtmfSender.internal_() : super.internal_();
 
 
   @DomName('RTCDTMFSender.canInsertDTMF')
@@ -31047,10 +31047,10 @@ class RtcDtmfToneChangeEvent extends Event {
   }
 
   factory RtcDtmfToneChangeEvent._internalWrap() {
-    return new RtcDtmfToneChangeEvent._internal();
+    return new RtcDtmfToneChangeEvent.internal_();
   }
 
-  RtcDtmfToneChangeEvent._internal() : super._internal();
+  RtcDtmfToneChangeEvent.internal_() : super.internal_();
 
 
   @DomName('RTCDTMFToneChangeEvent.tone')
@@ -31087,10 +31087,10 @@ class RtcIceCandidate extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory RtcIceCandidate._internalWrap() {
-    return new RtcIceCandidate._internal();
+    return new RtcIceCandidate.internal_();
   }
 
-  RtcIceCandidate._internal() { }
+  RtcIceCandidate.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -31140,10 +31140,10 @@ class RtcIceCandidateEvent extends Event {
   }
 
   factory RtcIceCandidateEvent._internalWrap() {
-    return new RtcIceCandidateEvent._internal();
+    return new RtcIceCandidateEvent.internal_();
   }
 
-  RtcIceCandidateEvent._internal() : super._internal();
+  RtcIceCandidateEvent.internal_() : super.internal_();
 
 
   @DomName('RTCIceCandidateEvent.candidate')
@@ -31277,10 +31277,10 @@ class RtcPeerConnection extends EventTarget {
   }
 
   factory RtcPeerConnection._internalWrap() {
-    return new RtcPeerConnection._internal();
+    return new RtcPeerConnection.internal_();
   }
 
-  RtcPeerConnection._internal() : super._internal();
+  RtcPeerConnection.internal_() : super.internal_();
 
 
   @DomName('RTCPeerConnection.iceConnectionState')
@@ -31474,10 +31474,10 @@ class RtcSessionDescription extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory RtcSessionDescription._internalWrap() {
-    return new RtcSessionDescription._internal();
+    return new RtcSessionDescription.internal_();
   }
 
-  RtcSessionDescription._internal() { }
+  RtcSessionDescription.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -31520,10 +31520,10 @@ class RtcStatsReport extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory RtcStatsReport._internalWrap() {
-    return new RtcStatsReport._internal();
+    return new RtcStatsReport.internal_();
   }
 
-  RtcStatsReport._internal() { }
+  RtcStatsReport.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -31578,10 +31578,10 @@ class RtcStatsResponse extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory RtcStatsResponse._internalWrap() {
-    return new RtcStatsResponse._internal();
+    return new RtcStatsResponse.internal_();
   }
 
-  RtcStatsResponse._internal() { }
+  RtcStatsResponse.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -31623,10 +31623,10 @@ class Screen extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Screen._internalWrap() {
-    return new Screen._internal();
+    return new Screen.internal_();
   }
 
-  Screen._internal() { }
+  Screen.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -31694,10 +31694,10 @@ class ScreenOrientation extends EventTarget {
   }
 
   factory ScreenOrientation._internalWrap() {
-    return new ScreenOrientation._internal();
+    return new ScreenOrientation.internal_();
   }
 
-  ScreenOrientation._internal() : super._internal();
+  ScreenOrientation.internal_() : super.internal_();
 
 
   @DomName('ScreenOrientation.angle')
@@ -31749,10 +31749,10 @@ class ScriptElement extends HtmlElement {
   }
 
   factory ScriptElement._internalWrap() {
-    return new ScriptElement._internal();
+    return new ScriptElement.internal_();
   }
 
-  ScriptElement._internal() : super._internal();
+  ScriptElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -31857,10 +31857,10 @@ class SecurityPolicyViolationEvent extends Event {
   }
 
   factory SecurityPolicyViolationEvent._internalWrap() {
-    return new SecurityPolicyViolationEvent._internal();
+    return new SecurityPolicyViolationEvent.internal_();
   }
 
-  SecurityPolicyViolationEvent._internal() : super._internal();
+  SecurityPolicyViolationEvent.internal_() : super.internal_();
 
 
   @DomName('SecurityPolicyViolationEvent.blockedURI')
@@ -31925,10 +31925,10 @@ class SelectElement extends HtmlElement {
   }
 
   factory SelectElement._internalWrap() {
-    return new SelectElement._internal();
+    return new SelectElement.internal_();
   }
 
-  SelectElement._internal() : super._internal();
+  SelectElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -32098,10 +32098,10 @@ class Selection extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Selection._internalWrap() {
-    return new Selection._internal();
+    return new Selection.internal_();
   }
 
-  Selection._internal() { }
+  Selection.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -32251,10 +32251,10 @@ class ServiceWorkerClient extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory ServiceWorkerClient._internalWrap() {
-    return new ServiceWorkerClient._internal();
+    return new ServiceWorkerClient.internal_();
   }
 
-  ServiceWorkerClient._internal() { }
+  ServiceWorkerClient.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -32290,10 +32290,10 @@ class ServiceWorkerClients extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory ServiceWorkerClients._internalWrap() {
-    return new ServiceWorkerClients._internal();
+    return new ServiceWorkerClients.internal_();
   }
 
-  ServiceWorkerClients._internal() { }
+  ServiceWorkerClients.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -32326,10 +32326,10 @@ class ServiceWorkerContainer extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory ServiceWorkerContainer._internalWrap() {
-    return new ServiceWorkerContainer._internal();
+    return new ServiceWorkerContainer.internal_();
   }
 
-  ServiceWorkerContainer._internal() { }
+  ServiceWorkerContainer.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -32383,10 +32383,10 @@ class ServiceWorkerGlobalScope extends WorkerGlobalScope {
   }
 
   factory ServiceWorkerGlobalScope._internalWrap() {
-    return new ServiceWorkerGlobalScope._internal();
+    return new ServiceWorkerGlobalScope.internal_();
   }
 
-  ServiceWorkerGlobalScope._internal() : super._internal();
+  ServiceWorkerGlobalScope.internal_() : super.internal_();
 
 
   @DomName('ServiceWorkerGlobalScope.caches')
@@ -32451,10 +32451,10 @@ class ServiceWorkerRegistration extends EventTarget {
   }
 
   factory ServiceWorkerRegistration._internalWrap() {
-    return new ServiceWorkerRegistration._internal();
+    return new ServiceWorkerRegistration.internal_();
   }
 
-  ServiceWorkerRegistration._internal() : super._internal();
+  ServiceWorkerRegistration.internal_() : super.internal_();
 
 
   @DomName('ServiceWorkerRegistration.active')
@@ -32509,10 +32509,10 @@ class ShadowElement extends HtmlElement {
   }
 
   factory ShadowElement._internalWrap() {
-    return new ShadowElement._internal();
+    return new ShadowElement.internal_();
   }
 
-  ShadowElement._internal() : super._internal();
+  ShadowElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -32551,10 +32551,10 @@ class ShadowRoot extends DocumentFragment {
   }
 
   factory ShadowRoot._internalWrap() {
-    return new ShadowRoot._internal();
+    return new ShadowRoot.internal_();
   }
 
-  ShadowRoot._internal() : super._internal();
+  ShadowRoot.internal_() : super.internal_();
 
 
   @DomName('ShadowRoot.activeElement')
@@ -32677,10 +32677,10 @@ class SharedWorker extends EventTarget implements AbstractWorker {
   }
 
   factory SharedWorker._internalWrap() {
-    return new SharedWorker._internal();
+    return new SharedWorker.internal_();
   }
 
-  SharedWorker._internal() : super._internal();
+  SharedWorker.internal_() : super.internal_();
 
 
   @DomName('SharedWorker.port')
@@ -32729,10 +32729,10 @@ class SharedWorkerGlobalScope extends WorkerGlobalScope {
   }
 
   factory SharedWorkerGlobalScope._internalWrap() {
-    return new SharedWorkerGlobalScope._internal();
+    return new SharedWorkerGlobalScope.internal_();
   }
 
-  SharedWorkerGlobalScope._internal() : super._internal();
+  SharedWorkerGlobalScope.internal_() : super.internal_();
 
 
   @DomName('SharedWorkerGlobalScope.name')
@@ -32768,10 +32768,10 @@ class SourceBuffer extends EventTarget {
   }
 
   factory SourceBuffer._internalWrap() {
-    return new SourceBuffer._internal();
+    return new SourceBuffer.internal_();
   }
 
-  SourceBuffer._internal() : super._internal();
+  SourceBuffer.internal_() : super.internal_();
 
 
   @DomName('SourceBuffer.appendWindowEnd')
@@ -32871,10 +32871,10 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
   }
 
   factory SourceBufferList._internalWrap() {
-    return new SourceBufferList._internal();
+    return new SourceBufferList.internal_();
   }
 
-  SourceBufferList._internal() : super._internal();
+  SourceBufferList.internal_() : super.internal_();
 
 
   @DomName('SourceBufferList.length')
@@ -32955,10 +32955,10 @@ class SourceElement extends HtmlElement {
   }
 
   factory SourceElement._internalWrap() {
-    return new SourceElement._internal();
+    return new SourceElement.internal_();
   }
 
-  SourceElement._internal() : super._internal();
+  SourceElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -33043,10 +33043,10 @@ class SourceInfo extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory SourceInfo._internalWrap() {
-    return new SourceInfo._internal();
+    return new SourceInfo.internal_();
   }
 
-  SourceInfo._internal() { }
+  SourceInfo.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -33094,10 +33094,10 @@ class SpanElement extends HtmlElement {
   }
 
   factory SpanElement._internalWrap() {
-    return new SpanElement._internal();
+    return new SpanElement.internal_();
   }
 
-  SpanElement._internal() : super._internal();
+  SpanElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -33135,10 +33135,10 @@ class SpeechGrammar extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory SpeechGrammar._internalWrap() {
-    return new SpeechGrammar._internal();
+    return new SpeechGrammar.internal_();
   }
 
-  SpeechGrammar._internal() { }
+  SpeechGrammar.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -33187,10 +33187,10 @@ class SpeechGrammarList extends NativeFieldWrapperClass2 with ListMixin<SpeechGr
   JsObject blink_jsObject = null;
 
   factory SpeechGrammarList._internalWrap() {
-    return new SpeechGrammarList._internal();
+    return new SpeechGrammarList.internal_();
   }
 
-  SpeechGrammarList._internal() { }
+  SpeechGrammarList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -33405,10 +33405,10 @@ class SpeechRecognition extends EventTarget {
   }
 
   factory SpeechRecognition._internalWrap() {
-    return new SpeechRecognition._internal();
+    return new SpeechRecognition.internal_();
   }
 
-  SpeechRecognition._internal() : super._internal();
+  SpeechRecognition.internal_() : super.internal_();
 
 
   /// Checks if this type is supported on the current platform.
@@ -33545,10 +33545,10 @@ class SpeechRecognitionAlternative extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory SpeechRecognitionAlternative._internalWrap() {
-    return new SpeechRecognitionAlternative._internal();
+    return new SpeechRecognitionAlternative.internal_();
   }
 
-  SpeechRecognitionAlternative._internal() { }
+  SpeechRecognitionAlternative.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -33583,10 +33583,10 @@ class SpeechRecognitionError extends Event {
   }
 
   factory SpeechRecognitionError._internalWrap() {
-    return new SpeechRecognitionError._internal();
+    return new SpeechRecognitionError.internal_();
   }
 
-  SpeechRecognitionError._internal() : super._internal();
+  SpeechRecognitionError.internal_() : super.internal_();
 
 
   @DomName('SpeechRecognitionError.error')
@@ -33620,10 +33620,10 @@ class SpeechRecognitionEvent extends Event {
   }
 
   factory SpeechRecognitionEvent._internalWrap() {
-    return new SpeechRecognitionEvent._internal();
+    return new SpeechRecognitionEvent.internal_();
   }
 
-  SpeechRecognitionEvent._internal() : super._internal();
+  SpeechRecognitionEvent.internal_() : super.internal_();
 
 
   @DomName('SpeechRecognitionEvent.emma')
@@ -33666,10 +33666,10 @@ class SpeechRecognitionResult extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory SpeechRecognitionResult._internalWrap() {
-    return new SpeechRecognitionResult._internal();
+    return new SpeechRecognitionResult.internal_();
   }
 
-  SpeechRecognitionResult._internal() { }
+  SpeechRecognitionResult.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -33707,10 +33707,10 @@ class SpeechSynthesis extends EventTarget {
   }
 
   factory SpeechSynthesis._internalWrap() {
-    return new SpeechSynthesis._internal();
+    return new SpeechSynthesis.internal_();
   }
 
-  SpeechSynthesis._internal() : super._internal();
+  SpeechSynthesis.internal_() : super.internal_();
 
 
   @DomName('SpeechSynthesis.paused')
@@ -33767,10 +33767,10 @@ class SpeechSynthesisEvent extends Event {
   }
 
   factory SpeechSynthesisEvent._internalWrap() {
-    return new SpeechSynthesisEvent._internal();
+    return new SpeechSynthesisEvent.internal_();
   }
 
-  SpeechSynthesisEvent._internal() : super._internal();
+  SpeechSynthesisEvent.internal_() : super.internal_();
 
 
   @DomName('SpeechSynthesisEvent.charIndex')
@@ -33883,10 +33883,10 @@ class SpeechSynthesisUtterance extends EventTarget {
   }
 
   factory SpeechSynthesisUtterance._internalWrap() {
-    return new SpeechSynthesisUtterance._internal();
+    return new SpeechSynthesisUtterance.internal_();
   }
 
-  SpeechSynthesisUtterance._internal() : super._internal();
+  SpeechSynthesisUtterance.internal_() : super.internal_();
 
 
   @DomName('SpeechSynthesisUtterance.lang')
@@ -33995,10 +33995,10 @@ class SpeechSynthesisVoice extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory SpeechSynthesisVoice._internalWrap() {
-    return new SpeechSynthesisVoice._internal();
+    return new SpeechSynthesisVoice.internal_();
   }
 
-  SpeechSynthesisVoice._internal() { }
+  SpeechSynthesisVoice.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -34120,10 +34120,10 @@ class Storage extends NativeFieldWrapperClass2
   JsObject blink_jsObject = null;
 
   factory Storage._internalWrap() {
-    return new Storage._internal();
+    return new Storage.internal_();
   }
 
-  Storage._internal() { }
+  Storage.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -34223,10 +34223,10 @@ class StorageEvent extends Event {
   }
 
   factory StorageEvent._internalWrap() {
-    return new StorageEvent._internal();
+    return new StorageEvent.internal_();
   }
 
-  StorageEvent._internal() : super._internal();
+  StorageEvent.internal_() : super.internal_();
 
 
   @DomName('StorageEvent.key')
@@ -34276,10 +34276,10 @@ class StorageInfo extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory StorageInfo._internalWrap() {
-    return new StorageInfo._internal();
+    return new StorageInfo.internal_();
   }
 
-  StorageInfo._internal() { }
+  StorageInfo.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -34316,10 +34316,10 @@ class StorageQuota extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory StorageQuota._internalWrap() {
-    return new StorageQuota._internal();
+    return new StorageQuota.internal_();
   }
 
-  StorageQuota._internal() { }
+  StorageQuota.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -34395,10 +34395,10 @@ class StyleElement extends HtmlElement {
   }
 
   factory StyleElement._internalWrap() {
-    return new StyleElement._internal();
+    return new StyleElement.internal_();
   }
 
-  StyleElement._internal() : super._internal();
+  StyleElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -34458,10 +34458,10 @@ class StyleMedia extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory StyleMedia._internalWrap() {
-    return new StyleMedia._internal();
+    return new StyleMedia.internal_();
   }
 
-  StyleMedia._internal() { }
+  StyleMedia.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -34494,10 +34494,10 @@ class StyleSheet extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory StyleSheet._internalWrap() {
-    return new StyleSheet._internal();
+    return new StyleSheet.internal_();
   }
 
-  StyleSheet._internal() { }
+  StyleSheet.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -34557,10 +34557,10 @@ class TableCaptionElement extends HtmlElement {
   }
 
   factory TableCaptionElement._internalWrap() {
-    return new TableCaptionElement._internal();
+    return new TableCaptionElement.internal_();
   }
 
-  TableCaptionElement._internal() : super._internal();
+  TableCaptionElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -34593,10 +34593,10 @@ class TableCellElement extends HtmlElement {
   }
 
   factory TableCellElement._internalWrap() {
-    return new TableCellElement._internal();
+    return new TableCellElement.internal_();
   }
 
-  TableCellElement._internal() : super._internal();
+  TableCellElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -34657,10 +34657,10 @@ class TableColElement extends HtmlElement {
   }
 
   factory TableColElement._internalWrap() {
-    return new TableColElement._internal();
+    return new TableColElement.internal_();
   }
 
-  TableColElement._internal() : super._internal();
+  TableColElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -34719,10 +34719,10 @@ class TableElement extends HtmlElement {
   }
 
   factory TableElement._internalWrap() {
-    return new TableElement._internal();
+    return new TableElement.internal_();
   }
 
-  TableElement._internal() : super._internal();
+  TableElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -34835,10 +34835,10 @@ class TableRowElement extends HtmlElement {
   }
 
   factory TableRowElement._internalWrap() {
-    return new TableRowElement._internal();
+    return new TableRowElement.internal_();
   }
 
-  TableRowElement._internal() : super._internal();
+  TableRowElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -34899,10 +34899,10 @@ class TableSectionElement extends HtmlElement {
   }
 
   factory TableSectionElement._internalWrap() {
-    return new TableSectionElement._internal();
+    return new TableSectionElement.internal_();
   }
 
-  TableSectionElement._internal() : super._internal();
+  TableSectionElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -34952,10 +34952,10 @@ class TemplateElement extends HtmlElement {
   }
 
   factory TemplateElement._internalWrap() {
-    return new TemplateElement._internal();
+    return new TemplateElement.internal_();
   }
 
-  TemplateElement._internal() : super._internal();
+  TemplateElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -35007,10 +35007,10 @@ class Text extends CharacterData {
   }
 
   factory Text._internalWrap() {
-    return new Text._internal();
+    return new Text.internal_();
   }
 
-  Text._internal() : super._internal();
+  Text.internal_() : super.internal_();
 
 
   @DomName('Text.wholeText')
@@ -35050,10 +35050,10 @@ class TextAreaElement extends HtmlElement {
   }
 
   factory TextAreaElement._internalWrap() {
-    return new TextAreaElement._internal();
+    return new TextAreaElement.internal_();
   }
 
-  TextAreaElement._internal() : super._internal();
+  TextAreaElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -35295,10 +35295,10 @@ class TextEvent extends UIEvent {
   }
 
   factory TextEvent._internalWrap() {
-    return new TextEvent._internal();
+    return new TextEvent.internal_();
   }
 
-  TextEvent._internal() : super._internal();
+  TextEvent.internal_() : super.internal_();
 
 
   @DomName('TextEvent.data')
@@ -35330,10 +35330,10 @@ class TextMetrics extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory TextMetrics._internalWrap() {
-    return new TextMetrics._internal();
+    return new TextMetrics.internal_();
   }
 
-  TextMetrics._internal() { }
+  TextMetrics.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -35428,10 +35428,10 @@ class TextTrack extends EventTarget {
   }
 
   factory TextTrack._internalWrap() {
-    return new TextTrack._internal();
+    return new TextTrack.internal_();
   }
 
-  TextTrack._internal() : super._internal();
+  TextTrack.internal_() : super.internal_();
 
 
   @DomName('TextTrack.activeCues')
@@ -35537,10 +35537,10 @@ class TextTrackCue extends EventTarget {
   }
 
   factory TextTrackCue._internalWrap() {
-    return new TextTrackCue._internal();
+    return new TextTrackCue.internal_();
   }
 
-  TextTrackCue._internal() : super._internal();
+  TextTrackCue.internal_() : super.internal_();
 
 
   @DomName('TextTrackCue.endTime')
@@ -35612,10 +35612,10 @@ class TextTrackCueList extends NativeFieldWrapperClass2 with ListMixin<TextTrack
   JsObject blink_jsObject = null;
 
   factory TextTrackCueList._internalWrap() {
-    return new TextTrackCueList._internal();
+    return new TextTrackCueList.internal_();
   }
 
-  TextTrackCueList._internal() { }
+  TextTrackCueList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -35714,10 +35714,10 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
   }
 
   factory TextTrackList._internalWrap() {
-    return new TextTrackList._internal();
+    return new TextTrackList.internal_();
   }
 
-  TextTrackList._internal() : super._internal();
+  TextTrackList.internal_() : super.internal_();
 
 
   @DomName('TextTrackList.length')
@@ -35811,10 +35811,10 @@ class TimeRanges extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory TimeRanges._internalWrap() {
-    return new TimeRanges._internal();
+    return new TimeRanges.internal_();
   }
 
-  TimeRanges._internal() { }
+  TimeRanges.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -35861,10 +35861,10 @@ class Timing extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Timing._internalWrap() {
-    return new Timing._internal();
+    return new Timing.internal_();
   }
 
-  Timing._internal() { }
+  Timing.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -35982,10 +35982,10 @@ class TitleElement extends HtmlElement {
   }
 
   factory TitleElement._internalWrap() {
-    return new TitleElement._internal();
+    return new TitleElement.internal_();
   }
 
-  TitleElement._internal() : super._internal();
+  TitleElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -36015,10 +36015,10 @@ class Touch extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Touch._internalWrap() {
-    return new Touch._internal();
+    return new Touch.internal_();
   }
 
-  Touch._internal() { }
+  Touch.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -36148,10 +36148,10 @@ class TouchEvent extends UIEvent {
   }
 
   factory TouchEvent._internalWrap() {
-    return new TouchEvent._internal();
+    return new TouchEvent.internal_();
   }
 
-  TouchEvent._internal() : super._internal();
+  TouchEvent.internal_() : super.internal_();
 
 
   @DomName('TouchEvent.altKey')
@@ -36221,10 +36221,10 @@ class TouchList extends NativeFieldWrapperClass2 with ListMixin<Touch>, Immutabl
   JsObject blink_jsObject = null;
 
   factory TouchList._internalWrap() {
-    return new TouchList._internal();
+    return new TouchList.internal_();
   }
 
-  TouchList._internal() { }
+  TouchList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -36314,10 +36314,10 @@ class TrackElement extends HtmlElement {
   }
 
   factory TrackElement._internalWrap() {
-    return new TrackElement._internal();
+    return new TrackElement.internal_();
   }
 
-  TrackElement._internal() : super._internal();
+  TrackElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -36424,10 +36424,10 @@ class TrackEvent extends Event {
   }
 
   factory TrackEvent._internalWrap() {
-    return new TrackEvent._internal();
+    return new TrackEvent.internal_();
   }
 
-  TrackEvent._internal() : super._internal();
+  TrackEvent.internal_() : super.internal_();
 
 
   @DomName('TrackEvent.track')
@@ -36454,10 +36454,10 @@ class TransitionEvent extends Event {
   }
 
   factory TransitionEvent._internalWrap() {
-    return new TransitionEvent._internal();
+    return new TransitionEvent.internal_();
   }
 
-  TransitionEvent._internal() : super._internal();
+  TransitionEvent.internal_() : super.internal_();
 
 
   @DomName('TransitionEvent.elapsedTime')
@@ -36494,10 +36494,10 @@ class TreeWalker extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory TreeWalker._internalWrap() {
-    return new TreeWalker._internal();
+    return new TreeWalker.internal_();
   }
 
-  TreeWalker._internal() { }
+  TreeWalker.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -36584,10 +36584,10 @@ class UIEvent extends Event {
   }
 
   factory UIEvent._internalWrap() {
-    return new UIEvent._internal();
+    return new UIEvent.internal_();
   }
 
-  UIEvent._internal() : super._internal();
+  UIEvent.internal_() : super.internal_();
 
 
   @DomName('UIEvent.charCode')
@@ -36673,10 +36673,10 @@ class UListElement extends HtmlElement {
   }
 
   factory UListElement._internalWrap() {
-    return new UListElement._internal();
+    return new UListElement.internal_();
   }
 
-  UListElement._internal() : super._internal();
+  UListElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -36705,10 +36705,10 @@ class UnknownElement extends HtmlElement {
   }
 
   factory UnknownElement._internalWrap() {
-    return new UnknownElement._internal();
+    return new UnknownElement.internal_();
   }
 
-  UnknownElement._internal() : super._internal();
+  UnknownElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -36738,10 +36738,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
   JsObject blink_jsObject = null;
 
   factory Url._internalWrap() {
-    return new Url._internal();
+    return new Url.internal_();
   }
 
-  Url._internal() { }
+  Url.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -36906,10 +36906,10 @@ abstract class UrlUtils extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory UrlUtils._internalWrap() {
-    return new UrlUtils._internal();
+    return new UrlUtils.internal_();
   }
 
-  UrlUtils._internal() { }
+  UrlUtils.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -37045,10 +37045,10 @@ abstract class UrlUtilsReadOnly extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory UrlUtilsReadOnly._internalWrap() {
-    return new UrlUtilsReadOnly._internal();
+    return new UrlUtilsReadOnly.internal_();
   }
 
-  UrlUtilsReadOnly._internal() { }
+  UrlUtilsReadOnly.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -37123,10 +37123,10 @@ class ValidityState extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory ValidityState._internalWrap() {
-    return new ValidityState._internal();
+    return new ValidityState.internal_();
   }
 
-  ValidityState._internal() { }
+  ValidityState.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -37191,10 +37191,10 @@ class VideoElement extends MediaElement implements CanvasImageSource {
   }
 
   factory VideoElement._internalWrap() {
-    return new VideoElement._internal();
+    return new VideoElement.internal_();
   }
 
-  VideoElement._internal() : super._internal();
+  VideoElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -37292,10 +37292,10 @@ class VideoPlaybackQuality extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory VideoPlaybackQuality._internalWrap() {
-    return new VideoPlaybackQuality._internal();
+    return new VideoPlaybackQuality.internal_();
   }
 
-  VideoPlaybackQuality._internal() { }
+  VideoPlaybackQuality.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -37341,10 +37341,10 @@ class VideoTrack extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory VideoTrack._internalWrap() {
-    return new VideoTrack._internal();
+    return new VideoTrack.internal_();
   }
 
-  VideoTrack._internal() { }
+  VideoTrack.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -37404,10 +37404,10 @@ class VideoTrackList extends EventTarget {
   }
 
   factory VideoTrackList._internalWrap() {
-    return new VideoTrackList._internal();
+    return new VideoTrackList.internal_();
   }
 
-  VideoTrackList._internal() : super._internal();
+  VideoTrackList.internal_() : super.internal_();
 
 
   @DomName('VideoTrackList.length')
@@ -37473,10 +37473,10 @@ class VttCue extends TextTrackCue {
   }
 
   factory VttCue._internalWrap() {
-    return new VttCue._internal();
+    return new VttCue.internal_();
   }
 
-  VttCue._internal() : super._internal();
+  VttCue.internal_() : super.internal_();
 
 
   @DomName('VTTCue.align')
@@ -37592,10 +37592,10 @@ class VttRegion extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory VttRegion._internalWrap() {
-    return new VttRegion._internal();
+    return new VttRegion.internal_();
   }
 
-  VttRegion._internal() { }
+  VttRegion.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -37706,10 +37706,10 @@ class VttRegionList extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory VttRegionList._internalWrap() {
-    return new VttRegionList._internal();
+    return new VttRegionList.internal_();
   }
 
-  VttRegionList._internal() { }
+  VttRegionList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -37842,10 +37842,10 @@ class WebSocket extends EventTarget {
   }
 
   factory WebSocket._internalWrap() {
-    return new WebSocket._internal();
+    return new WebSocket.internal_();
   }
 
-  WebSocket._internal() : super._internal();
+  WebSocket.internal_() : super.internal_();
 
 
   /// Checks if this type is supported on the current platform.
@@ -38014,10 +38014,10 @@ class WheelEvent extends MouseEvent {
   }
 
   factory WheelEvent._internalWrap() {
-    return new WheelEvent._internal();
+    return new WheelEvent.internal_();
   }
 
-  WheelEvent._internal() : super._internal();
+  WheelEvent.internal_() : super.internal_();
 
 
   @DomName('WheelEvent.DOM_DELTA_LINE')
@@ -38354,10 +38354,10 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   }
 
   factory Window._internalWrap() {
-    return new Window._internal();
+    return new Window.internal_();
   }
 
-  Window._internal() : super._internal();
+  Window.internal_() : super.internal_();
 
 
   /**
@@ -39693,10 +39693,10 @@ abstract class WindowBase64 extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory WindowBase64._internalWrap() {
-    return new WindowBase64._internal();
+    return new WindowBase64.internal_();
   }
 
-  WindowBase64._internal() { }
+  WindowBase64.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -39765,10 +39765,10 @@ abstract class WindowEventHandlers extends EventTarget {
   JsObject blink_jsObject = null;
 
   factory WindowEventHandlers._internalWrap() {
-    return new WindowEventHandlers._internal();
+    return new WindowEventHandlers.internal_();
   }
 
-  WindowEventHandlers._internal() { }
+  WindowEventHandlers.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -39859,10 +39859,10 @@ class Worker extends EventTarget implements AbstractWorker {
   }
 
   factory Worker._internalWrap() {
-    return new Worker._internal();
+    return new Worker.internal_();
   }
 
-  Worker._internal() : super._internal();
+  Worker.internal_() : super.internal_();
 
 
   /// Checks if this type is supported on the current platform.
@@ -39908,10 +39908,10 @@ class WorkerConsole extends ConsoleBase {
   }
 
   factory WorkerConsole._internalWrap() {
-    return new WorkerConsole._internal();
+    return new WorkerConsole.internal_();
   }
 
-  WorkerConsole._internal() : super._internal();
+  WorkerConsole.internal_() : super.internal_();
 
 
 }
@@ -39946,10 +39946,10 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   }
 
   factory WorkerGlobalScope._internalWrap() {
-    return new WorkerGlobalScope._internal();
+    return new WorkerGlobalScope.internal_();
   }
 
-  WorkerGlobalScope._internal() : super._internal();
+  WorkerGlobalScope.internal_() : super.internal_();
 
 
   @DomName('WorkerGlobalScope.PERSISTENT')
@@ -40119,10 +40119,10 @@ class WorkerPerformance extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory WorkerPerformance._internalWrap() {
-    return new WorkerPerformance._internal();
+    return new WorkerPerformance.internal_();
   }
 
-  WorkerPerformance._internal() { }
+  WorkerPerformance.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -40165,10 +40165,10 @@ class XPathEvaluator extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory XPathEvaluator._internalWrap() {
-    return new XPathEvaluator._internal();
+    return new XPathEvaluator.internal_();
   }
 
-  XPathEvaluator._internal() { }
+  XPathEvaluator.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -40207,10 +40207,10 @@ class XPathExpression extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory XPathExpression._internalWrap() {
-    return new XPathExpression._internal();
+    return new XPathExpression.internal_();
   }
 
-  XPathExpression._internal() { }
+  XPathExpression.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -40241,10 +40241,10 @@ class XPathNSResolver extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory XPathNSResolver._internalWrap() {
-    return new XPathNSResolver._internal();
+    return new XPathNSResolver.internal_();
   }
 
-  XPathNSResolver._internal() { }
+  XPathNSResolver.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -40275,10 +40275,10 @@ class XPathResult extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory XPathResult._internalWrap() {
-    return new XPathResult._internal();
+    return new XPathResult.internal_();
   }
 
-  XPathResult._internal() { }
+  XPathResult.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -40379,10 +40379,10 @@ class XmlDocument extends Document {
   }
 
   factory XmlDocument._internalWrap() {
-    return new XmlDocument._internal();
+    return new XmlDocument.internal_();
   }
 
-  XmlDocument._internal() : super._internal();
+  XmlDocument.internal_() : super.internal_();
 
 
 }
@@ -40414,10 +40414,10 @@ class XmlSerializer extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory XmlSerializer._internalWrap() {
-    return new XmlSerializer._internal();
+    return new XmlSerializer.internal_();
   }
 
-  XmlSerializer._internal() { }
+  XmlSerializer.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -40456,10 +40456,10 @@ class XsltProcessor extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory XsltProcessor._internalWrap() {
-    return new XsltProcessor._internal();
+    return new XsltProcessor.internal_();
   }
 
-  XsltProcessor._internal() { }
+  XsltProcessor.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -40518,10 +40518,10 @@ class _Attr extends Node {
   }
 
   factory _Attr._internalWrap() {
-    return new _Attr._internal();
+    return new _Attr.internal_();
   }
 
-  _Attr._internal() : super._internal();
+  _Attr.internal_() : super.internal_();
 
 
   @DomName('Attr.localName')
@@ -40583,10 +40583,10 @@ abstract class _CSSPrimitiveValue extends _CSSValue {
   }
 
   factory _CSSPrimitiveValue._internalWrap() {
-    return new _CSSPrimitiveValue._internal();
+    return new _CSSPrimitiveValue.internal_();
   }
 
-  _CSSPrimitiveValue._internal() : super._internal();
+  _CSSPrimitiveValue.internal_() : super.internal_();
 
 
 }
@@ -40611,10 +40611,10 @@ abstract class _CSSUnknownRule extends CssRule {
   }
 
   factory _CSSUnknownRule._internalWrap() {
-    return new _CSSUnknownRule._internal();
+    return new _CSSUnknownRule.internal_();
   }
 
-  _CSSUnknownRule._internal() : super._internal();
+  _CSSUnknownRule.internal_() : super.internal_();
 
 
 }
@@ -40640,10 +40640,10 @@ abstract class _CSSValue extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory _CSSValue._internalWrap() {
-    return new _CSSValue._internal();
+    return new _CSSValue.internal_();
   }
 
-  _CSSValue._internal() { }
+  _CSSValue.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -40669,10 +40669,10 @@ abstract class _Cache extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory _Cache._internalWrap() {
-    return new _Cache._internal();
+    return new _Cache.internal_();
   }
 
-  _Cache._internal() { }
+  _Cache.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -40698,10 +40698,10 @@ abstract class _CanvasPathMethods extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory _CanvasPathMethods._internalWrap() {
-    return new _CanvasPathMethods._internal();
+    return new _CanvasPathMethods.internal_();
   }
 
-  _CanvasPathMethods._internal() { }
+  _CanvasPathMethods.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -40814,10 +40814,10 @@ class _ClientRect extends NativeFieldWrapperClass2 implements Rectangle {
   JsObject blink_jsObject = null;
 
   factory _ClientRect._internalWrap() {
-    return new _ClientRect._internal();
+    return new _ClientRect.internal_();
   }
 
-  _ClientRect._internal() { }
+  _ClientRect.internal_() { }
 
 
   @DomName('ClientRect.bottom')
@@ -40901,10 +40901,10 @@ class _ClientRectList extends NativeFieldWrapperClass2 with ListMixin<Rectangle>
   JsObject blink_jsObject = null;
 
   factory _ClientRectList._internalWrap() {
-    return new _ClientRectList._internal();
+    return new _ClientRectList.internal_();
   }
 
-  _ClientRectList._internal() { }
+  _ClientRectList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -40985,10 +40985,10 @@ abstract class _Counter extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory _Counter._internalWrap() {
-    return new _Counter._internal();
+    return new _Counter.internal_();
   }
 
-  _Counter._internal() { }
+  _Counter.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -41013,10 +41013,10 @@ class _CssRuleList extends NativeFieldWrapperClass2 with ListMixin<CssRule>, Imm
   JsObject blink_jsObject = null;
 
   factory _CssRuleList._internalWrap() {
-    return new _CssRuleList._internal();
+    return new _CssRuleList.internal_();
   }
 
-  _CssRuleList._internal() { }
+  _CssRuleList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -41096,10 +41096,10 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
   }
 
   factory _CssValueList._internalWrap() {
-    return new _CssValueList._internal();
+    return new _CssValueList.internal_();
   }
 
-  _CssValueList._internal() : super._internal();
+  _CssValueList.internal_() : super.internal_();
 
 
   @DomName('CSSValueList.length')
@@ -41180,10 +41180,10 @@ abstract class _DOMFileSystemSync extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory _DOMFileSystemSync._internalWrap() {
-    return new _DOMFileSystemSync._internal();
+    return new _DOMFileSystemSync.internal_();
   }
 
-  _DOMFileSystemSync._internal() { }
+  _DOMFileSystemSync.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -41209,10 +41209,10 @@ abstract class _DirectoryEntrySync extends _EntrySync {
   }
 
   factory _DirectoryEntrySync._internalWrap() {
-    return new _DirectoryEntrySync._internal();
+    return new _DirectoryEntrySync.internal_();
   }
 
-  _DirectoryEntrySync._internal() : super._internal();
+  _DirectoryEntrySync.internal_() : super.internal_();
 
 
 }
@@ -41238,10 +41238,10 @@ abstract class _DirectoryReaderSync extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory _DirectoryReaderSync._internalWrap() {
-    return new _DirectoryReaderSync._internal();
+    return new _DirectoryReaderSync.internal_();
   }
 
-  _DirectoryReaderSync._internal() { }
+  _DirectoryReaderSync.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -41267,10 +41267,10 @@ abstract class _DocumentType extends Node implements ChildNode {
   }
 
   factory _DocumentType._internalWrap() {
-    return new _DocumentType._internal();
+    return new _DocumentType.internal_();
   }
 
-  _DocumentType._internal() : super._internal();
+  _DocumentType.internal_() : super.internal_();
 
 
 }
@@ -41312,10 +41312,10 @@ class _DomRect extends DomRectReadOnly {
   }
 
   factory _DomRect._internalWrap() {
-    return new _DomRect._internal();
+    return new _DomRect.internal_();
   }
 
-  _DomRect._internal() : super._internal();
+  _DomRect.internal_() : super.internal_();
 
 
   @DomName('DOMRect.height')
@@ -41381,10 +41381,10 @@ abstract class _EntrySync extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory _EntrySync._internalWrap() {
-    return new _EntrySync._internal();
+    return new _EntrySync.internal_();
   }
 
-  _EntrySync._internal() { }
+  _EntrySync.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -41410,10 +41410,10 @@ abstract class _FileEntrySync extends _EntrySync {
   }
 
   factory _FileEntrySync._internalWrap() {
-    return new _FileEntrySync._internal();
+    return new _FileEntrySync.internal_();
   }
 
-  _FileEntrySync._internal() : super._internal();
+  _FileEntrySync.internal_() : super.internal_();
 
 
 }
@@ -41445,10 +41445,10 @@ abstract class _FileReaderSync extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory _FileReaderSync._internalWrap() {
-    return new _FileReaderSync._internal();
+    return new _FileReaderSync.internal_();
   }
 
-  _FileReaderSync._internal() { }
+  _FileReaderSync.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -41475,10 +41475,10 @@ abstract class _FileWriterSync extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory _FileWriterSync._internalWrap() {
-    return new _FileWriterSync._internal();
+    return new _FileWriterSync.internal_();
   }
 
-  _FileWriterSync._internal() { }
+  _FileWriterSync.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -41505,10 +41505,10 @@ class _GamepadList extends NativeFieldWrapperClass2 with ListMixin<Gamepad>, Imm
   JsObject blink_jsObject = null;
 
   factory _GamepadList._internalWrap() {
-    return new _GamepadList._internal();
+    return new _GamepadList.internal_();
   }
 
-  _GamepadList._internal() { }
+  _GamepadList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -41589,10 +41589,10 @@ abstract class _HTMLAllCollection extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory _HTMLAllCollection._internalWrap() {
-    return new _HTMLAllCollection._internal();
+    return new _HTMLAllCollection.internal_();
   }
 
-  _HTMLAllCollection._internal() { }
+  _HTMLAllCollection.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -41622,10 +41622,10 @@ abstract class _HTMLAppletElement extends HtmlElement {
   }
 
   factory _HTMLAppletElement._internalWrap() {
-    return new _HTMLAppletElement._internal();
+    return new _HTMLAppletElement.internal_();
   }
 
-  _HTMLAppletElement._internal() : super._internal();
+  _HTMLAppletElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -41656,10 +41656,10 @@ abstract class _HTMLDirectoryElement extends HtmlElement {
   }
 
   factory _HTMLDirectoryElement._internalWrap() {
-    return new _HTMLDirectoryElement._internal();
+    return new _HTMLDirectoryElement.internal_();
   }
 
-  _HTMLDirectoryElement._internal() : super._internal();
+  _HTMLDirectoryElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -41690,10 +41690,10 @@ abstract class _HTMLFontElement extends HtmlElement {
   }
 
   factory _HTMLFontElement._internalWrap() {
-    return new _HTMLFontElement._internal();
+    return new _HTMLFontElement.internal_();
   }
 
-  _HTMLFontElement._internal() : super._internal();
+  _HTMLFontElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -41724,10 +41724,10 @@ abstract class _HTMLFrameElement extends HtmlElement {
   }
 
   factory _HTMLFrameElement._internalWrap() {
-    return new _HTMLFrameElement._internal();
+    return new _HTMLFrameElement.internal_();
   }
 
-  _HTMLFrameElement._internal() : super._internal();
+  _HTMLFrameElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -41758,10 +41758,10 @@ abstract class _HTMLFrameSetElement extends HtmlElement implements WindowEventHa
   }
 
   factory _HTMLFrameSetElement._internalWrap() {
-    return new _HTMLFrameSetElement._internal();
+    return new _HTMLFrameSetElement.internal_();
   }
 
-  _HTMLFrameSetElement._internal() : super._internal();
+  _HTMLFrameSetElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -41792,10 +41792,10 @@ abstract class _HTMLMarqueeElement extends HtmlElement {
   }
 
   factory _HTMLMarqueeElement._internalWrap() {
-    return new _HTMLMarqueeElement._internal();
+    return new _HTMLMarqueeElement.internal_();
   }
 
-  _HTMLMarqueeElement._internal() : super._internal();
+  _HTMLMarqueeElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -41832,10 +41832,10 @@ abstract class _MutationEvent extends Event {
   }
 
   factory _MutationEvent._internalWrap() {
-    return new _MutationEvent._internal();
+    return new _MutationEvent.internal_();
   }
 
-  _MutationEvent._internal() : super._internal();
+  _MutationEvent.internal_() : super.internal_();
 
 
 }
@@ -41861,10 +41861,10 @@ class _NamedNodeMap extends JsoNativeFieldWrapper2 with ListMixin<Node>, Immutab
   JsObject blink_jsObject = null;
 
   factory _NamedNodeMap._internalWrap() {
-    return new _NamedNodeMap._internal();
+    return new _NamedNodeMap.internal_();
   }
 
-  _NamedNodeMap._internal() { }
+  _NamedNodeMap.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -41972,10 +41972,10 @@ abstract class _PagePopupController extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory _PagePopupController._internalWrap() {
-    return new _PagePopupController._internal();
+    return new _PagePopupController.internal_();
   }
 
-  _PagePopupController._internal() { }
+  _PagePopupController.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -42002,10 +42002,10 @@ abstract class _RGBColor extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory _RGBColor._internalWrap() {
-    return new _RGBColor._internal();
+    return new _RGBColor.internal_();
   }
 
-  _RGBColor._internal() { }
+  _RGBColor.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -42026,10 +42026,10 @@ abstract class _RadioNodeList extends NodeList {
   }
 
   factory _RadioNodeList._internalWrap() {
-    return new _RadioNodeList._internal();
+    return new _RadioNodeList.internal_();
   }
 
-  _RadioNodeList._internal() : super._internal();
+  _RadioNodeList.internal_() : super.internal_();
 
 
 }
@@ -42055,10 +42055,10 @@ abstract class _Rect extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory _Rect._internalWrap() {
-    return new _Rect._internal();
+    return new _Rect.internal_();
   }
 
-  _Rect._internal() { }
+  _Rect.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -42101,10 +42101,10 @@ class _Request extends Body {
   }
 
   factory _Request._internalWrap() {
-    return new _Request._internal();
+    return new _Request.internal_();
   }
 
-  _Request._internal() : super._internal();
+  _Request.internal_() : super.internal_();
 
 
   @DomName('Request.credentials')
@@ -42188,10 +42188,10 @@ abstract class _Response extends Body {
   }
 
   factory _Response._internalWrap() {
-    return new _Response._internal();
+    return new _Response.internal_();
   }
 
-  _Response._internal() : super._internal();
+  _Response.internal_() : super.internal_();
 
 
 }
@@ -42215,10 +42215,10 @@ abstract class _ServiceWorker extends EventTarget implements AbstractWorker {
   }
 
   factory _ServiceWorker._internalWrap() {
-    return new _ServiceWorker._internal();
+    return new _ServiceWorker.internal_();
   }
 
-  _ServiceWorker._internal() : super._internal();
+  _ServiceWorker.internal_() : super.internal_();
 
 
 }
@@ -42244,10 +42244,10 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass2 with ListMix
   JsObject blink_jsObject = null;
 
   factory _SpeechRecognitionResultList._internalWrap() {
-    return new _SpeechRecognitionResultList._internal();
+    return new _SpeechRecognitionResultList.internal_();
   }
 
-  _SpeechRecognitionResultList._internal() { }
+  _SpeechRecognitionResultList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -42326,10 +42326,10 @@ class _StyleSheetList extends NativeFieldWrapperClass2 with ListMixin<StyleSheet
   JsObject blink_jsObject = null;
 
   factory _StyleSheetList._internalWrap() {
-    return new _StyleSheetList._internal();
+    return new _StyleSheetList.internal_();
   }
 
-  _StyleSheetList._internal() { }
+  _StyleSheetList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -42413,10 +42413,10 @@ abstract class _SubtleCrypto extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory _SubtleCrypto._internalWrap() {
-    return new _SubtleCrypto._internal();
+    return new _SubtleCrypto.internal_();
   }
 
-  _SubtleCrypto._internal() { }
+  _SubtleCrypto.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -42442,10 +42442,10 @@ abstract class _WebKitCSSFilterValue extends _CssValueList {
   }
 
   factory _WebKitCSSFilterValue._internalWrap() {
-    return new _WebKitCSSFilterValue._internal();
+    return new _WebKitCSSFilterValue.internal_();
   }
 
-  _WebKitCSSFilterValue._internal() : super._internal();
+  _WebKitCSSFilterValue.internal_() : super.internal_();
 
 
 }
@@ -42480,10 +42480,10 @@ abstract class _WebKitCSSMatrix extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory _WebKitCSSMatrix._internalWrap() {
-    return new _WebKitCSSMatrix._internal();
+    return new _WebKitCSSMatrix.internal_();
   }
 
-  _WebKitCSSMatrix._internal() { }
+  _WebKitCSSMatrix.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -42509,10 +42509,10 @@ abstract class _WebKitCSSTransformValue extends _CssValueList {
   }
 
   factory _WebKitCSSTransformValue._internalWrap() {
-    return new _WebKitCSSTransformValue._internal();
+    return new _WebKitCSSTransformValue.internal_();
   }
 
-  _WebKitCSSTransformValue._internal() : super._internal();
+  _WebKitCSSTransformValue.internal_() : super.internal_();
 
 
 }
@@ -42537,10 +42537,10 @@ abstract class _WindowTimers extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory _WindowTimers._internalWrap() {
-    return new _WindowTimers._internal();
+    return new _WindowTimers.internal_();
   }
 
-  _WindowTimers._internal() { }
+  _WindowTimers.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -42587,10 +42587,10 @@ abstract class _WorkerLocation extends NativeFieldWrapperClass2 implements UrlUt
   JsObject blink_jsObject = null;
 
   factory _WorkerLocation._internalWrap() {
-    return new _WorkerLocation._internal();
+    return new _WorkerLocation.internal_();
   }
 
-  _WorkerLocation._internal() { }
+  _WorkerLocation.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -42617,10 +42617,10 @@ abstract class _WorkerNavigator extends NativeFieldWrapperClass2 implements Navi
   JsObject blink_jsObject = null;
 
   factory _WorkerNavigator._internalWrap() {
-    return new _WorkerNavigator._internal();
+    return new _WorkerNavigator.internal_();
   }
 
-  _WorkerNavigator._internal() { }
+  _WorkerNavigator.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -42645,10 +42645,10 @@ class _XMLHttpRequestProgressEvent extends ProgressEvent {
   }
 
   factory _XMLHttpRequestProgressEvent._internalWrap() {
-    return new _XMLHttpRequestProgressEvent._internal();
+    return new _XMLHttpRequestProgressEvent.internal_();
   }
 
-  _XMLHttpRequestProgressEvent._internal() : super._internal();
+  _XMLHttpRequestProgressEvent.internal_() : super.internal_();
 
 
 }

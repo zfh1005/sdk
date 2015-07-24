@@ -351,10 +351,10 @@ class AElement extends GraphicsElement implements UriReference {
   }
 
   factory AElement._internalWrap() {
-    return new AElement._internal();
+    return new AElement.internal_();
   }
 
-  AElement._internal() : super._internal();
+  AElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -399,10 +399,10 @@ class AltGlyphElement extends TextPositioningElement implements UriReference {
   }
 
   factory AltGlyphElement._internalWrap() {
-    return new AltGlyphElement._internal();
+    return new AltGlyphElement.internal_();
   }
 
-  AltGlyphElement._internal() : super._internal();
+  AltGlyphElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -456,10 +456,10 @@ class Angle extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Angle._internalWrap() {
-    return new Angle._internal();
+    return new Angle.internal_();
   }
 
-  Angle._internal() { }
+  Angle.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -547,10 +547,10 @@ class AnimateElement extends AnimationElement {
   }
 
   factory AnimateElement._internalWrap() {
-    return new AnimateElement._internal();
+    return new AnimateElement.internal_();
   }
 
-  AnimateElement._internal() : super._internal();
+  AnimateElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -590,10 +590,10 @@ class AnimateMotionElement extends AnimationElement {
   }
 
   factory AnimateMotionElement._internalWrap() {
-    return new AnimateMotionElement._internal();
+    return new AnimateMotionElement.internal_();
   }
 
-  AnimateMotionElement._internal() : super._internal();
+  AnimateMotionElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -633,10 +633,10 @@ class AnimateTransformElement extends AnimationElement {
   }
 
   factory AnimateTransformElement._internalWrap() {
-    return new AnimateTransformElement._internal();
+    return new AnimateTransformElement.internal_();
   }
 
-  AnimateTransformElement._internal() : super._internal();
+  AnimateTransformElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -670,10 +670,10 @@ class AnimatedAngle extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory AnimatedAngle._internalWrap() {
-    return new AnimatedAngle._internal();
+    return new AnimatedAngle.internal_();
   }
 
-  AnimatedAngle._internal() { }
+  AnimatedAngle.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -707,10 +707,10 @@ class AnimatedBoolean extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory AnimatedBoolean._internalWrap() {
-    return new AnimatedBoolean._internal();
+    return new AnimatedBoolean.internal_();
   }
 
-  AnimatedBoolean._internal() { }
+  AnimatedBoolean.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -748,10 +748,10 @@ class AnimatedEnumeration extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory AnimatedEnumeration._internalWrap() {
-    return new AnimatedEnumeration._internal();
+    return new AnimatedEnumeration.internal_();
   }
 
-  AnimatedEnumeration._internal() { }
+  AnimatedEnumeration.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -789,10 +789,10 @@ class AnimatedInteger extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory AnimatedInteger._internalWrap() {
-    return new AnimatedInteger._internal();
+    return new AnimatedInteger.internal_();
   }
 
-  AnimatedInteger._internal() { }
+  AnimatedInteger.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -830,10 +830,10 @@ class AnimatedLength extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory AnimatedLength._internalWrap() {
-    return new AnimatedLength._internal();
+    return new AnimatedLength.internal_();
   }
 
-  AnimatedLength._internal() { }
+  AnimatedLength.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -867,10 +867,10 @@ class AnimatedLengthList extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory AnimatedLengthList._internalWrap() {
-    return new AnimatedLengthList._internal();
+    return new AnimatedLengthList.internal_();
   }
 
-  AnimatedLengthList._internal() { }
+  AnimatedLengthList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -904,10 +904,10 @@ class AnimatedNumber extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory AnimatedNumber._internalWrap() {
-    return new AnimatedNumber._internal();
+    return new AnimatedNumber.internal_();
   }
 
-  AnimatedNumber._internal() { }
+  AnimatedNumber.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -945,10 +945,10 @@ class AnimatedNumberList extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory AnimatedNumberList._internalWrap() {
-    return new AnimatedNumberList._internal();
+    return new AnimatedNumberList.internal_();
   }
 
-  AnimatedNumberList._internal() { }
+  AnimatedNumberList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -982,10 +982,10 @@ class AnimatedPreserveAspectRatio extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory AnimatedPreserveAspectRatio._internalWrap() {
-    return new AnimatedPreserveAspectRatio._internal();
+    return new AnimatedPreserveAspectRatio.internal_();
   }
 
-  AnimatedPreserveAspectRatio._internal() { }
+  AnimatedPreserveAspectRatio.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -1019,10 +1019,10 @@ class AnimatedRect extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory AnimatedRect._internalWrap() {
-    return new AnimatedRect._internal();
+    return new AnimatedRect.internal_();
   }
 
-  AnimatedRect._internal() { }
+  AnimatedRect.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -1056,10 +1056,10 @@ class AnimatedString extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory AnimatedString._internalWrap() {
-    return new AnimatedString._internal();
+    return new AnimatedString.internal_();
   }
 
-  AnimatedString._internal() { }
+  AnimatedString.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -1097,10 +1097,10 @@ class AnimatedTransformList extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory AnimatedTransformList._internalWrap() {
-    return new AnimatedTransformList._internal();
+    return new AnimatedTransformList.internal_();
   }
 
-  AnimatedTransformList._internal() { }
+  AnimatedTransformList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -1137,10 +1137,10 @@ class AnimationElement extends SvgElement implements Tests {
   }
 
   factory AnimationElement._internalWrap() {
-    return new AnimationElement._internal();
+    return new AnimationElement.internal_();
   }
 
-  AnimationElement._internal() : super._internal();
+  AnimationElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -1222,10 +1222,10 @@ class CircleElement extends GeometryElement {
   }
 
   factory CircleElement._internalWrap() {
-    return new CircleElement._internal();
+    return new CircleElement.internal_();
   }
 
-  CircleElement._internal() : super._internal();
+  CircleElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -1271,10 +1271,10 @@ class ClipPathElement extends GraphicsElement {
   }
 
   factory ClipPathElement._internalWrap() {
-    return new ClipPathElement._internal();
+    return new ClipPathElement.internal_();
   }
 
-  ClipPathElement._internal() : super._internal();
+  ClipPathElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -1312,10 +1312,10 @@ class DefsElement extends GraphicsElement {
   }
 
   factory DefsElement._internalWrap() {
-    return new DefsElement._internal();
+    return new DefsElement.internal_();
   }
 
-  DefsElement._internal() : super._internal();
+  DefsElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -1349,10 +1349,10 @@ class DescElement extends SvgElement {
   }
 
   factory DescElement._internalWrap() {
-    return new DescElement._internal();
+    return new DescElement.internal_();
   }
 
-  DescElement._internal() : super._internal();
+  DescElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -1382,10 +1382,10 @@ class DiscardElement extends SvgElement {
   }
 
   factory DiscardElement._internalWrap() {
-    return new DiscardElement._internal();
+    return new DiscardElement.internal_();
   }
 
-  DiscardElement._internal() : super._internal();
+  DiscardElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -1419,10 +1419,10 @@ class EllipseElement extends GeometryElement {
   }
 
   factory EllipseElement._internalWrap() {
-    return new EllipseElement._internal();
+    return new EllipseElement.internal_();
   }
 
-  EllipseElement._internal() : super._internal();
+  EllipseElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -1476,10 +1476,10 @@ class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttrib
   }
 
   factory FEBlendElement._internalWrap() {
-    return new FEBlendElement._internal();
+    return new FEBlendElement.internal_();
   }
 
-  FEBlendElement._internal() : super._internal();
+  FEBlendElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -1576,10 +1576,10 @@ class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandard
   }
 
   factory FEColorMatrixElement._internalWrap() {
-    return new FEColorMatrixElement._internal();
+    return new FEColorMatrixElement.internal_();
   }
 
-  FEColorMatrixElement._internal() : super._internal();
+  FEColorMatrixElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -1672,10 +1672,10 @@ class FEComponentTransferElement extends SvgElement implements FilterPrimitiveSt
   }
 
   factory FEComponentTransferElement._internalWrap() {
-    return new FEComponentTransferElement._internal();
+    return new FEComponentTransferElement.internal_();
   }
 
-  FEComponentTransferElement._internal() : super._internal();
+  FEComponentTransferElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -1732,10 +1732,10 @@ class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAt
   }
 
   factory FECompositeElement._internalWrap() {
-    return new FECompositeElement._internal();
+    return new FECompositeElement.internal_();
   }
 
-  FECompositeElement._internal() : super._internal();
+  FECompositeElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -1849,10 +1849,10 @@ class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStand
   }
 
   factory FEConvolveMatrixElement._internalWrap() {
-    return new FEConvolveMatrixElement._internal();
+    return new FEConvolveMatrixElement.internal_();
   }
 
-  FEConvolveMatrixElement._internal() : super._internal();
+  FEConvolveMatrixElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -1977,10 +1977,10 @@ class FEDiffuseLightingElement extends SvgElement implements FilterPrimitiveStan
   }
 
   factory FEDiffuseLightingElement._internalWrap() {
-    return new FEDiffuseLightingElement._internal();
+    return new FEDiffuseLightingElement.internal_();
   }
 
-  FEDiffuseLightingElement._internal() : super._internal();
+  FEDiffuseLightingElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -2061,10 +2061,10 @@ class FEDisplacementMapElement extends SvgElement implements FilterPrimitiveStan
   }
 
   factory FEDisplacementMapElement._internalWrap() {
-    return new FEDisplacementMapElement._internal();
+    return new FEDisplacementMapElement.internal_();
   }
 
-  FEDisplacementMapElement._internal() : super._internal();
+  FEDisplacementMapElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -2165,10 +2165,10 @@ class FEDistantLightElement extends SvgElement {
   }
 
   factory FEDistantLightElement._internalWrap() {
-    return new FEDistantLightElement._internal();
+    return new FEDistantLightElement.internal_();
   }
 
-  FEDistantLightElement._internal() : super._internal();
+  FEDistantLightElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -2217,10 +2217,10 @@ class FEFloodElement extends SvgElement implements FilterPrimitiveStandardAttrib
   }
 
   factory FEFloodElement._internalWrap() {
-    return new FEFloodElement._internal();
+    return new FEFloodElement.internal_();
   }
 
-  FEFloodElement._internal() : super._internal();
+  FEFloodElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -2281,10 +2281,10 @@ class FEFuncAElement extends _SVGComponentTransferFunctionElement {
   }
 
   factory FEFuncAElement._internalWrap() {
-    return new FEFuncAElement._internal();
+    return new FEFuncAElement.internal_();
   }
 
-  FEFuncAElement._internal() : super._internal();
+  FEFuncAElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -2325,10 +2325,10 @@ class FEFuncBElement extends _SVGComponentTransferFunctionElement {
   }
 
   factory FEFuncBElement._internalWrap() {
-    return new FEFuncBElement._internal();
+    return new FEFuncBElement.internal_();
   }
 
-  FEFuncBElement._internal() : super._internal();
+  FEFuncBElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -2369,10 +2369,10 @@ class FEFuncGElement extends _SVGComponentTransferFunctionElement {
   }
 
   factory FEFuncGElement._internalWrap() {
-    return new FEFuncGElement._internal();
+    return new FEFuncGElement.internal_();
   }
 
-  FEFuncGElement._internal() : super._internal();
+  FEFuncGElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -2413,10 +2413,10 @@ class FEFuncRElement extends _SVGComponentTransferFunctionElement {
   }
 
   factory FEFuncRElement._internalWrap() {
-    return new FEFuncRElement._internal();
+    return new FEFuncRElement.internal_();
   }
 
-  FEFuncRElement._internal() : super._internal();
+  FEFuncRElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -2457,10 +2457,10 @@ class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandar
   }
 
   factory FEGaussianBlurElement._internalWrap() {
-    return new FEGaussianBlurElement._internal();
+    return new FEGaussianBlurElement.internal_();
   }
 
-  FEGaussianBlurElement._internal() : super._internal();
+  FEGaussianBlurElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -2537,10 +2537,10 @@ class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttrib
   }
 
   factory FEImageElement._internalWrap() {
-    return new FEImageElement._internal();
+    return new FEImageElement.internal_();
   }
 
-  FEImageElement._internal() : super._internal();
+  FEImageElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -2609,10 +2609,10 @@ class FEMergeElement extends SvgElement implements FilterPrimitiveStandardAttrib
   }
 
   factory FEMergeElement._internalWrap() {
-    return new FEMergeElement._internal();
+    return new FEMergeElement.internal_();
   }
 
-  FEMergeElement._internal() : super._internal();
+  FEMergeElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -2673,10 +2673,10 @@ class FEMergeNodeElement extends SvgElement {
   }
 
   factory FEMergeNodeElement._internalWrap() {
-    return new FEMergeNodeElement._internal();
+    return new FEMergeNodeElement.internal_();
   }
 
-  FEMergeNodeElement._internal() : super._internal();
+  FEMergeNodeElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -2717,10 +2717,10 @@ class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardA
   }
 
   factory FEMorphologyElement._internalWrap() {
-    return new FEMorphologyElement._internal();
+    return new FEMorphologyElement.internal_();
   }
 
-  FEMorphologyElement._internal() : super._internal();
+  FEMorphologyElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -2806,10 +2806,10 @@ class FEOffsetElement extends SvgElement implements FilterPrimitiveStandardAttri
   }
 
   factory FEOffsetElement._internalWrap() {
-    return new FEOffsetElement._internal();
+    return new FEOffsetElement.internal_();
   }
 
-  FEOffsetElement._internal() : super._internal();
+  FEOffsetElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -2882,10 +2882,10 @@ class FEPointLightElement extends SvgElement {
   }
 
   factory FEPointLightElement._internalWrap() {
-    return new FEPointLightElement._internal();
+    return new FEPointLightElement.internal_();
   }
 
-  FEPointLightElement._internal() : super._internal();
+  FEPointLightElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -2938,10 +2938,10 @@ class FESpecularLightingElement extends SvgElement implements FilterPrimitiveSta
   }
 
   factory FESpecularLightingElement._internalWrap() {
-    return new FESpecularLightingElement._internal();
+    return new FESpecularLightingElement.internal_();
   }
 
-  FESpecularLightingElement._internal() : super._internal();
+  FESpecularLightingElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -3018,10 +3018,10 @@ class FESpotLightElement extends SvgElement {
   }
 
   factory FESpotLightElement._internalWrap() {
-    return new FESpotLightElement._internal();
+    return new FESpotLightElement.internal_();
   }
 
-  FESpotLightElement._internal() : super._internal();
+  FESpotLightElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -3094,10 +3094,10 @@ class FETileElement extends SvgElement implements FilterPrimitiveStandardAttribu
   }
 
   factory FETileElement._internalWrap() {
-    return new FETileElement._internal();
+    return new FETileElement.internal_();
   }
 
-  FETileElement._internal() : super._internal();
+  FETileElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -3162,10 +3162,10 @@ class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardA
   }
 
   factory FETurbulenceElement._internalWrap() {
-    return new FETurbulenceElement._internal();
+    return new FETurbulenceElement.internal_();
   }
 
-  FETurbulenceElement._internal() : super._internal();
+  FETurbulenceElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -3274,10 +3274,10 @@ class FilterElement extends SvgElement implements UriReference {
   }
 
   factory FilterElement._internalWrap() {
-    return new FilterElement._internal();
+    return new FilterElement.internal_();
   }
 
-  FilterElement._internal() : super._internal();
+  FilterElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -3351,10 +3351,10 @@ abstract class FilterPrimitiveStandardAttributes extends NativeFieldWrapperClass
   JsObject blink_jsObject = null;
 
   factory FilterPrimitiveStandardAttributes._internalWrap() {
-    return new FilterPrimitiveStandardAttributes._internal();
+    return new FilterPrimitiveStandardAttributes.internal_();
   }
 
-  FilterPrimitiveStandardAttributes._internal() { }
+  FilterPrimitiveStandardAttributes.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -3400,10 +3400,10 @@ abstract class FitToViewBox extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory FitToViewBox._internalWrap() {
-    return new FitToViewBox._internal();
+    return new FitToViewBox.internal_();
   }
 
-  FitToViewBox._internal() { }
+  FitToViewBox.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -3443,10 +3443,10 @@ class ForeignObjectElement extends GraphicsElement {
   }
 
   factory ForeignObjectElement._internalWrap() {
-    return new ForeignObjectElement._internal();
+    return new ForeignObjectElement.internal_();
   }
 
-  ForeignObjectElement._internal() : super._internal();
+  ForeignObjectElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -3499,10 +3499,10 @@ class GElement extends GraphicsElement {
   }
 
   factory GElement._internalWrap() {
-    return new GElement._internal();
+    return new GElement.internal_();
   }
 
-  GElement._internal() : super._internal();
+  GElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -3532,10 +3532,10 @@ class GeometryElement extends GraphicsElement {
   }
 
   factory GeometryElement._internalWrap() {
-    return new GeometryElement._internal();
+    return new GeometryElement.internal_();
   }
 
-  GeometryElement._internal() : super._internal();
+  GeometryElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -3575,10 +3575,10 @@ class GraphicsElement extends SvgElement implements Tests {
   }
 
   factory GraphicsElement._internalWrap() {
-    return new GraphicsElement._internal();
+    return new GraphicsElement.internal_();
   }
 
-  GraphicsElement._internal() : super._internal();
+  GraphicsElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -3667,10 +3667,10 @@ class ImageElement extends GraphicsElement implements UriReference {
   }
 
   factory ImageElement._internalWrap() {
-    return new ImageElement._internal();
+    return new ImageElement.internal_();
   }
 
-  ImageElement._internal() : super._internal();
+  ImageElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -3725,10 +3725,10 @@ class Length extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Length._internalWrap() {
-    return new Length._internal();
+    return new Length.internal_();
   }
 
-  Length._internal() { }
+  Length.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -3834,10 +3834,10 @@ class LengthList extends NativeFieldWrapperClass2 with ListMixin<Length>, Immuta
   JsObject blink_jsObject = null;
 
   factory LengthList._internalWrap() {
-    return new LengthList._internal();
+    return new LengthList.internal_();
   }
 
-  LengthList._internal() { }
+  LengthList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -3952,10 +3952,10 @@ class LineElement extends GeometryElement {
   }
 
   factory LineElement._internalWrap() {
-    return new LineElement._internal();
+    return new LineElement.internal_();
   }
 
-  LineElement._internal() : super._internal();
+  LineElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -4005,10 +4005,10 @@ class LinearGradientElement extends _GradientElement {
   }
 
   factory LinearGradientElement._internalWrap() {
-    return new LinearGradientElement._internal();
+    return new LinearGradientElement.internal_();
   }
 
-  LinearGradientElement._internal() : super._internal();
+  LinearGradientElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -4058,10 +4058,10 @@ class MarkerElement extends SvgElement implements FitToViewBox {
   }
 
   factory MarkerElement._internalWrap() {
-    return new MarkerElement._internal();
+    return new MarkerElement.internal_();
   }
 
-  MarkerElement._internal() : super._internal();
+  MarkerElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -4163,10 +4163,10 @@ class MaskElement extends SvgElement implements Tests {
   }
 
   factory MaskElement._internalWrap() {
-    return new MaskElement._internal();
+    return new MaskElement.internal_();
   }
 
-  MaskElement._internal() : super._internal();
+  MaskElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -4237,10 +4237,10 @@ class Matrix extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Matrix._internalWrap() {
-    return new Matrix._internal();
+    return new Matrix.internal_();
   }
 
-  Matrix._internal() { }
+  Matrix.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -4357,10 +4357,10 @@ class MetadataElement extends SvgElement {
   }
 
   factory MetadataElement._internalWrap() {
-    return new MetadataElement._internal();
+    return new MetadataElement.internal_();
   }
 
-  MetadataElement._internal() : super._internal();
+  MetadataElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -4391,10 +4391,10 @@ class Number extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Number._internalWrap() {
-    return new Number._internal();
+    return new Number.internal_();
   }
 
-  Number._internal() { }
+  Number.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -4428,10 +4428,10 @@ class NumberList extends NativeFieldWrapperClass2 with ListMixin<Number>, Immuta
   JsObject blink_jsObject = null;
 
   factory NumberList._internalWrap() {
-    return new NumberList._internal();
+    return new NumberList.internal_();
   }
 
-  NumberList._internal() { }
+  NumberList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -4546,10 +4546,10 @@ class PathElement extends GeometryElement {
   }
 
   factory PathElement._internalWrap() {
-    return new PathElement._internal();
+    return new PathElement.internal_();
   }
 
-  PathElement._internal() : super._internal();
+  PathElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -4688,10 +4688,10 @@ class PathSeg extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory PathSeg._internalWrap() {
-    return new PathSeg._internal();
+    return new PathSeg.internal_();
   }
 
-  PathSeg._internal() { }
+  PathSeg.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -4804,10 +4804,10 @@ class PathSegArcAbs extends PathSeg {
   }
 
   factory PathSegArcAbs._internalWrap() {
-    return new PathSegArcAbs._internal();
+    return new PathSegArcAbs.internal_();
   }
 
-  PathSegArcAbs._internal() : super._internal();
+  PathSegArcAbs.internal_() : super.internal_();
 
 
   @DomName('SVGPathSegArcAbs.angle')
@@ -4887,10 +4887,10 @@ class PathSegArcRel extends PathSeg {
   }
 
   factory PathSegArcRel._internalWrap() {
-    return new PathSegArcRel._internal();
+    return new PathSegArcRel.internal_();
   }
 
-  PathSegArcRel._internal() : super._internal();
+  PathSegArcRel.internal_() : super.internal_();
 
 
   @DomName('SVGPathSegArcRel.angle')
@@ -4970,10 +4970,10 @@ class PathSegClosePath extends PathSeg {
   }
 
   factory PathSegClosePath._internalWrap() {
-    return new PathSegClosePath._internal();
+    return new PathSegClosePath.internal_();
   }
 
-  PathSegClosePath._internal() : super._internal();
+  PathSegClosePath.internal_() : super.internal_();
 
 
 }
@@ -4997,10 +4997,10 @@ class PathSegCurvetoCubicAbs extends PathSeg {
   }
 
   factory PathSegCurvetoCubicAbs._internalWrap() {
-    return new PathSegCurvetoCubicAbs._internal();
+    return new PathSegCurvetoCubicAbs.internal_();
   }
 
-  PathSegCurvetoCubicAbs._internal() : super._internal();
+  PathSegCurvetoCubicAbs.internal_() : super.internal_();
 
 
   @DomName('SVGPathSegCurvetoCubicAbs.x')
@@ -5072,10 +5072,10 @@ class PathSegCurvetoCubicRel extends PathSeg {
   }
 
   factory PathSegCurvetoCubicRel._internalWrap() {
-    return new PathSegCurvetoCubicRel._internal();
+    return new PathSegCurvetoCubicRel.internal_();
   }
 
-  PathSegCurvetoCubicRel._internal() : super._internal();
+  PathSegCurvetoCubicRel.internal_() : super.internal_();
 
 
   @DomName('SVGPathSegCurvetoCubicRel.x')
@@ -5147,10 +5147,10 @@ class PathSegCurvetoCubicSmoothAbs extends PathSeg {
   }
 
   factory PathSegCurvetoCubicSmoothAbs._internalWrap() {
-    return new PathSegCurvetoCubicSmoothAbs._internal();
+    return new PathSegCurvetoCubicSmoothAbs.internal_();
   }
 
-  PathSegCurvetoCubicSmoothAbs._internal() : super._internal();
+  PathSegCurvetoCubicSmoothAbs.internal_() : super.internal_();
 
 
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.x')
@@ -5206,10 +5206,10 @@ class PathSegCurvetoCubicSmoothRel extends PathSeg {
   }
 
   factory PathSegCurvetoCubicSmoothRel._internalWrap() {
-    return new PathSegCurvetoCubicSmoothRel._internal();
+    return new PathSegCurvetoCubicSmoothRel.internal_();
   }
 
-  PathSegCurvetoCubicSmoothRel._internal() : super._internal();
+  PathSegCurvetoCubicSmoothRel.internal_() : super.internal_();
 
 
   @DomName('SVGPathSegCurvetoCubicSmoothRel.x')
@@ -5265,10 +5265,10 @@ class PathSegCurvetoQuadraticAbs extends PathSeg {
   }
 
   factory PathSegCurvetoQuadraticAbs._internalWrap() {
-    return new PathSegCurvetoQuadraticAbs._internal();
+    return new PathSegCurvetoQuadraticAbs.internal_();
   }
 
-  PathSegCurvetoQuadraticAbs._internal() : super._internal();
+  PathSegCurvetoQuadraticAbs.internal_() : super.internal_();
 
 
   @DomName('SVGPathSegCurvetoQuadraticAbs.x')
@@ -5324,10 +5324,10 @@ class PathSegCurvetoQuadraticRel extends PathSeg {
   }
 
   factory PathSegCurvetoQuadraticRel._internalWrap() {
-    return new PathSegCurvetoQuadraticRel._internal();
+    return new PathSegCurvetoQuadraticRel.internal_();
   }
 
-  PathSegCurvetoQuadraticRel._internal() : super._internal();
+  PathSegCurvetoQuadraticRel.internal_() : super.internal_();
 
 
   @DomName('SVGPathSegCurvetoQuadraticRel.x')
@@ -5383,10 +5383,10 @@ class PathSegCurvetoQuadraticSmoothAbs extends PathSeg {
   }
 
   factory PathSegCurvetoQuadraticSmoothAbs._internalWrap() {
-    return new PathSegCurvetoQuadraticSmoothAbs._internal();
+    return new PathSegCurvetoQuadraticSmoothAbs.internal_();
   }
 
-  PathSegCurvetoQuadraticSmoothAbs._internal() : super._internal();
+  PathSegCurvetoQuadraticSmoothAbs.internal_() : super.internal_();
 
 
   @DomName('SVGPathSegCurvetoQuadraticSmoothAbs.x')
@@ -5426,10 +5426,10 @@ class PathSegCurvetoQuadraticSmoothRel extends PathSeg {
   }
 
   factory PathSegCurvetoQuadraticSmoothRel._internalWrap() {
-    return new PathSegCurvetoQuadraticSmoothRel._internal();
+    return new PathSegCurvetoQuadraticSmoothRel.internal_();
   }
 
-  PathSegCurvetoQuadraticSmoothRel._internal() : super._internal();
+  PathSegCurvetoQuadraticSmoothRel.internal_() : super.internal_();
 
 
   @DomName('SVGPathSegCurvetoQuadraticSmoothRel.x')
@@ -5469,10 +5469,10 @@ class PathSegLinetoAbs extends PathSeg {
   }
 
   factory PathSegLinetoAbs._internalWrap() {
-    return new PathSegLinetoAbs._internal();
+    return new PathSegLinetoAbs.internal_();
   }
 
-  PathSegLinetoAbs._internal() : super._internal();
+  PathSegLinetoAbs.internal_() : super.internal_();
 
 
   @DomName('SVGPathSegLinetoAbs.x')
@@ -5512,10 +5512,10 @@ class PathSegLinetoHorizontalAbs extends PathSeg {
   }
 
   factory PathSegLinetoHorizontalAbs._internalWrap() {
-    return new PathSegLinetoHorizontalAbs._internal();
+    return new PathSegLinetoHorizontalAbs.internal_();
   }
 
-  PathSegLinetoHorizontalAbs._internal() : super._internal();
+  PathSegLinetoHorizontalAbs.internal_() : super.internal_();
 
 
   @DomName('SVGPathSegLinetoHorizontalAbs.x')
@@ -5547,10 +5547,10 @@ class PathSegLinetoHorizontalRel extends PathSeg {
   }
 
   factory PathSegLinetoHorizontalRel._internalWrap() {
-    return new PathSegLinetoHorizontalRel._internal();
+    return new PathSegLinetoHorizontalRel.internal_();
   }
 
-  PathSegLinetoHorizontalRel._internal() : super._internal();
+  PathSegLinetoHorizontalRel.internal_() : super.internal_();
 
 
   @DomName('SVGPathSegLinetoHorizontalRel.x')
@@ -5582,10 +5582,10 @@ class PathSegLinetoRel extends PathSeg {
   }
 
   factory PathSegLinetoRel._internalWrap() {
-    return new PathSegLinetoRel._internal();
+    return new PathSegLinetoRel.internal_();
   }
 
-  PathSegLinetoRel._internal() : super._internal();
+  PathSegLinetoRel.internal_() : super.internal_();
 
 
   @DomName('SVGPathSegLinetoRel.x')
@@ -5625,10 +5625,10 @@ class PathSegLinetoVerticalAbs extends PathSeg {
   }
 
   factory PathSegLinetoVerticalAbs._internalWrap() {
-    return new PathSegLinetoVerticalAbs._internal();
+    return new PathSegLinetoVerticalAbs.internal_();
   }
 
-  PathSegLinetoVerticalAbs._internal() : super._internal();
+  PathSegLinetoVerticalAbs.internal_() : super.internal_();
 
 
   @DomName('SVGPathSegLinetoVerticalAbs.y')
@@ -5660,10 +5660,10 @@ class PathSegLinetoVerticalRel extends PathSeg {
   }
 
   factory PathSegLinetoVerticalRel._internalWrap() {
-    return new PathSegLinetoVerticalRel._internal();
+    return new PathSegLinetoVerticalRel.internal_();
   }
 
-  PathSegLinetoVerticalRel._internal() : super._internal();
+  PathSegLinetoVerticalRel.internal_() : super.internal_();
 
 
   @DomName('SVGPathSegLinetoVerticalRel.y')
@@ -5696,10 +5696,10 @@ class PathSegList extends NativeFieldWrapperClass2 with ListMixin<PathSeg>, Immu
   JsObject blink_jsObject = null;
 
   factory PathSegList._internalWrap() {
-    return new PathSegList._internal();
+    return new PathSegList.internal_();
   }
 
-  PathSegList._internal() { }
+  PathSegList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -5810,10 +5810,10 @@ class PathSegMovetoAbs extends PathSeg {
   }
 
   factory PathSegMovetoAbs._internalWrap() {
-    return new PathSegMovetoAbs._internal();
+    return new PathSegMovetoAbs.internal_();
   }
 
-  PathSegMovetoAbs._internal() : super._internal();
+  PathSegMovetoAbs.internal_() : super.internal_();
 
 
   @DomName('SVGPathSegMovetoAbs.x')
@@ -5853,10 +5853,10 @@ class PathSegMovetoRel extends PathSeg {
   }
 
   factory PathSegMovetoRel._internalWrap() {
-    return new PathSegMovetoRel._internal();
+    return new PathSegMovetoRel.internal_();
   }
 
-  PathSegMovetoRel._internal() : super._internal();
+  PathSegMovetoRel.internal_() : super.internal_();
 
 
   @DomName('SVGPathSegMovetoRel.x')
@@ -5900,10 +5900,10 @@ class PatternElement extends SvgElement implements FitToViewBox, UriReference, T
   }
 
   factory PatternElement._internalWrap() {
-    return new PatternElement._internal();
+    return new PatternElement.internal_();
   }
 
-  PatternElement._internal() : super._internal();
+  PatternElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -5990,10 +5990,10 @@ class Point extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Point._internalWrap() {
-    return new Point._internal();
+    return new Point.internal_();
   }
 
-  Point._internal() { }
+  Point.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -6039,10 +6039,10 @@ class PointList extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory PointList._internalWrap() {
-    return new PointList._internal();
+    return new PointList.internal_();
   }
 
-  PointList._internal() { }
+  PointList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -6113,10 +6113,10 @@ class PolygonElement extends GeometryElement {
   }
 
   factory PolygonElement._internalWrap() {
-    return new PolygonElement._internal();
+    return new PolygonElement.internal_();
   }
 
-  PolygonElement._internal() : super._internal();
+  PolygonElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -6158,10 +6158,10 @@ class PolylineElement extends GeometryElement {
   }
 
   factory PolylineElement._internalWrap() {
-    return new PolylineElement._internal();
+    return new PolylineElement.internal_();
   }
 
-  PolylineElement._internal() : super._internal();
+  PolylineElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -6200,10 +6200,10 @@ class PreserveAspectRatio extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory PreserveAspectRatio._internalWrap() {
-    return new PreserveAspectRatio._internal();
+    return new PreserveAspectRatio.internal_();
   }
 
-  PreserveAspectRatio._internal() { }
+  PreserveAspectRatio.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -6304,10 +6304,10 @@ class RadialGradientElement extends _GradientElement {
   }
 
   factory RadialGradientElement._internalWrap() {
-    return new RadialGradientElement._internal();
+    return new RadialGradientElement.internal_();
   }
 
-  RadialGradientElement._internal() : super._internal();
+  RadialGradientElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -6362,10 +6362,10 @@ class Rect extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Rect._internalWrap() {
-    return new Rect._internal();
+    return new Rect.internal_();
   }
 
-  Rect._internal() { }
+  Rect.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -6426,10 +6426,10 @@ class RectElement extends GeometryElement {
   }
 
   factory RectElement._internalWrap() {
-    return new RectElement._internal();
+    return new RectElement.internal_();
   }
 
-  RectElement._internal() : super._internal();
+  RectElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -6484,10 +6484,10 @@ class RenderingIntent extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory RenderingIntent._internalWrap() {
-    return new RenderingIntent._internal();
+    return new RenderingIntent.internal_();
   }
 
-  RenderingIntent._internal() { }
+  RenderingIntent.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -6540,10 +6540,10 @@ class ScriptElement extends SvgElement implements UriReference {
   }
 
   factory ScriptElement._internalWrap() {
-    return new ScriptElement._internal();
+    return new ScriptElement.internal_();
   }
 
-  ScriptElement._internal() : super._internal();
+  ScriptElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -6592,10 +6592,10 @@ class SetElement extends AnimationElement {
   }
 
   factory SetElement._internalWrap() {
-    return new SetElement._internal();
+    return new SetElement.internal_();
   }
 
-  SetElement._internal() : super._internal();
+  SetElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -6632,10 +6632,10 @@ class StopElement extends SvgElement {
   }
 
   factory StopElement._internalWrap() {
-    return new StopElement._internal();
+    return new StopElement.internal_();
   }
 
-  StopElement._internal() : super._internal();
+  StopElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -6670,10 +6670,10 @@ class StringList extends NativeFieldWrapperClass2 with ListMixin<String>, Immuta
   JsObject blink_jsObject = null;
 
   factory StringList._internalWrap() {
-    return new StringList._internal();
+    return new StringList.internal_();
   }
 
-  StringList._internal() { }
+  StringList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -6789,10 +6789,10 @@ class StyleElement extends SvgElement {
   }
 
   factory StyleElement._internalWrap() {
-    return new StyleElement._internal();
+    return new StyleElement.internal_();
   }
 
-  StyleElement._internal() : super._internal();
+  StyleElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -7254,10 +7254,10 @@ class SvgElement extends Element implements GlobalEventHandlers {
   }
 
   factory SvgElement._internalWrap() {
-    return new SvgElement._internal();
+    return new SvgElement.internal_();
   }
 
-  SvgElement._internal() : super._internal();
+  SvgElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -7607,10 +7607,10 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ZoomAndPan 
   }
 
   factory SvgSvgElement._internalWrap() {
-    return new SvgSvgElement._internal();
+    return new SvgSvgElement.internal_();
   }
 
-  SvgSvgElement._internal() : super._internal();
+  SvgSvgElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -7808,10 +7808,10 @@ class SwitchElement extends GraphicsElement {
   }
 
   factory SwitchElement._internalWrap() {
-    return new SwitchElement._internal();
+    return new SwitchElement.internal_();
   }
 
-  SwitchElement._internal() : super._internal();
+  SwitchElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -7845,10 +7845,10 @@ class SymbolElement extends SvgElement implements FitToViewBox {
   }
 
   factory SymbolElement._internalWrap() {
-    return new SymbolElement._internal();
+    return new SymbolElement.internal_();
   }
 
-  SymbolElement._internal() : super._internal();
+  SymbolElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -7890,10 +7890,10 @@ class TSpanElement extends TextPositioningElement {
   }
 
   factory TSpanElement._internalWrap() {
-    return new TSpanElement._internal();
+    return new TSpanElement.internal_();
   }
 
-  TSpanElement._internal() : super._internal();
+  TSpanElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -7924,10 +7924,10 @@ abstract class Tests extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Tests._internalWrap() {
-    return new Tests._internal();
+    return new Tests.internal_();
   }
 
-  Tests._internal() { }
+  Tests.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -7968,10 +7968,10 @@ class TextContentElement extends GraphicsElement {
   }
 
   factory TextContentElement._internalWrap() {
-    return new TextContentElement._internal();
+    return new TextContentElement.internal_();
   }
 
-  TextContentElement._internal() : super._internal();
+  TextContentElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -8061,10 +8061,10 @@ class TextElement extends TextPositioningElement {
   }
 
   factory TextElement._internalWrap() {
-    return new TextElement._internal();
+    return new TextElement.internal_();
   }
 
-  TextElement._internal() : super._internal();
+  TextElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -8094,10 +8094,10 @@ class TextPathElement extends TextContentElement implements UriReference {
   }
 
   factory TextPathElement._internalWrap() {
-    return new TextPathElement._internal();
+    return new TextPathElement.internal_();
   }
 
-  TextPathElement._internal() : super._internal();
+  TextPathElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -8167,10 +8167,10 @@ class TextPositioningElement extends TextContentElement {
   }
 
   factory TextPositioningElement._internalWrap() {
-    return new TextPositioningElement._internal();
+    return new TextPositioningElement.internal_();
   }
 
-  TextPositioningElement._internal() : super._internal();
+  TextPositioningElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -8224,10 +8224,10 @@ class TitleElement extends SvgElement {
   }
 
   factory TitleElement._internalWrap() {
-    return new TitleElement._internal();
+    return new TitleElement.internal_();
   }
 
-  TitleElement._internal() : super._internal();
+  TitleElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -8258,10 +8258,10 @@ class Transform extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory Transform._internalWrap() {
-    return new Transform._internal();
+    return new Transform.internal_();
   }
 
-  Transform._internal() { }
+  Transform.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -8351,10 +8351,10 @@ class TransformList extends NativeFieldWrapperClass2 with ListMixin<Transform>, 
   JsObject blink_jsObject = null;
 
   factory TransformList._internalWrap() {
-    return new TransformList._internal();
+    return new TransformList.internal_();
   }
 
-  TransformList._internal() { }
+  TransformList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -8474,10 +8474,10 @@ class UnitTypes extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory UnitTypes._internalWrap() {
-    return new UnitTypes._internal();
+    return new UnitTypes.internal_();
   }
 
-  UnitTypes._internal() { }
+  UnitTypes.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -8515,10 +8515,10 @@ abstract class UriReference extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory UriReference._internalWrap() {
-    return new UriReference._internal();
+    return new UriReference.internal_();
   }
 
-  UriReference._internal() { }
+  UriReference.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -8551,10 +8551,10 @@ class UseElement extends GraphicsElement implements UriReference {
   }
 
   factory UseElement._internalWrap() {
-    return new UseElement._internal();
+    return new UseElement.internal_();
   }
 
-  UseElement._internal() : super._internal();
+  UseElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -8608,10 +8608,10 @@ class ViewElement extends SvgElement implements FitToViewBox, ZoomAndPan {
   }
 
   factory ViewElement._internalWrap() {
-    return new ViewElement._internal();
+    return new ViewElement.internal_();
   }
 
-  ViewElement._internal() : super._internal();
+  ViewElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -8662,10 +8662,10 @@ class ViewSpec extends NativeFieldWrapperClass2 implements FitToViewBox, ZoomAnd
   JsObject blink_jsObject = null;
 
   factory ViewSpec._internalWrap() {
-    return new ViewSpec._internal();
+    return new ViewSpec.internal_();
   }
 
-  ViewSpec._internal() { }
+  ViewSpec.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -8735,10 +8735,10 @@ abstract class ZoomAndPan extends NativeFieldWrapperClass2 {
   JsObject blink_jsObject = null;
 
   factory ZoomAndPan._internalWrap() {
-    return new ZoomAndPan._internal();
+    return new ZoomAndPan.internal_();
   }
 
-  ZoomAndPan._internal() { }
+  ZoomAndPan.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
 
@@ -8783,10 +8783,10 @@ class ZoomEvent extends UIEvent {
   }
 
   factory ZoomEvent._internalWrap() {
-    return new ZoomEvent._internal();
+    return new ZoomEvent.internal_();
   }
 
-  ZoomEvent._internal() : super._internal();
+  ZoomEvent.internal_() : super.internal_();
 
 
   @DomName('SVGZoomEvent.newScale')
@@ -8830,10 +8830,10 @@ class _GradientElement extends SvgElement implements UriReference {
   }
 
   factory _GradientElement._internalWrap() {
-    return new _GradientElement._internal();
+    return new _GradientElement.internal_();
   }
 
-  _GradientElement._internal() : super._internal();
+  _GradientElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -8895,10 +8895,10 @@ abstract class _SVGAltGlyphDefElement extends SvgElement {
   }
 
   factory _SVGAltGlyphDefElement._internalWrap() {
-    return new _SVGAltGlyphDefElement._internal();
+    return new _SVGAltGlyphDefElement.internal_();
   }
 
-  _SVGAltGlyphDefElement._internal() : super._internal();
+  _SVGAltGlyphDefElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -8928,10 +8928,10 @@ abstract class _SVGAltGlyphItemElement extends SvgElement {
   }
 
   factory _SVGAltGlyphItemElement._internalWrap() {
-    return new _SVGAltGlyphItemElement._internal();
+    return new _SVGAltGlyphItemElement.internal_();
   }
 
-  _SVGAltGlyphItemElement._internal() : super._internal();
+  _SVGAltGlyphItemElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -8961,10 +8961,10 @@ abstract class _SVGComponentTransferFunctionElement extends SvgElement {
   }
 
   factory _SVGComponentTransferFunctionElement._internalWrap() {
-    return new _SVGComponentTransferFunctionElement._internal();
+    return new _SVGComponentTransferFunctionElement.internal_();
   }
 
-  _SVGComponentTransferFunctionElement._internal() : super._internal();
+  _SVGComponentTransferFunctionElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -8998,10 +8998,10 @@ abstract class _SVGCursorElement extends SvgElement implements UriReference, Tes
   }
 
   factory _SVGCursorElement._internalWrap() {
-    return new _SVGCursorElement._internal();
+    return new _SVGCursorElement.internal_();
   }
 
-  _SVGCursorElement._internal() : super._internal();
+  _SVGCursorElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -9034,10 +9034,10 @@ abstract class _SVGFEDropShadowElement extends SvgElement implements FilterPrimi
   }
 
   factory _SVGFEDropShadowElement._internalWrap() {
-    return new _SVGFEDropShadowElement._internal();
+    return new _SVGFEDropShadowElement.internal_();
   }
 
-  _SVGFEDropShadowElement._internal() : super._internal();
+  _SVGFEDropShadowElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -9067,10 +9067,10 @@ abstract class _SVGFontElement extends SvgElement {
   }
 
   factory _SVGFontElement._internalWrap() {
-    return new _SVGFontElement._internal();
+    return new _SVGFontElement.internal_();
   }
 
-  _SVGFontElement._internal() : super._internal();
+  _SVGFontElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -9100,10 +9100,10 @@ abstract class _SVGFontFaceElement extends SvgElement {
   }
 
   factory _SVGFontFaceElement._internalWrap() {
-    return new _SVGFontFaceElement._internal();
+    return new _SVGFontFaceElement.internal_();
   }
 
-  _SVGFontFaceElement._internal() : super._internal();
+  _SVGFontFaceElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -9133,10 +9133,10 @@ abstract class _SVGFontFaceFormatElement extends SvgElement {
   }
 
   factory _SVGFontFaceFormatElement._internalWrap() {
-    return new _SVGFontFaceFormatElement._internal();
+    return new _SVGFontFaceFormatElement.internal_();
   }
 
-  _SVGFontFaceFormatElement._internal() : super._internal();
+  _SVGFontFaceFormatElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -9166,10 +9166,10 @@ abstract class _SVGFontFaceNameElement extends SvgElement {
   }
 
   factory _SVGFontFaceNameElement._internalWrap() {
-    return new _SVGFontFaceNameElement._internal();
+    return new _SVGFontFaceNameElement.internal_();
   }
 
-  _SVGFontFaceNameElement._internal() : super._internal();
+  _SVGFontFaceNameElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -9199,10 +9199,10 @@ abstract class _SVGFontFaceSrcElement extends SvgElement {
   }
 
   factory _SVGFontFaceSrcElement._internalWrap() {
-    return new _SVGFontFaceSrcElement._internal();
+    return new _SVGFontFaceSrcElement.internal_();
   }
 
-  _SVGFontFaceSrcElement._internal() : super._internal();
+  _SVGFontFaceSrcElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -9232,10 +9232,10 @@ abstract class _SVGFontFaceUriElement extends SvgElement {
   }
 
   factory _SVGFontFaceUriElement._internalWrap() {
-    return new _SVGFontFaceUriElement._internal();
+    return new _SVGFontFaceUriElement.internal_();
   }
 
-  _SVGFontFaceUriElement._internal() : super._internal();
+  _SVGFontFaceUriElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -9269,10 +9269,10 @@ abstract class _SVGGlyphElement extends SvgElement {
   }
 
   factory _SVGGlyphElement._internalWrap() {
-    return new _SVGGlyphElement._internal();
+    return new _SVGGlyphElement.internal_();
   }
 
-  _SVGGlyphElement._internal() : super._internal();
+  _SVGGlyphElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -9302,10 +9302,10 @@ abstract class _SVGGlyphRefElement extends SvgElement implements UriReference {
   }
 
   factory _SVGGlyphRefElement._internalWrap() {
-    return new _SVGGlyphRefElement._internal();
+    return new _SVGGlyphRefElement.internal_();
   }
 
-  _SVGGlyphRefElement._internal() : super._internal();
+  _SVGGlyphRefElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -9339,10 +9339,10 @@ abstract class _SVGHKernElement extends SvgElement {
   }
 
   factory _SVGHKernElement._internalWrap() {
-    return new _SVGHKernElement._internal();
+    return new _SVGHKernElement.internal_();
   }
 
-  _SVGHKernElement._internal() : super._internal();
+  _SVGHKernElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -9375,10 +9375,10 @@ abstract class _SVGMPathElement extends SvgElement implements UriReference {
   }
 
   factory _SVGMPathElement._internalWrap() {
-    return new _SVGMPathElement._internal();
+    return new _SVGMPathElement.internal_();
   }
 
-  _SVGMPathElement._internal() : super._internal();
+  _SVGMPathElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -9408,10 +9408,10 @@ abstract class _SVGMissingGlyphElement extends SvgElement {
   }
 
   factory _SVGMissingGlyphElement._internalWrap() {
-    return new _SVGMissingGlyphElement._internal();
+    return new _SVGMissingGlyphElement.internal_();
   }
 
-  _SVGMissingGlyphElement._internal() : super._internal();
+  _SVGMissingGlyphElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
@@ -9445,10 +9445,10 @@ abstract class _SVGVKernElement extends SvgElement {
   }
 
   factory _SVGVKernElement._internalWrap() {
-    return new _SVGVKernElement._internal();
+    return new _SVGVKernElement.internal_();
   }
 
-  _SVGVKernElement._internal() : super._internal();
+  _SVGVKernElement.internal_() : super.internal_();
 
   /**
    * Constructor instantiated by the DOM when a custom element has been created.
