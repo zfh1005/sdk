@@ -629,7 +629,6 @@ dynamic resolver(String s) {
 class BlinkANGLEInstancedArrays {
   static final instance = new BlinkANGLEInstancedArrays();
 
-
   drawArraysInstancedANGLE_Callback_2_(mthis, __arg_0, __arg_1) => mthis.callMethod("drawArraysInstancedANGLE", [__arg_0, __arg_1]);
 
   drawArraysInstancedANGLE_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => mthis.callMethod("drawArraysInstancedANGLE", [__arg_0, __arg_1, __arg_2]);
@@ -652,7 +651,6 @@ class BlinkANGLEInstancedArrays {
 
 class BlinkAnalyserNode extends BlinkAudioNode {
   static final instance = new BlinkAnalyserNode();
-
 
   fftSize_Getter_(mthis) => mthis["fftSize"];
 
@@ -693,7 +691,6 @@ class BlinkAnalyserNode extends BlinkAudioNode {
 class BlinkAnimation extends BlinkAnimationNode {
   static final instance = new BlinkAnimation();
 
-
   constructorCallback_0_() => new js.JsObject(js.context["Animation"], []);
 
   constructorCallback_1_(__arg_0) => new js.JsObject(js.context["Animation"], [__arg_0]);
@@ -707,12 +704,10 @@ class BlinkAnimation extends BlinkAnimationNode {
 class BlinkAnimationEffect {
   static final instance = new BlinkAnimationEffect();
 
-
 }
 
 class BlinkAnimationNode {
   static final instance = new BlinkAnimationNode();
-
 
   activeDuration_Getter_(mthis) => mthis["activeDuration"];
 
@@ -734,7 +729,6 @@ class BlinkAnimationNode {
 
 class BlinkAnimationPlayer extends BlinkEventTarget {
   static final instance = new BlinkAnimationPlayer();
-
 
   cancel_Callback_0_(mthis) => mthis.callMethod("cancel", []);
 
@@ -773,7 +767,6 @@ class BlinkAnimationPlayer extends BlinkEventTarget {
 class BlinkAnimationPlayerEvent extends BlinkEvent {
   static final instance = new BlinkAnimationPlayerEvent();
 
-
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["AnimationPlayerEvent"], [__arg_0, __arg_1]);
 
   currentTime_Getter_(mthis) => mthis["currentTime"];
@@ -784,7 +777,6 @@ class BlinkAnimationPlayerEvent extends BlinkEvent {
 
 class BlinkAnimationTimeline {
   static final instance = new BlinkAnimationTimeline();
-
 
   currentTime_Getter_(mthis) => mthis["currentTime"];
 
@@ -798,7 +790,6 @@ class BlinkAnimationTimeline {
 
 class BlinkApplicationCache extends BlinkEventTarget {
   static final instance = new BlinkApplicationCache();
-
 
   abort_Callback_0_(mthis) => mthis.callMethod("abort", []);
 
@@ -845,7 +836,6 @@ class BlinkApplicationCache extends BlinkEventTarget {
 class BlinkApplicationCacheErrorEvent extends BlinkEvent {
   static final instance = new BlinkApplicationCacheErrorEvent();
 
-
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["ApplicationCacheErrorEvent"], [__arg_0, __arg_1]);
 
   message_Getter_(mthis) => mthis["message"];
@@ -860,7 +850,6 @@ class BlinkApplicationCacheErrorEvent extends BlinkEvent {
 
 class BlinkAttr extends BlinkNode {
   static final instance = new BlinkAttr();
-
 
   localName_Getter_(mthis) => mthis["localName"];
 
@@ -891,7 +880,6 @@ class BlinkAttr extends BlinkNode {
 class BlinkAudioBuffer {
   static final instance = new BlinkAudioBuffer();
 
-
   duration_Getter_(mthis) => mthis["duration"];
 
   getChannelData_Callback_0_(mthis) => mthis.callMethod("getChannelData", []);
@@ -908,7 +896,6 @@ class BlinkAudioBuffer {
 
 class BlinkAudioBufferSourceNode extends BlinkAudioSourceNode {
   static final instance = new BlinkAudioBufferSourceNode();
-
 
   buffer_Getter_(mthis) => mthis["buffer"];
 
@@ -948,7 +935,6 @@ class BlinkAudioBufferSourceNode extends BlinkAudioSourceNode {
 
 class BlinkAudioContext extends BlinkEventTarget {
   static final instance = new BlinkAudioContext();
-
 
   constructorCallback_0_() => new js.JsObject(js.context["AudioContext"], []);
 
@@ -1039,14 +1025,12 @@ class BlinkAudioContext extends BlinkEventTarget {
 class BlinkAudioDestinationNode extends BlinkAudioNode {
   static final instance = new BlinkAudioDestinationNode();
 
-
   maxChannelCount_Getter_(mthis) => mthis["maxChannelCount"];
 
 }
 
 class BlinkAudioListener {
   static final instance = new BlinkAudioListener();
-
 
   dopplerFactor_Getter_(mthis) => mthis["dopplerFactor"];
 
@@ -1078,7 +1062,6 @@ class BlinkAudioListener {
 
 class BlinkAudioNode extends BlinkEventTarget {
   static final instance = new BlinkAudioNode();
-
 
   channelCountMode_Getter_(mthis) => mthis["channelCountMode"];
 
@@ -1114,7 +1097,6 @@ class BlinkAudioNode extends BlinkEventTarget {
 
 class BlinkAudioParam {
   static final instance = new BlinkAudioParam();
-
 
   cancelScheduledValues_Callback_0_(mthis) => mthis.callMethod("cancelScheduledValues", []);
 
@@ -1161,7 +1143,6 @@ class BlinkAudioParam {
 class BlinkAudioProcessingEvent extends BlinkEvent {
   static final instance = new BlinkAudioProcessingEvent();
 
-
   inputBuffer_Getter_(mthis) => mthis["inputBuffer"];
 
   outputBuffer_Getter_(mthis) => mthis["outputBuffer"];
@@ -1173,12 +1154,10 @@ class BlinkAudioProcessingEvent extends BlinkEvent {
 class BlinkAudioSourceNode extends BlinkAudioNode {
   static final instance = new BlinkAudioSourceNode();
 
-
 }
 
 class BlinkAudioTrack {
   static final instance = new BlinkAudioTrack();
-
 
   enabled_Getter_(mthis) => mthis["enabled"];
 
@@ -1196,7 +1175,6 @@ class BlinkAudioTrack {
 
 class BlinkAudioTrackList extends BlinkEventTarget {
   static final instance = new BlinkAudioTrackList();
-
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
@@ -1223,7 +1201,6 @@ class BlinkAudioTrackList extends BlinkEventTarget {
 class BlinkAutocompleteErrorEvent extends BlinkEvent {
   static final instance = new BlinkAutocompleteErrorEvent();
 
-
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["AutocompleteErrorEvent"], [__arg_0, __arg_1]);
 
   reason_Getter_(mthis) => mthis["reason"];
@@ -1233,14 +1210,12 @@ class BlinkAutocompleteErrorEvent extends BlinkEvent {
 class BlinkBarProp {
   static final instance = new BlinkBarProp();
 
-
   visible_Getter_(mthis) => mthis["visible"];
 
 }
 
 class BlinkBatteryManager extends BlinkEventTarget {
   static final instance = new BlinkBatteryManager();
-
 
   chargingTime_Getter_(mthis) => mthis["chargingTime"];
 
@@ -1271,7 +1246,6 @@ class BlinkBatteryManager extends BlinkEventTarget {
 class BlinkBeforeUnloadEvent extends BlinkEvent {
   static final instance = new BlinkBeforeUnloadEvent();
 
-
   returnValue_Getter_(mthis) => mthis["returnValue"];
 
   returnValue_Setter_(mthis, __arg_0) => mthis["returnValue"] = __arg_0;
@@ -1280,7 +1254,6 @@ class BlinkBeforeUnloadEvent extends BlinkEvent {
 
 class BlinkBiquadFilterNode extends BlinkAudioNode {
   static final instance = new BlinkBiquadFilterNode();
-
 
   Q_Getter_(mthis) => mthis["Q"];
 
@@ -1304,7 +1277,6 @@ class BlinkBiquadFilterNode extends BlinkAudioNode {
 
 class BlinkBlob {
   static final instance = new BlinkBlob();
-
 
   close_Callback_0_(mthis) => mthis.callMethod("close", []);
 
@@ -1331,7 +1303,6 @@ class BlinkBlob {
 class BlinkBody {
   static final instance = new BlinkBody();
 
-
   arrayBuffer_Callback_0_(mthis) => mthis.callMethod("arrayBuffer", []);
 
   blob_Callback_0_(mthis) => mthis.callMethod("blob", []);
@@ -1347,12 +1318,10 @@ class BlinkBody {
 class BlinkCDATASection extends BlinkText {
   static final instance = new BlinkCDATASection();
 
-
 }
 
 class BlinkCSS {
   static final instance = new BlinkCSS();
-
 
   supports_Callback_0_(mthis) => mthis.callMethod("supports", []);
 
@@ -1365,7 +1334,6 @@ class BlinkCSS {
 class BlinkCSSCharsetRule extends BlinkCSSRule {
   static final instance = new BlinkCSSCharsetRule();
 
-
   encoding_Getter_(mthis) => mthis["encoding"];
 
   encoding_Setter_(mthis, __arg_0) => mthis["encoding"] = __arg_0;
@@ -1375,14 +1343,12 @@ class BlinkCSSCharsetRule extends BlinkCSSRule {
 class BlinkCSSFontFaceRule extends BlinkCSSRule {
   static final instance = new BlinkCSSFontFaceRule();
 
-
   style_Getter_(mthis) => mthis["style"];
 
 }
 
 class BlinkCSSImportRule extends BlinkCSSRule {
   static final instance = new BlinkCSSImportRule();
-
 
   href_Getter_(mthis) => mthis["href"];
 
@@ -1395,7 +1361,6 @@ class BlinkCSSImportRule extends BlinkCSSRule {
 class BlinkCSSKeyframeRule extends BlinkCSSRule {
   static final instance = new BlinkCSSKeyframeRule();
 
-
   keyText_Getter_(mthis) => mthis["keyText"];
 
   keyText_Setter_(mthis, __arg_0) => mthis["keyText"] = __arg_0;
@@ -1406,7 +1371,6 @@ class BlinkCSSKeyframeRule extends BlinkCSSRule {
 
 class BlinkCSSKeyframesRule extends BlinkCSSRule {
   static final instance = new BlinkCSSKeyframesRule();
-
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
@@ -1433,7 +1397,6 @@ class BlinkCSSKeyframesRule extends BlinkCSSRule {
 class BlinkCSSMediaRule extends BlinkCSSRule {
   static final instance = new BlinkCSSMediaRule();
 
-
   cssRules_Getter_(mthis) => mthis["cssRules"];
 
   deleteRule_Callback_0_(mthis) => mthis.callMethod("deleteRule", []);
@@ -1453,7 +1416,6 @@ class BlinkCSSMediaRule extends BlinkCSSRule {
 class BlinkCSSPageRule extends BlinkCSSRule {
   static final instance = new BlinkCSSPageRule();
 
-
   selectorText_Getter_(mthis) => mthis["selectorText"];
 
   selectorText_Setter_(mthis, __arg_0) => mthis["selectorText"] = __arg_0;
@@ -1464,7 +1426,6 @@ class BlinkCSSPageRule extends BlinkCSSRule {
 
 class BlinkCSSPrimitiveValue extends BlinkCSSValue {
   static final instance = new BlinkCSSPrimitiveValue();
-
 
   getCounterValue_Callback_0_(mthis) => mthis.callMethod("getCounterValue", []);
 
@@ -1497,7 +1458,6 @@ class BlinkCSSPrimitiveValue extends BlinkCSSValue {
 class BlinkCSSRule {
   static final instance = new BlinkCSSRule();
 
-
   cssText_Getter_(mthis) => mthis["cssText"];
 
   cssText_Setter_(mthis, __arg_0) => mthis["cssText"] = __arg_0;
@@ -1513,7 +1473,6 @@ class BlinkCSSRule {
 class BlinkCSSRuleList {
   static final instance = new BlinkCSSRuleList();
 
-
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
   item_Callback_0_(mthis) => mthis.callMethod("item", []);
@@ -1526,7 +1485,6 @@ class BlinkCSSRuleList {
 
 class BlinkCSSStyleDeclaration {
   static final instance = new BlinkCSSStyleDeclaration();
-
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
@@ -1571,7 +1529,6 @@ class BlinkCSSStyleDeclaration {
 class BlinkCSSStyleRule extends BlinkCSSRule {
   static final instance = new BlinkCSSStyleRule();
 
-
   selectorText_Getter_(mthis) => mthis["selectorText"];
 
   selectorText_Setter_(mthis, __arg_0) => mthis["selectorText"] = __arg_0;
@@ -1582,7 +1539,6 @@ class BlinkCSSStyleRule extends BlinkCSSRule {
 
 class BlinkCSSStyleSheet extends BlinkStyleSheet {
   static final instance = new BlinkCSSStyleSheet();
-
 
   addRule_Callback_0_(mthis) => mthis.callMethod("addRule", []);
 
@@ -1617,7 +1573,6 @@ class BlinkCSSStyleSheet extends BlinkStyleSheet {
 class BlinkCSSSupportsRule extends BlinkCSSRule {
   static final instance = new BlinkCSSSupportsRule();
 
-
   conditionText_Getter_(mthis) => mthis["conditionText"];
 
   cssRules_Getter_(mthis) => mthis["cssRules"];
@@ -1637,12 +1592,10 @@ class BlinkCSSSupportsRule extends BlinkCSSRule {
 class BlinkCSSUnknownRule extends BlinkCSSRule {
   static final instance = new BlinkCSSUnknownRule();
 
-
 }
 
 class BlinkCSSValue {
   static final instance = new BlinkCSSValue();
-
 
   cssText_Getter_(mthis) => mthis["cssText"];
 
@@ -1654,7 +1607,6 @@ class BlinkCSSValue {
 
 class BlinkCSSValueList extends BlinkCSSValue {
   static final instance = new BlinkCSSValueList();
-
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
@@ -1669,14 +1621,12 @@ class BlinkCSSValueList extends BlinkCSSValue {
 class BlinkCSSViewportRule extends BlinkCSSRule {
   static final instance = new BlinkCSSViewportRule();
 
-
   style_Getter_(mthis) => mthis["style"];
 
 }
 
 class BlinkCache {
   static final instance = new BlinkCache();
-
 
   addAll_Callback_0_(mthis) => mthis.callMethod("addAll", []);
 
@@ -1721,7 +1671,6 @@ class BlinkCache {
 class BlinkCacheStorage {
   static final instance = new BlinkCacheStorage();
 
-
   create_Callback_0_(mthis) => mthis.callMethod("create", []);
 
   create_Callback_1_(mthis, __arg_0) => mthis.callMethod("create", [__arg_0]);
@@ -1745,7 +1694,6 @@ class BlinkCacheStorage {
 class BlinkCanvas2DContextAttributes {
   static final instance = new BlinkCanvas2DContextAttributes();
 
-
   alpha_Getter_(mthis) => mthis["alpha"];
 
   alpha_Setter_(mthis, __arg_0) => mthis["alpha"] = __arg_0;
@@ -1759,7 +1707,6 @@ class BlinkCanvas2DContextAttributes {
 class BlinkCanvasGradient {
   static final instance = new BlinkCanvasGradient();
 
-
   addColorStop_Callback_0_(mthis) => mthis.callMethod("addColorStop", []);
 
   addColorStop_Callback_1_(mthis, __arg_0) => mthis.callMethod("addColorStop", [__arg_0]);
@@ -1771,7 +1718,6 @@ class BlinkCanvasGradient {
 class BlinkCanvasPattern {
   static final instance = new BlinkCanvasPattern();
 
-
   setTransform_Callback_0_(mthis) => mthis.callMethod("setTransform", []);
 
   setTransform_Callback_1_(mthis, __arg_0) => mthis.callMethod("setTransform", [__arg_0]);
@@ -1780,7 +1726,6 @@ class BlinkCanvasPattern {
 
 class BlinkCanvasRenderingContext2D {
   static final instance = new BlinkCanvasRenderingContext2D();
-
 
   addHitRegion_Callback_0_(mthis) => mthis.callMethod("addHitRegion", []);
 
@@ -2115,18 +2060,15 @@ class BlinkCanvasRenderingContext2D {
 class BlinkChannelMergerNode extends BlinkAudioNode {
   static final instance = new BlinkChannelMergerNode();
 
-
 }
 
 class BlinkChannelSplitterNode extends BlinkAudioNode {
   static final instance = new BlinkChannelSplitterNode();
 
-
 }
 
 class BlinkCharacterData extends BlinkNode {
   static final instance = new BlinkCharacterData();
-
 
   appendData_Callback_0_(mthis) => mthis.callMethod("appendData", []);
 
@@ -2171,7 +2113,6 @@ class BlinkCharacterData extends BlinkNode {
 class BlinkCircularGeofencingRegion extends BlinkGeofencingRegion {
   static final instance = new BlinkCircularGeofencingRegion();
 
-
   constructorCallback_0_() => new js.JsObject(js.context["CircularGeofencingRegion"], []);
 
   constructorCallback_1_(__arg_0) => new js.JsObject(js.context["CircularGeofencingRegion"], [__arg_0]);
@@ -2186,7 +2127,6 @@ class BlinkCircularGeofencingRegion extends BlinkGeofencingRegion {
 
 class BlinkClientRect {
   static final instance = new BlinkClientRect();
-
 
   bottom_Getter_(mthis) => mthis["bottom"];
 
@@ -2205,7 +2145,6 @@ class BlinkClientRect {
 class BlinkClientRectList {
   static final instance = new BlinkClientRectList();
 
-
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
   item_Callback_0_(mthis) => mthis.callMethod("item", []);
@@ -2218,7 +2157,6 @@ class BlinkClientRectList {
 
 class BlinkCloseEvent extends BlinkEvent {
   static final instance = new BlinkCloseEvent();
-
 
   code_Getter_(mthis) => mthis["code"];
 
@@ -2233,7 +2171,6 @@ class BlinkCloseEvent extends BlinkEvent {
 class BlinkComment extends BlinkCharacterData {
   static final instance = new BlinkComment();
 
-
   constructorCallback_0_() => new js.JsObject(js.context["Comment"], []);
 
   constructorCallback_1_(__arg_0) => new js.JsObject(js.context["Comment"], [__arg_0]);
@@ -2242,7 +2179,6 @@ class BlinkComment extends BlinkCharacterData {
 
 class BlinkCompositionEvent extends BlinkUIEvent {
   static final instance = new BlinkCompositionEvent();
-
 
   activeSegmentEnd_Getter_(mthis) => mthis["activeSegmentEnd"];
 
@@ -2271,14 +2207,12 @@ class BlinkCompositionEvent extends BlinkUIEvent {
 class BlinkConsole extends BlinkConsoleBase {
   static final instance = new BlinkConsole();
 
-
   memory_Getter_(mthis) => mthis["memory"];
 
 }
 
 class BlinkConsoleBase {
   static final instance = new BlinkConsoleBase();
-
 
   assert_Callback_0_(mthis) => mthis.callMethod("assert", []);
 
@@ -2375,7 +2309,6 @@ class BlinkConsoleBase {
 class BlinkConvolverNode extends BlinkAudioNode {
   static final instance = new BlinkConvolverNode();
 
-
   buffer_Getter_(mthis) => mthis["buffer"];
 
   buffer_Setter_(mthis, __arg_0) => mthis["buffer"] = __arg_0;
@@ -2388,7 +2321,6 @@ class BlinkConvolverNode extends BlinkAudioNode {
 
 class BlinkCoordinates {
   static final instance = new BlinkCoordinates();
-
 
   accuracy_Getter_(mthis) => mthis["accuracy"];
 
@@ -2409,7 +2341,6 @@ class BlinkCoordinates {
 class BlinkCounter {
   static final instance = new BlinkCounter();
 
-
   identifier_Getter_(mthis) => mthis["identifier"];
 
   listStyle_Getter_(mthis) => mthis["listStyle"];
@@ -2421,7 +2352,6 @@ class BlinkCounter {
 class BlinkCredential {
   static final instance = new BlinkCredential();
 
-
   avatarURL_Getter_(mthis) => mthis["avatarURL"];
 
   id_Getter_(mthis) => mthis["id"];
@@ -2432,7 +2362,6 @@ class BlinkCredential {
 
 class BlinkCredentialsContainer {
   static final instance = new BlinkCredentialsContainer();
-
 
   notifyFailedSignIn_Callback_0_(mthis) => mthis.callMethod("notifyFailedSignIn", []);
 
@@ -2453,7 +2382,6 @@ class BlinkCredentialsContainer {
 class BlinkCrypto {
   static final instance = new BlinkCrypto();
 
-
   getRandomValues_Callback_0_(mthis) => mthis.callMethod("getRandomValues", []);
 
   getRandomValues_Callback_1_(mthis, __arg_0) => mthis.callMethod("getRandomValues", [__arg_0]);
@@ -2464,7 +2392,6 @@ class BlinkCrypto {
 
 class BlinkCryptoKey {
   static final instance = new BlinkCryptoKey();
-
 
   algorithm_Getter_(mthis) => mthis["algorithm"];
 
@@ -2478,7 +2405,6 @@ class BlinkCryptoKey {
 
 class BlinkCustomEvent extends BlinkEvent {
   static final instance = new BlinkCustomEvent();
-
 
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["CustomEvent"], [__arg_0, __arg_1]);
 
@@ -2499,7 +2425,6 @@ class BlinkCustomEvent extends BlinkEvent {
 class BlinkDOMError {
   static final instance = new BlinkDOMError();
 
-
   constructorCallback_0_() => new js.JsObject(js.context["DOMError"], []);
 
   constructorCallback_1_(__arg_0) => new js.JsObject(js.context["DOMError"], [__arg_0]);
@@ -2515,7 +2440,6 @@ class BlinkDOMError {
 class BlinkDOMException {
   static final instance = new BlinkDOMException();
 
-
   message_Getter_(mthis) => mthis["message"];
 
   name_Getter_(mthis) => mthis["name"];
@@ -2527,7 +2451,6 @@ class BlinkDOMException {
 class BlinkDOMFileSystem {
   static final instance = new BlinkDOMFileSystem();
 
-
   name_Getter_(mthis) => mthis["name"];
 
   root_Getter_(mthis) => mthis["root"];
@@ -2537,7 +2460,6 @@ class BlinkDOMFileSystem {
 class BlinkDOMFileSystemSync {
   static final instance = new BlinkDOMFileSystemSync();
 
-
   name_Getter_(mthis) => mthis["name"];
 
   root_Getter_(mthis) => mthis["root"];
@@ -2546,7 +2468,6 @@ class BlinkDOMFileSystemSync {
 
 class BlinkDOMImplementation {
   static final instance = new BlinkDOMImplementation();
-
 
   createDocumentType_Callback_1_(mthis, __arg_0) => mthis.callMethod("createDocumentType", [__arg_0]);
 
@@ -2576,7 +2497,6 @@ class BlinkDOMImplementation {
 
 class BlinkDOMMatrix extends BlinkDOMMatrixReadOnly {
   static final instance = new BlinkDOMMatrix();
-
 
   a_Getter_(mthis) => mthis["a"];
 
@@ -2723,7 +2643,6 @@ class BlinkDOMMatrix extends BlinkDOMMatrixReadOnly {
 class BlinkDOMMatrixReadOnly {
   static final instance = new BlinkDOMMatrixReadOnly();
 
-
   a_Getter_(mthis) => mthis["a"];
 
   b_Getter_(mthis) => mthis["b"];
@@ -2825,7 +2744,6 @@ class BlinkDOMMatrixReadOnly {
 class BlinkDOMParser {
   static final instance = new BlinkDOMParser();
 
-
   constructorCallback_0_() => new js.JsObject(js.context["DOMParser"], []);
 
   parseFromString_Callback_0_(mthis) => mthis.callMethod("parseFromString", []);
@@ -2838,7 +2756,6 @@ class BlinkDOMParser {
 
 class BlinkDOMPoint extends BlinkDOMPointReadOnly {
   static final instance = new BlinkDOMPoint();
-
 
   constructorCallback_0_() => new js.JsObject(js.context["DOMPoint"], []);
 
@@ -2871,7 +2788,6 @@ class BlinkDOMPoint extends BlinkDOMPointReadOnly {
 class BlinkDOMPointReadOnly {
   static final instance = new BlinkDOMPointReadOnly();
 
-
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["DOMPointReadOnly"], [__arg_0, __arg_1]);
 
   constructorCallback_3_(__arg_0, __arg_1, __arg_2) => new js.JsObject(js.context["DOMPointReadOnly"], [__arg_0, __arg_1, __arg_2]);
@@ -2890,7 +2806,6 @@ class BlinkDOMPointReadOnly {
 
 class BlinkDOMRect extends BlinkDOMRectReadOnly {
   static final instance = new BlinkDOMRect();
-
 
   constructorCallback_0_() => new js.JsObject(js.context["DOMRect"], []);
 
@@ -2923,7 +2838,6 @@ class BlinkDOMRect extends BlinkDOMRectReadOnly {
 class BlinkDOMRectReadOnly {
   static final instance = new BlinkDOMRectReadOnly();
 
-
   bottom_Getter_(mthis) => mthis["bottom"];
 
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["DOMRectReadOnly"], [__arg_0, __arg_1]);
@@ -2951,7 +2865,6 @@ class BlinkDOMRectReadOnly {
 class BlinkDOMSettableTokenList extends BlinkDOMTokenList {
   static final instance = new BlinkDOMSettableTokenList();
 
-
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
   value_Getter_(mthis) => mthis["value"];
@@ -2962,7 +2875,6 @@ class BlinkDOMSettableTokenList extends BlinkDOMTokenList {
 
 class BlinkDOMStringList {
   static final instance = new BlinkDOMStringList();
-
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
@@ -2981,7 +2893,6 @@ class BlinkDOMStringList {
 class BlinkDOMStringMap {
   static final instance = new BlinkDOMStringMap();
 
-
   $__delete___Callback_1_(mthis, __arg_0) => mthis.callMethod("__delete__", [__arg_0]);
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
@@ -2992,7 +2903,6 @@ class BlinkDOMStringMap {
 
 class BlinkDOMTokenList {
   static final instance = new BlinkDOMTokenList();
-
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
@@ -3024,7 +2934,6 @@ class BlinkDOMTokenList {
 
 class BlinkDataTransfer {
   static final instance = new BlinkDataTransfer();
-
 
   clearData_Callback_0_(mthis) => mthis.callMethod("clearData", []);
 
@@ -3065,7 +2974,6 @@ class BlinkDataTransfer {
 class BlinkDataTransferItem {
   static final instance = new BlinkDataTransferItem();
 
-
   getAsFile_Callback_0_(mthis) => mthis.callMethod("getAsFile", []);
 
   getAsString_Callback_0_(mthis) => mthis.callMethod("getAsString", []);
@@ -3082,7 +2990,6 @@ class BlinkDataTransferItem {
 
 class BlinkDataTransferItemList {
   static final instance = new BlinkDataTransferItemList();
-
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
@@ -3104,7 +3011,6 @@ class BlinkDataTransferItemList {
 
 class BlinkDatabase {
   static final instance = new BlinkDatabase();
-
 
   changeVersion_Callback_0_(mthis) => mthis.callMethod("changeVersion", []);
 
@@ -3141,7 +3047,6 @@ class BlinkDatabase {
 class BlinkDedicatedWorkerGlobalScope extends BlinkWorkerGlobalScope {
   static final instance = new BlinkDedicatedWorkerGlobalScope();
 
-
   onmessage_Getter_(mthis) => mthis["onmessage"];
 
   onmessage_Setter_(mthis, __arg_0) => mthis["onmessage"] = __arg_0;
@@ -3157,14 +3062,12 @@ class BlinkDedicatedWorkerGlobalScope extends BlinkWorkerGlobalScope {
 class BlinkDelayNode extends BlinkAudioNode {
   static final instance = new BlinkDelayNode();
 
-
   delayTime_Getter_(mthis) => mthis["delayTime"];
 
 }
 
 class BlinkDeprecatedStorageInfo {
   static final instance = new BlinkDeprecatedStorageInfo();
-
 
   queryUsageAndQuota_Callback_0_(mthis) => mthis.callMethod("queryUsageAndQuota", []);
 
@@ -3189,7 +3092,6 @@ class BlinkDeprecatedStorageInfo {
 class BlinkDeprecatedStorageQuota {
   static final instance = new BlinkDeprecatedStorageQuota();
 
-
   queryUsageAndQuota_Callback_0_(mthis) => mthis.callMethod("queryUsageAndQuota", []);
 
   queryUsageAndQuota_Callback_1_(mthis, __arg_0) => mthis.callMethod("queryUsageAndQuota", [__arg_0]);
@@ -3209,7 +3111,6 @@ class BlinkDeprecatedStorageQuota {
 class BlinkDeviceAcceleration {
   static final instance = new BlinkDeviceAcceleration();
 
-
   x_Getter_(mthis) => mthis["x"];
 
   y_Getter_(mthis) => mthis["y"];
@@ -3221,7 +3122,6 @@ class BlinkDeviceAcceleration {
 class BlinkDeviceLightEvent extends BlinkEvent {
   static final instance = new BlinkDeviceLightEvent();
 
-
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["DeviceLightEvent"], [__arg_0, __arg_1]);
 
   value_Getter_(mthis) => mthis["value"];
@@ -3230,7 +3130,6 @@ class BlinkDeviceLightEvent extends BlinkEvent {
 
 class BlinkDeviceMotionEvent extends BlinkEvent {
   static final instance = new BlinkDeviceMotionEvent();
-
 
   accelerationIncludingGravity_Getter_(mthis) => mthis["accelerationIncludingGravity"];
 
@@ -3261,7 +3160,6 @@ class BlinkDeviceMotionEvent extends BlinkEvent {
 class BlinkDeviceOrientationEvent extends BlinkEvent {
   static final instance = new BlinkDeviceOrientationEvent();
 
-
   absolute_Getter_(mthis) => mthis["absolute"];
 
   alpha_Getter_(mthis) => mthis["alpha"];
@@ -3291,7 +3189,6 @@ class BlinkDeviceOrientationEvent extends BlinkEvent {
 class BlinkDeviceRotationRate {
   static final instance = new BlinkDeviceRotationRate();
 
-
   alpha_Getter_(mthis) => mthis["alpha"];
 
   beta_Getter_(mthis) => mthis["beta"];
@@ -3302,7 +3199,6 @@ class BlinkDeviceRotationRate {
 
 class BlinkDirectoryEntry extends BlinkEntry {
   static final instance = new BlinkDirectoryEntry();
-
 
   createReader_Callback_0_(mthis) => mthis.callMethod("createReader", []);
 
@@ -3337,7 +3233,6 @@ class BlinkDirectoryEntry extends BlinkEntry {
 class BlinkDirectoryEntrySync extends BlinkEntrySync {
   static final instance = new BlinkDirectoryEntrySync();
 
-
   createReader_Callback_0_(mthis) => mthis.callMethod("createReader", []);
 
   getDirectory_Callback_0_(mthis) => mthis.callMethod("getDirectory", []);
@@ -3359,7 +3254,6 @@ class BlinkDirectoryEntrySync extends BlinkEntrySync {
 class BlinkDirectoryReader {
   static final instance = new BlinkDirectoryReader();
 
-
   readEntries_Callback_0_(mthis) => mthis.callMethod("readEntries", []);
 
   readEntries_Callback_1_(mthis, __arg_0) => mthis.callMethod("readEntries", [__arg_0]);
@@ -3371,14 +3265,12 @@ class BlinkDirectoryReader {
 class BlinkDirectoryReaderSync {
   static final instance = new BlinkDirectoryReaderSync();
 
-
   readEntries_Callback_0_(mthis) => mthis.callMethod("readEntries", []);
 
 }
 
 class BlinkDocument extends BlinkNode {
   static final instance = new BlinkDocument();
-
 
   URL_Getter_(mthis) => mthis["URL"];
 
@@ -3999,7 +3891,6 @@ class BlinkDocument extends BlinkNode {
 class BlinkDocumentFragment extends BlinkNode {
   static final instance = new BlinkDocumentFragment();
 
-
   childElementCount_Getter_(mthis) => mthis["childElementCount"];
 
   constructorCallback_0_() => new js.JsObject(js.context["DocumentFragment"], []);
@@ -4025,12 +3916,10 @@ class BlinkDocumentFragment extends BlinkNode {
 class BlinkDocumentType extends BlinkNode {
   static final instance = new BlinkDocumentType();
 
-
 }
 
 class BlinkDynamicsCompressorNode extends BlinkAudioNode {
   static final instance = new BlinkDynamicsCompressorNode();
-
 
   attack_Getter_(mthis) => mthis["attack"];
 
@@ -4049,30 +3938,25 @@ class BlinkDynamicsCompressorNode extends BlinkAudioNode {
 class BlinkEXTBlendMinMax {
   static final instance = new BlinkEXTBlendMinMax();
 
-
 }
 
 class BlinkEXTFragDepth {
   static final instance = new BlinkEXTFragDepth();
-
 
 }
 
 class BlinkEXTShaderTextureLOD {
   static final instance = new BlinkEXTShaderTextureLOD();
 
-
 }
 
 class BlinkEXTTextureFilterAnisotropic {
   static final instance = new BlinkEXTTextureFilterAnisotropic();
 
-
 }
 
 class BlinkElement extends BlinkNode {
   static final instance = new BlinkElement();
-
 
   animate_Callback_0_(mthis) => mthis.callMethod("animate", []);
 
@@ -4337,7 +4221,6 @@ class BlinkElement extends BlinkNode {
 class BlinkEntry {
   static final instance = new BlinkEntry();
 
-
   copyTo_Callback_0_(mthis) => mthis.callMethod("copyTo", []);
 
   copyTo_Callback_1_(mthis, __arg_0) => mthis.callMethod("copyTo", [__arg_0]);
@@ -4393,7 +4276,6 @@ class BlinkEntry {
 class BlinkEntrySync {
   static final instance = new BlinkEntrySync();
 
-
   copyTo_Callback_0_(mthis) => mthis.callMethod("copyTo", []);
 
   copyTo_Callback_1_(mthis, __arg_0) => mthis.callMethod("copyTo", [__arg_0]);
@@ -4429,7 +4311,6 @@ class BlinkEntrySync {
 class BlinkErrorEvent extends BlinkEvent {
   static final instance = new BlinkErrorEvent();
 
-
   colno_Getter_(mthis) => mthis["colno"];
 
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["ErrorEvent"], [__arg_0, __arg_1]);
@@ -4446,7 +4327,6 @@ class BlinkErrorEvent extends BlinkEvent {
 
 class BlinkEvent {
   static final instance = new BlinkEvent();
-
 
   bubbles_Getter_(mthis) => mthis["bubbles"];
 
@@ -4497,7 +4377,6 @@ class BlinkEvent {
 class BlinkEventSource extends BlinkEventTarget {
   static final instance = new BlinkEventSource();
 
-
   close_Callback_0_(mthis) => mthis.callMethod("close", []);
 
   constructorCallback_0_() => new js.JsObject(js.context["EventSource"], []);
@@ -4529,7 +4408,6 @@ class BlinkEventSource extends BlinkEventTarget {
 class BlinkEventTarget {
   static final instance = new BlinkEventTarget();
 
-
   addEventListener_Callback_0_(mthis) => mthis.callMethod("addEventListener", []);
 
   addEventListener_Callback_1_(mthis, __arg_0) => mthis.callMethod("addEventListener", [__arg_0]);
@@ -4555,7 +4433,6 @@ class BlinkEventTarget {
 class BlinkExtendableEvent extends BlinkEvent {
   static final instance = new BlinkExtendableEvent();
 
-
   waitUntil_Callback_0_(mthis) => mthis.callMethod("waitUntil", []);
 
   waitUntil_Callback_1_(mthis, __arg_0) => mthis.callMethod("waitUntil", [__arg_0]);
@@ -4564,7 +4441,6 @@ class BlinkExtendableEvent extends BlinkEvent {
 
 class BlinkFederatedCredential extends BlinkCredential {
   static final instance = new BlinkFederatedCredential();
-
 
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["FederatedCredential"], [__arg_0, __arg_1]);
 
@@ -4579,7 +4455,6 @@ class BlinkFederatedCredential extends BlinkCredential {
 class BlinkFetchEvent extends BlinkEvent {
   static final instance = new BlinkFetchEvent();
 
-
   isReload_Getter_(mthis) => mthis["isReload"];
 
   request_Getter_(mthis) => mthis["request"];
@@ -4592,7 +4467,6 @@ class BlinkFetchEvent extends BlinkEvent {
 
 class BlinkFile extends BlinkBlob {
   static final instance = new BlinkFile();
-
 
   constructorCallback_0_() => new js.JsObject(js.context["File"], []);
 
@@ -4615,7 +4489,6 @@ class BlinkFile extends BlinkBlob {
 class BlinkFileEntry extends BlinkEntry {
   static final instance = new BlinkFileEntry();
 
-
   createWriter_Callback_0_(mthis) => mthis.callMethod("createWriter", []);
 
   createWriter_Callback_1_(mthis, __arg_0) => mthis.callMethod("createWriter", [__arg_0]);
@@ -4633,7 +4506,6 @@ class BlinkFileEntry extends BlinkEntry {
 class BlinkFileEntrySync extends BlinkEntrySync {
   static final instance = new BlinkFileEntrySync();
 
-
   createWriter_Callback_0_(mthis) => mthis.callMethod("createWriter", []);
 
   file_Callback_0_(mthis) => mthis.callMethod("file", []);
@@ -4643,14 +4515,12 @@ class BlinkFileEntrySync extends BlinkEntrySync {
 class BlinkFileError extends BlinkDOMError {
   static final instance = new BlinkFileError();
 
-
   code_Getter_(mthis) => mthis["code"];
 
 }
 
 class BlinkFileList {
   static final instance = new BlinkFileList();
-
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
@@ -4664,7 +4534,6 @@ class BlinkFileList {
 
 class BlinkFileReader extends BlinkEventTarget {
   static final instance = new BlinkFileReader();
-
 
   abort_Callback_0_(mthis) => mthis.callMethod("abort", []);
 
@@ -4723,7 +4592,6 @@ class BlinkFileReader extends BlinkEventTarget {
 class BlinkFileReaderSync {
   static final instance = new BlinkFileReaderSync();
 
-
   constructorCallback_0_() => new js.JsObject(js.context["FileReaderSync"], []);
 
   readAsArrayBuffer_Callback_0_(mthis) => mthis.callMethod("readAsArrayBuffer", []);
@@ -4748,7 +4616,6 @@ class BlinkFileReaderSync {
 
 class BlinkFileWriter extends BlinkEventTarget {
   static final instance = new BlinkFileWriter();
-
 
   abort_Callback_0_(mthis) => mthis.callMethod("abort", []);
 
@@ -4801,7 +4668,6 @@ class BlinkFileWriter extends BlinkEventTarget {
 class BlinkFileWriterSync {
   static final instance = new BlinkFileWriterSync();
 
-
   length_Getter_(mthis) => mthis["length"];
 
   position_Getter_(mthis) => mthis["position"];
@@ -4823,7 +4689,6 @@ class BlinkFileWriterSync {
 class BlinkFocusEvent extends BlinkUIEvent {
   static final instance = new BlinkFocusEvent();
 
-
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["FocusEvent"], [__arg_0, __arg_1]);
 
   relatedTarget_Getter_(mthis) => mthis["relatedTarget"];
@@ -4832,7 +4697,6 @@ class BlinkFocusEvent extends BlinkUIEvent {
 
 class BlinkFontFace {
   static final instance = new BlinkFontFace();
-
 
   constructorCallback_0_() => new js.JsObject(js.context["FontFace"], []);
 
@@ -4881,7 +4745,6 @@ class BlinkFontFace {
 class BlinkFontFaceSet extends BlinkEventTarget {
   static final instance = new BlinkFontFaceSet();
 
-
   add_Callback_0_(mthis) => mthis.callMethod("add", []);
 
   add_Callback_1_(mthis, __arg_0) => mthis.callMethod("add", [__arg_0]);
@@ -4929,14 +4792,12 @@ class BlinkFontFaceSet extends BlinkEventTarget {
 class BlinkFontFaceSetLoadEvent extends BlinkEvent {
   static final instance = new BlinkFontFaceSetLoadEvent();
 
-
   fontfaces_Getter_(mthis) => mthis["fontfaces"];
 
 }
 
 class BlinkFormData {
   static final instance = new BlinkFormData();
-
 
   append_Callback_0_(mthis) => mthis.callMethod("append", []);
 
@@ -4955,14 +4816,12 @@ class BlinkFormData {
 class BlinkGainNode extends BlinkAudioNode {
   static final instance = new BlinkGainNode();
 
-
   gain_Getter_(mthis) => mthis["gain"];
 
 }
 
 class BlinkGamepad {
   static final instance = new BlinkGamepad();
-
 
   axes_Getter_(mthis) => mthis["axes"];
 
@@ -4981,7 +4840,6 @@ class BlinkGamepad {
 class BlinkGamepadButton {
   static final instance = new BlinkGamepadButton();
 
-
   pressed_Getter_(mthis) => mthis["pressed"];
 
   value_Getter_(mthis) => mthis["value"];
@@ -4991,7 +4849,6 @@ class BlinkGamepadButton {
 class BlinkGamepadEvent extends BlinkEvent {
   static final instance = new BlinkGamepadEvent();
 
-
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["GamepadEvent"], [__arg_0, __arg_1]);
 
   gamepad_Getter_(mthis) => mthis["gamepad"];
@@ -5000,7 +4857,6 @@ class BlinkGamepadEvent extends BlinkEvent {
 
 class BlinkGamepadList {
   static final instance = new BlinkGamepadList();
-
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
@@ -5014,7 +4870,6 @@ class BlinkGamepadList {
 
 class BlinkGeofencing {
   static final instance = new BlinkGeofencing();
-
 
   getRegisteredRegions_Callback_0_(mthis) => mthis.callMethod("getRegisteredRegions", []);
 
@@ -5031,14 +4886,12 @@ class BlinkGeofencing {
 class BlinkGeofencingRegion {
   static final instance = new BlinkGeofencingRegion();
 
-
   id_Getter_(mthis) => mthis["id"];
 
 }
 
 class BlinkGeolocation {
   static final instance = new BlinkGeolocation();
-
 
   clearWatch_Callback_0_(mthis) => mthis.callMethod("clearWatch", []);
 
@@ -5065,7 +4918,6 @@ class BlinkGeolocation {
 class BlinkGeoposition {
   static final instance = new BlinkGeoposition();
 
-
   coords_Getter_(mthis) => mthis["coords"];
 
   timestamp_Getter_(mthis) => mthis["timestamp"];
@@ -5074,7 +4926,6 @@ class BlinkGeoposition {
 
 class BlinkHTMLAllCollection {
   static final instance = new BlinkHTMLAllCollection();
-
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
@@ -5092,7 +4943,6 @@ class BlinkHTMLAllCollection {
 
 class BlinkHTMLAnchorElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLAnchorElement();
-
 
   download_Getter_(mthis) => mthis["download"];
 
@@ -5175,7 +5025,6 @@ class BlinkHTMLAnchorElement extends BlinkHTMLElement {
 class BlinkHTMLAppletElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLAppletElement();
 
-
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
   $__setter___Callback_2_(mthis, __arg_0, __arg_1) => mthis.callMethod("__setter__", [__arg_0, __arg_1]);
@@ -5184,7 +5033,6 @@ class BlinkHTMLAppletElement extends BlinkHTMLElement {
 
 class BlinkHTMLAreaElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLAreaElement();
-
 
   alt_Getter_(mthis) => mthis["alt"];
 
@@ -5255,22 +5103,19 @@ class BlinkHTMLAreaElement extends BlinkHTMLElement {
 class BlinkHTMLAudioElement extends BlinkHTMLMediaElement {
   static final instance = new BlinkHTMLAudioElement();
 
+  constructorCallback_0_() => new js.JsObject(js.context["Audio"], []);
 
-  constructorCallback_0_() => new js.JsObject(js.context["HTMLAudioElement"], []);
-
-  constructorCallback_1_(__arg_0) => new js.JsObject(js.context["HTMLAudioElement"], [__arg_0]);
+  constructorCallback_1_(__arg_0) => new js.JsObject(js.context["Audio"], [__arg_0]);
 
 }
 
 class BlinkHTMLBRElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLBRElement();
 
-
 }
 
 class BlinkHTMLBaseElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLBaseElement();
-
 
   href_Getter_(mthis) => mthis["href"];
 
@@ -5284,7 +5129,6 @@ class BlinkHTMLBaseElement extends BlinkHTMLElement {
 
 class BlinkHTMLBodyElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLBodyElement();
-
 
   onbeforeunload_Getter_(mthis) => mthis["onbeforeunload"];
 
@@ -5363,7 +5207,6 @@ class BlinkHTMLBodyElement extends BlinkHTMLElement {
 class BlinkHTMLButtonElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLButtonElement();
 
-
   autofocus_Getter_(mthis) => mthis["autofocus"];
 
   autofocus_Setter_(mthis, __arg_0) => mthis["autofocus"] = __arg_0;
@@ -5425,7 +5268,6 @@ class BlinkHTMLButtonElement extends BlinkHTMLElement {
 class BlinkHTMLCanvasElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLCanvasElement();
 
-
   getContext_Callback_0_(mthis) => mthis.callMethod("getContext", []);
 
   getContext_Callback_1_(mthis, __arg_0) => mthis.callMethod("getContext", [__arg_0]);
@@ -5451,7 +5293,6 @@ class BlinkHTMLCanvasElement extends BlinkHTMLElement {
 class BlinkHTMLCollection {
   static final instance = new BlinkHTMLCollection();
 
-
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
   item_Callback_0_(mthis) => mthis.callMethod("item", []);
@@ -5469,7 +5310,6 @@ class BlinkHTMLCollection {
 class BlinkHTMLContentElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLContentElement();
 
-
   getDistributedNodes_Callback_0_(mthis) => mthis.callMethod("getDistributedNodes", []);
 
   select_Getter_(mthis) => mthis["select"];
@@ -5481,12 +5321,10 @@ class BlinkHTMLContentElement extends BlinkHTMLElement {
 class BlinkHTMLDListElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLDListElement();
 
-
 }
 
 class BlinkHTMLDataListElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLDataListElement();
-
 
   options_Getter_(mthis) => mthis["options"];
 
@@ -5494,7 +5332,6 @@ class BlinkHTMLDataListElement extends BlinkHTMLElement {
 
 class BlinkHTMLDetailsElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLDetailsElement();
-
 
   open_Getter_(mthis) => mthis["open"];
 
@@ -5504,7 +5341,6 @@ class BlinkHTMLDetailsElement extends BlinkHTMLElement {
 
 class BlinkHTMLDialogElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLDialogElement();
-
 
   close_Callback_0_(mthis) => mthis.callMethod("close", []);
 
@@ -5527,18 +5363,15 @@ class BlinkHTMLDialogElement extends BlinkHTMLElement {
 class BlinkHTMLDirectoryElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLDirectoryElement();
 
-
 }
 
 class BlinkHTMLDivElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLDivElement();
 
-
 }
 
 class BlinkHTMLDocument extends BlinkDocument {
   static final instance = new BlinkHTMLDocument();
-
 
   alinkColor_Getter_(mthis) => mthis["alinkColor"];
 
@@ -5584,7 +5417,6 @@ class BlinkHTMLDocument extends BlinkDocument {
 
 class BlinkHTMLElement extends BlinkElement {
   static final instance = new BlinkHTMLElement();
-
 
   accessKey_Getter_(mthis) => mthis["accessKey"];
 
@@ -5897,7 +5729,6 @@ class BlinkHTMLElement extends BlinkElement {
 class BlinkHTMLEmbedElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLEmbedElement();
 
-
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
   $__setter___Callback_2_(mthis, __arg_0, __arg_1) => mthis.callMethod("__setter__", [__arg_0, __arg_1]);
@@ -5937,7 +5768,6 @@ class BlinkHTMLEmbedElement extends BlinkHTMLElement {
 class BlinkHTMLFieldSetElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLFieldSetElement();
 
-
   checkValidity_Callback_0_(mthis) => mthis.callMethod("checkValidity", []);
 
   disabled_Getter_(mthis) => mthis["disabled"];
@@ -5969,12 +5799,10 @@ class BlinkHTMLFieldSetElement extends BlinkHTMLElement {
 class BlinkHTMLFontElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLFontElement();
 
-
 }
 
 class BlinkHTMLFormControlsCollection extends BlinkHTMLCollection {
   static final instance = new BlinkHTMLFormControlsCollection();
-
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
@@ -5986,7 +5814,6 @@ class BlinkHTMLFormControlsCollection extends BlinkHTMLCollection {
 
 class BlinkHTMLFormElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLFormElement();
-
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
@@ -6043,12 +5870,10 @@ class BlinkHTMLFormElement extends BlinkHTMLElement {
 class BlinkHTMLFrameElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLFrameElement();
 
-
 }
 
 class BlinkHTMLFrameSetElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLFrameSetElement();
-
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
@@ -6056,7 +5881,6 @@ class BlinkHTMLFrameSetElement extends BlinkHTMLElement {
 
 class BlinkHTMLHRElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLHRElement();
-
 
   color_Getter_(mthis) => mthis["color"];
 
@@ -6067,24 +5891,20 @@ class BlinkHTMLHRElement extends BlinkHTMLElement {
 class BlinkHTMLHeadElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLHeadElement();
 
-
 }
 
 class BlinkHTMLHeadingElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLHeadingElement();
-
 
 }
 
 class BlinkHTMLHtmlElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLHtmlElement();
 
-
 }
 
 class BlinkHTMLIFrameElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLIFrameElement();
-
 
   allowFullscreen_Getter_(mthis) => mthis["allowFullscreen"];
 
@@ -6129,7 +5949,6 @@ class BlinkHTMLIFrameElement extends BlinkHTMLElement {
 class BlinkHTMLImageElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLImageElement();
 
-
   alt_Getter_(mthis) => mthis["alt"];
 
   alt_Setter_(mthis, __arg_0) => mthis["alt"] = __arg_0;
@@ -6140,11 +5959,11 @@ class BlinkHTMLImageElement extends BlinkHTMLElement {
 
   complete_Getter_(mthis) => mthis["complete"];
 
-  constructorCallback_0_() => new js.JsObject(js.context["HTMLImageElement"], []);
+  constructorCallback_0_() => new js.JsObject(js.context["Image"], []);
 
-  constructorCallback_1_(__arg_0) => new js.JsObject(js.context["HTMLImageElement"], [__arg_0]);
+  constructorCallback_1_(__arg_0) => new js.JsObject(js.context["Image"], [__arg_0]);
 
-  constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["HTMLImageElement"], [__arg_0, __arg_1]);
+  constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["Image"], [__arg_0, __arg_1]);
 
   crossOrigin_Getter_(mthis) => mthis["crossOrigin"];
 
@@ -6200,7 +6019,6 @@ class BlinkHTMLImageElement extends BlinkHTMLElement {
 
 class BlinkHTMLInputElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLInputElement();
-
 
   accept_Getter_(mthis) => mthis["accept"];
 
@@ -6423,7 +6241,6 @@ class BlinkHTMLInputElement extends BlinkHTMLElement {
 class BlinkHTMLKeygenElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLKeygenElement();
 
-
   autofocus_Getter_(mthis) => mthis["autofocus"];
 
   autofocus_Setter_(mthis, __arg_0) => mthis["autofocus"] = __arg_0;
@@ -6467,7 +6284,6 @@ class BlinkHTMLKeygenElement extends BlinkHTMLElement {
 class BlinkHTMLLIElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLLIElement();
 
-
   type_Getter_(mthis) => mthis["type"];
 
   type_Setter_(mthis, __arg_0) => mthis["type"] = __arg_0;
@@ -6480,7 +6296,6 @@ class BlinkHTMLLIElement extends BlinkHTMLElement {
 
 class BlinkHTMLLabelElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLLabelElement();
-
 
   control_Getter_(mthis) => mthis["control"];
 
@@ -6495,14 +6310,12 @@ class BlinkHTMLLabelElement extends BlinkHTMLElement {
 class BlinkHTMLLegendElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLLegendElement();
 
-
   form_Getter_(mthis) => mthis["form"];
 
 }
 
 class BlinkHTMLLinkElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLLinkElement();
-
 
   crossOrigin_Getter_(mthis) => mthis["crossOrigin"];
 
@@ -6549,7 +6362,6 @@ class BlinkHTMLLinkElement extends BlinkHTMLElement {
 class BlinkHTMLMapElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLMapElement();
 
-
   areas_Getter_(mthis) => mthis["areas"];
 
   name_Getter_(mthis) => mthis["name"];
@@ -6561,12 +6373,10 @@ class BlinkHTMLMapElement extends BlinkHTMLElement {
 class BlinkHTMLMarqueeElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLMarqueeElement();
 
-
 }
 
 class BlinkHTMLMediaElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLMediaElement();
-
 
   addTextTrack_Callback_0_(mthis) => mthis.callMethod("addTextTrack", []);
 
@@ -6733,7 +6543,6 @@ class BlinkHTMLMediaElement extends BlinkHTMLElement {
 class BlinkHTMLMenuElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLMenuElement();
 
-
   label_Getter_(mthis) => mthis["label"];
 
   label_Setter_(mthis, __arg_0) => mthis["label"] = __arg_0;
@@ -6746,7 +6555,6 @@ class BlinkHTMLMenuElement extends BlinkHTMLElement {
 
 class BlinkHTMLMenuItemElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLMenuItemElement();
-
 
   checked_Getter_(mthis) => mthis["checked"];
 
@@ -6773,7 +6581,6 @@ class BlinkHTMLMenuItemElement extends BlinkHTMLElement {
 class BlinkHTMLMetaElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLMetaElement();
 
-
   content_Getter_(mthis) => mthis["content"];
 
   content_Setter_(mthis, __arg_0) => mthis["content"] = __arg_0;
@@ -6790,7 +6597,6 @@ class BlinkHTMLMetaElement extends BlinkHTMLElement {
 
 class BlinkHTMLMeterElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLMeterElement();
-
 
   high_Getter_(mthis) => mthis["high"];
 
@@ -6823,7 +6629,6 @@ class BlinkHTMLMeterElement extends BlinkHTMLElement {
 class BlinkHTMLModElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLModElement();
 
-
   cite_Getter_(mthis) => mthis["cite"];
 
   cite_Setter_(mthis, __arg_0) => mthis["cite"] = __arg_0;
@@ -6836,7 +6641,6 @@ class BlinkHTMLModElement extends BlinkHTMLElement {
 
 class BlinkHTMLOListElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLOListElement();
-
 
   reversed_Getter_(mthis) => mthis["reversed"];
 
@@ -6854,7 +6658,6 @@ class BlinkHTMLOListElement extends BlinkHTMLElement {
 
 class BlinkHTMLObjectElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLObjectElement();
-
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
@@ -6915,7 +6718,6 @@ class BlinkHTMLObjectElement extends BlinkHTMLElement {
 class BlinkHTMLOptGroupElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLOptGroupElement();
 
-
   disabled_Getter_(mthis) => mthis["disabled"];
 
   disabled_Setter_(mthis, __arg_0) => mthis["disabled"] = __arg_0;
@@ -6929,16 +6731,15 @@ class BlinkHTMLOptGroupElement extends BlinkHTMLElement {
 class BlinkHTMLOptionElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLOptionElement();
 
+  constructorCallback_0_() => new js.JsObject(js.context["Option"], []);
 
-  constructorCallback_0_() => new js.JsObject(js.context["HTMLOptionElement"], []);
+  constructorCallback_1_(__arg_0) => new js.JsObject(js.context["Option"], [__arg_0]);
 
-  constructorCallback_1_(__arg_0) => new js.JsObject(js.context["HTMLOptionElement"], [__arg_0]);
+  constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["Option"], [__arg_0, __arg_1]);
 
-  constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["HTMLOptionElement"], [__arg_0, __arg_1]);
+  constructorCallback_3_(__arg_0, __arg_1, __arg_2) => new js.JsObject(js.context["Option"], [__arg_0, __arg_1, __arg_2]);
 
-  constructorCallback_3_(__arg_0, __arg_1, __arg_2) => new js.JsObject(js.context["HTMLOptionElement"], [__arg_0, __arg_1, __arg_2]);
-
-  constructorCallback_4_(__arg_0, __arg_1, __arg_2, __arg_3) => new js.JsObject(js.context["HTMLOptionElement"], [__arg_0, __arg_1, __arg_2, __arg_3]);
+  constructorCallback_4_(__arg_0, __arg_1, __arg_2, __arg_3) => new js.JsObject(js.context["Option"], [__arg_0, __arg_1, __arg_2, __arg_3]);
 
   defaultSelected_Getter_(mthis) => mthis["defaultSelected"];
 
@@ -6969,7 +6770,6 @@ class BlinkHTMLOptionElement extends BlinkHTMLElement {
 class BlinkHTMLOptionsCollection extends BlinkHTMLCollection {
   static final instance = new BlinkHTMLOptionsCollection();
 
-
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
   $__setter___Callback_2_(mthis, __arg_0, __arg_1) => mthis.callMethod("__setter__", [__arg_0, __arg_1]);
@@ -6978,7 +6778,6 @@ class BlinkHTMLOptionsCollection extends BlinkHTMLCollection {
 
 class BlinkHTMLOutputElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLOutputElement();
-
 
   checkValidity_Callback_0_(mthis) => mthis.callMethod("checkValidity", []);
 
@@ -7019,12 +6818,10 @@ class BlinkHTMLOutputElement extends BlinkHTMLElement {
 class BlinkHTMLParagraphElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLParagraphElement();
 
-
 }
 
 class BlinkHTMLParamElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLParamElement();
-
 
   name_Getter_(mthis) => mthis["name"];
 
@@ -7039,18 +6836,15 @@ class BlinkHTMLParamElement extends BlinkHTMLElement {
 class BlinkHTMLPictureElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLPictureElement();
 
-
 }
 
 class BlinkHTMLPreElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLPreElement();
 
-
 }
 
 class BlinkHTMLProgressElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLProgressElement();
-
 
   labels_Getter_(mthis) => mthis["labels"];
 
@@ -7069,7 +6863,6 @@ class BlinkHTMLProgressElement extends BlinkHTMLElement {
 class BlinkHTMLQuoteElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLQuoteElement();
 
-
   cite_Getter_(mthis) => mthis["cite"];
 
   cite_Setter_(mthis, __arg_0) => mthis["cite"] = __arg_0;
@@ -7078,7 +6871,6 @@ class BlinkHTMLQuoteElement extends BlinkHTMLElement {
 
 class BlinkHTMLScriptElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLScriptElement();
-
 
   async_Getter_(mthis) => mthis["async"];
 
@@ -7124,7 +6916,6 @@ class BlinkHTMLScriptElement extends BlinkHTMLElement {
 
 class BlinkHTMLSelectElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLSelectElement();
-
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
@@ -7203,14 +6994,12 @@ class BlinkHTMLSelectElement extends BlinkHTMLElement {
 class BlinkHTMLShadowElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLShadowElement();
 
-
   getDistributedNodes_Callback_0_(mthis) => mthis.callMethod("getDistributedNodes", []);
 
 }
 
 class BlinkHTMLSourceElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLSourceElement();
-
 
   integrity_Getter_(mthis) => mthis["integrity"];
 
@@ -7241,12 +7030,10 @@ class BlinkHTMLSourceElement extends BlinkHTMLElement {
 class BlinkHTMLSpanElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLSpanElement();
 
-
 }
 
 class BlinkHTMLStyleElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLStyleElement();
-
 
   disabled_Getter_(mthis) => mthis["disabled"];
 
@@ -7267,12 +7054,10 @@ class BlinkHTMLStyleElement extends BlinkHTMLElement {
 class BlinkHTMLTableCaptionElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLTableCaptionElement();
 
-
 }
 
 class BlinkHTMLTableCellElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLTableCellElement();
-
 
   cellIndex_Getter_(mthis) => mthis["cellIndex"];
 
@@ -7293,7 +7078,6 @@ class BlinkHTMLTableCellElement extends BlinkHTMLElement {
 class BlinkHTMLTableColElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLTableColElement();
 
-
   span_Getter_(mthis) => mthis["span"];
 
   span_Setter_(mthis, __arg_0) => mthis["span"] = __arg_0;
@@ -7302,7 +7086,6 @@ class BlinkHTMLTableColElement extends BlinkHTMLElement {
 
 class BlinkHTMLTableElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLTableElement();
-
 
   border_Getter_(mthis) => mthis["border"];
 
@@ -7351,7 +7134,6 @@ class BlinkHTMLTableElement extends BlinkHTMLElement {
 class BlinkHTMLTableRowElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLTableRowElement();
 
-
   cells_Getter_(mthis) => mthis["cells"];
 
   deleteCell_Callback_0_(mthis) => mthis.callMethod("deleteCell", []);
@@ -7371,7 +7153,6 @@ class BlinkHTMLTableRowElement extends BlinkHTMLElement {
 class BlinkHTMLTableSectionElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLTableSectionElement();
 
-
   deleteRow_Callback_0_(mthis) => mthis.callMethod("deleteRow", []);
 
   deleteRow_Callback_1_(mthis, __arg_0) => mthis.callMethod("deleteRow", [__arg_0]);
@@ -7387,14 +7168,12 @@ class BlinkHTMLTableSectionElement extends BlinkHTMLElement {
 class BlinkHTMLTemplateElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLTemplateElement();
 
-
   content_Getter_(mthis) => mthis["content"];
 
 }
 
 class BlinkHTMLTextAreaElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLTextAreaElement();
-
 
   autofocus_Getter_(mthis) => mthis["autofocus"];
 
@@ -7509,12 +7288,10 @@ class BlinkHTMLTextAreaElement extends BlinkHTMLElement {
 class BlinkHTMLTitleElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLTitleElement();
 
-
 }
 
 class BlinkHTMLTrackElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLTrackElement();
-
 
   default_Getter_(mthis) => mthis["default"];
 
@@ -7549,18 +7326,15 @@ class BlinkHTMLTrackElement extends BlinkHTMLElement {
 class BlinkHTMLUListElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLUListElement();
 
-
 }
 
 class BlinkHTMLUnknownElement extends BlinkHTMLElement {
   static final instance = new BlinkHTMLUnknownElement();
 
-
 }
 
 class BlinkHTMLVideoElement extends BlinkHTMLMediaElement {
   static final instance = new BlinkHTMLVideoElement();
-
 
   getVideoPlaybackQuality_Callback_0_(mthis) => mthis.callMethod("getVideoPlaybackQuality", []);
 
@@ -7601,7 +7375,6 @@ class BlinkHTMLVideoElement extends BlinkHTMLMediaElement {
 class BlinkHashChangeEvent extends BlinkEvent {
   static final instance = new BlinkHashChangeEvent();
 
-
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["HashChangeEvent"], [__arg_0, __arg_1]);
 
   initHashChangeEvent_Callback_0_(mthis) => mthis.callMethod("initHashChangeEvent", []);
@@ -7624,7 +7397,6 @@ class BlinkHashChangeEvent extends BlinkEvent {
 
 class BlinkHeaders {
   static final instance = new BlinkHeaders();
-
 
   append_Callback_0_(mthis) => mthis.callMethod("append", []);
 
@@ -7671,7 +7443,6 @@ class BlinkHeaders {
 class BlinkHistory {
   static final instance = new BlinkHistory();
 
-
   back_Callback_0_(mthis) => mthis.callMethod("back", []);
 
   forward_Callback_0_(mthis) => mthis.callMethod("forward", []);
@@ -7704,7 +7475,6 @@ class BlinkHistory {
 
 class BlinkIDBCursor {
   static final instance = new BlinkIDBCursor();
-
 
   advance_Callback_0_(mthis) => mthis.callMethod("advance", []);
 
@@ -7739,14 +7509,12 @@ class BlinkIDBCursor {
 class BlinkIDBCursorWithValue extends BlinkIDBCursor {
   static final instance = new BlinkIDBCursorWithValue();
 
-
   value_Getter_(mthis) => mthis["value"];
 
 }
 
 class BlinkIDBDatabase extends BlinkEventTarget {
   static final instance = new BlinkIDBDatabase();
-
 
   close_Callback_0_(mthis) => mthis.callMethod("close", []);
 
@@ -7793,7 +7561,6 @@ class BlinkIDBDatabase extends BlinkEventTarget {
 class BlinkIDBFactory {
   static final instance = new BlinkIDBFactory();
 
-
   cmp_Callback_0_(mthis) => mthis.callMethod("cmp", []);
 
   cmp_Callback_1_(mthis, __arg_0) => mthis.callMethod("cmp", [__arg_0]);
@@ -7816,7 +7583,6 @@ class BlinkIDBFactory {
 
 class BlinkIDBIndex {
   static final instance = new BlinkIDBIndex();
-
 
   count_Callback_0_(mthis) => mthis.callMethod("count", []);
 
@@ -7857,7 +7623,6 @@ class BlinkIDBIndex {
 class BlinkIDBKeyRange {
   static final instance = new BlinkIDBKeyRange();
 
-
   bound_Callback_0_() => mthis.callMethod("bound", []);
 
   bound_Callback_1_(__arg_0) => mthis.callMethod("bound", [__arg_0]);
@@ -7896,7 +7661,6 @@ class BlinkIDBKeyRange {
 
 class BlinkIDBObjectStore {
   static final instance = new BlinkIDBObjectStore();
-
 
   add_Callback_0_(mthis) => mthis.callMethod("add", []);
 
@@ -7967,7 +7731,6 @@ class BlinkIDBObjectStore {
 class BlinkIDBOpenDBRequest extends BlinkIDBRequest {
   static final instance = new BlinkIDBOpenDBRequest();
 
-
   onblocked_Getter_(mthis) => mthis["onblocked"];
 
   onblocked_Setter_(mthis, __arg_0) => mthis["onblocked"] = __arg_0;
@@ -7980,7 +7743,6 @@ class BlinkIDBOpenDBRequest extends BlinkIDBRequest {
 
 class BlinkIDBRequest extends BlinkEventTarget {
   static final instance = new BlinkIDBRequest();
-
 
   error_Getter_(mthis) => mthis["error"];
 
@@ -8004,7 +7766,6 @@ class BlinkIDBRequest extends BlinkEventTarget {
 
 class BlinkIDBTransaction extends BlinkEventTarget {
   static final instance = new BlinkIDBTransaction();
-
 
   abort_Callback_0_(mthis) => mthis.callMethod("abort", []);
 
@@ -8035,7 +7796,6 @@ class BlinkIDBTransaction extends BlinkEventTarget {
 class BlinkIDBVersionChangeEvent extends BlinkEvent {
   static final instance = new BlinkIDBVersionChangeEvent();
 
-
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["IDBVersionChangeEvent"], [__arg_0, __arg_1]);
 
   dataLossMessage_Getter_(mthis) => mthis["dataLossMessage"];
@@ -8051,7 +7811,6 @@ class BlinkIDBVersionChangeEvent extends BlinkEvent {
 class BlinkImageBitmap {
   static final instance = new BlinkImageBitmap();
 
-
   height_Getter_(mthis) => mthis["height"];
 
   width_Getter_(mthis) => mthis["width"];
@@ -8060,7 +7819,6 @@ class BlinkImageBitmap {
 
 class BlinkImageData {
   static final instance = new BlinkImageData();
-
 
   constructorCallback_0_() => new js.JsObject(js.context["ImageData"], []);
 
@@ -8080,7 +7838,6 @@ class BlinkImageData {
 
 class BlinkInjectedScriptHost {
   static final instance = new BlinkInjectedScriptHost();
-
 
   callFunction_Callback_0_(mthis) => mthis.callMethod("callFunction", []);
 
@@ -8179,7 +7936,6 @@ class BlinkInjectedScriptHost {
 class BlinkInputMethodContext extends BlinkEventTarget {
   static final instance = new BlinkInputMethodContext();
 
-
   compositionEndOffset_Getter_(mthis) => mthis["compositionEndOffset"];
 
   compositionStartOffset_Getter_(mthis) => mthis["compositionStartOffset"];
@@ -8206,7 +7962,6 @@ class BlinkInputMethodContext extends BlinkEventTarget {
 
 class BlinkInspectorFrontendHost {
   static final instance = new BlinkInspectorFrontendHost();
-
 
   copyText_Callback_0_(mthis) => mthis.callMethod("copyText", []);
 
@@ -8279,7 +8034,6 @@ class BlinkInspectorFrontendHost {
 class BlinkInspectorOverlayHost {
   static final instance = new BlinkInspectorOverlayHost();
 
-
   resume_Callback_0_(mthis) => mthis.callMethod("resume", []);
 
   stepOver_Callback_0_(mthis) => mthis.callMethod("stepOver", []);
@@ -8288,7 +8042,6 @@ class BlinkInspectorOverlayHost {
 
 class BlinkInstallEvent extends BlinkExtendableEvent {
   static final instance = new BlinkInstallEvent();
-
 
   reloadAll_Callback_0_(mthis) => mthis.callMethod("reloadAll", []);
 
@@ -8299,7 +8052,6 @@ class BlinkInstallEvent extends BlinkExtendableEvent {
 class BlinkIterator {
   static final instance = new BlinkIterator();
 
-
   next_Callback_0_(mthis) => mthis.callMethod("next", []);
 
   next_Callback_1_(mthis, __arg_0) => mthis.callMethod("next", [__arg_0]);
@@ -8308,7 +8060,6 @@ class BlinkIterator {
 
 class BlinkJavaScriptCallFrame {
   static final instance = new BlinkJavaScriptCallFrame();
-
 
   caller_Getter_(mthis) => mthis["caller"];
 
@@ -8354,7 +8105,6 @@ class BlinkJavaScriptCallFrame {
 
 class BlinkKeyboardEvent extends BlinkUIEvent {
   static final instance = new BlinkKeyboardEvent();
-
 
   altKey_Getter_(mthis) => mthis["altKey"];
 
@@ -8405,7 +8155,6 @@ class BlinkKeyboardEvent extends BlinkUIEvent {
 class BlinkLocalCredential extends BlinkCredential {
   static final instance = new BlinkLocalCredential();
 
-
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["LocalCredential"], [__arg_0, __arg_1]);
 
   constructorCallback_3_(__arg_0, __arg_1, __arg_2) => new js.JsObject(js.context["LocalCredential"], [__arg_0, __arg_1, __arg_2]);
@@ -8418,7 +8167,6 @@ class BlinkLocalCredential extends BlinkCredential {
 
 class BlinkLocation {
   static final instance = new BlinkLocation();
-
 
   ancestorOrigins_Getter_(mthis) => mthis["ancestorOrigins"];
 
@@ -8473,7 +8221,6 @@ class BlinkLocation {
 class BlinkMIDIAccess extends BlinkEventTarget {
   static final instance = new BlinkMIDIAccess();
 
-
   inputs_Getter_(mthis) => mthis["inputs"];
 
   onconnect_Getter_(mthis) => mthis["onconnect"];
@@ -8493,7 +8240,6 @@ class BlinkMIDIAccess extends BlinkEventTarget {
 class BlinkMIDIConnectionEvent extends BlinkEvent {
   static final instance = new BlinkMIDIConnectionEvent();
 
-
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["MIDIConnectionEvent"], [__arg_0, __arg_1]);
 
   port_Getter_(mthis) => mthis["port"];
@@ -8503,7 +8249,6 @@ class BlinkMIDIConnectionEvent extends BlinkEvent {
 class BlinkMIDIInput extends BlinkMIDIPort {
   static final instance = new BlinkMIDIInput();
 
-
   onmidimessage_Getter_(mthis) => mthis["onmidimessage"];
 
   onmidimessage_Setter_(mthis, __arg_0) => mthis["onmidimessage"] = __arg_0;
@@ -8512,7 +8257,6 @@ class BlinkMIDIInput extends BlinkMIDIPort {
 
 class BlinkMIDIInputMap {
   static final instance = new BlinkMIDIInputMap();
-
 
   entries_Callback_0_(mthis) => mthis.callMethod("entries", []);
 
@@ -8535,7 +8279,6 @@ class BlinkMIDIInputMap {
 class BlinkMIDIMessageEvent extends BlinkEvent {
   static final instance = new BlinkMIDIMessageEvent();
 
-
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["MIDIMessageEvent"], [__arg_0, __arg_1]);
 
   data_Getter_(mthis) => mthis["data"];
@@ -8547,7 +8290,6 @@ class BlinkMIDIMessageEvent extends BlinkEvent {
 class BlinkMIDIOutput extends BlinkMIDIPort {
   static final instance = new BlinkMIDIOutput();
 
-
   send_Callback_0_(mthis) => mthis.callMethod("send", []);
 
   send_Callback_1_(mthis, __arg_0) => mthis.callMethod("send", [__arg_0]);
@@ -8558,7 +8300,6 @@ class BlinkMIDIOutput extends BlinkMIDIPort {
 
 class BlinkMIDIOutputMap {
   static final instance = new BlinkMIDIOutputMap();
-
 
   entries_Callback_0_(mthis) => mthis.callMethod("entries", []);
 
@@ -8581,7 +8322,6 @@ class BlinkMIDIOutputMap {
 class BlinkMIDIPort extends BlinkEventTarget {
   static final instance = new BlinkMIDIPort();
 
-
   id_Getter_(mthis) => mthis["id"];
 
   manufacturer_Getter_(mthis) => mthis["manufacturer"];
@@ -8600,7 +8340,6 @@ class BlinkMIDIPort extends BlinkEventTarget {
 
 class BlinkMediaController extends BlinkEventTarget {
   static final instance = new BlinkMediaController();
-
 
   buffered_Getter_(mthis) => mthis["buffered"];
 
@@ -8647,7 +8386,6 @@ class BlinkMediaController extends BlinkEventTarget {
 class BlinkMediaDeviceInfo {
   static final instance = new BlinkMediaDeviceInfo();
 
-
   deviceId_Getter_(mthis) => mthis["deviceId"];
 
   groupId_Getter_(mthis) => mthis["groupId"];
@@ -8661,7 +8399,6 @@ class BlinkMediaDeviceInfo {
 class BlinkMediaElementAudioSourceNode extends BlinkAudioSourceNode {
   static final instance = new BlinkMediaElementAudioSourceNode();
 
-
   mediaElement_Getter_(mthis) => mthis["mediaElement"];
 
 }
@@ -8669,14 +8406,12 @@ class BlinkMediaElementAudioSourceNode extends BlinkAudioSourceNode {
 class BlinkMediaError {
   static final instance = new BlinkMediaError();
 
-
   code_Getter_(mthis) => mthis["code"];
 
 }
 
 class BlinkMediaKeyError {
   static final instance = new BlinkMediaKeyError();
-
 
   code_Getter_(mthis) => mthis["code"];
 
@@ -8686,7 +8421,6 @@ class BlinkMediaKeyError {
 
 class BlinkMediaKeyEvent extends BlinkEvent {
   static final instance = new BlinkMediaKeyEvent();
-
 
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["MediaKeyEvent"], [__arg_0, __arg_1]);
 
@@ -8709,7 +8443,6 @@ class BlinkMediaKeyEvent extends BlinkEvent {
 class BlinkMediaKeyMessageEvent extends BlinkEvent {
   static final instance = new BlinkMediaKeyMessageEvent();
 
-
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["MediaKeyMessageEvent"], [__arg_0, __arg_1]);
 
   destinationURL_Getter_(mthis) => mthis["destinationURL"];
@@ -8721,7 +8454,6 @@ class BlinkMediaKeyMessageEvent extends BlinkEvent {
 class BlinkMediaKeyNeededEvent extends BlinkEvent {
   static final instance = new BlinkMediaKeyNeededEvent();
 
-
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["MediaKeyNeededEvent"], [__arg_0, __arg_1]);
 
   contentType_Getter_(mthis) => mthis["contentType"];
@@ -8732,7 +8464,6 @@ class BlinkMediaKeyNeededEvent extends BlinkEvent {
 
 class BlinkMediaKeySession extends BlinkEventTarget {
   static final instance = new BlinkMediaKeySession();
-
 
   closed_Getter_(mthis) => mthis["closed"];
 
@@ -8759,7 +8490,6 @@ class BlinkMediaKeySession extends BlinkEventTarget {
 class BlinkMediaKeys {
   static final instance = new BlinkMediaKeys();
 
-
   createSession_Callback_0_(mthis) => mthis.callMethod("createSession", []);
 
   createSession_Callback_1_(mthis, __arg_0) => mthis.callMethod("createSession", [__arg_0]);
@@ -8780,7 +8510,6 @@ class BlinkMediaKeys {
 
 class BlinkMediaList {
   static final instance = new BlinkMediaList();
-
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
@@ -8807,7 +8536,6 @@ class BlinkMediaList {
 class BlinkMediaQueryList extends BlinkEventTarget {
   static final instance = new BlinkMediaQueryList();
 
-
   addListener_Callback_0_(mthis) => mthis.callMethod("addListener", []);
 
   addListener_Callback_1_(mthis, __arg_0) => mthis.callMethod("addListener", [__arg_0]);
@@ -8829,7 +8557,6 @@ class BlinkMediaQueryList extends BlinkEventTarget {
 class BlinkMediaQueryListEvent extends BlinkEvent {
   static final instance = new BlinkMediaQueryListEvent();
 
-
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["MediaQueryListEvent"], [__arg_0, __arg_1]);
 
   matches_Getter_(mthis) => mthis["matches"];
@@ -8840,7 +8567,6 @@ class BlinkMediaQueryListEvent extends BlinkEvent {
 
 class BlinkMediaSource extends BlinkEventTarget {
   static final instance = new BlinkMediaSource();
-
 
   activeSourceBuffers_Getter_(mthis) => mthis["activeSourceBuffers"];
 
@@ -8874,7 +8600,6 @@ class BlinkMediaSource extends BlinkEventTarget {
 
 class BlinkMediaStream extends BlinkEventTarget {
   static final instance = new BlinkMediaStream();
-
 
   addTrack_Callback_0_(mthis) => mthis.callMethod("addTrack", []);
 
@@ -8925,7 +8650,6 @@ class BlinkMediaStream extends BlinkEventTarget {
 class BlinkMediaStreamAudioDestinationNode extends BlinkAudioNode {
   static final instance = new BlinkMediaStreamAudioDestinationNode();
 
-
   stream_Getter_(mthis) => mthis["stream"];
 
 }
@@ -8933,14 +8657,12 @@ class BlinkMediaStreamAudioDestinationNode extends BlinkAudioNode {
 class BlinkMediaStreamAudioSourceNode extends BlinkAudioSourceNode {
   static final instance = new BlinkMediaStreamAudioSourceNode();
 
-
   mediaStream_Getter_(mthis) => mthis["mediaStream"];
 
 }
 
 class BlinkMediaStreamEvent extends BlinkEvent {
   static final instance = new BlinkMediaStreamEvent();
-
 
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["MediaStreamEvent"], [__arg_0, __arg_1]);
 
@@ -8950,7 +8672,6 @@ class BlinkMediaStreamEvent extends BlinkEvent {
 
 class BlinkMediaStreamTrack extends BlinkEventTarget {
   static final instance = new BlinkMediaStreamTrack();
-
 
   clone_Callback_0_(mthis) => mthis.callMethod("clone", []);
 
@@ -8991,14 +8712,12 @@ class BlinkMediaStreamTrack extends BlinkEventTarget {
 class BlinkMediaStreamTrackEvent extends BlinkEvent {
   static final instance = new BlinkMediaStreamTrackEvent();
 
-
   track_Getter_(mthis) => mthis["track"];
 
 }
 
 class BlinkMemoryInfo {
   static final instance = new BlinkMemoryInfo();
-
 
   jsHeapSizeLimit_Getter_(mthis) => mthis["jsHeapSizeLimit"];
 
@@ -9011,7 +8730,6 @@ class BlinkMemoryInfo {
 class BlinkMessageChannel {
   static final instance = new BlinkMessageChannel();
 
-
   constructorCallback_0_() => new js.JsObject(js.context["MessageChannel"], []);
 
   port1_Getter_(mthis) => mthis["port1"];
@@ -9022,7 +8740,6 @@ class BlinkMessageChannel {
 
 class BlinkMessageEvent extends BlinkEvent {
   static final instance = new BlinkMessageEvent();
-
 
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["MessageEvent"], [__arg_0, __arg_1]);
 
@@ -9057,7 +8774,6 @@ class BlinkMessageEvent extends BlinkEvent {
 class BlinkMessagePort extends BlinkEventTarget {
   static final instance = new BlinkMessagePort();
 
-
   close_Callback_0_(mthis) => mthis.callMethod("close", []);
 
   onmessage_Getter_(mthis) => mthis["onmessage"];
@@ -9077,7 +8793,6 @@ class BlinkMessagePort extends BlinkEventTarget {
 class BlinkMetadata {
   static final instance = new BlinkMetadata();
 
-
   modificationTime_Getter_(mthis) => mthis["modificationTime"];
 
   size_Getter_(mthis) => mthis["size"];
@@ -9086,7 +8801,6 @@ class BlinkMetadata {
 
 class BlinkMimeType {
   static final instance = new BlinkMimeType();
-
 
   description_Getter_(mthis) => mthis["description"];
 
@@ -9100,7 +8814,6 @@ class BlinkMimeType {
 
 class BlinkMimeTypeArray {
   static final instance = new BlinkMimeTypeArray();
-
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
@@ -9118,7 +8831,6 @@ class BlinkMimeTypeArray {
 
 class BlinkMouseEvent extends BlinkUIEvent {
   static final instance = new BlinkMouseEvent();
-
 
   altKey_Getter_(mthis) => mthis["altKey"];
 
@@ -9199,7 +8911,6 @@ class BlinkMouseEvent extends BlinkUIEvent {
 class BlinkMutationEvent extends BlinkEvent {
   static final instance = new BlinkMutationEvent();
 
-
   attrChange_Getter_(mthis) => mthis["attrChange"];
 
   attrName_Getter_(mthis) => mthis["attrName"];
@@ -9233,7 +8944,6 @@ class BlinkMutationEvent extends BlinkEvent {
 class BlinkMutationObserver {
   static final instance = new BlinkMutationObserver();
 
-
   constructorCallback_0_() => new js.JsObject(js.context["MutationObserver"], []);
 
   constructorCallback_1_(__arg_0) => new js.JsObject(js.context["MutationObserver"], [__arg_0]);
@@ -9252,7 +8962,6 @@ class BlinkMutationObserver {
 
 class BlinkMutationRecord {
   static final instance = new BlinkMutationRecord();
-
 
   addedNodes_Getter_(mthis) => mthis["addedNodes"];
 
@@ -9276,7 +8985,6 @@ class BlinkMutationRecord {
 
 class BlinkNamedNodeMap {
   static final instance = new BlinkNamedNodeMap();
-
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
@@ -9318,7 +9026,6 @@ class BlinkNamedNodeMap {
 
 class BlinkNavigator {
   static final instance = new BlinkNavigator();
-
 
   appCodeName_Getter_(mthis) => mthis["appCodeName"];
 
@@ -9427,7 +9134,6 @@ class BlinkNavigator {
 class BlinkNavigatorUserMediaError {
   static final instance = new BlinkNavigatorUserMediaError();
 
-
   constraintName_Getter_(mthis) => mthis["constraintName"];
 
   message_Getter_(mthis) => mthis["message"];
@@ -9439,7 +9145,6 @@ class BlinkNavigatorUserMediaError {
 class BlinkNetworkInformation extends BlinkEventTarget {
   static final instance = new BlinkNetworkInformation();
 
-
   ontypechange_Getter_(mthis) => mthis["ontypechange"];
 
   ontypechange_Setter_(mthis, __arg_0) => mthis["ontypechange"] = __arg_0;
@@ -9450,7 +9155,6 @@ class BlinkNetworkInformation extends BlinkEventTarget {
 
 class BlinkNode extends BlinkEventTarget {
   static final instance = new BlinkNode();
-
 
   appendChild_Callback_0_(mthis) => mthis.callMethod("appendChild", []);
 
@@ -9521,12 +9225,10 @@ class BlinkNode extends BlinkEventTarget {
 class BlinkNodeFilter {
   static final instance = new BlinkNodeFilter();
 
-
 }
 
 class BlinkNodeIterator {
   static final instance = new BlinkNodeIterator();
-
 
   detach_Callback_0_(mthis) => mthis.callMethod("detach", []);
 
@@ -9547,7 +9249,6 @@ class BlinkNodeIterator {
 class BlinkNodeList {
   static final instance = new BlinkNodeList();
 
-
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
   item_Callback_0_(mthis) => mthis.callMethod("item", []);
@@ -9560,7 +9261,6 @@ class BlinkNodeList {
 
 class BlinkNotification extends BlinkEventTarget {
   static final instance = new BlinkNotification();
-
 
   body_Getter_(mthis) => mthis["body"];
 
@@ -9609,42 +9309,35 @@ class BlinkNotification extends BlinkEventTarget {
 class BlinkOESElementIndexUint {
   static final instance = new BlinkOESElementIndexUint();
 
-
 }
 
 class BlinkOESStandardDerivatives {
   static final instance = new BlinkOESStandardDerivatives();
-
 
 }
 
 class BlinkOESTextureFloat {
   static final instance = new BlinkOESTextureFloat();
 
-
 }
 
 class BlinkOESTextureFloatLinear {
   static final instance = new BlinkOESTextureFloatLinear();
-
 
 }
 
 class BlinkOESTextureHalfFloat {
   static final instance = new BlinkOESTextureHalfFloat();
 
-
 }
 
 class BlinkOESTextureHalfFloatLinear {
   static final instance = new BlinkOESTextureHalfFloatLinear();
 
-
 }
 
 class BlinkOESVertexArrayObject {
   static final instance = new BlinkOESVertexArrayObject();
-
 
   bindVertexArrayOES_Callback_0_(mthis) => mthis.callMethod("bindVertexArrayOES", []);
 
@@ -9665,14 +9358,12 @@ class BlinkOESVertexArrayObject {
 class BlinkOfflineAudioCompletionEvent extends BlinkEvent {
   static final instance = new BlinkOfflineAudioCompletionEvent();
 
-
   renderedBuffer_Getter_(mthis) => mthis["renderedBuffer"];
 
 }
 
 class BlinkOfflineAudioContext extends BlinkAudioContext {
   static final instance = new BlinkOfflineAudioContext();
-
 
   constructorCallback_1_(__arg_0) => new js.JsObject(js.context["OfflineAudioContext"], [__arg_0]);
 
@@ -9684,7 +9375,6 @@ class BlinkOfflineAudioContext extends BlinkAudioContext {
 
 class BlinkOscillatorNode extends BlinkAudioSourceNode {
   static final instance = new BlinkOscillatorNode();
-
 
   detune_Getter_(mthis) => mthis["detune"];
 
@@ -9723,7 +9413,6 @@ class BlinkOscillatorNode extends BlinkAudioSourceNode {
 class BlinkOverflowEvent extends BlinkEvent {
   static final instance = new BlinkOverflowEvent();
 
-
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["OverflowEvent"], [__arg_0, __arg_1]);
 
   horizontalOverflow_Getter_(mthis) => mthis["horizontalOverflow"];
@@ -9736,7 +9425,6 @@ class BlinkOverflowEvent extends BlinkEvent {
 
 class BlinkPagePopupController {
   static final instance = new BlinkPagePopupController();
-
 
   closePopup_Callback_0_(mthis) => mthis.callMethod("closePopup", []);
 
@@ -9783,7 +9471,6 @@ class BlinkPagePopupController {
 class BlinkPageTransitionEvent extends BlinkEvent {
   static final instance = new BlinkPageTransitionEvent();
 
-
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["PageTransitionEvent"], [__arg_0, __arg_1]);
 
   persisted_Getter_(mthis) => mthis["persisted"];
@@ -9792,7 +9479,6 @@ class BlinkPageTransitionEvent extends BlinkEvent {
 
 class BlinkPannerNode extends BlinkAudioNode {
   static final instance = new BlinkPannerNode();
-
 
   coneInnerAngle_Getter_(mthis) => mthis["coneInnerAngle"];
 
@@ -9848,7 +9534,6 @@ class BlinkPannerNode extends BlinkAudioNode {
 
 class BlinkPath2D {
   static final instance = new BlinkPath2D();
-
 
   addPath_Callback_0_(mthis) => mthis.callMethod("addPath", []);
 
@@ -9919,7 +9604,6 @@ class BlinkPath2D {
 class BlinkPerformance extends BlinkEventTarget {
   static final instance = new BlinkPerformance();
 
-
   clearMarks_Callback_0_(mthis) => mthis.callMethod("clearMarks", []);
 
   clearMarks_Callback_1_(mthis, __arg_0) => mthis.callMethod("clearMarks", [__arg_0]);
@@ -9975,7 +9659,6 @@ class BlinkPerformance extends BlinkEventTarget {
 class BlinkPerformanceEntry {
   static final instance = new BlinkPerformanceEntry();
 
-
   duration_Getter_(mthis) => mthis["duration"];
 
   entryType_Getter_(mthis) => mthis["entryType"];
@@ -9989,18 +9672,15 @@ class BlinkPerformanceEntry {
 class BlinkPerformanceMark extends BlinkPerformanceEntry {
   static final instance = new BlinkPerformanceMark();
 
-
 }
 
 class BlinkPerformanceMeasure extends BlinkPerformanceEntry {
   static final instance = new BlinkPerformanceMeasure();
 
-
 }
 
 class BlinkPerformanceNavigation {
   static final instance = new BlinkPerformanceNavigation();
-
 
   redirectCount_Getter_(mthis) => mthis["redirectCount"];
 
@@ -10010,7 +9690,6 @@ class BlinkPerformanceNavigation {
 
 class BlinkPerformanceResourceTiming extends BlinkPerformanceEntry {
   static final instance = new BlinkPerformanceResourceTiming();
-
 
   connectEnd_Getter_(mthis) => mthis["connectEnd"];
 
@@ -10040,7 +9719,6 @@ class BlinkPerformanceResourceTiming extends BlinkPerformanceEntry {
 
 class BlinkPerformanceTiming {
   static final instance = new BlinkPerformanceTiming();
-
 
   connectEnd_Getter_(mthis) => mthis["connectEnd"];
 
@@ -10089,12 +9767,10 @@ class BlinkPerformanceTiming {
 class BlinkPeriodicWave {
   static final instance = new BlinkPeriodicWave();
 
-
 }
 
 class BlinkPlugin {
   static final instance = new BlinkPlugin();
-
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
@@ -10119,7 +9795,6 @@ class BlinkPlugin {
 class BlinkPluginArray {
   static final instance = new BlinkPluginArray();
 
-
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
   item_Callback_0_(mthis) => mthis.callMethod("item", []);
@@ -10141,7 +9816,6 @@ class BlinkPluginArray {
 class BlinkPluginPlaceholderElement extends BlinkHTMLDivElement {
   static final instance = new BlinkPluginPlaceholderElement();
 
-
   createdCallback_Callback_0_(mthis) => mthis.callMethod("createdCallback", []);
 
   message_Getter_(mthis) => mthis["message"];
@@ -10153,7 +9827,6 @@ class BlinkPluginPlaceholderElement extends BlinkHTMLDivElement {
 class BlinkPopStateEvent extends BlinkEvent {
   static final instance = new BlinkPopStateEvent();
 
-
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["PopStateEvent"], [__arg_0, __arg_1]);
 
   state_Getter_(mthis) => mthis["state"];
@@ -10162,7 +9835,6 @@ class BlinkPopStateEvent extends BlinkEvent {
 
 class BlinkPositionError {
   static final instance = new BlinkPositionError();
-
 
   code_Getter_(mthis) => mthis["code"];
 
@@ -10173,7 +9845,6 @@ class BlinkPositionError {
 class BlinkPresentation extends BlinkEventTarget {
   static final instance = new BlinkPresentation();
 
-
   onavailablechange_Getter_(mthis) => mthis["onavailablechange"];
 
   onavailablechange_Setter_(mthis, __arg_0) => mthis["onavailablechange"] = __arg_0;
@@ -10183,7 +9854,6 @@ class BlinkPresentation extends BlinkEventTarget {
 class BlinkProcessingInstruction extends BlinkCharacterData {
   static final instance = new BlinkProcessingInstruction();
 
-
   sheet_Getter_(mthis) => mthis["sheet"];
 
   target_Getter_(mthis) => mthis["target"];
@@ -10192,7 +9862,6 @@ class BlinkProcessingInstruction extends BlinkCharacterData {
 
 class BlinkProgressEvent extends BlinkEvent {
   static final instance = new BlinkProgressEvent();
-
 
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["ProgressEvent"], [__arg_0, __arg_1]);
 
@@ -10207,7 +9876,6 @@ class BlinkProgressEvent extends BlinkEvent {
 class BlinkPushEvent extends BlinkEvent {
   static final instance = new BlinkPushEvent();
 
-
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["PushEvent"], [__arg_0, __arg_1]);
 
   data_Getter_(mthis) => mthis["data"];
@@ -10216,7 +9884,6 @@ class BlinkPushEvent extends BlinkEvent {
 
 class BlinkPushManager {
   static final instance = new BlinkPushManager();
-
 
   register_Callback_0_(mthis) => mthis.callMethod("register", []);
 
@@ -10227,7 +9894,6 @@ class BlinkPushManager {
 class BlinkPushRegistration {
   static final instance = new BlinkPushRegistration();
 
-
   pushEndpoint_Getter_(mthis) => mthis["pushEndpoint"];
 
   pushRegistrationId_Getter_(mthis) => mthis["pushRegistrationId"];
@@ -10236,7 +9902,6 @@ class BlinkPushRegistration {
 
 class BlinkRGBColor {
   static final instance = new BlinkRGBColor();
-
 
   blue_Getter_(mthis) => mthis["blue"];
 
@@ -10248,7 +9913,6 @@ class BlinkRGBColor {
 
 class BlinkRTCDTMFSender extends BlinkEventTarget {
   static final instance = new BlinkRTCDTMFSender();
-
 
   canInsertDTMF_Getter_(mthis) => mthis["canInsertDTMF"];
 
@@ -10277,7 +9941,6 @@ class BlinkRTCDTMFSender extends BlinkEventTarget {
 class BlinkRTCDTMFToneChangeEvent extends BlinkEvent {
   static final instance = new BlinkRTCDTMFToneChangeEvent();
 
-
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["RTCDTMFToneChangeEvent"], [__arg_0, __arg_1]);
 
   tone_Getter_(mthis) => mthis["tone"];
@@ -10286,7 +9949,6 @@ class BlinkRTCDTMFToneChangeEvent extends BlinkEvent {
 
 class BlinkRTCDataChannel extends BlinkEventTarget {
   static final instance = new BlinkRTCDataChannel();
-
 
   binaryType_Getter_(mthis) => mthis["binaryType"];
 
@@ -10339,14 +10001,12 @@ class BlinkRTCDataChannel extends BlinkEventTarget {
 class BlinkRTCDataChannelEvent extends BlinkEvent {
   static final instance = new BlinkRTCDataChannelEvent();
 
-
   channel_Getter_(mthis) => mthis["channel"];
 
 }
 
 class BlinkRTCIceCandidate {
   static final instance = new BlinkRTCIceCandidate();
-
 
   candidate_Getter_(mthis) => mthis["candidate"];
 
@@ -10369,14 +10029,12 @@ class BlinkRTCIceCandidate {
 class BlinkRTCIceCandidateEvent extends BlinkEvent {
   static final instance = new BlinkRTCIceCandidateEvent();
 
-
   candidate_Getter_(mthis) => mthis["candidate"];
 
 }
 
 class BlinkRTCPeerConnection extends BlinkEventTarget {
   static final instance = new BlinkRTCPeerConnection();
-
 
   addIceCandidate_Callback_1_(mthis, __arg_0) => mthis.callMethod("addIceCandidate", [__arg_0]);
 
@@ -10507,7 +10165,6 @@ class BlinkRTCPeerConnection extends BlinkEventTarget {
 class BlinkRTCSessionDescription {
   static final instance = new BlinkRTCSessionDescription();
 
-
   constructorCallback_0_() => new js.JsObject(js.context["RTCSessionDescription"], []);
 
   constructorCallback_1_(__arg_0) => new js.JsObject(js.context["RTCSessionDescription"], [__arg_0]);
@@ -10524,7 +10181,6 @@ class BlinkRTCSessionDescription {
 
 class BlinkRTCStatsReport {
   static final instance = new BlinkRTCStatsReport();
-
 
   id_Getter_(mthis) => mthis["id"];
 
@@ -10547,7 +10203,6 @@ class BlinkRTCStatsReport {
 class BlinkRTCStatsResponse {
   static final instance = new BlinkRTCStatsResponse();
 
-
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
   namedItem_Callback_0_(mthis) => mthis.callMethod("namedItem", []);
@@ -10561,7 +10216,6 @@ class BlinkRTCStatsResponse {
 class BlinkRadioNodeList extends BlinkNodeList {
   static final instance = new BlinkRadioNodeList();
 
-
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
   value_Getter_(mthis) => mthis["value"];
@@ -10572,7 +10226,6 @@ class BlinkRadioNodeList extends BlinkNodeList {
 
 class BlinkRange {
   static final instance = new BlinkRange();
-
 
   cloneContents_Callback_0_(mthis) => mthis.callMethod("cloneContents", []);
 
@@ -10689,7 +10342,6 @@ class BlinkRange {
 class BlinkReadableStream {
   static final instance = new BlinkReadableStream();
 
-
   cancel_Callback_0_(mthis) => mthis.callMethod("cancel", []);
 
   cancel_Callback_1_(mthis, __arg_0) => mthis.callMethod("cancel", [__arg_0]);
@@ -10707,7 +10359,6 @@ class BlinkReadableStream {
 class BlinkRect {
   static final instance = new BlinkRect();
 
-
   bottom_Getter_(mthis) => mthis["bottom"];
 
   left_Getter_(mthis) => mthis["left"];
@@ -10721,7 +10372,6 @@ class BlinkRect {
 class BlinkRelatedEvent extends BlinkEvent {
   static final instance = new BlinkRelatedEvent();
 
-
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["RelatedEvent"], [__arg_0, __arg_1]);
 
   relatedTarget_Getter_(mthis) => mthis["relatedTarget"];
@@ -10730,7 +10380,6 @@ class BlinkRelatedEvent extends BlinkEvent {
 
 class BlinkRequest {
   static final instance = new BlinkRequest();
-
 
   arrayBuffer_Callback_0_(mthis) => mthis.callMethod("arrayBuffer", []);
 
@@ -10767,14 +10416,12 @@ class BlinkRequest {
 class BlinkResourceProgressEvent extends BlinkProgressEvent {
   static final instance = new BlinkResourceProgressEvent();
 
-
   url_Getter_(mthis) => mthis["url"];
 
 }
 
 class BlinkResponse {
   static final instance = new BlinkResponse();
-
 
   arrayBuffer_Callback_0_(mthis) => mthis.callMethod("arrayBuffer", []);
 
@@ -10809,7 +10456,6 @@ class BlinkResponse {
 class BlinkSQLError {
   static final instance = new BlinkSQLError();
 
-
   code_Getter_(mthis) => mthis["code"];
 
   message_Getter_(mthis) => mthis["message"];
@@ -10818,7 +10464,6 @@ class BlinkSQLError {
 
 class BlinkSQLResultSet {
   static final instance = new BlinkSQLResultSet();
-
 
   insertId_Getter_(mthis) => mthis["insertId"];
 
@@ -10831,7 +10476,6 @@ class BlinkSQLResultSet {
 class BlinkSQLResultSetRowList {
   static final instance = new BlinkSQLResultSetRowList();
 
-
   item_Callback_0_(mthis) => mthis.callMethod("item", []);
 
   item_Callback_1_(mthis, __arg_0) => mthis.callMethod("item", [__arg_0]);
@@ -10842,7 +10486,6 @@ class BlinkSQLResultSetRowList {
 
 class BlinkSQLTransaction {
   static final instance = new BlinkSQLTransaction();
-
 
   executeSql_Callback_0_(mthis) => mthis.callMethod("executeSql", []);
 
@@ -10859,7 +10502,6 @@ class BlinkSQLTransaction {
 class BlinkSVGAElement extends BlinkSVGGraphicsElement {
   static final instance = new BlinkSVGAElement();
 
-
   href_Getter_(mthis) => mthis["href"];
 
   target_Getter_(mthis) => mthis["target"];
@@ -10869,12 +10511,10 @@ class BlinkSVGAElement extends BlinkSVGGraphicsElement {
 class BlinkSVGAltGlyphDefElement extends BlinkSVGElement {
   static final instance = new BlinkSVGAltGlyphDefElement();
 
-
 }
 
 class BlinkSVGAltGlyphElement extends BlinkSVGTextPositioningElement {
   static final instance = new BlinkSVGAltGlyphElement();
-
 
   format_Getter_(mthis) => mthis["format"];
 
@@ -10891,12 +10531,10 @@ class BlinkSVGAltGlyphElement extends BlinkSVGTextPositioningElement {
 class BlinkSVGAltGlyphItemElement extends BlinkSVGElement {
   static final instance = new BlinkSVGAltGlyphItemElement();
 
-
 }
 
 class BlinkSVGAngle {
   static final instance = new BlinkSVGAngle();
-
 
   convertToSpecifiedUnits_Callback_0_(mthis) => mthis.callMethod("convertToSpecifiedUnits", []);
 
@@ -10927,24 +10565,20 @@ class BlinkSVGAngle {
 class BlinkSVGAnimateElement extends BlinkSVGAnimationElement {
   static final instance = new BlinkSVGAnimateElement();
 
-
 }
 
 class BlinkSVGAnimateMotionElement extends BlinkSVGAnimationElement {
   static final instance = new BlinkSVGAnimateMotionElement();
-
 
 }
 
 class BlinkSVGAnimateTransformElement extends BlinkSVGAnimationElement {
   static final instance = new BlinkSVGAnimateTransformElement();
 
-
 }
 
 class BlinkSVGAnimatedAngle {
   static final instance = new BlinkSVGAnimatedAngle();
-
 
   animVal_Getter_(mthis) => mthis["animVal"];
 
@@ -10954,7 +10588,6 @@ class BlinkSVGAnimatedAngle {
 
 class BlinkSVGAnimatedBoolean {
   static final instance = new BlinkSVGAnimatedBoolean();
-
 
   animVal_Getter_(mthis) => mthis["animVal"];
 
@@ -10967,7 +10600,6 @@ class BlinkSVGAnimatedBoolean {
 class BlinkSVGAnimatedEnumeration {
   static final instance = new BlinkSVGAnimatedEnumeration();
 
-
   animVal_Getter_(mthis) => mthis["animVal"];
 
   baseVal_Getter_(mthis) => mthis["baseVal"];
@@ -10978,7 +10610,6 @@ class BlinkSVGAnimatedEnumeration {
 
 class BlinkSVGAnimatedInteger {
   static final instance = new BlinkSVGAnimatedInteger();
-
 
   animVal_Getter_(mthis) => mthis["animVal"];
 
@@ -10991,7 +10622,6 @@ class BlinkSVGAnimatedInteger {
 class BlinkSVGAnimatedLength {
   static final instance = new BlinkSVGAnimatedLength();
 
-
   animVal_Getter_(mthis) => mthis["animVal"];
 
   baseVal_Getter_(mthis) => mthis["baseVal"];
@@ -11001,7 +10631,6 @@ class BlinkSVGAnimatedLength {
 class BlinkSVGAnimatedLengthList {
   static final instance = new BlinkSVGAnimatedLengthList();
 
-
   animVal_Getter_(mthis) => mthis["animVal"];
 
   baseVal_Getter_(mthis) => mthis["baseVal"];
@@ -11010,7 +10639,6 @@ class BlinkSVGAnimatedLengthList {
 
 class BlinkSVGAnimatedNumber {
   static final instance = new BlinkSVGAnimatedNumber();
-
 
   animVal_Getter_(mthis) => mthis["animVal"];
 
@@ -11023,7 +10651,6 @@ class BlinkSVGAnimatedNumber {
 class BlinkSVGAnimatedNumberList {
   static final instance = new BlinkSVGAnimatedNumberList();
 
-
   animVal_Getter_(mthis) => mthis["animVal"];
 
   baseVal_Getter_(mthis) => mthis["baseVal"];
@@ -11032,7 +10659,6 @@ class BlinkSVGAnimatedNumberList {
 
 class BlinkSVGAnimatedPreserveAspectRatio {
   static final instance = new BlinkSVGAnimatedPreserveAspectRatio();
-
 
   animVal_Getter_(mthis) => mthis["animVal"];
 
@@ -11043,7 +10669,6 @@ class BlinkSVGAnimatedPreserveAspectRatio {
 class BlinkSVGAnimatedRect {
   static final instance = new BlinkSVGAnimatedRect();
 
-
   animVal_Getter_(mthis) => mthis["animVal"];
 
   baseVal_Getter_(mthis) => mthis["baseVal"];
@@ -11052,7 +10677,6 @@ class BlinkSVGAnimatedRect {
 
 class BlinkSVGAnimatedString {
   static final instance = new BlinkSVGAnimatedString();
-
 
   animVal_Getter_(mthis) => mthis["animVal"];
 
@@ -11065,7 +10689,6 @@ class BlinkSVGAnimatedString {
 class BlinkSVGAnimatedTransformList {
   static final instance = new BlinkSVGAnimatedTransformList();
 
-
   animVal_Getter_(mthis) => mthis["animVal"];
 
   baseVal_Getter_(mthis) => mthis["baseVal"];
@@ -11074,7 +10697,6 @@ class BlinkSVGAnimatedTransformList {
 
 class BlinkSVGAnimationElement extends BlinkSVGElement {
   static final instance = new BlinkSVGAnimationElement();
-
 
   beginElementAt_Callback_0_(mthis) => mthis.callMethod("beginElementAt", []);
 
@@ -11123,7 +10745,6 @@ class BlinkSVGAnimationElement extends BlinkSVGElement {
 class BlinkSVGCircleElement extends BlinkSVGGeometryElement {
   static final instance = new BlinkSVGCircleElement();
 
-
   cx_Getter_(mthis) => mthis["cx"];
 
   cy_Getter_(mthis) => mthis["cy"];
@@ -11135,14 +10756,12 @@ class BlinkSVGCircleElement extends BlinkSVGGeometryElement {
 class BlinkSVGClipPathElement extends BlinkSVGGraphicsElement {
   static final instance = new BlinkSVGClipPathElement();
 
-
   clipPathUnits_Getter_(mthis) => mthis["clipPathUnits"];
 
 }
 
 class BlinkSVGComponentTransferFunctionElement extends BlinkSVGElement {
   static final instance = new BlinkSVGComponentTransferFunctionElement();
-
 
   amplitude_Getter_(mthis) => mthis["amplitude"];
 
@@ -11162,7 +10781,6 @@ class BlinkSVGComponentTransferFunctionElement extends BlinkSVGElement {
 
 class BlinkSVGCursorElement extends BlinkSVGElement {
   static final instance = new BlinkSVGCursorElement();
-
 
   hasExtension_Callback_0_(mthis) => mthis.callMethod("hasExtension", []);
 
@@ -11185,24 +10803,20 @@ class BlinkSVGCursorElement extends BlinkSVGElement {
 class BlinkSVGDefsElement extends BlinkSVGGraphicsElement {
   static final instance = new BlinkSVGDefsElement();
 
-
 }
 
 class BlinkSVGDescElement extends BlinkSVGElement {
   static final instance = new BlinkSVGDescElement();
-
 
 }
 
 class BlinkSVGDiscardElement extends BlinkSVGElement {
   static final instance = new BlinkSVGDiscardElement();
 
-
 }
 
 class BlinkSVGElement extends BlinkElement {
   static final instance = new BlinkSVGElement();
-
 
   className_Getter_(mthis) => mthis["className"];
 
@@ -11477,7 +11091,6 @@ class BlinkSVGElement extends BlinkElement {
 class BlinkSVGEllipseElement extends BlinkSVGGeometryElement {
   static final instance = new BlinkSVGEllipseElement();
 
-
   cx_Getter_(mthis) => mthis["cx"];
 
   cy_Getter_(mthis) => mthis["cy"];
@@ -11490,7 +11103,6 @@ class BlinkSVGEllipseElement extends BlinkSVGGeometryElement {
 
 class BlinkSVGFEBlendElement extends BlinkSVGElement {
   static final instance = new BlinkSVGFEBlendElement();
-
 
   height_Getter_(mthis) => mthis["height"];
 
@@ -11513,7 +11125,6 @@ class BlinkSVGFEBlendElement extends BlinkSVGElement {
 class BlinkSVGFEColorMatrixElement extends BlinkSVGElement {
   static final instance = new BlinkSVGFEColorMatrixElement();
 
-
   height_Getter_(mthis) => mthis["height"];
 
   in1_Getter_(mthis) => mthis["in1"];
@@ -11535,7 +11146,6 @@ class BlinkSVGFEColorMatrixElement extends BlinkSVGElement {
 class BlinkSVGFEComponentTransferElement extends BlinkSVGElement {
   static final instance = new BlinkSVGFEComponentTransferElement();
 
-
   height_Getter_(mthis) => mthis["height"];
 
   in1_Getter_(mthis) => mthis["in1"];
@@ -11552,7 +11162,6 @@ class BlinkSVGFEComponentTransferElement extends BlinkSVGElement {
 
 class BlinkSVGFECompositeElement extends BlinkSVGElement {
   static final instance = new BlinkSVGFECompositeElement();
-
 
   height_Getter_(mthis) => mthis["height"];
 
@@ -11582,7 +11191,6 @@ class BlinkSVGFECompositeElement extends BlinkSVGElement {
 
 class BlinkSVGFEConvolveMatrixElement extends BlinkSVGElement {
   static final instance = new BlinkSVGFEConvolveMatrixElement();
-
 
   bias_Getter_(mthis) => mthis["bias"];
 
@@ -11623,7 +11231,6 @@ class BlinkSVGFEConvolveMatrixElement extends BlinkSVGElement {
 class BlinkSVGFEDiffuseLightingElement extends BlinkSVGElement {
   static final instance = new BlinkSVGFEDiffuseLightingElement();
 
-
   diffuseConstant_Getter_(mthis) => mthis["diffuseConstant"];
 
   height_Getter_(mthis) => mthis["height"];
@@ -11648,7 +11255,6 @@ class BlinkSVGFEDiffuseLightingElement extends BlinkSVGElement {
 
 class BlinkSVGFEDisplacementMapElement extends BlinkSVGElement {
   static final instance = new BlinkSVGFEDisplacementMapElement();
-
 
   height_Getter_(mthis) => mthis["height"];
 
@@ -11675,7 +11281,6 @@ class BlinkSVGFEDisplacementMapElement extends BlinkSVGElement {
 class BlinkSVGFEDistantLightElement extends BlinkSVGElement {
   static final instance = new BlinkSVGFEDistantLightElement();
 
-
   azimuth_Getter_(mthis) => mthis["azimuth"];
 
   elevation_Getter_(mthis) => mthis["elevation"];
@@ -11684,7 +11289,6 @@ class BlinkSVGFEDistantLightElement extends BlinkSVGElement {
 
 class BlinkSVGFEDropShadowElement extends BlinkSVGElement {
   static final instance = new BlinkSVGFEDropShadowElement();
-
 
   dx_Getter_(mthis) => mthis["dx"];
 
@@ -11717,7 +11321,6 @@ class BlinkSVGFEDropShadowElement extends BlinkSVGElement {
 class BlinkSVGFEFloodElement extends BlinkSVGElement {
   static final instance = new BlinkSVGFEFloodElement();
 
-
   height_Getter_(mthis) => mthis["height"];
 
   result_Getter_(mthis) => mthis["result"];
@@ -11733,30 +11336,25 @@ class BlinkSVGFEFloodElement extends BlinkSVGElement {
 class BlinkSVGFEFuncAElement extends BlinkSVGComponentTransferFunctionElement {
   static final instance = new BlinkSVGFEFuncAElement();
 
-
 }
 
 class BlinkSVGFEFuncBElement extends BlinkSVGComponentTransferFunctionElement {
   static final instance = new BlinkSVGFEFuncBElement();
-
 
 }
 
 class BlinkSVGFEFuncGElement extends BlinkSVGComponentTransferFunctionElement {
   static final instance = new BlinkSVGFEFuncGElement();
 
-
 }
 
 class BlinkSVGFEFuncRElement extends BlinkSVGComponentTransferFunctionElement {
   static final instance = new BlinkSVGFEFuncRElement();
 
-
 }
 
 class BlinkSVGFEGaussianBlurElement extends BlinkSVGElement {
   static final instance = new BlinkSVGFEGaussianBlurElement();
-
 
   height_Getter_(mthis) => mthis["height"];
 
@@ -11785,7 +11383,6 @@ class BlinkSVGFEGaussianBlurElement extends BlinkSVGElement {
 class BlinkSVGFEImageElement extends BlinkSVGElement {
   static final instance = new BlinkSVGFEImageElement();
 
-
   height_Getter_(mthis) => mthis["height"];
 
   href_Getter_(mthis) => mthis["href"];
@@ -11805,7 +11402,6 @@ class BlinkSVGFEImageElement extends BlinkSVGElement {
 class BlinkSVGFEMergeElement extends BlinkSVGElement {
   static final instance = new BlinkSVGFEMergeElement();
 
-
   height_Getter_(mthis) => mthis["height"];
 
   result_Getter_(mthis) => mthis["result"];
@@ -11821,14 +11417,12 @@ class BlinkSVGFEMergeElement extends BlinkSVGElement {
 class BlinkSVGFEMergeNodeElement extends BlinkSVGElement {
   static final instance = new BlinkSVGFEMergeNodeElement();
 
-
   in1_Getter_(mthis) => mthis["in1"];
 
 }
 
 class BlinkSVGFEMorphologyElement extends BlinkSVGElement {
   static final instance = new BlinkSVGFEMorphologyElement();
-
 
   height_Getter_(mthis) => mthis["height"];
 
@@ -11853,7 +11447,6 @@ class BlinkSVGFEMorphologyElement extends BlinkSVGElement {
 class BlinkSVGFEOffsetElement extends BlinkSVGElement {
   static final instance = new BlinkSVGFEOffsetElement();
 
-
   dx_Getter_(mthis) => mthis["dx"];
 
   dy_Getter_(mthis) => mthis["dy"];
@@ -11875,7 +11468,6 @@ class BlinkSVGFEOffsetElement extends BlinkSVGElement {
 class BlinkSVGFEPointLightElement extends BlinkSVGElement {
   static final instance = new BlinkSVGFEPointLightElement();
 
-
   x_Getter_(mthis) => mthis["x"];
 
   y_Getter_(mthis) => mthis["y"];
@@ -11886,7 +11478,6 @@ class BlinkSVGFEPointLightElement extends BlinkSVGElement {
 
 class BlinkSVGFESpecularLightingElement extends BlinkSVGElement {
   static final instance = new BlinkSVGFESpecularLightingElement();
-
 
   height_Getter_(mthis) => mthis["height"];
 
@@ -11911,7 +11502,6 @@ class BlinkSVGFESpecularLightingElement extends BlinkSVGElement {
 class BlinkSVGFESpotLightElement extends BlinkSVGElement {
   static final instance = new BlinkSVGFESpotLightElement();
 
-
   limitingConeAngle_Getter_(mthis) => mthis["limitingConeAngle"];
 
   pointsAtX_Getter_(mthis) => mthis["pointsAtX"];
@@ -11933,7 +11523,6 @@ class BlinkSVGFESpotLightElement extends BlinkSVGElement {
 class BlinkSVGFETileElement extends BlinkSVGElement {
   static final instance = new BlinkSVGFETileElement();
 
-
   height_Getter_(mthis) => mthis["height"];
 
   in1_Getter_(mthis) => mthis["in1"];
@@ -11950,7 +11539,6 @@ class BlinkSVGFETileElement extends BlinkSVGElement {
 
 class BlinkSVGFETurbulenceElement extends BlinkSVGElement {
   static final instance = new BlinkSVGFETurbulenceElement();
-
 
   baseFrequencyX_Getter_(mthis) => mthis["baseFrequencyX"];
 
@@ -11978,7 +11566,6 @@ class BlinkSVGFETurbulenceElement extends BlinkSVGElement {
 
 class BlinkSVGFilterElement extends BlinkSVGElement {
   static final instance = new BlinkSVGFilterElement();
-
 
   filterResX_Getter_(mthis) => mthis["filterResX"];
 
@@ -12009,42 +11596,35 @@ class BlinkSVGFilterElement extends BlinkSVGElement {
 class BlinkSVGFontElement extends BlinkSVGElement {
   static final instance = new BlinkSVGFontElement();
 
-
 }
 
 class BlinkSVGFontFaceElement extends BlinkSVGElement {
   static final instance = new BlinkSVGFontFaceElement();
-
 
 }
 
 class BlinkSVGFontFaceFormatElement extends BlinkSVGElement {
   static final instance = new BlinkSVGFontFaceFormatElement();
 
-
 }
 
 class BlinkSVGFontFaceNameElement extends BlinkSVGElement {
   static final instance = new BlinkSVGFontFaceNameElement();
-
 
 }
 
 class BlinkSVGFontFaceSrcElement extends BlinkSVGElement {
   static final instance = new BlinkSVGFontFaceSrcElement();
 
-
 }
 
 class BlinkSVGFontFaceUriElement extends BlinkSVGElement {
   static final instance = new BlinkSVGFontFaceUriElement();
 
-
 }
 
 class BlinkSVGForeignObjectElement extends BlinkSVGGraphicsElement {
   static final instance = new BlinkSVGForeignObjectElement();
-
 
   height_Getter_(mthis) => mthis["height"];
 
@@ -12059,12 +11639,10 @@ class BlinkSVGForeignObjectElement extends BlinkSVGGraphicsElement {
 class BlinkSVGGElement extends BlinkSVGGraphicsElement {
   static final instance = new BlinkSVGGElement();
 
-
 }
 
 class BlinkSVGGeometryElement extends BlinkSVGGraphicsElement {
   static final instance = new BlinkSVGGeometryElement();
-
 
   isPointInFill_Callback_0_(mthis) => mthis.callMethod("isPointInFill", []);
 
@@ -12079,12 +11657,10 @@ class BlinkSVGGeometryElement extends BlinkSVGGraphicsElement {
 class BlinkSVGGlyphElement extends BlinkSVGElement {
   static final instance = new BlinkSVGGlyphElement();
 
-
 }
 
 class BlinkSVGGlyphRefElement extends BlinkSVGElement {
   static final instance = new BlinkSVGGlyphRefElement();
-
 
   dx_Getter_(mthis) => mthis["dx"];
 
@@ -12117,7 +11693,6 @@ class BlinkSVGGlyphRefElement extends BlinkSVGElement {
 class BlinkSVGGradientElement extends BlinkSVGElement {
   static final instance = new BlinkSVGGradientElement();
 
-
   gradientTransform_Getter_(mthis) => mthis["gradientTransform"];
 
   gradientUnits_Getter_(mthis) => mthis["gradientUnits"];
@@ -12130,7 +11705,6 @@ class BlinkSVGGradientElement extends BlinkSVGElement {
 
 class BlinkSVGGraphicsElement extends BlinkSVGElement {
   static final instance = new BlinkSVGGraphicsElement();
-
 
   farthestViewportElement_Getter_(mthis) => mthis["farthestViewportElement"];
 
@@ -12163,12 +11737,10 @@ class BlinkSVGGraphicsElement extends BlinkSVGElement {
 class BlinkSVGHKernElement extends BlinkSVGElement {
   static final instance = new BlinkSVGHKernElement();
 
-
 }
 
 class BlinkSVGImageElement extends BlinkSVGGraphicsElement {
   static final instance = new BlinkSVGImageElement();
-
 
   height_Getter_(mthis) => mthis["height"];
 
@@ -12186,7 +11758,6 @@ class BlinkSVGImageElement extends BlinkSVGGraphicsElement {
 
 class BlinkSVGLength {
   static final instance = new BlinkSVGLength();
-
 
   convertToSpecifiedUnits_Callback_0_(mthis) => mthis.callMethod("convertToSpecifiedUnits", []);
 
@@ -12216,7 +11787,6 @@ class BlinkSVGLength {
 
 class BlinkSVGLengthList {
   static final instance = new BlinkSVGLengthList();
-
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
@@ -12261,7 +11831,6 @@ class BlinkSVGLengthList {
 class BlinkSVGLineElement extends BlinkSVGGeometryElement {
   static final instance = new BlinkSVGLineElement();
 
-
   x1_Getter_(mthis) => mthis["x1"];
 
   x2_Getter_(mthis) => mthis["x2"];
@@ -12274,7 +11843,6 @@ class BlinkSVGLineElement extends BlinkSVGGeometryElement {
 
 class BlinkSVGLinearGradientElement extends BlinkSVGGradientElement {
   static final instance = new BlinkSVGLinearGradientElement();
-
 
   x1_Getter_(mthis) => mthis["x1"];
 
@@ -12289,14 +11857,12 @@ class BlinkSVGLinearGradientElement extends BlinkSVGGradientElement {
 class BlinkSVGMPathElement extends BlinkSVGElement {
   static final instance = new BlinkSVGMPathElement();
 
-
   href_Getter_(mthis) => mthis["href"];
 
 }
 
 class BlinkSVGMarkerElement extends BlinkSVGElement {
   static final instance = new BlinkSVGMarkerElement();
-
 
   markerHeight_Getter_(mthis) => mthis["markerHeight"];
 
@@ -12327,7 +11893,6 @@ class BlinkSVGMarkerElement extends BlinkSVGElement {
 class BlinkSVGMaskElement extends BlinkSVGElement {
   static final instance = new BlinkSVGMaskElement();
 
-
   hasExtension_Callback_0_(mthis) => mthis.callMethod("hasExtension", []);
 
   hasExtension_Callback_1_(mthis, __arg_0) => mthis.callMethod("hasExtension", [__arg_0]);
@@ -12354,7 +11919,6 @@ class BlinkSVGMaskElement extends BlinkSVGElement {
 
 class BlinkSVGMatrix {
   static final instance = new BlinkSVGMatrix();
-
 
   a_Getter_(mthis) => mthis["a"];
 
@@ -12429,18 +11993,15 @@ class BlinkSVGMatrix {
 class BlinkSVGMetadataElement extends BlinkSVGElement {
   static final instance = new BlinkSVGMetadataElement();
 
-
 }
 
 class BlinkSVGMissingGlyphElement extends BlinkSVGElement {
   static final instance = new BlinkSVGMissingGlyphElement();
 
-
 }
 
 class BlinkSVGNumber {
   static final instance = new BlinkSVGNumber();
-
 
   value_Getter_(mthis) => mthis["value"];
 
@@ -12450,7 +12011,6 @@ class BlinkSVGNumber {
 
 class BlinkSVGNumberList {
   static final instance = new BlinkSVGNumberList();
-
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
@@ -12494,7 +12054,6 @@ class BlinkSVGNumberList {
 
 class BlinkSVGPathElement extends BlinkSVGGeometryElement {
   static final instance = new BlinkSVGPathElement();
-
 
   animatedNormalizedPathSegList_Getter_(mthis) => mthis["animatedNormalizedPathSegList"];
 
@@ -12623,7 +12182,6 @@ class BlinkSVGPathElement extends BlinkSVGGeometryElement {
 class BlinkSVGPathSeg {
   static final instance = new BlinkSVGPathSeg();
 
-
   pathSegTypeAsLetter_Getter_(mthis) => mthis["pathSegTypeAsLetter"];
 
   pathSegType_Getter_(mthis) => mthis["pathSegType"];
@@ -12632,7 +12190,6 @@ class BlinkSVGPathSeg {
 
 class BlinkSVGPathSegArcAbs extends BlinkSVGPathSeg {
   static final instance = new BlinkSVGPathSegArcAbs();
-
 
   angle_Getter_(mthis) => mthis["angle"];
 
@@ -12667,7 +12224,6 @@ class BlinkSVGPathSegArcAbs extends BlinkSVGPathSeg {
 class BlinkSVGPathSegArcRel extends BlinkSVGPathSeg {
   static final instance = new BlinkSVGPathSegArcRel();
 
-
   angle_Getter_(mthis) => mthis["angle"];
 
   angle_Setter_(mthis, __arg_0) => mthis["angle"] = __arg_0;
@@ -12701,12 +12257,10 @@ class BlinkSVGPathSegArcRel extends BlinkSVGPathSeg {
 class BlinkSVGPathSegClosePath extends BlinkSVGPathSeg {
   static final instance = new BlinkSVGPathSegClosePath();
 
-
 }
 
 class BlinkSVGPathSegCurvetoCubicAbs extends BlinkSVGPathSeg {
   static final instance = new BlinkSVGPathSegCurvetoCubicAbs();
-
 
   x1_Getter_(mthis) => mthis["x1"];
 
@@ -12737,7 +12291,6 @@ class BlinkSVGPathSegCurvetoCubicAbs extends BlinkSVGPathSeg {
 class BlinkSVGPathSegCurvetoCubicRel extends BlinkSVGPathSeg {
   static final instance = new BlinkSVGPathSegCurvetoCubicRel();
 
-
   x1_Getter_(mthis) => mthis["x1"];
 
   x1_Setter_(mthis, __arg_0) => mthis["x1"] = __arg_0;
@@ -12767,7 +12320,6 @@ class BlinkSVGPathSegCurvetoCubicRel extends BlinkSVGPathSeg {
 class BlinkSVGPathSegCurvetoCubicSmoothAbs extends BlinkSVGPathSeg {
   static final instance = new BlinkSVGPathSegCurvetoCubicSmoothAbs();
 
-
   x2_Getter_(mthis) => mthis["x2"];
 
   x2_Setter_(mthis, __arg_0) => mthis["x2"] = __arg_0;
@@ -12788,7 +12340,6 @@ class BlinkSVGPathSegCurvetoCubicSmoothAbs extends BlinkSVGPathSeg {
 
 class BlinkSVGPathSegCurvetoCubicSmoothRel extends BlinkSVGPathSeg {
   static final instance = new BlinkSVGPathSegCurvetoCubicSmoothRel();
-
 
   x2_Getter_(mthis) => mthis["x2"];
 
@@ -12811,7 +12362,6 @@ class BlinkSVGPathSegCurvetoCubicSmoothRel extends BlinkSVGPathSeg {
 class BlinkSVGPathSegCurvetoQuadraticAbs extends BlinkSVGPathSeg {
   static final instance = new BlinkSVGPathSegCurvetoQuadraticAbs();
 
-
   x1_Getter_(mthis) => mthis["x1"];
 
   x1_Setter_(mthis, __arg_0) => mthis["x1"] = __arg_0;
@@ -12832,7 +12382,6 @@ class BlinkSVGPathSegCurvetoQuadraticAbs extends BlinkSVGPathSeg {
 
 class BlinkSVGPathSegCurvetoQuadraticRel extends BlinkSVGPathSeg {
   static final instance = new BlinkSVGPathSegCurvetoQuadraticRel();
-
 
   x1_Getter_(mthis) => mthis["x1"];
 
@@ -12855,7 +12404,6 @@ class BlinkSVGPathSegCurvetoQuadraticRel extends BlinkSVGPathSeg {
 class BlinkSVGPathSegCurvetoQuadraticSmoothAbs extends BlinkSVGPathSeg {
   static final instance = new BlinkSVGPathSegCurvetoQuadraticSmoothAbs();
 
-
   x_Getter_(mthis) => mthis["x"];
 
   x_Setter_(mthis, __arg_0) => mthis["x"] = __arg_0;
@@ -12868,7 +12416,6 @@ class BlinkSVGPathSegCurvetoQuadraticSmoothAbs extends BlinkSVGPathSeg {
 
 class BlinkSVGPathSegCurvetoQuadraticSmoothRel extends BlinkSVGPathSeg {
   static final instance = new BlinkSVGPathSegCurvetoQuadraticSmoothRel();
-
 
   x_Getter_(mthis) => mthis["x"];
 
@@ -12883,7 +12430,6 @@ class BlinkSVGPathSegCurvetoQuadraticSmoothRel extends BlinkSVGPathSeg {
 class BlinkSVGPathSegLinetoAbs extends BlinkSVGPathSeg {
   static final instance = new BlinkSVGPathSegLinetoAbs();
 
-
   x_Getter_(mthis) => mthis["x"];
 
   x_Setter_(mthis, __arg_0) => mthis["x"] = __arg_0;
@@ -12897,7 +12443,6 @@ class BlinkSVGPathSegLinetoAbs extends BlinkSVGPathSeg {
 class BlinkSVGPathSegLinetoHorizontalAbs extends BlinkSVGPathSeg {
   static final instance = new BlinkSVGPathSegLinetoHorizontalAbs();
 
-
   x_Getter_(mthis) => mthis["x"];
 
   x_Setter_(mthis, __arg_0) => mthis["x"] = __arg_0;
@@ -12907,7 +12452,6 @@ class BlinkSVGPathSegLinetoHorizontalAbs extends BlinkSVGPathSeg {
 class BlinkSVGPathSegLinetoHorizontalRel extends BlinkSVGPathSeg {
   static final instance = new BlinkSVGPathSegLinetoHorizontalRel();
 
-
   x_Getter_(mthis) => mthis["x"];
 
   x_Setter_(mthis, __arg_0) => mthis["x"] = __arg_0;
@@ -12916,7 +12460,6 @@ class BlinkSVGPathSegLinetoHorizontalRel extends BlinkSVGPathSeg {
 
 class BlinkSVGPathSegLinetoRel extends BlinkSVGPathSeg {
   static final instance = new BlinkSVGPathSegLinetoRel();
-
 
   x_Getter_(mthis) => mthis["x"];
 
@@ -12931,7 +12474,6 @@ class BlinkSVGPathSegLinetoRel extends BlinkSVGPathSeg {
 class BlinkSVGPathSegLinetoVerticalAbs extends BlinkSVGPathSeg {
   static final instance = new BlinkSVGPathSegLinetoVerticalAbs();
 
-
   y_Getter_(mthis) => mthis["y"];
 
   y_Setter_(mthis, __arg_0) => mthis["y"] = __arg_0;
@@ -12941,7 +12483,6 @@ class BlinkSVGPathSegLinetoVerticalAbs extends BlinkSVGPathSeg {
 class BlinkSVGPathSegLinetoVerticalRel extends BlinkSVGPathSeg {
   static final instance = new BlinkSVGPathSegLinetoVerticalRel();
 
-
   y_Getter_(mthis) => mthis["y"];
 
   y_Setter_(mthis, __arg_0) => mthis["y"] = __arg_0;
@@ -12950,7 +12491,6 @@ class BlinkSVGPathSegLinetoVerticalRel extends BlinkSVGPathSeg {
 
 class BlinkSVGPathSegList {
   static final instance = new BlinkSVGPathSegList();
-
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
@@ -12995,7 +12535,6 @@ class BlinkSVGPathSegList {
 class BlinkSVGPathSegMovetoAbs extends BlinkSVGPathSeg {
   static final instance = new BlinkSVGPathSegMovetoAbs();
 
-
   x_Getter_(mthis) => mthis["x"];
 
   x_Setter_(mthis, __arg_0) => mthis["x"] = __arg_0;
@@ -13009,7 +12548,6 @@ class BlinkSVGPathSegMovetoAbs extends BlinkSVGPathSeg {
 class BlinkSVGPathSegMovetoRel extends BlinkSVGPathSeg {
   static final instance = new BlinkSVGPathSegMovetoRel();
 
-
   x_Getter_(mthis) => mthis["x"];
 
   x_Setter_(mthis, __arg_0) => mthis["x"] = __arg_0;
@@ -13022,7 +12560,6 @@ class BlinkSVGPathSegMovetoRel extends BlinkSVGPathSeg {
 
 class BlinkSVGPatternElement extends BlinkSVGElement {
   static final instance = new BlinkSVGPatternElement();
-
 
   hasExtension_Callback_0_(mthis) => mthis.callMethod("hasExtension", []);
 
@@ -13059,7 +12596,6 @@ class BlinkSVGPatternElement extends BlinkSVGElement {
 class BlinkSVGPoint {
   static final instance = new BlinkSVGPoint();
 
-
   matrixTransform_Callback_0_(mthis) => mthis.callMethod("matrixTransform", []);
 
   matrixTransform_Callback_1_(mthis, __arg_0) => mthis.callMethod("matrixTransform", [__arg_0]);
@@ -13076,7 +12612,6 @@ class BlinkSVGPoint {
 
 class BlinkSVGPointList {
   static final instance = new BlinkSVGPointList();
-
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
@@ -13121,7 +12656,6 @@ class BlinkSVGPointList {
 class BlinkSVGPolygonElement extends BlinkSVGGeometryElement {
   static final instance = new BlinkSVGPolygonElement();
 
-
   animatedPoints_Getter_(mthis) => mthis["animatedPoints"];
 
   points_Getter_(mthis) => mthis["points"];
@@ -13131,7 +12665,6 @@ class BlinkSVGPolygonElement extends BlinkSVGGeometryElement {
 class BlinkSVGPolylineElement extends BlinkSVGGeometryElement {
   static final instance = new BlinkSVGPolylineElement();
 
-
   animatedPoints_Getter_(mthis) => mthis["animatedPoints"];
 
   points_Getter_(mthis) => mthis["points"];
@@ -13140,7 +12673,6 @@ class BlinkSVGPolylineElement extends BlinkSVGGeometryElement {
 
 class BlinkSVGPreserveAspectRatio {
   static final instance = new BlinkSVGPreserveAspectRatio();
-
 
   align_Getter_(mthis) => mthis["align"];
 
@@ -13154,7 +12686,6 @@ class BlinkSVGPreserveAspectRatio {
 
 class BlinkSVGRadialGradientElement extends BlinkSVGGradientElement {
   static final instance = new BlinkSVGRadialGradientElement();
-
 
   cx_Getter_(mthis) => mthis["cx"];
 
@@ -13172,7 +12703,6 @@ class BlinkSVGRadialGradientElement extends BlinkSVGGradientElement {
 
 class BlinkSVGRect {
   static final instance = new BlinkSVGRect();
-
 
   height_Getter_(mthis) => mthis["height"];
 
@@ -13195,7 +12725,6 @@ class BlinkSVGRect {
 class BlinkSVGRectElement extends BlinkSVGGeometryElement {
   static final instance = new BlinkSVGRectElement();
 
-
   height_Getter_(mthis) => mthis["height"];
 
   rx_Getter_(mthis) => mthis["rx"];
@@ -13213,12 +12742,10 @@ class BlinkSVGRectElement extends BlinkSVGGeometryElement {
 class BlinkSVGRenderingIntent {
   static final instance = new BlinkSVGRenderingIntent();
 
-
 }
 
 class BlinkSVGSVGElement extends BlinkSVGGraphicsElement {
   static final instance = new BlinkSVGSVGElement();
-
 
   animationsPaused_Callback_0_(mthis) => mthis.callMethod("animationsPaused", []);
 
@@ -13333,7 +12860,6 @@ class BlinkSVGSVGElement extends BlinkSVGGraphicsElement {
 class BlinkSVGScriptElement extends BlinkSVGElement {
   static final instance = new BlinkSVGScriptElement();
 
-
   href_Getter_(mthis) => mthis["href"];
 
   type_Getter_(mthis) => mthis["type"];
@@ -13345,12 +12871,10 @@ class BlinkSVGScriptElement extends BlinkSVGElement {
 class BlinkSVGSetElement extends BlinkSVGAnimationElement {
   static final instance = new BlinkSVGSetElement();
 
-
 }
 
 class BlinkSVGStopElement extends BlinkSVGElement {
   static final instance = new BlinkSVGStopElement();
-
 
   offset_Getter_(mthis) => mthis["offset"];
 
@@ -13358,7 +12882,6 @@ class BlinkSVGStopElement extends BlinkSVGElement {
 
 class BlinkSVGStringList {
   static final instance = new BlinkSVGStringList();
-
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
@@ -13403,7 +12926,6 @@ class BlinkSVGStringList {
 class BlinkSVGStyleElement extends BlinkSVGElement {
   static final instance = new BlinkSVGStyleElement();
 
-
   disabled_Getter_(mthis) => mthis["disabled"];
 
   disabled_Setter_(mthis, __arg_0) => mthis["disabled"] = __arg_0;
@@ -13427,12 +12949,10 @@ class BlinkSVGStyleElement extends BlinkSVGElement {
 class BlinkSVGSwitchElement extends BlinkSVGGraphicsElement {
   static final instance = new BlinkSVGSwitchElement();
 
-
 }
 
 class BlinkSVGSymbolElement extends BlinkSVGElement {
   static final instance = new BlinkSVGSymbolElement();
-
 
   preserveAspectRatio_Getter_(mthis) => mthis["preserveAspectRatio"];
 
@@ -13443,12 +12963,10 @@ class BlinkSVGSymbolElement extends BlinkSVGElement {
 class BlinkSVGTSpanElement extends BlinkSVGTextPositioningElement {
   static final instance = new BlinkSVGTSpanElement();
 
-
 }
 
 class BlinkSVGTextContentElement extends BlinkSVGGraphicsElement {
   static final instance = new BlinkSVGTextContentElement();
-
 
   getCharNumAtPosition_Callback_0_(mthis) => mthis.callMethod("getCharNumAtPosition", []);
 
@@ -13495,12 +13013,10 @@ class BlinkSVGTextContentElement extends BlinkSVGGraphicsElement {
 class BlinkSVGTextElement extends BlinkSVGTextPositioningElement {
   static final instance = new BlinkSVGTextElement();
 
-
 }
 
 class BlinkSVGTextPathElement extends BlinkSVGTextContentElement {
   static final instance = new BlinkSVGTextPathElement();
-
 
   href_Getter_(mthis) => mthis["href"];
 
@@ -13514,7 +13030,6 @@ class BlinkSVGTextPathElement extends BlinkSVGTextContentElement {
 
 class BlinkSVGTextPositioningElement extends BlinkSVGTextContentElement {
   static final instance = new BlinkSVGTextPositioningElement();
-
 
   dx_Getter_(mthis) => mthis["dx"];
 
@@ -13531,12 +13046,10 @@ class BlinkSVGTextPositioningElement extends BlinkSVGTextContentElement {
 class BlinkSVGTitleElement extends BlinkSVGElement {
   static final instance = new BlinkSVGTitleElement();
 
-
 }
 
 class BlinkSVGTransform {
   static final instance = new BlinkSVGTransform();
-
 
   angle_Getter_(mthis) => mthis["angle"];
 
@@ -13578,7 +13091,6 @@ class BlinkSVGTransform {
 
 class BlinkSVGTransformList {
   static final instance = new BlinkSVGTransformList();
-
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
@@ -13629,12 +13141,10 @@ class BlinkSVGTransformList {
 class BlinkSVGUnitTypes {
   static final instance = new BlinkSVGUnitTypes();
 
-
 }
 
 class BlinkSVGUseElement extends BlinkSVGGraphicsElement {
   static final instance = new BlinkSVGUseElement();
-
 
   height_Getter_(mthis) => mthis["height"];
 
@@ -13651,12 +13161,10 @@ class BlinkSVGUseElement extends BlinkSVGGraphicsElement {
 class BlinkSVGVKernElement extends BlinkSVGElement {
   static final instance = new BlinkSVGVKernElement();
 
-
 }
 
 class BlinkSVGViewElement extends BlinkSVGElement {
   static final instance = new BlinkSVGViewElement();
-
 
   preserveAspectRatio_Getter_(mthis) => mthis["preserveAspectRatio"];
 
@@ -13672,7 +13180,6 @@ class BlinkSVGViewElement extends BlinkSVGElement {
 
 class BlinkSVGViewSpec {
   static final instance = new BlinkSVGViewSpec();
-
 
   preserveAspectRatioString_Getter_(mthis) => mthis["preserveAspectRatioString"];
 
@@ -13699,7 +13206,6 @@ class BlinkSVGViewSpec {
 class BlinkSVGZoomEvent extends BlinkUIEvent {
   static final instance = new BlinkSVGZoomEvent();
 
-
   newScale_Getter_(mthis) => mthis["newScale"];
 
   newTranslate_Getter_(mthis) => mthis["newTranslate"];
@@ -13714,7 +13220,6 @@ class BlinkSVGZoomEvent extends BlinkUIEvent {
 
 class BlinkScreen {
   static final instance = new BlinkScreen();
-
 
   availHeight_Getter_(mthis) => mthis["availHeight"];
 
@@ -13739,7 +13244,6 @@ class BlinkScreen {
 class BlinkScreenOrientation extends BlinkEventTarget {
   static final instance = new BlinkScreenOrientation();
 
-
   angle_Getter_(mthis) => mthis["angle"];
 
   lock_Callback_0_(mthis) => mthis.callMethod("lock", []);
@@ -13759,7 +13263,6 @@ class BlinkScreenOrientation extends BlinkEventTarget {
 class BlinkScriptProcessorNode extends BlinkAudioNode {
   static final instance = new BlinkScriptProcessorNode();
 
-
   bufferSize_Getter_(mthis) => mthis["bufferSize"];
 
   onaudioprocess_Getter_(mthis) => mthis["onaudioprocess"];
@@ -13774,7 +13277,6 @@ class BlinkScriptProcessorNode extends BlinkAudioNode {
 
 class BlinkSecurityPolicyViolationEvent extends BlinkEvent {
   static final instance = new BlinkSecurityPolicyViolationEvent();
-
 
   blockedURI_Getter_(mthis) => mthis["blockedURI"];
 
@@ -13802,7 +13304,6 @@ class BlinkSecurityPolicyViolationEvent extends BlinkEvent {
 
 class BlinkSelection {
   static final instance = new BlinkSelection();
-
 
   addRange_Callback_0_(mthis) => mthis.callMethod("addRange", []);
 
@@ -13895,7 +13396,6 @@ class BlinkSelection {
 class BlinkServiceWorker extends BlinkEventTarget {
   static final instance = new BlinkServiceWorker();
 
-
   onerror_Getter_(mthis) => mthis["onerror"];
 
   onerror_Setter_(mthis, __arg_0) => mthis["onerror"] = __arg_0;
@@ -13921,7 +13421,6 @@ class BlinkServiceWorker extends BlinkEventTarget {
 class BlinkServiceWorkerClient {
   static final instance = new BlinkServiceWorkerClient();
 
-
   id_Getter_(mthis) => mthis["id"];
 
   postMessage_Callback_0_(mthis) => mthis.callMethod("postMessage", []);
@@ -13935,7 +13434,6 @@ class BlinkServiceWorkerClient {
 class BlinkServiceWorkerClients {
   static final instance = new BlinkServiceWorkerClients();
 
-
   getAll_Callback_0_(mthis) => mthis.callMethod("getAll", []);
 
   getAll_Callback_1_(mthis, __arg_0) => mthis.callMethod("getAll", [__arg_0]);
@@ -13944,7 +13442,6 @@ class BlinkServiceWorkerClients {
 
 class BlinkServiceWorkerContainer {
   static final instance = new BlinkServiceWorkerContainer();
-
 
   controller_Getter_(mthis) => mthis["controller"];
 
@@ -13964,7 +13461,6 @@ class BlinkServiceWorkerContainer {
 
 class BlinkServiceWorkerGlobalScope extends BlinkWorkerGlobalScope {
   static final instance = new BlinkServiceWorkerGlobalScope();
-
 
   caches_Getter_(mthis) => mthis["caches"];
 
@@ -14009,7 +13505,6 @@ class BlinkServiceWorkerGlobalScope extends BlinkWorkerGlobalScope {
 class BlinkServiceWorkerRegistration extends BlinkEventTarget {
   static final instance = new BlinkServiceWorkerRegistration();
 
-
   active_Getter_(mthis) => mthis["active"];
 
   installing_Getter_(mthis) => mthis["installing"];
@@ -14028,7 +13523,6 @@ class BlinkServiceWorkerRegistration extends BlinkEventTarget {
 
 class BlinkShadowRoot extends BlinkDocumentFragment {
   static final instance = new BlinkShadowRoot();
-
 
   activeElement_Getter_(mthis) => mthis["activeElement"];
 
@@ -14071,7 +13565,6 @@ class BlinkShadowRoot extends BlinkDocumentFragment {
 class BlinkSharedWorker extends BlinkEventTarget {
   static final instance = new BlinkSharedWorker();
 
-
   constructorCallback_0_() => new js.JsObject(js.context["SharedWorker"], []);
 
   constructorCallback_1_(__arg_0) => new js.JsObject(js.context["SharedWorker"], [__arg_0]);
@@ -14091,7 +13584,6 @@ class BlinkSharedWorker extends BlinkEventTarget {
 class BlinkSharedWorkerGlobalScope extends BlinkWorkerGlobalScope {
   static final instance = new BlinkSharedWorkerGlobalScope();
 
-
   name_Getter_(mthis) => mthis["name"];
 
   onconnect_Getter_(mthis) => mthis["onconnect"];
@@ -14102,7 +13594,6 @@ class BlinkSharedWorkerGlobalScope extends BlinkWorkerGlobalScope {
 
 class BlinkSourceBuffer extends BlinkEventTarget {
   static final instance = new BlinkSourceBuffer();
-
 
   abort_Callback_0_(mthis) => mthis.callMethod("abort", []);
 
@@ -14147,7 +13638,6 @@ class BlinkSourceBuffer extends BlinkEventTarget {
 class BlinkSourceBufferList extends BlinkEventTarget {
   static final instance = new BlinkSourceBufferList();
 
-
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
   item_Callback_0_(mthis) => mthis.callMethod("item", []);
@@ -14161,7 +13651,6 @@ class BlinkSourceBufferList extends BlinkEventTarget {
 class BlinkSourceInfo {
   static final instance = new BlinkSourceInfo();
 
-
   facing_Getter_(mthis) => mthis["facing"];
 
   id_Getter_(mthis) => mthis["id"];
@@ -14174,7 +13663,6 @@ class BlinkSourceInfo {
 
 class BlinkSpeechGrammar {
   static final instance = new BlinkSpeechGrammar();
-
 
   constructorCallback_0_() => new js.JsObject(js.context["SpeechGrammar"], []);
 
@@ -14190,7 +13678,6 @@ class BlinkSpeechGrammar {
 
 class BlinkSpeechGrammarList {
   static final instance = new BlinkSpeechGrammarList();
-
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
@@ -14218,7 +13705,6 @@ class BlinkSpeechGrammarList {
 
 class BlinkSpeechRecognition extends BlinkEventTarget {
   static final instance = new BlinkSpeechRecognition();
-
 
   abort_Callback_0_(mthis) => mthis.callMethod("abort", []);
 
@@ -14297,7 +13783,6 @@ class BlinkSpeechRecognition extends BlinkEventTarget {
 class BlinkSpeechRecognitionAlternative {
   static final instance = new BlinkSpeechRecognitionAlternative();
 
-
   confidence_Getter_(mthis) => mthis["confidence"];
 
   transcript_Getter_(mthis) => mthis["transcript"];
@@ -14306,7 +13791,6 @@ class BlinkSpeechRecognitionAlternative {
 
 class BlinkSpeechRecognitionError extends BlinkEvent {
   static final instance = new BlinkSpeechRecognitionError();
-
 
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["SpeechRecognitionError"], [__arg_0, __arg_1]);
 
@@ -14318,7 +13802,6 @@ class BlinkSpeechRecognitionError extends BlinkEvent {
 
 class BlinkSpeechRecognitionEvent extends BlinkEvent {
   static final instance = new BlinkSpeechRecognitionEvent();
-
 
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["SpeechRecognitionEvent"], [__arg_0, __arg_1]);
 
@@ -14335,7 +13818,6 @@ class BlinkSpeechRecognitionEvent extends BlinkEvent {
 class BlinkSpeechRecognitionResult {
   static final instance = new BlinkSpeechRecognitionResult();
 
-
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
   isFinal_Getter_(mthis) => mthis["isFinal"];
@@ -14351,7 +13833,6 @@ class BlinkSpeechRecognitionResult {
 class BlinkSpeechRecognitionResultList {
   static final instance = new BlinkSpeechRecognitionResultList();
 
-
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
   item_Callback_0_(mthis) => mthis.callMethod("item", []);
@@ -14364,7 +13845,6 @@ class BlinkSpeechRecognitionResultList {
 
 class BlinkSpeechSynthesis extends BlinkEventTarget {
   static final instance = new BlinkSpeechSynthesis();
-
 
   cancel_Callback_0_(mthis) => mthis.callMethod("cancel", []);
 
@@ -14393,7 +13873,6 @@ class BlinkSpeechSynthesis extends BlinkEventTarget {
 class BlinkSpeechSynthesisEvent extends BlinkEvent {
   static final instance = new BlinkSpeechSynthesisEvent();
 
-
   charIndex_Getter_(mthis) => mthis["charIndex"];
 
   elapsedTime_Getter_(mthis) => mthis["elapsedTime"];
@@ -14404,7 +13883,6 @@ class BlinkSpeechSynthesisEvent extends BlinkEvent {
 
 class BlinkSpeechSynthesisUtterance extends BlinkEventTarget {
   static final instance = new BlinkSpeechSynthesisUtterance();
-
 
   constructorCallback_0_() => new js.JsObject(js.context["SpeechSynthesisUtterance"], []);
 
@@ -14467,7 +13945,6 @@ class BlinkSpeechSynthesisUtterance extends BlinkEventTarget {
 class BlinkSpeechSynthesisVoice {
   static final instance = new BlinkSpeechSynthesisVoice();
 
-
   default_Getter_(mthis) => mthis["default"];
 
   lang_Getter_(mthis) => mthis["lang"];
@@ -14482,7 +13959,6 @@ class BlinkSpeechSynthesisVoice {
 
 class BlinkStorage {
   static final instance = new BlinkStorage();
-
 
   $__delete___Callback_1_(mthis, __arg_0) => mthis.callMethod("__delete__", [__arg_0]);
 
@@ -14516,7 +13992,6 @@ class BlinkStorage {
 
 class BlinkStorageEvent extends BlinkEvent {
   static final instance = new BlinkStorageEvent();
-
 
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["StorageEvent"], [__arg_0, __arg_1]);
 
@@ -14553,7 +14028,6 @@ class BlinkStorageEvent extends BlinkEvent {
 class BlinkStorageInfo {
   static final instance = new BlinkStorageInfo();
 
-
   quota_Getter_(mthis) => mthis["quota"];
 
   usage_Getter_(mthis) => mthis["usage"];
@@ -14562,7 +14036,6 @@ class BlinkStorageInfo {
 
 class BlinkStorageQuota {
   static final instance = new BlinkStorageQuota();
-
 
   queryInfo_Callback_0_(mthis) => mthis.callMethod("queryInfo", []);
 
@@ -14579,14 +14052,12 @@ class BlinkStorageQuota {
 class BlinkStream {
   static final instance = new BlinkStream();
 
-
   type_Getter_(mthis) => mthis["type"];
 
 }
 
 class BlinkStyleMedia {
   static final instance = new BlinkStyleMedia();
-
 
   matchMedium_Callback_0_(mthis) => mthis.callMethod("matchMedium", []);
 
@@ -14598,7 +14069,6 @@ class BlinkStyleMedia {
 
 class BlinkStyleSheet {
   static final instance = new BlinkStyleSheet();
-
 
   disabled_Getter_(mthis) => mthis["disabled"];
 
@@ -14621,7 +14091,6 @@ class BlinkStyleSheet {
 class BlinkStyleSheetList {
   static final instance = new BlinkStyleSheetList();
 
-
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
   item_Callback_0_(mthis) => mthis.callMethod("item", []);
@@ -14634,7 +14103,6 @@ class BlinkStyleSheetList {
 
 class BlinkSubtleCrypto {
   static final instance = new BlinkSubtleCrypto();
-
 
   decrypt_Callback_1_(mthis, __arg_0) => mthis.callMethod("decrypt", [__arg_0]);
 
@@ -14701,7 +14169,6 @@ class BlinkSubtleCrypto {
 class BlinkText extends BlinkCharacterData {
   static final instance = new BlinkText();
 
-
   constructorCallback_0_() => new js.JsObject(js.context["Text"], []);
 
   constructorCallback_1_(__arg_0) => new js.JsObject(js.context["Text"], [__arg_0]);
@@ -14722,7 +14189,6 @@ class BlinkText extends BlinkCharacterData {
 
 class BlinkTextDecoder {
   static final instance = new BlinkTextDecoder();
-
 
   constructorCallback_0_() => new js.JsObject(js.context["TextDecoder"], []);
 
@@ -14747,7 +14213,6 @@ class BlinkTextDecoder {
 class BlinkTextEncoder {
   static final instance = new BlinkTextEncoder();
 
-
   constructorCallback_0_() => new js.JsObject(js.context["TextEncoder"], []);
 
   constructorCallback_1_(__arg_0) => new js.JsObject(js.context["TextEncoder"], [__arg_0]);
@@ -14762,7 +14227,6 @@ class BlinkTextEncoder {
 
 class BlinkTextEvent extends BlinkUIEvent {
   static final instance = new BlinkTextEvent();
-
 
   data_Getter_(mthis) => mthis["data"];
 
@@ -14782,7 +14246,6 @@ class BlinkTextEvent extends BlinkUIEvent {
 
 class BlinkTextMetrics {
   static final instance = new BlinkTextMetrics();
-
 
   actualBoundingBoxAscent_Getter_(mthis) => mthis["actualBoundingBoxAscent"];
 
@@ -14812,7 +14275,6 @@ class BlinkTextMetrics {
 
 class BlinkTextTrack extends BlinkEventTarget {
   static final instance = new BlinkTextTrack();
-
 
   activeCues_Getter_(mthis) => mthis["activeCues"];
 
@@ -14857,7 +14319,6 @@ class BlinkTextTrack extends BlinkEventTarget {
 class BlinkTextTrackCue extends BlinkEventTarget {
   static final instance = new BlinkTextTrackCue();
 
-
   endTime_Getter_(mthis) => mthis["endTime"];
 
   endTime_Setter_(mthis, __arg_0) => mthis["endTime"] = __arg_0;
@@ -14889,7 +14350,6 @@ class BlinkTextTrackCue extends BlinkEventTarget {
 class BlinkTextTrackCueList {
   static final instance = new BlinkTextTrackCueList();
 
-
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
   getCueById_Callback_0_(mthis) => mthis.callMethod("getCueById", []);
@@ -14906,7 +14366,6 @@ class BlinkTextTrackCueList {
 
 class BlinkTextTrackList extends BlinkEventTarget {
   static final instance = new BlinkTextTrackList();
-
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
@@ -14937,7 +14396,6 @@ class BlinkTextTrackList extends BlinkEventTarget {
 class BlinkTimeRanges {
   static final instance = new BlinkTimeRanges();
 
-
   end_Callback_0_(mthis) => mthis.callMethod("end", []);
 
   end_Callback_1_(mthis, __arg_0) => mthis.callMethod("end", [__arg_0]);
@@ -14952,7 +14410,6 @@ class BlinkTimeRanges {
 
 class BlinkTiming {
   static final instance = new BlinkTiming();
-
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
@@ -14995,7 +14452,6 @@ class BlinkTiming {
 class BlinkTouch {
   static final instance = new BlinkTouch();
 
-
   clientX_Getter_(mthis) => mthis["clientX"];
 
   clientY_Getter_(mthis) => mthis["clientY"];
@@ -15030,7 +14486,6 @@ class BlinkTouch {
 
 class BlinkTouchEvent extends BlinkUIEvent {
   static final instance = new BlinkTouchEvent();
-
 
   altKey_Getter_(mthis) => mthis["altKey"];
 
@@ -15079,7 +14534,6 @@ class BlinkTouchEvent extends BlinkUIEvent {
 class BlinkTouchList {
   static final instance = new BlinkTouchList();
 
-
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
   item_Callback_0_(mthis) => mthis.callMethod("item", []);
@@ -15093,7 +14547,6 @@ class BlinkTouchList {
 class BlinkTrackEvent extends BlinkEvent {
   static final instance = new BlinkTrackEvent();
 
-
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["TrackEvent"], [__arg_0, __arg_1]);
 
   track_Getter_(mthis) => mthis["track"];
@@ -15102,7 +14555,6 @@ class BlinkTrackEvent extends BlinkEvent {
 
 class BlinkTransitionEvent extends BlinkEvent {
   static final instance = new BlinkTransitionEvent();
-
 
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["TransitionEvent"], [__arg_0, __arg_1]);
 
@@ -15116,7 +14568,6 @@ class BlinkTransitionEvent extends BlinkEvent {
 
 class BlinkTreeWalker {
   static final instance = new BlinkTreeWalker();
-
 
   currentNode_Getter_(mthis) => mthis["currentNode"];
 
@@ -15148,7 +14599,6 @@ class BlinkTreeWalker {
 
 class BlinkUIEvent extends BlinkEvent {
   static final instance = new BlinkUIEvent();
-
 
   charCode_Getter_(mthis) => mthis["charCode"];
 
@@ -15186,7 +14636,6 @@ class BlinkUIEvent extends BlinkEvent {
 
 class BlinkURL {
   static final instance = new BlinkURL();
-
 
   constructorCallback_0_() => new js.JsObject(js.context["URL"], []);
 
@@ -15251,7 +14700,6 @@ class BlinkURL {
 class BlinkVTTCue extends BlinkTextTrackCue {
   static final instance = new BlinkVTTCue();
 
-
   align_Getter_(mthis) => mthis["align"];
 
   align_Setter_(mthis, __arg_0) => mthis["align"] = __arg_0;
@@ -15297,7 +14745,6 @@ class BlinkVTTCue extends BlinkTextTrackCue {
 class BlinkVTTRegion {
   static final instance = new BlinkVTTRegion();
 
-
   constructorCallback_0_() => new js.JsObject(js.context["VTTRegion"], []);
 
   height_Getter_(mthis) => mthis["height"];
@@ -15339,7 +14786,6 @@ class BlinkVTTRegion {
 class BlinkVTTRegionList {
   static final instance = new BlinkVTTRegionList();
 
-
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
   getRegionById_Callback_0_(mthis) => mthis.callMethod("getRegionById", []);
@@ -15356,7 +14802,6 @@ class BlinkVTTRegionList {
 
 class BlinkValidityState {
   static final instance = new BlinkValidityState();
-
 
   badInput_Getter_(mthis) => mthis["badInput"];
 
@@ -15383,7 +14828,6 @@ class BlinkValidityState {
 class BlinkVideoPlaybackQuality {
   static final instance = new BlinkVideoPlaybackQuality();
 
-
   corruptedVideoFrames_Getter_(mthis) => mthis["corruptedVideoFrames"];
 
   creationTime_Getter_(mthis) => mthis["creationTime"];
@@ -15396,7 +14840,6 @@ class BlinkVideoPlaybackQuality {
 
 class BlinkVideoTrack {
   static final instance = new BlinkVideoTrack();
-
 
   id_Getter_(mthis) => mthis["id"];
 
@@ -15414,7 +14857,6 @@ class BlinkVideoTrack {
 
 class BlinkVideoTrackList extends BlinkEventTarget {
   static final instance = new BlinkVideoTrackList();
-
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
@@ -15443,7 +14885,6 @@ class BlinkVideoTrackList extends BlinkEventTarget {
 class BlinkWaveShaperNode extends BlinkAudioNode {
   static final instance = new BlinkWaveShaperNode();
 
-
   curve_Getter_(mthis) => mthis["curve"];
 
   curve_Setter_(mthis, __arg_0) => mthis["curve"] = __arg_0;
@@ -15457,7 +14898,6 @@ class BlinkWaveShaperNode extends BlinkAudioNode {
 class BlinkWebGLActiveInfo {
   static final instance = new BlinkWebGLActiveInfo();
 
-
   name_Getter_(mthis) => mthis["name"];
 
   size_Getter_(mthis) => mthis["size"];
@@ -15469,36 +14909,30 @@ class BlinkWebGLActiveInfo {
 class BlinkWebGLBuffer {
   static final instance = new BlinkWebGLBuffer();
 
-
 }
 
 class BlinkWebGLCompressedTextureATC {
   static final instance = new BlinkWebGLCompressedTextureATC();
-
 
 }
 
 class BlinkWebGLCompressedTextureETC1 {
   static final instance = new BlinkWebGLCompressedTextureETC1();
 
-
 }
 
 class BlinkWebGLCompressedTexturePVRTC {
   static final instance = new BlinkWebGLCompressedTexturePVRTC();
-
 
 }
 
 class BlinkWebGLCompressedTextureS3TC {
   static final instance = new BlinkWebGLCompressedTextureS3TC();
 
-
 }
 
 class BlinkWebGLContextAttributes {
   static final instance = new BlinkWebGLContextAttributes();
-
 
   alpha_Getter_(mthis) => mthis["alpha"];
 
@@ -15533,7 +14967,6 @@ class BlinkWebGLContextAttributes {
 class BlinkWebGLContextEvent extends BlinkEvent {
   static final instance = new BlinkWebGLContextEvent();
 
-
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["WebGLContextEvent"], [__arg_0, __arg_1]);
 
   statusMessage_Getter_(mthis) => mthis["statusMessage"];
@@ -15543,12 +14976,10 @@ class BlinkWebGLContextEvent extends BlinkEvent {
 class BlinkWebGLDebugRendererInfo {
   static final instance = new BlinkWebGLDebugRendererInfo();
 
-
 }
 
 class BlinkWebGLDebugShaders {
   static final instance = new BlinkWebGLDebugShaders();
-
 
   getTranslatedShaderSource_Callback_0_(mthis) => mthis.callMethod("getTranslatedShaderSource", []);
 
@@ -15559,12 +14990,10 @@ class BlinkWebGLDebugShaders {
 class BlinkWebGLDepthTexture {
   static final instance = new BlinkWebGLDepthTexture();
 
-
 }
 
 class BlinkWebGLDrawBuffers {
   static final instance = new BlinkWebGLDrawBuffers();
-
 
   drawBuffersWEBGL_Callback_0_(mthis) => mthis.callMethod("drawBuffersWEBGL", []);
 
@@ -15575,12 +15004,10 @@ class BlinkWebGLDrawBuffers {
 class BlinkWebGLFramebuffer {
   static final instance = new BlinkWebGLFramebuffer();
 
-
 }
 
 class BlinkWebGLLoseContext {
   static final instance = new BlinkWebGLLoseContext();
-
 
   loseContext_Callback_0_(mthis) => mthis.callMethod("loseContext", []);
 
@@ -15591,18 +15018,15 @@ class BlinkWebGLLoseContext {
 class BlinkWebGLProgram {
   static final instance = new BlinkWebGLProgram();
 
-
 }
 
 class BlinkWebGLRenderbuffer {
   static final instance = new BlinkWebGLRenderbuffer();
 
-
 }
 
 class BlinkWebGLRenderingContext {
   static final instance = new BlinkWebGLRenderingContext();
-
 
   activeTexture_Callback_0_(mthis) => mthis.callMethod("activeTexture", []);
 
@@ -16315,12 +15739,10 @@ class BlinkWebGLRenderingContext {
 class BlinkWebGLShader {
   static final instance = new BlinkWebGLShader();
 
-
 }
 
 class BlinkWebGLShaderPrecisionFormat {
   static final instance = new BlinkWebGLShaderPrecisionFormat();
-
 
   precision_Getter_(mthis) => mthis["precision"];
 
@@ -16333,24 +15755,20 @@ class BlinkWebGLShaderPrecisionFormat {
 class BlinkWebGLTexture {
   static final instance = new BlinkWebGLTexture();
 
-
 }
 
 class BlinkWebGLUniformLocation {
   static final instance = new BlinkWebGLUniformLocation();
-
 
 }
 
 class BlinkWebGLVertexArrayObjectOES {
   static final instance = new BlinkWebGLVertexArrayObjectOES();
 
-
 }
 
 class BlinkWebKitAnimationEvent extends BlinkEvent {
   static final instance = new BlinkWebKitAnimationEvent();
-
 
   animationName_Getter_(mthis) => mthis["animationName"];
 
@@ -16363,14 +15781,12 @@ class BlinkWebKitAnimationEvent extends BlinkEvent {
 class BlinkWebKitCSSFilterRule extends BlinkCSSRule {
   static final instance = new BlinkWebKitCSSFilterRule();
 
-
   style_Getter_(mthis) => mthis["style"];
 
 }
 
 class BlinkWebKitCSSFilterValue extends BlinkCSSValueList {
   static final instance = new BlinkWebKitCSSFilterValue();
-
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
@@ -16380,7 +15796,6 @@ class BlinkWebKitCSSFilterValue extends BlinkCSSValueList {
 
 class BlinkWebKitCSSMatrix {
   static final instance = new BlinkWebKitCSSMatrix();
-
 
   a_Getter_(mthis) => mthis["a"];
 
@@ -16531,7 +15946,6 @@ class BlinkWebKitCSSMatrix {
 class BlinkWebKitCSSTransformValue extends BlinkCSSValueList {
   static final instance = new BlinkWebKitCSSTransformValue();
 
-
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
   operationType_Getter_(mthis) => mthis["operationType"];
@@ -16540,7 +15954,6 @@ class BlinkWebKitCSSTransformValue extends BlinkCSSValueList {
 
 class BlinkWebKitGamepad {
   static final instance = new BlinkWebKitGamepad();
-
 
   axes_Getter_(mthis) => mthis["axes"];
 
@@ -16561,7 +15974,6 @@ class BlinkWebKitGamepad {
 class BlinkWebKitGamepadList {
   static final instance = new BlinkWebKitGamepadList();
 
-
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
   item_Callback_0_(mthis) => mthis.callMethod("item", []);
@@ -16574,7 +15986,6 @@ class BlinkWebKitGamepadList {
 
 class BlinkWebSocket extends BlinkEventTarget {
   static final instance = new BlinkWebSocket();
-
 
   URL_Getter_(mthis) => mthis["URL"];
 
@@ -16629,7 +16040,6 @@ class BlinkWebSocket extends BlinkEventTarget {
 class BlinkWheelEvent extends BlinkMouseEvent {
   static final instance = new BlinkWheelEvent();
 
-
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["WheelEvent"], [__arg_0, __arg_1]);
 
   deltaMode_Getter_(mthis) => mthis["deltaMode"];
@@ -16648,7 +16058,6 @@ class BlinkWheelEvent extends BlinkMouseEvent {
 
 class BlinkWindow extends BlinkEventTarget {
   static final instance = new BlinkWindow();
-
 
   $__getter___Callback_1_(mthis, __arg_0) => mthis.callMethod("__getter__", [__arg_0]);
 
@@ -17321,7 +16730,6 @@ class BlinkWindow extends BlinkEventTarget {
 class BlinkWorker extends BlinkEventTarget {
   static final instance = new BlinkWorker();
 
-
   constructorCallback_0_() => new js.JsObject(js.context["Worker"], []);
 
   constructorCallback_1_(__arg_0) => new js.JsObject(js.context["Worker"], [__arg_0]);
@@ -17347,12 +16755,10 @@ class BlinkWorker extends BlinkEventTarget {
 class BlinkWorkerConsole extends BlinkConsoleBase {
   static final instance = new BlinkWorkerConsole();
 
-
 }
 
 class BlinkWorkerGlobalScope extends BlinkEventTarget {
   static final instance = new BlinkWorkerGlobalScope();
-
 
   atob_Callback_0_(mthis) => mthis.callMethod("atob", []);
 
@@ -17449,7 +16855,6 @@ class BlinkWorkerGlobalScope extends BlinkEventTarget {
 class BlinkWorkerLocation {
   static final instance = new BlinkWorkerLocation();
 
-
   hash_Getter_(mthis) => mthis["hash"];
 
   host_Getter_(mthis) => mthis["host"];
@@ -17474,7 +16879,6 @@ class BlinkWorkerLocation {
 
 class BlinkWorkerNavigator {
   static final instance = new BlinkWorkerNavigator();
-
 
   appCodeName_Getter_(mthis) => mthis["appCodeName"];
 
@@ -17507,7 +16911,6 @@ class BlinkWorkerNavigator {
 class BlinkWorkerPerformance {
   static final instance = new BlinkWorkerPerformance();
 
-
   memory_Getter_(mthis) => mthis["memory"];
 
   now_Callback_0_(mthis) => mthis.callMethod("now", []);
@@ -17517,12 +16920,10 @@ class BlinkWorkerPerformance {
 class BlinkXMLDocument extends BlinkDocument {
   static final instance = new BlinkXMLDocument();
 
-
 }
 
 class BlinkXMLHttpRequest extends BlinkXMLHttpRequestEventTarget {
   static final instance = new BlinkXMLHttpRequest();
-
 
   abort_Callback_0_(mthis) => mthis.callMethod("abort", []);
 
@@ -17599,7 +17000,6 @@ class BlinkXMLHttpRequest extends BlinkXMLHttpRequestEventTarget {
 class BlinkXMLHttpRequestEventTarget extends BlinkEventTarget {
   static final instance = new BlinkXMLHttpRequestEventTarget();
 
-
   onabort_Getter_(mthis) => mthis["onabort"];
 
   onabort_Setter_(mthis, __arg_0) => mthis["onabort"] = __arg_0;
@@ -17633,7 +17033,6 @@ class BlinkXMLHttpRequestEventTarget extends BlinkEventTarget {
 class BlinkXMLHttpRequestProgressEvent extends BlinkProgressEvent {
   static final instance = new BlinkXMLHttpRequestProgressEvent();
 
-
   position_Getter_(mthis) => mthis["position"];
 
   totalSize_Getter_(mthis) => mthis["totalSize"];
@@ -17643,12 +17042,10 @@ class BlinkXMLHttpRequestProgressEvent extends BlinkProgressEvent {
 class BlinkXMLHttpRequestUpload extends BlinkXMLHttpRequestEventTarget {
   static final instance = new BlinkXMLHttpRequestUpload();
 
-
 }
 
 class BlinkXMLSerializer {
   static final instance = new BlinkXMLSerializer();
-
 
   constructorCallback_0_() => new js.JsObject(js.context["XMLSerializer"], []);
 
@@ -17660,7 +17057,6 @@ class BlinkXMLSerializer {
 
 class BlinkXPathEvaluator {
   static final instance = new BlinkXPathEvaluator();
-
 
   constructorCallback_0_() => new js.JsObject(js.context["XPathEvaluator"], []);
 
@@ -17691,7 +17087,6 @@ class BlinkXPathEvaluator {
 class BlinkXPathExpression {
   static final instance = new BlinkXPathExpression();
 
-
   evaluate_Callback_0_(mthis) => mthis.callMethod("evaluate", []);
 
   evaluate_Callback_1_(mthis, __arg_0) => mthis.callMethod("evaluate", [__arg_0]);
@@ -17705,7 +17100,6 @@ class BlinkXPathExpression {
 class BlinkXPathNSResolver {
   static final instance = new BlinkXPathNSResolver();
 
-
   lookupNamespaceURI_Callback_0_(mthis) => mthis.callMethod("lookupNamespaceURI", []);
 
   lookupNamespaceURI_Callback_1_(mthis, __arg_0) => mthis.callMethod("lookupNamespaceURI", [__arg_0]);
@@ -17714,7 +17108,6 @@ class BlinkXPathNSResolver {
 
 class BlinkXPathResult {
   static final instance = new BlinkXPathResult();
-
 
   booleanValue_Getter_(mthis) => mthis["booleanValue"];
 
@@ -17740,7 +17133,6 @@ class BlinkXPathResult {
 
 class BlinkXSLTProcessor {
   static final instance = new BlinkXSLTProcessor();
-
 
   clearParameters_Callback_0_(mthis) => mthis.callMethod("clearParameters", []);
 
