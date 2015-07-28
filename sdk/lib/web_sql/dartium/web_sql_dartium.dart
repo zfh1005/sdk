@@ -118,6 +118,7 @@ class SqlDatabase extends NativeFieldWrapperClass2 {
   SqlDatabase.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -198,6 +199,7 @@ class SqlError extends NativeFieldWrapperClass2 {
   SqlError.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SQLError.CONSTRAINT_ERR')
   @DocsEditable()
@@ -268,6 +270,7 @@ class SqlResultSet extends NativeFieldWrapperClass2 {
   SqlResultSet.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SQLResultSet.insertId')
   @DocsEditable()
@@ -310,6 +313,7 @@ class SqlResultSetRowList extends NativeFieldWrapperClass2 with ListMixin<Map>, 
   SqlResultSetRowList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SQLResultSetRowList.length')
   @DocsEditable()
@@ -397,6 +401,7 @@ class SqlTransaction extends NativeFieldWrapperClass2 {
   SqlTransaction.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SQLTransaction.executeSql')
   @DocsEditable()

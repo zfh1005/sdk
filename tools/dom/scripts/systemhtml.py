@@ -589,7 +589,8 @@ class HtmlDartInterfaceGenerator(object):
     class_name = self._interface_type_info.implementation_name()
 
     js_interop_equivalence_op = \
-      '  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);\n'
+      '  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);\n' \
+      + '  int get hashCode => unwrap_jso(this).hashCode;\n'
     # ClientRect overrides the equivalence operator.
     if interface_name == 'ClientRect' or interface_name == 'DomRectReadOnly':
         js_interop_equivalence_op = ''

@@ -179,6 +179,7 @@ class Cursor extends NativeFieldWrapperClass2 {
   Cursor.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('IDBCursor.direction')
   @DocsEditable()
@@ -539,6 +540,7 @@ class IdbFactory extends NativeFieldWrapperClass2 {
   IdbFactory.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('IDBFactory.cmp')
   @DocsEditable()
@@ -691,6 +693,7 @@ class Index extends NativeFieldWrapperClass2 {
   Index.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('IDBIndex.keyPath')
   @DocsEditable()
@@ -781,6 +784,7 @@ class KeyRange extends NativeFieldWrapperClass2 {
   KeyRange.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('IDBKeyRange.lower')
   @DocsEditable()
@@ -979,6 +983,7 @@ class ObjectStore extends NativeFieldWrapperClass2 {
   ObjectStore.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('IDBObjectStore.autoIncrement')
   @DocsEditable()

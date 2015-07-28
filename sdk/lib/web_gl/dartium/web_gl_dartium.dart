@@ -425,6 +425,7 @@ class ActiveInfo extends NativeFieldWrapperClass2 {
   ActiveInfo.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('WebGLActiveInfo.name')
   @DocsEditable()
@@ -466,6 +467,7 @@ class AngleInstancedArrays extends NativeFieldWrapperClass2 {
   AngleInstancedArrays.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('ANGLEInstancedArrays.VERTEX_ATTRIB_ARRAY_DIVISOR_ANGLE')
   @DocsEditable()
@@ -515,6 +517,7 @@ class Buffer extends NativeFieldWrapperClass2 {
   Buffer.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -545,6 +548,7 @@ class CompressedTextureAtc extends NativeFieldWrapperClass2 {
   CompressedTextureAtc.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('WebGLCompressedTextureATC.COMPRESSED_RGBA_ATC_EXPLICIT_ALPHA_WEBGL')
   @DocsEditable()
@@ -586,6 +590,7 @@ class CompressedTextureETC1 extends NativeFieldWrapperClass2 {
   CompressedTextureETC1.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('WebGLCompressedTextureETC1.COMPRESSED_RGB_ETC1_WEBGL')
   @DocsEditable()
@@ -621,6 +626,7 @@ class CompressedTexturePvrtc extends NativeFieldWrapperClass2 {
   CompressedTexturePvrtc.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('WebGLCompressedTexturePVRTC.COMPRESSED_RGBA_PVRTC_2BPPV1_IMG')
   @DocsEditable()
@@ -667,6 +673,7 @@ class CompressedTextureS3TC extends NativeFieldWrapperClass2 {
   CompressedTextureS3TC.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('WebGLCompressedTextureS3TC.COMPRESSED_RGBA_S3TC_DXT1_EXT')
   @DocsEditable()
@@ -734,6 +741,7 @@ class ContextAttributes extends NativeFieldWrapperClass2 {
   ContextAttributes.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('WebGLContextAttributes.alpha')
   @DocsEditable()
@@ -853,6 +861,7 @@ class DebugRendererInfo extends NativeFieldWrapperClass2 {
   DebugRendererInfo.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('WebGLDebugRendererInfo.UNMASKED_RENDERER_WEBGL')
   @DocsEditable()
@@ -891,6 +900,7 @@ class DebugShaders extends NativeFieldWrapperClass2 {
   DebugShaders.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('WebGLDebugShaders.getTranslatedShaderSource')
   @DocsEditable()
@@ -925,6 +935,7 @@ class DepthTexture extends NativeFieldWrapperClass2 {
   DepthTexture.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('WebGLDepthTexture.UNSIGNED_INT_24_8_WEBGL')
   @DocsEditable()
@@ -959,6 +970,7 @@ class DrawBuffers extends NativeFieldWrapperClass2 {
   DrawBuffers.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('WebGLDrawBuffers.COLOR_ATTACHMENT0_WEBGL')
   @DocsEditable()
@@ -1128,6 +1140,7 @@ class ExtBlendMinMax extends NativeFieldWrapperClass2 {
   ExtBlendMinMax.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('EXTBlendMinMax.MAX_EXT')
   @DocsEditable()
@@ -1168,6 +1181,7 @@ class ExtFragDepth extends NativeFieldWrapperClass2 {
   ExtFragDepth.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1197,6 +1211,7 @@ class ExtShaderTextureLod extends NativeFieldWrapperClass2 {
   ExtShaderTextureLod.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1227,6 +1242,7 @@ class ExtTextureFilterAnisotropic extends NativeFieldWrapperClass2 {
   ExtTextureFilterAnisotropic.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('EXTTextureFilterAnisotropic.MAX_TEXTURE_MAX_ANISOTROPY_EXT')
   @DocsEditable()
@@ -1264,6 +1280,7 @@ class Framebuffer extends NativeFieldWrapperClass2 {
   Framebuffer.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1294,6 +1311,7 @@ class LoseContext extends NativeFieldWrapperClass2 {
   LoseContext.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('WebGLLoseContext.loseContext')
   @DocsEditable()
@@ -1332,6 +1350,7 @@ class OesElementIndexUint extends NativeFieldWrapperClass2 {
   OesElementIndexUint.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1362,6 +1381,7 @@ class OesStandardDerivatives extends NativeFieldWrapperClass2 {
   OesStandardDerivatives.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('OESStandardDerivatives.FRAGMENT_SHADER_DERIVATIVE_HINT_OES')
   @DocsEditable()
@@ -1396,6 +1416,7 @@ class OesTextureFloat extends NativeFieldWrapperClass2 {
   OesTextureFloat.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1426,6 +1447,7 @@ class OesTextureFloatLinear extends NativeFieldWrapperClass2 {
   OesTextureFloatLinear.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1456,6 +1478,7 @@ class OesTextureHalfFloat extends NativeFieldWrapperClass2 {
   OesTextureHalfFloat.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('OESTextureHalfFloat.HALF_FLOAT_OES')
   @DocsEditable()
@@ -1490,6 +1513,7 @@ class OesTextureHalfFloatLinear extends NativeFieldWrapperClass2 {
   OesTextureHalfFloatLinear.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1520,6 +1544,7 @@ class OesVertexArrayObject extends NativeFieldWrapperClass2 {
   OesVertexArrayObject.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('OESVertexArrayObject.VERTEX_ARRAY_BINDING_OES')
   @DocsEditable()
@@ -1569,6 +1594,7 @@ class Program extends NativeFieldWrapperClass2 {
   Program.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1598,6 +1624,7 @@ class Renderbuffer extends NativeFieldWrapperClass2 {
   Renderbuffer.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -1627,6 +1654,7 @@ class RenderingContext extends NativeFieldWrapperClass2 implements CanvasRenderi
   RenderingContext.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -3573,6 +3601,7 @@ class Shader extends NativeFieldWrapperClass2 {
   Shader.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3601,6 +3630,7 @@ class ShaderPrecisionFormat extends NativeFieldWrapperClass2 {
   ShaderPrecisionFormat.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('WebGLShaderPrecisionFormat.precision')
   @DocsEditable()
@@ -3641,6 +3671,7 @@ class Texture extends NativeFieldWrapperClass2 {
   Texture.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3669,6 +3700,7 @@ class UniformLocation extends NativeFieldWrapperClass2 {
   UniformLocation.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3699,6 +3731,7 @@ class VertexArrayObject extends NativeFieldWrapperClass2 {
   VertexArrayObject.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3728,5 +3761,6 @@ abstract class _WebGLRenderingContextBase extends NativeFieldWrapperClass2 {
   _WebGLRenderingContextBase.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }

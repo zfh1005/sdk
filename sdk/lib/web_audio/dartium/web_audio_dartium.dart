@@ -189,6 +189,7 @@ class AudioBuffer extends NativeFieldWrapperClass2 {
   AudioBuffer.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('AudioBuffer.duration')
   @DocsEditable()
@@ -571,6 +572,7 @@ class AudioListener extends NativeFieldWrapperClass2 {
   AudioListener.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('AudioListener.dopplerFactor')
   @DocsEditable()
@@ -713,6 +715,7 @@ class AudioParam extends NativeFieldWrapperClass2 {
   AudioParam.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('AudioParam.defaultValue')
   @DocsEditable()
@@ -1478,6 +1481,7 @@ class PeriodicWave extends NativeFieldWrapperClass2 {
   PeriodicWave.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

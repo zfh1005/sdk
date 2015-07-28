@@ -462,6 +462,7 @@ class Angle extends NativeFieldWrapperClass2 {
   Angle.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGAngle.SVG_ANGLETYPE_DEG')
   @DocsEditable()
@@ -676,6 +677,7 @@ class AnimatedAngle extends NativeFieldWrapperClass2 {
   AnimatedAngle.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGAnimatedAngle.animVal')
   @DocsEditable()
@@ -713,6 +715,7 @@ class AnimatedBoolean extends NativeFieldWrapperClass2 {
   AnimatedBoolean.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGAnimatedBoolean.animVal')
   @DocsEditable()
@@ -754,6 +757,7 @@ class AnimatedEnumeration extends NativeFieldWrapperClass2 {
   AnimatedEnumeration.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGAnimatedEnumeration.animVal')
   @DocsEditable()
@@ -795,6 +799,7 @@ class AnimatedInteger extends NativeFieldWrapperClass2 {
   AnimatedInteger.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGAnimatedInteger.animVal')
   @DocsEditable()
@@ -836,6 +841,7 @@ class AnimatedLength extends NativeFieldWrapperClass2 {
   AnimatedLength.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGAnimatedLength.animVal')
   @DocsEditable()
@@ -873,6 +879,7 @@ class AnimatedLengthList extends NativeFieldWrapperClass2 {
   AnimatedLengthList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGAnimatedLengthList.animVal')
   @DocsEditable()
@@ -910,6 +917,7 @@ class AnimatedNumber extends NativeFieldWrapperClass2 {
   AnimatedNumber.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGAnimatedNumber.animVal')
   @DocsEditable()
@@ -951,6 +959,7 @@ class AnimatedNumberList extends NativeFieldWrapperClass2 {
   AnimatedNumberList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGAnimatedNumberList.animVal')
   @DocsEditable()
@@ -988,6 +997,7 @@ class AnimatedPreserveAspectRatio extends NativeFieldWrapperClass2 {
   AnimatedPreserveAspectRatio.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGAnimatedPreserveAspectRatio.animVal')
   @DocsEditable()
@@ -1025,6 +1035,7 @@ class AnimatedRect extends NativeFieldWrapperClass2 {
   AnimatedRect.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGAnimatedRect.animVal')
   @DocsEditable()
@@ -1062,6 +1073,7 @@ class AnimatedString extends NativeFieldWrapperClass2 {
   AnimatedString.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGAnimatedString.animVal')
   @DocsEditable()
@@ -1103,6 +1115,7 @@ class AnimatedTransformList extends NativeFieldWrapperClass2 {
   AnimatedTransformList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGAnimatedTransformList.animVal')
   @DocsEditable()
@@ -3357,6 +3370,7 @@ abstract class FilterPrimitiveStandardAttributes extends NativeFieldWrapperClass
   FilterPrimitiveStandardAttributes.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGFilterPrimitiveStandardAttributes.height')
   @DocsEditable()
@@ -3406,6 +3420,7 @@ abstract class FitToViewBox extends NativeFieldWrapperClass2 {
   FitToViewBox.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGFitToViewBox.preserveAspectRatio')
   @DocsEditable()
@@ -3731,6 +3746,7 @@ class Length extends NativeFieldWrapperClass2 {
   Length.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGLength.SVG_LENGTHTYPE_CM')
   @DocsEditable()
@@ -3840,6 +3856,7 @@ class LengthList extends NativeFieldWrapperClass2 with ListMixin<Length>, Immuta
   LengthList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGLengthList.length')
   @DocsEditable()
@@ -4243,6 +4260,7 @@ class Matrix extends NativeFieldWrapperClass2 {
   Matrix.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGMatrix.a')
   @DocsEditable()
@@ -4397,6 +4415,7 @@ class Number extends NativeFieldWrapperClass2 {
   Number.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGNumber.value')
   @DocsEditable()
@@ -4434,6 +4453,7 @@ class NumberList extends NativeFieldWrapperClass2 with ListMixin<Number>, Immuta
   NumberList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGNumberList.length')
   @DocsEditable()
@@ -4694,6 +4714,7 @@ class PathSeg extends NativeFieldWrapperClass2 {
   PathSeg.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGPathSeg.PATHSEG_ARC_ABS')
   @DocsEditable()
@@ -5702,6 +5723,7 @@ class PathSegList extends NativeFieldWrapperClass2 with ListMixin<PathSeg>, Immu
   PathSegList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGPathSegList.length')
   @DocsEditable()
@@ -5996,6 +6018,7 @@ class Point extends NativeFieldWrapperClass2 {
   Point.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGPoint.x')
   @DocsEditable()
@@ -6045,6 +6068,7 @@ class PointList extends NativeFieldWrapperClass2 {
   PointList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGPointList.length')
   @DocsEditable()
@@ -6206,6 +6230,7 @@ class PreserveAspectRatio extends NativeFieldWrapperClass2 {
   PreserveAspectRatio.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGPreserveAspectRatio.SVG_MEETORSLICE_MEET')
   @DocsEditable()
@@ -6368,6 +6393,7 @@ class Rect extends NativeFieldWrapperClass2 {
   Rect.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGRect.height')
   @DocsEditable()
@@ -6490,6 +6516,7 @@ class RenderingIntent extends NativeFieldWrapperClass2 {
   RenderingIntent.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGRenderingIntent.RENDERING_INTENT_ABSOLUTE_COLORIMETRIC')
   @DocsEditable()
@@ -6676,6 +6703,7 @@ class StringList extends NativeFieldWrapperClass2 with ListMixin<String>, Immuta
   StringList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGStringList.length')
   @DocsEditable()
@@ -7930,6 +7958,7 @@ abstract class Tests extends NativeFieldWrapperClass2 {
   Tests.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGTests.requiredExtensions')
   @DocsEditable()
@@ -8264,6 +8293,7 @@ class Transform extends NativeFieldWrapperClass2 {
   Transform.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGTransform.SVG_TRANSFORM_MATRIX')
   @DocsEditable()
@@ -8357,6 +8387,7 @@ class TransformList extends NativeFieldWrapperClass2 with ListMixin<Transform>, 
   TransformList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGTransformList.length')
   @DocsEditable()
@@ -8480,6 +8511,7 @@ class UnitTypes extends NativeFieldWrapperClass2 {
   UnitTypes.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGUnitTypes.SVG_UNIT_TYPE_OBJECTBOUNDINGBOX')
   @DocsEditable()
@@ -8521,6 +8553,7 @@ abstract class UriReference extends NativeFieldWrapperClass2 {
   UriReference.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGURIReference.href')
   @DocsEditable()
@@ -8668,6 +8701,7 @@ class ViewSpec extends NativeFieldWrapperClass2 implements FitToViewBox, ZoomAnd
   ViewSpec.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGViewSpec.preserveAspectRatioString')
   @DocsEditable()
@@ -8741,6 +8775,7 @@ abstract class ZoomAndPan extends NativeFieldWrapperClass2 {
   ZoomAndPan.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGZoomAndPan.SVG_ZOOMANDPAN_DISABLE')
   @DocsEditable()

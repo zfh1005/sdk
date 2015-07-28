@@ -1248,6 +1248,7 @@ abstract class AbstractWorker extends NativeFieldWrapperClass2 implements EventT
   AbstractWorker.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   /// Stream of `error` events handled by this [AbstractWorker].
   @DomName('AbstractWorker.onerror')
@@ -1507,6 +1508,7 @@ class AnimationEffect extends NativeFieldWrapperClass2 {
   AnimationEffect.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1573,6 +1575,7 @@ class AnimationNode extends NativeFieldWrapperClass2 {
   AnimationNode.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('AnimationNode.activeDuration')
   @DocsEditable()
@@ -1779,6 +1782,7 @@ class AnimationTimeline extends NativeFieldWrapperClass2 {
   AnimationTimeline.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('AnimationTimeline.currentTime')
   @DocsEditable()
@@ -2278,6 +2282,7 @@ class AudioTrack extends NativeFieldWrapperClass2 {
   AudioTrack.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('AudioTrack.enabled')
   @DocsEditable()
@@ -2458,6 +2463,7 @@ class BarProp extends NativeFieldWrapperClass2 {
   BarProp.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('BarProp.visible')
   @DocsEditable()
@@ -2624,6 +2630,7 @@ class Blob extends NativeFieldWrapperClass2 {
   Blob.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Blob.size')
   @DocsEditable()
@@ -2679,6 +2686,7 @@ class Body extends NativeFieldWrapperClass2 {
   Body.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Body.bodyUsed')
   @DocsEditable()
@@ -3132,6 +3140,7 @@ class CacheStorage extends NativeFieldWrapperClass2 {
   CacheStorage.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('CacheStorage.create')
   @DocsEditable()
@@ -3187,6 +3196,7 @@ class Canvas2DContextAttributes extends NativeFieldWrapperClass2 {
   Canvas2DContextAttributes.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Canvas2DContextAttributes.alpha')
   @DocsEditable()
@@ -3435,6 +3445,7 @@ class CanvasGradient extends NativeFieldWrapperClass2 {
   CanvasGradient.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   /**
    * Adds a color stop to this gradient at the offset.
@@ -3503,6 +3514,7 @@ class CanvasPattern extends NativeFieldWrapperClass2 {
   CanvasPattern.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('CanvasPattern.setTransform')
   @DocsEditable()
@@ -3537,6 +3549,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   CanvasRenderingContext2D.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('CanvasRenderingContext2D.canvas')
   @DocsEditable()
@@ -4392,6 +4405,7 @@ abstract class ChildNode extends NativeFieldWrapperClass2 {
   ChildNode.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('ChildNode.nextElementSibling')
   @DocsEditable()
@@ -4656,6 +4670,7 @@ class ConsoleBase extends NativeFieldWrapperClass2 {
   ConsoleBase.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('ConsoleBase.assertCondition')
   @DocsEditable()
@@ -4853,6 +4868,7 @@ class Coordinates extends NativeFieldWrapperClass2 {
   Coordinates.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Coordinates.accuracy')
   @DocsEditable()
@@ -4910,6 +4926,7 @@ class Credential extends NativeFieldWrapperClass2 {
   Credential.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Credential.avatarURL')
   @DocsEditable()
@@ -4954,6 +4971,7 @@ class CredentialsContainer extends NativeFieldWrapperClass2 {
   CredentialsContainer.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('CredentialsContainer.notifyFailedSignIn')
   @DocsEditable()
@@ -5008,6 +5026,7 @@ class Crypto extends NativeFieldWrapperClass2 {
   Crypto.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -5049,6 +5068,7 @@ class CryptoKey extends NativeFieldWrapperClass2 {
   CryptoKey.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('CryptoKey.algorithm')
   @DocsEditable()
@@ -5099,6 +5119,7 @@ class Css extends NativeFieldWrapperClass2 {
   Css.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('CSS.supports')
   @DocsEditable()
@@ -5457,6 +5478,7 @@ class CssRule extends NativeFieldWrapperClass2 {
   CssRule.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('CSSRule.CHARSET_RULE')
   @DocsEditable()
@@ -5656,6 +5678,7 @@ class CssStyleDeclaration  extends JsoNativeFieldWrapper2 with
   CssStyleDeclaration.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('CSSStyleDeclaration.cssText')
   @DocsEditable()
@@ -9174,6 +9197,7 @@ class DataTransfer extends NativeFieldWrapperClass2 {
   DataTransfer.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('DataTransfer.dropEffect')
   @DocsEditable()
@@ -9263,6 +9287,7 @@ class DataTransferItem extends NativeFieldWrapperClass2 {
   DataTransferItem.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('DataTransferItem.kind')
   @DocsEditable()
@@ -9321,6 +9346,7 @@ class DataTransferItemList extends NativeFieldWrapperClass2 {
   DataTransferItemList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('DataTransferItemList.length')
   @DocsEditable()
@@ -9451,6 +9477,7 @@ class DeprecatedStorageInfo extends NativeFieldWrapperClass2 {
   DeprecatedStorageInfo.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('DeprecatedStorageInfo.PERSISTENT')
   @DocsEditable()
@@ -9516,6 +9543,7 @@ class DeprecatedStorageQuota extends NativeFieldWrapperClass2 {
   DeprecatedStorageQuota.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   void queryUsageAndQuota(StorageUsageCallback usageCallback, [StorageErrorCallback errorCallback]) {
     if (errorCallback != null) {
@@ -9618,6 +9646,7 @@ class DeviceAcceleration extends NativeFieldWrapperClass2 {
   DeviceAcceleration.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('DeviceAcceleration.x')
   @DocsEditable()
@@ -9795,6 +9824,7 @@ class DeviceRotationRate extends NativeFieldWrapperClass2 {
   DeviceRotationRate.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('DeviceRotationRate.alpha')
   @DocsEditable()
@@ -10033,6 +10063,7 @@ class DirectoryReader extends NativeFieldWrapperClass2 {
   DirectoryReader.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   void _readEntries(_EntriesCallback successCallback, [_ErrorCallback errorCallback]) {
     if (errorCallback != null) {
@@ -11154,6 +11185,7 @@ class DomError extends NativeFieldWrapperClass2 {
   DomError.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('DOMError.message')
   @DocsEditable()
@@ -11212,6 +11244,7 @@ class DomException extends NativeFieldWrapperClass2 {
   DomException.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('DOMException.message')
   @DocsEditable()
@@ -11252,6 +11285,7 @@ class DomImplementation extends NativeFieldWrapperClass2 {
   DomImplementation.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('DOMImplementation.createDocument')
   @DocsEditable()
@@ -11297,6 +11331,7 @@ class DomIterator extends NativeFieldWrapperClass2 {
   DomIterator.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   Object next([Object value]) {
     if (value != null) {
@@ -11651,6 +11686,7 @@ class DomMatrixReadOnly extends NativeFieldWrapperClass2 {
   DomMatrixReadOnly.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('DOMMatrixReadOnly.a')
   @DocsEditable()
@@ -11869,6 +11905,7 @@ class DomParser extends NativeFieldWrapperClass2 {
   DomParser.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('DOMParser.parseFromString')
   @DocsEditable()
@@ -11999,6 +12036,7 @@ class DomPointReadOnly extends NativeFieldWrapperClass2 {
   DomPointReadOnly.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('DOMPointReadOnly.w')
   @DocsEditable()
@@ -12247,6 +12285,7 @@ class DomStringList extends NativeFieldWrapperClass2 with ListMixin<String>, Imm
   DomStringList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('DOMStringList.length')
   @DocsEditable()
@@ -12333,6 +12372,7 @@ abstract class DomStringMap extends NativeFieldWrapperClass2 {
   DomStringMap.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   bool __delete__(index_OR_name) {
     if ((index_OR_name is int || index_OR_name == null)) {
@@ -12393,6 +12433,7 @@ class DomTokenList extends NativeFieldWrapperClass2 {
   DomTokenList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('DOMTokenList.length')
   @DocsEditable()
@@ -16318,6 +16359,7 @@ class Entry extends NativeFieldWrapperClass2 {
   Entry.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Entry.filesystem')
   @DocsEditable()
@@ -16594,6 +16636,7 @@ class Event extends NativeFieldWrapperClass2 {
   Event.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   /**
    * This event is being handled by the event target.
@@ -16964,6 +17007,7 @@ class EventTarget extends NativeFieldWrapperClass2 {
   EventTarget.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   void _addEventListener([String type, EventListener listener, bool useCapture]) {
     if (useCapture != null) {
@@ -17427,6 +17471,7 @@ class FileList extends NativeFieldWrapperClass2 with ListMixin<File>, ImmutableL
   FileList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('FileList.length')
   @DocsEditable()
@@ -17686,6 +17731,7 @@ class FileStream extends NativeFieldWrapperClass2 {
   FileStream.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Stream.type')
   @DocsEditable()
@@ -17722,6 +17768,7 @@ class FileSystem extends NativeFieldWrapperClass2 {
   FileSystem.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -18000,6 +18047,7 @@ class FontFace extends NativeFieldWrapperClass2 {
   FontFace.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('FontFace.family')
   @DocsEditable()
@@ -18239,6 +18287,7 @@ class FormData extends NativeFieldWrapperClass2 {
   FormData.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -18424,6 +18473,7 @@ class Gamepad extends NativeFieldWrapperClass2 {
   Gamepad.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Gamepad.axes')
   @DocsEditable()
@@ -18479,6 +18529,7 @@ class GamepadButton extends NativeFieldWrapperClass2 {
   GamepadButton.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('GamepadButton.pressed')
   @DocsEditable()
@@ -18550,6 +18601,7 @@ class Geofencing extends NativeFieldWrapperClass2 {
   Geofencing.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Geofencing.getRegisteredRegions')
   @DocsEditable()
@@ -18594,6 +18646,7 @@ class GeofencingRegion extends NativeFieldWrapperClass2 {
   GeofencingRegion.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('GeofencingRegion.id')
   @DocsEditable()
@@ -18697,6 +18750,7 @@ class Geolocation extends NativeFieldWrapperClass2 {
   Geolocation.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Geolocation.clearWatch')
   @DocsEditable()
@@ -18753,6 +18807,7 @@ class Geoposition extends NativeFieldWrapperClass2 {
   Geoposition.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Geoposition.coords')
   @DocsEditable()
@@ -19048,6 +19103,7 @@ abstract class GlobalEventHandlers extends EventTarget {
   GlobalEventHandlers.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('GlobalEventHandlers.onabort')
   @DocsEditable()
@@ -19486,6 +19542,7 @@ class Headers extends NativeFieldWrapperClass2 {
   Headers.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Headers.size')
   @DocsEditable()
@@ -19602,6 +19659,7 @@ class History extends NativeFieldWrapperClass2 implements HistoryBase {
   History.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('History.length')
   @DocsEditable()
@@ -19665,6 +19723,7 @@ class HtmlCollection extends NativeFieldWrapperClass2 with ListMixin<Node>, Immu
   HtmlCollection.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('HTMLCollection.length')
   @DocsEditable()
@@ -21795,6 +21854,7 @@ class ImageBitmap extends NativeFieldWrapperClass2 {
   ImageBitmap.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('ImageBitmap.height')
   @DocsEditable()
@@ -21850,6 +21910,7 @@ class ImageData extends NativeFieldWrapperClass2 {
   ImageData.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('ImageData.data')
   @DocsEditable()
@@ -22033,6 +22094,7 @@ class InjectedScriptHost extends NativeFieldWrapperClass2 {
   InjectedScriptHost.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('InjectedScriptHost.inspect')
   @DocsEditable()
@@ -23718,6 +23780,7 @@ class Location extends NativeFieldWrapperClass2 implements LocationBase {
   Location.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Location.ancestorOrigins')
   @DocsEditable()
@@ -24019,6 +24082,7 @@ class MediaDeviceInfo extends NativeFieldWrapperClass2 {
   MediaDeviceInfo.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('MediaDeviceInfo.deviceId')
   @DocsEditable()
@@ -24497,6 +24561,7 @@ class MediaError extends NativeFieldWrapperClass2 {
   MediaError.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('MediaError.MEDIA_ERR_ABORTED')
   @DocsEditable()
@@ -24553,6 +24618,7 @@ class MediaKeyError extends NativeFieldWrapperClass2 {
   MediaKeyError.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('MediaKeyError.MEDIA_KEYERR_CLIENT')
   @DocsEditable()
@@ -24815,6 +24881,7 @@ class MediaKeys extends NativeFieldWrapperClass2 {
   MediaKeys.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('MediaKeys.keySystem')
   @DocsEditable()
@@ -24865,6 +24932,7 @@ class MediaList extends NativeFieldWrapperClass2 {
   MediaList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('MediaList.length')
   @DocsEditable()
@@ -25437,6 +25505,7 @@ class MemoryInfo extends NativeFieldWrapperClass2 {
   MemoryInfo.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('MemoryInfo.jsHeapSizeLimit')
   @DocsEditable()
@@ -25627,6 +25696,7 @@ class MessageChannel extends NativeFieldWrapperClass2 {
   MessageChannel.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('MessageChannel.port1')
   @DocsEditable()
@@ -25837,6 +25907,7 @@ class Metadata extends NativeFieldWrapperClass2 {
   Metadata.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Metadata.modificationTime')
   @DocsEditable()
@@ -26127,6 +26198,7 @@ class MidiInputMap extends NativeFieldWrapperClass2 {
   MidiInputMap.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('MIDIInputMap.size')
   @DocsEditable()
@@ -26259,6 +26331,7 @@ class MidiOutputMap extends NativeFieldWrapperClass2 {
   MidiOutputMap.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('MIDIOutputMap.size')
   @DocsEditable()
@@ -26381,6 +26454,7 @@ class MimeType extends NativeFieldWrapperClass2 {
   MimeType.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('MimeType.description')
   @DocsEditable()
@@ -26426,6 +26500,7 @@ class MimeTypeArray extends NativeFieldWrapperClass2 with ListMixin<MimeType>, I
   MimeTypeArray.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('MimeTypeArray.length')
   @DocsEditable()
@@ -26770,6 +26845,7 @@ class MutationObserver extends NativeFieldWrapperClass2 {
   MutationObserver.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('MutationObserver.disconnect')
   @DocsEditable()
@@ -26887,6 +26963,7 @@ class MutationRecord extends NativeFieldWrapperClass2 {
   MutationRecord.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('MutationRecord.addedNodes')
   @DocsEditable()
@@ -27005,6 +27082,7 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorCpu, Naviga
   Navigator.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Navigator.connection')
   @DocsEditable()
@@ -27229,6 +27307,7 @@ abstract class NavigatorCpu extends NativeFieldWrapperClass2 {
   NavigatorCpu.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('NavigatorCPU.hardwareConcurrency')
   @DocsEditable()
@@ -27263,6 +27342,7 @@ abstract class NavigatorID extends NativeFieldWrapperClass2 {
   NavigatorID.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('NavigatorID.appCodeName')
   @DocsEditable()
@@ -27327,6 +27407,7 @@ abstract class NavigatorLanguage extends NativeFieldWrapperClass2 {
   NavigatorLanguage.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('NavigatorLanguage.language')
   @DocsEditable()
@@ -27366,6 +27447,7 @@ abstract class NavigatorOnLine extends NativeFieldWrapperClass2 {
   NavigatorOnLine.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('NavigatorOnLine.onLine')
   @DocsEditable()
@@ -27401,6 +27483,7 @@ class NavigatorUserMediaError extends NativeFieldWrapperClass2 {
   NavigatorUserMediaError.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('NavigatorUserMediaError.constraintName')
   @DocsEditable()
@@ -28102,6 +28185,7 @@ class NodeFilter extends NativeFieldWrapperClass2 {
   NodeFilter.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('NodeFilter.FILTER_ACCEPT')
   @DocsEditable()
@@ -28175,6 +28259,7 @@ class NodeIterator extends NativeFieldWrapperClass2 {
   NodeIterator.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('NodeIterator.pointerBeforeReferenceNode')
   @DocsEditable()
@@ -28231,6 +28316,7 @@ class NodeList extends NativeFieldWrapperClass2 with ListMixin<Node>, ImmutableL
   NodeList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('NodeList.length')
   @DocsEditable()
@@ -29092,6 +29178,7 @@ abstract class ParentNode extends NativeFieldWrapperClass2 {
   ParentNode.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('ParentNode.childElementCount')
   @DocsEditable()
@@ -29166,6 +29253,7 @@ class Path2D extends NativeFieldWrapperClass2 implements _CanvasPathMethods {
   Path2D.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   void addPath(Path2D path, [Matrix transform]) {
     if (transform != null) {
@@ -29378,6 +29466,7 @@ class PerformanceEntry extends NativeFieldWrapperClass2 {
   PerformanceEntry.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('PerformanceEntry.duration')
   @DocsEditable()
@@ -29479,6 +29568,7 @@ class PerformanceNavigation extends NativeFieldWrapperClass2 {
   PerformanceNavigation.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('PerformanceNavigation.TYPE_BACK_FORWARD')
   @DocsEditable()
@@ -29611,6 +29701,7 @@ class PerformanceTiming extends NativeFieldWrapperClass2 {
   PerformanceTiming.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('PerformanceTiming.connectEnd')
   @DocsEditable()
@@ -29757,6 +29848,7 @@ class Plugin extends NativeFieldWrapperClass2 {
   Plugin.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Plugin.description')
   @DocsEditable()
@@ -29814,6 +29906,7 @@ class PluginArray extends NativeFieldWrapperClass2 with ListMixin<Plugin>, Immut
   PluginArray.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('PluginArray.length')
   @DocsEditable()
@@ -30001,6 +30094,7 @@ class PositionError extends NativeFieldWrapperClass2 {
   PositionError.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('PositionError.PERMISSION_DENIED')
   @DocsEditable()
@@ -30297,6 +30391,7 @@ class PushManager extends NativeFieldWrapperClass2 {
   PushManager.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('PushManager.register')
   @DocsEditable()
@@ -30331,6 +30426,7 @@ class PushRegistration extends NativeFieldWrapperClass2 {
   PushRegistration.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('PushRegistration.pushEndpoint')
   @DocsEditable()
@@ -30450,6 +30546,7 @@ class Range extends NativeFieldWrapperClass2 {
   Range.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Range.END_TO_END')
   @DocsEditable()
@@ -30647,6 +30744,7 @@ class ReadableStream extends NativeFieldWrapperClass2 {
   ReadableStream.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('ReadableStream.closed')
   @DocsEditable()
@@ -31104,6 +31202,7 @@ class RtcIceCandidate extends NativeFieldWrapperClass2 {
   RtcIceCandidate.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('RTCIceCandidate.candidate')
   @DocsEditable()
@@ -31491,6 +31590,7 @@ class RtcSessionDescription extends NativeFieldWrapperClass2 {
   RtcSessionDescription.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('RTCSessionDescription.sdp')
   @DocsEditable()
@@ -31537,6 +31637,7 @@ class RtcStatsReport extends NativeFieldWrapperClass2 {
   RtcStatsReport.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('RTCStatsReport.id')
   @DocsEditable()
@@ -31595,6 +31696,7 @@ class RtcStatsResponse extends NativeFieldWrapperClass2 {
   RtcStatsResponse.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('RTCStatsResponse.__getter__')
   @DocsEditable()
@@ -31640,6 +31742,7 @@ class Screen extends NativeFieldWrapperClass2 {
   Screen.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Screen.availHeight')
   @DocsEditable()
@@ -32115,6 +32218,7 @@ class Selection extends NativeFieldWrapperClass2 {
   Selection.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Selection.anchorNode')
   @DocsEditable()
@@ -32268,6 +32372,7 @@ class ServiceWorkerClient extends NativeFieldWrapperClass2 {
   ServiceWorkerClient.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('ServiceWorkerClient.id')
   @DocsEditable()
@@ -32307,6 +32412,7 @@ class ServiceWorkerClients extends NativeFieldWrapperClass2 {
   ServiceWorkerClients.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   Future getAll([Map options]) {
     if (options != null) {
@@ -32343,6 +32449,7 @@ class ServiceWorkerContainer extends NativeFieldWrapperClass2 {
   ServiceWorkerContainer.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('ServiceWorkerContainer.controller')
   @DocsEditable()
@@ -33060,6 +33167,7 @@ class SourceInfo extends NativeFieldWrapperClass2 {
   SourceInfo.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SourceInfo.facing')
   @DocsEditable()
@@ -33152,6 +33260,7 @@ class SpeechGrammar extends NativeFieldWrapperClass2 {
   SpeechGrammar.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SpeechGrammar.src')
   @DocsEditable()
@@ -33204,6 +33313,7 @@ class SpeechGrammarList extends NativeFieldWrapperClass2 with ListMixin<SpeechGr
   SpeechGrammarList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SpeechGrammarList.length')
   @DocsEditable()
@@ -33562,6 +33672,7 @@ class SpeechRecognitionAlternative extends NativeFieldWrapperClass2 {
   SpeechRecognitionAlternative.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SpeechRecognitionAlternative.confidence')
   @DocsEditable()
@@ -33683,6 +33794,7 @@ class SpeechRecognitionResult extends NativeFieldWrapperClass2 {
   SpeechRecognitionResult.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SpeechRecognitionResult.isFinal')
   @DocsEditable()
@@ -34012,6 +34124,7 @@ class SpeechSynthesisVoice extends NativeFieldWrapperClass2 {
   SpeechSynthesisVoice.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SpeechSynthesisVoice.default')
   @DocsEditable()
@@ -34137,6 +34250,7 @@ class Storage extends NativeFieldWrapperClass2
   Storage.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Storage.length')
   @DocsEditable()
@@ -34293,6 +34407,7 @@ class StorageInfo extends NativeFieldWrapperClass2 {
   StorageInfo.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('StorageInfo.quota')
   @DocsEditable()
@@ -34333,6 +34448,7 @@ class StorageQuota extends NativeFieldWrapperClass2 {
   StorageQuota.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('StorageQuota.supportedTypes')
   @DocsEditable()
@@ -34475,6 +34591,7 @@ class StyleMedia extends NativeFieldWrapperClass2 {
   StyleMedia.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('StyleMedia.type')
   @DocsEditable()
@@ -34511,6 +34628,7 @@ class StyleSheet extends NativeFieldWrapperClass2 {
   StyleSheet.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('StyleSheet.disabled')
   @DocsEditable()
@@ -35347,6 +35465,7 @@ class TextMetrics extends NativeFieldWrapperClass2 {
   TextMetrics.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('TextMetrics.actualBoundingBoxAscent')
   @DocsEditable()
@@ -35629,6 +35748,7 @@ class TextTrackCueList extends NativeFieldWrapperClass2 with ListMixin<TextTrack
   TextTrackCueList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('TextTrackCueList.length')
   @DocsEditable()
@@ -35828,6 +35948,7 @@ class TimeRanges extends NativeFieldWrapperClass2 {
   TimeRanges.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('TimeRanges.length')
   @DocsEditable()
@@ -35878,6 +35999,7 @@ class Timing extends NativeFieldWrapperClass2 {
   Timing.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Timing.delay')
   @DocsEditable()
@@ -36032,6 +36154,7 @@ class Touch extends NativeFieldWrapperClass2 {
   Touch.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('Touch.clientX')
   @DocsEditable()
@@ -36238,6 +36361,7 @@ class TouchList extends NativeFieldWrapperClass2 with ListMixin<Touch>, Immutabl
   TouchList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -36511,6 +36635,7 @@ class TreeWalker extends NativeFieldWrapperClass2 {
   TreeWalker.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('TreeWalker.currentNode')
   @DocsEditable()
@@ -36755,15 +36880,16 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
   Url.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   static String createObjectUrl(blob_OR_source_OR_stream) {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -36923,6 +37049,7 @@ abstract class UrlUtils extends NativeFieldWrapperClass2 {
   UrlUtils.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('URLUtils.hash')
   @DocsEditable()
@@ -37062,6 +37189,7 @@ abstract class UrlUtilsReadOnly extends NativeFieldWrapperClass2 {
   UrlUtilsReadOnly.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('URLUtilsReadOnly.hash')
   @DocsEditable()
@@ -37140,6 +37268,7 @@ class ValidityState extends NativeFieldWrapperClass2 {
   ValidityState.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('ValidityState.badInput')
   @DocsEditable()
@@ -37309,6 +37438,7 @@ class VideoPlaybackQuality extends NativeFieldWrapperClass2 {
   VideoPlaybackQuality.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('VideoPlaybackQuality.corruptedVideoFrames')
   @DocsEditable()
@@ -37358,6 +37488,7 @@ class VideoTrack extends NativeFieldWrapperClass2 {
   VideoTrack.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('VideoTrack.id')
   @DocsEditable()
@@ -37609,6 +37740,7 @@ class VttRegion extends NativeFieldWrapperClass2 {
   VttRegion.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('VTTRegion.height')
   @DocsEditable()
@@ -37723,6 +37855,7 @@ class VttRegionList extends NativeFieldWrapperClass2 {
   VttRegionList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('VTTRegionList.length')
   @DocsEditable()
@@ -39710,6 +39843,7 @@ abstract class WindowBase64 extends NativeFieldWrapperClass2 {
   WindowBase64.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('WindowBase64.atob')
   @DocsEditable()
@@ -39782,6 +39916,7 @@ abstract class WindowEventHandlers extends EventTarget {
   WindowEventHandlers.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('WindowEventHandlers.onhashchange')
   @DocsEditable()
@@ -40136,6 +40271,7 @@ class WorkerPerformance extends NativeFieldWrapperClass2 {
   WorkerPerformance.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('WorkerPerformance.memory')
   @DocsEditable()
@@ -40182,6 +40318,7 @@ class XPathEvaluator extends NativeFieldWrapperClass2 {
   XPathEvaluator.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('XPathEvaluator.createExpression')
   @DocsEditable()
@@ -40224,6 +40361,7 @@ class XPathExpression extends NativeFieldWrapperClass2 {
   XPathExpression.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('XPathExpression.evaluate')
   @DocsEditable()
@@ -40258,6 +40396,7 @@ class XPathNSResolver extends NativeFieldWrapperClass2 {
   XPathNSResolver.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('XPathNSResolver.lookupNamespaceURI')
   @DocsEditable()
@@ -40292,6 +40431,7 @@ class XPathResult extends NativeFieldWrapperClass2 {
   XPathResult.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('XPathResult.ANY_TYPE')
   @DocsEditable()
@@ -40431,6 +40571,7 @@ class XmlSerializer extends NativeFieldWrapperClass2 {
   XmlSerializer.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('XMLSerializer.serializeToString')
   @DocsEditable()
@@ -40473,6 +40614,7 @@ class XsltProcessor extends NativeFieldWrapperClass2 {
   XsltProcessor.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
@@ -40657,6 +40799,7 @@ abstract class _CSSValue extends NativeFieldWrapperClass2 {
   _CSSValue.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40686,6 +40829,7 @@ abstract class _Cache extends NativeFieldWrapperClass2 {
   _Cache.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40715,6 +40859,7 @@ abstract class _CanvasPathMethods extends NativeFieldWrapperClass2 {
   _CanvasPathMethods.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -40918,6 +41063,7 @@ class _ClientRectList extends NativeFieldWrapperClass2 with ListMixin<Rectangle>
   _ClientRectList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('ClientRectList.length')
   @DocsEditable()
@@ -41002,6 +41148,7 @@ abstract class _Counter extends NativeFieldWrapperClass2 {
   _Counter.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -41030,6 +41177,7 @@ class _CssRuleList extends NativeFieldWrapperClass2 with ListMixin<CssRule>, Imm
   _CssRuleList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('CSSRuleList.length')
   @DocsEditable()
@@ -41197,6 +41345,7 @@ abstract class _DOMFileSystemSync extends NativeFieldWrapperClass2 {
   _DOMFileSystemSync.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -41255,6 +41404,7 @@ abstract class _DirectoryReaderSync extends NativeFieldWrapperClass2 {
   _DirectoryReaderSync.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -41398,6 +41548,7 @@ abstract class _EntrySync extends NativeFieldWrapperClass2 {
   _EntrySync.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -41462,6 +41613,7 @@ abstract class _FileReaderSync extends NativeFieldWrapperClass2 {
   _FileReaderSync.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -41492,6 +41644,7 @@ abstract class _FileWriterSync extends NativeFieldWrapperClass2 {
   _FileWriterSync.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -41522,6 +41675,7 @@ class _GamepadList extends NativeFieldWrapperClass2 with ListMixin<Gamepad>, Imm
   _GamepadList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('GamepadList.length')
   @DocsEditable()
@@ -41606,6 +41760,7 @@ abstract class _HTMLAllCollection extends NativeFieldWrapperClass2 {
   _HTMLAllCollection.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('HTMLAllCollection.item')
   @DocsEditable()
@@ -41878,6 +42033,7 @@ class _NamedNodeMap extends JsoNativeFieldWrapper2 with ListMixin<Node>, Immutab
   _NamedNodeMap.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('NamedNodeMap.length')
   @DocsEditable()
@@ -41989,6 +42145,7 @@ abstract class _PagePopupController extends NativeFieldWrapperClass2 {
   _PagePopupController.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -42019,6 +42176,7 @@ abstract class _RGBColor extends NativeFieldWrapperClass2 {
   _RGBColor.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -42072,6 +42230,7 @@ abstract class _Rect extends NativeFieldWrapperClass2 {
   _Rect.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -42261,6 +42420,7 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass2 with ListMix
   _SpeechRecognitionResultList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SpeechRecognitionResultList.length')
   @DocsEditable()
@@ -42343,6 +42503,7 @@ class _StyleSheetList extends NativeFieldWrapperClass2 with ListMixin<StyleSheet
   _StyleSheetList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('StyleSheetList.length')
   @DocsEditable()
@@ -42430,6 +42591,7 @@ abstract class _SubtleCrypto extends NativeFieldWrapperClass2 {
   _SubtleCrypto.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -42497,6 +42659,7 @@ abstract class _WebKitCSSMatrix extends NativeFieldWrapperClass2 {
   _WebKitCSSMatrix.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -42554,6 +42717,7 @@ abstract class _WindowTimers extends NativeFieldWrapperClass2 {
   _WindowTimers.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('WindowTimers.clearInterval')
   @DocsEditable()
@@ -42604,6 +42768,7 @@ abstract class _WorkerLocation extends NativeFieldWrapperClass2 implements UrlUt
   _WorkerLocation.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -42634,6 +42799,7 @@ abstract class _WorkerNavigator extends NativeFieldWrapperClass2 implements Navi
   _WorkerNavigator.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
