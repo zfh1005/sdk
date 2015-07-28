@@ -1198,6 +1198,17 @@ List<Node> wrap_jso_list(jso_nodes) {
   return frozen_nodes;
 }
 
+// Converts a flat Dart map into a JavaScript object with properties this is
+// is the Dartium only version it uses dart:js.
+convertDartToNative_Dictionary(Map dict) {
+  if (dict == null) return null;
+  var jsArray = new js.JsArray();
+  dict.forEach((String key, value) {
+      jsArray[key] = value;
+  });
+  return jsArray;
+}
+
 // Need a default constructor for constructing classes with mixins that are
 // also extending NativeFieldWrapperClass2.  NativeFieldWrapperClassXX don't
 // have a default constructor.
@@ -36749,10 +36760,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -38002,7 +38013,7 @@ class WheelEvent extends MouseEvent {
       'relatedTarget': relatedTarget,
     };
 
-    return _blink.BlinkWheelEvent.instance.constructorCallback_2_(type, options);
+    return wrap_jso(_blink.BlinkWheelEvent.instance.constructorCallback_2_(type, convertDartToNative_Dictionary(options)));
   }
 
   // To suppress missing implicit constructor warnings.
