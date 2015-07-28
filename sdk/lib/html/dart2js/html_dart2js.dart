@@ -31632,7 +31632,7 @@ class WheelEvent extends MouseEvent {
     if (view == null) {
       view = window;
     }
-    
+
     return JS('WheelEvent', 'new WheelEvent(#, #)',
         type, convertDartToNative_Dictionary(options));
 
