@@ -303,42 +303,42 @@ getHtmlCreateFunction(String key) {
   return null;
 }
 
-Type _getHtmlFunction(String key) {
+Function _getHtmlFunction(String key) {
   if (htmlBlinkFunctionMap.containsKey(key)) {
     return htmlBlinkFunctionMap[key]();
   }
   return null;
 }
 
-Type _getWebGlFunction(String key) {
+Function _getWebGlFunction(String key) {
   if (web_glBlinkFunctionMap.containsKey(key)) {
     return web_glBlinkFunctionMap[key]();
   }
   return null;
 }
 
-Type _getIndexDbFunction(String key) {
+Function _getIndexDbFunction(String key) {
   if (indexed_dbBlinkFunctionMap.containsKey(key)) {
     return indexed_dbBlinkFunctionMap[key]();
   }
   return null;
 }
 
-Type _getWebAudioFunction(String key) {
+Function _getWebAudioFunction(String key) {
   if (web_audioBlinkFunctionMap.containsKey(key)) {
     return web_audioBlinkFunctionMap[key]();
   }
   return null;
 }
 
-Type _getWebSqlFunction(String key) {
+Function _getWebSqlFunction(String key) {
   if (web_sqlBlinkFunctionMap.containsKey(key)) {
     return web_sqlBlinkFunctionMap[key]();
   }
   return null;
 }
 
-Type _getSvgFunction(String key) {
+Function _getSvgFunction(String key) {
   if (svgBlinkFunctionMap.containsKey(key)) {
     return svgBlinkFunctionMap[key]();
   }
@@ -378,7 +378,7 @@ js.JsObject unwrap_jso(dartClass_instance) {
 
 /**
  * Create Dart class that maps to the JS Type, add the JsObject as an expando
- * on the Dart class and return the created Dart class. 
+ * on the Dart class and return the created Dart class.
  */
 wrap_jso(jsObject) {
 try {

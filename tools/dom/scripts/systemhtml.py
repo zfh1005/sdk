@@ -618,7 +618,7 @@ class HtmlDartInterfaceGenerator(object):
     return new {0}._internalWrap();
   }}
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory {0}._internalWrap() {{
     return new {0}.internal_();
@@ -1067,7 +1067,7 @@ class Dart2JSBackend(HtmlDartGenerator):
   def _ConvertArgumentTypes(
           self, stmts_emitter, arguments, argument_count, info):
     temp_version = [0]
-    converted_arguments = []  
+    converted_arguments = []
     target_parameters = []
     for position, arg in enumerate(arguments[:argument_count]):
       conversion = self._InputConversion(arg.type.id, info.declared_name)

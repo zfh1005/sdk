@@ -416,7 +416,7 @@ class ActiveInfo extends NativeFieldWrapperClass2 {
     return new ActiveInfo._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory ActiveInfo._internalWrap() {
     return new ActiveInfo.internal_();
@@ -457,7 +457,7 @@ class AngleInstancedArrays extends NativeFieldWrapperClass2 {
     return new AngleInstancedArrays._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory AngleInstancedArrays._internalWrap() {
     return new AngleInstancedArrays.internal_();
@@ -506,7 +506,7 @@ class Buffer extends NativeFieldWrapperClass2 {
     return new Buffer._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Buffer._internalWrap() {
     return new Buffer.internal_();
@@ -536,7 +536,7 @@ class CompressedTextureAtc extends NativeFieldWrapperClass2 {
     return new CompressedTextureAtc._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory CompressedTextureAtc._internalWrap() {
     return new CompressedTextureAtc.internal_();
@@ -577,7 +577,7 @@ class CompressedTextureETC1 extends NativeFieldWrapperClass2 {
     return new CompressedTextureETC1._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory CompressedTextureETC1._internalWrap() {
     return new CompressedTextureETC1.internal_();
@@ -612,7 +612,7 @@ class CompressedTexturePvrtc extends NativeFieldWrapperClass2 {
     return new CompressedTexturePvrtc._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory CompressedTexturePvrtc._internalWrap() {
     return new CompressedTexturePvrtc.internal_();
@@ -658,7 +658,7 @@ class CompressedTextureS3TC extends NativeFieldWrapperClass2 {
     return new CompressedTextureS3TC._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory CompressedTextureS3TC._internalWrap() {
     return new CompressedTextureS3TC.internal_();
@@ -725,7 +725,7 @@ class ContextAttributes extends NativeFieldWrapperClass2 {
     return new ContextAttributes._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory ContextAttributes._internalWrap() {
     return new ContextAttributes.internal_();
@@ -844,7 +844,7 @@ class DebugRendererInfo extends NativeFieldWrapperClass2 {
     return new DebugRendererInfo._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory DebugRendererInfo._internalWrap() {
     return new DebugRendererInfo.internal_();
@@ -882,7 +882,7 @@ class DebugShaders extends NativeFieldWrapperClass2 {
     return new DebugShaders._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory DebugShaders._internalWrap() {
     return new DebugShaders.internal_();
@@ -916,7 +916,7 @@ class DepthTexture extends NativeFieldWrapperClass2 {
     return new DepthTexture._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory DepthTexture._internalWrap() {
     return new DepthTexture.internal_();
@@ -950,7 +950,7 @@ class DrawBuffers extends NativeFieldWrapperClass2 {
     return new DrawBuffers._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory DrawBuffers._internalWrap() {
     return new DrawBuffers.internal_();
@@ -1119,7 +1119,7 @@ class ExtBlendMinMax extends NativeFieldWrapperClass2 {
     return new ExtBlendMinMax._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory ExtBlendMinMax._internalWrap() {
     return new ExtBlendMinMax.internal_();
@@ -1159,7 +1159,7 @@ class ExtFragDepth extends NativeFieldWrapperClass2 {
     return new ExtFragDepth._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory ExtFragDepth._internalWrap() {
     return new ExtFragDepth.internal_();
@@ -1188,7 +1188,7 @@ class ExtShaderTextureLod extends NativeFieldWrapperClass2 {
     return new ExtShaderTextureLod._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory ExtShaderTextureLod._internalWrap() {
     return new ExtShaderTextureLod.internal_();
@@ -1218,7 +1218,7 @@ class ExtTextureFilterAnisotropic extends NativeFieldWrapperClass2 {
     return new ExtTextureFilterAnisotropic._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory ExtTextureFilterAnisotropic._internalWrap() {
     return new ExtTextureFilterAnisotropic.internal_();
@@ -1255,7 +1255,7 @@ class Framebuffer extends NativeFieldWrapperClass2 {
     return new Framebuffer._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Framebuffer._internalWrap() {
     return new Framebuffer.internal_();
@@ -1285,7 +1285,7 @@ class LoseContext extends NativeFieldWrapperClass2 {
     return new LoseContext._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory LoseContext._internalWrap() {
     return new LoseContext.internal_();
@@ -1323,7 +1323,7 @@ class OesElementIndexUint extends NativeFieldWrapperClass2 {
     return new OesElementIndexUint._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory OesElementIndexUint._internalWrap() {
     return new OesElementIndexUint.internal_();
@@ -1353,7 +1353,7 @@ class OesStandardDerivatives extends NativeFieldWrapperClass2 {
     return new OesStandardDerivatives._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory OesStandardDerivatives._internalWrap() {
     return new OesStandardDerivatives.internal_();
@@ -1387,7 +1387,7 @@ class OesTextureFloat extends NativeFieldWrapperClass2 {
     return new OesTextureFloat._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory OesTextureFloat._internalWrap() {
     return new OesTextureFloat.internal_();
@@ -1417,7 +1417,7 @@ class OesTextureFloatLinear extends NativeFieldWrapperClass2 {
     return new OesTextureFloatLinear._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory OesTextureFloatLinear._internalWrap() {
     return new OesTextureFloatLinear.internal_();
@@ -1447,7 +1447,7 @@ class OesTextureHalfFloat extends NativeFieldWrapperClass2 {
     return new OesTextureHalfFloat._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory OesTextureHalfFloat._internalWrap() {
     return new OesTextureHalfFloat.internal_();
@@ -1481,7 +1481,7 @@ class OesTextureHalfFloatLinear extends NativeFieldWrapperClass2 {
     return new OesTextureHalfFloatLinear._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory OesTextureHalfFloatLinear._internalWrap() {
     return new OesTextureHalfFloatLinear.internal_();
@@ -1511,7 +1511,7 @@ class OesVertexArrayObject extends NativeFieldWrapperClass2 {
     return new OesVertexArrayObject._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory OesVertexArrayObject._internalWrap() {
     return new OesVertexArrayObject.internal_();
@@ -1560,7 +1560,7 @@ class Program extends NativeFieldWrapperClass2 {
     return new Program._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Program._internalWrap() {
     return new Program.internal_();
@@ -1589,7 +1589,7 @@ class Renderbuffer extends NativeFieldWrapperClass2 {
     return new Renderbuffer._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Renderbuffer._internalWrap() {
     return new Renderbuffer.internal_();
@@ -1618,7 +1618,7 @@ class RenderingContext extends NativeFieldWrapperClass2 implements CanvasRenderi
     return new RenderingContext._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory RenderingContext._internalWrap() {
     return new RenderingContext.internal_();
@@ -3564,7 +3564,7 @@ class Shader extends NativeFieldWrapperClass2 {
     return new Shader._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Shader._internalWrap() {
     return new Shader.internal_();
@@ -3592,7 +3592,7 @@ class ShaderPrecisionFormat extends NativeFieldWrapperClass2 {
     return new ShaderPrecisionFormat._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory ShaderPrecisionFormat._internalWrap() {
     return new ShaderPrecisionFormat.internal_();
@@ -3632,7 +3632,7 @@ class Texture extends NativeFieldWrapperClass2 {
     return new Texture._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Texture._internalWrap() {
     return new Texture.internal_();
@@ -3660,7 +3660,7 @@ class UniformLocation extends NativeFieldWrapperClass2 {
     return new UniformLocation._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory UniformLocation._internalWrap() {
     return new UniformLocation.internal_();
@@ -3690,7 +3690,7 @@ class VertexArrayObject extends NativeFieldWrapperClass2 {
     return new VertexArrayObject._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory VertexArrayObject._internalWrap() {
     return new VertexArrayObject.internal_();
@@ -3719,7 +3719,7 @@ abstract class _WebGLRenderingContextBase extends NativeFieldWrapperClass2 {
     return new _WebGLRenderingContextBase._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory _WebGLRenderingContextBase._internalWrap() {
     return new _WebGLRenderingContextBase.internal_();

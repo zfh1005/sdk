@@ -1073,42 +1073,42 @@ getHtmlCreateFunction(String key) {
   return null;
 }
 
-Type _getHtmlFunction(String key) {
+Function _getHtmlFunction(String key) {
   if (htmlBlinkFunctionMap.containsKey(key)) {
     return htmlBlinkFunctionMap[key]();
   }
   return null;
 }
 
-Type _getWebGlFunction(String key) {
+Function _getWebGlFunction(String key) {
   if (web_glBlinkFunctionMap.containsKey(key)) {
     return web_glBlinkFunctionMap[key]();
   }
   return null;
 }
 
-Type _getIndexDbFunction(String key) {
+Function _getIndexDbFunction(String key) {
   if (indexed_dbBlinkFunctionMap.containsKey(key)) {
     return indexed_dbBlinkFunctionMap[key]();
   }
   return null;
 }
 
-Type _getWebAudioFunction(String key) {
+Function _getWebAudioFunction(String key) {
   if (web_audioBlinkFunctionMap.containsKey(key)) {
     return web_audioBlinkFunctionMap[key]();
   }
   return null;
 }
 
-Type _getWebSqlFunction(String key) {
+Function _getWebSqlFunction(String key) {
   if (web_sqlBlinkFunctionMap.containsKey(key)) {
     return web_sqlBlinkFunctionMap[key]();
   }
   return null;
 }
 
-Type _getSvgFunction(String key) {
+Function _getSvgFunction(String key) {
   if (svgBlinkFunctionMap.containsKey(key)) {
     return svgBlinkFunctionMap[key]();
   }
@@ -1148,7 +1148,7 @@ js.JsObject unwrap_jso(dartClass_instance) {
 
 /**
  * Create Dart class that maps to the JS Type, add the JsObject as an expando
- * on the Dart class and return the created Dart class. 
+ * on the Dart class and return the created Dart class.
  */
 wrap_jso(jsObject) {
 try {
@@ -1228,7 +1228,7 @@ abstract class AbstractWorker extends NativeFieldWrapperClass2 implements EventT
     return new AbstractWorker._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory AbstractWorker._internalWrap() {
     return new AbstractWorker.internal_();
@@ -1487,7 +1487,7 @@ class AnimationEffect extends NativeFieldWrapperClass2 {
     return new AnimationEffect._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory AnimationEffect._internalWrap() {
     return new AnimationEffect.internal_();
@@ -1553,7 +1553,7 @@ class AnimationNode extends NativeFieldWrapperClass2 {
     return new AnimationNode._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory AnimationNode._internalWrap() {
     return new AnimationNode.internal_();
@@ -1759,7 +1759,7 @@ class AnimationTimeline extends NativeFieldWrapperClass2 {
     return new AnimationTimeline._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory AnimationTimeline._internalWrap() {
     return new AnimationTimeline.internal_();
@@ -2258,7 +2258,7 @@ class AudioTrack extends NativeFieldWrapperClass2 {
     return new AudioTrack._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory AudioTrack._internalWrap() {
     return new AudioTrack.internal_();
@@ -2438,7 +2438,7 @@ class BarProp extends NativeFieldWrapperClass2 {
     return new BarProp._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory BarProp._internalWrap() {
     return new BarProp.internal_();
@@ -2604,7 +2604,7 @@ class Blob extends NativeFieldWrapperClass2 {
     return new Blob._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Blob._internalWrap() {
     return new Blob.internal_();
@@ -2659,7 +2659,7 @@ class Body extends NativeFieldWrapperClass2 {
     return new Body._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Body._internalWrap() {
     return new Body.internal_();
@@ -3112,7 +3112,7 @@ class CacheStorage extends NativeFieldWrapperClass2 {
     return new CacheStorage._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory CacheStorage._internalWrap() {
     return new CacheStorage.internal_();
@@ -3167,7 +3167,7 @@ class Canvas2DContextAttributes extends NativeFieldWrapperClass2 {
     return new Canvas2DContextAttributes._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Canvas2DContextAttributes._internalWrap() {
     return new Canvas2DContextAttributes.internal_();
@@ -3415,7 +3415,7 @@ class CanvasGradient extends NativeFieldWrapperClass2 {
     return new CanvasGradient._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory CanvasGradient._internalWrap() {
     return new CanvasGradient.internal_();
@@ -3483,7 +3483,7 @@ class CanvasPattern extends NativeFieldWrapperClass2 {
     return new CanvasPattern._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory CanvasPattern._internalWrap() {
     return new CanvasPattern.internal_();
@@ -3517,7 +3517,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
     return new CanvasRenderingContext2D._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory CanvasRenderingContext2D._internalWrap() {
     return new CanvasRenderingContext2D.internal_();
@@ -4372,7 +4372,7 @@ abstract class ChildNode extends NativeFieldWrapperClass2 {
     return new ChildNode._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory ChildNode._internalWrap() {
     return new ChildNode.internal_();
@@ -4636,7 +4636,7 @@ class ConsoleBase extends NativeFieldWrapperClass2 {
     return new ConsoleBase._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory ConsoleBase._internalWrap() {
     return new ConsoleBase.internal_();
@@ -4833,7 +4833,7 @@ class Coordinates extends NativeFieldWrapperClass2 {
     return new Coordinates._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Coordinates._internalWrap() {
     return new Coordinates.internal_();
@@ -4890,7 +4890,7 @@ class Credential extends NativeFieldWrapperClass2 {
     return new Credential._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Credential._internalWrap() {
     return new Credential.internal_();
@@ -4934,7 +4934,7 @@ class CredentialsContainer extends NativeFieldWrapperClass2 {
     return new CredentialsContainer._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory CredentialsContainer._internalWrap() {
     return new CredentialsContainer.internal_();
@@ -4988,7 +4988,7 @@ class Crypto extends NativeFieldWrapperClass2 {
     return new Crypto._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Crypto._internalWrap() {
     return new Crypto.internal_();
@@ -5029,7 +5029,7 @@ class CryptoKey extends NativeFieldWrapperClass2 {
     return new CryptoKey._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory CryptoKey._internalWrap() {
     return new CryptoKey.internal_();
@@ -5079,7 +5079,7 @@ class Css extends NativeFieldWrapperClass2 {
     return new Css._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Css._internalWrap() {
     return new Css.internal_();
@@ -5437,7 +5437,7 @@ class CssRule extends NativeFieldWrapperClass2 {
     return new CssRule._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory CssRule._internalWrap() {
     return new CssRule.internal_();
@@ -5636,7 +5636,7 @@ class CssStyleDeclaration  extends JsoNativeFieldWrapper2 with
     return new CssStyleDeclaration._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory CssStyleDeclaration._internalWrap() {
     return new CssStyleDeclaration.internal_();
@@ -9154,7 +9154,7 @@ class DataTransfer extends NativeFieldWrapperClass2 {
     return new DataTransfer._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory DataTransfer._internalWrap() {
     return new DataTransfer.internal_();
@@ -9243,7 +9243,7 @@ class DataTransferItem extends NativeFieldWrapperClass2 {
     return new DataTransferItem._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory DataTransferItem._internalWrap() {
     return new DataTransferItem.internal_();
@@ -9301,7 +9301,7 @@ class DataTransferItemList extends NativeFieldWrapperClass2 {
     return new DataTransferItemList._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory DataTransferItemList._internalWrap() {
     return new DataTransferItemList.internal_();
@@ -9431,7 +9431,7 @@ class DeprecatedStorageInfo extends NativeFieldWrapperClass2 {
     return new DeprecatedStorageInfo._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory DeprecatedStorageInfo._internalWrap() {
     return new DeprecatedStorageInfo.internal_();
@@ -9496,7 +9496,7 @@ class DeprecatedStorageQuota extends NativeFieldWrapperClass2 {
     return new DeprecatedStorageQuota._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory DeprecatedStorageQuota._internalWrap() {
     return new DeprecatedStorageQuota.internal_();
@@ -9598,7 +9598,7 @@ class DeviceAcceleration extends NativeFieldWrapperClass2 {
     return new DeviceAcceleration._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory DeviceAcceleration._internalWrap() {
     return new DeviceAcceleration.internal_();
@@ -9775,7 +9775,7 @@ class DeviceRotationRate extends NativeFieldWrapperClass2 {
     return new DeviceRotationRate._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory DeviceRotationRate._internalWrap() {
     return new DeviceRotationRate.internal_();
@@ -10013,7 +10013,7 @@ class DirectoryReader extends NativeFieldWrapperClass2 {
     return new DirectoryReader._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory DirectoryReader._internalWrap() {
     return new DirectoryReader.internal_();
@@ -11134,7 +11134,7 @@ class DomError extends NativeFieldWrapperClass2 {
     return new DomError._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory DomError._internalWrap() {
     return new DomError.internal_();
@@ -11192,7 +11192,7 @@ class DomException extends NativeFieldWrapperClass2 {
     return new DomException._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory DomException._internalWrap() {
     return new DomException.internal_();
@@ -11232,7 +11232,7 @@ class DomImplementation extends NativeFieldWrapperClass2 {
     return new DomImplementation._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory DomImplementation._internalWrap() {
     return new DomImplementation.internal_();
@@ -11277,7 +11277,7 @@ class DomIterator extends NativeFieldWrapperClass2 {
     return new DomIterator._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory DomIterator._internalWrap() {
     return new DomIterator.internal_();
@@ -11631,7 +11631,7 @@ class DomMatrixReadOnly extends NativeFieldWrapperClass2 {
     return new DomMatrixReadOnly._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory DomMatrixReadOnly._internalWrap() {
     return new DomMatrixReadOnly.internal_();
@@ -11849,7 +11849,7 @@ class DomParser extends NativeFieldWrapperClass2 {
     return new DomParser._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory DomParser._internalWrap() {
     return new DomParser.internal_();
@@ -11979,7 +11979,7 @@ class DomPointReadOnly extends NativeFieldWrapperClass2 {
     return new DomPointReadOnly._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory DomPointReadOnly._internalWrap() {
     return new DomPointReadOnly.internal_();
@@ -12122,7 +12122,7 @@ class DomRectReadOnly extends NativeFieldWrapperClass2 implements Rectangle {
     return new DomRectReadOnly._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory DomRectReadOnly._internalWrap() {
     return new DomRectReadOnly.internal_();
@@ -12227,7 +12227,7 @@ class DomStringList extends NativeFieldWrapperClass2 with ListMixin<String>, Imm
     return new DomStringList._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory DomStringList._internalWrap() {
     return new DomStringList.internal_();
@@ -12313,7 +12313,7 @@ abstract class DomStringMap extends NativeFieldWrapperClass2 {
     return new DomStringMap._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory DomStringMap._internalWrap() {
     return new DomStringMap.internal_();
@@ -12373,7 +12373,7 @@ class DomTokenList extends NativeFieldWrapperClass2 {
     return new DomTokenList._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory DomTokenList._internalWrap() {
     return new DomTokenList.internal_();
@@ -16298,7 +16298,7 @@ class Entry extends NativeFieldWrapperClass2 {
     return new Entry._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Entry._internalWrap() {
     return new Entry.internal_();
@@ -16574,7 +16574,7 @@ class Event extends NativeFieldWrapperClass2 {
     return new Event._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Event._internalWrap() {
     return new Event.internal_();
@@ -16944,7 +16944,7 @@ class EventTarget extends NativeFieldWrapperClass2 {
     return new EventTarget._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory EventTarget._internalWrap() {
     return new EventTarget.internal_();
@@ -17407,7 +17407,7 @@ class FileList extends NativeFieldWrapperClass2 with ListMixin<File>, ImmutableL
     return new FileList._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory FileList._internalWrap() {
     return new FileList.internal_();
@@ -17666,7 +17666,7 @@ class FileStream extends NativeFieldWrapperClass2 {
     return new FileStream._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory FileStream._internalWrap() {
     return new FileStream.internal_();
@@ -17702,7 +17702,7 @@ class FileSystem extends NativeFieldWrapperClass2 {
     return new FileSystem._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory FileSystem._internalWrap() {
     return new FileSystem.internal_();
@@ -17980,7 +17980,7 @@ class FontFace extends NativeFieldWrapperClass2 {
     return new FontFace._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory FontFace._internalWrap() {
     return new FontFace.internal_();
@@ -18219,7 +18219,7 @@ class FormData extends NativeFieldWrapperClass2 {
     return new FormData._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory FormData._internalWrap() {
     return new FormData.internal_();
@@ -18404,7 +18404,7 @@ class Gamepad extends NativeFieldWrapperClass2 {
     return new Gamepad._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Gamepad._internalWrap() {
     return new Gamepad.internal_();
@@ -18459,7 +18459,7 @@ class GamepadButton extends NativeFieldWrapperClass2 {
     return new GamepadButton._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory GamepadButton._internalWrap() {
     return new GamepadButton.internal_();
@@ -18530,7 +18530,7 @@ class Geofencing extends NativeFieldWrapperClass2 {
     return new Geofencing._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Geofencing._internalWrap() {
     return new Geofencing.internal_();
@@ -18574,7 +18574,7 @@ class GeofencingRegion extends NativeFieldWrapperClass2 {
     return new GeofencingRegion._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory GeofencingRegion._internalWrap() {
     return new GeofencingRegion.internal_();
@@ -18677,7 +18677,7 @@ class Geolocation extends NativeFieldWrapperClass2 {
     return new Geolocation._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Geolocation._internalWrap() {
     return new Geolocation.internal_();
@@ -18733,7 +18733,7 @@ class Geoposition extends NativeFieldWrapperClass2 {
     return new Geoposition._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Geoposition._internalWrap() {
     return new Geoposition.internal_();
@@ -19028,7 +19028,7 @@ abstract class GlobalEventHandlers extends EventTarget {
     return new GlobalEventHandlers._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory GlobalEventHandlers._internalWrap() {
     return new GlobalEventHandlers.internal_();
@@ -19466,7 +19466,7 @@ class Headers extends NativeFieldWrapperClass2 {
     return new Headers._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Headers._internalWrap() {
     return new Headers.internal_();
@@ -19582,7 +19582,7 @@ class History extends NativeFieldWrapperClass2 implements HistoryBase {
     return new History._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory History._internalWrap() {
     return new History.internal_();
@@ -19645,7 +19645,7 @@ class HtmlCollection extends NativeFieldWrapperClass2 with ListMixin<Node>, Immu
     return new HtmlCollection._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory HtmlCollection._internalWrap() {
     return new HtmlCollection.internal_();
@@ -21775,7 +21775,7 @@ class ImageBitmap extends NativeFieldWrapperClass2 {
     return new ImageBitmap._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory ImageBitmap._internalWrap() {
     return new ImageBitmap.internal_();
@@ -21830,7 +21830,7 @@ class ImageData extends NativeFieldWrapperClass2 {
     return new ImageData._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory ImageData._internalWrap() {
     return new ImageData.internal_();
@@ -22013,7 +22013,7 @@ class InjectedScriptHost extends NativeFieldWrapperClass2 {
     return new InjectedScriptHost._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory InjectedScriptHost._internalWrap() {
     return new InjectedScriptHost.internal_();
@@ -23698,7 +23698,7 @@ class Location extends NativeFieldWrapperClass2 implements LocationBase {
     return new Location._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Location._internalWrap() {
     return new Location.internal_();
@@ -23999,7 +23999,7 @@ class MediaDeviceInfo extends NativeFieldWrapperClass2 {
     return new MediaDeviceInfo._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory MediaDeviceInfo._internalWrap() {
     return new MediaDeviceInfo.internal_();
@@ -24477,7 +24477,7 @@ class MediaError extends NativeFieldWrapperClass2 {
     return new MediaError._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory MediaError._internalWrap() {
     return new MediaError.internal_();
@@ -24533,7 +24533,7 @@ class MediaKeyError extends NativeFieldWrapperClass2 {
     return new MediaKeyError._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory MediaKeyError._internalWrap() {
     return new MediaKeyError.internal_();
@@ -24795,7 +24795,7 @@ class MediaKeys extends NativeFieldWrapperClass2 {
     return new MediaKeys._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory MediaKeys._internalWrap() {
     return new MediaKeys.internal_();
@@ -24845,7 +24845,7 @@ class MediaList extends NativeFieldWrapperClass2 {
     return new MediaList._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory MediaList._internalWrap() {
     return new MediaList.internal_();
@@ -25417,7 +25417,7 @@ class MemoryInfo extends NativeFieldWrapperClass2 {
     return new MemoryInfo._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory MemoryInfo._internalWrap() {
     return new MemoryInfo.internal_();
@@ -25607,7 +25607,7 @@ class MessageChannel extends NativeFieldWrapperClass2 {
     return new MessageChannel._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory MessageChannel._internalWrap() {
     return new MessageChannel.internal_();
@@ -25817,7 +25817,7 @@ class Metadata extends NativeFieldWrapperClass2 {
     return new Metadata._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Metadata._internalWrap() {
     return new Metadata.internal_();
@@ -26107,7 +26107,7 @@ class MidiInputMap extends NativeFieldWrapperClass2 {
     return new MidiInputMap._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory MidiInputMap._internalWrap() {
     return new MidiInputMap.internal_();
@@ -26239,7 +26239,7 @@ class MidiOutputMap extends NativeFieldWrapperClass2 {
     return new MidiOutputMap._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory MidiOutputMap._internalWrap() {
     return new MidiOutputMap.internal_();
@@ -26361,7 +26361,7 @@ class MimeType extends NativeFieldWrapperClass2 {
     return new MimeType._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory MimeType._internalWrap() {
     return new MimeType.internal_();
@@ -26406,7 +26406,7 @@ class MimeTypeArray extends NativeFieldWrapperClass2 with ListMixin<MimeType>, I
     return new MimeTypeArray._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory MimeTypeArray._internalWrap() {
     return new MimeTypeArray.internal_();
@@ -26750,7 +26750,7 @@ class MutationObserver extends NativeFieldWrapperClass2 {
     return new MutationObserver._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory MutationObserver._internalWrap() {
     return new MutationObserver.internal_();
@@ -26867,7 +26867,7 @@ class MutationRecord extends NativeFieldWrapperClass2 {
     return new MutationRecord._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory MutationRecord._internalWrap() {
     return new MutationRecord.internal_();
@@ -26985,7 +26985,7 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorCpu, Naviga
     return new Navigator._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Navigator._internalWrap() {
     return new Navigator.internal_();
@@ -27209,7 +27209,7 @@ abstract class NavigatorCpu extends NativeFieldWrapperClass2 {
     return new NavigatorCpu._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory NavigatorCpu._internalWrap() {
     return new NavigatorCpu.internal_();
@@ -27243,7 +27243,7 @@ abstract class NavigatorID extends NativeFieldWrapperClass2 {
     return new NavigatorID._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory NavigatorID._internalWrap() {
     return new NavigatorID.internal_();
@@ -27307,7 +27307,7 @@ abstract class NavigatorLanguage extends NativeFieldWrapperClass2 {
     return new NavigatorLanguage._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory NavigatorLanguage._internalWrap() {
     return new NavigatorLanguage.internal_();
@@ -27346,7 +27346,7 @@ abstract class NavigatorOnLine extends NativeFieldWrapperClass2 {
     return new NavigatorOnLine._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory NavigatorOnLine._internalWrap() {
     return new NavigatorOnLine.internal_();
@@ -27381,7 +27381,7 @@ class NavigatorUserMediaError extends NativeFieldWrapperClass2 {
     return new NavigatorUserMediaError._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory NavigatorUserMediaError._internalWrap() {
     return new NavigatorUserMediaError.internal_();
@@ -28082,7 +28082,7 @@ class NodeFilter extends NativeFieldWrapperClass2 {
     return new NodeFilter._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory NodeFilter._internalWrap() {
     return new NodeFilter.internal_();
@@ -28155,7 +28155,7 @@ class NodeIterator extends NativeFieldWrapperClass2 {
     return new NodeIterator._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory NodeIterator._internalWrap() {
     return new NodeIterator.internal_();
@@ -28211,7 +28211,7 @@ class NodeList extends NativeFieldWrapperClass2 with ListMixin<Node>, ImmutableL
     return new NodeList._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory NodeList._internalWrap() {
     return new NodeList.internal_();
@@ -29072,7 +29072,7 @@ abstract class ParentNode extends NativeFieldWrapperClass2 {
     return new ParentNode._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory ParentNode._internalWrap() {
     return new ParentNode.internal_();
@@ -29146,7 +29146,7 @@ class Path2D extends NativeFieldWrapperClass2 implements _CanvasPathMethods {
     return new Path2D._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Path2D._internalWrap() {
     return new Path2D.internal_();
@@ -29358,7 +29358,7 @@ class PerformanceEntry extends NativeFieldWrapperClass2 {
     return new PerformanceEntry._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory PerformanceEntry._internalWrap() {
     return new PerformanceEntry.internal_();
@@ -29459,7 +29459,7 @@ class PerformanceNavigation extends NativeFieldWrapperClass2 {
     return new PerformanceNavigation._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory PerformanceNavigation._internalWrap() {
     return new PerformanceNavigation.internal_();
@@ -29591,7 +29591,7 @@ class PerformanceTiming extends NativeFieldWrapperClass2 {
     return new PerformanceTiming._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory PerformanceTiming._internalWrap() {
     return new PerformanceTiming.internal_();
@@ -29737,7 +29737,7 @@ class Plugin extends NativeFieldWrapperClass2 {
     return new Plugin._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Plugin._internalWrap() {
     return new Plugin.internal_();
@@ -29794,7 +29794,7 @@ class PluginArray extends NativeFieldWrapperClass2 with ListMixin<Plugin>, Immut
     return new PluginArray._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory PluginArray._internalWrap() {
     return new PluginArray.internal_();
@@ -29981,7 +29981,7 @@ class PositionError extends NativeFieldWrapperClass2 {
     return new PositionError._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory PositionError._internalWrap() {
     return new PositionError.internal_();
@@ -30277,7 +30277,7 @@ class PushManager extends NativeFieldWrapperClass2 {
     return new PushManager._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory PushManager._internalWrap() {
     return new PushManager.internal_();
@@ -30311,7 +30311,7 @@ class PushRegistration extends NativeFieldWrapperClass2 {
     return new PushRegistration._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory PushRegistration._internalWrap() {
     return new PushRegistration.internal_();
@@ -30430,7 +30430,7 @@ class Range extends NativeFieldWrapperClass2 {
     return new Range._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Range._internalWrap() {
     return new Range.internal_();
@@ -30627,7 +30627,7 @@ class ReadableStream extends NativeFieldWrapperClass2 {
     return new ReadableStream._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory ReadableStream._internalWrap() {
     return new ReadableStream.internal_();
@@ -31084,7 +31084,7 @@ class RtcIceCandidate extends NativeFieldWrapperClass2 {
     return new RtcIceCandidate._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory RtcIceCandidate._internalWrap() {
     return new RtcIceCandidate.internal_();
@@ -31471,7 +31471,7 @@ class RtcSessionDescription extends NativeFieldWrapperClass2 {
     return new RtcSessionDescription._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory RtcSessionDescription._internalWrap() {
     return new RtcSessionDescription.internal_();
@@ -31517,7 +31517,7 @@ class RtcStatsReport extends NativeFieldWrapperClass2 {
     return new RtcStatsReport._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory RtcStatsReport._internalWrap() {
     return new RtcStatsReport.internal_();
@@ -31575,7 +31575,7 @@ class RtcStatsResponse extends NativeFieldWrapperClass2 {
     return new RtcStatsResponse._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory RtcStatsResponse._internalWrap() {
     return new RtcStatsResponse.internal_();
@@ -31620,7 +31620,7 @@ class Screen extends NativeFieldWrapperClass2 {
     return new Screen._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Screen._internalWrap() {
     return new Screen.internal_();
@@ -32095,7 +32095,7 @@ class Selection extends NativeFieldWrapperClass2 {
     return new Selection._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Selection._internalWrap() {
     return new Selection.internal_();
@@ -32248,7 +32248,7 @@ class ServiceWorkerClient extends NativeFieldWrapperClass2 {
     return new ServiceWorkerClient._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory ServiceWorkerClient._internalWrap() {
     return new ServiceWorkerClient.internal_();
@@ -32287,7 +32287,7 @@ class ServiceWorkerClients extends NativeFieldWrapperClass2 {
     return new ServiceWorkerClients._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory ServiceWorkerClients._internalWrap() {
     return new ServiceWorkerClients.internal_();
@@ -32323,7 +32323,7 @@ class ServiceWorkerContainer extends NativeFieldWrapperClass2 {
     return new ServiceWorkerContainer._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory ServiceWorkerContainer._internalWrap() {
     return new ServiceWorkerContainer.internal_();
@@ -33040,7 +33040,7 @@ class SourceInfo extends NativeFieldWrapperClass2 {
     return new SourceInfo._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory SourceInfo._internalWrap() {
     return new SourceInfo.internal_();
@@ -33132,7 +33132,7 @@ class SpeechGrammar extends NativeFieldWrapperClass2 {
     return new SpeechGrammar._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory SpeechGrammar._internalWrap() {
     return new SpeechGrammar.internal_();
@@ -33184,7 +33184,7 @@ class SpeechGrammarList extends NativeFieldWrapperClass2 with ListMixin<SpeechGr
     return new SpeechGrammarList._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory SpeechGrammarList._internalWrap() {
     return new SpeechGrammarList.internal_();
@@ -33542,7 +33542,7 @@ class SpeechRecognitionAlternative extends NativeFieldWrapperClass2 {
     return new SpeechRecognitionAlternative._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory SpeechRecognitionAlternative._internalWrap() {
     return new SpeechRecognitionAlternative.internal_();
@@ -33663,7 +33663,7 @@ class SpeechRecognitionResult extends NativeFieldWrapperClass2 {
     return new SpeechRecognitionResult._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory SpeechRecognitionResult._internalWrap() {
     return new SpeechRecognitionResult.internal_();
@@ -33992,7 +33992,7 @@ class SpeechSynthesisVoice extends NativeFieldWrapperClass2 {
     return new SpeechSynthesisVoice._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory SpeechSynthesisVoice._internalWrap() {
     return new SpeechSynthesisVoice.internal_();
@@ -34117,7 +34117,7 @@ class Storage extends NativeFieldWrapperClass2
     return new Storage._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Storage._internalWrap() {
     return new Storage.internal_();
@@ -34273,7 +34273,7 @@ class StorageInfo extends NativeFieldWrapperClass2 {
     return new StorageInfo._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory StorageInfo._internalWrap() {
     return new StorageInfo.internal_();
@@ -34313,7 +34313,7 @@ class StorageQuota extends NativeFieldWrapperClass2 {
     return new StorageQuota._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory StorageQuota._internalWrap() {
     return new StorageQuota.internal_();
@@ -34455,7 +34455,7 @@ class StyleMedia extends NativeFieldWrapperClass2 {
     return new StyleMedia._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory StyleMedia._internalWrap() {
     return new StyleMedia.internal_();
@@ -34491,7 +34491,7 @@ class StyleSheet extends NativeFieldWrapperClass2 {
     return new StyleSheet._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory StyleSheet._internalWrap() {
     return new StyleSheet.internal_();
@@ -35327,7 +35327,7 @@ class TextMetrics extends NativeFieldWrapperClass2 {
     return new TextMetrics._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory TextMetrics._internalWrap() {
     return new TextMetrics.internal_();
@@ -35609,7 +35609,7 @@ class TextTrackCueList extends NativeFieldWrapperClass2 with ListMixin<TextTrack
     return new TextTrackCueList._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory TextTrackCueList._internalWrap() {
     return new TextTrackCueList.internal_();
@@ -35808,7 +35808,7 @@ class TimeRanges extends NativeFieldWrapperClass2 {
     return new TimeRanges._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory TimeRanges._internalWrap() {
     return new TimeRanges.internal_();
@@ -35858,7 +35858,7 @@ class Timing extends NativeFieldWrapperClass2 {
     return new Timing._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Timing._internalWrap() {
     return new Timing.internal_();
@@ -36012,7 +36012,7 @@ class Touch extends NativeFieldWrapperClass2 {
     return new Touch._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Touch._internalWrap() {
     return new Touch.internal_();
@@ -36218,7 +36218,7 @@ class TouchList extends NativeFieldWrapperClass2 with ListMixin<Touch>, Immutabl
     return new TouchList._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory TouchList._internalWrap() {
     return new TouchList.internal_();
@@ -36491,7 +36491,7 @@ class TreeWalker extends NativeFieldWrapperClass2 {
     return new TreeWalker._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory TreeWalker._internalWrap() {
     return new TreeWalker.internal_();
@@ -36735,7 +36735,7 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     return new Url._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Url._internalWrap() {
     return new Url.internal_();
@@ -36903,7 +36903,7 @@ abstract class UrlUtils extends NativeFieldWrapperClass2 {
     return new UrlUtils._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory UrlUtils._internalWrap() {
     return new UrlUtils.internal_();
@@ -37042,7 +37042,7 @@ abstract class UrlUtilsReadOnly extends NativeFieldWrapperClass2 {
     return new UrlUtilsReadOnly._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory UrlUtilsReadOnly._internalWrap() {
     return new UrlUtilsReadOnly.internal_();
@@ -37120,7 +37120,7 @@ class ValidityState extends NativeFieldWrapperClass2 {
     return new ValidityState._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory ValidityState._internalWrap() {
     return new ValidityState.internal_();
@@ -37289,7 +37289,7 @@ class VideoPlaybackQuality extends NativeFieldWrapperClass2 {
     return new VideoPlaybackQuality._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory VideoPlaybackQuality._internalWrap() {
     return new VideoPlaybackQuality.internal_();
@@ -37338,7 +37338,7 @@ class VideoTrack extends NativeFieldWrapperClass2 {
     return new VideoTrack._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory VideoTrack._internalWrap() {
     return new VideoTrack.internal_();
@@ -37589,7 +37589,7 @@ class VttRegion extends NativeFieldWrapperClass2 {
     return new VttRegion._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory VttRegion._internalWrap() {
     return new VttRegion.internal_();
@@ -37703,7 +37703,7 @@ class VttRegionList extends NativeFieldWrapperClass2 {
     return new VttRegionList._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory VttRegionList._internalWrap() {
     return new VttRegionList.internal_();
@@ -39690,7 +39690,7 @@ abstract class WindowBase64 extends NativeFieldWrapperClass2 {
     return new WindowBase64._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory WindowBase64._internalWrap() {
     return new WindowBase64.internal_();
@@ -39762,7 +39762,7 @@ abstract class WindowEventHandlers extends EventTarget {
     return new WindowEventHandlers._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory WindowEventHandlers._internalWrap() {
     return new WindowEventHandlers.internal_();
@@ -40116,7 +40116,7 @@ class WorkerPerformance extends NativeFieldWrapperClass2 {
     return new WorkerPerformance._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory WorkerPerformance._internalWrap() {
     return new WorkerPerformance.internal_();
@@ -40162,7 +40162,7 @@ class XPathEvaluator extends NativeFieldWrapperClass2 {
     return new XPathEvaluator._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory XPathEvaluator._internalWrap() {
     return new XPathEvaluator.internal_();
@@ -40204,7 +40204,7 @@ class XPathExpression extends NativeFieldWrapperClass2 {
     return new XPathExpression._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory XPathExpression._internalWrap() {
     return new XPathExpression.internal_();
@@ -40238,7 +40238,7 @@ class XPathNSResolver extends NativeFieldWrapperClass2 {
     return new XPathNSResolver._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory XPathNSResolver._internalWrap() {
     return new XPathNSResolver.internal_();
@@ -40272,7 +40272,7 @@ class XPathResult extends NativeFieldWrapperClass2 {
     return new XPathResult._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory XPathResult._internalWrap() {
     return new XPathResult.internal_();
@@ -40411,7 +40411,7 @@ class XmlSerializer extends NativeFieldWrapperClass2 {
     return new XmlSerializer._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory XmlSerializer._internalWrap() {
     return new XmlSerializer.internal_();
@@ -40453,7 +40453,7 @@ class XsltProcessor extends NativeFieldWrapperClass2 {
     return new XsltProcessor._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory XsltProcessor._internalWrap() {
     return new XsltProcessor.internal_();
@@ -40637,7 +40637,7 @@ abstract class _CSSValue extends NativeFieldWrapperClass2 {
     return new _CSSValue._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory _CSSValue._internalWrap() {
     return new _CSSValue.internal_();
@@ -40666,7 +40666,7 @@ abstract class _Cache extends NativeFieldWrapperClass2 {
     return new _Cache._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory _Cache._internalWrap() {
     return new _Cache.internal_();
@@ -40695,7 +40695,7 @@ abstract class _CanvasPathMethods extends NativeFieldWrapperClass2 {
     return new _CanvasPathMethods._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory _CanvasPathMethods._internalWrap() {
     return new _CanvasPathMethods.internal_();
@@ -40811,7 +40811,7 @@ class _ClientRect extends NativeFieldWrapperClass2 implements Rectangle {
     return new _ClientRect._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory _ClientRect._internalWrap() {
     return new _ClientRect.internal_();
@@ -40898,7 +40898,7 @@ class _ClientRectList extends NativeFieldWrapperClass2 with ListMixin<Rectangle>
     return new _ClientRectList._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory _ClientRectList._internalWrap() {
     return new _ClientRectList.internal_();
@@ -40982,7 +40982,7 @@ abstract class _Counter extends NativeFieldWrapperClass2 {
     return new _Counter._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory _Counter._internalWrap() {
     return new _Counter.internal_();
@@ -41010,7 +41010,7 @@ class _CssRuleList extends NativeFieldWrapperClass2 with ListMixin<CssRule>, Imm
     return new _CssRuleList._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory _CssRuleList._internalWrap() {
     return new _CssRuleList.internal_();
@@ -41177,7 +41177,7 @@ abstract class _DOMFileSystemSync extends NativeFieldWrapperClass2 {
     return new _DOMFileSystemSync._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory _DOMFileSystemSync._internalWrap() {
     return new _DOMFileSystemSync.internal_();
@@ -41235,7 +41235,7 @@ abstract class _DirectoryReaderSync extends NativeFieldWrapperClass2 {
     return new _DirectoryReaderSync._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory _DirectoryReaderSync._internalWrap() {
     return new _DirectoryReaderSync.internal_();
@@ -41378,7 +41378,7 @@ abstract class _EntrySync extends NativeFieldWrapperClass2 {
     return new _EntrySync._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory _EntrySync._internalWrap() {
     return new _EntrySync.internal_();
@@ -41442,7 +41442,7 @@ abstract class _FileReaderSync extends NativeFieldWrapperClass2 {
     return new _FileReaderSync._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory _FileReaderSync._internalWrap() {
     return new _FileReaderSync.internal_();
@@ -41472,7 +41472,7 @@ abstract class _FileWriterSync extends NativeFieldWrapperClass2 {
     return new _FileWriterSync._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory _FileWriterSync._internalWrap() {
     return new _FileWriterSync.internal_();
@@ -41502,7 +41502,7 @@ class _GamepadList extends NativeFieldWrapperClass2 with ListMixin<Gamepad>, Imm
     return new _GamepadList._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory _GamepadList._internalWrap() {
     return new _GamepadList.internal_();
@@ -41586,7 +41586,7 @@ abstract class _HTMLAllCollection extends NativeFieldWrapperClass2 {
     return new _HTMLAllCollection._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory _HTMLAllCollection._internalWrap() {
     return new _HTMLAllCollection.internal_();
@@ -41858,7 +41858,7 @@ class _NamedNodeMap extends JsoNativeFieldWrapper2 with ListMixin<Node>, Immutab
     return new _NamedNodeMap._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory _NamedNodeMap._internalWrap() {
     return new _NamedNodeMap.internal_();
@@ -41969,7 +41969,7 @@ abstract class _PagePopupController extends NativeFieldWrapperClass2 {
     return new _PagePopupController._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory _PagePopupController._internalWrap() {
     return new _PagePopupController.internal_();
@@ -41999,7 +41999,7 @@ abstract class _RGBColor extends NativeFieldWrapperClass2 {
     return new _RGBColor._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory _RGBColor._internalWrap() {
     return new _RGBColor.internal_();
@@ -42052,7 +42052,7 @@ abstract class _Rect extends NativeFieldWrapperClass2 {
     return new _Rect._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory _Rect._internalWrap() {
     return new _Rect.internal_();
@@ -42241,7 +42241,7 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass2 with ListMix
     return new _SpeechRecognitionResultList._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory _SpeechRecognitionResultList._internalWrap() {
     return new _SpeechRecognitionResultList.internal_();
@@ -42323,7 +42323,7 @@ class _StyleSheetList extends NativeFieldWrapperClass2 with ListMixin<StyleSheet
     return new _StyleSheetList._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory _StyleSheetList._internalWrap() {
     return new _StyleSheetList.internal_();
@@ -42410,7 +42410,7 @@ abstract class _SubtleCrypto extends NativeFieldWrapperClass2 {
     return new _SubtleCrypto._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory _SubtleCrypto._internalWrap() {
     return new _SubtleCrypto.internal_();
@@ -42477,7 +42477,7 @@ abstract class _WebKitCSSMatrix extends NativeFieldWrapperClass2 {
     return new _WebKitCSSMatrix._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory _WebKitCSSMatrix._internalWrap() {
     return new _WebKitCSSMatrix.internal_();
@@ -42534,7 +42534,7 @@ abstract class _WindowTimers extends NativeFieldWrapperClass2 {
     return new _WindowTimers._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory _WindowTimers._internalWrap() {
     return new _WindowTimers.internal_();
@@ -42584,7 +42584,7 @@ abstract class _WorkerLocation extends NativeFieldWrapperClass2 implements UrlUt
     return new _WorkerLocation._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory _WorkerLocation._internalWrap() {
     return new _WorkerLocation.internal_();
@@ -42614,7 +42614,7 @@ abstract class _WorkerNavigator extends NativeFieldWrapperClass2 implements Navi
     return new _WorkerNavigator._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory _WorkerNavigator._internalWrap() {
     return new _WorkerNavigator.internal_();

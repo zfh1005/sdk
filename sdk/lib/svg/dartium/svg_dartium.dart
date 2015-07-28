@@ -453,7 +453,7 @@ class Angle extends NativeFieldWrapperClass2 {
     return new Angle._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Angle._internalWrap() {
     return new Angle.internal_();
@@ -667,7 +667,7 @@ class AnimatedAngle extends NativeFieldWrapperClass2 {
     return new AnimatedAngle._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory AnimatedAngle._internalWrap() {
     return new AnimatedAngle.internal_();
@@ -704,7 +704,7 @@ class AnimatedBoolean extends NativeFieldWrapperClass2 {
     return new AnimatedBoolean._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory AnimatedBoolean._internalWrap() {
     return new AnimatedBoolean.internal_();
@@ -745,7 +745,7 @@ class AnimatedEnumeration extends NativeFieldWrapperClass2 {
     return new AnimatedEnumeration._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory AnimatedEnumeration._internalWrap() {
     return new AnimatedEnumeration.internal_();
@@ -786,7 +786,7 @@ class AnimatedInteger extends NativeFieldWrapperClass2 {
     return new AnimatedInteger._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory AnimatedInteger._internalWrap() {
     return new AnimatedInteger.internal_();
@@ -827,7 +827,7 @@ class AnimatedLength extends NativeFieldWrapperClass2 {
     return new AnimatedLength._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory AnimatedLength._internalWrap() {
     return new AnimatedLength.internal_();
@@ -864,7 +864,7 @@ class AnimatedLengthList extends NativeFieldWrapperClass2 {
     return new AnimatedLengthList._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory AnimatedLengthList._internalWrap() {
     return new AnimatedLengthList.internal_();
@@ -901,7 +901,7 @@ class AnimatedNumber extends NativeFieldWrapperClass2 {
     return new AnimatedNumber._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory AnimatedNumber._internalWrap() {
     return new AnimatedNumber.internal_();
@@ -942,7 +942,7 @@ class AnimatedNumberList extends NativeFieldWrapperClass2 {
     return new AnimatedNumberList._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory AnimatedNumberList._internalWrap() {
     return new AnimatedNumberList.internal_();
@@ -979,7 +979,7 @@ class AnimatedPreserveAspectRatio extends NativeFieldWrapperClass2 {
     return new AnimatedPreserveAspectRatio._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory AnimatedPreserveAspectRatio._internalWrap() {
     return new AnimatedPreserveAspectRatio.internal_();
@@ -1016,7 +1016,7 @@ class AnimatedRect extends NativeFieldWrapperClass2 {
     return new AnimatedRect._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory AnimatedRect._internalWrap() {
     return new AnimatedRect.internal_();
@@ -1053,7 +1053,7 @@ class AnimatedString extends NativeFieldWrapperClass2 {
     return new AnimatedString._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory AnimatedString._internalWrap() {
     return new AnimatedString.internal_();
@@ -1094,7 +1094,7 @@ class AnimatedTransformList extends NativeFieldWrapperClass2 {
     return new AnimatedTransformList._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory AnimatedTransformList._internalWrap() {
     return new AnimatedTransformList.internal_();
@@ -3348,7 +3348,7 @@ abstract class FilterPrimitiveStandardAttributes extends NativeFieldWrapperClass
     return new FilterPrimitiveStandardAttributes._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory FilterPrimitiveStandardAttributes._internalWrap() {
     return new FilterPrimitiveStandardAttributes.internal_();
@@ -3397,7 +3397,7 @@ abstract class FitToViewBox extends NativeFieldWrapperClass2 {
     return new FitToViewBox._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory FitToViewBox._internalWrap() {
     return new FitToViewBox.internal_();
@@ -3722,7 +3722,7 @@ class Length extends NativeFieldWrapperClass2 {
     return new Length._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Length._internalWrap() {
     return new Length.internal_();
@@ -3831,7 +3831,7 @@ class LengthList extends NativeFieldWrapperClass2 with ListMixin<Length>, Immuta
     return new LengthList._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory LengthList._internalWrap() {
     return new LengthList.internal_();
@@ -4234,7 +4234,7 @@ class Matrix extends NativeFieldWrapperClass2 {
     return new Matrix._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Matrix._internalWrap() {
     return new Matrix.internal_();
@@ -4388,7 +4388,7 @@ class Number extends NativeFieldWrapperClass2 {
     return new Number._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Number._internalWrap() {
     return new Number.internal_();
@@ -4425,7 +4425,7 @@ class NumberList extends NativeFieldWrapperClass2 with ListMixin<Number>, Immuta
     return new NumberList._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory NumberList._internalWrap() {
     return new NumberList.internal_();
@@ -4685,7 +4685,7 @@ class PathSeg extends NativeFieldWrapperClass2 {
     return new PathSeg._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory PathSeg._internalWrap() {
     return new PathSeg.internal_();
@@ -5693,7 +5693,7 @@ class PathSegList extends NativeFieldWrapperClass2 with ListMixin<PathSeg>, Immu
     return new PathSegList._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory PathSegList._internalWrap() {
     return new PathSegList.internal_();
@@ -5987,7 +5987,7 @@ class Point extends NativeFieldWrapperClass2 {
     return new Point._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Point._internalWrap() {
     return new Point.internal_();
@@ -6036,7 +6036,7 @@ class PointList extends NativeFieldWrapperClass2 {
     return new PointList._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory PointList._internalWrap() {
     return new PointList.internal_();
@@ -6197,7 +6197,7 @@ class PreserveAspectRatio extends NativeFieldWrapperClass2 {
     return new PreserveAspectRatio._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory PreserveAspectRatio._internalWrap() {
     return new PreserveAspectRatio.internal_();
@@ -6359,7 +6359,7 @@ class Rect extends NativeFieldWrapperClass2 {
     return new Rect._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Rect._internalWrap() {
     return new Rect.internal_();
@@ -6481,7 +6481,7 @@ class RenderingIntent extends NativeFieldWrapperClass2 {
     return new RenderingIntent._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory RenderingIntent._internalWrap() {
     return new RenderingIntent.internal_();
@@ -6667,7 +6667,7 @@ class StringList extends NativeFieldWrapperClass2 with ListMixin<String>, Immuta
     return new StringList._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory StringList._internalWrap() {
     return new StringList.internal_();
@@ -7921,7 +7921,7 @@ abstract class Tests extends NativeFieldWrapperClass2 {
     return new Tests._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Tests._internalWrap() {
     return new Tests.internal_();
@@ -8255,7 +8255,7 @@ class Transform extends NativeFieldWrapperClass2 {
     return new Transform._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory Transform._internalWrap() {
     return new Transform.internal_();
@@ -8348,7 +8348,7 @@ class TransformList extends NativeFieldWrapperClass2 with ListMixin<Transform>, 
     return new TransformList._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory TransformList._internalWrap() {
     return new TransformList.internal_();
@@ -8471,7 +8471,7 @@ class UnitTypes extends NativeFieldWrapperClass2 {
     return new UnitTypes._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory UnitTypes._internalWrap() {
     return new UnitTypes.internal_();
@@ -8512,7 +8512,7 @@ abstract class UriReference extends NativeFieldWrapperClass2 {
     return new UriReference._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory UriReference._internalWrap() {
     return new UriReference.internal_();
@@ -8659,7 +8659,7 @@ class ViewSpec extends NativeFieldWrapperClass2 implements FitToViewBox, ZoomAnd
     return new ViewSpec._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory ViewSpec._internalWrap() {
     return new ViewSpec.internal_();
@@ -8732,7 +8732,7 @@ abstract class ZoomAndPan extends NativeFieldWrapperClass2 {
     return new ZoomAndPan._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory ZoomAndPan._internalWrap() {
     return new ZoomAndPan.internal_();

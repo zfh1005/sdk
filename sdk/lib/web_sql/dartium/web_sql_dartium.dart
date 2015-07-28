@@ -109,7 +109,7 @@ class SqlDatabase extends NativeFieldWrapperClass2 {
     return new SqlDatabase._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory SqlDatabase._internalWrap() {
     return new SqlDatabase.internal_();
@@ -189,7 +189,7 @@ class SqlError extends NativeFieldWrapperClass2 {
     return new SqlError._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory SqlError._internalWrap() {
     return new SqlError.internal_();
@@ -259,7 +259,7 @@ class SqlResultSet extends NativeFieldWrapperClass2 {
     return new SqlResultSet._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory SqlResultSet._internalWrap() {
     return new SqlResultSet.internal_();
@@ -301,7 +301,7 @@ class SqlResultSetRowList extends NativeFieldWrapperClass2 with ListMixin<Map>, 
     return new SqlResultSetRowList._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory SqlResultSetRowList._internalWrap() {
     return new SqlResultSetRowList.internal_();
@@ -388,7 +388,7 @@ class SqlTransaction extends NativeFieldWrapperClass2 {
     return new SqlTransaction._internalWrap();
   }
 
-  JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject = null;
 
   factory SqlTransaction._internalWrap() {
     return new SqlTransaction.internal_();
