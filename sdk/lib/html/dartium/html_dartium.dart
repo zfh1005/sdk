@@ -1135,7 +1135,7 @@ Rectangle make_dart_rectangle(r) => new Rectangle(r['top'], r['left'], r['width'
 js.JsObject unwrap_jso(dartClass_instance) {
   try {
       if (dartClass_instance != null)
-          return dartClass_instance is! Function ? dartClass_instance.blink_jsObject : dartClass_instance;
+          return dartClass_instance is NativeFieldWrapperClass2 ? dartClass_instance.blink_jsObject : dartClass_instance;
       else
           return null;
 //      return dartClass_instance.dartium_expando[dartClass_instance.expandoJsObject];
