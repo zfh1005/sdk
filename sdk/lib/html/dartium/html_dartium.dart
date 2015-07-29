@@ -1122,7 +1122,7 @@ Function _getSvgFunction(String key) {
  **********                                                          **********
  ******************************************************************************/
 
-Rectangle make_dart_rectangle(r) => new Rectangle(r['top'], r['left'], r['width'], r['height']);
+Rectangle make_dart_rectangle(r) => new Rectangle(r['left'], r['top'], r['width'], r['height']);
 
 
 /** Expando for JsObject, used by every Dart class associated with a Javascript
