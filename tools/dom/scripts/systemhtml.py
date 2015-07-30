@@ -565,6 +565,10 @@ class HtmlDartInterfaceGenerator(object):
       mixins_str = ' with ' + ', '.join(mixins)
       if not base_class:
         base_class = 'Interceptor'
+      elif (base_class == 'NativeFieldWrapperClass2' and
+            self._options.dart_js_interop and
+            not(isinstance(self._backend, Dart2JSBackend))):
+        base_class = 'JsoNativeFieldWrapper'
 
     annotations = self._metadata.GetFormattedMetadata(
         self._library_name, self._interface, None, '')
@@ -613,7 +617,7 @@ class HtmlDartInterfaceGenerator(object):
       final Object expandoJsObject = new Object();
       final Expando<JsObject> dartium_expando = new Expando<JsObject>("Expando_jsObject");
     """
-    if base_class == 'NativeFieldWrapperClass2':
+    if base_class == 'NativeFieldWrapperClass2' or base_class == 'JsoNativeFieldWrapper':
         js_interop_wrapper = '''
   static {0} internalCreate{0}() {{
     return new {0}._internalWrap();
@@ -629,13 +633,13 @@ class HtmlDartInterfaceGenerator(object):
 
 {1}'''.format(class_name, js_interop_equivalence_op)
         # Change to use the synthesized class so we can construct with a mixin
-        # classes prefixed with name of NativeFieldWrapperClass don't have a
+        # classes prefixed with name of NativeFieldWrapperClass2 don't have a
         # default constructor so classes with mixins can't be new'd.
         if (self._options.templates._conditions['DARTIUM'] and
             self._options.dart_js_interop and
             (self._interface.id == 'NamedNodeMap' or
              self._interface.id == 'CSSStyleDeclaration')):
-            base_class = 'JsoNativeFieldWrapper2'
+            base_class = 'JsoNativeFieldWrapper'
 
     implementation_members_emitter = implementation_emitter.Emit(
         self._backend.ImplementationTemplate(),

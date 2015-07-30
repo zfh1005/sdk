@@ -21,6 +21,11 @@ import 'dart:_blink' as _blink;
 
 
 
+// Need a default constructor for constructing classes with mixins that are
+// also extending NativeFieldWrapperClass2.  Defining JsoNativeFieldWrapper
+// extending NativeFieldWrapperClass2 creates a default constructor.
+class JsoNativeFieldWrapper extends NativeFieldWrapperClass2 {}
+
 
 // FIXME: Can we make this private?
 final svgBlinkMap = {
@@ -3839,7 +3844,7 @@ class Length extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGLengthList')
 @Unstable()
-class LengthList extends NativeFieldWrapperClass2 with ListMixin<Length>, ImmutableListMixin<Length> implements List<Length> {
+class LengthList extends JsoNativeFieldWrapper with ListMixin<Length>, ImmutableListMixin<Length> implements List<Length> {
   // To suppress missing implicit constructor warnings.
   factory LengthList._() { throw new UnsupportedError("Not supported"); }
 
@@ -4436,7 +4441,7 @@ class Number extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGNumberList')
 @Unstable()
-class NumberList extends NativeFieldWrapperClass2 with ListMixin<Number>, ImmutableListMixin<Number> implements List<Number> {
+class NumberList extends JsoNativeFieldWrapper with ListMixin<Number>, ImmutableListMixin<Number> implements List<Number> {
   // To suppress missing implicit constructor warnings.
   factory NumberList._() { throw new UnsupportedError("Not supported"); }
 
@@ -5706,7 +5711,7 @@ class PathSegLinetoVerticalRel extends PathSeg {
 @DocsEditable()
 @DomName('SVGPathSegList')
 @Unstable()
-class PathSegList extends NativeFieldWrapperClass2 with ListMixin<PathSeg>, ImmutableListMixin<PathSeg> implements List<PathSeg> {
+class PathSegList extends JsoNativeFieldWrapper with ListMixin<PathSeg>, ImmutableListMixin<PathSeg> implements List<PathSeg> {
   // To suppress missing implicit constructor warnings.
   factory PathSegList._() { throw new UnsupportedError("Not supported"); }
 
@@ -6686,7 +6691,7 @@ class StopElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGStringList')
 @Unstable()
-class StringList extends NativeFieldWrapperClass2 with ListMixin<String>, ImmutableListMixin<String> implements List<String> {
+class StringList extends JsoNativeFieldWrapper with ListMixin<String>, ImmutableListMixin<String> implements List<String> {
   // To suppress missing implicit constructor warnings.
   factory StringList._() { throw new UnsupportedError("Not supported"); }
 
@@ -8370,7 +8375,7 @@ class Transform extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGTransformList')
 @Unstable()
-class TransformList extends NativeFieldWrapperClass2 with ListMixin<Transform>, ImmutableListMixin<Transform> implements List<Transform> {
+class TransformList extends JsoNativeFieldWrapper with ListMixin<Transform>, ImmutableListMixin<Transform> implements List<Transform> {
   // To suppress missing implicit constructor warnings.
   factory TransformList._() { throw new UnsupportedError("Not supported"); }
 

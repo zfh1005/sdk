@@ -354,6 +354,10 @@ Function _getSvgFunction(String key) {
 
 Rectangle make_dart_rectangle(r) => new Rectangle(r['left'], r['top'], r['width'], r['height']);
 
+// Need a default constructor for constructing classes with mixins that are
+// also extending NativeFieldWrapperClass2.  Defining JsoNativeFieldWrapper
+// extending NativeFieldWrapperClass2 creates a default constructor.
+class JsoNativeFieldWrapper extends NativeFieldWrapperClass2 {}
 
 /** Expando for JsObject, used by every Dart class associated with a Javascript
  *  class (e.g., DOM, WebAudio, etc.).
@@ -442,12 +446,9 @@ convertDartToNative_Dictionary(Map dict) {
 // Conversion function place holder (currently not used in dart2js or dartium).
 List convertDartToNative_StringArray(List<String> input) => input;
 
-// Need a default constructor for constructing classes with mixins that are
-// also extending NativeFieldWrapperClass2.  NativeFieldWrapperClassXX don't
-// have a default constructor.
-class JsoNativeFieldWrapper2 extends NativeFieldWrapperClass2 {}
-
 $else
+class JsoNativeFieldWrapper extends NativeFieldWrapperClass2 {}
+
 unwrap_jso(dartClass_instance) => dartClass_instance;
 wrap_jso(jsObject) => jsObject;
 wrap_jso_list(jso_nodes) => jso_nodes;

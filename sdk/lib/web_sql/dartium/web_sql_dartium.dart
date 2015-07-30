@@ -23,6 +23,11 @@ import 'dart:_blink' as _blink;
 
 
 
+// Need a default constructor for constructing classes with mixins that are
+// also extending NativeFieldWrapperClass2.  Defining JsoNativeFieldWrapper
+// extending NativeFieldWrapperClass2 creates a default constructor.
+class JsoNativeFieldWrapper extends NativeFieldWrapperClass2 {}
+
 
 // FIXME: Can we make this private?
 final web_sqlBlinkMap = {
@@ -296,7 +301,7 @@ class SqlResultSet extends NativeFieldWrapperClass2 {
 @DomName('SQLResultSetRowList')
 // http://www.w3.org/TR/webdatabase/#sqlresultsetrowlist
 @Experimental() // deprecated
-class SqlResultSetRowList extends NativeFieldWrapperClass2 with ListMixin<Map>, ImmutableListMixin<Map> implements List<Map> {
+class SqlResultSetRowList extends JsoNativeFieldWrapper with ListMixin<Map>, ImmutableListMixin<Map> implements List<Map> {
   // To suppress missing implicit constructor warnings.
   factory SqlResultSetRowList._() { throw new UnsupportedError("Not supported"); }
 

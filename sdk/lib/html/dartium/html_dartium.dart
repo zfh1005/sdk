@@ -1124,6 +1124,10 @@ Function _getSvgFunction(String key) {
 
 Rectangle make_dart_rectangle(r) => new Rectangle(r['left'], r['top'], r['width'], r['height']);
 
+// Need a default constructor for constructing classes with mixins that are
+// also extending NativeFieldWrapperClass2.  Defining JsoNativeFieldWrapper
+// extending NativeFieldWrapperClass2 creates a default constructor.
+class JsoNativeFieldWrapper extends NativeFieldWrapperClass2 {}
 
 /** Expando for JsObject, used by every Dart class associated with a Javascript
  *  class (e.g., DOM, WebAudio, etc.).
@@ -1211,11 +1215,6 @@ convertDartToNative_Dictionary(Map dict) {
 
 // Conversion function place holder (currently not used in dart2js or dartium).
 List convertDartToNative_StringArray(List<String> input) => input;
-
-// Need a default constructor for constructing classes with mixins that are
-// also extending NativeFieldWrapperClass2.  NativeFieldWrapperClassXX don't
-// have a default constructor.
-class JsoNativeFieldWrapper2 extends NativeFieldWrapperClass2 {}
 
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5580,7 +5579,7 @@ class CssRule extends NativeFieldWrapperClass2 {
 
 
 @DomName('CSSStyleDeclaration')
-class CssStyleDeclaration  extends JsoNativeFieldWrapper2 with
+class CssStyleDeclaration  extends JsoNativeFieldWrapper with
     CssStyleDeclarationBase  {
   factory CssStyleDeclaration() => new CssStyleDeclaration.css('');
 
@@ -12274,7 +12273,7 @@ class DomSettableTokenList extends DomTokenList {
 
 @DocsEditable()
 @DomName('DOMStringList')
-class DomStringList extends NativeFieldWrapperClass2 with ListMixin<String>, ImmutableListMixin<String> implements List<String> {
+class DomStringList extends JsoNativeFieldWrapper with ListMixin<String>, ImmutableListMixin<String> implements List<String> {
   // To suppress missing implicit constructor warnings.
   factory DomStringList._() { throw new UnsupportedError("Not supported"); }
 
@@ -17461,7 +17460,7 @@ class FileError extends DomError {
 
 @DocsEditable()
 @DomName('FileList')
-class FileList extends NativeFieldWrapperClass2 with ListMixin<File>, ImmutableListMixin<File> implements List<File> {
+class FileList extends JsoNativeFieldWrapper with ListMixin<File>, ImmutableListMixin<File> implements List<File> {
   // To suppress missing implicit constructor warnings.
   factory FileList._() { throw new UnsupportedError("Not supported"); }
 
@@ -19717,7 +19716,7 @@ class History extends NativeFieldWrapperClass2 implements HistoryBase {
 
 @DocsEditable()
 @DomName('HTMLCollection')
-class HtmlCollection extends NativeFieldWrapperClass2 with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
+class HtmlCollection extends JsoNativeFieldWrapper with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
   // To suppress missing implicit constructor warnings.
   factory HtmlCollection._() { throw new UnsupportedError("Not supported"); }
 
@@ -26494,7 +26493,7 @@ class MimeType extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('MimeTypeArray')
 @Experimental() // non-standard
-class MimeTypeArray extends NativeFieldWrapperClass2 with ListMixin<MimeType>, ImmutableListMixin<MimeType> implements List<MimeType> {
+class MimeTypeArray extends JsoNativeFieldWrapper with ListMixin<MimeType>, ImmutableListMixin<MimeType> implements List<MimeType> {
   // To suppress missing implicit constructor warnings.
   factory MimeTypeArray._() { throw new UnsupportedError("Not supported"); }
 
@@ -28310,7 +28309,7 @@ class NodeIterator extends NativeFieldWrapperClass2 {
 
 @DocsEditable()
 @DomName('NodeList')
-class NodeList extends NativeFieldWrapperClass2 with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
+class NodeList extends JsoNativeFieldWrapper with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
   // To suppress missing implicit constructor warnings.
   factory NodeList._() { throw new UnsupportedError("Not supported"); }
 
@@ -29901,7 +29900,7 @@ class Plugin extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('PluginArray')
 @Experimental() // non-standard
-class PluginArray extends NativeFieldWrapperClass2 with ListMixin<Plugin>, ImmutableListMixin<Plugin> implements List<Plugin> {
+class PluginArray extends JsoNativeFieldWrapper with ListMixin<Plugin>, ImmutableListMixin<Plugin> implements List<Plugin> {
   // To suppress missing implicit constructor warnings.
   factory PluginArray._() { throw new UnsupportedError("Not supported"); }
 
@@ -33307,7 +33306,7 @@ class SpeechGrammar extends NativeFieldWrapperClass2 {
 @DomName('SpeechGrammarList')
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#dfn-speechgrammarlist
 @Experimental()
-class SpeechGrammarList extends NativeFieldWrapperClass2 with ListMixin<SpeechGrammar>, ImmutableListMixin<SpeechGrammar> implements List<SpeechGrammar> {
+class SpeechGrammarList extends JsoNativeFieldWrapper with ListMixin<SpeechGrammar>, ImmutableListMixin<SpeechGrammar> implements List<SpeechGrammar> {
   // To suppress missing implicit constructor warnings.
   factory SpeechGrammarList._() { throw new UnsupportedError("Not supported"); }
 
@@ -35748,7 +35747,7 @@ class TextTrackCue extends EventTarget {
 @DomName('TextTrackCueList')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#texttrackcuelist
 @Experimental()
-class TextTrackCueList extends NativeFieldWrapperClass2 with ListMixin<TextTrackCue>, ImmutableListMixin<TextTrackCue> implements List<TextTrackCue> {
+class TextTrackCueList extends JsoNativeFieldWrapper with ListMixin<TextTrackCue>, ImmutableListMixin<TextTrackCue> implements List<TextTrackCue> {
   // To suppress missing implicit constructor warnings.
   factory TextTrackCueList._() { throw new UnsupportedError("Not supported"); }
 
@@ -36356,7 +36355,7 @@ class TouchEvent extends UIEvent {
 @DomName('TouchList')
 // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
 @Experimental()
-class TouchList extends NativeFieldWrapperClass2 with ListMixin<Touch>, ImmutableListMixin<Touch> implements List<Touch> {
+class TouchList extends JsoNativeFieldWrapper with ListMixin<Touch>, ImmutableListMixin<Touch> implements List<Touch> {
   /// NB: This constructor likely does not work as you might expect it to! This
   /// constructor will simply fail (returning null) if you are not on a device
   /// with touch enabled. See dartbug.com/8314.
@@ -36903,10 +36902,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -41064,7 +41063,7 @@ class _JenkinsSmiHash {
 
 @DocsEditable()
 @DomName('ClientRectList')
-class _ClientRectList extends NativeFieldWrapperClass2 with ListMixin<Rectangle>, ImmutableListMixin<Rectangle> implements List<Rectangle> {
+class _ClientRectList extends JsoNativeFieldWrapper with ListMixin<Rectangle>, ImmutableListMixin<Rectangle> implements List<Rectangle> {
   // To suppress missing implicit constructor warnings.
   factory _ClientRectList._() { throw new UnsupportedError("Not supported"); }
 
@@ -41178,7 +41177,7 @@ abstract class _Counter extends NativeFieldWrapperClass2 {
 
 @DocsEditable()
 @DomName('CSSRuleList')
-class _CssRuleList extends NativeFieldWrapperClass2 with ListMixin<CssRule>, ImmutableListMixin<CssRule> implements List<CssRule> {
+class _CssRuleList extends JsoNativeFieldWrapper with ListMixin<CssRule>, ImmutableListMixin<CssRule> implements List<CssRule> {
   // To suppress missing implicit constructor warnings.
   factory _CssRuleList._() { throw new UnsupportedError("Not supported"); }
 
@@ -41676,7 +41675,7 @@ abstract class _FileWriterSync extends NativeFieldWrapperClass2 {
 @DomName('GamepadList')
 // https://dvcs.w3.org/hg/gamepad/raw-file/default/gamepad.html
 @Experimental()
-class _GamepadList extends NativeFieldWrapperClass2 with ListMixin<Gamepad>, ImmutableListMixin<Gamepad> implements List<Gamepad> {
+class _GamepadList extends JsoNativeFieldWrapper with ListMixin<Gamepad>, ImmutableListMixin<Gamepad> implements List<Gamepad> {
   // To suppress missing implicit constructor warnings.
   factory _GamepadList._() { throw new UnsupportedError("Not supported"); }
 
@@ -42034,7 +42033,7 @@ abstract class _MutationEvent extends Event {
 @DomName('NamedNodeMap')
 // http://dom.spec.whatwg.org/#namednodemap
 @deprecated // deprecated
-class _NamedNodeMap extends JsoNativeFieldWrapper2 with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
+class _NamedNodeMap extends JsoNativeFieldWrapper with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
   // To suppress missing implicit constructor warnings.
   factory _NamedNodeMap._() { throw new UnsupportedError("Not supported"); }
 
@@ -42427,7 +42426,7 @@ abstract class _ServiceWorker extends EventTarget implements AbstractWorker {
 @DomName('SpeechRecognitionResultList')
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#speechrecognitionresultlist
 @Experimental()
-class _SpeechRecognitionResultList extends NativeFieldWrapperClass2 with ListMixin<SpeechRecognitionResult>, ImmutableListMixin<SpeechRecognitionResult> implements List<SpeechRecognitionResult> {
+class _SpeechRecognitionResultList extends JsoNativeFieldWrapper with ListMixin<SpeechRecognitionResult>, ImmutableListMixin<SpeechRecognitionResult> implements List<SpeechRecognitionResult> {
   // To suppress missing implicit constructor warnings.
   factory _SpeechRecognitionResultList._() { throw new UnsupportedError("Not supported"); }
 
@@ -42510,7 +42509,7 @@ class _SpeechRecognitionResultList extends NativeFieldWrapperClass2 with ListMix
 
 @DocsEditable()
 @DomName('StyleSheetList')
-class _StyleSheetList extends NativeFieldWrapperClass2 with ListMixin<StyleSheet>, ImmutableListMixin<StyleSheet> implements List<StyleSheet> {
+class _StyleSheetList extends JsoNativeFieldWrapper with ListMixin<StyleSheet>, ImmutableListMixin<StyleSheet> implements List<StyleSheet> {
   // To suppress missing implicit constructor warnings.
   factory _StyleSheetList._() { throw new UnsupportedError("Not supported"); }
 
