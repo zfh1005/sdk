@@ -1209,6 +1209,9 @@ convertDartToNative_Dictionary(Map dict) {
   return jsArray;
 }
 
+// Conversion function place holder (currently not used in dart2js or dartium).
+List convertDartToNative_StringArray(List<String> input) => input;
+
 // Need a default constructor for constructing classes with mixins that are
 // also extending NativeFieldWrapperClass2.  NativeFieldWrapperClassXX don't
 // have a default constructor.
@@ -1463,7 +1466,8 @@ class Animation extends AnimationNode {
       return _blink.BlinkAnimation.instance.constructorCallback_3_(target, keyframes, timingInput);
     }
     if ((timingInput is Map || timingInput == null) && (keyframes is List<Map> || keyframes == null) && (target is Element || target == null)) {
-      return _blink.BlinkAnimation.instance.constructorCallback_3_(target, keyframes, timingInput);
+      var timingInput_1 = convertDartToNative_Dictionary(timingInput);
+      return _blink.BlinkAnimation.instance.constructorCallback_3_(target, keyframes, timingInput_1);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -4440,7 +4444,8 @@ class CircularGeofencingRegion extends GeofencingRegion {
   @DomName('CircularGeofencingRegion.CircularGeofencingRegion')
   @DocsEditable()
   factory CircularGeofencingRegion(Map init) {
-    return _blink.BlinkCircularGeofencingRegion.instance.constructorCallback_1_(init);
+    var init_1 = convertDartToNative_Dictionary(init);
+    return _blink.BlinkCircularGeofencingRegion.instance.constructorCallback_1_(init_1);
   }
 
 
@@ -11933,7 +11938,8 @@ class DomPoint extends DomPointReadOnly {
       return _blink.BlinkDOMPoint.instance.constructorCallback_0_();
     }
     if ((point_OR_x is Map || point_OR_x == null) && y == null && z == null && w == null) {
-      return _blink.BlinkDOMPoint.instance.constructorCallback_1_(point_OR_x);
+      var point_1 = convertDartToNative_Dictionary(point_OR_x);
+      return _blink.BlinkDOMPoint.instance.constructorCallback_1_(point_1);
     }
     if ((y is num || y == null) && (point_OR_x is num || point_OR_x == null) && z == null && w == null) {
       return _blink.BlinkDOMPoint.instance.constructorCallback_2_(point_OR_x, y);
@@ -16809,7 +16815,8 @@ class EventSource extends EventTarget {
   @DocsEditable()
   static EventSource _factoryEventSource(String url, [Map eventSourceInit]) {
     if (eventSourceInit != null) {
-      return _blink.BlinkEventSource.instance.constructorCallback_2_(url, eventSourceInit);
+      var eventSourceInit_1 = convertDartToNative_Dictionary(eventSourceInit);
+      return _blink.BlinkEventSource.instance.constructorCallback_2_(url, eventSourceInit_1);
     }
     return _blink.BlinkEventSource.instance.constructorCallback_1_(url);
   }
@@ -18017,19 +18024,22 @@ class FontFace extends NativeFieldWrapperClass2 {
       return _blink.BlinkFontFace.instance.constructorCallback_2_(family, source);
     }
     if ((descriptors is Map || descriptors == null) && (source is String || source == null) && (family is String || family == null)) {
-      return _blink.BlinkFontFace.instance.constructorCallback_3_(family, source, descriptors);
+      var descriptors_1 = convertDartToNative_Dictionary(descriptors);
+      return _blink.BlinkFontFace.instance.constructorCallback_3_(family, source, descriptors_1);
     }
     if ((source is TypedData || source == null) && (family is String || family == null) && descriptors == null) {
       return _blink.BlinkFontFace.instance.constructorCallback_2_(family, source);
     }
     if ((descriptors is Map || descriptors == null) && (source is TypedData || source == null) && (family is String || family == null)) {
-      return _blink.BlinkFontFace.instance.constructorCallback_3_(family, source, descriptors);
+      var descriptors_1 = convertDartToNative_Dictionary(descriptors);
+      return _blink.BlinkFontFace.instance.constructorCallback_3_(family, source, descriptors_1);
     }
     if ((source is ByteBuffer || source == null) && (family is String || family == null) && descriptors == null) {
       return _blink.BlinkFontFace.instance.constructorCallback_2_(family, source);
     }
     if ((descriptors is Map || descriptors == null) && (source is ByteBuffer || source == null) && (family is String || family == null)) {
-      return _blink.BlinkFontFace.instance.constructorCallback_3_(family, source, descriptors);
+      var descriptors_1 = convertDartToNative_Dictionary(descriptors);
+      return _blink.BlinkFontFace.instance.constructorCallback_3_(family, source, descriptors_1);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -19524,7 +19534,8 @@ class Headers extends NativeFieldWrapperClass2 {
       return _blink.BlinkHeaders.instance.constructorCallback_1_(input);
     }
     if ((input is Map || input == null)) {
-      return _blink.BlinkHeaders.instance.constructorCallback_1_(input);
+      var input_1 = convertDartToNative_Dictionary(input);
+      return _blink.BlinkHeaders.instance.constructorCallback_1_(input_1);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -28441,7 +28452,8 @@ class Notification extends EventTarget {
   @DocsEditable()
   static Notification _factoryNotification(String title, [Map options]) {
     if (options != null) {
-      return _blink.BlinkNotification.instance.constructorCallback_2_(title, options);
+      var options_1 = convertDartToNative_Dictionary(options);
+      return _blink.BlinkNotification.instance.constructorCallback_2_(title, options_1);
     }
     return _blink.BlinkNotification.instance.constructorCallback_1_(title);
   }
@@ -31186,7 +31198,8 @@ class RtcIceCandidate extends NativeFieldWrapperClass2 {
   @DomName('RTCIceCandidate.RTCIceCandidate')
   @DocsEditable()
   factory RtcIceCandidate(Map dictionary) {
-    return _blink.BlinkRTCIceCandidate.instance.constructorCallback_1_(dictionary);
+    var dictionary_1 = convertDartToNative_Dictionary(dictionary);
+    return _blink.BlinkRTCIceCandidate.instance.constructorCallback_1_(dictionary_1);
   }
 
   static RtcIceCandidate internalCreateRtcIceCandidate() {
@@ -31376,9 +31389,12 @@ class RtcPeerConnection extends EventTarget {
   @DocsEditable()
   factory RtcPeerConnection(Map rtcConfiguration, [Map mediaConstraints]) {
     if (mediaConstraints != null) {
-      return _blink.BlinkRTCPeerConnection.instance.constructorCallback_2_(rtcConfiguration, mediaConstraints);
+      var rtcConfiguration_1 = convertDartToNative_Dictionary(rtcConfiguration);
+      var mediaConstraints_2 = convertDartToNative_Dictionary(mediaConstraints);
+      return _blink.BlinkRTCPeerConnection.instance.constructorCallback_2_(rtcConfiguration_1, mediaConstraints_2);
     }
-    return _blink.BlinkRTCPeerConnection.instance.constructorCallback_1_(rtcConfiguration);
+    var rtcConfiguration_1 = convertDartToNative_Dictionary(rtcConfiguration);
+    return _blink.BlinkRTCPeerConnection.instance.constructorCallback_1_(rtcConfiguration_1);
   }
 
 
@@ -31572,7 +31588,8 @@ class RtcSessionDescription extends NativeFieldWrapperClass2 {
   @DocsEditable()
   factory RtcSessionDescription([Map descriptionInitDict]) {
     if (descriptionInitDict != null) {
-      return _blink.BlinkRTCSessionDescription.instance.constructorCallback_1_(descriptionInitDict);
+      var descriptionInitDict_1 = convertDartToNative_Dictionary(descriptionInitDict);
+      return _blink.BlinkRTCSessionDescription.instance.constructorCallback_1_(descriptionInitDict_1);
     }
     return _blink.BlinkRTCSessionDescription.instance.constructorCallback_0_();
   }
@@ -37975,7 +37992,8 @@ class WebSocket extends EventTarget {
       return _blink.BlinkWebSocket.instance.constructorCallback_2_(url, protocol_OR_protocols);
     }
     if ((protocol_OR_protocols is List<String> || protocol_OR_protocols == null) && (url is String || url == null)) {
-      return _blink.BlinkWebSocket.instance.constructorCallback_2_(url, protocol_OR_protocols);
+      List protocols_1 = convertDartToNative_StringArray(protocol_OR_protocols);
+      return _blink.BlinkWebSocket.instance.constructorCallback_2_(url, protocols_1);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -42254,13 +42272,15 @@ class _Request extends Body {
       return _blink.BlinkRequest.instance.constructorCallback_1_(input);
     }
     if ((requestInitDict is Map || requestInitDict == null) && (input is String || input == null)) {
-      return _blink.BlinkRequest.instance.constructorCallback_2_(input, requestInitDict);
+      var requestInitDict_1 = convertDartToNative_Dictionary(requestInitDict);
+      return _blink.BlinkRequest.instance.constructorCallback_2_(input, requestInitDict_1);
     }
     if ((input is _Request || input == null) && requestInitDict == null) {
       return _blink.BlinkRequest.instance.constructorCallback_1_(input);
     }
     if ((requestInitDict is Map || requestInitDict == null) && (input is _Request || input == null)) {
-      return _blink.BlinkRequest.instance.constructorCallback_2_(input, requestInitDict);
+      var requestInitDict_1 = convertDartToNative_Dictionary(requestInitDict);
+      return _blink.BlinkRequest.instance.constructorCallback_2_(input, requestInitDict_1);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -42329,25 +42349,29 @@ abstract class _Response extends Body {
       return _blink.BlinkResponse.instance.constructorCallback_1_(body_OR_input);
     }
     if ((requestInitDict_OR_responseInitDict is Map || requestInitDict_OR_responseInitDict == null) && (body_OR_input is String || body_OR_input == null)) {
-      return _blink.BlinkResponse.instance.constructorCallback_2_(body_OR_input, requestInitDict_OR_responseInitDict);
+      var responseInitDict_1 = convertDartToNative_Dictionary(requestInitDict_OR_responseInitDict);
+      return _blink.BlinkResponse.instance.constructorCallback_2_(body_OR_input, responseInitDict_1);
     }
     if ((body_OR_input is Blob || body_OR_input == null) && requestInitDict_OR_responseInitDict == null) {
       return _blink.BlinkResponse.instance.constructorCallback_1_(body_OR_input);
     }
     if ((requestInitDict_OR_responseInitDict is Map || requestInitDict_OR_responseInitDict == null) && (body_OR_input is Blob || body_OR_input == null)) {
-      return _blink.BlinkResponse.instance.constructorCallback_2_(body_OR_input, requestInitDict_OR_responseInitDict);
+      var responseInitDict_1 = convertDartToNative_Dictionary(requestInitDict_OR_responseInitDict);
+      return _blink.BlinkResponse.instance.constructorCallback_2_(body_OR_input, responseInitDict_1);
     }
     if ((body_OR_input is TypedData || body_OR_input == null) && requestInitDict_OR_responseInitDict == null) {
       return _blink.BlinkResponse.instance.constructorCallback_1_(body_OR_input);
     }
     if ((requestInitDict_OR_responseInitDict is Map || requestInitDict_OR_responseInitDict == null) && (body_OR_input is TypedData || body_OR_input == null)) {
-      return _blink.BlinkResponse.instance.constructorCallback_2_(body_OR_input, requestInitDict_OR_responseInitDict);
+      var requestInitDict_1 = convertDartToNative_Dictionary(requestInitDict_OR_responseInitDict);
+      return _blink.BlinkResponse.instance.constructorCallback_2_(body_OR_input, requestInitDict_1);
     }
     if ((body_OR_input is ByteBuffer || body_OR_input == null) && requestInitDict_OR_responseInitDict == null) {
       return _blink.BlinkResponse.instance.constructorCallback_1_(body_OR_input);
     }
     if ((requestInitDict_OR_responseInitDict is Map || requestInitDict_OR_responseInitDict == null) && (body_OR_input is ByteBuffer || body_OR_input == null)) {
-      return _blink.BlinkResponse.instance.constructorCallback_2_(body_OR_input, requestInitDict_OR_responseInitDict);
+      var requestInitDict_1 = convertDartToNative_Dictionary(requestInitDict_OR_responseInitDict);
+      return _blink.BlinkResponse.instance.constructorCallback_2_(body_OR_input, requestInitDict_1);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }

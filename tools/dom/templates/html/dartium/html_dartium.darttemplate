@@ -439,6 +439,9 @@ convertDartToNative_Dictionary(Map dict) {
   return jsArray;
 }
 
+// Conversion function place holder (currently not used in dart2js or dartium).
+List convertDartToNative_StringArray(List<String> input) => input;
+
 // Need a default constructor for constructing classes with mixins that are
 // also extending NativeFieldWrapperClass2.  NativeFieldWrapperClassXX don't
 // have a default constructor.
@@ -450,5 +453,6 @@ wrap_jso(jsObject) => jsObject;
 wrap_jso_list(jso_nodes) => jso_nodes;
 make_dart_rectangle(r) => r;
 convertDartToNative_Dictionary(Map dict) =>  dict;
+List convertDartToNative_StringArray(List<String> input) => input;
 
 $endif

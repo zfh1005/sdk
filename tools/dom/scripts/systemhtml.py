@@ -1065,53 +1065,6 @@ class Dart2JSBackend(HtmlDartGenerator):
         NAME=html_name,
         PARAMS=info.ParametersAsDeclaration(self._NarrowInputType))
 
-  def _ConvertArgumentTypes(
-          self, stmts_emitter, arguments, argument_count, info):
-    temp_version = [0]
-    converted_arguments = []
-    target_parameters = []
-    for position, arg in enumerate(arguments[:argument_count]):
-      conversion = self._InputConversion(arg.type.id, info.declared_name)
-      param_name = arguments[position].id
-      if conversion:
-        temp_version[0] += 1
-        temp_name = '%s_%s' % (param_name, temp_version[0])
-        temp_type = conversion.output_type
-        stmts_emitter.Emit(
-            '$(INDENT)$TYPE $NAME = $CONVERT($ARG);\n',
-            TYPE=TypeOrVar(temp_type),
-            NAME=temp_name,
-            CONVERT=conversion.function_name,
-            ARG=info.param_infos[position].name)
-        converted_arguments.append(temp_name)
-        param_type = temp_type
-        verified_type = temp_type  # verified by assignment in checked mode.
-      else:
-        converted_arguments.append(info.param_infos[position].name)
-        param_type = self._NarrowInputType(arg.type.id)
-        # Verified by argument checking on entry to the dispatcher.
-
-        verified_type = self._InputType(
-            info.param_infos[position].type_id, info)
-        # The native method does not need an argument type if we know the type.
-        # But we do need the native methods to have correct function types, so
-        # be conservative.
-        if param_type == verified_type:
-          if param_type in ['String', 'num', 'int', 'double', 'bool', 'Object']:
-            param_type = 'dynamic'
-
-      target_parameters.append(
-          '%s%s' % (TypeOrNothing(param_type), param_name))
-
-    return target_parameters, converted_arguments
-
-  def _InputType(self, type_name, info):
-    conversion = self._InputConversion(type_name, info.declared_name)
-    if conversion:
-      return conversion.input_type
-    else:
-      return self._NarrowInputType(type_name) if type_name else 'dynamic'
-
   def _AddOperationWithConversions(self, info, html_name):
     # Assert all operations have same return type.
     assert len(set([op.type.id for op in info.operations])) == 1

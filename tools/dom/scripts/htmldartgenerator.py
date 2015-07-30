@@ -14,6 +14,7 @@ from copy import deepcopy
 from htmlrenamer import convert_to_future_members, custom_html_constructors, \
     keep_overloaded_members, overloaded_and_renamed, private_html_members, \
     renamed_html_members, renamed_overloads, removed_html_members
+from generator import TypeOrVar
 import logging
 import monitored
 import sys
@@ -603,6 +604,12 @@ class HtmlDartGenerator(object):
                 self.DeriveQualifiedBlinkName(self._interface.id,
                                               base_name)
             args = constructor_info.ParametersAsArgumentList(argument_count)
+
+            # Handle converting Maps to Dictionaries, etc.
+            (factory_params, converted_arguments) = self._ConvertArgumentTypes(
+                stmts_emitter, arguments, argument_count, constructor_info)
+            args = ', '.join(converted_arguments)
+
         else:
             qualified_name = emitter.Format(
                 '$FACTORY.$NAME',
@@ -804,3 +811,49 @@ class HtmlDartGenerator(object):
 
   def _TypeInfo(self, type_name):
     return self._type_registry.TypeInfo(type_name)
+
+  def _ConvertArgumentTypes(self, stmts_emitter, arguments, argument_count, info):
+    temp_version = [0]
+    converted_arguments = []
+    target_parameters = []
+    for position, arg in enumerate(arguments[:argument_count]):
+      conversion = self._InputConversion(arg.type.id, info.declared_name)
+      param_name = arguments[position].id
+      if conversion:
+        temp_version[0] += 1
+        temp_name = '%s_%s' % (param_name, temp_version[0])
+        temp_type = conversion.output_type
+        stmts_emitter.Emit(
+            '$(INDENT)$TYPE $NAME = $CONVERT($ARG);\n',
+            TYPE=TypeOrVar(temp_type),
+            NAME=temp_name,
+            CONVERT=conversion.function_name,
+            ARG=info.param_infos[position].name)
+        converted_arguments.append(temp_name)
+        param_type = temp_type
+        verified_type = temp_type  # verified by assignment in checked mode.
+      else:
+        converted_arguments.append(info.param_infos[position].name)
+        param_type = self._NarrowInputType(arg.type.id)
+        # Verified by argument checking on entry to the dispatcher.
+
+        verified_type = self._InputType(
+            info.param_infos[position].type_id, info)
+        # The native method does not need an argument type if we know the type.
+        # But we do need the native methods to have correct function types, so
+        # be conservative.
+        if param_type == verified_type:
+          if param_type in ['String', 'num', 'int', 'double', 'bool', 'Object']:
+            param_type = 'dynamic'
+
+      target_parameters.append(
+          '%s%s' % (TypeOrNothing(param_type), param_name))
+
+    return target_parameters, converted_arguments
+
+  def _InputType(self, type_name, info):
+    conversion = self._InputConversion(type_name, info.declared_name)
+    if conversion:
+      return conversion.input_type
+    else:
+      return self._NarrowInputType(type_name) if type_name else 'dynamic'
