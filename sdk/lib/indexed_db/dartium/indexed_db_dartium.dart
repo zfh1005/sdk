@@ -548,7 +548,7 @@ class IdbFactory extends NativeFieldWrapperClass2 {
   
   @DomName('IDBFactory.deleteDatabase')
   @DocsEditable()
-  OpenDBRequest _deleteDatabase(String name) => _blink.BlinkIDBFactory.instance.deleteDatabase_Callback_1_(unwrap_jso(this), name);
+  OpenDBRequest _deleteDatabase(String name) => wrap_jso(_blink.BlinkIDBFactory.instance.deleteDatabase_Callback_1_(unwrap_jso(this), name));
   
   OpenDBRequest _open(String name, [int version]) {
     if (version != null) {
@@ -822,7 +822,7 @@ class KeyRange extends NativeFieldWrapperClass2 {
   @DomName('IDBKeyRange.only_')
   @DocsEditable()
   @Experimental() // non-standard
-  static KeyRange only_(Object value) => _blink.BlinkIDBKeyRange.instance.only_Callback_1_(value);
+  static KeyRange only_(Object value) => wrap_jso(_blink.BlinkIDBKeyRange.instance.only_Callback_1_(value));
   
   static KeyRange upperBound_(Object bound, [bool open]) {
     if (open != null) {
@@ -1050,7 +1050,7 @@ class ObjectStore extends NativeFieldWrapperClass2 {
   
   @DomName('IDBObjectStore.index')
   @DocsEditable()
-  Index index(String name) => _blink.BlinkIDBObjectStore.instance.index_Callback_1_(unwrap_jso(this), name);
+  Index index(String name) => wrap_jso(_blink.BlinkIDBObjectStore.instance.index_Callback_1_(unwrap_jso(this), name));
   
   Request _openCursor(Object range, [String direction]) {
     if (direction != null) {
@@ -1335,7 +1335,7 @@ class Transaction extends EventTarget {
   
   @DomName('IDBTransaction.objectStore')
   @DocsEditable()
-  ObjectStore objectStore(String name) => _blink.BlinkIDBTransaction.instance.objectStore_Callback_1_(unwrap_jso(this), name);
+  ObjectStore objectStore(String name) => wrap_jso(_blink.BlinkIDBTransaction.instance.objectStore_Callback_1_(unwrap_jso(this), name));
   
   /// Stream of `abort` events handled by this [Transaction].
   @DomName('IDBTransaction.onabort')

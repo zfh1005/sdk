@@ -519,10 +519,10 @@ class OperationInfo(object):
     return return_type.startswith('List<Node>')
 
   def wrap_unwrap_type_blink(self, return_type, type_registry):
-    """Returns True if the type is a blink type that requires wrap_jso or unwrap_jso.
-    Notice we look for any class that starts with HtmlNNNN e.g., HtmlDocument, etc. """
+    """Returns True if the type is a blink type that requires wrap_jso or
+    unwrap_jso"""
     return (type_registry.HasInterface(return_type) or not(return_type) or
-            return_type == 'Object' or return_type.startswith('Html') or
+            return_type == 'Object' or
             return_type == 'MutationObserver')
 
   def ParametersAsListOfVariables(self, parameter_count=None, type_registry=None, dart_js_interop=False):

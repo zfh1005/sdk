@@ -5042,7 +5042,7 @@ class Crypto extends NativeFieldWrapperClass2 {
   
   @DomName('Crypto.getRandomValues')
   @DocsEditable()
-  TypedData getRandomValues(TypedData array) => _blink.BlinkCrypto.instance.getRandomValues_Callback_1_(unwrap_jso(this), unwrap_jso(array));
+  TypedData getRandomValues(TypedData array) => wrap_jso(_blink.BlinkCrypto.instance.getRandomValues_Callback_1_(unwrap_jso(this), unwrap_jso(array)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5358,7 +5358,7 @@ class CssKeyframesRule extends CssRule {
   @DomName('CSSKeyframesRule.__getter__')
   @DocsEditable()
   @Experimental() // untriaged
-  CssKeyframeRule __getter__(int index) => _blink.BlinkCSSKeyframesRule.instance.$__getter___Callback_1_(unwrap_jso(this), index);
+  CssKeyframeRule __getter__(int index) => wrap_jso(_blink.BlinkCSSKeyframesRule.instance.$__getter___Callback_1_(unwrap_jso(this), index));
   
   @DomName('CSSKeyframesRule.deleteRule')
   @DocsEditable()
@@ -5368,7 +5368,7 @@ class CssKeyframesRule extends CssRule {
   @DomName('CSSKeyframesRule.findRule')
   @DocsEditable()
   @Experimental() // untriaged
-  CssKeyframeRule findRule(String key) => _blink.BlinkCSSKeyframesRule.instance.findRule_Callback_1_(unwrap_jso(this), key);
+  CssKeyframeRule findRule(String key) => wrap_jso(_blink.BlinkCSSKeyframesRule.instance.findRule_Callback_1_(unwrap_jso(this), key));
   
   @DomName('CSSKeyframesRule.insertRule')
   @DocsEditable()
@@ -11293,11 +11293,11 @@ class DomImplementation extends NativeFieldWrapperClass2 {
 
   @DomName('DOMImplementation.createDocument')
   @DocsEditable()
-  XmlDocument createDocument(String namespaceURI, String qualifiedName, _DocumentType doctype) => _blink.BlinkDOMImplementation.instance.createDocument_Callback_3_(unwrap_jso(this), namespaceURI, qualifiedName, unwrap_jso(doctype));
+  XmlDocument createDocument(String namespaceURI, String qualifiedName, _DocumentType doctype) => wrap_jso(_blink.BlinkDOMImplementation.instance.createDocument_Callback_3_(unwrap_jso(this), namespaceURI, qualifiedName, unwrap_jso(doctype)));
   
   @DomName('DOMImplementation.createDocumentType')
   @DocsEditable()
-  _DocumentType createDocumentType(String qualifiedName, String publicId, String systemId) => _blink.BlinkDOMImplementation.instance.createDocumentType_Callback_3_(unwrap_jso(this), qualifiedName, publicId, systemId);
+  _DocumentType createDocumentType(String qualifiedName, String publicId, String systemId) => wrap_jso(_blink.BlinkDOMImplementation.instance.createDocumentType_Callback_3_(unwrap_jso(this), qualifiedName, publicId, systemId));
   
   @DomName('DOMImplementation.createHTMLDocument')
   @DocsEditable()
@@ -11606,12 +11606,12 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.multiplySelf')
   @DocsEditable()
   @Experimental() // untriaged
-  DomMatrix multiplySelf(DomMatrix other) => _blink.BlinkDOMMatrix.instance.multiplySelf_Callback_1_(unwrap_jso(this), unwrap_jso(other));
+  DomMatrix multiplySelf(DomMatrix other) => wrap_jso(_blink.BlinkDOMMatrix.instance.multiplySelf_Callback_1_(unwrap_jso(this), unwrap_jso(other)));
   
   @DomName('DOMMatrix.preMultiplySelf')
   @DocsEditable()
   @Experimental() // untriaged
-  DomMatrix preMultiplySelf(DomMatrix other) => _blink.BlinkDOMMatrix.instance.preMultiplySelf_Callback_1_(unwrap_jso(this), unwrap_jso(other));
+  DomMatrix preMultiplySelf(DomMatrix other) => wrap_jso(_blink.BlinkDOMMatrix.instance.preMultiplySelf_Callback_1_(unwrap_jso(this), unwrap_jso(other)));
   
   DomMatrix scale3dSelf(num scale, [num ox, num oy, num oz]) {
     if (oz != null) {
@@ -11815,7 +11815,7 @@ class DomMatrixReadOnly extends NativeFieldWrapperClass2 {
   @DomName('DOMMatrixReadOnly.multiply')
   @DocsEditable()
   @Experimental() // untriaged
-  DomMatrix multiply(DomMatrix other) => _blink.BlinkDOMMatrixReadOnly.instance.multiply_Callback_1_(unwrap_jso(this), unwrap_jso(other));
+  DomMatrix multiply(DomMatrix other) => wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.multiply_Callback_1_(unwrap_jso(this), unwrap_jso(other)));
   
   DomMatrix scale(num scale, [num ox, num oy]) {
     if (oy != null) {
@@ -15572,7 +15572,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    */
   @DomName('Element.getClientRects')
   @DocsEditable()
-  List<Rectangle> getClientRects() => _blink.BlinkElement.instance.getClientRects_Callback_0_(unwrap_jso(this));
+  List<Rectangle> getClientRects() => wrap_jso_list(_blink.BlinkElement.instance.getClientRects_Callback_0_(unwrap_jso(this)));
   
   /**
    * Returns a list of shadow DOM insertion points to which this element is
@@ -26218,7 +26218,7 @@ class MidiInputMap extends NativeFieldWrapperClass2 {
   @DomName('MIDIInputMap.entries')
   @DocsEditable()
   @Experimental() // untriaged
-  DomIterator entries() => _blink.BlinkMIDIInputMap.instance.entries_Callback_0_(unwrap_jso(this));
+  DomIterator entries() => wrap_jso(_blink.BlinkMIDIInputMap.instance.entries_Callback_0_(unwrap_jso(this)));
   
   @DomName('MIDIInputMap.get')
   @DocsEditable()
@@ -26233,12 +26233,12 @@ class MidiInputMap extends NativeFieldWrapperClass2 {
   @DomName('MIDIInputMap.keys')
   @DocsEditable()
   @Experimental() // untriaged
-  DomIterator keys() => _blink.BlinkMIDIInputMap.instance.keys_Callback_0_(unwrap_jso(this));
+  DomIterator keys() => wrap_jso(_blink.BlinkMIDIInputMap.instance.keys_Callback_0_(unwrap_jso(this)));
   
   @DomName('MIDIInputMap.values')
   @DocsEditable()
   @Experimental() // untriaged
-  DomIterator values() => _blink.BlinkMIDIInputMap.instance.values_Callback_0_(unwrap_jso(this));
+  DomIterator values() => wrap_jso(_blink.BlinkMIDIInputMap.instance.values_Callback_0_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26351,7 +26351,7 @@ class MidiOutputMap extends NativeFieldWrapperClass2 {
   @DomName('MIDIOutputMap.entries')
   @DocsEditable()
   @Experimental() // untriaged
-  DomIterator entries() => _blink.BlinkMIDIOutputMap.instance.entries_Callback_0_(unwrap_jso(this));
+  DomIterator entries() => wrap_jso(_blink.BlinkMIDIOutputMap.instance.entries_Callback_0_(unwrap_jso(this)));
   
   @DomName('MIDIOutputMap.get')
   @DocsEditable()
@@ -26366,12 +26366,12 @@ class MidiOutputMap extends NativeFieldWrapperClass2 {
   @DomName('MIDIOutputMap.keys')
   @DocsEditable()
   @Experimental() // untriaged
-  DomIterator keys() => _blink.BlinkMIDIOutputMap.instance.keys_Callback_0_(unwrap_jso(this));
+  DomIterator keys() => wrap_jso(_blink.BlinkMIDIOutputMap.instance.keys_Callback_0_(unwrap_jso(this)));
   
   @DomName('MIDIOutputMap.values')
   @DocsEditable()
   @Experimental() // untriaged
-  DomIterator values() => _blink.BlinkMIDIOutputMap.instance.values_Callback_0_(unwrap_jso(this));
+  DomIterator values() => wrap_jso(_blink.BlinkMIDIOutputMap.instance.values_Callback_0_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27194,7 +27194,7 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorCpu, Naviga
   @DomName('Navigator.getGamepads')
   @DocsEditable()
   @Experimental() // untriaged
-  List<Gamepad> getGamepads() => _blink.BlinkNavigator.instance.getGamepads_Callback_0_(unwrap_jso(this));
+  List<Gamepad> getGamepads() => wrap_jso_list(_blink.BlinkNavigator.instance.getGamepads_Callback_0_(unwrap_jso(this)));
   
   @DomName('Navigator.getStorageUpdates')
   @DocsEditable()
@@ -30672,7 +30672,7 @@ class Range extends NativeFieldWrapperClass2 {
   
   @DomName('Range.getClientRects')
   @DocsEditable()
-  List<Rectangle> getClientRects() => _blink.BlinkRange.instance.getClientRects_Callback_0_(unwrap_jso(this));
+  List<Rectangle> getClientRects() => wrap_jso_list(_blink.BlinkRange.instance.getClientRects_Callback_0_(unwrap_jso(this)));
   
   @DomName('Range.insertNode')
   @DocsEditable()
@@ -31456,7 +31456,7 @@ class RtcPeerConnection extends EventTarget {
 
   @DomName('RTCPeerConnection.createDTMFSender')
   @DocsEditable()
-  RtcDtmfSender createDtmfSender(MediaStreamTrack track) => _blink.BlinkRTCPeerConnection.instance.createDTMFSender_Callback_1_(unwrap_jso(this), unwrap_jso(track));
+  RtcDtmfSender createDtmfSender(MediaStreamTrack track) => wrap_jso(_blink.BlinkRTCPeerConnection.instance.createDTMFSender_Callback_1_(unwrap_jso(this), unwrap_jso(track)));
   
   RtcDataChannel createDataChannel(String label, [Map options]) {
     if (options != null) {
@@ -31716,11 +31716,11 @@ class RtcStatsResponse extends NativeFieldWrapperClass2 {
 
   @DomName('RTCStatsResponse.__getter__')
   @DocsEditable()
-  RtcStatsReport __getter__(String name) => _blink.BlinkRTCStatsResponse.instance.$__getter___Callback_1_(unwrap_jso(this), name);
+  RtcStatsReport __getter__(String name) => wrap_jso(_blink.BlinkRTCStatsResponse.instance.$__getter___Callback_1_(unwrap_jso(this), name));
   
   @DomName('RTCStatsResponse.namedItem')
   @DocsEditable()
-  RtcStatsReport namedItem(String name) => _blink.BlinkRTCStatsResponse.instance.namedItem_Callback_1_(unwrap_jso(this), name);
+  RtcStatsReport namedItem(String name) => wrap_jso(_blink.BlinkRTCStatsResponse.instance.namedItem_Callback_1_(unwrap_jso(this), name));
   
   @DomName('RTCStatsResponse.result')
   @DocsEditable()
@@ -37881,12 +37881,12 @@ class VttRegionList extends NativeFieldWrapperClass2 {
   @DomName('VTTRegionList.getRegionById')
   @DocsEditable()
   @Experimental() // untriaged
-  VttRegion getRegionById(String id) => _blink.BlinkVTTRegionList.instance.getRegionById_Callback_1_(unwrap_jso(this), id);
+  VttRegion getRegionById(String id) => wrap_jso(_blink.BlinkVTTRegionList.instance.getRegionById_Callback_1_(unwrap_jso(this), id));
   
   @DomName('VTTRegionList.item')
   @DocsEditable()
   @Experimental() // untriaged
-  VttRegion item(int index) => _blink.BlinkVTTRegionList.instance.item_Callback_1_(unwrap_jso(this), index);
+  VttRegion item(int index) => wrap_jso(_blink.BlinkVTTRegionList.instance.item_Callback_1_(unwrap_jso(this), index));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -39129,7 +39129,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   
   @DomName('Window.getComputedStyle')
   @DocsEditable()
-  CssStyleDeclaration _getComputedStyle(Element element, String pseudoElement) => _blink.BlinkWindow.instance.getComputedStyle_Callback_2_(unwrap_jso(this), unwrap_jso(element), pseudoElement);
+  CssStyleDeclaration _getComputedStyle(Element element, String pseudoElement) => wrap_jso(_blink.BlinkWindow.instance.getComputedStyle_Callback_2_(unwrap_jso(this), unwrap_jso(element), pseudoElement));
   
   /**
    * Returns all CSS rules that apply to the element's pseudo-element.
@@ -39137,7 +39137,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @DomName('Window.getMatchedCSSRules')
   @DocsEditable()
   @Experimental() // non-standard
-  List<CssRule> getMatchedCssRules(Element element, String pseudoElement) => _blink.BlinkWindow.instance.getMatchedCSSRules_Callback_2_(unwrap_jso(this), unwrap_jso(element), pseudoElement);
+  List<CssRule> getMatchedCssRules(Element element, String pseudoElement) => wrap_jso_list(_blink.BlinkWindow.instance.getMatchedCSSRules_Callback_2_(unwrap_jso(this), unwrap_jso(element), pseudoElement));
   
   /**
    * Returns the currently selected text.
@@ -39189,7 +39189,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   
   @DomName('Window.open')
   @DocsEditable()
-  WindowBase open(String url, String name, [String options]) => _blink.BlinkWindow.instance.open_Callback_3_(unwrap_jso(this), url, name, options);
+  WindowBase open(String url, String name, [String options]) => wrap_jso(_blink.BlinkWindow.instance.open_Callback_3_(unwrap_jso(this), url, name, options));
   
   SqlDatabase openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) {
     if (creationCallback != null) {
@@ -40197,7 +40197,7 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   @Experimental() // untriaged
-  _DOMFileSystemSync requestFileSystemSync(int type, int size) => _blink.BlinkWorkerGlobalScope.instance.webkitRequestFileSystemSync_Callback_2_(unwrap_jso(this), type, size);
+  _DOMFileSystemSync requestFileSystemSync(int type, int size) => wrap_jso(_blink.BlinkWorkerGlobalScope.instance.webkitRequestFileSystemSync_Callback_2_(unwrap_jso(this), type, size));
   
   @DomName('WorkerGlobalScope.webkitResolveLocalFileSystemSyncURL')
   @DocsEditable()
@@ -40205,7 +40205,7 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   @Experimental() // untriaged
-  _EntrySync resolveLocalFileSystemSyncUrl(String url) => _blink.BlinkWorkerGlobalScope.instance.webkitResolveLocalFileSystemSyncURL_Callback_1_(unwrap_jso(this), url);
+  _EntrySync resolveLocalFileSystemSyncUrl(String url) => wrap_jso(_blink.BlinkWorkerGlobalScope.instance.webkitResolveLocalFileSystemSyncURL_Callback_1_(unwrap_jso(this), url));
   
   void _webkitResolveLocalFileSystemUrl(String url, _EntryCallback successCallback, [_ErrorCallback errorCallback]) {
     if (errorCallback != null) {
@@ -41248,7 +41248,7 @@ class _CssRuleList extends JsoNativeFieldWrapper with ListMixin<CssRule>, Immuta
 
   @DomName('CSSRuleList.item')
   @DocsEditable()
-  CssRule item(int index) => _blink.BlinkCSSRuleList.instance.item_Callback_1_(unwrap_jso(this), index);
+  CssRule item(int index) => wrap_jso(_blink.BlinkCSSRuleList.instance.item_Callback_1_(unwrap_jso(this), index));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -41330,7 +41330,7 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
 
   @DomName('CSSValueList.item')
   @DocsEditable()
-  _CSSValue item(int index) => _blink.BlinkCSSValueList.instance.item_Callback_1_(unwrap_jso(this), index);
+  _CSSValue item(int index) => wrap_jso(_blink.BlinkCSSValueList.instance.item_Callback_1_(unwrap_jso(this), index));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -42324,7 +42324,7 @@ class _Request extends Body {
   @DomName('Request.clone')
   @DocsEditable()
   @Experimental() // untriaged
-  _Request clone() => _blink.BlinkRequest.instance.clone_Callback_0_(unwrap_jso(this));
+  _Request clone() => wrap_jso(_blink.BlinkRequest.instance.clone_Callback_0_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -42580,7 +42580,7 @@ class _StyleSheetList extends JsoNativeFieldWrapper with ListMixin<StyleSheet>, 
 
   @DomName('StyleSheetList.__getter__')
   @DocsEditable()
-  CssStyleSheet __getter__(String name) => _blink.BlinkStyleSheetList.instance.$__getter___Callback_1_(unwrap_jso(this), name);
+  CssStyleSheet __getter__(String name) => wrap_jso(_blink.BlinkStyleSheetList.instance.$__getter___Callback_1_(unwrap_jso(this), name));
   
   @DomName('StyleSheetList.item')
   @DocsEditable()

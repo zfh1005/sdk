@@ -1556,7 +1556,7 @@ class OesVertexArrayObject extends NativeFieldWrapperClass2 {
   
   @DomName('OESVertexArrayObject.createVertexArrayOES')
   @DocsEditable()
-  VertexArrayObject createVertexArray() => _blink.BlinkOESVertexArrayObject.instance.createVertexArrayOES_Callback_0_(unwrap_jso(this));
+  VertexArrayObject createVertexArray() => wrap_jso(_blink.BlinkOESVertexArrayObject.instance.createVertexArrayOES_Callback_0_(unwrap_jso(this)));
   
   @DomName('OESVertexArrayObject.deleteVertexArrayOES')
   @DocsEditable()
@@ -3000,27 +3000,27 @@ class RenderingContext extends NativeFieldWrapperClass2 implements CanvasRenderi
   
   @DomName('WebGLRenderingContext.createBuffer')
   @DocsEditable()
-  Buffer createBuffer() => _blink.BlinkWebGLRenderingContext.instance.createBuffer_Callback_0_(unwrap_jso(this));
+  Buffer createBuffer() => wrap_jso(_blink.BlinkWebGLRenderingContext.instance.createBuffer_Callback_0_(unwrap_jso(this)));
   
   @DomName('WebGLRenderingContext.createFramebuffer')
   @DocsEditable()
-  Framebuffer createFramebuffer() => _blink.BlinkWebGLRenderingContext.instance.createFramebuffer_Callback_0_(unwrap_jso(this));
+  Framebuffer createFramebuffer() => wrap_jso(_blink.BlinkWebGLRenderingContext.instance.createFramebuffer_Callback_0_(unwrap_jso(this)));
   
   @DomName('WebGLRenderingContext.createProgram')
   @DocsEditable()
-  Program createProgram() => _blink.BlinkWebGLRenderingContext.instance.createProgram_Callback_0_(unwrap_jso(this));
+  Program createProgram() => wrap_jso(_blink.BlinkWebGLRenderingContext.instance.createProgram_Callback_0_(unwrap_jso(this)));
   
   @DomName('WebGLRenderingContext.createRenderbuffer')
   @DocsEditable()
-  Renderbuffer createRenderbuffer() => _blink.BlinkWebGLRenderingContext.instance.createRenderbuffer_Callback_0_(unwrap_jso(this));
+  Renderbuffer createRenderbuffer() => wrap_jso(_blink.BlinkWebGLRenderingContext.instance.createRenderbuffer_Callback_0_(unwrap_jso(this)));
   
   @DomName('WebGLRenderingContext.createShader')
   @DocsEditable()
-  Shader createShader(int type) => _blink.BlinkWebGLRenderingContext.instance.createShader_Callback_1_(unwrap_jso(this), type);
+  Shader createShader(int type) => wrap_jso(_blink.BlinkWebGLRenderingContext.instance.createShader_Callback_1_(unwrap_jso(this), type));
   
   @DomName('WebGLRenderingContext.createTexture')
   @DocsEditable()
-  Texture createTexture() => _blink.BlinkWebGLRenderingContext.instance.createTexture_Callback_0_(unwrap_jso(this));
+  Texture createTexture() => wrap_jso(_blink.BlinkWebGLRenderingContext.instance.createTexture_Callback_0_(unwrap_jso(this)));
   
   @DomName('WebGLRenderingContext.cullFace')
   @DocsEditable()
@@ -3116,11 +3116,11 @@ class RenderingContext extends NativeFieldWrapperClass2 implements CanvasRenderi
   
   @DomName('WebGLRenderingContext.getActiveAttrib')
   @DocsEditable()
-  ActiveInfo getActiveAttrib(Program program, int index) => _blink.BlinkWebGLRenderingContext.instance.getActiveAttrib_Callback_2_(unwrap_jso(this), unwrap_jso(program), index);
+  ActiveInfo getActiveAttrib(Program program, int index) => wrap_jso(_blink.BlinkWebGLRenderingContext.instance.getActiveAttrib_Callback_2_(unwrap_jso(this), unwrap_jso(program), index));
   
   @DomName('WebGLRenderingContext.getActiveUniform')
   @DocsEditable()
-  ActiveInfo getActiveUniform(Program program, int index) => _blink.BlinkWebGLRenderingContext.instance.getActiveUniform_Callback_2_(unwrap_jso(this), unwrap_jso(program), index);
+  ActiveInfo getActiveUniform(Program program, int index) => wrap_jso(_blink.BlinkWebGLRenderingContext.instance.getActiveUniform_Callback_2_(unwrap_jso(this), unwrap_jso(program), index));
   
   @DomName('WebGLRenderingContext.getAttachedShaders')
   @DocsEditable()
@@ -3136,7 +3136,7 @@ class RenderingContext extends NativeFieldWrapperClass2 implements CanvasRenderi
   
   @DomName('WebGLRenderingContext.getContextAttributes')
   @DocsEditable()
-  ContextAttributes getContextAttributes() => _blink.BlinkWebGLRenderingContext.instance.getContextAttributes_Callback_0_(unwrap_jso(this));
+  ContextAttributes getContextAttributes() => wrap_jso(_blink.BlinkWebGLRenderingContext.instance.getContextAttributes_Callback_0_(unwrap_jso(this)));
   
   @DomName('WebGLRenderingContext.getError')
   @DocsEditable()
@@ -3176,7 +3176,7 @@ class RenderingContext extends NativeFieldWrapperClass2 implements CanvasRenderi
   
   @DomName('WebGLRenderingContext.getShaderPrecisionFormat')
   @DocsEditable()
-  ShaderPrecisionFormat getShaderPrecisionFormat(int shadertype, int precisiontype) => _blink.BlinkWebGLRenderingContext.instance.getShaderPrecisionFormat_Callback_2_(unwrap_jso(this), shadertype, precisiontype);
+  ShaderPrecisionFormat getShaderPrecisionFormat(int shadertype, int precisiontype) => wrap_jso(_blink.BlinkWebGLRenderingContext.instance.getShaderPrecisionFormat_Callback_2_(unwrap_jso(this), shadertype, precisiontype));
   
   @DomName('WebGLRenderingContext.getShaderSource')
   @DocsEditable()
@@ -3196,7 +3196,7 @@ class RenderingContext extends NativeFieldWrapperClass2 implements CanvasRenderi
   
   @DomName('WebGLRenderingContext.getUniformLocation')
   @DocsEditable()
-  UniformLocation getUniformLocation(Program program, String name) => _blink.BlinkWebGLRenderingContext.instance.getUniformLocation_Callback_2_(unwrap_jso(this), unwrap_jso(program), name);
+  UniformLocation getUniformLocation(Program program, String name) => wrap_jso(_blink.BlinkWebGLRenderingContext.instance.getUniformLocation_Callback_2_(unwrap_jso(this), unwrap_jso(program), name));
   
   @DomName('WebGLRenderingContext.getVertexAttrib')
   @DocsEditable()

@@ -3630,17 +3630,17 @@ class GraphicsElement extends SvgElement implements Tests {
   @DomName('SVGGraphicsElement.getCTM')
   @DocsEditable()
   @Experimental() // untriaged
-  Matrix getCtm() => _blink.BlinkSVGGraphicsElement.instance.getCTM_Callback_0_(unwrap_jso(this));
+  Matrix getCtm() => wrap_jso(_blink.BlinkSVGGraphicsElement.instance.getCTM_Callback_0_(unwrap_jso(this)));
   
   @DomName('SVGGraphicsElement.getScreenCTM')
   @DocsEditable()
   @Experimental() // untriaged
-  Matrix getScreenCtm() => _blink.BlinkSVGGraphicsElement.instance.getScreenCTM_Callback_0_(unwrap_jso(this));
+  Matrix getScreenCtm() => wrap_jso(_blink.BlinkSVGGraphicsElement.instance.getScreenCTM_Callback_0_(unwrap_jso(this)));
   
   @DomName('SVGGraphicsElement.getTransformToElement')
   @DocsEditable()
   @Experimental() // untriaged
-  Matrix getTransformToElement(SvgElement element) => _blink.BlinkSVGGraphicsElement.instance.getTransformToElement_Callback_1_(unwrap_jso(this), unwrap_jso(element));
+  Matrix getTransformToElement(SvgElement element) => wrap_jso(_blink.BlinkSVGGraphicsElement.instance.getTransformToElement_Callback_1_(unwrap_jso(this), unwrap_jso(element)));
   
   @DomName('SVGGraphicsElement.requiredExtensions')
   @DocsEditable()
@@ -3923,7 +3923,7 @@ class LengthList extends JsoNativeFieldWrapper with ListMixin<Length>, Immutable
   
   @DomName('SVGLengthList.appendItem')
   @DocsEditable()
-  Length appendItem(Length item) => _blink.BlinkSVGLengthList.instance.appendItem_Callback_1_(unwrap_jso(this), unwrap_jso(item));
+  Length appendItem(Length item) => wrap_jso(_blink.BlinkSVGLengthList.instance.appendItem_Callback_1_(unwrap_jso(this), unwrap_jso(item)));
   
   @DomName('SVGLengthList.clear')
   @DocsEditable()
@@ -3931,23 +3931,23 @@ class LengthList extends JsoNativeFieldWrapper with ListMixin<Length>, Immutable
   
   @DomName('SVGLengthList.getItem')
   @DocsEditable()
-  Length getItem(int index) => _blink.BlinkSVGLengthList.instance.getItem_Callback_1_(unwrap_jso(this), index);
+  Length getItem(int index) => wrap_jso(_blink.BlinkSVGLengthList.instance.getItem_Callback_1_(unwrap_jso(this), index));
   
   @DomName('SVGLengthList.initialize')
   @DocsEditable()
-  Length initialize(Length item) => _blink.BlinkSVGLengthList.instance.initialize_Callback_1_(unwrap_jso(this), unwrap_jso(item));
+  Length initialize(Length item) => wrap_jso(_blink.BlinkSVGLengthList.instance.initialize_Callback_1_(unwrap_jso(this), unwrap_jso(item)));
   
   @DomName('SVGLengthList.insertItemBefore')
   @DocsEditable()
-  Length insertItemBefore(Length item, int index) => _blink.BlinkSVGLengthList.instance.insertItemBefore_Callback_2_(unwrap_jso(this), unwrap_jso(item), index);
+  Length insertItemBefore(Length item, int index) => wrap_jso(_blink.BlinkSVGLengthList.instance.insertItemBefore_Callback_2_(unwrap_jso(this), unwrap_jso(item), index));
   
   @DomName('SVGLengthList.removeItem')
   @DocsEditable()
-  Length removeItem(int index) => _blink.BlinkSVGLengthList.instance.removeItem_Callback_1_(unwrap_jso(this), index);
+  Length removeItem(int index) => wrap_jso(_blink.BlinkSVGLengthList.instance.removeItem_Callback_1_(unwrap_jso(this), index));
   
   @DomName('SVGLengthList.replaceItem')
   @DocsEditable()
-  Length replaceItem(Length item, int index) => _blink.BlinkSVGLengthList.instance.replaceItem_Callback_2_(unwrap_jso(this), unwrap_jso(item), index);
+  Length replaceItem(Length item, int index) => wrap_jso(_blink.BlinkSVGLengthList.instance.replaceItem_Callback_2_(unwrap_jso(this), unwrap_jso(item), index));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4317,47 +4317,47 @@ class Matrix extends NativeFieldWrapperClass2 {
   
   @DomName('SVGMatrix.flipX')
   @DocsEditable()
-  Matrix flipX() => _blink.BlinkSVGMatrix.instance.flipX_Callback_0_(unwrap_jso(this));
+  Matrix flipX() => wrap_jso(_blink.BlinkSVGMatrix.instance.flipX_Callback_0_(unwrap_jso(this)));
   
   @DomName('SVGMatrix.flipY')
   @DocsEditable()
-  Matrix flipY() => _blink.BlinkSVGMatrix.instance.flipY_Callback_0_(unwrap_jso(this));
+  Matrix flipY() => wrap_jso(_blink.BlinkSVGMatrix.instance.flipY_Callback_0_(unwrap_jso(this)));
   
   @DomName('SVGMatrix.inverse')
   @DocsEditable()
-  Matrix inverse() => _blink.BlinkSVGMatrix.instance.inverse_Callback_0_(unwrap_jso(this));
+  Matrix inverse() => wrap_jso(_blink.BlinkSVGMatrix.instance.inverse_Callback_0_(unwrap_jso(this)));
   
   @DomName('SVGMatrix.multiply')
   @DocsEditable()
-  Matrix multiply(Matrix secondMatrix) => _blink.BlinkSVGMatrix.instance.multiply_Callback_1_(unwrap_jso(this), unwrap_jso(secondMatrix));
+  Matrix multiply(Matrix secondMatrix) => wrap_jso(_blink.BlinkSVGMatrix.instance.multiply_Callback_1_(unwrap_jso(this), unwrap_jso(secondMatrix)));
   
   @DomName('SVGMatrix.rotate')
   @DocsEditable()
-  Matrix rotate(num angle) => _blink.BlinkSVGMatrix.instance.rotate_Callback_1_(unwrap_jso(this), angle);
+  Matrix rotate(num angle) => wrap_jso(_blink.BlinkSVGMatrix.instance.rotate_Callback_1_(unwrap_jso(this), angle));
   
   @DomName('SVGMatrix.rotateFromVector')
   @DocsEditable()
-  Matrix rotateFromVector(num x, num y) => _blink.BlinkSVGMatrix.instance.rotateFromVector_Callback_2_(unwrap_jso(this), x, y);
+  Matrix rotateFromVector(num x, num y) => wrap_jso(_blink.BlinkSVGMatrix.instance.rotateFromVector_Callback_2_(unwrap_jso(this), x, y));
   
   @DomName('SVGMatrix.scale')
   @DocsEditable()
-  Matrix scale(num scaleFactor) => _blink.BlinkSVGMatrix.instance.scale_Callback_1_(unwrap_jso(this), scaleFactor);
+  Matrix scale(num scaleFactor) => wrap_jso(_blink.BlinkSVGMatrix.instance.scale_Callback_1_(unwrap_jso(this), scaleFactor));
   
   @DomName('SVGMatrix.scaleNonUniform')
   @DocsEditable()
-  Matrix scaleNonUniform(num scaleFactorX, num scaleFactorY) => _blink.BlinkSVGMatrix.instance.scaleNonUniform_Callback_2_(unwrap_jso(this), scaleFactorX, scaleFactorY);
+  Matrix scaleNonUniform(num scaleFactorX, num scaleFactorY) => wrap_jso(_blink.BlinkSVGMatrix.instance.scaleNonUniform_Callback_2_(unwrap_jso(this), scaleFactorX, scaleFactorY));
   
   @DomName('SVGMatrix.skewX')
   @DocsEditable()
-  Matrix skewX(num angle) => _blink.BlinkSVGMatrix.instance.skewX_Callback_1_(unwrap_jso(this), angle);
+  Matrix skewX(num angle) => wrap_jso(_blink.BlinkSVGMatrix.instance.skewX_Callback_1_(unwrap_jso(this), angle));
   
   @DomName('SVGMatrix.skewY')
   @DocsEditable()
-  Matrix skewY(num angle) => _blink.BlinkSVGMatrix.instance.skewY_Callback_1_(unwrap_jso(this), angle);
+  Matrix skewY(num angle) => wrap_jso(_blink.BlinkSVGMatrix.instance.skewY_Callback_1_(unwrap_jso(this), angle));
   
   @DomName('SVGMatrix.translate')
   @DocsEditable()
-  Matrix translate(num x, num y) => _blink.BlinkSVGMatrix.instance.translate_Callback_2_(unwrap_jso(this), x, y);
+  Matrix translate(num x, num y) => wrap_jso(_blink.BlinkSVGMatrix.instance.translate_Callback_2_(unwrap_jso(this), x, y));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4520,7 +4520,7 @@ class NumberList extends JsoNativeFieldWrapper with ListMixin<Number>, Immutable
   
   @DomName('SVGNumberList.appendItem')
   @DocsEditable()
-  Number appendItem(Number item) => _blink.BlinkSVGNumberList.instance.appendItem_Callback_1_(unwrap_jso(this), unwrap_jso(item));
+  Number appendItem(Number item) => wrap_jso(_blink.BlinkSVGNumberList.instance.appendItem_Callback_1_(unwrap_jso(this), unwrap_jso(item)));
   
   @DomName('SVGNumberList.clear')
   @DocsEditable()
@@ -4528,23 +4528,23 @@ class NumberList extends JsoNativeFieldWrapper with ListMixin<Number>, Immutable
   
   @DomName('SVGNumberList.getItem')
   @DocsEditable()
-  Number getItem(int index) => _blink.BlinkSVGNumberList.instance.getItem_Callback_1_(unwrap_jso(this), index);
+  Number getItem(int index) => wrap_jso(_blink.BlinkSVGNumberList.instance.getItem_Callback_1_(unwrap_jso(this), index));
   
   @DomName('SVGNumberList.initialize')
   @DocsEditable()
-  Number initialize(Number item) => _blink.BlinkSVGNumberList.instance.initialize_Callback_1_(unwrap_jso(this), unwrap_jso(item));
+  Number initialize(Number item) => wrap_jso(_blink.BlinkSVGNumberList.instance.initialize_Callback_1_(unwrap_jso(this), unwrap_jso(item)));
   
   @DomName('SVGNumberList.insertItemBefore')
   @DocsEditable()
-  Number insertItemBefore(Number item, int index) => _blink.BlinkSVGNumberList.instance.insertItemBefore_Callback_2_(unwrap_jso(this), unwrap_jso(item), index);
+  Number insertItemBefore(Number item, int index) => wrap_jso(_blink.BlinkSVGNumberList.instance.insertItemBefore_Callback_2_(unwrap_jso(this), unwrap_jso(item), index));
   
   @DomName('SVGNumberList.removeItem')
   @DocsEditable()
-  Number removeItem(int index) => _blink.BlinkSVGNumberList.instance.removeItem_Callback_1_(unwrap_jso(this), index);
+  Number removeItem(int index) => wrap_jso(_blink.BlinkSVGNumberList.instance.removeItem_Callback_1_(unwrap_jso(this), index));
   
   @DomName('SVGNumberList.replaceItem')
   @DocsEditable()
-  Number replaceItem(Number item, int index) => _blink.BlinkSVGNumberList.instance.replaceItem_Callback_2_(unwrap_jso(this), unwrap_jso(item), index);
+  Number replaceItem(Number item, int index) => wrap_jso(_blink.BlinkSVGNumberList.instance.replaceItem_Callback_2_(unwrap_jso(this), unwrap_jso(item), index));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4605,79 +4605,79 @@ class PathElement extends GeometryElement {
   
   @DomName('SVGPathElement.createSVGPathSegArcAbs')
   @DocsEditable()
-  PathSegArcAbs createSvgPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) => _blink.BlinkSVGPathElement.instance.createSVGPathSegArcAbs_Callback_7_(unwrap_jso(this), x, y, r1, r2, angle, largeArcFlag, sweepFlag);
+  PathSegArcAbs createSvgPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegArcAbs_Callback_7_(unwrap_jso(this), x, y, r1, r2, angle, largeArcFlag, sweepFlag));
   
   @DomName('SVGPathElement.createSVGPathSegArcRel')
   @DocsEditable()
-  PathSegArcRel createSvgPathSegArcRel(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) => _blink.BlinkSVGPathElement.instance.createSVGPathSegArcRel_Callback_7_(unwrap_jso(this), x, y, r1, r2, angle, largeArcFlag, sweepFlag);
+  PathSegArcRel createSvgPathSegArcRel(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegArcRel_Callback_7_(unwrap_jso(this), x, y, r1, r2, angle, largeArcFlag, sweepFlag));
   
   @DomName('SVGPathElement.createSVGPathSegClosePath')
   @DocsEditable()
-  PathSegClosePath createSvgPathSegClosePath() => _blink.BlinkSVGPathElement.instance.createSVGPathSegClosePath_Callback_0_(unwrap_jso(this));
+  PathSegClosePath createSvgPathSegClosePath() => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegClosePath_Callback_0_(unwrap_jso(this)));
   
   @DomName('SVGPathElement.createSVGPathSegCurvetoCubicAbs')
   @DocsEditable()
-  PathSegCurvetoCubicAbs createSvgPathSegCurvetoCubicAbs(num x, num y, num x1, num y1, num x2, num y2) => _blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoCubicAbs_Callback_6_(unwrap_jso(this), x, y, x1, y1, x2, y2);
+  PathSegCurvetoCubicAbs createSvgPathSegCurvetoCubicAbs(num x, num y, num x1, num y1, num x2, num y2) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoCubicAbs_Callback_6_(unwrap_jso(this), x, y, x1, y1, x2, y2));
   
   @DomName('SVGPathElement.createSVGPathSegCurvetoCubicRel')
   @DocsEditable()
-  PathSegCurvetoCubicRel createSvgPathSegCurvetoCubicRel(num x, num y, num x1, num y1, num x2, num y2) => _blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoCubicRel_Callback_6_(unwrap_jso(this), x, y, x1, y1, x2, y2);
+  PathSegCurvetoCubicRel createSvgPathSegCurvetoCubicRel(num x, num y, num x1, num y1, num x2, num y2) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoCubicRel_Callback_6_(unwrap_jso(this), x, y, x1, y1, x2, y2));
   
   @DomName('SVGPathElement.createSVGPathSegCurvetoCubicSmoothAbs')
   @DocsEditable()
-  PathSegCurvetoCubicSmoothAbs createSvgPathSegCurvetoCubicSmoothAbs(num x, num y, num x2, num y2) => _blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoCubicSmoothAbs_Callback_4_(unwrap_jso(this), x, y, x2, y2);
+  PathSegCurvetoCubicSmoothAbs createSvgPathSegCurvetoCubicSmoothAbs(num x, num y, num x2, num y2) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoCubicSmoothAbs_Callback_4_(unwrap_jso(this), x, y, x2, y2));
   
   @DomName('SVGPathElement.createSVGPathSegCurvetoCubicSmoothRel')
   @DocsEditable()
-  PathSegCurvetoCubicSmoothRel createSvgPathSegCurvetoCubicSmoothRel(num x, num y, num x2, num y2) => _blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoCubicSmoothRel_Callback_4_(unwrap_jso(this), x, y, x2, y2);
+  PathSegCurvetoCubicSmoothRel createSvgPathSegCurvetoCubicSmoothRel(num x, num y, num x2, num y2) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoCubicSmoothRel_Callback_4_(unwrap_jso(this), x, y, x2, y2));
   
   @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticAbs')
   @DocsEditable()
-  PathSegCurvetoQuadraticAbs createSvgPathSegCurvetoQuadraticAbs(num x, num y, num x1, num y1) => _blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoQuadraticAbs_Callback_4_(unwrap_jso(this), x, y, x1, y1);
+  PathSegCurvetoQuadraticAbs createSvgPathSegCurvetoQuadraticAbs(num x, num y, num x1, num y1) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoQuadraticAbs_Callback_4_(unwrap_jso(this), x, y, x1, y1));
   
   @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticRel')
   @DocsEditable()
-  PathSegCurvetoQuadraticRel createSvgPathSegCurvetoQuadraticRel(num x, num y, num x1, num y1) => _blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoQuadraticRel_Callback_4_(unwrap_jso(this), x, y, x1, y1);
+  PathSegCurvetoQuadraticRel createSvgPathSegCurvetoQuadraticRel(num x, num y, num x1, num y1) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoQuadraticRel_Callback_4_(unwrap_jso(this), x, y, x1, y1));
   
   @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothAbs')
   @DocsEditable()
-  PathSegCurvetoQuadraticSmoothAbs createSvgPathSegCurvetoQuadraticSmoothAbs(num x, num y) => _blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoQuadraticSmoothAbs_Callback_2_(unwrap_jso(this), x, y);
+  PathSegCurvetoQuadraticSmoothAbs createSvgPathSegCurvetoQuadraticSmoothAbs(num x, num y) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoQuadraticSmoothAbs_Callback_2_(unwrap_jso(this), x, y));
   
   @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothRel')
   @DocsEditable()
-  PathSegCurvetoQuadraticSmoothRel createSvgPathSegCurvetoQuadraticSmoothRel(num x, num y) => _blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoQuadraticSmoothRel_Callback_2_(unwrap_jso(this), x, y);
+  PathSegCurvetoQuadraticSmoothRel createSvgPathSegCurvetoQuadraticSmoothRel(num x, num y) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoQuadraticSmoothRel_Callback_2_(unwrap_jso(this), x, y));
   
   @DomName('SVGPathElement.createSVGPathSegLinetoAbs')
   @DocsEditable()
-  PathSegLinetoAbs createSvgPathSegLinetoAbs(num x, num y) => _blink.BlinkSVGPathElement.instance.createSVGPathSegLinetoAbs_Callback_2_(unwrap_jso(this), x, y);
+  PathSegLinetoAbs createSvgPathSegLinetoAbs(num x, num y) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegLinetoAbs_Callback_2_(unwrap_jso(this), x, y));
   
   @DomName('SVGPathElement.createSVGPathSegLinetoHorizontalAbs')
   @DocsEditable()
-  PathSegLinetoHorizontalAbs createSvgPathSegLinetoHorizontalAbs(num x) => _blink.BlinkSVGPathElement.instance.createSVGPathSegLinetoHorizontalAbs_Callback_1_(unwrap_jso(this), x);
+  PathSegLinetoHorizontalAbs createSvgPathSegLinetoHorizontalAbs(num x) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegLinetoHorizontalAbs_Callback_1_(unwrap_jso(this), x));
   
   @DomName('SVGPathElement.createSVGPathSegLinetoHorizontalRel')
   @DocsEditable()
-  PathSegLinetoHorizontalRel createSvgPathSegLinetoHorizontalRel(num x) => _blink.BlinkSVGPathElement.instance.createSVGPathSegLinetoHorizontalRel_Callback_1_(unwrap_jso(this), x);
+  PathSegLinetoHorizontalRel createSvgPathSegLinetoHorizontalRel(num x) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegLinetoHorizontalRel_Callback_1_(unwrap_jso(this), x));
   
   @DomName('SVGPathElement.createSVGPathSegLinetoRel')
   @DocsEditable()
-  PathSegLinetoRel createSvgPathSegLinetoRel(num x, num y) => _blink.BlinkSVGPathElement.instance.createSVGPathSegLinetoRel_Callback_2_(unwrap_jso(this), x, y);
+  PathSegLinetoRel createSvgPathSegLinetoRel(num x, num y) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegLinetoRel_Callback_2_(unwrap_jso(this), x, y));
   
   @DomName('SVGPathElement.createSVGPathSegLinetoVerticalAbs')
   @DocsEditable()
-  PathSegLinetoVerticalAbs createSvgPathSegLinetoVerticalAbs(num y) => _blink.BlinkSVGPathElement.instance.createSVGPathSegLinetoVerticalAbs_Callback_1_(unwrap_jso(this), y);
+  PathSegLinetoVerticalAbs createSvgPathSegLinetoVerticalAbs(num y) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegLinetoVerticalAbs_Callback_1_(unwrap_jso(this), y));
   
   @DomName('SVGPathElement.createSVGPathSegLinetoVerticalRel')
   @DocsEditable()
-  PathSegLinetoVerticalRel createSvgPathSegLinetoVerticalRel(num y) => _blink.BlinkSVGPathElement.instance.createSVGPathSegLinetoVerticalRel_Callback_1_(unwrap_jso(this), y);
+  PathSegLinetoVerticalRel createSvgPathSegLinetoVerticalRel(num y) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegLinetoVerticalRel_Callback_1_(unwrap_jso(this), y));
   
   @DomName('SVGPathElement.createSVGPathSegMovetoAbs')
   @DocsEditable()
-  PathSegMovetoAbs createSvgPathSegMovetoAbs(num x, num y) => _blink.BlinkSVGPathElement.instance.createSVGPathSegMovetoAbs_Callback_2_(unwrap_jso(this), x, y);
+  PathSegMovetoAbs createSvgPathSegMovetoAbs(num x, num y) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegMovetoAbs_Callback_2_(unwrap_jso(this), x, y));
   
   @DomName('SVGPathElement.createSVGPathSegMovetoRel')
   @DocsEditable()
-  PathSegMovetoRel createSvgPathSegMovetoRel(num x, num y) => _blink.BlinkSVGPathElement.instance.createSVGPathSegMovetoRel_Callback_2_(unwrap_jso(this), x, y);
+  PathSegMovetoRel createSvgPathSegMovetoRel(num x, num y) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegMovetoRel_Callback_2_(unwrap_jso(this), x, y));
   
   @DomName('SVGPathElement.getPathSegAtLength')
   @DocsEditable()
@@ -4685,7 +4685,7 @@ class PathElement extends GeometryElement {
   
   @DomName('SVGPathElement.getPointAtLength')
   @DocsEditable()
-  Point getPointAtLength(num distance) => _blink.BlinkSVGPathElement.instance.getPointAtLength_Callback_1_(unwrap_jso(this), distance);
+  Point getPointAtLength(num distance) => wrap_jso(_blink.BlinkSVGPathElement.instance.getPointAtLength_Callback_1_(unwrap_jso(this), distance));
   
   @DomName('SVGPathElement.getTotalLength')
   @DocsEditable()
@@ -5790,7 +5790,7 @@ class PathSegList extends JsoNativeFieldWrapper with ListMixin<PathSeg>, Immutab
   
   @DomName('SVGPathSegList.appendItem')
   @DocsEditable()
-  PathSeg appendItem(PathSeg newItem) => _blink.BlinkSVGPathSegList.instance.appendItem_Callback_1_(unwrap_jso(this), unwrap_jso(newItem));
+  PathSeg appendItem(PathSeg newItem) => wrap_jso(_blink.BlinkSVGPathSegList.instance.appendItem_Callback_1_(unwrap_jso(this), unwrap_jso(newItem)));
   
   @DomName('SVGPathSegList.clear')
   @DocsEditable()
@@ -5798,23 +5798,23 @@ class PathSegList extends JsoNativeFieldWrapper with ListMixin<PathSeg>, Immutab
   
   @DomName('SVGPathSegList.getItem')
   @DocsEditable()
-  PathSeg getItem(int index) => _blink.BlinkSVGPathSegList.instance.getItem_Callback_1_(unwrap_jso(this), index);
+  PathSeg getItem(int index) => wrap_jso(_blink.BlinkSVGPathSegList.instance.getItem_Callback_1_(unwrap_jso(this), index));
   
   @DomName('SVGPathSegList.initialize')
   @DocsEditable()
-  PathSeg initialize(PathSeg newItem) => _blink.BlinkSVGPathSegList.instance.initialize_Callback_1_(unwrap_jso(this), unwrap_jso(newItem));
+  PathSeg initialize(PathSeg newItem) => wrap_jso(_blink.BlinkSVGPathSegList.instance.initialize_Callback_1_(unwrap_jso(this), unwrap_jso(newItem)));
   
   @DomName('SVGPathSegList.insertItemBefore')
   @DocsEditable()
-  PathSeg insertItemBefore(PathSeg newItem, int index) => _blink.BlinkSVGPathSegList.instance.insertItemBefore_Callback_2_(unwrap_jso(this), unwrap_jso(newItem), index);
+  PathSeg insertItemBefore(PathSeg newItem, int index) => wrap_jso(_blink.BlinkSVGPathSegList.instance.insertItemBefore_Callback_2_(unwrap_jso(this), unwrap_jso(newItem), index));
   
   @DomName('SVGPathSegList.removeItem')
   @DocsEditable()
-  PathSeg removeItem(int index) => _blink.BlinkSVGPathSegList.instance.removeItem_Callback_1_(unwrap_jso(this), index);
+  PathSeg removeItem(int index) => wrap_jso(_blink.BlinkSVGPathSegList.instance.removeItem_Callback_1_(unwrap_jso(this), index));
   
   @DomName('SVGPathSegList.replaceItem')
   @DocsEditable()
-  PathSeg replaceItem(PathSeg newItem, int index) => _blink.BlinkSVGPathSegList.instance.replaceItem_Callback_2_(unwrap_jso(this), unwrap_jso(newItem), index);
+  PathSeg replaceItem(PathSeg newItem, int index) => wrap_jso(_blink.BlinkSVGPathSegList.instance.replaceItem_Callback_2_(unwrap_jso(this), unwrap_jso(newItem), index));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6043,7 +6043,7 @@ class Point extends NativeFieldWrapperClass2 {
   
   @DomName('SVGPoint.matrixTransform')
   @DocsEditable()
-  Point matrixTransform(Matrix matrix) => _blink.BlinkSVGPoint.instance.matrixTransform_Callback_1_(unwrap_jso(this), unwrap_jso(matrix));
+  Point matrixTransform(Matrix matrix) => wrap_jso(_blink.BlinkSVGPoint.instance.matrixTransform_Callback_1_(unwrap_jso(this), unwrap_jso(matrix)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6091,7 +6091,7 @@ class PointList extends NativeFieldWrapperClass2 {
   
   @DomName('SVGPointList.appendItem')
   @DocsEditable()
-  Point appendItem(Point item) => _blink.BlinkSVGPointList.instance.appendItem_Callback_1_(unwrap_jso(this), unwrap_jso(item));
+  Point appendItem(Point item) => wrap_jso(_blink.BlinkSVGPointList.instance.appendItem_Callback_1_(unwrap_jso(this), unwrap_jso(item)));
   
   @DomName('SVGPointList.clear')
   @DocsEditable()
@@ -6099,23 +6099,23 @@ class PointList extends NativeFieldWrapperClass2 {
   
   @DomName('SVGPointList.getItem')
   @DocsEditable()
-  Point getItem(int index) => _blink.BlinkSVGPointList.instance.getItem_Callback_1_(unwrap_jso(this), index);
+  Point getItem(int index) => wrap_jso(_blink.BlinkSVGPointList.instance.getItem_Callback_1_(unwrap_jso(this), index));
   
   @DomName('SVGPointList.initialize')
   @DocsEditable()
-  Point initialize(Point item) => _blink.BlinkSVGPointList.instance.initialize_Callback_1_(unwrap_jso(this), unwrap_jso(item));
+  Point initialize(Point item) => wrap_jso(_blink.BlinkSVGPointList.instance.initialize_Callback_1_(unwrap_jso(this), unwrap_jso(item)));
   
   @DomName('SVGPointList.insertItemBefore')
   @DocsEditable()
-  Point insertItemBefore(Point item, int index) => _blink.BlinkSVGPointList.instance.insertItemBefore_Callback_2_(unwrap_jso(this), unwrap_jso(item), index);
+  Point insertItemBefore(Point item, int index) => wrap_jso(_blink.BlinkSVGPointList.instance.insertItemBefore_Callback_2_(unwrap_jso(this), unwrap_jso(item), index));
   
   @DomName('SVGPointList.removeItem')
   @DocsEditable()
-  Point removeItem(int index) => _blink.BlinkSVGPointList.instance.removeItem_Callback_1_(unwrap_jso(this), index);
+  Point removeItem(int index) => wrap_jso(_blink.BlinkSVGPointList.instance.removeItem_Callback_1_(unwrap_jso(this), index));
   
   @DomName('SVGPointList.replaceItem')
   @DocsEditable()
-  Point replaceItem(Point item, int index) => _blink.BlinkSVGPointList.instance.replaceItem_Callback_2_(unwrap_jso(this), unwrap_jso(item), index);
+  Point replaceItem(Point item, int index) => wrap_jso(_blink.BlinkSVGPointList.instance.replaceItem_Callback_2_(unwrap_jso(this), unwrap_jso(item), index));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7722,23 +7722,23 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ZoomAndPan 
   
   @DomName('SVGSVGElement.createSVGAngle')
   @DocsEditable()
-  Angle createSvgAngle() => _blink.BlinkSVGSVGElement.instance.createSVGAngle_Callback_0_(unwrap_jso(this));
+  Angle createSvgAngle() => wrap_jso(_blink.BlinkSVGSVGElement.instance.createSVGAngle_Callback_0_(unwrap_jso(this)));
   
   @DomName('SVGSVGElement.createSVGLength')
   @DocsEditable()
-  Length createSvgLength() => _blink.BlinkSVGSVGElement.instance.createSVGLength_Callback_0_(unwrap_jso(this));
+  Length createSvgLength() => wrap_jso(_blink.BlinkSVGSVGElement.instance.createSVGLength_Callback_0_(unwrap_jso(this)));
   
   @DomName('SVGSVGElement.createSVGMatrix')
   @DocsEditable()
-  Matrix createSvgMatrix() => _blink.BlinkSVGSVGElement.instance.createSVGMatrix_Callback_0_(unwrap_jso(this));
+  Matrix createSvgMatrix() => wrap_jso(_blink.BlinkSVGSVGElement.instance.createSVGMatrix_Callback_0_(unwrap_jso(this)));
   
   @DomName('SVGSVGElement.createSVGNumber')
   @DocsEditable()
-  Number createSvgNumber() => _blink.BlinkSVGSVGElement.instance.createSVGNumber_Callback_0_(unwrap_jso(this));
+  Number createSvgNumber() => wrap_jso(_blink.BlinkSVGSVGElement.instance.createSVGNumber_Callback_0_(unwrap_jso(this)));
   
   @DomName('SVGSVGElement.createSVGPoint')
   @DocsEditable()
-  Point createSvgPoint() => _blink.BlinkSVGSVGElement.instance.createSVGPoint_Callback_0_(unwrap_jso(this));
+  Point createSvgPoint() => wrap_jso(_blink.BlinkSVGSVGElement.instance.createSVGPoint_Callback_0_(unwrap_jso(this)));
   
   @DomName('SVGSVGElement.createSVGRect')
   @DocsEditable()
@@ -7746,11 +7746,11 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ZoomAndPan 
   
   @DomName('SVGSVGElement.createSVGTransform')
   @DocsEditable()
-  Transform createSvgTransform() => _blink.BlinkSVGSVGElement.instance.createSVGTransform_Callback_0_(unwrap_jso(this));
+  Transform createSvgTransform() => wrap_jso(_blink.BlinkSVGSVGElement.instance.createSVGTransform_Callback_0_(unwrap_jso(this)));
   
   @DomName('SVGSVGElement.createSVGTransformFromMatrix')
   @DocsEditable()
-  Transform createSvgTransformFromMatrix(Matrix matrix) => _blink.BlinkSVGSVGElement.instance.createSVGTransformFromMatrix_Callback_1_(unwrap_jso(this), unwrap_jso(matrix));
+  Transform createSvgTransformFromMatrix(Matrix matrix) => wrap_jso(_blink.BlinkSVGSVGElement.instance.createSVGTransformFromMatrix_Callback_1_(unwrap_jso(this), unwrap_jso(matrix)));
   
   @DomName('SVGSVGElement.deselectAll')
   @DocsEditable()
@@ -8044,7 +8044,7 @@ class TextContentElement extends GraphicsElement {
   
   @DomName('SVGTextContentElement.getEndPositionOfChar')
   @DocsEditable()
-  Point getEndPositionOfChar(int offset) => _blink.BlinkSVGTextContentElement.instance.getEndPositionOfChar_Callback_1_(unwrap_jso(this), offset);
+  Point getEndPositionOfChar(int offset) => wrap_jso(_blink.BlinkSVGTextContentElement.instance.getEndPositionOfChar_Callback_1_(unwrap_jso(this), offset));
   
   @DomName('SVGTextContentElement.getExtentOfChar')
   @DocsEditable()
@@ -8060,7 +8060,7 @@ class TextContentElement extends GraphicsElement {
   
   @DomName('SVGTextContentElement.getStartPositionOfChar')
   @DocsEditable()
-  Point getStartPositionOfChar(int offset) => _blink.BlinkSVGTextContentElement.instance.getStartPositionOfChar_Callback_1_(unwrap_jso(this), offset);
+  Point getStartPositionOfChar(int offset) => wrap_jso(_blink.BlinkSVGTextContentElement.instance.getStartPositionOfChar_Callback_1_(unwrap_jso(this), offset));
   
   @DomName('SVGTextContentElement.getSubStringLength')
   @DocsEditable()
@@ -8454,7 +8454,7 @@ class TransformList extends JsoNativeFieldWrapper with ListMixin<Transform>, Imm
   
   @DomName('SVGTransformList.appendItem')
   @DocsEditable()
-  Transform appendItem(Transform item) => _blink.BlinkSVGTransformList.instance.appendItem_Callback_1_(unwrap_jso(this), unwrap_jso(item));
+  Transform appendItem(Transform item) => wrap_jso(_blink.BlinkSVGTransformList.instance.appendItem_Callback_1_(unwrap_jso(this), unwrap_jso(item)));
   
   @DomName('SVGTransformList.clear')
   @DocsEditable()
@@ -8462,31 +8462,31 @@ class TransformList extends JsoNativeFieldWrapper with ListMixin<Transform>, Imm
   
   @DomName('SVGTransformList.consolidate')
   @DocsEditable()
-  Transform consolidate() => _blink.BlinkSVGTransformList.instance.consolidate_Callback_0_(unwrap_jso(this));
+  Transform consolidate() => wrap_jso(_blink.BlinkSVGTransformList.instance.consolidate_Callback_0_(unwrap_jso(this)));
   
   @DomName('SVGTransformList.createSVGTransformFromMatrix')
   @DocsEditable()
-  Transform createSvgTransformFromMatrix(Matrix matrix) => _blink.BlinkSVGTransformList.instance.createSVGTransformFromMatrix_Callback_1_(unwrap_jso(this), unwrap_jso(matrix));
+  Transform createSvgTransformFromMatrix(Matrix matrix) => wrap_jso(_blink.BlinkSVGTransformList.instance.createSVGTransformFromMatrix_Callback_1_(unwrap_jso(this), unwrap_jso(matrix)));
   
   @DomName('SVGTransformList.getItem')
   @DocsEditable()
-  Transform getItem(int index) => _blink.BlinkSVGTransformList.instance.getItem_Callback_1_(unwrap_jso(this), index);
+  Transform getItem(int index) => wrap_jso(_blink.BlinkSVGTransformList.instance.getItem_Callback_1_(unwrap_jso(this), index));
   
   @DomName('SVGTransformList.initialize')
   @DocsEditable()
-  Transform initialize(Transform item) => _blink.BlinkSVGTransformList.instance.initialize_Callback_1_(unwrap_jso(this), unwrap_jso(item));
+  Transform initialize(Transform item) => wrap_jso(_blink.BlinkSVGTransformList.instance.initialize_Callback_1_(unwrap_jso(this), unwrap_jso(item)));
   
   @DomName('SVGTransformList.insertItemBefore')
   @DocsEditable()
-  Transform insertItemBefore(Transform item, int index) => _blink.BlinkSVGTransformList.instance.insertItemBefore_Callback_2_(unwrap_jso(this), unwrap_jso(item), index);
+  Transform insertItemBefore(Transform item, int index) => wrap_jso(_blink.BlinkSVGTransformList.instance.insertItemBefore_Callback_2_(unwrap_jso(this), unwrap_jso(item), index));
   
   @DomName('SVGTransformList.removeItem')
   @DocsEditable()
-  Transform removeItem(int index) => _blink.BlinkSVGTransformList.instance.removeItem_Callback_1_(unwrap_jso(this), index);
+  Transform removeItem(int index) => wrap_jso(_blink.BlinkSVGTransformList.instance.removeItem_Callback_1_(unwrap_jso(this), index));
   
   @DomName('SVGTransformList.replaceItem')
   @DocsEditable()
-  Transform replaceItem(Transform item, int index) => _blink.BlinkSVGTransformList.instance.replaceItem_Callback_2_(unwrap_jso(this), unwrap_jso(item), index);
+  Transform replaceItem(Transform item, int index) => wrap_jso(_blink.BlinkSVGTransformList.instance.replaceItem_Callback_2_(unwrap_jso(this), unwrap_jso(item), index));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
