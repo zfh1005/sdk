@@ -550,8 +550,18 @@ class OperationInfo(object):
                                                                  self.name == 'addListener'):
             # Events fired need to wrap the Javascript Object passed as a parameter in event.
             parameters.append('unwrap_jso((Event event) => %s(wrap_jso(event)))' % p.name)
+          elif dart_js_interop and type_id == 'FontFaceSetForEachCallback':
+              # forEach is supported in the DOM for FontFaceSet as it iterates
+              # over the Javascript Object the callback parameters are also
+              # Javascript objects and must be wrapped.
+              parameters.append('unwrap_jso((FontFace fontFace, FontFace fontFaceAgain, FontFaceSet set) => %s(wrap_jso(fontFace), wrap_jso(fontFaceAgain), wrap_jso(set)))' % p.name)
+          elif dart_js_interop and type_id == 'HeadersForEachCallback':
+              # forEach is supported in the DOM for Headers as it iterates
+              # over the Javascript Object the callback parameters are also
+              # Javascript objects and must be wrapped.
+              parameters.append('unwrap_jso((String value, String key, Headers map) => %s(value, key, wrap_jso(map)))' % p.name)
           else:
-            parameters.append('unwrap_jso(%s)' % p.name)
+             parameters.append('unwrap_jso(%s)' % p.name)
         else:
           if dart_js_interop:
             passParam = p.name
