@@ -359,7 +359,7 @@ class AudioContext extends EventTarget {
   @DomName('AudioContext.AudioContext')
   @DocsEditable()
   factory AudioContext() {
-    return _blink.BlinkAudioContext.instance.constructorCallback_0_();
+    return wrap_jso(_blink.BlinkAudioContext.instance.constructorCallback_0_());
   }
 
 
@@ -1242,7 +1242,7 @@ class OfflineAudioContext extends AudioContext {
   @DomName('OfflineAudioContext.OfflineAudioContext')
   @DocsEditable()
   factory OfflineAudioContext(int numberOfChannels, int numberOfFrames, num sampleRate) {
-    return _blink.BlinkOfflineAudioContext.instance.constructorCallback_3_(numberOfChannels, numberOfFrames, sampleRate);
+    return wrap_jso(_blink.BlinkOfflineAudioContext.instance.constructorCallback_3_(numberOfChannels, numberOfFrames, sampleRate));
   }
 
 

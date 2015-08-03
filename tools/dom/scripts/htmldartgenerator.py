@@ -596,6 +596,7 @@ class HtmlDartGenerator(object):
         name = emitter.Format('_create_$VERSION', VERSION=version)
         arguments = constructor_info.idl_args[signature_index][:argument_count]
         args = None
+        call_template = ''
         if self._dart_use_blink:
             type_ids = [p.type.id for p in arguments]
             base_name, rs = \
@@ -609,7 +610,7 @@ class HtmlDartGenerator(object):
             (factory_params, converted_arguments) = self._ConvertArgumentTypes(
                 stmts_emitter, arguments, argument_count, constructor_info)
             args = ', '.join(converted_arguments)
-
+            call_template = 'wrap_jso($FACTORY_NAME($FACTORY_PARAMS))'
         else:
             qualified_name = emitter.Format(
                 '$FACTORY.$NAME',
@@ -618,9 +619,8 @@ class HtmlDartGenerator(object):
             (factory_params, converted_arguments) = self._ConvertArgumentTypes(
                 stmts_emitter, arguments, argument_count, constructor_info)
             args = ', '.join(converted_arguments)
-        call_emitter.Emit('$FACTORY_NAME($FACTORY_PARAMS)',
-            FACTORY_NAME=qualified_name,
-            FACTORY_PARAMS=args)
+            call_template = '$FACTORY_NAME($FACTORY_PARAMS)'
+        call_emitter.Emit(call_template, FACTORY_NAME=qualified_name, FACTORY_PARAMS=args)
         self.EmitStaticFactoryOverload(constructor_info, name, arguments)
 
       def IsOptional(signature_index, argument):
