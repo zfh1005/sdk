@@ -514,17 +514,6 @@ class OperationInfo(object):
       parameter_count = len(self.param_infos)
     return ', '.join(map(param_name, self.param_infos[:parameter_count]))
 
-  def wrap_unwrap_list_blink(self, return_type, type_registry):
-    """Return True if the type is a List<Node>"""
-    return return_type.startswith('List<Node>')
-
-  def wrap_unwrap_type_blink(self, return_type, type_registry):
-    """Returns True if the type is a blink type that requires wrap_jso or
-    unwrap_jso"""
-    return (type_registry.HasInterface(return_type) or not(return_type) or
-            return_type == 'Object' or
-            return_type == 'MutationObserver')
-
   def ParametersAsListOfVariables(self, parameter_count=None, type_registry=None, dart_js_interop=False):
     """Returns a list of the first parameter_count parameter names
     as raw variables.
@@ -545,7 +534,7 @@ class OperationInfo(object):
         #    - type is Object
         #
         # JsObject maybe stored in the Dart class.
-        if (self.wrap_unwrap_type_blink(type_id, type_registry)):
+        if (wrap_unwrap_type_blink(type_id, type_registry)):
           if dart_js_interop and type_id == 'EventListener' and (self.name == 'addEventListener' or
                                                                  self.name == 'addListener'):
             # Events fired need to wrap the Javascript Object passed as a parameter in event.
@@ -1406,3 +1395,17 @@ class TypeRegistry(object):
 
     class_name = '%sIDLTypeInfo' % type_data.clazz
     return globals()[class_name](type_name, type_data)
+
+def wrap_unwrap_list_blink(return_type, type_registry):
+    """Return True if the type is a List<Node>"""
+    return return_type.startswith('List<Node>')
+
+def wrap_unwrap_type_blink(return_type, type_registry):
+    """Returns True if the type is a blink type that requires wrap_jso or
+    unwrap_jso"""
+    if return_type and return_type.startswith('Html'):
+        return_type = return_type.replace('Html', 'HTML', 1)
+    return (type_registry.HasInterface(return_type) or not(return_type) or
+            return_type == 'Object' or
+            return_type == 'HTMLElement' or
+            return_type == 'MutationObserver')

@@ -1219,10 +1219,10 @@ class DartiumBackend(HtmlDartGenerator):
         #    - type is Object
         #
         # JsObject maybe stored in the Dart class.
-        return_wrap_jso = (info.wrap_unwrap_type_blink(return_type, self._type_registry) or
-                           info.wrap_unwrap_type_blink(info.type_name, self._type_registry) or
+        return_wrap_jso = (wrap_unwrap_type_blink(return_type, self._type_registry) or
+                           wrap_unwrap_type_blink(info.type_name, self._type_registry) or
                            return_type == 'Rectangle' or
-                           info.wrap_unwrap_list_blink(return_type, self._type_registry))
+                           wrap_unwrap_list_blink(return_type, self._type_registry))
     wrap_unwrap_list.append(return_wrap_jso)       # wrap_jso the returned object
     wrap_unwrap_list.append(self._dart_use_blink)  # The 'this' parameter must be unwrap_jso
 
@@ -1260,7 +1260,7 @@ class DartiumBackend(HtmlDartGenerator):
 
       return_wrap_jso = False
       if self._dart_use_blink:
-         return_wrap_jso = self._type_registry.HasInterface(return_type)
+          return_wrap_jso = wrap_unwrap_type_blink(return_type, self._type_registry)
 
       native_suffix = 'Callback'
       is_custom = _IsCustom(operation)

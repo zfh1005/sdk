@@ -325,6 +325,7 @@ class HtmlDartGenerator(object):
                                              info.operations[0],
                                              info.name,
                                              'call:')
+
     if not method_name:
       if info.name == 'item':
         # FIXME: item should be renamed to operator[], not removed.

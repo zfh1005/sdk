@@ -11339,9 +11339,9 @@ class DomIterator extends NativeFieldWrapperClass2 {
 
   Object next([Object value]) {
     if (value != null) {
-      return _blink.BlinkIterator.instance.next_Callback_1_(unwrap_jso(this), value);
+      return wrap_jso(_blink.BlinkIterator.instance.next_Callback_1_(unwrap_jso(this), value));
     }
-    return _blink.BlinkIterator.instance.next_Callback_0_(unwrap_jso(this));
+    return wrap_jso(_blink.BlinkIterator.instance.next_Callback_0_(unwrap_jso(this)));
   }
 
 }
@@ -18430,7 +18430,7 @@ class FormElement extends HtmlElement {
       return wrap_jso(_blink.BlinkHTMLFormElement.instance.$__getter___Callback_1_(unwrap_jso(this), unwrap_jso(index_OR_name)));
     }
     if ((index_OR_name is String || index_OR_name == null)) {
-      return _blink.BlinkHTMLFormElement.instance.$__getter___Callback_1_(unwrap_jso(this), unwrap_jso(index_OR_name));
+      return wrap_jso(_blink.BlinkHTMLFormElement.instance.$__getter___Callback_1_(unwrap_jso(this), unwrap_jso(index_OR_name)));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -34942,9 +34942,9 @@ class TableElement extends HtmlElement {
   
   HtmlElement _insertRow([int index]) {
     if (index != null) {
-      return _blink.BlinkHTMLTableElement.instance.insertRow_Callback_1_(unwrap_jso(this), index);
+      return wrap_jso(_blink.BlinkHTMLTableElement.instance.insertRow_Callback_1_(unwrap_jso(this), index));
     }
-    return _blink.BlinkHTMLTableElement.instance.insertRow_Callback_0_(unwrap_jso(this));
+    return wrap_jso(_blink.BlinkHTMLTableElement.instance.insertRow_Callback_0_(unwrap_jso(this)));
   }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -35010,9 +35010,9 @@ class TableRowElement extends HtmlElement {
   
   HtmlElement _insertCell([int index]) {
     if (index != null) {
-      return _blink.BlinkHTMLTableRowElement.instance.insertCell_Callback_1_(unwrap_jso(this), index);
+      return wrap_jso(_blink.BlinkHTMLTableRowElement.instance.insertCell_Callback_1_(unwrap_jso(this), index));
     }
-    return _blink.BlinkHTMLTableRowElement.instance.insertCell_Callback_0_(unwrap_jso(this));
+    return wrap_jso(_blink.BlinkHTMLTableRowElement.instance.insertCell_Callback_0_(unwrap_jso(this)));
   }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -35066,9 +35066,9 @@ class TableSectionElement extends HtmlElement {
   
   HtmlElement _insertRow([int index]) {
     if (index != null) {
-      return _blink.BlinkHTMLTableSectionElement.instance.insertRow_Callback_1_(unwrap_jso(this), index);
+      return wrap_jso(_blink.BlinkHTMLTableSectionElement.instance.insertRow_Callback_1_(unwrap_jso(this), index));
     }
-    return _blink.BlinkHTMLTableSectionElement.instance.insertRow_Callback_0_(unwrap_jso(this));
+    return wrap_jso(_blink.BlinkHTMLTableSectionElement.instance.insertRow_Callback_0_(unwrap_jso(this)));
   }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
