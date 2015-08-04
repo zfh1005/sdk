@@ -1743,9 +1743,6 @@ class DartiumBackend(HtmlDartGenerator):
   '''
                 if return_type == 'Rectangle':
                     jso_util_method = 'make_dart_rectangle'
-                # TODO(terry): More checks that the return is a List<Node>.
-                elif return_type.startswith('List<'):
-                    jso_util_method = 'wrap_jso_list'
                 else:
                     jso_util_method = 'wrap_jso'
                 # Always return List<String> unwrapped.

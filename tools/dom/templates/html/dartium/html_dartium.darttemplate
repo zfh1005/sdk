@@ -393,6 +393,9 @@ try {
   }
   var constructor = jsObject['constructor'];
   debug_or_assert("constructor != null", constructor != null);
+  if (constructor == js.context['NodeList']) {
+    return wrap_jso_list(jsObject);
+  }
   var jsTypeName = constructor['name'];
   debug_or_assert("constructor != null && jsTypeName.length > 0", constructor != null && jsTypeName.length > 0);
   var func = getHtmlCreateFunction(jsTypeName);

@@ -7770,11 +7770,11 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ZoomAndPan 
   
   @DomName('SVGSVGElement.getEnclosureList')
   @DocsEditable()
-  List<Node> getEnclosureList(Rect rect, SvgElement referenceElement) => wrap_jso_list(_blink.BlinkSVGSVGElement.instance.getEnclosureList_Callback_2_(unwrap_jso(this), unwrap_jso(rect), unwrap_jso(referenceElement)));
+  List<Node> getEnclosureList(Rect rect, SvgElement referenceElement) => wrap_jso(_blink.BlinkSVGSVGElement.instance.getEnclosureList_Callback_2_(unwrap_jso(this), unwrap_jso(rect), unwrap_jso(referenceElement)));
   
   @DomName('SVGSVGElement.getIntersectionList')
   @DocsEditable()
-  List<Node> getIntersectionList(Rect rect, SvgElement referenceElement) => wrap_jso_list(_blink.BlinkSVGSVGElement.instance.getIntersectionList_Callback_2_(unwrap_jso(this), unwrap_jso(rect), unwrap_jso(referenceElement)));
+  List<Node> getIntersectionList(Rect rect, SvgElement referenceElement) => wrap_jso(_blink.BlinkSVGSVGElement.instance.getIntersectionList_Callback_2_(unwrap_jso(this), unwrap_jso(rect), unwrap_jso(referenceElement)));
   
   @DomName('SVGSVGElement.pauseAnimations')
   @DocsEditable()

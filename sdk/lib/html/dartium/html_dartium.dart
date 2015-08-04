@@ -1163,6 +1163,9 @@ try {
   }
   var constructor = jsObject['constructor'];
   debug_or_assert("constructor != null", constructor != null);
+  if (constructor == js.context['NodeList']) {
+    return wrap_jso_list(jsObject);
+  }
   var jsTypeName = constructor['name'];
   debug_or_assert("constructor != null && jsTypeName.length > 0", constructor != null && jsTypeName.length > 0);
   var func = getHtmlCreateFunction(jsTypeName);
@@ -3048,7 +3051,7 @@ class ButtonElement extends HtmlElement {
   @DomName('HTMLButtonElement.labels')
   @DocsEditable()
   @Unstable()
-  List<Node> get labels => wrap_jso_list(_blink.BlinkHTMLButtonElement.instance.labels_Getter_(unwrap_jso(this)));
+  List<Node> get labels => wrap_jso(_blink.BlinkHTMLButtonElement.instance.labels_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLButtonElement.name')
   @DocsEditable()
@@ -4850,7 +4853,7 @@ class ContentElement extends HtmlElement {
   
   @DomName('HTMLContentElement.getDistributedNodes')
   @DocsEditable()
-  List<Node> getDistributedNodes() => wrap_jso_list(_blink.BlinkHTMLContentElement.instance.getDistributedNodes_Callback_0_(unwrap_jso(this)));
+  List<Node> getDistributedNodes() => wrap_jso(_blink.BlinkHTMLContentElement.instance.getDistributedNodes_Callback_0_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5350,7 +5353,7 @@ class CssKeyframesRule extends CssRule {
   @DomName('CSSKeyframesRule.cssRules')
   @DocsEditable()
   @Experimental() // untriaged
-  List<CssRule> get cssRules => wrap_jso_list(_blink.BlinkCSSKeyframesRule.instance.cssRules_Getter_(unwrap_jso(this)));
+  List<CssRule> get cssRules => wrap_jso(_blink.BlinkCSSKeyframesRule.instance.cssRules_Getter_(unwrap_jso(this)));
   
   @DomName('CSSKeyframesRule.name')
   @DocsEditable()
@@ -5410,7 +5413,7 @@ class CssMediaRule extends CssRule {
 
   @DomName('CSSMediaRule.cssRules')
   @DocsEditable()
-  List<CssRule> get cssRules => wrap_jso_list(_blink.BlinkCSSMediaRule.instance.cssRules_Getter_(unwrap_jso(this)));
+  List<CssRule> get cssRules => wrap_jso(_blink.BlinkCSSMediaRule.instance.cssRules_Getter_(unwrap_jso(this)));
   
   @DomName('CSSMediaRule.media')
   @DocsEditable()
@@ -8925,7 +8928,7 @@ class CssStyleSheet extends StyleSheet {
 
   @DomName('CSSStyleSheet.cssRules')
   @DocsEditable()
-  List<CssRule> get cssRules => wrap_jso_list(_blink.BlinkCSSStyleSheet.instance.cssRules_Getter_(unwrap_jso(this)));
+  List<CssRule> get cssRules => wrap_jso(_blink.BlinkCSSStyleSheet.instance.cssRules_Getter_(unwrap_jso(this)));
   
   @DomName('CSSStyleSheet.ownerRule')
   @DocsEditable()
@@ -8934,7 +8937,7 @@ class CssStyleSheet extends StyleSheet {
   @DomName('CSSStyleSheet.rules')
   @DocsEditable()
   @Experimental() // non-standard
-  List<CssRule> get rules => wrap_jso_list(_blink.BlinkCSSStyleSheet.instance.rules_Getter_(unwrap_jso(this)));
+  List<CssRule> get rules => wrap_jso(_blink.BlinkCSSStyleSheet.instance.rules_Getter_(unwrap_jso(this)));
   
   int addRule(String selector, String style, [int index]) {
     if (index != null) {
@@ -8991,7 +8994,7 @@ class CssSupportsRule extends CssRule {
   
   @DomName('CSSSupportsRule.cssRules')
   @DocsEditable()
-  List<CssRule> get cssRules => wrap_jso_list(_blink.BlinkCSSSupportsRule.instance.cssRules_Getter_(unwrap_jso(this)));
+  List<CssRule> get cssRules => wrap_jso(_blink.BlinkCSSSupportsRule.instance.cssRules_Getter_(unwrap_jso(this)));
   
   @DomName('CSSSupportsRule.deleteRule')
   @DocsEditable()
@@ -9178,7 +9181,7 @@ class DataListElement extends HtmlElement {
 
   @DomName('HTMLDataListElement.options')
   @DocsEditable()
-  List<Node> get options => wrap_jso_list(_blink.BlinkHTMLDataListElement.instance.options_Getter_(unwrap_jso(this)));
+  List<Node> get options => wrap_jso(_blink.BlinkHTMLDataListElement.instance.options_Getter_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9233,7 +9236,7 @@ class DataTransfer extends NativeFieldWrapperClass2 {
   @DomName('DataTransfer.files')
   @DocsEditable()
   @Experimental() // untriaged
-  List<File> get files => wrap_jso_list(_blink.BlinkDataTransfer.instance.files_Getter_(unwrap_jso(this)));
+  List<File> get files => wrap_jso(_blink.BlinkDataTransfer.instance.files_Getter_(unwrap_jso(this)));
   
   @DomName('DataTransfer.items')
   @DocsEditable()
@@ -10335,7 +10338,7 @@ class Document extends Node
   
   @DomName('Document.styleSheets')
   @DocsEditable()
-  List<StyleSheet> get _styleSheets => wrap_jso_list(_blink.BlinkDocument.instance.styleSheets_Getter_(unwrap_jso(this)));
+  List<StyleSheet> get _styleSheets => wrap_jso(_blink.BlinkDocument.instance.styleSheets_Getter_(unwrap_jso(this)));
   
   @DomName('Document.timeline')
   @DocsEditable()
@@ -10477,15 +10480,15 @@ class Document extends Node
   
   @DomName('Document.getElementsByClassName')
   @DocsEditable()
-  List<Node> getElementsByClassName(String classNames) => wrap_jso_list(_blink.BlinkDocument.instance.getElementsByClassName_Callback_1_(unwrap_jso(this), classNames));
+  List<Node> getElementsByClassName(String classNames) => wrap_jso(_blink.BlinkDocument.instance.getElementsByClassName_Callback_1_(unwrap_jso(this), classNames));
   
   @DomName('Document.getElementsByName')
   @DocsEditable()
-  List<Node> getElementsByName(String elementName) => wrap_jso_list(_blink.BlinkDocument.instance.getElementsByName_Callback_1_(unwrap_jso(this), elementName));
+  List<Node> getElementsByName(String elementName) => wrap_jso(_blink.BlinkDocument.instance.getElementsByName_Callback_1_(unwrap_jso(this), elementName));
   
   @DomName('Document.getElementsByTagName')
   @DocsEditable()
-  List<Node> getElementsByTagName(String localName) => wrap_jso_list(_blink.BlinkDocument.instance.getElementsByTagName_Callback_1_(unwrap_jso(this), localName));
+  List<Node> getElementsByTagName(String localName) => wrap_jso(_blink.BlinkDocument.instance.getElementsByTagName_Callback_1_(unwrap_jso(this), localName));
   
   Node importNode(Node node, [bool deep]) {
     if (deep != null) {
@@ -10533,7 +10536,7 @@ class Document extends Node
   
   @DomName('Document.children')
   @DocsEditable()
-  List<Node> get _children => wrap_jso_list(_blink.BlinkDocument.instance.children_Getter_(unwrap_jso(this)));
+  List<Node> get _children => wrap_jso(_blink.BlinkDocument.instance.children_Getter_(unwrap_jso(this)));
   
   @DomName('Document.firstElementChild')
   @DocsEditable()
@@ -10566,7 +10569,7 @@ class Document extends Node
   
   @DomName('Document.querySelectorAll')
   @DocsEditable()
-  List<Node> _querySelectorAll(String selectors) => wrap_jso_list(_blink.BlinkDocument.instance.querySelectorAll_Callback_1_(unwrap_jso(this), selectors));
+  List<Node> _querySelectorAll(String selectors) => wrap_jso(_blink.BlinkDocument.instance.querySelectorAll_Callback_1_(unwrap_jso(this), selectors));
   
   /// Stream of `abort` events handled by this [Document].
   @DomName('Document.onabort')
@@ -11161,7 +11164,7 @@ class DocumentFragment extends Node implements ParentNode {
   
   @DomName('DocumentFragment.querySelectorAll')
   @DocsEditable()
-  List<Node> _querySelectorAll(String selectors) => wrap_jso_list(_blink.BlinkDocumentFragment.instance.querySelectorAll_Callback_1_(unwrap_jso(this), selectors));
+  List<Node> _querySelectorAll(String selectors) => wrap_jso(_blink.BlinkDocumentFragment.instance.querySelectorAll_Callback_1_(unwrap_jso(this), selectors));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15579,7 +15582,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    */
   @DomName('Element.getClientRects')
   @DocsEditable()
-  List<Rectangle> getClientRects() => wrap_jso_list(_blink.BlinkElement.instance.getClientRects_Callback_0_(unwrap_jso(this)));
+  List<Rectangle> getClientRects() => wrap_jso(_blink.BlinkElement.instance.getClientRects_Callback_0_(unwrap_jso(this)));
   
   /**
    * Returns a list of shadow DOM insertion points to which this element is
@@ -15594,7 +15597,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DomName('Element.getDestinationInsertionPoints')
   @DocsEditable()
   @Experimental() // untriaged
-  List<Node> getDestinationInsertionPoints() => wrap_jso_list(_blink.BlinkElement.instance.getDestinationInsertionPoints_Callback_0_(unwrap_jso(this)));
+  List<Node> getDestinationInsertionPoints() => wrap_jso(_blink.BlinkElement.instance.getDestinationInsertionPoints_Callback_0_(unwrap_jso(this)));
   
   /**
    * Returns a list of nodes with the given class name inside this element.
@@ -15609,11 +15612,11 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    */
   @DomName('Element.getElementsByClassName')
   @DocsEditable()
-  List<Node> getElementsByClassName(String classNames) => wrap_jso_list(_blink.BlinkElement.instance.getElementsByClassName_Callback_1_(unwrap_jso(this), classNames));
+  List<Node> getElementsByClassName(String classNames) => wrap_jso(_blink.BlinkElement.instance.getElementsByClassName_Callback_1_(unwrap_jso(this), classNames));
   
   @DomName('Element.getElementsByTagName')
   @DocsEditable()
-  List<Node> _getElementsByTagName(String name) => wrap_jso_list(_blink.BlinkElement.instance.getElementsByTagName_Callback_1_(unwrap_jso(this), name));
+  List<Node> _getElementsByTagName(String name) => wrap_jso(_blink.BlinkElement.instance.getElementsByTagName_Callback_1_(unwrap_jso(this), name));
   
   @DomName('Element.hasAttribute')
   @DocsEditable()
@@ -15705,7 +15708,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   
   @DomName('Element.children')
   @DocsEditable()
-  List<Node> get _children => wrap_jso_list(_blink.BlinkElement.instance.children_Getter_(unwrap_jso(this)));
+  List<Node> get _children => wrap_jso(_blink.BlinkElement.instance.children_Getter_(unwrap_jso(this)));
   
   @DomName('Element.firstElementChild')
   @DocsEditable()
@@ -15737,7 +15740,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   
   @DomName('Element.querySelectorAll')
   @DocsEditable()
-  List<Node> _querySelectorAll(String selectors) => wrap_jso_list(_blink.BlinkElement.instance.querySelectorAll_Callback_1_(unwrap_jso(this), selectors));
+  List<Node> _querySelectorAll(String selectors) => wrap_jso(_blink.BlinkElement.instance.querySelectorAll_Callback_1_(unwrap_jso(this), selectors));
   
   /// Stream of `abort` events handled by this [Element].
   @DomName('Element.onabort')
@@ -16738,7 +16741,7 @@ class Event extends NativeFieldWrapperClass2 {
   @DocsEditable()
   // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#extensions-to-event
   @Experimental()
-  List<Node> get path => wrap_jso_list(_blink.BlinkEvent.instance.path_Getter_(unwrap_jso(this)));
+  List<Node> get path => wrap_jso(_blink.BlinkEvent.instance.path_Getter_(unwrap_jso(this)));
   
   @DomName('Event.target')
   @DocsEditable()
@@ -17219,7 +17222,7 @@ class FieldSetElement extends HtmlElement {
   
   @DomName('HTMLFieldSetElement.elements')
   @DocsEditable()
-  List<Node> get elements => wrap_jso_list(_blink.BlinkHTMLFieldSetElement.instance.elements_Getter_(unwrap_jso(this)));
+  List<Node> get elements => wrap_jso(_blink.BlinkHTMLFieldSetElement.instance.elements_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLFieldSetElement.form')
   @DocsEditable()
@@ -22264,7 +22267,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.files')
   @DocsEditable()
-  List<File> get files => wrap_jso_list(_blink.BlinkHTMLInputElement.instance.files_Getter_(unwrap_jso(this)));
+  List<File> get files => wrap_jso(_blink.BlinkHTMLInputElement.instance.files_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLInputElement.files')
   @DocsEditable()
@@ -22354,7 +22357,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.labels')
   @DocsEditable()
-  List<Node> get labels => wrap_jso_list(_blink.BlinkHTMLInputElement.instance.labels_Getter_(unwrap_jso(this)));
+  List<Node> get labels => wrap_jso(_blink.BlinkHTMLInputElement.instance.labels_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLInputElement.list')
   @DocsEditable()
@@ -23443,7 +23446,7 @@ class KeygenElement extends HtmlElement {
   @DomName('HTMLKeygenElement.labels')
   @DocsEditable()
   @Unstable()
-  List<Node> get labels => wrap_jso_list(_blink.BlinkHTMLKeygenElement.instance.labels_Getter_(unwrap_jso(this)));
+  List<Node> get labels => wrap_jso(_blink.BlinkHTMLKeygenElement.instance.labels_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLKeygenElement.name')
   @DocsEditable()
@@ -23951,7 +23954,7 @@ class MapElement extends HtmlElement {
 
   @DomName('HTMLMapElement.areas')
   @DocsEditable()
-  List<Node> get areas => wrap_jso_list(_blink.BlinkHTMLMapElement.instance.areas_Getter_(unwrap_jso(this)));
+  List<Node> get areas => wrap_jso(_blink.BlinkHTMLMapElement.instance.areas_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLMapElement.name')
   @DocsEditable()
@@ -25999,7 +26002,7 @@ class MeterElement extends HtmlElement {
   @DomName('HTMLMeterElement.labels')
   @DocsEditable()
   @Unstable()
-  List<Node> get labels => wrap_jso_list(_blink.BlinkHTMLMeterElement.instance.labels_Getter_(unwrap_jso(this)));
+  List<Node> get labels => wrap_jso(_blink.BlinkHTMLMeterElement.instance.labels_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLMeterElement.low')
   @DocsEditable()
@@ -26984,7 +26987,7 @@ class MutationRecord extends NativeFieldWrapperClass2 {
 
   @DomName('MutationRecord.addedNodes')
   @DocsEditable()
-  List<Node> get addedNodes => wrap_jso_list(_blink.BlinkMutationRecord.instance.addedNodes_Getter_(unwrap_jso(this)));
+  List<Node> get addedNodes => wrap_jso(_blink.BlinkMutationRecord.instance.addedNodes_Getter_(unwrap_jso(this)));
   
   @DomName('MutationRecord.attributeName')
   @DocsEditable()
@@ -27008,7 +27011,7 @@ class MutationRecord extends NativeFieldWrapperClass2 {
   
   @DomName('MutationRecord.removedNodes')
   @DocsEditable()
-  List<Node> get removedNodes => wrap_jso_list(_blink.BlinkMutationRecord.instance.removedNodes_Getter_(unwrap_jso(this)));
+  List<Node> get removedNodes => wrap_jso(_blink.BlinkMutationRecord.instance.removedNodes_Getter_(unwrap_jso(this)));
   
   @DomName('MutationRecord.target')
   @DocsEditable()
@@ -27201,7 +27204,7 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorCpu, Naviga
   @DomName('Navigator.getGamepads')
   @DocsEditable()
   @Experimental() // untriaged
-  List<Gamepad> getGamepads() => wrap_jso_list(_blink.BlinkNavigator.instance.getGamepads_Callback_0_(unwrap_jso(this)));
+  List<Gamepad> getGamepads() => wrap_jso(_blink.BlinkNavigator.instance.getGamepads_Callback_0_(unwrap_jso(this)));
   
   @DomName('Navigator.getStorageUpdates')
   @DocsEditable()
@@ -28954,7 +28957,7 @@ class OutputElement extends HtmlElement {
   @DomName('HTMLOutputElement.labels')
   @DocsEditable()
   @Unstable()
-  List<Node> get labels => wrap_jso_list(_blink.BlinkHTMLOutputElement.instance.labels_Getter_(unwrap_jso(this)));
+  List<Node> get labels => wrap_jso(_blink.BlinkHTMLOutputElement.instance.labels_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLOutputElement.name')
   @DocsEditable()
@@ -30289,7 +30292,7 @@ class ProgressElement extends HtmlElement {
   @DomName('HTMLProgressElement.labels')
   @DocsEditable()
   @Unstable()
-  List<Node> get labels => wrap_jso_list(_blink.BlinkHTMLProgressElement.instance.labels_Getter_(unwrap_jso(this)));
+  List<Node> get labels => wrap_jso(_blink.BlinkHTMLProgressElement.instance.labels_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLProgressElement.max')
   @DocsEditable()
@@ -30679,7 +30682,7 @@ class Range extends NativeFieldWrapperClass2 {
   
   @DomName('Range.getClientRects')
   @DocsEditable()
-  List<Rectangle> getClientRects() => wrap_jso_list(_blink.BlinkRange.instance.getClientRects_Callback_0_(unwrap_jso(this)));
+  List<Rectangle> getClientRects() => wrap_jso(_blink.BlinkRange.instance.getClientRects_Callback_0_(unwrap_jso(this)));
   
   @DomName('Range.insertNode')
   @DocsEditable()
@@ -32097,7 +32100,7 @@ class SelectElement extends HtmlElement {
   @DomName('HTMLSelectElement.labels')
   @DocsEditable()
   @Unstable()
-  List<Node> get labels => wrap_jso_list(_blink.BlinkHTMLSelectElement.instance.labels_Getter_(unwrap_jso(this)));
+  List<Node> get labels => wrap_jso(_blink.BlinkHTMLSelectElement.instance.labels_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLSelectElement.length')
   @DocsEditable()
@@ -32668,7 +32671,7 @@ class ShadowElement extends HtmlElement {
   @DomName('HTMLShadowElement.getDistributedNodes')
   @DocsEditable()
   @Experimental() // untriaged
-  List<Node> getDistributedNodes() => wrap_jso_list(_blink.BlinkHTMLShadowElement.instance.getDistributedNodes_Callback_0_(unwrap_jso(this)));
+  List<Node> getDistributedNodes() => wrap_jso(_blink.BlinkHTMLShadowElement.instance.getDistributedNodes_Callback_0_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32723,7 +32726,7 @@ class ShadowRoot extends DocumentFragment {
   @DomName('ShadowRoot.styleSheets')
   @DocsEditable()
   @Experimental() // untriaged
-  List<StyleSheet> get styleSheets => wrap_jso_list(_blink.BlinkShadowRoot.instance.styleSheets_Getter_(unwrap_jso(this)));
+  List<StyleSheet> get styleSheets => wrap_jso(_blink.BlinkShadowRoot.instance.styleSheets_Getter_(unwrap_jso(this)));
   
   @DomName('ShadowRoot.cloneNode')
   @DocsEditable()
@@ -32739,11 +32742,11 @@ class ShadowRoot extends DocumentFragment {
   
   @DomName('ShadowRoot.getElementsByClassName')
   @DocsEditable()
-  List<Node> getElementsByClassName(String className) => wrap_jso_list(_blink.BlinkShadowRoot.instance.getElementsByClassName_Callback_1_(unwrap_jso(this), className));
+  List<Node> getElementsByClassName(String className) => wrap_jso(_blink.BlinkShadowRoot.instance.getElementsByClassName_Callback_1_(unwrap_jso(this), className));
   
   @DomName('ShadowRoot.getElementsByTagName')
   @DocsEditable()
-  List<Node> getElementsByTagName(String tagName) => wrap_jso_list(_blink.BlinkShadowRoot.instance.getElementsByTagName_Callback_1_(unwrap_jso(this), tagName));
+  List<Node> getElementsByTagName(String tagName) => wrap_jso(_blink.BlinkShadowRoot.instance.getElementsByTagName_Callback_1_(unwrap_jso(this), tagName));
   
   @DomName('ShadowRoot.getSelection')
   @DocsEditable()
@@ -33785,7 +33788,7 @@ class SpeechRecognitionEvent extends Event {
   
   @DomName('SpeechRecognitionEvent.results')
   @DocsEditable()
-  List<SpeechRecognitionResult> get results => wrap_jso_list(_blink.BlinkSpeechRecognitionEvent.instance.results_Getter_(unwrap_jso(this)));
+  List<SpeechRecognitionResult> get results => wrap_jso(_blink.BlinkSpeechRecognitionEvent.instance.results_Getter_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34893,11 +34896,11 @@ class TableElement extends HtmlElement {
   
   @DomName('HTMLTableElement.rows')
   @DocsEditable()
-  List<Node> get _rows => wrap_jso_list(_blink.BlinkHTMLTableElement.instance.rows_Getter_(unwrap_jso(this)));
+  List<Node> get _rows => wrap_jso(_blink.BlinkHTMLTableElement.instance.rows_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLTableElement.tBodies')
   @DocsEditable()
-  List<Node> get _tBodies => wrap_jso_list(_blink.BlinkHTMLTableElement.instance.tBodies_Getter_(unwrap_jso(this)));
+  List<Node> get _tBodies => wrap_jso(_blink.BlinkHTMLTableElement.instance.tBodies_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLTableElement.tFoot')
   @DocsEditable()
@@ -35001,7 +35004,7 @@ class TableRowElement extends HtmlElement {
 
   @DomName('HTMLTableRowElement.cells')
   @DocsEditable()
-  List<Node> get _cells => wrap_jso_list(_blink.BlinkHTMLTableRowElement.instance.cells_Getter_(unwrap_jso(this)));
+  List<Node> get _cells => wrap_jso(_blink.BlinkHTMLTableRowElement.instance.cells_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLTableRowElement.rowIndex')
   @DocsEditable()
@@ -35065,7 +35068,7 @@ class TableSectionElement extends HtmlElement {
 
   @DomName('HTMLTableSectionElement.rows')
   @DocsEditable()
-  List<Node> get _rows => wrap_jso_list(_blink.BlinkHTMLTableSectionElement.instance.rows_Getter_(unwrap_jso(this)));
+  List<Node> get _rows => wrap_jso(_blink.BlinkHTMLTableSectionElement.instance.rows_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLTableSectionElement.deleteRow')
   @DocsEditable()
@@ -35172,7 +35175,7 @@ class Text extends CharacterData {
   @DomName('Text.getDestinationInsertionPoints')
   @DocsEditable()
   @Experimental() // untriaged
-  List<Node> getDestinationInsertionPoints() => wrap_jso_list(_blink.BlinkText.instance.getDestinationInsertionPoints_Callback_0_(unwrap_jso(this)));
+  List<Node> getDestinationInsertionPoints() => wrap_jso(_blink.BlinkText.instance.getDestinationInsertionPoints_Callback_0_(unwrap_jso(this)));
   
   @DomName('Text.splitText')
   @DocsEditable()
@@ -35275,7 +35278,7 @@ class TextAreaElement extends HtmlElement {
   @DomName('HTMLTextAreaElement.labels')
   @DocsEditable()
   @Unstable()
-  List<Node> get labels => wrap_jso_list(_blink.BlinkHTMLTextAreaElement.instance.labels_Getter_(unwrap_jso(this)));
+  List<Node> get labels => wrap_jso(_blink.BlinkHTMLTextAreaElement.instance.labels_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLTextAreaElement.maxLength')
   @DocsEditable()
@@ -39144,7 +39147,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @DomName('Window.getMatchedCSSRules')
   @DocsEditable()
   @Experimental() // non-standard
-  List<CssRule> getMatchedCssRules(Element element, String pseudoElement) => wrap_jso_list(_blink.BlinkWindow.instance.getMatchedCSSRules_Callback_2_(unwrap_jso(this), unwrap_jso(element), pseudoElement));
+  List<CssRule> getMatchedCssRules(Element element, String pseudoElement) => wrap_jso(_blink.BlinkWindow.instance.getMatchedCSSRules_Callback_2_(unwrap_jso(this), unwrap_jso(element), pseudoElement));
   
   /**
    * Returns the currently selected text.
