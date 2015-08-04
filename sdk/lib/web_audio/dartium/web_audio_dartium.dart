@@ -486,7 +486,7 @@ class AudioContext extends EventTarget {
   
   @DomName('AudioContext.decodeAudioData')
   @DocsEditable()
-  void _decodeAudioData(ByteBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) => _blink.BlinkAudioContext.instance.decodeAudioData_Callback_3_(unwrap_jso(this), audioData, unwrap_jso(successCallback), unwrap_jso(errorCallback));
+  void _decodeAudioData(ByteBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) => _blink.BlinkAudioContext.instance.decodeAudioData_Callback_3_(unwrap_jso(this), audioData, unwrap_jso((AudioBuffer audioBuffer) => successCallback(wrap_jso(audioBuffer))), unwrap_jso((AudioBuffer audioBuffer) => errorCallback(wrap_jso(audioBuffer))));
   
   @DomName('AudioContext.startRendering')
   @DocsEditable()
@@ -1529,7 +1529,7 @@ class ScriptProcessorNode extends AudioNode {
   @DomName('ScriptProcessorNode.setEventListener')
   @DocsEditable()
   @Experimental() // untriaged
-  void setEventListener(EventListener eventListener) => _blink.BlinkScriptProcessorNode.instance.setEventListener_Callback_1_(unwrap_jso(this), unwrap_jso(eventListener));
+  void setEventListener(EventListener eventListener) => _blink.BlinkScriptProcessorNode.instance.setEventListener_Callback_1_(unwrap_jso(this), unwrap_jso((Event event) => eventListener(wrap_jso(event))));
   
   /// Stream of `audioprocess` events handled by this [ScriptProcessorNode].
 /**

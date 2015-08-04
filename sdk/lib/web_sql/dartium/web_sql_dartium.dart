@@ -134,15 +134,15 @@ class SqlDatabase extends NativeFieldWrapperClass2 {
   
   void changeVersion(String oldVersion, String newVersion, [SqlTransactionCallback callback, SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) {
     if (successCallback != null) {
-      _blink.BlinkDatabase.instance.changeVersion_Callback_5_(unwrap_jso(this), oldVersion, newVersion, unwrap_jso(callback), unwrap_jso(errorCallback), unwrap_jso(successCallback));
+      _blink.BlinkDatabase.instance.changeVersion_Callback_5_(unwrap_jso(this), oldVersion, newVersion, unwrap_jso((SqlTransaction transaction) => callback(wrap_jso(transaction))), unwrap_jso((SqlError error) => errorCallback(wrap_jso(error))), unwrap_jso(() => successCallback()));
       return;
     }
     if (errorCallback != null) {
-      _blink.BlinkDatabase.instance.changeVersion_Callback_4_(unwrap_jso(this), oldVersion, newVersion, unwrap_jso(callback), unwrap_jso(errorCallback));
+      _blink.BlinkDatabase.instance.changeVersion_Callback_4_(unwrap_jso(this), oldVersion, newVersion, unwrap_jso((SqlTransaction transaction) => callback(wrap_jso(transaction))), unwrap_jso((SqlError error) => errorCallback(wrap_jso(error))));
       return;
     }
     if (callback != null) {
-      _blink.BlinkDatabase.instance.changeVersion_Callback_3_(unwrap_jso(this), oldVersion, newVersion, unwrap_jso(callback));
+      _blink.BlinkDatabase.instance.changeVersion_Callback_3_(unwrap_jso(this), oldVersion, newVersion, unwrap_jso((SqlTransaction transaction) => callback(wrap_jso(transaction))));
       return;
     }
     _blink.BlinkDatabase.instance.changeVersion_Callback_2_(unwrap_jso(this), oldVersion, newVersion);
@@ -151,27 +151,27 @@ class SqlDatabase extends NativeFieldWrapperClass2 {
 
   void readTransaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) {
     if (successCallback != null) {
-      _blink.BlinkDatabase.instance.readTransaction_Callback_3_(unwrap_jso(this), unwrap_jso(callback), unwrap_jso(errorCallback), unwrap_jso(successCallback));
+      _blink.BlinkDatabase.instance.readTransaction_Callback_3_(unwrap_jso(this), unwrap_jso((SqlTransaction transaction) => callback(wrap_jso(transaction))), unwrap_jso((SqlError error) => errorCallback(wrap_jso(error))), unwrap_jso(() => successCallback()));
       return;
     }
     if (errorCallback != null) {
-      _blink.BlinkDatabase.instance.readTransaction_Callback_2_(unwrap_jso(this), unwrap_jso(callback), unwrap_jso(errorCallback));
+      _blink.BlinkDatabase.instance.readTransaction_Callback_2_(unwrap_jso(this), unwrap_jso((SqlTransaction transaction) => callback(wrap_jso(transaction))), unwrap_jso((SqlError error) => errorCallback(wrap_jso(error))));
       return;
     }
-    _blink.BlinkDatabase.instance.readTransaction_Callback_1_(unwrap_jso(this), unwrap_jso(callback));
+    _blink.BlinkDatabase.instance.readTransaction_Callback_1_(unwrap_jso(this), unwrap_jso((SqlTransaction transaction) => callback(wrap_jso(transaction))));
     return;
   }
 
   void transaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) {
     if (successCallback != null) {
-      _blink.BlinkDatabase.instance.transaction_Callback_3_(unwrap_jso(this), unwrap_jso(callback), unwrap_jso(errorCallback), unwrap_jso(successCallback));
+      _blink.BlinkDatabase.instance.transaction_Callback_3_(unwrap_jso(this), unwrap_jso((SqlTransaction transaction) => callback(wrap_jso(transaction))), unwrap_jso((SqlError error) => errorCallback(wrap_jso(error))), unwrap_jso(() => successCallback()));
       return;
     }
     if (errorCallback != null) {
-      _blink.BlinkDatabase.instance.transaction_Callback_2_(unwrap_jso(this), unwrap_jso(callback), unwrap_jso(errorCallback));
+      _blink.BlinkDatabase.instance.transaction_Callback_2_(unwrap_jso(this), unwrap_jso((SqlTransaction transaction) => callback(wrap_jso(transaction))), unwrap_jso((SqlError error) => errorCallback(wrap_jso(error))));
       return;
     }
-    _blink.BlinkDatabase.instance.transaction_Callback_1_(unwrap_jso(this), unwrap_jso(callback));
+    _blink.BlinkDatabase.instance.transaction_Callback_1_(unwrap_jso(this), unwrap_jso((SqlTransaction transaction) => callback(wrap_jso(transaction))));
     return;
   }
 
@@ -410,6 +410,6 @@ class SqlTransaction extends NativeFieldWrapperClass2 {
 
   @DomName('SQLTransaction.executeSql')
   @DocsEditable()
-  void executeSql(String sqlStatement, List<Object> arguments, [SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) => _blink.BlinkSQLTransaction.instance.executeSql_Callback_4_(unwrap_jso(this), sqlStatement, arguments, unwrap_jso(callback), unwrap_jso(errorCallback));
+  void executeSql(String sqlStatement, List<Object> arguments, [SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) => _blink.BlinkSQLTransaction.instance.executeSql_Callback_4_(unwrap_jso(this), sqlStatement, arguments, unwrap_jso((SqlTransaction transaction, SqlResultSet resultSet) => callback(wrap_jso(transaction), wrap_jso(resultSet))), unwrap_jso((SqlTransaction transaction, SqlError error) => errorCallback(wrap_jso(transaction), wrap_jso(error))));
   
 }

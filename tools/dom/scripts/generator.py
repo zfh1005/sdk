@@ -514,10 +514,19 @@ class OperationInfo(object):
       parameter_count = len(self.param_infos)
     return ', '.join(map(param_name, self.param_infos[:parameter_count]))
 
+  def isCallback(self, type_registry, type_id):
+    if type_id:
+      callback_type = type_registry._database._all_interfaces[type_id]
+      return callback_type.operations[0].id == 'handleEvent' if len(callback_type.operations) > 0 else False
+    else:
+      return False
+
   def ParametersAsListOfVariables(self, parameter_count=None, type_registry=None, dart_js_interop=False):
     """Returns a list of the first parameter_count parameter names
     as raw variables.
     """
+    isRemoveOperation = self.name.startswith('remove') if self.name else False
+
     if parameter_count is None:
       parameter_count = len(self.param_infos)
     if not type_registry:
@@ -535,6 +544,7 @@ class OperationInfo(object):
         #
         # JsObject maybe stored in the Dart class.
         if (wrap_unwrap_type_blink(type_id, type_registry)):
+          type_is_callback = self.isCallback(type_registry, type_id)
           if dart_js_interop and type_id == 'EventListener' and (self.name == 'addEventListener' or
                                                                  self.name == 'addListener'):
             # Events fired need to wrap the Javascript Object passed as a parameter in event.
@@ -549,8 +559,25 @@ class OperationInfo(object):
               # over the Javascript Object the callback parameters are also
               # Javascript objects and must be wrapped.
               parameters.append('unwrap_jso((String value, String key, Headers map) => %s(value, key, wrap_jso(map)))' % p.name)
+          elif dart_js_interop and type_is_callback and not(isRemoveOperation):
+            # Any remove operation that has a a callback doesn't need wrapping.
+            # TODO(terry): Kind of hacky but handles all the cases we care about
+            callback_type = type_registry._database._all_interfaces[type_id]
+            callback_args_decl = []
+            callback_args_call = []
+            for callback_arg in callback_type.operations[0].arguments:
+              dart_type = type_registry.DartType(callback_arg.type.id)
+              callback_args_decl.append('%s %s' % (dart_type, callback_arg.id))
+              if wrap_unwrap_type_blink(callback_arg.type.id, type_registry):
+                callback_args_call.append('wrap_jso(%s)' % callback_arg.id)
+              else:
+                callback_args_call.append(callback_arg.id)
+            parameters.append('unwrap_jso((%s) => %s(%s))' %
+                              (", ".join(callback_args_decl),
+                               p.name,
+                               ", ".join(callback_args_call)))
           else:
-             parameters.append('unwrap_jso(%s)' % p.name)
+            parameters.append(('unwrap_jso(%s)' % p.name) if not(isRemoveOperation) else p.name)
         else:
           if dart_js_interop:
             passParam = p.name
