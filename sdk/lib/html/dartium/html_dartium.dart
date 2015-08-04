@@ -2613,13 +2613,6 @@ class Blob extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Blob._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('Blob.Blob')
-  @DocsEditable()
-  factory Blob(List blobParts, [String type, String endings]) => wrap_jso(_create(blobParts, type, endings));
-
-  @DocsEditable()
-  static Blob _create(blobParts, type, endings) => _blink.BlinkBlob.instance.constructorCallback_3_(blobParts, type, endings);
-
   static Blob internalCreateBlob() {
     return new Blob._internalWrap();
   }
@@ -2661,6 +2654,20 @@ class Blob extends NativeFieldWrapperClass2 {
     return wrap_jso(_blink.BlinkBlob.instance.slice_Callback_0_(unwrap_jso(this)));
   }
 
+  factory Blob(List blobParts, [String type, String endings]) {
+    // TODO: validate that blobParts is a JS Array and convert if not.
+    // TODO: any coercions on the elements of blobParts, e.g. coerce a typed
+    // array to ArrayBuffer if it is a total view.
+
+    if (type == null && endings == null) {
+      return wrap_jso(_blink.BlinkBlob.instance.constructorCallback_1_(blobParts));
+    }
+    var bag = {};
+    if (type != null) bag['type'] = type;
+    if (endings != null) bag['endings'] = endings;
+    return wrap_jso(_blink.BlinkBlob.instance.constructorCallback_2_(blobParts,
+        convertDartToNative_Dictionary(bag)));
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17546,7 +17553,7 @@ class FileReader extends EventTarget {
   @DomName('FileReader.result')
   @DocsEditable()
   Object get result {
-    var res = _blink.BlinkFileReader.result_Getter(unwrap_jso(this));
+    var res = _blink.BlinkFileReader.instance.result_Getter_(unwrap_jso(this));
     if (res is ByteBuffer) {
       return new Uint8List.view(res);
     }
@@ -36902,10 +36909,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");

@@ -25,5 +25,21 @@ $if DART2JS
 
   static _create_bag() => JS('var', '{}');
   static _bag_set(bag, key, value) { JS('void', '#[#] = #', bag, key, value); }
+$else
+  $if JSINTEROP
+  factory Blob(List blobParts, [String type, String endings]) {
+    // TODO: any coercions on the elements of blobParts, e.g. coerce a typed
+    // array to ArrayBuffer if it is a total view.
+
+    if (type == null && endings == null) {
+      return wrap_jso(_blink.BlinkBlob.instance.constructorCallback_1_(blobParts));
+    }
+    var bag = {};
+    if (type != null) bag['type'] = type;
+    if (endings != null) bag['endings'] = endings;
+    return wrap_jso(_blink.BlinkBlob.instance.constructorCallback_2_(blobParts,
+        convertDartToNative_Dictionary(bag)));
+  }
+  $endif
 $endif
 }
