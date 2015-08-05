@@ -2658,7 +2658,6 @@ class Blob extends NativeFieldWrapperClass2 {
   }
 
   factory Blob(List blobParts, [String type, String endings]) {
-    // TODO: validate that blobParts is a JS Array and convert if not.
     // TODO: any coercions on the elements of blobParts, e.g. coerce a typed
     // array to ArrayBuffer if it is a total view.
 
@@ -10033,10 +10032,10 @@ class DirectoryEntry extends Entry {
 
   void _removeRecursively(VoidCallback successCallback, [_ErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkDirectoryEntry.instance.removeRecursively_Callback_2_(unwrap_jso(this), successCallback, errorCallback);
+      _blink.BlinkDirectoryEntry.instance.removeRecursively_Callback_2_(unwrap_jso(this), unwrap_jso(() => successCallback()), unwrap_jso((FileError error) => errorCallback(wrap_jso(error))));
       return;
     }
-    _blink.BlinkDirectoryEntry.instance.removeRecursively_Callback_1_(unwrap_jso(this), successCallback);
+    _blink.BlinkDirectoryEntry.instance.removeRecursively_Callback_1_(unwrap_jso(this), unwrap_jso(() => successCallback()));
     return;
   }
 
@@ -16486,10 +16485,10 @@ class Entry extends NativeFieldWrapperClass2 {
 
   void _remove(VoidCallback successCallback, [_ErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkEntry.instance.remove_Callback_2_(unwrap_jso(this), successCallback, errorCallback);
+      _blink.BlinkEntry.instance.remove_Callback_2_(unwrap_jso(this), unwrap_jso(() => successCallback()), unwrap_jso((FileError error) => errorCallback(wrap_jso(error))));
       return;
     }
-    _blink.BlinkEntry.instance.remove_Callback_1_(unwrap_jso(this), successCallback);
+    _blink.BlinkEntry.instance.remove_Callback_1_(unwrap_jso(this), unwrap_jso(() => successCallback()));
     return;
   }
 
@@ -17048,11 +17047,11 @@ class EventTarget extends NativeFieldWrapperClass2 {
   
   void _removeEventListener([String type, EventListener listener, bool useCapture]) {
     if (useCapture != null) {
-      _blink.BlinkEventTarget.instance.removeEventListener_Callback_3_(unwrap_jso(this), type, listener, useCapture);
+      _blink.BlinkEventTarget.instance.removeEventListener_Callback_3_(unwrap_jso(this), type, unwrap_jso(listener), useCapture);
       return;
     }
     if (listener != null) {
-      _blink.BlinkEventTarget.instance.removeEventListener_Callback_2_(unwrap_jso(this), type, listener);
+      _blink.BlinkEventTarget.instance.removeEventListener_Callback_2_(unwrap_jso(this), type, unwrap_jso(listener));
       return;
     }
     if (type != null) {
@@ -25024,7 +25023,7 @@ class MediaQueryList extends EventTarget {
   
   @DomName('MediaQueryList.removeListener')
   @DocsEditable()
-  void removeListener(EventListener listener) => _blink.BlinkMediaQueryList.instance.removeListener_Callback_1_(unwrap_jso(this), listener);
+  void removeListener(EventListener listener) => _blink.BlinkMediaQueryList.instance.removeListener_Callback_1_(unwrap_jso(this), unwrap_jso(listener));
   
   @DomName('MediaQueryList.onchange')
   @DocsEditable()
@@ -25146,7 +25145,7 @@ class MediaSource extends EventTarget {
   
   @DomName('MediaSource.removeSourceBuffer')
   @DocsEditable()
-  void removeSourceBuffer(SourceBuffer buffer) => _blink.BlinkMediaSource.instance.removeSourceBuffer_Callback_1_(unwrap_jso(this), buffer);
+  void removeSourceBuffer(SourceBuffer buffer) => _blink.BlinkMediaSource.instance.removeSourceBuffer_Callback_1_(unwrap_jso(this), unwrap_jso(buffer));
   
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -25260,7 +25259,7 @@ class MediaStream extends EventTarget {
   
   @DomName('MediaStream.removeTrack')
   @DocsEditable()
-  void removeTrack(MediaStreamTrack track) => _blink.BlinkMediaStream.instance.removeTrack_Callback_1_(unwrap_jso(this), track);
+  void removeTrack(MediaStreamTrack track) => _blink.BlinkMediaStream.instance.removeTrack_Callback_1_(unwrap_jso(this), unwrap_jso(track));
   
   @DomName('MediaStream.stop')
   @DocsEditable()
@@ -28171,7 +28170,7 @@ class Node extends EventTarget {
   
   @DomName('Node.removeChild')
   @DocsEditable()
-  Node _removeChild(Node oldChild) => wrap_jso(_blink.BlinkNode.instance.removeChild_Callback_1_(unwrap_jso(this), oldChild));
+  Node _removeChild(Node oldChild) => wrap_jso(_blink.BlinkNode.instance.removeChild_Callback_1_(unwrap_jso(this), unwrap_jso(oldChild)));
   
   @DomName('Node.replaceChild')
   @DocsEditable()
@@ -31502,7 +31501,7 @@ class RtcPeerConnection extends EventTarget {
   
   @DomName('RTCPeerConnection.removeStream')
   @DocsEditable()
-  void removeStream(MediaStream stream) => _blink.BlinkRTCPeerConnection.instance.removeStream_Callback_1_(unwrap_jso(this), stream);
+  void removeStream(MediaStream stream) => _blink.BlinkRTCPeerConnection.instance.removeStream_Callback_1_(unwrap_jso(this), unwrap_jso(stream));
   
   @DomName('RTCPeerConnection.setLocalDescription')
   @DocsEditable()
@@ -35639,12 +35638,12 @@ class TextTrack extends EventTarget {
   
   @DomName('TextTrack.removeCue')
   @DocsEditable()
-  void removeCue(TextTrackCue cue) => _blink.BlinkTextTrack.instance.removeCue_Callback_1_(unwrap_jso(this), cue);
+  void removeCue(TextTrackCue cue) => _blink.BlinkTextTrack.instance.removeCue_Callback_1_(unwrap_jso(this), unwrap_jso(cue));
   
   @DomName('TextTrack.removeRegion')
   @DocsEditable()
   @Experimental() // untriaged
-  void removeRegion(VttRegion region) => _blink.BlinkTextTrack.instance.removeRegion_Callback_1_(unwrap_jso(this), region);
+  void removeRegion(VttRegion region) => _blink.BlinkTextTrack.instance.removeRegion_Callback_1_(unwrap_jso(this), unwrap_jso(region));
   
   /// Stream of `cuechange` events handled by this [TextTrack].
   @DomName('TextTrack.oncuechange')
@@ -36912,10 +36911,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");

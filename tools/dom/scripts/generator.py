@@ -525,7 +525,7 @@ class OperationInfo(object):
     """Returns a list of the first parameter_count parameter names
     as raw variables.
     """
-    isRemoveOperation = self.name.startswith('remove') if self.name else False
+    isRemoveOperation = self.name == 'removeEventListener' or self.name == 'removeListener'
 
     if parameter_count is None:
       parameter_count = len(self.param_infos)
@@ -577,7 +577,7 @@ class OperationInfo(object):
                                p.name,
                                ", ".join(callback_args_call)))
           else:
-            parameters.append(('unwrap_jso(%s)' % p.name) if not(isRemoveOperation) else p.name)
+            parameters.append('unwrap_jso(%s)' % p.name)
         else:
           if dart_js_interop:
             passParam = p.name
