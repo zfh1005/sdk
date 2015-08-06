@@ -8925,7 +8925,7 @@ class _GradientElement extends SvgElement implements UriReference {
 @DocsEditable()
 @DomName('SVGAltGlyphDefElement')
 @Unstable()
-abstract class _SVGAltGlyphDefElement extends SvgElement {
+class _SVGAltGlyphDefElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory _SVGAltGlyphDefElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -8958,7 +8958,7 @@ abstract class _SVGAltGlyphDefElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGAltGlyphItemElement')
 @Unstable()
-abstract class _SVGAltGlyphItemElement extends SvgElement {
+class _SVGAltGlyphItemElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory _SVGAltGlyphItemElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -8991,7 +8991,7 @@ abstract class _SVGAltGlyphItemElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGComponentTransferFunctionElement')
 @Unstable()
-abstract class _SVGComponentTransferFunctionElement extends SvgElement {
+class _SVGComponentTransferFunctionElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory _SVGComponentTransferFunctionElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -9024,7 +9024,7 @@ abstract class _SVGComponentTransferFunctionElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGCursorElement')
 @Unstable()
-abstract class _SVGCursorElement extends SvgElement implements UriReference, Tests {
+class _SVGCursorElement extends SvgElement implements UriReference, Tests {
   // To suppress missing implicit constructor warnings.
   factory _SVGCursorElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -9064,7 +9064,7 @@ abstract class _SVGCursorElement extends SvgElement implements UriReference, Tes
 @DocsEditable()
 @DomName('SVGFEDropShadowElement')
 @Experimental() // nonstandard
-abstract class _SVGFEDropShadowElement extends SvgElement implements FilterPrimitiveStandardAttributes {
+class _SVGFEDropShadowElement extends SvgElement implements FilterPrimitiveStandardAttributes {
   // To suppress missing implicit constructor warnings.
   factory _SVGFEDropShadowElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -9097,7 +9097,7 @@ abstract class _SVGFEDropShadowElement extends SvgElement implements FilterPrimi
 @DocsEditable()
 @DomName('SVGFontElement')
 @Unstable()
-abstract class _SVGFontElement extends SvgElement {
+class _SVGFontElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory _SVGFontElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -9130,7 +9130,7 @@ abstract class _SVGFontElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGFontFaceElement')
 @Unstable()
-abstract class _SVGFontFaceElement extends SvgElement {
+class _SVGFontFaceElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory _SVGFontFaceElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -9163,7 +9163,7 @@ abstract class _SVGFontFaceElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGFontFaceFormatElement')
 @Unstable()
-abstract class _SVGFontFaceFormatElement extends SvgElement {
+class _SVGFontFaceFormatElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory _SVGFontFaceFormatElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -9196,7 +9196,7 @@ abstract class _SVGFontFaceFormatElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGFontFaceNameElement')
 @Unstable()
-abstract class _SVGFontFaceNameElement extends SvgElement {
+class _SVGFontFaceNameElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory _SVGFontFaceNameElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -9229,7 +9229,7 @@ abstract class _SVGFontFaceNameElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGFontFaceSrcElement')
 @Unstable()
-abstract class _SVGFontFaceSrcElement extends SvgElement {
+class _SVGFontFaceSrcElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory _SVGFontFaceSrcElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -9262,7 +9262,7 @@ abstract class _SVGFontFaceSrcElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGFontFaceUriElement')
 @Unstable()
-abstract class _SVGFontFaceUriElement extends SvgElement {
+class _SVGFontFaceUriElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory _SVGFontFaceUriElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -9295,7 +9295,7 @@ abstract class _SVGFontFaceUriElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGGlyphElement')
 @Unstable()
-abstract class _SVGGlyphElement extends SvgElement {
+class _SVGGlyphElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory _SVGGlyphElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -9332,7 +9332,7 @@ abstract class _SVGGlyphElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGGlyphRefElement')
 @Unstable()
-abstract class _SVGGlyphRefElement extends SvgElement implements UriReference {
+class _SVGGlyphRefElement extends SvgElement implements UriReference {
   // To suppress missing implicit constructor warnings.
   factory _SVGGlyphRefElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -9365,7 +9365,7 @@ abstract class _SVGGlyphRefElement extends SvgElement implements UriReference {
 @DocsEditable()
 @DomName('SVGHKernElement')
 @Unstable()
-abstract class _SVGHKernElement extends SvgElement {
+class _SVGHKernElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory _SVGHKernElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -9401,7 +9401,7 @@ abstract class _SVGHKernElement extends SvgElement {
 
 @DocsEditable()
 @DomName('SVGMPathElement')
-abstract class _SVGMPathElement extends SvgElement implements UriReference {
+class _SVGMPathElement extends SvgElement implements UriReference {
   // To suppress missing implicit constructor warnings.
   factory _SVGMPathElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -9438,7 +9438,7 @@ abstract class _SVGMPathElement extends SvgElement implements UriReference {
 @DocsEditable()
 @DomName('SVGMissingGlyphElement')
 @Unstable()
-abstract class _SVGMissingGlyphElement extends SvgElement {
+class _SVGMissingGlyphElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory _SVGMissingGlyphElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -9471,7 +9471,7 @@ abstract class _SVGMissingGlyphElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGVKernElement')
 @Unstable()
-abstract class _SVGVKernElement extends SvgElement {
+class _SVGVKernElement extends SvgElement {
   // To suppress missing implicit constructor warnings.
   factory _SVGVKernElement._() { throw new UnsupportedError("Not supported"); }
 

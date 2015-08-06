@@ -3744,7 +3744,7 @@ class VertexArrayObject extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('WebGLRenderingContextBase')
 @Experimental() // untriaged
-abstract class _WebGLRenderingContextBase extends NativeFieldWrapperClass2 {
+class _WebGLRenderingContextBase extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _WebGLRenderingContextBase._() { throw new UnsupportedError("Not supported"); }
 

@@ -584,7 +584,14 @@ class HtmlDartInterfaceGenerator(object):
         # Need to be able to instantiate the class; can't be abstract.
         class_modifiers = ''
       else:
-        class_modifiers = 'abstract '
+        # For Dartium w/ JsInterop these suppressed interfaces are needed to
+        # instanciate the internal classes when wrap_jso is called for a JS object.
+        if (self._renamer.ShouldSuppressInterface(self._interface) and
+            not(isinstance(self._backend, Dart2JSBackend)) and
+            self._options.dart_js_interop):
+          class_modifiers = ''
+        else:
+          class_modifiers = 'abstract '
 
     native_spec = ''
     if not IsPureInterface(self._interface.id):

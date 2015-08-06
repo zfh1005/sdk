@@ -40752,7 +40752,7 @@ class _Attr extends Node {
 @DomName('CSSPrimitiveValue')
 // http://dev.w3.org/csswg/cssom/#the-cssstyledeclaration-interface
 @deprecated // deprecated
-abstract class _CSSPrimitiveValue extends _CSSValue {
+class _CSSPrimitiveValue extends _CSSValue {
   // To suppress missing implicit constructor warnings.
   factory _CSSPrimitiveValue._() { throw new UnsupportedError("Not supported"); }
 
@@ -40780,7 +40780,7 @@ abstract class _CSSPrimitiveValue extends _CSSValue {
 @DomName('CSSUnknownRule')
 // http://dev.w3.org/csswg/cssom/#the-cssstylesheet-interface
 @deprecated // deprecated
-abstract class _CSSUnknownRule extends CssRule {
+class _CSSUnknownRule extends CssRule {
   // To suppress missing implicit constructor warnings.
   factory _CSSUnknownRule._() { throw new UnsupportedError("Not supported"); }
 
@@ -40808,7 +40808,7 @@ abstract class _CSSUnknownRule extends CssRule {
 @DomName('CSSValue')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-abstract class _CSSValue extends NativeFieldWrapperClass2 {
+class _CSSValue extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _CSSValue._() { throw new UnsupportedError("Not supported"); }
 
@@ -40838,7 +40838,7 @@ abstract class _CSSValue extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('Cache')
 @Experimental() // untriaged
-abstract class _Cache extends NativeFieldWrapperClass2 {
+class _Cache extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _Cache._() { throw new UnsupportedError("Not supported"); }
 
@@ -40868,7 +40868,7 @@ abstract class _Cache extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('CanvasPathMethods')
 @Experimental() // untriaged
-abstract class _CanvasPathMethods extends NativeFieldWrapperClass2 {
+class _CanvasPathMethods extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _CanvasPathMethods._() { throw new UnsupportedError("Not supported"); }
 
@@ -41157,7 +41157,7 @@ class _ClientRectList extends JsoNativeFieldWrapper with ListMixin<Rectangle>, I
 @DomName('Counter')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-abstract class _Counter extends NativeFieldWrapperClass2 {
+class _Counter extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _Counter._() { throw new UnsupportedError("Not supported"); }
 
@@ -41354,7 +41354,7 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental()
 // http://www.w3.org/TR/file-system-api/#the-filesystemsync-interface
-abstract class _DOMFileSystemSync extends NativeFieldWrapperClass2 {
+class _DOMFileSystemSync extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _DOMFileSystemSync._() { throw new UnsupportedError("Not supported"); }
 
@@ -41385,7 +41385,7 @@ abstract class _DOMFileSystemSync extends NativeFieldWrapperClass2 {
 @DomName('DirectoryEntrySync')
 // http://www.w3.org/TR/file-system-api/#the-directoryentrysync-interface
 @Experimental()
-abstract class _DirectoryEntrySync extends _EntrySync {
+class _DirectoryEntrySync extends _EntrySync {
   // To suppress missing implicit constructor warnings.
   factory _DirectoryEntrySync._() { throw new UnsupportedError("Not supported"); }
 
@@ -41413,7 +41413,7 @@ abstract class _DirectoryEntrySync extends _EntrySync {
 @DomName('DirectoryReaderSync')
 // http://www.w3.org/TR/file-system-api/#idl-def-DirectoryReaderSync
 @Experimental()
-abstract class _DirectoryReaderSync extends NativeFieldWrapperClass2 {
+class _DirectoryReaderSync extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _DirectoryReaderSync._() { throw new UnsupportedError("Not supported"); }
 
@@ -41444,7 +41444,7 @@ abstract class _DirectoryReaderSync extends NativeFieldWrapperClass2 {
 @DomName('DocumentType')
 // http://www.w3.org/TR/DOM-Level-3-Core/core.html#ID-412266927
 @deprecated // stable
-abstract class _DocumentType extends Node implements ChildNode {
+class _DocumentType extends Node implements ChildNode {
   // To suppress missing implicit constructor warnings.
   factory _DocumentType._() { throw new UnsupportedError("Not supported"); }
 
@@ -41557,7 +41557,7 @@ class _DomRect extends DomRectReadOnly {
 @DomName('EntrySync')
 // http://www.w3.org/TR/file-system-api/#idl-def-EntrySync
 @Experimental()
-abstract class _EntrySync extends NativeFieldWrapperClass2 {
+class _EntrySync extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _EntrySync._() { throw new UnsupportedError("Not supported"); }
 
@@ -41588,7 +41588,7 @@ abstract class _EntrySync extends NativeFieldWrapperClass2 {
 @DomName('FileEntrySync')
 // http://www.w3.org/TR/file-system-api/#the-fileentrysync-interface
 @Experimental()
-abstract class _FileEntrySync extends _EntrySync {
+class _FileEntrySync extends _EntrySync {
   // To suppress missing implicit constructor warnings.
   factory _FileEntrySync._() { throw new UnsupportedError("Not supported"); }
 
@@ -41616,7 +41616,7 @@ abstract class _FileEntrySync extends _EntrySync {
 @DomName('FileReaderSync')
 // http://www.w3.org/TR/FileAPI/#FileReaderSync
 @Experimental()
-abstract class _FileReaderSync extends NativeFieldWrapperClass2 {
+class _FileReaderSync extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _FileReaderSync._() { throw new UnsupportedError("Not supported"); }
 
@@ -41653,7 +41653,7 @@ abstract class _FileReaderSync extends NativeFieldWrapperClass2 {
 @DomName('FileWriterSync')
 // http://www.w3.org/TR/file-writer-api/#idl-def-FileWriterSync
 @Experimental()
-abstract class _FileWriterSync extends NativeFieldWrapperClass2 {
+class _FileWriterSync extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _FileWriterSync._() { throw new UnsupportedError("Not supported"); }
 
@@ -41769,7 +41769,7 @@ class _GamepadList extends JsoNativeFieldWrapper with ListMixin<Gamepad>, Immuta
 @DomName('HTMLAllCollection')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#dom-document-all
 @deprecated // deprecated
-abstract class _HTMLAllCollection extends NativeFieldWrapperClass2 {
+class _HTMLAllCollection extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _HTMLAllCollection._() { throw new UnsupportedError("Not supported"); }
 
@@ -41804,7 +41804,7 @@ abstract class _HTMLAllCollection extends NativeFieldWrapperClass2 {
 @DomName('HTMLAppletElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#the-applet-element
 @deprecated // deprecated
-abstract class _HTMLAppletElement extends HtmlElement {
+class _HTMLAppletElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory _HTMLAppletElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -41838,7 +41838,7 @@ abstract class _HTMLAppletElement extends HtmlElement {
 @DomName('HTMLDirectoryElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#dir
 @deprecated // deprecated
-abstract class _HTMLDirectoryElement extends HtmlElement {
+class _HTMLDirectoryElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory _HTMLDirectoryElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -41872,7 +41872,7 @@ abstract class _HTMLDirectoryElement extends HtmlElement {
 @DomName('HTMLFontElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#htmlfontelement
 @deprecated // deprecated
-abstract class _HTMLFontElement extends HtmlElement {
+class _HTMLFontElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory _HTMLFontElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -41906,7 +41906,7 @@ abstract class _HTMLFontElement extends HtmlElement {
 @DomName('HTMLFrameElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#htmlframeelement
 @deprecated // deprecated
-abstract class _HTMLFrameElement extends HtmlElement {
+class _HTMLFrameElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory _HTMLFrameElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -41940,7 +41940,7 @@ abstract class _HTMLFrameElement extends HtmlElement {
 @DomName('HTMLFrameSetElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#frameset
 @deprecated // deprecated
-abstract class _HTMLFrameSetElement extends HtmlElement implements WindowEventHandlers {
+class _HTMLFrameSetElement extends HtmlElement implements WindowEventHandlers {
   // To suppress missing implicit constructor warnings.
   factory _HTMLFrameSetElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -41974,7 +41974,7 @@ abstract class _HTMLFrameSetElement extends HtmlElement implements WindowEventHa
 @DomName('HTMLMarqueeElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#the-marquee-element
 @deprecated // deprecated
-abstract class _HTMLMarqueeElement extends HtmlElement {
+class _HTMLMarqueeElement extends HtmlElement {
   // To suppress missing implicit constructor warnings.
   factory _HTMLMarqueeElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -42005,7 +42005,7 @@ abstract class _HTMLMarqueeElement extends HtmlElement {
 @DomName('MutationEvent')
 // http://www.w3.org/TR/DOM-Level-3-Events/#events-mutationevents
 @deprecated
-abstract class _MutationEvent extends Event {
+class _MutationEvent extends Event {
   factory _MutationEvent(String type,
       {bool canBubble: false, bool cancelable: false, Node relatedNode,
       String prevValue, String newValue, String attrName, int attrChange: 0}) {
@@ -42154,7 +42154,7 @@ class _NamedNodeMap extends JsoNativeFieldWrapper with ListMixin<Node>, Immutabl
 @DocsEditable()
 @DomName('PagePopupController')
 @deprecated // nonstandard
-abstract class _PagePopupController extends NativeFieldWrapperClass2 {
+class _PagePopupController extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _PagePopupController._() { throw new UnsupportedError("Not supported"); }
 
@@ -42185,7 +42185,7 @@ abstract class _PagePopupController extends NativeFieldWrapperClass2 {
 @DomName('RGBColor')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-abstract class _RGBColor extends NativeFieldWrapperClass2 {
+class _RGBColor extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _RGBColor._() { throw new UnsupportedError("Not supported"); }
 
@@ -42211,7 +42211,7 @@ abstract class _RGBColor extends NativeFieldWrapperClass2 {
 
 
 @DomName('RadioNodeList')
-abstract class _RadioNodeList extends NodeList {
+class _RadioNodeList extends NodeList {
   // To suppress missing implicit constructor warnings.
   factory _RadioNodeList._() { throw new UnsupportedError("Not supported"); }
 
@@ -42239,7 +42239,7 @@ abstract class _RadioNodeList extends NodeList {
 @DomName('Rect')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-abstract class _Rect extends NativeFieldWrapperClass2 {
+class _Rect extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _Rect._() { throw new UnsupportedError("Not supported"); }
 
@@ -42346,7 +42346,7 @@ class _Request extends Body {
 @DocsEditable()
 @DomName('Response')
 @Experimental() // untriaged
-abstract class _Response extends Body {
+class _Response extends Body {
   // To suppress missing implicit constructor warnings.
   factory _Response._() { throw new UnsupportedError("Not supported"); }
 
@@ -42407,7 +42407,7 @@ abstract class _Response extends Body {
 @DocsEditable()
 @DomName('ServiceWorker')
 @Experimental() // untriaged
-abstract class _ServiceWorker extends EventTarget implements AbstractWorker {
+class _ServiceWorker extends EventTarget implements AbstractWorker {
   // To suppress missing implicit constructor warnings.
   factory _ServiceWorker._() { throw new UnsupportedError("Not supported"); }
 
@@ -42606,7 +42606,7 @@ class _StyleSheetList extends JsoNativeFieldWrapper with ListMixin<StyleSheet>, 
 @DocsEditable()
 @DomName('SubtleCrypto')
 @Experimental() // untriaged
-abstract class _SubtleCrypto extends NativeFieldWrapperClass2 {
+class _SubtleCrypto extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _SubtleCrypto._() { throw new UnsupportedError("Not supported"); }
 
@@ -42637,7 +42637,7 @@ abstract class _SubtleCrypto extends NativeFieldWrapperClass2 {
 @DomName('WebKitCSSFilterValue')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-abstract class _WebKitCSSFilterValue extends _CssValueList {
+class _WebKitCSSFilterValue extends _CssValueList {
   // To suppress missing implicit constructor warnings.
   factory _WebKitCSSFilterValue._() { throw new UnsupportedError("Not supported"); }
 
@@ -42668,7 +42668,7 @@ abstract class _WebKitCSSFilterValue extends _CssValueList {
 @Experimental()
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-abstract class _WebKitCSSMatrix extends NativeFieldWrapperClass2 {
+class _WebKitCSSMatrix extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _WebKitCSSMatrix._() { throw new UnsupportedError("Not supported"); }
 
@@ -42705,7 +42705,7 @@ abstract class _WebKitCSSMatrix extends NativeFieldWrapperClass2 {
 @DomName('WebKitCSSTransformValue')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-abstract class _WebKitCSSTransformValue extends _CssValueList {
+class _WebKitCSSTransformValue extends _CssValueList {
   // To suppress missing implicit constructor warnings.
   factory _WebKitCSSTransformValue._() { throw new UnsupportedError("Not supported"); }
 
@@ -42783,7 +42783,7 @@ abstract class _WindowTimers extends NativeFieldWrapperClass2 {
 @DomName('WorkerLocation')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#workerlocation
 @Experimental()
-abstract class _WorkerLocation extends NativeFieldWrapperClass2 implements UrlUtilsReadOnly {
+class _WorkerLocation extends NativeFieldWrapperClass2 implements UrlUtilsReadOnly {
   // To suppress missing implicit constructor warnings.
   factory _WorkerLocation._() { throw new UnsupportedError("Not supported"); }
 
@@ -42814,7 +42814,7 @@ abstract class _WorkerLocation extends NativeFieldWrapperClass2 implements UrlUt
 @DomName('WorkerNavigator')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#workernavigator
 @Experimental()
-abstract class _WorkerNavigator extends NativeFieldWrapperClass2 implements NavigatorCpu, NavigatorOnLine, NavigatorID {
+class _WorkerNavigator extends NativeFieldWrapperClass2 implements NavigatorCpu, NavigatorOnLine, NavigatorID {
   // To suppress missing implicit constructor warnings.
   factory _WorkerNavigator._() { throw new UnsupportedError("Not supported"); }
 
