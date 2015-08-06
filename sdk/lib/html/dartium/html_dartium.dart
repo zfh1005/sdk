@@ -11241,36 +11241,32 @@ class DomException extends NativeFieldWrapperClass2 {
   static const String INVALID_NODE_TYPE = 'InvalidNodeTypeError';
   static const String DATA_CLONE = 'DataCloneError';
 
-  // To suppress missing implicit constructor warnings.
-  factory DomException._() { throw new UnsupportedError("Not supported"); }
+  String _name;
+  String _message;
 
-  static DomException internalCreateDomException() {
-    return new DomException._internalWrap();
+  DomException.jsInterop(String m) {
+    var name_index = _message = m.indexOf(': ');
+    if (name_index < 0) {
+      _name = "";
+      _message = m;
+    } else {
+      _name = m.substring(0, name_index);
+      _message = m.substring(name_index);
+    }
   }
-
-  js.JsObject blink_jsObject = null;
-
-  factory DomException._internalWrap() {
-    return new DomException.internal_();
-  }
-
-  DomException.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('DOMException.message')
   @DocsEditable()
-  String get message => _blink.BlinkDOMException.instance.message_Getter_(unwrap_jso(this));
-  
+  String get message => _message;
+
   @DomName('DOMException.name')
   @DocsEditable()
-  String get name => _blink.BlinkDOMException.instance.name_Getter_(unwrap_jso(this));
-  
+  String get name => _name;
+
   @DomName('DOMException.toString')
   @DocsEditable()
-  String toString() => _blink.BlinkDOMException.instance.toString_Callback_0_(unwrap_jso(this));
-  
+  String toString() => _message;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

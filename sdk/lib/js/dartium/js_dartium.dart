@@ -91,6 +91,7 @@ import 'dart:collection' show ListMixin;
 import 'dart:nativewrappers';
 import 'dart:math' as math;
 import 'dart:mirrors' as mirrors;
+import 'dart:html' as html;
 
 // Pretend we are always in checked mode as we aren't interested in users
 // running Dartium code outside of checked mode.
@@ -618,7 +619,8 @@ class JsObject extends NativeFieldWrapperClass2 {
       return _callMethod(method, args);
     } catch (e) {
       if (hasProperty(method)) {
-        rethrow;
+        // Return a DomException if DOM call returned an error.
+        throw new html.DomException.jsInterop(e);
       } else {
         throw new NoSuchMethodError(this, new Symbol(method), args, null);
       }

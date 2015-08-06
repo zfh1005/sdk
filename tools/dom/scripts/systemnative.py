@@ -1748,11 +1748,13 @@ class DartiumBackend(HtmlDartGenerator):
                 # Always return List<String> unwrapped.
                 if return_type != 'List<String>':
                   emit_template = emit_jso_template % jso_util_method
-            caller_emitter.Emit(emit_template,
-                                METADATA=metadata,
-                                DART_DECLARATION=dart_declaration,
-                                DART_NAME=full_dart_name,
-                                ACTUALS=actuals)
+
+            if caller_emitter:
+              caller_emitter.Emit(emit_template,
+                                  METADATA=metadata,
+                                  DART_DECLARATION=dart_declaration,
+                                  DART_NAME=full_dart_name,
+                                  ACTUALS=actuals)
     cpp_callback_name = '%s%s' % (idl_name, native_suffix)
 
     self._cpp_resolver_emitter.Emit(
