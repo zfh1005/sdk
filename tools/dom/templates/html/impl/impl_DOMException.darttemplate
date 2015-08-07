@@ -51,7 +51,7 @@ $if JSINTEROP
       _message = m;
     } else {
       _name = m.substring(0, name_index);
-      _message = m.substring(name_index);
+      _message = m.substring(name_index + 1).trim();
     }
   }
 
@@ -65,7 +65,7 @@ $if JSINTEROP
 
   @DomName('DOMException.toString')
   @DocsEditable()
-  String toString() => _message;
+  String toString() => "${_name}: $_message";
 
 $else
 $!MEMBERS

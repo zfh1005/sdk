@@ -11251,7 +11251,7 @@ class DomException extends NativeFieldWrapperClass2 {
       _message = m;
     } else {
       _name = m.substring(0, name_index);
-      _message = m.substring(name_index);
+      _message = m.substring(name_index + 1).trim();
     }
   }
 
@@ -11265,7 +11265,7 @@ class DomException extends NativeFieldWrapperClass2 {
 
   @DomName('DOMException.toString')
   @DocsEditable()
-  String toString() => _message;
+  String toString() => "${_name}: $_message";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
