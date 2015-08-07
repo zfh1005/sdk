@@ -933,7 +933,7 @@ class DartiumBackend(HtmlDartGenerator):
         #
         # JsObject maybe stored in the Dart class.
         return_wrap_jso = (isinstance(type_info, InterfaceIDLTypeInfo) or
-                           not(type_info) or attr.type.id == 'Object')
+                           not(type_info) or attr.type.id == 'object')
     wrap_unwrap_list.append(return_wrap_jso)       # wrap_jso the returned object
     wrap_unwrap_list.append(self._dart_use_blink)  # this must be unwrap_jso
 

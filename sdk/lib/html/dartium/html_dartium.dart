@@ -3590,7 +3590,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.fillStyle')
   @DocsEditable()
-  Object get fillStyle => _blink.BlinkCanvasRenderingContext2D.instance.fillStyle_Getter_(unwrap_jso(this));
+  Object get fillStyle => wrap_jso(_blink.BlinkCanvasRenderingContext2D.instance.fillStyle_Getter_(unwrap_jso(this)));
   
   @DomName('CanvasRenderingContext2D.fillStyle')
   @DocsEditable()
@@ -3724,7 +3724,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.strokeStyle')
   @DocsEditable()
-  Object get strokeStyle => _blink.BlinkCanvasRenderingContext2D.instance.strokeStyle_Getter_(unwrap_jso(this));
+  Object get strokeStyle => wrap_jso(_blink.BlinkCanvasRenderingContext2D.instance.strokeStyle_Getter_(unwrap_jso(this)));
   
   @DomName('CanvasRenderingContext2D.strokeStyle')
   @DocsEditable()
@@ -5086,7 +5086,7 @@ class CryptoKey extends NativeFieldWrapperClass2 {
   @DomName('CryptoKey.algorithm')
   @DocsEditable()
   @Experimental() // untriaged
-  Object get algorithm => _blink.BlinkCryptoKey.instance.algorithm_Getter_(unwrap_jso(this));
+  Object get algorithm => wrap_jso(_blink.BlinkCryptoKey.instance.algorithm_Getter_(unwrap_jso(this)));
   
   @DomName('CryptoKey.extractable')
   @DocsEditable()
@@ -17661,7 +17661,7 @@ class FileReader extends EventTarget {
   
   @DomName('FileReader.result')
   @DocsEditable()
-  Object get _result => _blink.BlinkFileReader.instance.result_Getter_(unwrap_jso(this));
+  Object get _result => wrap_jso(_blink.BlinkFileReader.instance.result_Getter_(unwrap_jso(this)));
   
   @DomName('FileReader.abort')
   @DocsEditable()
@@ -21292,7 +21292,7 @@ class HttpRequest extends HttpRequestEventTarget {
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  Object get response => _blink.BlinkXMLHttpRequest.instance.response_Getter_(unwrap_jso(this));
+  Object get response => wrap_jso(_blink.BlinkXMLHttpRequest.instance.response_Getter_(unwrap_jso(this)));
   
   /**
    * The response in String form or empty String on failure.
@@ -36588,7 +36588,7 @@ class TrackEvent extends Event {
 
   @DomName('TrackEvent.track')
   @DocsEditable()
-  Object get track => _blink.BlinkTrackEvent.instance.track_Getter_(unwrap_jso(this));
+  Object get track => wrap_jso(_blink.BlinkTrackEvent.instance.track_Getter_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36907,10 +36907,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
