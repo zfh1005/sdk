@@ -377,7 +377,6 @@ LayoutTests/fast/dom/attribute-namespaces-get-set_t01: RuntimeError # co19-roll 
 LayoutTests/fast/dom/blur-contenteditable_t01: RuntimeError, Pass # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/characterdata-api-arguments_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/client-width-height-quirks_t01: RuntimeError # co19-roll r738: Please triage this failure.
-LayoutTests/fast/dom/css-mediarule-functions_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/custom/attribute-changed-callback_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/custom/document-register-svg-extends_t01: RuntimeError # co19-roll r738: Please triage this failure.
 LayoutTests/fast/dom/dataset-xhtml_t01: RuntimeError # co19-roll r738: Please triage this failure.
@@ -767,7 +766,7 @@ LayoutTests/fast/dom/Range/range-insertNode-splittext_t01: RuntimeError # Please
 LayoutTests/fast/dom/document-importNode-arguments_t01: RuntimeError # Please triage this failure.
 LayoutTests/fast/dom/domparser-parsefromstring-mimetype-support_t01: RuntimeError # Please triage this failure.
 LayoutTests/fast/dom/horizontal-scrollbar-in-rtl_t01: RuntimeError # Please triage this failure.
-LayoutTests/fast/dom/text-api-arguments_t01: RuntimeError # Please triage this failure.
+
 
 # co19-roll r801
 LayoutTests/fast/canvas/webgl/canvas-test_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
