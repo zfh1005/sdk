@@ -1166,6 +1166,9 @@ try {
   if (constructor == js.context['NodeList']) {
     return wrap_jso_list(jsObject);
   }
+  if (constructor == js.context['Object']) {
+    return convertNativeObjectToDartMap(jsObject);
+  }
   var jsTypeName = constructor['name'];
   debug_or_assert("constructor != null && jsTypeName.length > 0", constructor != null && jsTypeName.length > 0);
   var func = getHtmlCreateFunction(jsTypeName);
@@ -1231,6 +1234,15 @@ List<Node> wrap_jso_list(jso_nodes) {
   var frozen_nodes = new _FrozenElementList._wrap(nodes);
   frozen_nodes.dartClass_instance = jso_nodes;
   return frozen_nodes;
+}
+
+Map<String, dynamic> convertNativeObjectToDartMap(js.JsObject jsObject) {
+  var result = new Map();
+  var keys = js.context['Object'].callMethod('keys', [jsObject]);
+  for (var key in keys) {
+    result[key] = wrap_jso(jsObject[key]);
+  }
+  return result;
 }
 
 // Converts a flat Dart map into a JavaScript object with properties this is
@@ -36935,10 +36947,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
