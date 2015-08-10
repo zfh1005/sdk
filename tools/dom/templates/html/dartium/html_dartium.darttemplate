@@ -430,8 +430,8 @@ debug_or_assert(message, expression) {
 Map<int, Map<int, js.JsFunction>> _knownListeners = {};
 
 js.JsFunction wrap_event_listener(theObject, Function listener) {
-  var thisHashCode = theObject.hashCode;
-  var listenerHashCode = listener.hashCode;
+  var thisHashCode = identityHashCode(theObject);
+  var listenerHashCode = identityHashCode(listener);
 
   _knownListeners.putIfAbsent(thisHashCode, () => new Map<int, js.JsFunction>());
   _knownListeners[thisHashCode].putIfAbsent(listenerHashCode, () =>
@@ -441,8 +441,8 @@ js.JsFunction wrap_event_listener(theObject, Function listener) {
 }
 
 js.JsFunction wrap_media_event_listener(Function listener) {
-  var thisHashCode = theObject.hashCode;
-  var listenerHashCode = listener.hashCode;
+  var thisHashCode = identityHashCode(theObject);
+  var listenerHashCode = identityHashCode(listener);
 
   _knownListeners.putIfAbsent(thisHashCode, () => new Map<int, js.JsFunction>());
   _knownListeners[thisHashCode].putIfAbsent(listenerHashCode, () =>

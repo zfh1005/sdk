@@ -1200,8 +1200,8 @@ debug_or_assert(message, expression) {
 Map<int, Map<int, js.JsFunction>> _knownListeners = {};
 
 js.JsFunction wrap_event_listener(theObject, Function listener) {
-  var thisHashCode = theObject.hashCode;
-  var listenerHashCode = listener.hashCode;
+  var thisHashCode = identityHashCode(theObject);
+  var listenerHashCode = identityHashCode(listener);
 
   _knownListeners.putIfAbsent(thisHashCode, () => new Map<int, js.JsFunction>());
   _knownListeners[thisHashCode].putIfAbsent(listenerHashCode, () =>
@@ -1211,8 +1211,8 @@ js.JsFunction wrap_event_listener(theObject, Function listener) {
 }
 
 js.JsFunction wrap_media_event_listener(Function listener) {
-  var thisHashCode = theObject.hashCode;
-  var listenerHashCode = listener.hashCode;
+  var thisHashCode = identityHashCode(theObject);
+  var listenerHashCode = identityHashCode(listener);
 
   _knownListeners.putIfAbsent(thisHashCode, () => new Map<int, js.JsFunction>());
   _knownListeners[thisHashCode].putIfAbsent(listenerHashCode, () =>
@@ -17071,11 +17071,11 @@ class EventTarget extends NativeFieldWrapperClass2 {
   
   void _removeEventListener([String type, EventListener listener, bool useCapture]) {
     if (useCapture != null) {
-      _blink.BlinkEventTarget.instance.removeEventListener_Callback_3_(unwrap_jso(this), type, _knownListeners[this.hashCode][listener.hashCode], useCapture);
+      _blink.BlinkEventTarget.instance.removeEventListener_Callback_3_(unwrap_jso(this), type, _knownListeners[identityHashCode(this)][identityHashCode(listener)], useCapture);
       return;
     }
     if (listener != null) {
-      _blink.BlinkEventTarget.instance.removeEventListener_Callback_2_(unwrap_jso(this), type, _knownListeners[this.hashCode][listener.hashCode]);
+      _blink.BlinkEventTarget.instance.removeEventListener_Callback_2_(unwrap_jso(this), type, _knownListeners[identityHashCode(this)][identityHashCode(listener)]);
       return;
     }
     if (type != null) {
