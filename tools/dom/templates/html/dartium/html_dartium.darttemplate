@@ -423,6 +423,34 @@ debug_or_assert(message, expression) {
   }
 }
 
+// TODO(terry): Manage JS interop JsFunctions for each listener used for add/
+//              removeEventListener.  These JsFunctions will leak look at
+//              fixing with weak-refs in C++.  The key are the hashcodes of the
+//              user's this (this is needed for futures) and listener function.
+Map<int, Map<int, js.JsFunction>> _knownListeners = {};
+
+js.JsFunction wrap_event_listener(theObject, Function listener) {
+  var thisHashCode = theObject.hashCode;
+  var listenerHashCode = listener.hashCode;
+
+  _knownListeners.putIfAbsent(thisHashCode, () => new Map<int, js.JsFunction>());
+  _knownListeners[thisHashCode].putIfAbsent(listenerHashCode, () =>
+    new js.JsFunction.withThis((theObject, event) => listener(wrap_jso(event))));
+
+  return _knownListeners[thisHashCode][listenerHashCode];
+}
+
+js.JsFunction wrap_media_event_listener(Function listener) {
+  var thisHashCode = theObject.hashCode;
+  var listenerHashCode = listener.hashCode;
+
+  _knownListeners.putIfAbsent(thisHashCode, () => new Map<int, js.JsFunction>());
+  _knownListeners[thisHashCode].putIfAbsent(listenerHashCode, () =>
+    new js.JsFunction.withThis((theObject, eventListener) => listener(wrap_jso(eventListener))));
+
+  return _knownListeners[thisHashCode][listenerHashCode];
+}
+
 // Wrap JsObject node list to return a List<node>.
 List<Node> wrap_jso_list(jso_nodes) {
   List<Node> nodes = new List<Node>();

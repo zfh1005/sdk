@@ -1193,6 +1193,34 @@ debug_or_assert(message, expression) {
   }
 }
 
+// TODO(terry): Manage JS interop JsFunctions for each listener used for add/
+//              removeEventListener.  These JsFunctions will leak look at
+//              fixing with weak-refs in C++.  The key are the hashcodes of the
+//              user's this (this is needed for futures) and listener function.
+Map<int, Map<int, js.JsFunction>> _knownListeners = {};
+
+js.JsFunction wrap_event_listener(theObject, Function listener) {
+  var thisHashCode = theObject.hashCode;
+  var listenerHashCode = listener.hashCode;
+
+  _knownListeners.putIfAbsent(thisHashCode, () => new Map<int, js.JsFunction>());
+  _knownListeners[thisHashCode].putIfAbsent(listenerHashCode, () =>
+    new js.JsFunction.withThis((theObject, event) => listener(wrap_jso(event))));
+
+  return _knownListeners[thisHashCode][listenerHashCode];
+}
+
+js.JsFunction wrap_media_event_listener(Function listener) {
+  var thisHashCode = theObject.hashCode;
+  var listenerHashCode = listener.hashCode;
+
+  _knownListeners.putIfAbsent(thisHashCode, () => new Map<int, js.JsFunction>());
+  _knownListeners[thisHashCode].putIfAbsent(listenerHashCode, () =>
+    new js.JsFunction.withThis((theObject, eventListener) => listener(wrap_jso(eventListener))));
+
+  return _knownListeners[thisHashCode][listenerHashCode];
+}
+
 // Wrap JsObject node list to return a List<node>.
 List<Node> wrap_jso_list(jso_nodes) {
   List<Node> nodes = new List<Node>();
@@ -17022,11 +17050,11 @@ class EventTarget extends NativeFieldWrapperClass2 {
 
   void _addEventListener([String type, EventListener listener, bool useCapture]) {
     if (useCapture != null) {
-      _blink.BlinkEventTarget.instance.addEventListener_Callback_3_(unwrap_jso(this), type, unwrap_jso((Event event) => listener(wrap_jso(event))), useCapture);
+      _blink.BlinkEventTarget.instance.addEventListener_Callback_3_(unwrap_jso(this), type, wrap_event_listener(this, listener), useCapture);
       return;
     }
     if (listener != null) {
-      _blink.BlinkEventTarget.instance.addEventListener_Callback_2_(unwrap_jso(this), type, unwrap_jso((Event event) => listener(wrap_jso(event))));
+      _blink.BlinkEventTarget.instance.addEventListener_Callback_2_(unwrap_jso(this), type, wrap_event_listener(this, listener));
       return;
     }
     if (type != null) {
@@ -17043,11 +17071,11 @@ class EventTarget extends NativeFieldWrapperClass2 {
   
   void _removeEventListener([String type, EventListener listener, bool useCapture]) {
     if (useCapture != null) {
-      _blink.BlinkEventTarget.instance.removeEventListener_Callback_3_(unwrap_jso(this), type, unwrap_jso(listener), useCapture);
+      _blink.BlinkEventTarget.instance.removeEventListener_Callback_3_(unwrap_jso(this), type, _knownListeners[this.hashCode][listener.hashCode], useCapture);
       return;
     }
     if (listener != null) {
-      _blink.BlinkEventTarget.instance.removeEventListener_Callback_2_(unwrap_jso(this), type, unwrap_jso(listener));
+      _blink.BlinkEventTarget.instance.removeEventListener_Callback_2_(unwrap_jso(this), type, _knownListeners[this.hashCode][listener.hashCode]);
       return;
     }
     if (type != null) {
