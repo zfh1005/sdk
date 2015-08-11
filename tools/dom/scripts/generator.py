@@ -575,6 +575,9 @@ class OperationInfo(object):
               callback_args_decl.append('%s %s' % (dart_type, callback_arg.id))
               if wrap_unwrap_type_blink(callback_arg.type.id, type_registry):
                 callback_args_call.append('wrap_jso(%s)' % callback_arg.id)
+              elif isinstance(type_registry.TypeInfo(callback_arg.type.id), SequenceIDLTypeInfo):
+                # Argument is a list need to wrap the list
+                callback_args_call.append('wrap_jso_list(%s)' % callback_arg.id)
               else:
                 callback_args_call.append(callback_arg.id)
             parameters.append('unwrap_jso((%s) => %s(%s))' %

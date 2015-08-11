@@ -394,7 +394,7 @@ try {
   var constructor = jsObject['constructor'];
   debug_or_assert("constructor != null", constructor != null);
   if (constructor == js.context['NodeList']) {
-    return wrap_jso_list(jsObject);
+    return wrap_jso_node_list(jsObject);
   }
   if (constructor == js.context['Object']) {
     return convertNativeObjectToDartMap(jsObject);
@@ -454,8 +454,18 @@ js.JsFunction wrap_media_event_listener(Function listener) {
   return _knownListeners[thisHashCode][listenerHashCode];
 }
 
+// Wrap the list of JsObject(s) to return a List of wrapped Dart objects.
+List wrap_jso_list(List simpleList) {
+  var collectionLen = simpleList['length'];
+  for (var i =0; i < collectionLen; i++) {
+    simpleList[i] = wrap_jso(simpleList[i]);
+  }
+
+  return simpleList;
+}
+
 // Wrap JsObject node list to return a List<node>.
-List<Node> wrap_jso_list(jso_nodes) {
+List<Node> wrap_jso_node_list(jso_nodes) {
   List<Node> nodes = new List<Node>();
   var collectionLen = jso_nodes['length'];
   for (var i = 0; i < collectionLen; i++) {
@@ -497,7 +507,8 @@ class JsoNativeFieldWrapper extends NativeFieldWrapperClass2 {}
 
 unwrap_jso(dartClass_instance) => dartClass_instance;
 wrap_jso(jsObject) => jsObject;
-wrap_jso_list(jso_nodes) => jso_nodes;
+wrap_jso_list(jso_list) => jso_list;
+wrap_jso_node_list(jso_nodes) => jso_nodes;
 make_dart_rectangle(r) => r;
 convertDartToNative_Dictionary(Map dict) =>  dict;
 List convertDartToNative_StringArray(List<String> input) => input;

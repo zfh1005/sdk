@@ -908,6 +908,11 @@ class DartiumBackend(HtmlDartGenerator):
   def _GenerateAutoSetupScope(self, idl_name, native_suffix):
     return (self._interface.id, idl_name, native_suffix) not in _cpp_no_auto_scope_list
 
+  # Type of Dart type wrapping of Blink object returned.
+  NO_WRAP_JSO_TYPE = 0              # No wrapping a primitive type
+  WRAP_JSO_TYPE = 1                 # Wrap a Dart type around a JS object type 
+  WRAP_JSO_LIST_TYPE = 2            # Wrap each JS item in a list to a Dart type
+
   def _AddGetter(self, attr, html_name, read_only):
     # Temporary hack to force dart:scalarlist clamped array for ImageData.data.
     # TODO(antonm): solve in principled way.
@@ -922,7 +927,7 @@ class DartiumBackend(HtmlDartGenerator):
 
     # Operation uses blink?
     wrap_unwrap_list = [];
-    return_wrap_jso = False
+    return_wrap_jso = self.NO_WRAP_JSO_TYPE
     if self._dart_use_blink:
         # Unwrap the type to get the JsObject if Type is:
         #
@@ -932,10 +937,15 @@ class DartiumBackend(HtmlDartGenerator):
         #    - type is Object
         #
         # JsObject maybe stored in the Dart class.
-        return_wrap_jso = (isinstance(type_info, InterfaceIDLTypeInfo) or
-                           not(type_info) or attr.type.id == 'object')
+        if (isinstance(type_info, SequenceIDLTypeInfo) and
+            not isinstance(type_info._item_info, PrimitiveIDLTypeInfo)):
+                # List of a non-primitive type.
+                return_wrap_jso = self.WRAP_JSO_LIST_TYPE
+        elif (isinstance(type_info, InterfaceIDLTypeInfo) or
+              not(type_info) or attr.type.id == 'object'):
+            return_wrap_jso = self.WRAP_JSO_TYPE
     wrap_unwrap_list.append(return_wrap_jso)       # wrap_jso the returned object
-    wrap_unwrap_list.append(self._dart_use_blink)  # this must be unwrap_jso
+    wrap_unwrap_list.append(self.WRAP_JSO_TYPE if self._dart_use_blink else self.NO_WRAP_JSO_TYPE)  # this must be unwrap_jso
 
     # This seems to have been replaced with Custom=Getter (see above), but
     # check to be sure we don't see the old syntax
@@ -1009,7 +1019,7 @@ class DartiumBackend(HtmlDartGenerator):
         self.DeriveNativeEntry(attr.id, 'Setter', None)
 
     # setters return no object and if blink this must be unwrapped.?
-    wrap_unwrap_list = [False, self._dart_use_blink];
+    wrap_unwrap_list = [self.NO_WRAP_JSO_TYPE, self.WRAP_JSO_TYPE if self._dart_use_blink else self.NO_WRAP_JSO_TYPE];
 
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 2,
         dart_declaration, attr.is_static, return_type, parameters,
@@ -1193,7 +1203,9 @@ class DartiumBackend(HtmlDartGenerator):
 
     formals = info.ParametersAsDeclaration(self._DartType)
 
-    parameters = info.ParametersAsListOfVariables(None, self._type_registry if self._dart_use_blink else None, dart_js_interop)
+    parameters = info.ParametersAsListOfVariables(None,
+                                                  self._type_registry if self._dart_use_blink else None,
+                                                  dart_js_interop)
     dart_declaration = '%s%s %s(%s)' % (
         'static ' if info.IsStatic() else '',
         return_type,
@@ -1208,7 +1220,7 @@ class DartiumBackend(HtmlDartGenerator):
 
     # Operation uses blink?
     wrap_unwrap_list = [];
-    return_wrap_jso = False
+    return_wrap_jso = self.NO_WRAP_JSO_TYPE
     # return type wrapped?
     if self._dart_use_blink:
         # Wrap the type to store the JsObject if Type is:
@@ -1219,12 +1231,20 @@ class DartiumBackend(HtmlDartGenerator):
         #    - type is Object
         #
         # JsObject maybe stored in the Dart class.
-        return_wrap_jso = (wrap_unwrap_type_blink(return_type, self._type_registry) or
-                           wrap_unwrap_type_blink(info.type_name, self._type_registry) or
-                           return_type == 'Rectangle' or
-                           wrap_unwrap_list_blink(return_type, self._type_registry))
-    wrap_unwrap_list.append(return_wrap_jso)       # wrap_jso the returned object
-    wrap_unwrap_list.append(self._dart_use_blink)  # The 'this' parameter must be unwrap_jso
+        return_wrap_jso = \
+            self.WRAP_JSO_TYPE if (wrap_unwrap_type_blink(return_type, self._type_registry) or
+                                   wrap_unwrap_type_blink(info.type_name, self._type_registry) or
+                                   return_type == 'Rectangle' or
+                                   wrap_unwrap_list_blink(return_type, self._type_registry)) \
+                               else self.NO_WRAP_JSO_TYPE
+        return_type_info = self._type_registry.TypeInfo(info.type_name)
+        if (isinstance(return_type_info, SequenceIDLTypeInfo) and
+            not isinstance(return_type_info._item_info, PrimitiveIDLTypeInfo)):
+                return_wrap_jso = self.WRAP_JSO_LIST_TYPE
+    # wrap_jso the returned object
+    wrap_unwrap_list.append(return_wrap_jso)
+    # The 'this' parameter must be unwrap_jso
+    wrap_unwrap_list.append(self.WRAP_JSO_TYPE if self._dart_use_blink else self.NO_WRAP_JSO_TYPE)
 
     if info.callback_args:
       self._AddFutureifiedOperation(info, html_name)
@@ -1714,7 +1734,7 @@ class DartiumBackend(HtmlDartGenerator):
 
     if not static:
         formals = ", ".join(['mthis'] + parameters)
-        if wrap_unwrap_list and wrap_unwrap_list[1]:
+        if wrap_unwrap_list and wrap_unwrap_list[1] == self.WRAP_JSO_TYPE:
             actuals = ", ".join(['unwrap_jso(this)'] + parameters)
         else:
             actuals = ", ".join(['this'] + parameters)
@@ -1737,14 +1757,17 @@ class DartiumBackend(HtmlDartGenerator):
             emit_template = '''
   $METADATA$DART_DECLARATION => $DART_NAME($ACTUALS);
   '''
-            if wrap_unwrap_list and wrap_unwrap_list[0]:
+            if wrap_unwrap_list and wrap_unwrap_list[0] != self.NO_WRAP_JSO_TYPE:
                 emit_jso_template = '''
   $METADATA$DART_DECLARATION => %s($DART_NAME($ACTUALS));
   '''
                 if return_type == 'Rectangle':
                     jso_util_method = 'make_dart_rectangle'
-                else:
+                elif wrap_unwrap_list[0] == self.WRAP_JSO_TYPE:
                     jso_util_method = 'wrap_jso'
+                else:
+                    jso_util_method = 'wrap_jso_list'
+
                 # Always return List<String> unwrapped.
                 if return_type != 'List<String>':
                   emit_template = emit_jso_template % jso_util_method

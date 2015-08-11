@@ -1164,7 +1164,7 @@ try {
   var constructor = jsObject['constructor'];
   debug_or_assert("constructor != null", constructor != null);
   if (constructor == js.context['NodeList']) {
-    return wrap_jso_list(jsObject);
+    return wrap_jso_node_list(jsObject);
   }
   if (constructor == js.context['Object']) {
     return convertNativeObjectToDartMap(jsObject);
@@ -1224,8 +1224,18 @@ js.JsFunction wrap_media_event_listener(Function listener) {
   return _knownListeners[thisHashCode][listenerHashCode];
 }
 
+// Wrap the list of JsObject(s) to return a List of wrapped Dart objects.
+List wrap_jso_list(List simpleList) {
+  var collectionLen = simpleList['length'];
+  for (var i =0; i < collectionLen; i++) {
+    simpleList[i] = wrap_jso(simpleList[i]);
+  }
+
+  return simpleList;
+}
+
 // Wrap JsObject node list to return a List<node>.
-List<Node> wrap_jso_list(jso_nodes) {
+List<Node> wrap_jso_node_list(jso_nodes) {
   List<Node> nodes = new List<Node>();
   var collectionLen = jso_nodes['length'];
   for (var i = 0; i < collectionLen; i++) {
@@ -1841,7 +1851,7 @@ class AnimationTimeline extends NativeFieldWrapperClass2 {
   @DomName('AnimationTimeline.getAnimationPlayers')
   @DocsEditable()
   @Experimental() // untriaged
-  List<AnimationPlayer> getAnimationPlayers() => _blink.BlinkAnimationTimeline.instance.getAnimationPlayers_Callback_0_(unwrap_jso(this));
+  List<AnimationPlayer> getAnimationPlayers() => wrap_jso_list(_blink.BlinkAnimationTimeline.instance.getAnimationPlayers_Callback_0_(unwrap_jso(this)));
   
   @DomName('AnimationTimeline.play')
   @DocsEditable()
@@ -10123,10 +10133,10 @@ class DirectoryReader extends NativeFieldWrapperClass2 {
 
   void _readEntries(_EntriesCallback successCallback, [_ErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkDirectoryReader.instance.readEntries_Callback_2_(unwrap_jso(this), unwrap_jso((List<Entry> entries) => successCallback(entries)), unwrap_jso((FileError error) => errorCallback(wrap_jso(error))));
+      _blink.BlinkDirectoryReader.instance.readEntries_Callback_2_(unwrap_jso(this), unwrap_jso((List<Entry> entries) => successCallback(wrap_jso_list(entries))), unwrap_jso((FileError error) => errorCallback(wrap_jso(error))));
       return;
     }
-    _blink.BlinkDirectoryReader.instance.readEntries_Callback_1_(unwrap_jso(this), unwrap_jso((List<Entry> entries) => successCallback(entries)));
+    _blink.BlinkDirectoryReader.instance.readEntries_Callback_1_(unwrap_jso(this), unwrap_jso((List<Entry> entries) => successCallback(wrap_jso_list(entries))));
     return;
   }
 
@@ -15619,7 +15629,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DomName('Element.getAnimationPlayers')
   @DocsEditable()
   @Experimental() // untriaged
-  List<AnimationPlayer> getAnimationPlayers() => _blink.BlinkElement.instance.getAnimationPlayers_Callback_0_(unwrap_jso(this));
+  List<AnimationPlayer> getAnimationPlayers() => wrap_jso_list(_blink.BlinkElement.instance.getAnimationPlayers_Callback_0_(unwrap_jso(this)));
   
   @DomName('Element.getAttribute')
   @DocsEditable()
@@ -18347,7 +18357,7 @@ class FontFaceSetLoadEvent extends Event {
   @DomName('FontFaceSetLoadEvent.fontfaces')
   @DocsEditable()
   @Experimental() // untriaged
-  List<FontFace> get fontfaces => _blink.BlinkFontFaceSetLoadEvent.instance.fontfaces_Getter_(unwrap_jso(this));
+  List<FontFace> get fontfaces => wrap_jso_list(_blink.BlinkFontFaceSetLoadEvent.instance.fontfaces_Getter_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22610,7 +22620,7 @@ class InputElement extends HtmlElement implements
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/states-of-the-type-attribute.html#concept-input-type-file-selected
-  List<Entry> get entries => _blink.BlinkHTMLInputElement.instance.webkitEntries_Getter_(unwrap_jso(this));
+  List<Entry> get entries => wrap_jso_list(_blink.BlinkHTMLInputElement.instance.webkitEntries_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLInputElement.webkitdirectory')
   @DocsEditable()
@@ -25324,7 +25334,7 @@ class MediaStream extends EventTarget {
   
   @DomName('MediaStream.getAudioTracks')
   @DocsEditable()
-  List<MediaStreamTrack> getAudioTracks() => _blink.BlinkMediaStream.instance.getAudioTracks_Callback_0_(unwrap_jso(this));
+  List<MediaStreamTrack> getAudioTracks() => wrap_jso_list(_blink.BlinkMediaStream.instance.getAudioTracks_Callback_0_(unwrap_jso(this)));
   
   @DomName('MediaStream.getTrackById')
   @DocsEditable()
@@ -25333,11 +25343,11 @@ class MediaStream extends EventTarget {
   @DomName('MediaStream.getTracks')
   @DocsEditable()
   @Experimental() // untriaged
-  List<MediaStreamTrack> getTracks() => _blink.BlinkMediaStream.instance.getTracks_Callback_0_(unwrap_jso(this));
+  List<MediaStreamTrack> getTracks() => wrap_jso_list(_blink.BlinkMediaStream.instance.getTracks_Callback_0_(unwrap_jso(this)));
   
   @DomName('MediaStream.getVideoTracks')
   @DocsEditable()
-  List<MediaStreamTrack> getVideoTracks() => _blink.BlinkMediaStream.instance.getVideoTracks_Callback_0_(unwrap_jso(this));
+  List<MediaStreamTrack> getVideoTracks() => wrap_jso_list(_blink.BlinkMediaStream.instance.getVideoTracks_Callback_0_(unwrap_jso(this)));
   
   @DomName('MediaStream.removeTrack')
   @DocsEditable()
@@ -25503,7 +25513,7 @@ class MediaStreamTrack extends EventTarget {
   @DomName('MediaStreamTrack.getSources')
   @DocsEditable()
   @Experimental() // untriaged
-  static void _getSources(MediaStreamTrackSourcesCallback callback) => _blink.BlinkMediaStreamTrack.instance.getSources_Callback_1_(unwrap_jso((List<SourceInfo> sources) => callback(sources)));
+  static void _getSources(MediaStreamTrackSourcesCallback callback) => _blink.BlinkMediaStreamTrack.instance.getSources_Callback_1_(unwrap_jso((List<SourceInfo> sources) => callback(wrap_jso_list(sources))));
   
   static Future<List<SourceInfo>> getSources() {
     var completer = new Completer<List<SourceInfo>>();
@@ -26958,7 +26968,7 @@ class MutationObserver extends NativeFieldWrapperClass2 {
   
   @DomName('MutationObserver.takeRecords')
   @DocsEditable()
-  List<MutationRecord> takeRecords() => _blink.BlinkMutationObserver.instance.takeRecords_Callback_0_(unwrap_jso(this));
+  List<MutationRecord> takeRecords() => wrap_jso_list(_blink.BlinkMutationObserver.instance.takeRecords_Callback_0_(unwrap_jso(this)));
   
   /**
    * Checks to see if the mutation observer API is supported on the current
@@ -27926,7 +27936,7 @@ class Node extends EventTarget {
   @DocsEditable()
   @Returns('NodeList')
   @Creates('NodeList')
-  List<Node> get childNodes => wrap_jso_list(_blink.BlinkNode.instance.childNodes_Getter_(unwrap_jso(this)));
+  List<Node> get childNodes => wrap_jso_node_list(_blink.BlinkNode.instance.childNodes_Getter_(unwrap_jso(this)));
   // To suppress missing implicit constructor warnings.
   factory Node._() { throw new UnsupportedError("Not supported"); }
 
@@ -29486,19 +29496,19 @@ class Performance extends EventTarget {
   @DocsEditable()
   // http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute
   @Experimental()
-  List<PerformanceEntry> getEntries() => _blink.BlinkPerformance.instance.getEntries_Callback_0_(unwrap_jso(this));
+  List<PerformanceEntry> getEntries() => wrap_jso_list(_blink.BlinkPerformance.instance.getEntries_Callback_0_(unwrap_jso(this)));
   
   @DomName('Performance.getEntriesByName')
   @DocsEditable()
   // http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute
   @Experimental()
-  List<PerformanceEntry> getEntriesByName(String name, String entryType) => _blink.BlinkPerformance.instance.getEntriesByName_Callback_2_(unwrap_jso(this), name, entryType);
+  List<PerformanceEntry> getEntriesByName(String name, String entryType) => wrap_jso_list(_blink.BlinkPerformance.instance.getEntriesByName_Callback_2_(unwrap_jso(this), name, entryType));
   
   @DomName('Performance.getEntriesByType')
   @DocsEditable()
   // http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute
   @Experimental()
-  List<PerformanceEntry> getEntriesByType(String entryType) => _blink.BlinkPerformance.instance.getEntriesByType_Callback_1_(unwrap_jso(this), entryType);
+  List<PerformanceEntry> getEntriesByType(String entryType) => wrap_jso_list(_blink.BlinkPerformance.instance.getEntriesByType_Callback_1_(unwrap_jso(this), entryType));
   
   @DomName('Performance.mark')
   @DocsEditable()
@@ -31567,11 +31577,11 @@ class RtcPeerConnection extends EventTarget {
 
   @DomName('RTCPeerConnection.getLocalStreams')
   @DocsEditable()
-  List<MediaStream> getLocalStreams() => _blink.BlinkRTCPeerConnection.instance.getLocalStreams_Callback_0_(unwrap_jso(this));
+  List<MediaStream> getLocalStreams() => wrap_jso_list(_blink.BlinkRTCPeerConnection.instance.getLocalStreams_Callback_0_(unwrap_jso(this)));
   
   @DomName('RTCPeerConnection.getRemoteStreams')
   @DocsEditable()
-  List<MediaStream> getRemoteStreams() => _blink.BlinkRTCPeerConnection.instance.getRemoteStreams_Callback_0_(unwrap_jso(this));
+  List<MediaStream> getRemoteStreams() => wrap_jso_list(_blink.BlinkRTCPeerConnection.instance.getRemoteStreams_Callback_0_(unwrap_jso(this)));
   
   @DomName('RTCPeerConnection.getStats')
   @DocsEditable()
@@ -31815,7 +31825,7 @@ class RtcStatsResponse extends NativeFieldWrapperClass2 {
   
   @DomName('RTCStatsResponse.result')
   @DocsEditable()
-  List<RtcStatsReport> result() => _blink.BlinkRTCStatsResponse.instance.result_Callback_0_(unwrap_jso(this));
+  List<RtcStatsReport> result() => wrap_jso_list(_blink.BlinkRTCStatsResponse.instance.result_Callback_0_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -33961,7 +33971,7 @@ class SpeechSynthesis extends EventTarget {
   
   @DomName('SpeechSynthesis.getVoices')
   @DocsEditable()
-  List<SpeechSynthesisVoice> getVoices() => _blink.BlinkSpeechSynthesis.instance.getVoices_Callback_0_(unwrap_jso(this));
+  List<SpeechSynthesisVoice> getVoices() => wrap_jso_list(_blink.BlinkSpeechSynthesis.instance.getVoices_Callback_0_(unwrap_jso(this)));
   
   @DomName('SpeechSynthesis.pause')
   @DocsEditable()
@@ -36993,10 +37003,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
