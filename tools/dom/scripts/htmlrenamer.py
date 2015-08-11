@@ -233,6 +233,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Document.webkitIsFullScreen',
   'Document.webkitVisibilityState',
 
+  'Element.animate',
   'Element.children',
   'Element.childElementCount',
   'Element.firstElementChild',

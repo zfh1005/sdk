@@ -1249,12 +1249,15 @@ Map<String, dynamic> convertNativeObjectToDartMap(js.JsObject jsObject) {
 // is the Dartium only version it uses dart:js.
 convertDartToNative_Dictionary(Map dict) {
   if (dict == null) return null;
-  var jsArray = new js.JsArray();
+  var jsArray = new js.JsObject(js.context['Object']);
   dict.forEach((String key, value) {
       jsArray[key] = value;
   });
   return jsArray;
 }
+
+// Converts a Dart list into a JsArray. For the Dartium version only.
+convertDartToNative_List(List input) => new js.JsArray()..addAll(input);
 
 // Conversion function place holder (currently not used in dart2js or dartium).
 List convertDartToNative_StringArray(List<String> input) => input;
@@ -14238,6 +14241,49 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   void leftView() {}
 
   /**
+   * Creates a new AnimationEffect object whose target element is the object
+   * on which the method is called, and calls the play() method of the
+   * AnimationTimeline object of the document timeline of the node document
+   * of the element, passing the newly created AnimationEffect as the argument
+   * to the method. Returns an AnimationPlayer for the effect.
+   *
+   * Examples
+   *
+   *     var animation = elem.animate([{"opacity": 75}, {"opacity": 0}], 200);
+   *
+   *     var animation = elem.animate([
+   *       {"transform": "translate(100px, -100%)"},
+   *       {"transform" : "translate(400px, 500px)"}
+   *     ], 1500);
+   *
+   * The [frames] parameter is an Iterable<Map>, where the
+   * map entries specify CSS animation effects. The
+   * [timing] paramter can be a double, representing the number of milliseconds
+   * for the transition, or a Map with fields corresponding to those
+   * of the [Timing] object.
+  **/
+  @Experimental
+  @SupportedBrowser(SupportedBrowser.CHROME, '36')
+  AnimationPlayer animate(Iterable<Map<String, dynamic>> frames, [timing]) {
+    if (frames is! Iterable || !(frames.every((x) => x is Map))) {
+      throw new ArgumentError("The frames parameter should be a List of Maps "
+          "with frame information");
+    }
+    var convertedFrames = frames;
+    if (convertedFrames is Iterable) {
+      convertedFrames = convertDartToNative_List(
+          frames.map(convertDartToNative_Dictionary).toList());
+    }
+    var convertedTiming = timing;
+    if (convertedTiming is Map) {
+      convertedTiming = convertDartToNative_Dictionary(convertedTiming);
+    }
+    return convertedTiming == null
+      ? _animate(convertedFrames)
+      : _animate(convertedFrames, convertedTiming);
+  }
+
+  /**
    * Called by the DOM whenever an attribute on this has been changed.
    */
   void attributeChanged(String name, String oldValue, String newValue) {}
@@ -14555,11 +14601,11 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
     if (_parseDocument == null) {
       _parseDocument = document.implementation.createHtmlDocument('');
       _parseRange = _parseDocument.createRange();
-	
+
       // Workaround for Safari bug. Was also previously Chrome bug 229142
-      // - URIs are not resolved in new doc.	
-      var base = _parseDocument.createElement('base');	
-      base.href = document.baseUri;	
+      // - URIs are not resolved in new doc.
+      var base = _parseDocument.createElement('base');
+      base.href = document.baseUri;
       _parseDocument.head.append(base);
     }
     var contextElement;
@@ -14659,7 +14705,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    * used when an explicit accessor is not available.
    */
   ElementEvents get on => new ElementEvents(this);
-  
+
   /**
    * Verify if any of the attributes that we use in the sanitizer look unexpected,
    * possibly indicating DOM clobbering attacks.
@@ -15553,7 +15599,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DomName('Element.animate')
   @DocsEditable()
   @Experimental() // untriaged
-  AnimationPlayer animate(Object effect, [Object timing]) => wrap_jso(_blink.BlinkElement.instance.animate_Callback_2_(unwrap_jso(this), effect, timing));
+  AnimationPlayer _animate(Object effect, [Object timing]) => wrap_jso(_blink.BlinkElement.instance.animate_Callback_2_(unwrap_jso(this), effect, timing));
   
   @DomName('Element.blur')
   @DocsEditable()

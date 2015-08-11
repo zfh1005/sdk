@@ -12689,17 +12689,14 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *     var animation = elem.animate([
    *       {"transform": "translate(100px, -100%)"},
    *       {"transform" : "translate(400px, 500px)"}
-   *     ], 1500);  
+   *     ], 1500);
    *
    * The [frames] parameter is an Iterable<Map>, where the
    * map entries specify CSS animation effects. The
    * [timing] paramter can be a double, representing the number of milliseconds
    * for the transition, or a Map with fields corresponding to those
    * of the [Timing] object.
-   *
-   * This is not yet supported in Dartium.
   **/
-// TODO(alanknight): Correct above comment once it works in Dartium.
   @Experimental
   @SupportedBrowser(SupportedBrowser.CHROME, '36')
   AnimationPlayer animate(Iterable<Map<String, dynamic>> frames, [timing]) {
@@ -12709,7 +12706,8 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
     }
     var convertedFrames = frames;
     if (convertedFrames is Iterable) {
-      convertedFrames = frames.map(convertDartToNative_Dictionary).toList();
+      convertedFrames = convertDartToNative_List(
+          frames.map(convertDartToNative_Dictionary).toList());
     }
     var convertedTiming = timing;
     if (convertedTiming is Map) {
@@ -12869,7 +12867,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
   @JSName('insertAdjacentText')
   void _insertAdjacentText(String where, String text) native;
-  
+
 
   /**
    * Parses text as an HTML fragment and inserts it into the DOM at the
@@ -13181,11 +13179,11 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
     if (_parseDocument == null) {
       _parseDocument = document.implementation.createHtmlDocument('');
       _parseRange = _parseDocument.createRange();
-	
+
       // Workaround for Safari bug. Was also previously Chrome bug 229142
-      // - URIs are not resolved in new doc.	
-      var base = _parseDocument.createElement('base');	
-      base.href = document.baseUri;	
+      // - URIs are not resolved in new doc.
+      var base = _parseDocument.createElement('base');
+      base.href = document.baseUri;
       _parseDocument.head.append(base);
     }
     var contextElement;
@@ -13285,7 +13283,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    * used when an explicit accessor is not available.
    */
   ElementEvents get on => new ElementEvents(this);
-  
+
   /**
    * Verify if any of the attributes that we use in the sanitizer look unexpected,
    * possibly indicating DOM clobbering attacks.
