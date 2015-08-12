@@ -1757,7 +1757,7 @@ class DartiumBackend(HtmlDartGenerator):
             emit_template = '''
   $METADATA$DART_DECLARATION => $DART_NAME($ACTUALS);
   '''
-            if wrap_unwrap_list and wrap_unwrap_list[0] != self.NO_WRAP_JSO_TYPE:
+            if wrap_unwrap_list and wrap_unwrap_list[0] == self.WRAP_JSO_TYPE:
                 emit_jso_template = '''
   $METADATA$DART_DECLARATION => %s($DART_NAME($ACTUALS));
   '''
@@ -1765,8 +1765,6 @@ class DartiumBackend(HtmlDartGenerator):
                     jso_util_method = 'make_dart_rectangle'
                 elif wrap_unwrap_list[0] == self.WRAP_JSO_TYPE:
                     jso_util_method = 'wrap_jso'
-                else:
-                    jso_util_method = 'wrap_jso_list'
 
                 # Always return List<String> unwrapped.
                 if return_type != 'List<String>':
