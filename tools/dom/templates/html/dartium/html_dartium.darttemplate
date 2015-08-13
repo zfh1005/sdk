@@ -359,6 +359,10 @@ Rectangle make_dart_rectangle(r) => new Rectangle(r['left'], r['top'], r['width'
 // extending NativeFieldWrapperClass2 creates a default constructor.
 class JsoNativeFieldWrapper extends NativeFieldWrapperClass2 {}
 
+// Flag to disable JS interop asserts.  Setting to false will speed up the
+// wrap_jso calls.
+bool __interop_checks = true;
+
 /** Expando for JsObject, used by every Dart class associated with a Javascript
  *  class (e.g., DOM, WebAudio, etc.).
  */
@@ -368,15 +372,15 @@ class JsoNativeFieldWrapper extends NativeFieldWrapperClass2 {}
  */
 js.JsObject unwrap_jso(dartClass_instance) {
   try {
-      if (dartClass_instance != null)
-          return dartClass_instance is NativeFieldWrapperClass2 ? dartClass_instance.blink_jsObject : dartClass_instance;
-      else
-          return null;
-//      return dartClass_instance.dartium_expando[dartClass_instance.expandoJsObject];
+    if (dartClass_instance != null)
+      return dartClass_instance is NativeFieldWrapperClass2 ?
+          dartClass_instance.blink_jsObject : dartClass_instance;
+    else
+      return null;
   } catch(NoSuchMethodException) {
-      // No blink_jsObject then return the dartClass_instance is probably an
-      // array that was already converted to a Dart class e.g., Uint8ClampedList.
-      return dartClass_instance;
+    // No blink_jsObject then return the dartClass_instance is probably an
+    // array that was already converted to a Dart class e.g., Uint8ClampedList.
+    return dartClass_instance;
   }
 }
 
@@ -385,34 +389,39 @@ js.JsObject unwrap_jso(dartClass_instance) {
  * on the Dart class and return the created Dart class.
  */
 wrap_jso(jsObject) {
-try {
-//  debug_or_assert("jsObject != null", jsObject != null);
-  if (jsObject is! js.JsObject) {
+  try {
+    if (jsObject is! js.JsObject) {
       // JS Interop converted the object to a Dart class e.g., Uint8ClampedList.
       return jsObject;
+    }
+    var constructor = jsObject['constructor'];
+    if (__interop_checks) {
+      debug_or_assert("constructor != null", constructor != null);
+    }
+    if (constructor == js.context['NodeList']) {
+      return wrap_jso_node_list(jsObject);
+    }
+    if (constructor == js.context['Object']) {
+      return convertNativeObjectToDartMap(jsObject);
+    }
+    var jsTypeName = constructor['name'];
+    if (__interop_checks) {
+      debug_or_assert("constructor != null && jsTypeName.length > 0", constructor != null && jsTypeName.length > 0);
+    }
+    var func = getHtmlCreateFunction(jsTypeName);
+    if (__interop_checks)
+      debug_or_assert("func != null name = ${jsTypeName}", func != null);
+    var dartClass_instance = func();
+    dartClass_instance.blink_jsObject = jsObject;
+    return dartClass_instance;
+  } catch(e, stacktrace){
+    if (__interop_checks) {
+      if (e is DebugAssertException)
+        window.console.log("${e.message}\n ${stacktrace}");
+      else
+        window.console.log("${stacktrace}");
+    }
   }
-  var constructor = jsObject['constructor'];
-  debug_or_assert("constructor != null", constructor != null);
-  if (constructor == js.context['NodeList']) {
-    return wrap_jso_node_list(jsObject);
-  }
-  if (constructor == js.context['Object']) {
-    return convertNativeObjectToDartMap(jsObject);
-  }
-  var jsTypeName = constructor['name'];
-  debug_or_assert("constructor != null && jsTypeName.length > 0", constructor != null && jsTypeName.length > 0);
-  var func = getHtmlCreateFunction(jsTypeName);
-  debug_or_assert("func != null name = ${jsTypeName}", func != null);
-  var dartClass_instance = func();
-  dartClass_instance.blink_jsObject = jsObject;
-//  dartClass_instance.dartium_expando[dartClass_instance.expandoJsObject] = jsObject;
-  return dartClass_instance;
-} catch(e, stacktrace){
-  if (e is DebugAssertException)
-    window.console.log("${e.message}\n ${stacktrace}");
-  else
-    window.console.log("${stacktrace}");
-}
 }
 
 class DebugAssertException implements Exception {
