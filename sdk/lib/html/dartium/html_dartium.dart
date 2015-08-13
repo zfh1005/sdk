@@ -12360,7 +12360,7 @@ class DomStringList extends JsoNativeFieldWrapper with ListMixin<String>, Immuta
   }
 
   String _nativeIndexedGetter(int index) => _blink.BlinkDOMStringList.instance.item_Callback_1_(unwrap_jso(this), index);
- 
+
   void operator[]=(int index, String value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -17590,7 +17590,7 @@ class FileList extends JsoNativeFieldWrapper with ListMixin<File>, ImmutableList
   }
 
   File _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkFileList.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, File value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -19846,7 +19846,7 @@ class HtmlCollection extends JsoNativeFieldWrapper with ListMixin<Node>, Immutab
   }
 
   Node _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkHTMLCollection.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -26623,7 +26623,7 @@ class MimeTypeArray extends JsoNativeFieldWrapper with ListMixin<MimeType>, Immu
   }
 
   MimeType _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkMimeTypeArray.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, MimeType value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -28439,7 +28439,7 @@ class NodeList extends JsoNativeFieldWrapper with ListMixin<Node>, ImmutableList
   }
 
   Node _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkNodeList.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -30030,7 +30030,7 @@ class PluginArray extends JsoNativeFieldWrapper with ListMixin<Plugin>, Immutabl
   }
 
   Plugin _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkPluginArray.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, Plugin value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -33122,7 +33122,7 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
   }
 
   SourceBuffer _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkSourceBufferList.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, SourceBuffer value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -33442,7 +33442,7 @@ class SpeechGrammarList extends JsoNativeFieldWrapper with ListMixin<SpeechGramm
   }
 
   SpeechGrammar _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkSpeechGrammarList.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, SpeechGrammar value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -35877,7 +35877,7 @@ class TextTrackCueList extends JsoNativeFieldWrapper with ListMixin<TextTrackCue
   }
 
   TextTrackCue _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkTextTrackCueList.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, TextTrackCue value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -35978,7 +35978,7 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
   }
 
   TextTrack _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkTextTrackList.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, TextTrack value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -36493,7 +36493,7 @@ class TouchList extends JsoNativeFieldWrapper with ListMixin<Touch>, ImmutableLi
   }
 
   Touch _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkTouchList.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, Touch value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -37002,10 +37002,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -39293,9 +39293,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   
   SqlDatabase openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) {
     if (creationCallback != null) {
-      return _blink.BlinkWindow.instance.openDatabase_Callback_5_(unwrap_jso(this), name, version, displayName, estimatedSize, unwrap_jso((SqlDatabase database) => creationCallback(wrap_jso(database))));
+      return wrap_jso(_blink.BlinkWindow.instance.openDatabase_Callback_5_(unwrap_jso(this), name, version, displayName, estimatedSize, unwrap_jso((SqlDatabase database) => creationCallback(wrap_jso(database)))));
     }
-    return _blink.BlinkWindow.instance.openDatabase_Callback_4_(unwrap_jso(this), name, version, displayName, estimatedSize);
+    return wrap_jso(_blink.BlinkWindow.instance.openDatabase_Callback_4_(unwrap_jso(this), name, version, displayName, estimatedSize));
   }
 
   @DomName('Window.postMessage')
@@ -41193,7 +41193,7 @@ class _ClientRectList extends JsoNativeFieldWrapper with ListMixin<Rectangle>, I
   }
 
   Rectangle _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkClientRectList.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, Rectangle value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -41307,7 +41307,7 @@ class _CssRuleList extends JsoNativeFieldWrapper with ListMixin<CssRule>, Immuta
   }
 
   CssRule _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkCSSRuleList.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, CssRule value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -41389,7 +41389,7 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
   }
 
   _CSSValue _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkCSSValueList.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, _CSSValue value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -41805,7 +41805,7 @@ class _GamepadList extends JsoNativeFieldWrapper with ListMixin<Gamepad>, Immuta
   }
 
   Gamepad _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkGamepadList.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, Gamepad value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -42163,7 +42163,7 @@ class _NamedNodeMap extends JsoNativeFieldWrapper with ListMixin<Node>, Immutabl
   }
 
   Node _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkNamedNodeMap.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, Node value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -42556,7 +42556,7 @@ class _SpeechRecognitionResultList extends JsoNativeFieldWrapper with ListMixin<
   }
 
   SpeechRecognitionResult _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkSpeechRecognitionResultList.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, SpeechRecognitionResult value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -42639,7 +42639,7 @@ class _StyleSheetList extends JsoNativeFieldWrapper with ListMixin<StyleSheet>, 
   }
 
   StyleSheet _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkStyleSheetList.instance.item_Callback_1_(unwrap_jso(this), index));
- 
+
   void operator[]=(int index, StyleSheet value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }

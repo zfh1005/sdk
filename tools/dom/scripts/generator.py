@@ -167,7 +167,7 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
 
     'RTCIceCandidate': 'RTCIceCandidate,mozRTCIceCandidate',
 
-    'RTCIceCandidateEvent': 'RTCIceCandidateEvent,RTCPeerConnectionIceEvent', 
+    'RTCIceCandidateEvent': 'RTCIceCandidateEvent,RTCPeerConnectionIceEvent',
 
     'RTCSessionDescription': 'RTCSessionDescription,mozRTCSessionDescription',
 
@@ -1439,5 +1439,12 @@ def wrap_unwrap_type_blink(return_type, type_registry):
         return_type = return_type.replace('Html', 'HTML', 1)
     return (type_registry.HasInterface(return_type) or not(return_type) or
             return_type == 'Object' or
+            return_type == 'SqlDatabase' or # renamed to Database
             return_type == 'HTMLElement' or
             return_type == 'MutationObserver')
+
+def wrap_type_blink(return_type, type_registry):
+    """Returns True if the type is a blink type that requires wrap_jso but
+    NOT unwrap_jso"""
+    return (return_type == 'Map' or
+            return_type == 'Rectangle')

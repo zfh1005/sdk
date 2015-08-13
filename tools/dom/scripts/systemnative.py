@@ -910,7 +910,7 @@ class DartiumBackend(HtmlDartGenerator):
 
   # Type of Dart type wrapping of Blink object returned.
   NO_WRAP_JSO_TYPE = 0              # No wrapping a primitive type
-  WRAP_JSO_TYPE = 1                 # Wrap a Dart type around a JS object type 
+  WRAP_JSO_TYPE = 1                 # Wrap a Dart type around a JS object type
   WRAP_JSO_LIST_TYPE = 2            # Wrap each JS item in a list to a Dart type
 
   def _AddGetter(self, attr, html_name, read_only):
@@ -1096,7 +1096,8 @@ class DartiumBackend(HtmlDartGenerator):
       # Does nativeIndexGetter return a DartClass (JsObject) if so wrap_jso.
       wrap_jso_start = ''
       wrap_jso_end = ''
-      if isinstance(type_info, InterfaceIDLTypeInfo):
+      if (isinstance(type_info, InterfaceIDLTypeInfo) or
+          wrap_type_blink(type_info.narrow_dart_type, self._type_registry)):
           wrap_jso_start = 'wrap_jso('
           wrap_jso_end = ')'
       blinkNativeIndexed = """
@@ -1107,7 +1108,7 @@ class DartiumBackend(HtmlDartGenerator):
   }
 
   $TYPE _nativeIndexedGetter(int index) => %s$(DART_NATIVE_NAME)(unwrap_jso(this), index)%s;
- """ % (wrap_jso_start, wrap_jso_end, wrap_jso_start, wrap_jso_end)
+""" % (wrap_jso_start, wrap_jso_end, wrap_jso_start, wrap_jso_end)
       # Wrap the type to store the JsObject if Type is:
       #
       #    - known IDL type
@@ -1232,11 +1233,11 @@ class DartiumBackend(HtmlDartGenerator):
         #
         # JsObject maybe stored in the Dart class.
         return_wrap_jso = \
-            self.WRAP_JSO_TYPE if (wrap_unwrap_type_blink(return_type, self._type_registry) or
-                                   wrap_unwrap_type_blink(info.type_name, self._type_registry) or
-                                   return_type == 'Rectangle' or
-                                   wrap_unwrap_list_blink(return_type, self._type_registry)) \
-                               else self.NO_WRAP_JSO_TYPE
+          self.WRAP_JSO_TYPE if (wrap_unwrap_type_blink(return_type, self._type_registry) or
+                                 wrap_unwrap_type_blink(info.type_name, self._type_registry) or
+                                 wrap_type_blink(return_type, self._type_registry) or
+                                 wrap_unwrap_list_blink(return_type, self._type_registry)) \
+            else self.NO_WRAP_JSO_TYPE
         return_type_info = self._type_registry.TypeInfo(info.type_name)
         if (isinstance(return_type_info, SequenceIDLTypeInfo) and
             not isinstance(return_type_info._item_info, PrimitiveIDLTypeInfo)):

@@ -331,7 +331,7 @@ class SqlResultSetRowList extends JsoNativeFieldWrapper with ListMixin<Map>, Imm
   }
 
   Map _nativeIndexedGetter(int index) => _blink.BlinkSQLResultSetRowList.instance.item_Callback_1_(unwrap_jso(this), index);
- 
+
   void operator[]=(int index, Map value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
   }
@@ -372,7 +372,7 @@ class SqlResultSetRowList extends JsoNativeFieldWrapper with ListMixin<Map>, Imm
 
   @DomName('SQLResultSetRowList.item')
   @DocsEditable()
-  Map item(int index) => _blink.BlinkSQLResultSetRowList.instance.item_Callback_1_(unwrap_jso(this), index);
+  Map item(int index) => wrap_jso(_blink.BlinkSQLResultSetRowList.instance.item_Callback_1_(unwrap_jso(this), index));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
