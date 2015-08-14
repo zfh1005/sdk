@@ -4886,6 +4886,7 @@ class SvgElement extends Element implements GlobalEventHandlers {
     var e = new SvgElement.tag(tag);
     return e is SvgElement && !(e is UnknownElement);
   }
+
   // To suppress missing implicit constructor warnings.
   factory SvgElement._() { throw new UnsupportedError("Not supported"); }
 

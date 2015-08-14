@@ -114,7 +114,12 @@ $endif
   bool remove(Object object) {
     if (object is! Node) return false;
     Node node = object;
+$if JSINTEROP
+    // We aren't preserving identity of nodes in JSINTEROP mode
+    if (_this != node.parentNode) return false;
+$else
     if (!identical(_this, node.parentNode)) return false;
+$endif
     _this._removeChild(node);
     return true;
   }

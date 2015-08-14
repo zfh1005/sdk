@@ -13120,8 +13120,9 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
     // offsetParent, "tops out" at BODY. But people could conceivably pass in
     // the document.documentElement and I want it to return an absolute offset,
     // so we have the special case checking for HTML.
-    bool foundAsParent = identical(current, parent) || parent.tagName == 'HTML';
-    if (current == null || identical(current, parent)) {
+    bool sameAsParent = identical(current, parent);
+    bool foundAsParent = sameAsParent || parent.tagName == 'HTML';
+    if (current == null || sameAsParent) {
       if (foundAsParent) return new Point(0, 0);
       throw new ArgumentError("Specified element is not a transitive offset "
           "parent of this element.");

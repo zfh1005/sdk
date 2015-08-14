@@ -143,5 +143,18 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     var e = new $CLASSNAME.tag(tag);
     return e is $CLASSNAME && !(e is UnknownElement);
   }
+
+$if JSINTEROP
+  String get className => _svgClassName.baseVal;
+
+  // Unbelievable hack. We can't create an SvgAnimatedString, but we can get
+  // the existing one and change its baseVal.
+  // TODO(alanknight): Handle suppressing the SVGAnimated<*> better
+  set className(String s) {
+    var oldClass = _svgClassName;
+    oldClass.baseVal = s;
+    super.className = oldClass;
+  }
+$endif
 $!MEMBERS
 }

@@ -97,7 +97,12 @@ class _ChildrenElementList extends ListBase<Element>
   bool remove(Object object) {
     if (object is Element) {
       Element element = object;
+$if JSINTEROP
+      // We aren't preserving identity of nodes in JSINTEROP mode
+      if (element.parentNode == _element) {
+$else
       if (identical(element.parentNode, _element)) {
+$endif
         _element._removeChild(element);
         return true;
       }
@@ -1259,8 +1264,13 @@ $endif
     // offsetParent, "tops out" at BODY. But people could conceivably pass in
     // the document.documentElement and I want it to return an absolute offset,
     // so we have the special case checking for HTML.
-    bool foundAsParent = identical(current, parent) || parent.tagName == 'HTML';
-    if (current == null || identical(current, parent)) {
+$if JSINTEROP
+    bool sameAsParent = current == parent;
+$else
+    bool sameAsParent = identical(current, parent);
+$endif
+    bool foundAsParent = sameAsParent || parent.tagName == 'HTML';
+    if (current == null || sameAsParent) {
       if (foundAsParent) return new Point(0, 0);
       throw new ArgumentError("Specified element is not a transitive offset "
           "parent of this element.");

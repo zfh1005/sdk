@@ -7018,6 +7018,17 @@ class SvgElement extends Element implements GlobalEventHandlers {
     var e = new SvgElement.tag(tag);
     return e is SvgElement && !(e is UnknownElement);
   }
+
+  String get className => _svgClassName.baseVal;
+
+  // Unbelievable hack. We can't create an SvgAnimatedString, but we can get
+  // the existing one and change its baseVal.
+  // TODO(alanknight): Handle suppressing the SVGAnimated<*> better
+  set className(String s) {
+    var oldClass = _svgClassName;
+    oldClass.baseVal = s;
+    super.className = oldClass;
+  }
   // To suppress missing implicit constructor warnings.
   factory SvgElement._() { throw new UnsupportedError("Not supported"); }
 

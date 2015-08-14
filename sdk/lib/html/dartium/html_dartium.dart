@@ -12625,7 +12625,8 @@ class _ChildrenElementList extends ListBase<Element>
   bool remove(Object object) {
     if (object is Element) {
       Element element = object;
-      if (identical(element.parentNode, _element)) {
+      // We aren't preserving identity of nodes in JSINTEROP mode
+      if (element.parentNode == _element) {
         _element._removeChild(element);
         return true;
       }
@@ -14551,8 +14552,9 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
     // offsetParent, "tops out" at BODY. But people could conceivably pass in
     // the document.documentElement and I want it to return an absolute offset,
     // so we have the special case checking for HTML.
-    bool foundAsParent = identical(current, parent) || parent.tagName == 'HTML';
-    if (current == null || identical(current, parent)) {
+    bool sameAsParent = current == parent;
+    bool foundAsParent = sameAsParent || parent.tagName == 'HTML';
+    if (current == null || sameAsParent) {
       if (foundAsParent) return new Point(0, 0);
       throw new ArgumentError("Specified element is not a transitive offset "
           "parent of this element.");
@@ -27758,7 +27760,8 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
   bool remove(Object object) {
     if (object is! Node) return false;
     Node node = object;
-    if (!identical(_this, node.parentNode)) return false;
+    // We aren't preserving identity of nodes in JSINTEROP mode
+    if (_this != node.parentNode) return false;
     _this._removeChild(node);
     return true;
   }
