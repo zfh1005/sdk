@@ -177,8 +177,8 @@ deps.update({
     "http://dart.googlecode.com/svn/third_party/fake_async" +
     Var("fake_async_rev"),
 
-  "src/dart/tests/co19/src": ((Var("googlecode_url") % "co19") +
-    "/trunk/co19/tests/co19/src" + Var("co19_rev")),
+  "src/dart/tests/co19/src":
+    "https://github.com/dart-lang/co19.git" + Var("co19_rev"),
 
   "src/dart/third_party/zlib":
       Var("chromium_git") + "/chromium/src/third_party/zlib.git" +
