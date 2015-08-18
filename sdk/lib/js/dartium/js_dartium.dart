@@ -576,7 +576,11 @@ class JsObject extends NativeFieldWrapperClass2 {
 
   int get hashCode native "JsObject_hashCode";
 
-  operator ==(other) => other is JsObject && _identityEquality(this, other);
+  operator ==(other) {
+    if (other is! JsObject)
+      other = html.unwrap_jso(other);
+    return other is JsObject && _identityEquality(this, other);
+  }
 
   static bool _identityEquality(
       JsObject a, JsObject b) native "JsObject_identityEquality";

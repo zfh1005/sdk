@@ -820,12 +820,10 @@ class AreaElement extends HtmlElement implements UrlUtils {
 @DomName('HTMLAudioElement')
 @Native("HTMLAudioElement")
 class AudioElement extends MediaElement {
-  // To suppress missing implicit constructor warnings.
-  factory AudioElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('HTMLAudioElement.HTMLAudioElement')
   @DocsEditable()
-  factory AudioElement([String src]) {
+  factory AudioElement._([String src]) {
     if (src != null) {
       return AudioElement._create_1(src);
     }
@@ -839,6 +837,8 @@ class AudioElement extends MediaElement {
    * This can only be called by subclasses from their created constructor.
    */
   AudioElement.created() : super.created();
+
+  factory AudioElement([String src]) => new AudioElement._(src);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

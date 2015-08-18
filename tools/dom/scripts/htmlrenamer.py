@@ -176,6 +176,7 @@ convert_to_future_members = monitored.Set(
 # constructor for dispatch purposes.
 custom_html_constructors = monitored.Set(
     'htmlrenamer.custom_html_constructors', [
+  'HTMLAudioElement',
   'HTMLOptionElement',
   'MutationObserver',
 ])

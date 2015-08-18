@@ -2279,18 +2279,14 @@ class AreaElement extends HtmlElement implements UrlUtils {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 
 @DocsEditable()
 @DomName('HTMLAudioElement')
 class AudioElement extends MediaElement {
-  // To suppress missing implicit constructor warnings.
-  factory AudioElement._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('HTMLAudioElement.HTMLAudioElement')
   @DocsEditable()
-  factory AudioElement([String src]) {
+  factory AudioElement._([String src]) {
     return wrap_jso(_blink.BlinkHTMLAudioElement.instance.constructorCallback_1_(src));
   }
 
@@ -2312,6 +2308,12 @@ class AudioElement extends MediaElement {
    */
   AudioElement.created() : super.created();
 
+  factory AudioElement([String src]) {
+    if (src == null)
+      return wrap_jso(_blink.BlinkHTMLAudioElement.instance.constructorCallback_0_());
+    else
+      return wrap_jso(_blink.BlinkHTMLAudioElement.instance.constructorCallback_1_(src));
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -37005,10 +37007,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
