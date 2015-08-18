@@ -509,7 +509,7 @@ void Service::InvokeMethod(Isolate* isolate, const Array& msg) {
     HANDLESCOPE(isolate);
 
     Instance& reply_port = Instance::Handle(isolate);
-    String& seq = String::Handle(isolate);
+    Instance& seq = String::Handle(isolate);
     String& method_name = String::Handle(isolate);
     Array& param_keys = Array::Handle(isolate);
     Array& param_values = Array::Handle(isolate);
@@ -520,7 +520,7 @@ void Service::InvokeMethod(Isolate* isolate, const Array& msg) {
     param_values ^= msg.At(5);
 
     ASSERT(!method_name.IsNull());
-    ASSERT(!seq.IsNull());
+    ASSERT(seq.IsNull() || seq.IsString() || seq.IsNumber());
     ASSERT(!param_keys.IsNull());
     ASSERT(!param_values.IsNull());
     ASSERT(param_keys.Length() == param_values.Length());
@@ -681,8 +681,11 @@ void Service::HandleEvent(ServiceEvent* event) {
   ASSERT(stream_id != NULL);
   {
     JSONObject jsobj(&js);
-    jsobj.AddProperty("event", event);
-    jsobj.AddProperty("streamId", stream_id);
+    jsobj.AddProperty("jsonrpc", "2.0");
+    jsobj.AddProperty("method", "streamNotify");
+    JSONObject params(&jsobj, "params");
+    params.AddProperty("streamId", stream_id);
+    params.AddProperty("event", event);
   }
   PostEvent(stream_id, event->KindAsCString(), &js);
 }
@@ -927,16 +930,21 @@ void Service::SendEchoEvent(Isolate* isolate, const char* text) {
   JSONStream js;
   {
     JSONObject jsobj(&js);
+    jsobj.AddProperty("jsonrpc", "2.0");
+    jsobj.AddProperty("method", "streamNotify");
     {
-      JSONObject event(&jsobj, "event");
-      event.AddProperty("type", "Event");
-      event.AddProperty("kind", "_Echo");
-      event.AddProperty("isolate", isolate);
-      if (text != NULL) {
-        event.AddProperty("text", text);
+      JSONObject params(&jsobj, "params");
+      params.AddProperty("streamId", echo_stream.id());
+      {
+        JSONObject event(&params, "event");
+        event.AddProperty("type", "Event");
+        event.AddProperty("kind", "_Echo");
+        event.AddProperty("isolate", isolate);
+        if (text != NULL) {
+          event.AddProperty("text", text);
+        }
       }
     }
-    jsobj.AddProperty("streamId", echo_stream.id());
   }
   const String& message = String::Handle(String::New(js.ToCString()));
   uint8_t data[] = {0, 128, 255};
@@ -1515,10 +1523,9 @@ static bool PrintRetainingPath(Isolate* isolate,
   jsobj.AddProperty("length", length);
   JSONArray elements(&jsobj, "elements");
   Object& element = Object::Handle();
-  Object& parent = Object::Handle();
-  Smi& offset_from_parent = Smi::Handle();
-  Class& parent_class = Class::Handle();
-  Array& parent_field_map = Array::Handle();
+  Smi& slot_offset = Smi::Handle();
+  Class& element_class = Class::Handle();
+  Array& element_field_map = Array::Handle();
   Field& field = Field::Handle();
   limit = Utils::Minimum(limit, length);
   for (intptr_t i = 0; i < limit; ++i) {
@@ -1528,22 +1535,23 @@ static bool PrintRetainingPath(Isolate* isolate,
     jselement.AddProperty("value", element);
     // Interpret the word offset from parent as list index or instance field.
     // TODO(koda): User-friendly interpretation for map entries.
-    offset_from_parent ^= path.At((i * 2) + 1);
-    int parent_i = i + 1;
-    if (parent_i < limit) {
-      parent = path.At(parent_i * 2);
-      if (parent.IsArray()) {
-        intptr_t element_index = offset_from_parent.Value() -
+    if (i > 0) {
+      slot_offset ^= path.At((i * 2) - 1);
+      if (element.IsArray()) {
+        intptr_t element_index = slot_offset.Value() -
             (Array::element_offset(0) >> kWordSizeLog2);
         jselement.AddProperty("parentListIndex", element_index);
-      } else if (parent.IsInstance()) {
-        parent_class ^= parent.clazz();
-        parent_field_map = parent_class.OffsetToFieldMap();
-        intptr_t offset = offset_from_parent.Value();
-        if (offset > 0 && offset < parent_field_map.Length()) {
-          field ^= parent_field_map.At(offset);
+      } else if (element.IsInstance()) {
+        element_class ^= element.clazz();
+        element_field_map = element_class.OffsetToFieldMap();
+        intptr_t offset = slot_offset.Value();
+        if (offset > 0 && offset < element_field_map.Length()) {
+          field ^= element_field_map.At(offset);
           jselement.AddProperty("parentField", field);
         }
+      } else {
+        intptr_t element_index = slot_offset.Value();
+        jselement.AddProperty("_parentWordOffset", element_index);
       }
     }
   }
@@ -1926,6 +1934,7 @@ static bool GetHitsOrSites(Isolate* isolate, JSONStream* js, bool as_sites) {
 
 static const MethodParameter* get_coverage_params[] = {
   ISOLATE_PARAMETER,
+  new IdParameter("targetId", false),
   NULL,
 };
 
@@ -1938,7 +1947,7 @@ static bool GetCoverage(Isolate* isolate, JSONStream* js) {
 
 static const MethodParameter* get_call_site_data_params[] = {
   ISOLATE_PARAMETER,
-  new IdParameter("targetId", true),
+  new IdParameter("targetId", false),
   NULL,
 };
 
@@ -2250,6 +2259,11 @@ static const MethodParameter* resume_params[] = {
 static bool Resume(Isolate* isolate, JSONStream* js) {
   const char* step_param = js->LookupParam("step");
   if (isolate->message_handler()->paused_on_start()) {
+    // If the user is issuing a 'Over' or an 'Out' step, that is the
+    // same as a regular resume request.
+    if ((step_param != NULL) && (strcmp(step_param, "Into") == 0)) {
+      isolate->debugger()->EnterSingleStepMode();
+    }
     isolate->message_handler()->set_pause_on_start(false);
     if (Service::debug_stream.enabled()) {
       ServiceEvent event(isolate, ServiceEvent::kResume);
@@ -2338,6 +2352,7 @@ static Profile::TagOrder tags_enum_values[] = {
 static const MethodParameter* get_cpu_profile_params[] = {
   ISOLATE_PARAMETER,
   new EnumParameter("tags", true, tags_enum_names),
+  new BoolParameter("_codeTransitionTags", false),
   NULL,
 };
 
@@ -2346,7 +2361,11 @@ static const MethodParameter* get_cpu_profile_params[] = {
 static bool GetCpuProfile(Isolate* isolate, JSONStream* js) {
   Profile::TagOrder tag_order =
       EnumMapper(js->LookupParam("tags"), tags_enum_names, tags_enum_values);
-  ProfilerService::PrintJSON(js, tag_order);
+  intptr_t extra_tags = 0;
+  if (BoolParameter::Parse(js->LookupParam("_codeTransitionTags"))) {
+    extra_tags |= ProfilerService::kCodeTransitionTagsBit;
+  }
+  ProfilerService::PrintJSON(js, tag_order, extra_tags);
   return true;
 }
 
@@ -2470,17 +2489,22 @@ void Service::SendGraphEvent(Isolate* isolate) {
     JSONStream js;
     {
       JSONObject jsobj(&js);
+      jsobj.AddProperty("jsonrpc", "2.0");
+      jsobj.AddProperty("method", "streamNotify");
       {
-        JSONObject event(&jsobj, "event");
-        event.AddProperty("type", "Event");
-        event.AddProperty("kind", "_Graph");
-        event.AddProperty("isolate", isolate);
+        JSONObject params(&jsobj, "params");
+        params.AddProperty("streamId", graph_stream.id());
+        {
+          JSONObject event(&params, "event");
+          event.AddProperty("type", "Event");
+          event.AddProperty("kind", "_Graph");
+          event.AddProperty("isolate", isolate);
 
-        event.AddProperty("chunkIndex", i);
-        event.AddProperty("chunkCount", num_chunks);
-        event.AddProperty("nodeCount", node_count);
+          event.AddProperty("chunkIndex", i);
+          event.AddProperty("chunkCount", num_chunks);
+          event.AddProperty("nodeCount", node_count);
+        }
       }
-      jsobj.AddProperty("streamId", graph_stream.id());
     }
 
     const String& message = String::Handle(String::New(js.ToCString()));
@@ -2574,6 +2598,29 @@ static const MethodParameter* get_object_by_address_params[] = {
 };
 
 
+static RawObject* GetObjectHelper(Isolate* isolate, uword addr) {
+  Object& object = Object::Handle(isolate);
+
+  {
+    NoSafepointScope no_safepoint;
+    ContainsAddressVisitor visitor(isolate, addr);
+    object = isolate->heap()->FindObject(&visitor);
+  }
+
+  if (!object.IsNull()) {
+    return object.raw();
+  }
+
+  {
+    NoSafepointScope no_safepoint;
+    ContainsAddressVisitor visitor(Dart::vm_isolate(), addr);
+    object = Dart::vm_isolate()->heap()->FindObject(&visitor);
+  }
+
+  return object.raw();
+}
+
+
 static bool GetObjectByAddress(Isolate* isolate, JSONStream* js) {
   const char* addr_str = js->LookupParam("address");
   if (addr_str == NULL) {
@@ -2588,16 +2635,11 @@ static bool GetObjectByAddress(Isolate* isolate, JSONStream* js) {
     return true;
   }
   bool ref = js->HasParam("ref") && js->ParamIs("ref", "true");
-  Object& object = Object::Handle(isolate);
-  {
-    NoSafepointScope no_safepoint;
-    ContainsAddressVisitor visitor(isolate, addr);
-    object = isolate->heap()->FindObject(&visitor);
-  }
-  if (object.IsNull()) {
+  const Object& obj = Object::Handle(isolate, GetObjectHelper(isolate, addr));
+  if (obj.IsNull()) {
     PrintSentinel(js, kFreeSentinel);
   } else {
-    object.PrintJSON(js, ref);
+    obj.PrintJSON(js, ref);
   }
   return true;
 }
@@ -2740,7 +2782,7 @@ static const MethodParameter* get_version_params[] = {
 static bool GetVersion(Isolate* isolate, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Version");
-  jsobj.AddProperty("major", static_cast<intptr_t>(1));
+  jsobj.AddProperty("major", static_cast<intptr_t>(2));
   jsobj.AddProperty("minor", static_cast<intptr_t>(0));
   jsobj.AddProperty("_privateMajor", static_cast<intptr_t>(0));
   jsobj.AddProperty("_privateMinor", static_cast<intptr_t>(0));

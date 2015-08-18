@@ -208,6 +208,7 @@ WebPlatformTest/Utils/test/testFail_t01: RuntimeError # co19-roll r722: Please t
 WebPlatformTest/dom/nodes/DOMImplementation-createHTMLDocument_t01: CompileTimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Document-createElement_t01: CompileTimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Element-childElementCount-nochild_t01: CompileTimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/webstorage/storage_session_setitem_quotaexceedederr_t01: Pass, Slow
 LayoutTests/fast/loader/loadInProgress_t01: Skip # Issue 23466
 LayoutTests/fast/dom/css-innerHTML_t01: SkipByDesign # Test is incorrect.
 
@@ -3062,7 +3063,7 @@ WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-009_t0
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-011_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/event_constructor_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/event_constructor_t02: RuntimeError # Please triage this failure
-WebPlatformTest/webstorage/storage_local_setitem_quotaexceedederr_t01: Skip # Times out. Please triage this failure
+WebPlatformTest/webstorage/storage_local_setitem_quotaexceedederr_t01: Skip # Times out. Please triage this failure. Note that Chrome also requires the Slow flag. (Could just be a slow test).
 WebPlatformTest/webstorage/storage_local_setitem_t01: RuntimeError # Please triage this failure
 WebPlatformTest/webstorage/storage_session_setitem_quotaexceedederr_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/webstorage/storage_session_setitem_t01: RuntimeError # Please triage this failure
@@ -9052,6 +9053,7 @@ LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-before-open-sync-req
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-before-open_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-sync-request_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-set-responsetype_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/xmlhttprequest/xmlhttprequest-withcredentials-before-open_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Borrowed/cz_20030217_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Borrowed/kd_20010423_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Borrowed/namespace-nodes_t01: RuntimeError # Please triage this failure
@@ -9256,6 +9258,7 @@ LibTest/html/Window/resizeBy_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Window/resizeTo_A01_t01: RuntimeError # Please triage this failure
 LibTest/math/sqrt_A02_t02: Skip # Times out. Please triage this failure
 LibTest/typed_data/ByteData/ByteData.view_A01_t01: Pass, RuntimeError # Please triage this failure
+LibTest/typed_data/ByteData/offsetInBytes_A01_t01: RuntimeError # Please triage this failure
 LibTest/typed_data/Float32List/removeWhere_A01_t01: Skip # Times out. Please triage this failure
 LibTest/typed_data/Float32x4List/Float32x4List.view_A06_t01: RuntimeError # Please triage this failure
 LibTest/typed_data/Int32List/lastWhere_A01_t01: Skip # Times out. Please triage this failure
@@ -9583,8 +9586,6 @@ Language/13_Statements/14_Continue_A02_t12: Crash # (switch (2){L:case 1:flag=tr
 Language/13_Statements/14_Continue_A02_t13: Crash # (switch (2){case 2:continue L;L:case 1:flag=true;}): continue to a labeled switch case
 Language/15_Types/4_Interface_Types_A12_t09: RuntimeError # Please triage this failure.
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Crash # (lazy.method()): deferred access is not implemented
-LibTest/collection/ListBase/ListBase_class_A01_t02: Crash # Stack Overflow
-LibTest/collection/ListMixin/ListMixin_class_A01_t02: Crash # Stack Overflow
 LibTest/core/Invocation/isAccessor_A01_t01: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
 LibTest/core/Invocation/isGetter_A01_t01: RuntimeError # Please triage this failure.
 LibTest/core/Invocation/isGetter_A01_t02: RuntimeError # Please triage this failure.
@@ -9594,7 +9595,6 @@ LibTest/core/Invocation/isSetter_A01_t02: RuntimeError # Please triage this fail
 LibTest/core/Invocation/memberName_A01_t01: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
 LibTest/core/Invocation/namedArguments_A01_t01: RuntimeError # Please triage this failure.
 LibTest/core/Invocation/positionalArguments_A01_t01: RuntimeError # Please triage this failure.
-LibTest/core/List/List_class_A01_t02: Crash # Stack Overflow
 LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Please triage this failure.
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Please triage this failure.
 LibTest/core/double/INFINITY_A01_t04: Pass # Please triage this failure.

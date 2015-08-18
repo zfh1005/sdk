@@ -224,7 +224,7 @@ void Heap::VisitObjects(ObjectVisitor* visitor) const {
 
 
 HeapIterationScope::HeapIterationScope()
-    : StackResource(Thread::Current()->isolate()),
+    : StackResource(Thread::Current()),
       old_space_(isolate()->heap()->old_space()) {
   // It's not yet safe to iterate over a paged space while it's concurrently
   // sweeping, so wait for any such task to complete first.
@@ -449,26 +449,6 @@ void Heap::WriteProtect(bool read_only) {
   read_only_ = read_only;
   new_space_.WriteProtect(read_only);
   old_space_.WriteProtect(read_only);
-}
-
-
-uword Heap::TopAddress(Heap::Space space) {
-  if (space == kNew) {
-    return reinterpret_cast<uword>(new_space_.TopAddress());
-  } else {
-    ASSERT(space == kPretenured);
-    return reinterpret_cast<uword>(old_space_.TopAddress());
-  }
-}
-
-
-uword Heap::EndAddress(Heap::Space space) {
-  if (space == kNew) {
-    return reinterpret_cast<uword>(new_space_.EndAddress());
-  } else {
-    ASSERT(space == kPretenured);
-    return reinterpret_cast<uword>(old_space_.EndAddress());
-  }
 }
 
 

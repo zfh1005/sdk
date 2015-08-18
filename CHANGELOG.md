@@ -3,7 +3,7 @@
 ### Core library changes
 
 * `dart:async`
-  * `StreamController`  added setters for the `onListen`, `onPause`, `onResume`
+  * `StreamController` added setters for the `onListen`, `onPause`, `onResume`
     and `onCancel` callbacks.
 
 * `dart:convert`
@@ -14,6 +14,7 @@
     This removes most `..` and `.` sequences from the URI path.
     Purely relative paths (no scheme or authority) are allowed to retain
     some leading "dot" segments.
+    Also added `hasAbsolutePath`, `hasEmptyPath`, and `hasScheme` properties.
 
 * `dart:html`
   * `NodeTreeSanitizer` added the `const trusted` field. It can be used
@@ -32,7 +33,23 @@
 
 * Pub
 
+  * **Breaking:** various commands that previously ran `pub get` implicitly no
+    longer do so. Instead, they merely check to make sure the ".packages" file
+    is newer than the pubspec and the lock file, and fail if it's not.
+
+  * Added support for `--verbosity=error` and `--verbosity=warning`.
+
+  * `pub serve` now collapses multiple GET requests into a single line of
+    output. For full output, use `--verbose`.
+
+  * `pub deps` has improved formatting for circular dependencies on the
+    entrypoint package.
+
   * `pub run` and `pub global run`
+
+    * **Breaking:** to match the behavior of the Dart VM, executables no longer
+      run in checked mode by default. A `--checked` flag has been added to run
+      them in checked mode manually.
 
     * Faster start time for executables that don't import transformed code.
 
@@ -68,6 +85,9 @@
     * A crashing bug involving transformers that only apply to non-public code
       has been fixed.
 
+    * A deadlock caused by declaring transformer followed by a lazy transformer
+      (such as the built-in `$dart2js` transformer) has been fixed.
+
     * A stack overflow caused by a transformer being run multiple times on the
       package that defines it has been fixed.
 
@@ -75,6 +95,29 @@
       will now be re-run if that asset is later created.
 
 [package spec proposal]: https://github.com/lrhn/dep-pkgspec
+
+* Formatter (`dartfmt`)
+
+  * Over 50 bugs fixed.
+
+  * Optimized line splitter is much faster and produces better output on
+    complex code.
+
+### VM Service Protocol Changes
+
+* **BREAKING** The service protocol now sends JSON-RPC 2.0-compatible
+  server-to-client events. To reflect this, the service protocol version is
+  now 2.0.
+
+* The service protocol now includes a `"jsonrpc"` property in its responses, as
+  opposed to `"json-rpc"`.
+
+* The service protocol now properly handles requests with non-string ids.
+  Numeric ids are no longer converted to strings, and null ids now don't produce
+  a response.
+
+* Some RPCs that didn't include a `"jsonrpc"` property in their responses now
+  include one.
 
 ## 1.11.2
 

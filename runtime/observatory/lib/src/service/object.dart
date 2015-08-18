@@ -506,7 +506,8 @@ abstract class VM extends ServiceObjectOwner {
   final ObservableMap<String,Isolate> _isolateCache =
       new ObservableMap<String,Isolate>();
 
-  @reflectable Iterable<Isolate> get isolates => _isolateCache.values;
+  // The list of live isolates, ordered by isolate start time.
+  final ObservableList<Isolate> isolates = new ObservableList<Isolate>();
 
   @observable String version = 'unknown';
   @observable String targetCPU;
@@ -547,7 +548,8 @@ abstract class VM extends ServiceObjectOwner {
       var isolate = getFromMap(map['isolate']);
       event = new ServiceObject._fromMap(isolate, map);
       if (event.kind == ServiceEvent.kIsolateExit) {
-        _removeIsolate(isolate.id);
+        _isolateCache.remove(isolate.id);
+        _buildIsolateList();
       }
     }
     var eventStream = _eventStreams[streamId];
@@ -558,10 +560,27 @@ abstract class VM extends ServiceObjectOwner {
     }
   }
 
-  void _removeIsolate(String isolateId) {
-    assert(_isolateCache.containsKey(isolateId));
-    _isolateCache.remove(isolateId);
-    notifyPropertyChange(#isolates, true, false);
+  int _compareIsolates(Isolate a, Isolate b) {
+    var aStart = a.startTime;
+    var bStart = b.startTime;
+    if (aStart == null) {
+      if (bStart == null) {
+        return 0;
+      } else {
+        return 1;
+      }
+    }
+    if (bStart == null) {
+      return -1;
+    }
+    return aStart.compareTo(bStart);
+  }
+
+  void _buildIsolateList() {
+    var isolateList = _isolateCache.values.toList();
+    isolateList.sort(_compareIsolates);
+    isolates.clear();
+    isolates.addAll(isolateList);
   }
 
   void _removeDeadIsolates(List newIsolates) {
@@ -576,8 +595,8 @@ abstract class VM extends ServiceObjectOwner {
         toRemove.add(id);
       }
     });
-    toRemove.forEach((id) => _removeIsolate(id));
-    notifyPropertyChange(#isolates, true, false);
+    toRemove.forEach((id) => _isolateCache.remove(id));
+    _buildIsolateList();
   }
 
   static final String _isolateIdPrefix = 'isolates/';
@@ -598,7 +617,7 @@ abstract class VM extends ServiceObjectOwner {
       // Add new isolate to the cache.
       isolate = new ServiceObject._fromMap(this, map);
       _isolateCache[id] = isolate;
-      notifyPropertyChange(#isolates, true, false);
+      _buildIsolateList();
 
       // Eagerly load the isolate.
       isolate.load().catchError((e, stack) {
@@ -1095,11 +1114,15 @@ class Isolate extends ServiceObjectOwner with Coverage {
     });
   }
 
-  Future<ServiceObject> getObject(String objectId) {
+  Future<ServiceObject> getObject(String objectId, {bool reload: true}) {
     assert(objectId != null && objectId != '');
     var obj = _cache[objectId];
     if (obj != null) {
-      return obj.reload();
+      if (reload) {
+        return obj.reload();
+      }
+      // Returned cached object.
+      return new Future.value(obj);
     }
     Map params = {
       'objectId': objectId,
@@ -1201,6 +1224,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     if (map['entry'] != null) {
       entry = map['entry'];
     }
+    var savedStartTime = startTime;
     var startTimeInMillis = map['startTime'];
     startTime = new DateTime.fromMillisecondsSinceEpoch(startTimeInMillis);
     notifyPropertyChange(#upTime, 0, 1);
@@ -1250,6 +1274,9 @@ class Isolate extends ServiceObjectOwner with Coverage {
     libraries.clear();
     libraries.addAll(map['libraries']);
     libraries.sort(ServiceObject.LexicalSortName);
+    if (savedStartTime == null) {
+      vm._buildIsolateList();
+    }
   }
 
   Future<TagProfile> updateTagProfile() {
@@ -1568,7 +1595,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     return Future.wait([refreshDartMetrics(), refreshNativeMetrics()]);
   }
 
-  String toString() => "Isolate($_id)";
+  String toString() => "Isolate($name)";
 }
 
 /// A [ServiceObject] which implements [ObservableMap].
@@ -1926,6 +1953,13 @@ class Library extends ServiceObject with Coverage {
 
   Future<ServiceObject> evaluate(String expression) {
     return isolate._eval(this, expression);
+  }
+
+  Script get rootScript {
+    for (Script script in scripts) {
+      if (script.uri == uri) return script;
+    }
+    return null;
   }
 
   String toString() => "Library($uri)";
@@ -2356,6 +2390,7 @@ class ServiceFunction extends ServiceObject with Coverage {
   @observable ProfileFunction profile;
   @observable Instance icDataArray;
 
+  bool get canCache => true;
   bool get immutable => false;
 
   ServiceFunction._empty(ServiceObject owner) : super._empty(owner);
@@ -3126,8 +3161,16 @@ class CodeInstruction extends Observable {
     if (address == 0) {
       return;
     }
-
-    jumpTarget = instructionsByAddressOffset[address - startAddress];
+    var relativeAddress = address - startAddress;
+    if (relativeAddress < 0) {
+      Logger.root.warning('Bad address resolving jump target $relativeAddress');
+      return;
+    }
+    if (relativeAddress >= instructionsByAddressOffset.length) {
+      Logger.root.warning('Bad address resolving jump target $relativeAddress');
+      return;
+    }
+    jumpTarget = instructionsByAddressOffset[relativeAddress];
   }
 }
 
@@ -3327,7 +3370,7 @@ class Code extends HeapObject {
       var pcOffset = 0;
       if (disassembly[i] != '') {
         // Not a code comment, extract address.
-        address = int.parse(disassembly[i]);
+        address = int.parse(disassembly[i], radix:16);
         pcOffset = address - startAddress;
       }
       var instruction = new CodeInstruction(address, pcOffset, machine, human);

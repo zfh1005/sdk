@@ -1364,28 +1364,31 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
   }
   Isolate* isolate = Dart::CreateIsolate(isolate_name, *flags);
   free(isolate_name);
-  StackZone zone(isolate);
-  HANDLESCOPE(isolate);
-  // We enter an API scope here as InitializeIsolate could compile some
-  // bootstrap library files which call out to a tag handler that may create
-  // Api Handles when an error is encountered.
-  Dart_EnterScope();
-  const Error& error_obj =
-      Error::Handle(isolate, Dart::InitializeIsolate(snapshot, callback_data));
-  if (error_obj.IsNull()) {
-#if defined(DART_NO_SNAPSHOT)
-    if (FLAG_check_function_fingerprints) {
-      Library::CheckFunctionFingerprints();
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    // We enter an API scope here as InitializeIsolate could compile some
+    // bootstrap library files which call out to a tag handler that may create
+    // Api Handles when an error is encountered.
+    Dart_EnterScope();
+    const Error& error_obj =
+        Error::Handle(isolate,
+                      Dart::InitializeIsolate(snapshot, callback_data));
+    if (error_obj.IsNull()) {
+  #if defined(DART_NO_SNAPSHOT)
+      if (FLAG_check_function_fingerprints) {
+        Library::CheckFunctionFingerprints();
+      }
+  #endif  // defined(DART_NO_SNAPSHOT).
+      // We exit the API scope entered above.
+      Dart_ExitScope();
+      START_TIMER(isolate, time_total_runtime);
+      return Api::CastIsolate(isolate);
     }
-#endif  // defined(DART_NO_SNAPSHOT).
+    *error = strdup(error_obj.ToErrorCString());
     // We exit the API scope entered above.
     Dart_ExitScope();
-    START_TIMER(isolate, time_total_runtime);
-    return Api::CastIsolate(isolate);
   }
-  *error = strdup(error_obj.ToErrorCString());
-  // We exit the API scope entered above.
-  Dart_ExitScope();
   Dart::ShutdownIsolate();
   return reinterpret_cast<Dart_Isolate>(NULL);
 }
@@ -1439,7 +1442,7 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
   CHECK_NO_ISOLATE(Isolate::Current());
   // TODO(16615): Validate isolate parameter.
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
-  if (iso->mutator_thread() != NULL) {
+  if (iso->HasMutatorThread()) {
     FATAL("Multiple mutators within one isolate is not supported.");
   }
   Thread::EnsureInit();
@@ -1565,6 +1568,11 @@ static Dart_Handle createLibrarySnapshot(Dart_Handle library,
   } else {
     lib ^= Api::UnwrapHandle(library);
   }
+  isolate->heap()->CollectAllGarbage();
+#if defined(DEBUG)
+  FunctionVisitor check_canonical(isolate);
+  isolate->heap()->IterateObjects(&check_canonical);
+#endif  // #if defined(DEBUG).
   ScriptSnapshotWriter writer(buffer, ApiReallocate);
   writer.WriteScriptSnapshot(lib);
   *size = writer.BytesWritten();

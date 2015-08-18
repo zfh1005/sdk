@@ -1056,6 +1056,7 @@ abstract class Compiler implements DiagnosticListener {
             this.deferredMapUri: null,
             this.dumpInfo: false,
             this.showPackageWarnings: false,
+            bool useStartupEmitter: false,
             this.useContentSecurityPolicy: false,
             this.suppressWarnings: false,
             this.fatalWarnings: false,
@@ -1100,7 +1101,8 @@ abstract class Compiler implements DiagnosticListener {
     if (emitJavaScript) {
       js_backend.JavaScriptBackend jsBackend =
           new js_backend.JavaScriptBackend(
-              this, generateSourceMap: generateSourceMap);
+              this, generateSourceMap: generateSourceMap,
+              useStartupEmitter: useStartupEmitter);
       backend = jsBackend;
     } else {
       backend = new dart_backend.DartBackend(this, strips,
@@ -1162,14 +1164,17 @@ abstract class Compiler implements DiagnosticListener {
   void unhandledExceptionOnElement(Element element) {
     if (hasCrashed) return;
     hasCrashed = true;
-    reportDiagnostic(element,
-                     MessageKind.COMPILER_CRASHED.message(),
-                     api.Diagnostic.CRASH);
+    reportDiagnostic(
+        element,
+        MessageTemplate.TEMPLATES[MessageKind.COMPILER_CRASHED].message(),
+        api.Diagnostic.CRASH);
     pleaseReportCrash();
   }
 
   void pleaseReportCrash() {
-    print(MessageKind.PLEASE_REPORT_THE_CRASH.message({'buildId': buildId}));
+    print(
+        MessageTemplate.TEMPLATES[MessageKind.PLEASE_REPORT_THE_CRASH]
+            .message({'buildId': buildId}));
   }
 
   SourceSpan spanFromSpannable(Spannable node) {
@@ -1225,7 +1230,8 @@ abstract class Compiler implements DiagnosticListener {
 
   void log(message) {
     reportDiagnostic(null,
-        MessageKind.GENERIC.message({'text': '$message'}),
+        MessageTemplate.TEMPLATES[MessageKind.GENERIC]
+            .message({'text': '$message'}),
         api.Diagnostic.VERBOSE_INFO);
   }
 
@@ -1239,9 +1245,11 @@ abstract class Compiler implements DiagnosticListener {
           if (error is SpannableAssertionFailure) {
             reportAssertionFailure(error);
           } else {
-            reportDiagnostic(new SourceSpan(uri, 0, 0),
-                             MessageKind.COMPILER_CRASHED.message(),
-                             api.Diagnostic.CRASH);
+            reportDiagnostic(
+                new SourceSpan(uri, 0, 0),
+                MessageTemplate.TEMPLATES[MessageKind.COMPILER_CRASHED]
+                    .message(),
+                api.Diagnostic.CRASH);
           }
           pleaseReportCrash();
         }
@@ -1379,7 +1387,7 @@ abstract class Compiler implements DiagnosticListener {
           reportWarning(NO_LOCATION_SPANNABLE,
              MessageKind.IMPORT_EXPERIMENTAL_MIRRORS,
               {'importChain': importChains.join(
-                   MessageKind.IMPORT_EXPERIMENTAL_MIRRORS_PADDING)});
+                   MessageTemplate.IMPORT_EXPERIMENTAL_MIRRORS_PADDING)});
         }
       }
 
@@ -1615,11 +1623,13 @@ abstract class Compiler implements DiagnosticListener {
         } else if (info.hints == 0) {
           kind = MessageKind.HIDDEN_WARNINGS;
         }
+        MessageTemplate template = MessageTemplate.TEMPLATES[kind];
         reportDiagnostic(null,
-            kind.message({'warnings': info.warnings,
-                          'hints': info.hints,
-                          'uri': uri},
-                         terseDiagnostics),
+            template.message(
+                {'warnings': info.warnings,
+                 'hints': info.hints,
+                 'uri': uri},
+                terseDiagnostics),
             api.Diagnostic.HINT);
       });
     }
@@ -1897,8 +1907,11 @@ abstract class Compiler implements DiagnosticListener {
       }
     }
     lastDiagnosticWasFiltered = false;
+    MessageTemplate template = MessageTemplate.TEMPLATES[messageKind];
     reportDiagnostic(
-        node, messageKind.message(arguments, terseDiagnostics), kind);
+        node,
+        template.message(arguments, terseDiagnostics),
+        kind);
   }
 
   void reportDiagnostic(Spannable span,
