@@ -363,9 +363,9 @@ class Database extends EventTarget {
   
   ObjectStore _createObjectStore(String name, [Map options]) {
     if (options != null) {
-      return _blink.BlinkIDBDatabase.instance.createObjectStore_Callback_2_(unwrap_jso(this), name, options != null ? new js.JsObject.jsify(options) : options);
+      return wrap_jso(_blink.BlinkIDBDatabase.instance.createObjectStore_Callback_2_(unwrap_jso(this), name, options != null ? new js.JsObject.jsify(options) : options));
     }
-    return _blink.BlinkIDBDatabase.instance.createObjectStore_Callback_1_(unwrap_jso(this), name);
+    return wrap_jso(_blink.BlinkIDBDatabase.instance.createObjectStore_Callback_1_(unwrap_jso(this), name));
   }
 
   @DomName('IDBDatabase.deleteObjectStore')
@@ -374,45 +374,45 @@ class Database extends EventTarget {
   
   Transaction transaction(storeName_OR_storeNames, [String mode]) {
     if ((storeName_OR_storeNames is String || storeName_OR_storeNames == null) && mode == null) {
-      return _blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames));
+      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames)));
     }
     if ((mode is String || mode == null) && (storeName_OR_storeNames is String || storeName_OR_storeNames == null)) {
-      return _blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames), mode);
+      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames), mode));
     }
     if ((storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null) && mode == null) {
-      return _blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames));
+      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames)));
     }
     if ((mode is String || mode == null) && (storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null)) {
-      return _blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames), mode);
+      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames), mode));
     }
     if ((storeName_OR_storeNames is DomStringList || storeName_OR_storeNames == null) && mode == null) {
-      return _blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames));
+      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames)));
     }
     if ((mode is String || mode == null) && (storeName_OR_storeNames is DomStringList || storeName_OR_storeNames == null)) {
-      return _blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames), mode);
+      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames), mode));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
   Transaction transactionList(List<String> storeNames, [String mode]) {
     if (mode != null) {
-      return _blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), storeNames, mode);
+      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), storeNames, mode));
     }
-    return _blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), storeNames);
+    return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), storeNames));
   }
 
   Transaction transactionStore(String storeName, [String mode]) {
     if (mode != null) {
-      return _blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), storeName, mode);
+      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), storeName, mode));
     }
-    return _blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), storeName);
+    return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), storeName));
   }
 
   Transaction transactionStores(List<String> storeNames, [String mode]) {
     if (mode != null) {
-      return _blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), unwrap_jso(storeNames), mode);
+      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), unwrap_jso(storeNames), mode));
     }
-    return _blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), unwrap_jso(storeNames));
+    return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), unwrap_jso(storeNames)));
   }
 
   /// Stream of `abort` events handled by this [Database].
@@ -552,9 +552,9 @@ class IdbFactory extends NativeFieldWrapperClass2 {
   
   OpenDBRequest _open(String name, [int version]) {
     if (version != null) {
-      return _blink.BlinkIDBFactory.instance.open_Callback_2_(unwrap_jso(this), name, version);
+      return wrap_jso(_blink.BlinkIDBFactory.instance.open_Callback_2_(unwrap_jso(this), name, version));
     }
-    return _blink.BlinkIDBFactory.instance.open_Callback_1_(unwrap_jso(this), name);
+    return wrap_jso(_blink.BlinkIDBFactory.instance.open_Callback_1_(unwrap_jso(this), name));
   }
 
   @DomName('IDBFactory.webkitGetDatabaseNames')
@@ -804,19 +804,19 @@ class KeyRange extends NativeFieldWrapperClass2 {
   
   static KeyRange bound_(Object lower, Object upper, [bool lowerOpen, bool upperOpen]) {
     if (upperOpen != null) {
-      return _blink.BlinkIDBKeyRange.instance.bound_Callback_4_(lower, upper, lowerOpen, upperOpen);
+      return wrap_jso(_blink.BlinkIDBKeyRange.instance.bound_Callback_4_(lower, upper, lowerOpen, upperOpen));
     }
     if (lowerOpen != null) {
-      return _blink.BlinkIDBKeyRange.instance.bound_Callback_3_(lower, upper, lowerOpen);
+      return wrap_jso(_blink.BlinkIDBKeyRange.instance.bound_Callback_3_(lower, upper, lowerOpen));
     }
-    return _blink.BlinkIDBKeyRange.instance.bound_Callback_2_(lower, upper);
+    return wrap_jso(_blink.BlinkIDBKeyRange.instance.bound_Callback_2_(lower, upper));
   }
 
   static KeyRange lowerBound_(Object bound, [bool open]) {
     if (open != null) {
-      return _blink.BlinkIDBKeyRange.instance.lowerBound_Callback_2_(bound, open);
+      return wrap_jso(_blink.BlinkIDBKeyRange.instance.lowerBound_Callback_2_(bound, open));
     }
-    return _blink.BlinkIDBKeyRange.instance.lowerBound_Callback_1_(bound);
+    return wrap_jso(_blink.BlinkIDBKeyRange.instance.lowerBound_Callback_1_(bound));
   }
 
   @DomName('IDBKeyRange.only_')
@@ -826,9 +826,9 @@ class KeyRange extends NativeFieldWrapperClass2 {
   
   static KeyRange upperBound_(Object bound, [bool open]) {
     if (open != null) {
-      return _blink.BlinkIDBKeyRange.instance.upperBound_Callback_2_(bound, open);
+      return wrap_jso(_blink.BlinkIDBKeyRange.instance.upperBound_Callback_2_(bound, open));
     }
-    return _blink.BlinkIDBKeyRange.instance.upperBound_Callback_1_(bound);
+    return wrap_jso(_blink.BlinkIDBKeyRange.instance.upperBound_Callback_1_(bound));
   }
 
 }
@@ -1022,16 +1022,16 @@ class ObjectStore extends NativeFieldWrapperClass2 {
   
   Index _createIndex(String name, keyPath, [Map options]) {
     if ((keyPath is String || keyPath == null) && (name is String || name == null) && options == null) {
-      return _blink.BlinkIDBObjectStore.instance.createIndex_Callback_2_(unwrap_jso(this), name, unwrap_jso(keyPath));
+      return wrap_jso(_blink.BlinkIDBObjectStore.instance.createIndex_Callback_2_(unwrap_jso(this), name, unwrap_jso(keyPath)));
     }
     if ((options is Map || options == null) && (keyPath is String || keyPath == null) && (name is String || name == null)) {
-      return _blink.BlinkIDBObjectStore.instance.createIndex_Callback_3_(unwrap_jso(this), name, unwrap_jso(keyPath), options != null ? new js.JsObject.jsify(options) : options);
+      return wrap_jso(_blink.BlinkIDBObjectStore.instance.createIndex_Callback_3_(unwrap_jso(this), name, unwrap_jso(keyPath), options != null ? new js.JsObject.jsify(options) : options));
     }
     if ((keyPath is List<String> || keyPath == null) && (name is String || name == null) && options == null) {
-      return _blink.BlinkIDBObjectStore.instance.createIndex_Callback_2_(unwrap_jso(this), name, unwrap_jso(keyPath));
+      return wrap_jso(_blink.BlinkIDBObjectStore.instance.createIndex_Callback_2_(unwrap_jso(this), name, unwrap_jso(keyPath)));
     }
     if ((options is Map || options == null) && (keyPath is List<String> || keyPath == null) && (name is String || name == null)) {
-      return _blink.BlinkIDBObjectStore.instance.createIndex_Callback_3_(unwrap_jso(this), name, unwrap_jso(keyPath), options != null ? new js.JsObject.jsify(options) : options);
+      return wrap_jso(_blink.BlinkIDBObjectStore.instance.createIndex_Callback_3_(unwrap_jso(this), name, unwrap_jso(keyPath), options != null ? new js.JsObject.jsify(options) : options));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }

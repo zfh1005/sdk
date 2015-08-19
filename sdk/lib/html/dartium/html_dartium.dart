@@ -1869,7 +1869,7 @@ class AnimationTimeline extends NativeFieldWrapperClass2 {
   @DomName('AnimationTimeline.getAnimationPlayers')
   @DocsEditable()
   @Experimental() // untriaged
-  List<AnimationPlayer> getAnimationPlayers() => _blink.BlinkAnimationTimeline.instance.getAnimationPlayers_Callback_0_(unwrap_jso(this));
+  List<AnimationPlayer> getAnimationPlayers() => wrap_jso(_blink.BlinkAnimationTimeline.instance.getAnimationPlayers_Callback_0_(unwrap_jso(this)));
   
   @DomName('AnimationTimeline.play')
   @DocsEditable()
@@ -11693,51 +11693,51 @@ class DomMatrix extends DomMatrixReadOnly {
   
   DomMatrix scale3dSelf(num scale, [num ox, num oy, num oz]) {
     if (oz != null) {
-      return _blink.BlinkDOMMatrix.instance.scale3dSelf_Callback_4_(unwrap_jso(this), scale, ox, oy, oz);
+      return wrap_jso(_blink.BlinkDOMMatrix.instance.scale3dSelf_Callback_4_(unwrap_jso(this), scale, ox, oy, oz));
     }
     if (oy != null) {
-      return _blink.BlinkDOMMatrix.instance.scale3dSelf_Callback_3_(unwrap_jso(this), scale, ox, oy);
+      return wrap_jso(_blink.BlinkDOMMatrix.instance.scale3dSelf_Callback_3_(unwrap_jso(this), scale, ox, oy));
     }
     if (ox != null) {
-      return _blink.BlinkDOMMatrix.instance.scale3dSelf_Callback_2_(unwrap_jso(this), scale, ox);
+      return wrap_jso(_blink.BlinkDOMMatrix.instance.scale3dSelf_Callback_2_(unwrap_jso(this), scale, ox));
     }
-    return _blink.BlinkDOMMatrix.instance.scale3dSelf_Callback_1_(unwrap_jso(this), scale);
+    return wrap_jso(_blink.BlinkDOMMatrix.instance.scale3dSelf_Callback_1_(unwrap_jso(this), scale));
   }
 
   DomMatrix scaleNonUniformSelf(num sx, [num sy, num sz, num ox, num oy, num oz]) {
     if (oz != null) {
-      return _blink.BlinkDOMMatrix.instance.scaleNonUniformSelf_Callback_6_(unwrap_jso(this), sx, sy, sz, ox, oy, oz);
+      return wrap_jso(_blink.BlinkDOMMatrix.instance.scaleNonUniformSelf_Callback_6_(unwrap_jso(this), sx, sy, sz, ox, oy, oz));
     }
     if (oy != null) {
-      return _blink.BlinkDOMMatrix.instance.scaleNonUniformSelf_Callback_5_(unwrap_jso(this), sx, sy, sz, ox, oy);
+      return wrap_jso(_blink.BlinkDOMMatrix.instance.scaleNonUniformSelf_Callback_5_(unwrap_jso(this), sx, sy, sz, ox, oy));
     }
     if (ox != null) {
-      return _blink.BlinkDOMMatrix.instance.scaleNonUniformSelf_Callback_4_(unwrap_jso(this), sx, sy, sz, ox);
+      return wrap_jso(_blink.BlinkDOMMatrix.instance.scaleNonUniformSelf_Callback_4_(unwrap_jso(this), sx, sy, sz, ox));
     }
     if (sz != null) {
-      return _blink.BlinkDOMMatrix.instance.scaleNonUniformSelf_Callback_3_(unwrap_jso(this), sx, sy, sz);
+      return wrap_jso(_blink.BlinkDOMMatrix.instance.scaleNonUniformSelf_Callback_3_(unwrap_jso(this), sx, sy, sz));
     }
     if (sy != null) {
-      return _blink.BlinkDOMMatrix.instance.scaleNonUniformSelf_Callback_2_(unwrap_jso(this), sx, sy);
+      return wrap_jso(_blink.BlinkDOMMatrix.instance.scaleNonUniformSelf_Callback_2_(unwrap_jso(this), sx, sy));
     }
-    return _blink.BlinkDOMMatrix.instance.scaleNonUniformSelf_Callback_1_(unwrap_jso(this), sx);
+    return wrap_jso(_blink.BlinkDOMMatrix.instance.scaleNonUniformSelf_Callback_1_(unwrap_jso(this), sx));
   }
 
   DomMatrix scaleSelf(num scale, [num ox, num oy]) {
     if (oy != null) {
-      return _blink.BlinkDOMMatrix.instance.scaleSelf_Callback_3_(unwrap_jso(this), scale, ox, oy);
+      return wrap_jso(_blink.BlinkDOMMatrix.instance.scaleSelf_Callback_3_(unwrap_jso(this), scale, ox, oy));
     }
     if (ox != null) {
-      return _blink.BlinkDOMMatrix.instance.scaleSelf_Callback_2_(unwrap_jso(this), scale, ox);
+      return wrap_jso(_blink.BlinkDOMMatrix.instance.scaleSelf_Callback_2_(unwrap_jso(this), scale, ox));
     }
-    return _blink.BlinkDOMMatrix.instance.scaleSelf_Callback_1_(unwrap_jso(this), scale);
+    return wrap_jso(_blink.BlinkDOMMatrix.instance.scaleSelf_Callback_1_(unwrap_jso(this), scale));
   }
 
   DomMatrix translateSelf(num tx, num ty, [num tz]) {
     if (tz != null) {
-      return _blink.BlinkDOMMatrix.instance.translateSelf_Callback_3_(unwrap_jso(this), tx, ty, tz);
+      return wrap_jso(_blink.BlinkDOMMatrix.instance.translateSelf_Callback_3_(unwrap_jso(this), tx, ty, tz));
     }
-    return _blink.BlinkDOMMatrix.instance.translateSelf_Callback_2_(unwrap_jso(this), tx, ty);
+    return wrap_jso(_blink.BlinkDOMMatrix.instance.translateSelf_Callback_2_(unwrap_jso(this), tx, ty));
   }
 
 }
@@ -11897,44 +11897,44 @@ class DomMatrixReadOnly extends NativeFieldWrapperClass2 {
   
   DomMatrix scale(num scale, [num ox, num oy]) {
     if (oy != null) {
-      return _blink.BlinkDOMMatrixReadOnly.instance.scale_Callback_3_(unwrap_jso(this), scale, ox, oy);
+      return wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.scale_Callback_3_(unwrap_jso(this), scale, ox, oy));
     }
     if (ox != null) {
-      return _blink.BlinkDOMMatrixReadOnly.instance.scale_Callback_2_(unwrap_jso(this), scale, ox);
+      return wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.scale_Callback_2_(unwrap_jso(this), scale, ox));
     }
-    return _blink.BlinkDOMMatrixReadOnly.instance.scale_Callback_1_(unwrap_jso(this), scale);
+    return wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.scale_Callback_1_(unwrap_jso(this), scale));
   }
 
   DomMatrix scale3d(num scale, [num ox, num oy, num oz]) {
     if (oz != null) {
-      return _blink.BlinkDOMMatrixReadOnly.instance.scale3d_Callback_4_(unwrap_jso(this), scale, ox, oy, oz);
+      return wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.scale3d_Callback_4_(unwrap_jso(this), scale, ox, oy, oz));
     }
     if (oy != null) {
-      return _blink.BlinkDOMMatrixReadOnly.instance.scale3d_Callback_3_(unwrap_jso(this), scale, ox, oy);
+      return wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.scale3d_Callback_3_(unwrap_jso(this), scale, ox, oy));
     }
     if (ox != null) {
-      return _blink.BlinkDOMMatrixReadOnly.instance.scale3d_Callback_2_(unwrap_jso(this), scale, ox);
+      return wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.scale3d_Callback_2_(unwrap_jso(this), scale, ox));
     }
-    return _blink.BlinkDOMMatrixReadOnly.instance.scale3d_Callback_1_(unwrap_jso(this), scale);
+    return wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.scale3d_Callback_1_(unwrap_jso(this), scale));
   }
 
   DomMatrix scaleNonUniform(num sx, [num sy, num sz, num ox, num oy, num oz]) {
     if (oz != null) {
-      return _blink.BlinkDOMMatrixReadOnly.instance.scaleNonUniform_Callback_6_(unwrap_jso(this), sx, sy, sz, ox, oy, oz);
+      return wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.scaleNonUniform_Callback_6_(unwrap_jso(this), sx, sy, sz, ox, oy, oz));
     }
     if (oy != null) {
-      return _blink.BlinkDOMMatrixReadOnly.instance.scaleNonUniform_Callback_5_(unwrap_jso(this), sx, sy, sz, ox, oy);
+      return wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.scaleNonUniform_Callback_5_(unwrap_jso(this), sx, sy, sz, ox, oy));
     }
     if (ox != null) {
-      return _blink.BlinkDOMMatrixReadOnly.instance.scaleNonUniform_Callback_4_(unwrap_jso(this), sx, sy, sz, ox);
+      return wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.scaleNonUniform_Callback_4_(unwrap_jso(this), sx, sy, sz, ox));
     }
     if (sz != null) {
-      return _blink.BlinkDOMMatrixReadOnly.instance.scaleNonUniform_Callback_3_(unwrap_jso(this), sx, sy, sz);
+      return wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.scaleNonUniform_Callback_3_(unwrap_jso(this), sx, sy, sz));
     }
     if (sy != null) {
-      return _blink.BlinkDOMMatrixReadOnly.instance.scaleNonUniform_Callback_2_(unwrap_jso(this), sx, sy);
+      return wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.scaleNonUniform_Callback_2_(unwrap_jso(this), sx, sy));
     }
-    return _blink.BlinkDOMMatrixReadOnly.instance.scaleNonUniform_Callback_1_(unwrap_jso(this), sx);
+    return wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.scaleNonUniform_Callback_1_(unwrap_jso(this), sx));
   }
 
   @DomName('DOMMatrixReadOnly.toFloat32Array')
@@ -11949,9 +11949,9 @@ class DomMatrixReadOnly extends NativeFieldWrapperClass2 {
   
   DomMatrix translate(num tx, num ty, [num tz]) {
     if (tz != null) {
-      return _blink.BlinkDOMMatrixReadOnly.instance.translate_Callback_3_(unwrap_jso(this), tx, ty, tz);
+      return wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.translate_Callback_3_(unwrap_jso(this), tx, ty, tz));
     }
-    return _blink.BlinkDOMMatrixReadOnly.instance.translate_Callback_2_(unwrap_jso(this), tx, ty);
+    return wrap_jso(_blink.BlinkDOMMatrixReadOnly.instance.translate_Callback_2_(unwrap_jso(this), tx, ty));
   }
 
 }
@@ -15651,7 +15651,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
   @DomName('Element.getAnimationPlayers')
   @DocsEditable()
   @Experimental() // untriaged
-  List<AnimationPlayer> getAnimationPlayers() => _blink.BlinkElement.instance.getAnimationPlayers_Callback_0_(unwrap_jso(this));
+  List<AnimationPlayer> getAnimationPlayers() => wrap_jso(_blink.BlinkElement.instance.getAnimationPlayers_Callback_0_(unwrap_jso(this)));
   
   @DomName('Element.getAttribute')
   @DocsEditable()
@@ -18379,7 +18379,7 @@ class FontFaceSetLoadEvent extends Event {
   @DomName('FontFaceSetLoadEvent.fontfaces')
   @DocsEditable()
   @Experimental() // untriaged
-  List<FontFace> get fontfaces => _blink.BlinkFontFaceSetLoadEvent.instance.fontfaces_Getter_(unwrap_jso(this));
+  List<FontFace> get fontfaces => wrap_jso(_blink.BlinkFontFaceSetLoadEvent.instance.fontfaces_Getter_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22642,7 +22642,7 @@ class InputElement extends HtmlElement implements
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/states-of-the-type-attribute.html#concept-input-type-file-selected
-  List<Entry> get entries => _blink.BlinkHTMLInputElement.instance.webkitEntries_Getter_(unwrap_jso(this));
+  List<Entry> get entries => wrap_jso(_blink.BlinkHTMLInputElement.instance.webkitEntries_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLInputElement.webkitdirectory')
   @DocsEditable()
@@ -25356,7 +25356,7 @@ class MediaStream extends EventTarget {
   
   @DomName('MediaStream.getAudioTracks')
   @DocsEditable()
-  List<MediaStreamTrack> getAudioTracks() => _blink.BlinkMediaStream.instance.getAudioTracks_Callback_0_(unwrap_jso(this));
+  List<MediaStreamTrack> getAudioTracks() => wrap_jso(_blink.BlinkMediaStream.instance.getAudioTracks_Callback_0_(unwrap_jso(this)));
   
   @DomName('MediaStream.getTrackById')
   @DocsEditable()
@@ -25365,11 +25365,11 @@ class MediaStream extends EventTarget {
   @DomName('MediaStream.getTracks')
   @DocsEditable()
   @Experimental() // untriaged
-  List<MediaStreamTrack> getTracks() => _blink.BlinkMediaStream.instance.getTracks_Callback_0_(unwrap_jso(this));
+  List<MediaStreamTrack> getTracks() => wrap_jso(_blink.BlinkMediaStream.instance.getTracks_Callback_0_(unwrap_jso(this)));
   
   @DomName('MediaStream.getVideoTracks')
   @DocsEditable()
-  List<MediaStreamTrack> getVideoTracks() => _blink.BlinkMediaStream.instance.getVideoTracks_Callback_0_(unwrap_jso(this));
+  List<MediaStreamTrack> getVideoTracks() => wrap_jso(_blink.BlinkMediaStream.instance.getVideoTracks_Callback_0_(unwrap_jso(this)));
   
   @DomName('MediaStream.removeTrack')
   @DocsEditable()
@@ -26990,7 +26990,7 @@ class MutationObserver extends NativeFieldWrapperClass2 {
   
   @DomName('MutationObserver.takeRecords')
   @DocsEditable()
-  List<MutationRecord> takeRecords() => _blink.BlinkMutationObserver.instance.takeRecords_Callback_0_(unwrap_jso(this));
+  List<MutationRecord> takeRecords() => wrap_jso(_blink.BlinkMutationObserver.instance.takeRecords_Callback_0_(unwrap_jso(this)));
   
   /**
    * Checks to see if the mutation observer API is supported on the current
@@ -29519,19 +29519,19 @@ class Performance extends EventTarget {
   @DocsEditable()
   // http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute
   @Experimental()
-  List<PerformanceEntry> getEntries() => _blink.BlinkPerformance.instance.getEntries_Callback_0_(unwrap_jso(this));
+  List<PerformanceEntry> getEntries() => wrap_jso(_blink.BlinkPerformance.instance.getEntries_Callback_0_(unwrap_jso(this)));
   
   @DomName('Performance.getEntriesByName')
   @DocsEditable()
   // http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute
   @Experimental()
-  List<PerformanceEntry> getEntriesByName(String name, String entryType) => _blink.BlinkPerformance.instance.getEntriesByName_Callback_2_(unwrap_jso(this), name, entryType);
+  List<PerformanceEntry> getEntriesByName(String name, String entryType) => wrap_jso(_blink.BlinkPerformance.instance.getEntriesByName_Callback_2_(unwrap_jso(this), name, entryType));
   
   @DomName('Performance.getEntriesByType')
   @DocsEditable()
   // http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute
   @Experimental()
-  List<PerformanceEntry> getEntriesByType(String entryType) => _blink.BlinkPerformance.instance.getEntriesByType_Callback_1_(unwrap_jso(this), entryType);
+  List<PerformanceEntry> getEntriesByType(String entryType) => wrap_jso(_blink.BlinkPerformance.instance.getEntriesByType_Callback_1_(unwrap_jso(this), entryType));
   
   @DomName('Performance.mark')
   @DocsEditable()
@@ -31584,9 +31584,9 @@ class RtcPeerConnection extends EventTarget {
   
   RtcDataChannel createDataChannel(String label, [Map options]) {
     if (options != null) {
-      return _blink.BlinkRTCPeerConnection.instance.createDataChannel_Callback_2_(unwrap_jso(this), label, options != null ? new js.JsObject.jsify(options) : options);
+      return wrap_jso(_blink.BlinkRTCPeerConnection.instance.createDataChannel_Callback_2_(unwrap_jso(this), label, options != null ? new js.JsObject.jsify(options) : options));
     }
-    return _blink.BlinkRTCPeerConnection.instance.createDataChannel_Callback_1_(unwrap_jso(this), label);
+    return wrap_jso(_blink.BlinkRTCPeerConnection.instance.createDataChannel_Callback_1_(unwrap_jso(this), label));
   }
 
   void _createOffer(_RtcSessionDescriptionCallback successCallback, [_RtcErrorCallback failureCallback, Map rtcOfferOptions]) {
@@ -31600,11 +31600,11 @@ class RtcPeerConnection extends EventTarget {
 
   @DomName('RTCPeerConnection.getLocalStreams')
   @DocsEditable()
-  List<MediaStream> getLocalStreams() => _blink.BlinkRTCPeerConnection.instance.getLocalStreams_Callback_0_(unwrap_jso(this));
+  List<MediaStream> getLocalStreams() => wrap_jso(_blink.BlinkRTCPeerConnection.instance.getLocalStreams_Callback_0_(unwrap_jso(this)));
   
   @DomName('RTCPeerConnection.getRemoteStreams')
   @DocsEditable()
-  List<MediaStream> getRemoteStreams() => _blink.BlinkRTCPeerConnection.instance.getRemoteStreams_Callback_0_(unwrap_jso(this));
+  List<MediaStream> getRemoteStreams() => wrap_jso(_blink.BlinkRTCPeerConnection.instance.getRemoteStreams_Callback_0_(unwrap_jso(this)));
   
   @DomName('RTCPeerConnection.getStats')
   @DocsEditable()
@@ -31848,7 +31848,7 @@ class RtcStatsResponse extends NativeFieldWrapperClass2 {
   
   @DomName('RTCStatsResponse.result')
   @DocsEditable()
-  List<RtcStatsReport> result() => _blink.BlinkRTCStatsResponse.instance.result_Callback_0_(unwrap_jso(this));
+  List<RtcStatsReport> result() => wrap_jso(_blink.BlinkRTCStatsResponse.instance.result_Callback_0_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -33994,7 +33994,7 @@ class SpeechSynthesis extends EventTarget {
   
   @DomName('SpeechSynthesis.getVoices')
   @DocsEditable()
-  List<SpeechSynthesisVoice> getVoices() => _blink.BlinkSpeechSynthesis.instance.getVoices_Callback_0_(unwrap_jso(this));
+  List<SpeechSynthesisVoice> getVoices() => wrap_jso(_blink.BlinkSpeechSynthesis.instance.getVoices_Callback_0_(unwrap_jso(this)));
   
   @DomName('SpeechSynthesis.pause')
   @DocsEditable()
@@ -37026,10 +37026,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -39206,10 +39206,10 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   
   WindowBase __getter__(index_OR_name) {
     if ((index_OR_name is int)) {
-      return _blink.BlinkWindow.instance.$__getter___Callback_1_(unwrap_jso(this), unwrap_jso(index_OR_name));
+      return wrap_jso(_blink.BlinkWindow.instance.$__getter___Callback_1_(unwrap_jso(this), unwrap_jso(index_OR_name)));
     }
     if ((index_OR_name is String)) {
-      return _blink.BlinkWindow.instance.$__getter___Callback_1_(unwrap_jso(this), unwrap_jso(index_OR_name));
+      return wrap_jso(_blink.BlinkWindow.instance.$__getter___Callback_1_(unwrap_jso(this), unwrap_jso(index_OR_name)));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
