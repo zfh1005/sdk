@@ -1439,6 +1439,7 @@ def wrap_unwrap_type_blink(return_type, type_registry):
         return_type = return_type.replace('Html', 'HTML', 1)
     return (type_registry.HasInterface(return_type) or not(return_type) or
             return_type == 'Object' or
+            return_type == 'Future' or
             return_type == 'SqlDatabase' or # renamed to Database
             return_type == 'HTMLElement' or
             return_type == 'MutationObserver')

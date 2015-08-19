@@ -1174,6 +1174,9 @@ wrap_jso(jsObject) {
     if (constructor == js.context['Object']) {
       return convertNativeObjectToDartMap(jsObject);
     }
+    if (constructor == js.context['Promise']) {
+      return convertNativePromiseToDartFuture(jsObject);
+    }
     var jsTypeName = constructor['name'];
     if (__interop_checks) {
       debug_or_assert("constructor != null && jsTypeName.length > 0", constructor != null && jsTypeName.length > 0);
@@ -1278,6 +1281,14 @@ convertDartToNative_List(List input) => new js.JsArray()..addAll(input);
 
 // Conversion function place holder (currently not used in dart2js or dartium).
 List convertDartToNative_StringArray(List<String> input) => input;
+
+Future convertNativePromiseToDartFuture(js.JsObject promise) {
+  var completer = new Completer();
+  var newPromise = promise
+      .callMethod("then", [(result) => completer.complete(result)])
+      .callMethod("catch", [(result) => completer.completeError(result)]);
+  return completer.future;
+}
 
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2770,22 +2781,22 @@ class Body extends NativeFieldWrapperClass2 {
   @DomName('Body.arrayBuffer')
   @DocsEditable()
   @Experimental() // untriaged
-  Future arrayBuffer() => _blink.BlinkBody.instance.arrayBuffer_Callback_0_(unwrap_jso(this));
+  Future arrayBuffer() => wrap_jso(_blink.BlinkBody.instance.arrayBuffer_Callback_0_(unwrap_jso(this)));
   
   @DomName('Body.blob')
   @DocsEditable()
   @Experimental() // untriaged
-  Future blob() => _blink.BlinkBody.instance.blob_Callback_0_(unwrap_jso(this));
+  Future blob() => wrap_jso(_blink.BlinkBody.instance.blob_Callback_0_(unwrap_jso(this)));
   
   @DomName('Body.json')
   @DocsEditable()
   @Experimental() // untriaged
-  Future json() => _blink.BlinkBody.instance.json_Callback_0_(unwrap_jso(this));
+  Future json() => wrap_jso(_blink.BlinkBody.instance.json_Callback_0_(unwrap_jso(this)));
   
   @DomName('Body.text')
   @DocsEditable()
   @Experimental() // untriaged
-  Future text() => _blink.BlinkBody.instance.text_Callback_0_(unwrap_jso(this));
+  Future text() => wrap_jso(_blink.BlinkBody.instance.text_Callback_0_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3219,27 +3230,27 @@ class CacheStorage extends NativeFieldWrapperClass2 {
   @DomName('CacheStorage.create')
   @DocsEditable()
   @Experimental() // untriaged
-  Future create(String cacheName) => _blink.BlinkCacheStorage.instance.create_Callback_1_(unwrap_jso(this), cacheName);
+  Future create(String cacheName) => wrap_jso(_blink.BlinkCacheStorage.instance.create_Callback_1_(unwrap_jso(this), cacheName));
   
   @DomName('CacheStorage.delete')
   @DocsEditable()
   @Experimental() // untriaged
-  Future delete(String cacheName) => _blink.BlinkCacheStorage.instance.delete_Callback_1_(unwrap_jso(this), cacheName);
+  Future delete(String cacheName) => wrap_jso(_blink.BlinkCacheStorage.instance.delete_Callback_1_(unwrap_jso(this), cacheName));
   
   @DomName('CacheStorage.get')
   @DocsEditable()
   @Experimental() // untriaged
-  Future get(String cacheName) => _blink.BlinkCacheStorage.instance.get_Callback_1_(unwrap_jso(this), cacheName);
+  Future get(String cacheName) => wrap_jso(_blink.BlinkCacheStorage.instance.get_Callback_1_(unwrap_jso(this), cacheName));
   
   @DomName('CacheStorage.has')
   @DocsEditable()
   @Experimental() // untriaged
-  Future has(String cacheName) => _blink.BlinkCacheStorage.instance.has_Callback_1_(unwrap_jso(this), cacheName);
+  Future has(String cacheName) => wrap_jso(_blink.BlinkCacheStorage.instance.has_Callback_1_(unwrap_jso(this), cacheName));
   
   @DomName('CacheStorage.keys')
   @DocsEditable()
   @Experimental() // untriaged
-  Future keys() => _blink.BlinkCacheStorage.instance.keys_Callback_0_(unwrap_jso(this));
+  Future keys() => wrap_jso(_blink.BlinkCacheStorage.instance.keys_Callback_0_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5051,23 +5062,23 @@ class CredentialsContainer extends NativeFieldWrapperClass2 {
   @DomName('CredentialsContainer.notifyFailedSignIn')
   @DocsEditable()
   @Experimental() // untriaged
-  Future notifyFailedSignIn(Credential credential) => _blink.BlinkCredentialsContainer.instance.notifyFailedSignIn_Callback_1_(unwrap_jso(this), unwrap_jso(credential));
+  Future notifyFailedSignIn(Credential credential) => wrap_jso(_blink.BlinkCredentialsContainer.instance.notifyFailedSignIn_Callback_1_(unwrap_jso(this), unwrap_jso(credential)));
   
   @DomName('CredentialsContainer.notifySignedIn')
   @DocsEditable()
   @Experimental() // untriaged
-  Future notifySignedIn(Credential credential) => _blink.BlinkCredentialsContainer.instance.notifySignedIn_Callback_1_(unwrap_jso(this), unwrap_jso(credential));
+  Future notifySignedIn(Credential credential) => wrap_jso(_blink.BlinkCredentialsContainer.instance.notifySignedIn_Callback_1_(unwrap_jso(this), unwrap_jso(credential)));
   
   @DomName('CredentialsContainer.notifySignedOut')
   @DocsEditable()
   @Experimental() // untriaged
-  Future notifySignedOut() => _blink.BlinkCredentialsContainer.instance.notifySignedOut_Callback_0_(unwrap_jso(this));
+  Future notifySignedOut() => wrap_jso(_blink.BlinkCredentialsContainer.instance.notifySignedOut_Callback_0_(unwrap_jso(this)));
   
   Future request([Map options]) {
     if (options != null) {
-      return _blink.BlinkCredentialsContainer.instance.request_Callback_1_(unwrap_jso(this), options != null ? new js.JsObject.jsify(options) : options);
+      return wrap_jso(_blink.BlinkCredentialsContainer.instance.request_Callback_1_(unwrap_jso(this), options != null ? new js.JsObject.jsify(options) : options));
     }
-    return _blink.BlinkCredentialsContainer.instance.request_Callback_0_(unwrap_jso(this));
+    return wrap_jso(_blink.BlinkCredentialsContainer.instance.request_Callback_0_(unwrap_jso(this)));
   }
 
 }
@@ -18253,7 +18264,7 @@ class FontFace extends NativeFieldWrapperClass2 {
   @DomName('FontFace.load')
   @DocsEditable()
   @Experimental() // untriaged
-  Future load() => _blink.BlinkFontFace.instance.load_Callback_0_(unwrap_jso(this));
+  Future load() => wrap_jso(_blink.BlinkFontFace.instance.load_Callback_0_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18727,17 +18738,17 @@ class Geofencing extends NativeFieldWrapperClass2 {
   @DomName('Geofencing.getRegisteredRegions')
   @DocsEditable()
   @Experimental() // untriaged
-  Future getRegisteredRegions() => _blink.BlinkGeofencing.instance.getRegisteredRegions_Callback_0_(unwrap_jso(this));
+  Future getRegisteredRegions() => wrap_jso(_blink.BlinkGeofencing.instance.getRegisteredRegions_Callback_0_(unwrap_jso(this)));
   
   @DomName('Geofencing.registerRegion')
   @DocsEditable()
   @Experimental() // untriaged
-  Future registerRegion(GeofencingRegion region) => _blink.BlinkGeofencing.instance.registerRegion_Callback_1_(unwrap_jso(this), unwrap_jso(region));
+  Future registerRegion(GeofencingRegion region) => wrap_jso(_blink.BlinkGeofencing.instance.registerRegion_Callback_1_(unwrap_jso(this), unwrap_jso(region)));
   
   @DomName('Geofencing.unregisterRegion')
   @DocsEditable()
   @Experimental() // untriaged
-  Future unregisterRegion(String regionId) => _blink.BlinkGeofencing.instance.unregisterRegion_Callback_1_(unwrap_jso(this), regionId);
+  Future unregisterRegion(String regionId) => wrap_jso(_blink.BlinkGeofencing.instance.unregisterRegion_Callback_1_(unwrap_jso(this), regionId));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23352,7 +23363,7 @@ class InstallEvent extends ExtendableEvent {
   @DomName('InstallEvent.reloadAll')
   @DocsEditable()
   @Experimental() // untriaged
-  Future reloadAll() => _blink.BlinkInstallEvent.instance.reloadAll_Callback_0_(unwrap_jso(this));
+  Future reloadAll() => wrap_jso(_blink.BlinkInstallEvent.instance.reloadAll_Callback_0_(unwrap_jso(this)));
   
   @DomName('InstallEvent.replace')
   @DocsEditable()
@@ -24599,7 +24610,7 @@ class MediaElement extends HtmlElement {
   @DomName('HTMLMediaElement.setMediaKeys')
   @DocsEditable()
   @Experimental() // untriaged
-  Future setMediaKeys(MediaKeys mediaKeys) => _blink.BlinkHTMLMediaElement.instance.setMediaKeys_Callback_1_(unwrap_jso(this), unwrap_jso(mediaKeys));
+  Future setMediaKeys(MediaKeys mediaKeys) => wrap_jso(_blink.BlinkHTMLMediaElement.instance.setMediaKeys_Callback_1_(unwrap_jso(this), unwrap_jso(mediaKeys)));
   
   void addKey(String keySystem, Uint8List key, [Uint8List initData, String sessionId]) {
     if (initData != null) {
@@ -24951,10 +24962,10 @@ class MediaKeySession extends EventTarget {
   
   Future generateRequest(String initDataType, initData) {
     if ((initData is TypedData) && (initDataType is String)) {
-      return _blink.BlinkMediaKeySession.instance.generateRequest_Callback_2_(unwrap_jso(this), initDataType, unwrap_jso(initData));
+      return wrap_jso(_blink.BlinkMediaKeySession.instance.generateRequest_Callback_2_(unwrap_jso(this), initDataType, unwrap_jso(initData)));
     }
     if ((initData is ByteBuffer) && (initDataType is String)) {
-      return _blink.BlinkMediaKeySession.instance.generateRequest_Callback_2_(unwrap_jso(this), initDataType, unwrap_jso(initData));
+      return wrap_jso(_blink.BlinkMediaKeySession.instance.generateRequest_Callback_2_(unwrap_jso(this), initDataType, unwrap_jso(initData)));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -24962,14 +24973,14 @@ class MediaKeySession extends EventTarget {
   @DomName('MediaKeySession.release')
   @DocsEditable()
   @Experimental() // untriaged
-  Future release() => _blink.BlinkMediaKeySession.instance.release_Callback_0_(unwrap_jso(this));
+  Future release() => wrap_jso(_blink.BlinkMediaKeySession.instance.release_Callback_0_(unwrap_jso(this)));
   
   Future _update(response) {
     if ((response is TypedData)) {
-      return _blink.BlinkMediaKeySession.instance.update_Callback_1_(unwrap_jso(this), unwrap_jso(response));
+      return wrap_jso(_blink.BlinkMediaKeySession.instance.update_Callback_1_(unwrap_jso(this), unwrap_jso(response)));
     }
     if ((response is ByteBuffer)) {
-      return _blink.BlinkMediaKeySession.instance.update_Callback_1_(unwrap_jso(this), unwrap_jso(response));
+      return wrap_jso(_blink.BlinkMediaKeySession.instance.update_Callback_1_(unwrap_jso(this), unwrap_jso(response)));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -25012,7 +25023,7 @@ class MediaKeys extends NativeFieldWrapperClass2 {
   @DomName('MediaKeys.create')
   @DocsEditable()
   @Experimental() // untriaged
-  static Future create(String keySystem) => _blink.BlinkMediaKeys.instance.create_Callback_1_(keySystem);
+  static Future create(String keySystem) => wrap_jso(_blink.BlinkMediaKeys.instance.create_Callback_1_(keySystem));
   
   MediaKeySession _createSession([String sessionType]) {
     if (sessionType != null) {
@@ -27301,7 +27312,7 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorCpu, Naviga
   @DomName('Navigator.getBattery')
   @DocsEditable()
   @Experimental() // untriaged
-  Future getBattery() => _blink.BlinkNavigator.instance.getBattery_Callback_0_(unwrap_jso(this));
+  Future getBattery() => wrap_jso(_blink.BlinkNavigator.instance.getBattery_Callback_0_(unwrap_jso(this)));
   
   @DomName('Navigator.getGamepads')
   @DocsEditable()
@@ -30520,7 +30531,7 @@ class PushManager extends NativeFieldWrapperClass2 {
   @DomName('PushManager.register')
   @DocsEditable()
   @Experimental() // untriaged
-  Future register(String senderId) => _blink.BlinkPushManager.instance.register_Callback_1_(unwrap_jso(this), senderId);
+  Future register(String senderId) => wrap_jso(_blink.BlinkPushManager.instance.register_Callback_1_(unwrap_jso(this), senderId));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30883,7 +30894,7 @@ class ReadableStream extends NativeFieldWrapperClass2 {
   @DomName('ReadableStream.cancel')
   @DocsEditable()
   @Experimental() // untriaged
-  Future cancel(Object reason) => _blink.BlinkReadableStream.instance.cancel_Callback_1_(unwrap_jso(this), reason);
+  Future cancel(Object reason) => wrap_jso(_blink.BlinkReadableStream.instance.cancel_Callback_1_(unwrap_jso(this), reason));
   
   @DomName('ReadableStream.read')
   @DocsEditable()
@@ -30893,7 +30904,7 @@ class ReadableStream extends NativeFieldWrapperClass2 {
   @DomName('ReadableStream.wait')
   @DocsEditable()
   @Experimental() // untriaged
-  Future wait() => _blink.BlinkReadableStream.instance.wait_Callback_0_(unwrap_jso(this));
+  Future wait() => wrap_jso(_blink.BlinkReadableStream.instance.wait_Callback_0_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31956,7 +31967,7 @@ class ScreenOrientation extends EventTarget {
   @DomName('ScreenOrientation.lock')
   @DocsEditable()
   @Experimental() // untriaged
-  Future lock(String orientation) => _blink.BlinkScreenOrientation.instance.lock_Callback_1_(unwrap_jso(this), orientation);
+  Future lock(String orientation) => wrap_jso(_blink.BlinkScreenOrientation.instance.lock_Callback_1_(unwrap_jso(this), orientation));
   
   @DomName('ScreenOrientation.unlock')
   @DocsEditable()
@@ -32545,9 +32556,9 @@ class ServiceWorkerClients extends NativeFieldWrapperClass2 {
 
   Future getAll([Map options]) {
     if (options != null) {
-      return _blink.BlinkServiceWorkerClients.instance.getAll_Callback_1_(unwrap_jso(this), options != null ? new js.JsObject.jsify(options) : options);
+      return wrap_jso(_blink.BlinkServiceWorkerClients.instance.getAll_Callback_1_(unwrap_jso(this), options != null ? new js.JsObject.jsify(options) : options));
     }
-    return _blink.BlinkServiceWorkerClients.instance.getAll_Callback_0_(unwrap_jso(this));
+    return wrap_jso(_blink.BlinkServiceWorkerClients.instance.getAll_Callback_0_(unwrap_jso(this)));
   }
 
 }
@@ -32592,16 +32603,16 @@ class ServiceWorkerContainer extends NativeFieldWrapperClass2 {
   
   Future getRegistration([String documentURL]) {
     if (documentURL != null) {
-      return _blink.BlinkServiceWorkerContainer.instance.getRegistration_Callback_1_(unwrap_jso(this), documentURL);
+      return wrap_jso(_blink.BlinkServiceWorkerContainer.instance.getRegistration_Callback_1_(unwrap_jso(this), documentURL));
     }
-    return _blink.BlinkServiceWorkerContainer.instance.getRegistration_Callback_0_(unwrap_jso(this));
+    return wrap_jso(_blink.BlinkServiceWorkerContainer.instance.getRegistration_Callback_0_(unwrap_jso(this)));
   }
 
   Future register(String url, [Map options]) {
     if (options != null) {
-      return _blink.BlinkServiceWorkerContainer.instance.register_Callback_2_(unwrap_jso(this), url, options != null ? new js.JsObject.jsify(options) : options);
+      return wrap_jso(_blink.BlinkServiceWorkerContainer.instance.register_Callback_2_(unwrap_jso(this), url, options != null ? new js.JsObject.jsify(options) : options));
     }
-    return _blink.BlinkServiceWorkerContainer.instance.register_Callback_1_(unwrap_jso(this), url);
+    return wrap_jso(_blink.BlinkServiceWorkerContainer.instance.register_Callback_1_(unwrap_jso(this), url));
   }
 
 }
@@ -32658,16 +32669,16 @@ class ServiceWorkerGlobalScope extends WorkerGlobalScope {
   
   Future _fetch(request, [Map requestInitDict]) {
     if ((request is String || request == null) && requestInitDict == null) {
-      return _blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_1_(unwrap_jso(this), unwrap_jso(request));
+      return wrap_jso(_blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_1_(unwrap_jso(this), unwrap_jso(request)));
     }
     if ((requestInitDict is Map || requestInitDict == null) && (request is String || request == null)) {
-      return _blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_2_(unwrap_jso(this), unwrap_jso(request), requestInitDict != null ? new js.JsObject.jsify(requestInitDict) : requestInitDict);
+      return wrap_jso(_blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_2_(unwrap_jso(this), unwrap_jso(request), requestInitDict != null ? new js.JsObject.jsify(requestInitDict) : requestInitDict));
     }
     if ((request is _Request || request == null) && requestInitDict == null) {
-      return _blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_1_(unwrap_jso(this), unwrap_jso(request));
+      return wrap_jso(_blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_1_(unwrap_jso(this), unwrap_jso(request)));
     }
     if ((requestInitDict is Map || requestInitDict == null) && (request is _Request || request == null)) {
-      return _blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_2_(unwrap_jso(this), unwrap_jso(request), requestInitDict != null ? new js.JsObject.jsify(requestInitDict) : requestInitDict);
+      return wrap_jso(_blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_2_(unwrap_jso(this), unwrap_jso(request), requestInitDict != null ? new js.JsObject.jsify(requestInitDict) : requestInitDict));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -32727,7 +32738,7 @@ class ServiceWorkerRegistration extends EventTarget {
   @DomName('ServiceWorkerRegistration.unregister')
   @DocsEditable()
   @Experimental() // untriaged
-  Future unregister() => _blink.BlinkServiceWorkerRegistration.instance.unregister_Callback_0_(unwrap_jso(this));
+  Future unregister() => wrap_jso(_blink.BlinkServiceWorkerRegistration.instance.unregister_Callback_0_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34587,12 +34598,12 @@ class StorageQuota extends NativeFieldWrapperClass2 {
   @DomName('StorageQuota.queryInfo')
   @DocsEditable()
   @Experimental() // untriaged
-  Future queryInfo(String type) => _blink.BlinkStorageQuota.instance.queryInfo_Callback_1_(unwrap_jso(this), type);
+  Future queryInfo(String type) => wrap_jso(_blink.BlinkStorageQuota.instance.queryInfo_Callback_1_(unwrap_jso(this), type));
   
   @DomName('StorageQuota.requestPersistentQuota')
   @DocsEditable()
   @Experimental() // untriaged
-  Future requestPersistentQuota(int newQuota) => _blink.BlinkStorageQuota.instance.requestPersistentQuota_Callback_1_(unwrap_jso(this), newQuota);
+  Future requestPersistentQuota(int newQuota) => wrap_jso(_blink.BlinkStorageQuota.instance.requestPersistentQuota_Callback_1_(unwrap_jso(this), newQuota));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

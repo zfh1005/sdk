@@ -404,6 +404,9 @@ wrap_jso(jsObject) {
     if (constructor == js.context['Object']) {
       return convertNativeObjectToDartMap(jsObject);
     }
+    if (constructor == js.context['Promise']) {
+      return convertNativePromiseToDartFuture(jsObject);
+    }
     var jsTypeName = constructor['name'];
     if (__interop_checks) {
       debug_or_assert("constructor != null && jsTypeName.length > 0", constructor != null && jsTypeName.length > 0);
@@ -508,6 +511,14 @@ convertDartToNative_List(List input) => new js.JsArray()..addAll(input);
 
 // Conversion function place holder (currently not used in dart2js or dartium).
 List convertDartToNative_StringArray(List<String> input) => input;
+
+Future convertNativePromiseToDartFuture(js.JsObject promise) {
+  var completer = new Completer();
+  var newPromise = promise
+      .callMethod("then", [(result) => completer.complete(result)])
+      .callMethod("catch", [(result) => completer.completeError(result)]);
+  return completer.future;
+}
 
 $else
 class JsoNativeFieldWrapper extends NativeFieldWrapperClass2 {}
