@@ -488,11 +488,19 @@ Map<String, dynamic> convertNativeObjectToDartMap(js.JsObject jsObject) {
 // is the Dartium only version it uses dart:js.
 convertDartToNative_Dictionary(Map dict) {
   if (dict == null) return null;
-  var jsArray = new js.JsObject(js.context['Object']);
+  var jsObject = new js.JsObject(js.context['Object']);
   dict.forEach((String key, value) {
-      jsArray[key] = value;
+    if (value is List) {
+      var jsArray = new js.JsArray();
+      value.forEach((elem) {
+        jsArray.add(elem is Map ? convertDartToNative_Dictionary(elem): elem);
+      });
+      jsObject[key] = jsArray;
+    } else {
+      jsObject[key] = value;
+    }
   });
-  return jsArray;
+  return jsObject;
 }
 
 // Converts a Dart list into a JsArray. For the Dartium version only.

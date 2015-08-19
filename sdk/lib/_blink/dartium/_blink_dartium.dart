@@ -7623,35 +7623,35 @@ class BlinkIDBIndex {
 class BlinkIDBKeyRange {
   static final instance = new BlinkIDBKeyRange();
 
-  bound_Callback_0_() => context["IDBKeyRange"].callMethod("bound", []);
+  bound_Callback_0_() => js.context["IDBKeyRange"].callMethod("bound", []);
 
-  bound_Callback_1_(__arg_0) => context["IDBKeyRange"].callMethod("bound", [__arg_0]);
+  bound_Callback_1_(__arg_0) => js.context["IDBKeyRange"].callMethod("bound", [__arg_0]);
 
-  bound_Callback_2_(__arg_0, __arg_1) => context["IDBKeyRange"].callMethod("bound", [__arg_0, __arg_1]);
+  bound_Callback_2_(__arg_0, __arg_1) => js.context["IDBKeyRange"].callMethod("bound", [__arg_0, __arg_1]);
 
-  bound_Callback_3_(__arg_0, __arg_1, __arg_2) => context["IDBKeyRange"].callMethod("bound", [__arg_0, __arg_1, __arg_2]);
+  bound_Callback_3_(__arg_0, __arg_1, __arg_2) => js.context["IDBKeyRange"].callMethod("bound", [__arg_0, __arg_1, __arg_2]);
 
-  bound_Callback_4_(__arg_0, __arg_1, __arg_2, __arg_3) => context["IDBKeyRange"].callMethod("bound", [__arg_0, __arg_1, __arg_2, __arg_3]);
+  bound_Callback_4_(__arg_0, __arg_1, __arg_2, __arg_3) => js.context["IDBKeyRange"].callMethod("bound", [__arg_0, __arg_1, __arg_2, __arg_3]);
 
-  lowerBound_Callback_0_() => context["IDBKeyRange"].callMethod("lowerBound", []);
+  lowerBound_Callback_0_() => js.context["IDBKeyRange"].callMethod("lowerBound", []);
 
-  lowerBound_Callback_1_(__arg_0) => context["IDBKeyRange"].callMethod("lowerBound", [__arg_0]);
+  lowerBound_Callback_1_(__arg_0) => js.context["IDBKeyRange"].callMethod("lowerBound", [__arg_0]);
 
-  lowerBound_Callback_2_(__arg_0, __arg_1) => context["IDBKeyRange"].callMethod("lowerBound", [__arg_0, __arg_1]);
+  lowerBound_Callback_2_(__arg_0, __arg_1) => js.context["IDBKeyRange"].callMethod("lowerBound", [__arg_0, __arg_1]);
 
   lowerOpen_Getter_(mthis) => mthis["lowerOpen"];
 
   lower_Getter_(mthis) => mthis["lower"];
 
-  only_Callback_0_() => context["IDBKeyRange"].callMethod("only", []);
+  only_Callback_0_() => js.context["IDBKeyRange"].callMethod("only", []);
 
-  only_Callback_1_(__arg_0) => context["IDBKeyRange"].callMethod("only", [__arg_0]);
+  only_Callback_1_(__arg_0) => js.context["IDBKeyRange"].callMethod("only", [__arg_0]);
 
-  upperBound_Callback_0_() => context["IDBKeyRange"].callMethod("upperBound", []);
+  upperBound_Callback_0_() => js.context["IDBKeyRange"].callMethod("upperBound", []);
 
-  upperBound_Callback_1_(__arg_0) => context["IDBKeyRange"].callMethod("upperBound", [__arg_0]);
+  upperBound_Callback_1_(__arg_0) => js.context["IDBKeyRange"].callMethod("upperBound", [__arg_0]);
 
-  upperBound_Callback_2_(__arg_0, __arg_1) => context["IDBKeyRange"].callMethod("upperBound", [__arg_0, __arg_1]);
+  upperBound_Callback_2_(__arg_0, __arg_1) => js.context["IDBKeyRange"].callMethod("upperBound", [__arg_0, __arg_1]);
 
   upperOpen_Getter_(mthis) => mthis["upperOpen"];
 
@@ -8494,15 +8494,15 @@ class BlinkMediaKeys {
 
   createSession_Callback_1_(mthis, __arg_0) => mthis.callMethod("createSession", [__arg_0]);
 
-  create_Callback_0_() => context["MediaKeys"].callMethod("create", []);
+  create_Callback_0_() => js.context["MediaKeys"].callMethod("create", []);
 
-  create_Callback_1_(__arg_0) => context["MediaKeys"].callMethod("create", [__arg_0]);
+  create_Callback_1_(__arg_0) => js.context["MediaKeys"].callMethod("create", [__arg_0]);
 
-  isTypeSupported_Callback_0_() => context["MediaKeys"].callMethod("isTypeSupported", []);
+  isTypeSupported_Callback_0_() => js.context["MediaKeys"].callMethod("isTypeSupported", []);
 
-  isTypeSupported_Callback_1_(__arg_0) => context["MediaKeys"].callMethod("isTypeSupported", [__arg_0]);
+  isTypeSupported_Callback_1_(__arg_0) => js.context["MediaKeys"].callMethod("isTypeSupported", [__arg_0]);
 
-  isTypeSupported_Callback_2_(__arg_0, __arg_1) => context["MediaKeys"].callMethod("isTypeSupported", [__arg_0, __arg_1]);
+  isTypeSupported_Callback_2_(__arg_0, __arg_1) => js.context["MediaKeys"].callMethod("isTypeSupported", [__arg_0, __arg_1]);
 
   keySystem_Getter_(mthis) => mthis["keySystem"];
 
@@ -8584,9 +8584,9 @@ class BlinkMediaSource extends BlinkEventTarget {
 
   endOfStream_Callback_1_(mthis, __arg_0) => mthis.callMethod("endOfStream", [__arg_0]);
 
-  isTypeSupported_Callback_0_() => context["MediaSource"].callMethod("isTypeSupported", []);
+  isTypeSupported_Callback_0_() => js.context["MediaSource"].callMethod("isTypeSupported", []);
 
-  isTypeSupported_Callback_1_(__arg_0) => context["MediaSource"].callMethod("isTypeSupported", [__arg_0]);
+  isTypeSupported_Callback_1_(__arg_0) => js.context["MediaSource"].callMethod("isTypeSupported", [__arg_0]);
 
   readyState_Getter_(mthis) => mthis["readyState"];
 
@@ -8679,9 +8679,9 @@ class BlinkMediaStreamTrack extends BlinkEventTarget {
 
   enabled_Setter_(mthis, __arg_0) => mthis["enabled"] = __arg_0;
 
-  getSources_Callback_0_() => context["MediaStreamTrack"].callMethod("getSources", []);
+  getSources_Callback_0_() => js.context["MediaStreamTrack"].callMethod("getSources", []);
 
-  getSources_Callback_1_(__arg_0) => context["MediaStreamTrack"].callMethod("getSources", [__arg_0]);
+  getSources_Callback_1_(__arg_0) => js.context["MediaStreamTrack"].callMethod("getSources", [__arg_0]);
 
   id_Getter_(mthis) => mthis["id"];
 
@@ -9296,9 +9296,9 @@ class BlinkNotification extends BlinkEventTarget {
 
   permission_Getter_() => mthis["permission"];
 
-  requestPermission_Callback_0_() => context["Notification"].callMethod("requestPermission", []);
+  requestPermission_Callback_0_() => js.context["Notification"].callMethod("requestPermission", []);
 
-  requestPermission_Callback_1_(__arg_0) => context["Notification"].callMethod("requestPermission", [__arg_0]);
+  requestPermission_Callback_1_(__arg_0) => js.context["Notification"].callMethod("requestPermission", [__arg_0]);
 
   tag_Getter_(mthis) => mthis["tag"];
 
@@ -10050,11 +10050,11 @@ class BlinkRTCPeerConnection extends BlinkEventTarget {
 
   close_Callback_0_(mthis) => mthis.callMethod("close", []);
 
-  constructorCallback_0_() => new js.JsObject(js.context["RTCPeerConnection"], []);
+  constructorCallback_0_() => new js.JsObject(js.context["webkitRTCPeerConnection"], []);
 
-  constructorCallback_1_(__arg_0) => new js.JsObject(js.context["RTCPeerConnection"], [__arg_0]);
+  constructorCallback_1_(__arg_0) => new js.JsObject(js.context["webkitRTCPeerConnection"], [__arg_0]);
 
-  constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["RTCPeerConnection"], [__arg_0, __arg_1]);
+  constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["webkitRTCPeerConnection"], [__arg_0, __arg_1]);
 
   createAnswer_Callback_0_(mthis) => mthis.callMethod("createAnswer", []);
 
@@ -14643,9 +14643,9 @@ class BlinkURL {
 
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(js.context["URL"], [__arg_0, __arg_1]);
 
-  createObjectURL_Callback_0_() => context["URL"].callMethod("createObjectURL", []);
+  createObjectURL_Callback_0_() => js.context["URL"].callMethod("createObjectURL", []);
 
-  createObjectURL_Callback_1_(__arg_0) => context["URL"].callMethod("createObjectURL", [__arg_0]);
+  createObjectURL_Callback_1_(__arg_0) => js.context["URL"].callMethod("createObjectURL", [__arg_0]);
 
   hash_Getter_(mthis) => mthis["hash"];
 
@@ -14681,9 +14681,9 @@ class BlinkURL {
 
   protocol_Setter_(mthis, __arg_0) => mthis["protocol"] = __arg_0;
 
-  revokeObjectURL_Callback_0_() => context["URL"].callMethod("revokeObjectURL", []);
+  revokeObjectURL_Callback_0_() => js.context["URL"].callMethod("revokeObjectURL", []);
 
-  revokeObjectURL_Callback_1_(__arg_0) => context["URL"].callMethod("revokeObjectURL", [__arg_0]);
+  revokeObjectURL_Callback_1_(__arg_0) => js.context["URL"].callMethod("revokeObjectURL", [__arg_0]);
 
   search_Getter_(mthis) => mthis["search"];
 
