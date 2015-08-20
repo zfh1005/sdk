@@ -12214,7 +12214,7 @@ class _FrozenElementList extends ListBase
  */
 @DomName('Element')
 @Native("Element")
-abstract class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode {
+class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode {
 
   /**
    * Creates an HTML element from a valid fragment of HTML.

@@ -13814,7 +13814,7 @@ class _FrozenElementList extends ListBase
  * An abstract class, which all HTML elements extend.
  */
 @DomName('Element')
-abstract class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode {
+class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode {
 
   /**
    * Creates an HTML element from a valid fragment of HTML.

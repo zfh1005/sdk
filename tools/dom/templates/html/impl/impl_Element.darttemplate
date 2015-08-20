@@ -333,7 +333,7 @@ $!ELEMENT_STREAM_GETTERS
 }
 
 @DocsEditable()
-$(ANNOTATIONS)$(NATIVESPEC)abstract class $CLASSNAME$EXTENDS$IMPLEMENTS {
+$(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
 
   /**
    * Creates an HTML element from a valid fragment of HTML.

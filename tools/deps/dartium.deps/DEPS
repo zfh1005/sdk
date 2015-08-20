@@ -54,7 +54,7 @@ vars.update({
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
   "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
 
-  "co19_rev": "@443925b77fff7ab2fa124790f2fc257643f53441",
+  "co19_rev": "@84a2e1f35af8fb75697776b3ca5ae4219b478302",
   "fake_async_rev": "@38614",
 })
 
