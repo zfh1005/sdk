@@ -782,6 +782,8 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'MouseEvent.y',
     'Navigator.registerServiceWorker',
     'Navigator.unregisterServiceWorker',
+    'Navigator.isProtocolHandlerRegistered',
+    'Navigator.unregisterProtocolHandler',
     'Node.compareDocumentPosition',
     'Node.get:DOCUMENT_POSITION_CONTAINED_BY',
     'Node.get:DOCUMENT_POSITION_CONTAINS',

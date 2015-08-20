@@ -23286,11 +23286,6 @@ class Navigator extends Interceptor implements NavigatorCpu, NavigatorLanguage, 
   @Experimental()
   void getStorageUpdates() native;
 
-  @DomName('Navigator.isProtocolHandlerRegistered')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String isProtocolHandlerRegistered(String scheme, String url) native;
-
   @DomName('Navigator.registerProtocolHandler')
   @DocsEditable()
   @Unstable()
@@ -23300,11 +23295,6 @@ class Navigator extends Interceptor implements NavigatorCpu, NavigatorLanguage, 
   @DocsEditable()
   @Experimental() // untriaged
   bool sendBeacon(String url, data) native;
-
-  @DomName('Navigator.unregisterProtocolHandler')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void unregisterProtocolHandler(String scheme, String url) native;
 
   // From NavigatorCPU
 

@@ -557,6 +557,7 @@ WebPlatformTest/html/semantics/selectors/pseudo-classes/valid-invalid_t01: Runti
 WebPlatformTest/html/semantics/tabular-data/the-table-element/table-rows_t01: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/html/semantics/tabular-data/the-tr-element/rowIndex_t01: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/html/syntax/serializing-html-fragments/outerHTML_t01: RuntimeError # co19-roll r761: Please triage this failure.
+WebPlatformTest/html/webappapis/system-state-and-capabilities/the-navigator-object/protocol/t01: RuntimeError # Tests APIs that aren't yet visible. Tests should be deleted.
 WebPlatformTest/html/webappapis/system-state-and-capabilities/the-navigator-object/protocol/t02: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/html/webappapis/system-state-and-capabilities/the-navigator-object/protocol/t03: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/html/webappapis/system-state-and-capabilities/the-navigator-object/protocol/t05: RuntimeError # co19-roll r761: Please triage this failure.
