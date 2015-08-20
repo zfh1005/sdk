@@ -396,6 +396,10 @@ wrap_jso(jsObject) {
     }
     var constructor = jsObject['constructor'];
     if (__interop_checks) {
+      if (jsObject is js.JsArray) {
+        return jsObject;
+      }
+
       debug_or_assert("constructor != null", constructor != null);
     }
     if (constructor == js.context['NodeList']) {
