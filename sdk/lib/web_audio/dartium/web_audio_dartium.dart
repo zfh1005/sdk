@@ -11,6 +11,7 @@ import 'dart:html_common';
 import 'dart:nativewrappers';
 import 'dart:typed_data';
 import 'dart:_blink' as _blink;
+import 'dart:js' as js;
 // DO NOT EDIT
 // Auto-generated dart:audio library.
 
@@ -1574,7 +1575,7 @@ class WaveShaperNode extends AudioNode {
 
   @DomName('WaveShaperNode.curve')
   @DocsEditable()
-  Float32List get curve => wrap_jso(_blink.BlinkWaveShaperNode.instance.curve_Getter_(unwrap_jso(this)));
+  Float32List get curve => _blink.BlinkWaveShaperNode.instance.curve_Getter_(unwrap_jso(this));
   
   @DomName('WaveShaperNode.curve')
   @DocsEditable()

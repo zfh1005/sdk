@@ -15,6 +15,7 @@ import 'dart:html';
 import 'dart:html_common';
 import 'dart:nativewrappers';
 import 'dart:_blink' as _blink;
+import 'dart:js' as js;
 // DO NOT EDIT
 // Auto-generated dart:svg library.
 

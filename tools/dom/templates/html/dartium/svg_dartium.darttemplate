@@ -18,6 +18,7 @@ import 'dart:html';
 import 'dart:html_common';
 import 'dart:nativewrappers';
 import 'dart:_blink' as _blink;
+import 'dart:js' as js;
 
 part '$AUXILIARY_DIR/shared_SVGFactoryProviders.dart';
 

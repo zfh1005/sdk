@@ -62,7 +62,7 @@
  * and where both the keys and the values are strings.
  *
  * * [dart:web_sql]&mdash;a database that can be queried with SQL.
- * 
+ *
  * For a tutorial about using the indexed_db library with Dart,
  * check out
  * [Use IndexedDB](http://www.dartlang.org/docs/tutorials/indexeddb/).
@@ -77,6 +77,7 @@ import 'dart:html';
 import 'dart:html_common';
 import 'dart:nativewrappers';
 import 'dart:_blink' as _blink;
+import 'dart:js' as js;
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -187,15 +188,15 @@ class Cursor extends NativeFieldWrapperClass2 {
   
   @DomName('IDBCursor.key')
   @DocsEditable()
-  Object get key => _blink.BlinkIDBCursor.instance.key_Getter_(unwrap_jso(this));
+  Object get key => wrap_jso(_blink.BlinkIDBCursor.instance.key_Getter_(unwrap_jso(this)));
   
   @DomName('IDBCursor.primaryKey')
   @DocsEditable()
-  Object get primaryKey => _blink.BlinkIDBCursor.instance.primaryKey_Getter_(unwrap_jso(this));
+  Object get primaryKey => wrap_jso(_blink.BlinkIDBCursor.instance.primaryKey_Getter_(unwrap_jso(this)));
   
   @DomName('IDBCursor.source')
   @DocsEditable()
-  Object get source => _blink.BlinkIDBCursor.instance.source_Getter_(unwrap_jso(this));
+  Object get source => wrap_jso(_blink.BlinkIDBCursor.instance.source_Getter_(unwrap_jso(this)));
   
   @DomName('IDBCursor.advance')
   @DocsEditable()
@@ -252,7 +253,7 @@ class CursorWithValue extends Cursor {
 
   @DomName('IDBCursorWithValue.value')
   @DocsEditable()
-  Object get value => _blink.BlinkIDBCursorWithValue.instance.value_Getter_(unwrap_jso(this));
+  Object get value => wrap_jso(_blink.BlinkIDBCursorWithValue.instance.value_Getter_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -355,7 +356,7 @@ class Database extends EventTarget {
   
   @DomName('IDBDatabase.version')
   @DocsEditable()
-  Object get version => _blink.BlinkIDBDatabase.instance.version_Getter_(unwrap_jso(this));
+  Object get version => wrap_jso(_blink.BlinkIDBDatabase.instance.version_Getter_(unwrap_jso(this)));
   
   @DomName('IDBDatabase.close')
   @DocsEditable()
@@ -697,7 +698,7 @@ class Index extends NativeFieldWrapperClass2 {
 
   @DomName('IDBIndex.keyPath')
   @DocsEditable()
-  Object get keyPath => _blink.BlinkIDBIndex.instance.keyPath_Getter_(unwrap_jso(this));
+  Object get keyPath => wrap_jso(_blink.BlinkIDBIndex.instance.keyPath_Getter_(unwrap_jso(this)));
   
   @DomName('IDBIndex.multiEntry')
   @DocsEditable()
@@ -788,7 +789,7 @@ class KeyRange extends NativeFieldWrapperClass2 {
 
   @DomName('IDBKeyRange.lower')
   @DocsEditable()
-  Object get lower => _blink.BlinkIDBKeyRange.instance.lower_Getter_(unwrap_jso(this));
+  Object get lower => wrap_jso(_blink.BlinkIDBKeyRange.instance.lower_Getter_(unwrap_jso(this)));
   
   @DomName('IDBKeyRange.lowerOpen')
   @DocsEditable()
@@ -796,7 +797,7 @@ class KeyRange extends NativeFieldWrapperClass2 {
   
   @DomName('IDBKeyRange.upper')
   @DocsEditable()
-  Object get upper => _blink.BlinkIDBKeyRange.instance.upper_Getter_(unwrap_jso(this));
+  Object get upper => wrap_jso(_blink.BlinkIDBKeyRange.instance.upper_Getter_(unwrap_jso(this)));
   
   @DomName('IDBKeyRange.upperOpen')
   @DocsEditable()
@@ -995,7 +996,7 @@ class ObjectStore extends NativeFieldWrapperClass2 {
   
   @DomName('IDBObjectStore.keyPath')
   @DocsEditable()
-  Object get keyPath => _blink.BlinkIDBObjectStore.instance.keyPath_Getter_(unwrap_jso(this));
+  Object get keyPath => wrap_jso(_blink.BlinkIDBObjectStore.instance.keyPath_Getter_(unwrap_jso(this)));
   
   @DomName('IDBObjectStore.name')
   @DocsEditable()
@@ -1214,11 +1215,11 @@ class Request extends EventTarget {
   
   @DomName('IDBRequest.result')
   @DocsEditable()
-  Object get result => _blink.BlinkIDBRequest.instance.result_Getter_(unwrap_jso(this));
+  Object get result => wrap_jso(_blink.BlinkIDBRequest.instance.result_Getter_(unwrap_jso(this)));
   
   @DomName('IDBRequest.source')
   @DocsEditable()
-  Object get source => _blink.BlinkIDBRequest.instance.source_Getter_(unwrap_jso(this));
+  Object get source => wrap_jso(_blink.BlinkIDBRequest.instance.source_Getter_(unwrap_jso(this)));
   
   @DomName('IDBRequest.transaction')
   @DocsEditable()

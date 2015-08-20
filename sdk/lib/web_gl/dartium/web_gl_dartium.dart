@@ -11,6 +11,7 @@ import 'dart:html_common';
 import 'dart:nativewrappers';
 import 'dart:typed_data';
 import 'dart:_blink' as _blink;
+import 'dart:js' as js;
 // DO NOT EDIT
 // Auto-generated dart:web_gl library.
 

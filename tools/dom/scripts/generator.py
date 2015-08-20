@@ -1450,11 +1450,11 @@ def wrap_type_blink(return_type, type_registry):
     return (return_type == 'Map' or
             return_type == 'Rectangle')
 
-def wrap_return_type_blink(return_type, info, type_registry):
+def wrap_return_type_blink(return_type, type_name, type_registry):
     """Returns True if we should wrap the returned value. This checks
     a number of different variations, calling the more basic functions
     above."""
     return (wrap_unwrap_type_blink(return_type, type_registry) or
-            wrap_unwrap_type_blink(info.type_name, type_registry) or
+            wrap_unwrap_type_blink(type_name, type_registry) or
             wrap_type_blink(return_type, type_registry) or
             wrap_unwrap_list_blink(return_type, type_registry))

@@ -932,13 +932,7 @@ class DartiumBackend(HtmlDartGenerator):
         #    - type is Object
         #
         # JsObject maybe stored in the Dart class.
-        if (isinstance(type_info, SequenceIDLTypeInfo) and
-            not isinstance(type_info._item_info, PrimitiveIDLTypeInfo)):
-                # List of a non-primitive type.
-                return_wrap_jso = True
-        elif (isinstance(type_info, InterfaceIDLTypeInfo) or
-              not(type_info) or attr.type.id == 'object'):
-            return_wrap_jso = True
+        return_wrap_jso = wrap_return_type_blink(return_type, attr.type.id, self._type_registry)
     wrap_unwrap_list.append(return_wrap_jso)       # wrap_jso the returned object
     wrap_unwrap_list.append(self._dart_use_blink)  # this must be unwrap_jso
 
@@ -1227,7 +1221,7 @@ class DartiumBackend(HtmlDartGenerator):
         #    - type is Object
         #
         # JsObject maybe stored in the Dart class.
-        return_wrap_jso = wrap_return_type_blink(return_type, info, self._type_registry)
+        return_wrap_jso = wrap_return_type_blink(return_type, info.type_name, self._type_registry)
         return_type_info = self._type_registry.TypeInfo(info.type_name)
         if (isinstance(return_type_info, SequenceIDLTypeInfo) and
             not isinstance(return_type_info._item_info, PrimitiveIDLTypeInfo)):
@@ -1271,7 +1265,7 @@ class DartiumBackend(HtmlDartGenerator):
 
       return_wrap_jso = False
       if self._dart_use_blink:
-          return_wrap_jso = wrap_return_type_blink(return_type, info, self._type_registry)
+          return_wrap_jso = wrap_return_type_blink(return_type, info.type_name, self._type_registry)
 
       native_suffix = 'Callback'
       is_custom = _IsCustom(operation)

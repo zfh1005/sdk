@@ -9170,7 +9170,7 @@ class CustomEvent extends Event {
 
   @DomName('CustomEvent.detail')
   @DocsEditable()
-  Object get _detail => _blink.BlinkCustomEvent.instance.detail_Getter_(unwrap_jso(this));
+  Object get _detail => wrap_jso(_blink.BlinkCustomEvent.instance.detail_Getter_(unwrap_jso(this)));
   
   @DomName('CustomEvent.initCustomEvent')
   @DocsEditable()
@@ -16679,7 +16679,7 @@ class ErrorEvent extends Event {
   @DomName('ErrorEvent.error')
   @DocsEditable()
   @Experimental() // untriaged
-  Object get error => _blink.BlinkErrorEvent.instance.error_Getter_(unwrap_jso(this));
+  Object get error => wrap_jso(_blink.BlinkErrorEvent.instance.error_Getter_(unwrap_jso(this)));
   
   @DomName('ErrorEvent.filename')
   @DocsEditable()
@@ -18208,7 +18208,7 @@ class FontFace extends NativeFieldWrapperClass2 {
   @DomName('FontFace.loaded')
   @DocsEditable()
   @Experimental() // untriaged
-  Future get loaded => _blink.BlinkFontFace.instance.loaded_Getter_(unwrap_jso(this));
+  Future get loaded => wrap_jso(_blink.BlinkFontFace.instance.loaded_Getter_(unwrap_jso(this)));
   
   @DomName('FontFace.status')
   @DocsEditable()
@@ -18383,7 +18383,7 @@ class FontFaceSetLoadEvent extends Event {
   @DomName('FontFaceSetLoadEvent.fontfaces')
   @DocsEditable()
   @Experimental() // untriaged
-  List<FontFace> get fontfaces => wrap_jso(_blink.BlinkFontFaceSetLoadEvent.instance.fontfaces_Getter_(unwrap_jso(this)));
+  List<FontFace> get fontfaces => _blink.BlinkFontFaceSetLoadEvent.instance.fontfaces_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22051,7 +22051,7 @@ class ImageData extends NativeFieldWrapperClass2 {
 
   @DomName('ImageData.data')
   @DocsEditable()
-  Uint8ClampedList get _data => wrap_jso(_blink.BlinkImageData.instance.data_Getter_(unwrap_jso(this)));
+  Uint8ClampedList get _data => _blink.BlinkImageData.instance.data_Getter_(unwrap_jso(this));
   
   @DomName('ImageData.height')
   @DocsEditable()
@@ -22646,7 +22646,7 @@ class InputElement extends HtmlElement implements
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/states-of-the-type-attribute.html#concept-input-type-file-selected
-  List<Entry> get entries => wrap_jso(_blink.BlinkHTMLInputElement.instance.webkitEntries_Getter_(unwrap_jso(this)));
+  List<Entry> get entries => _blink.BlinkHTMLInputElement.instance.webkitEntries_Getter_(unwrap_jso(this));
   
   @DomName('HTMLInputElement.webkitdirectory')
   @DocsEditable()
@@ -24828,7 +24828,7 @@ class MediaKeyEvent extends Event {
   
   @DomName('MediaKeyEvent.initData')
   @DocsEditable()
-  Uint8List get initData => wrap_jso(_blink.BlinkMediaKeyEvent.instance.initData_Getter_(unwrap_jso(this)));
+  Uint8List get initData => _blink.BlinkMediaKeyEvent.instance.initData_Getter_(unwrap_jso(this));
   
   @DomName('MediaKeyEvent.keySystem')
   @DocsEditable()
@@ -24836,7 +24836,7 @@ class MediaKeyEvent extends Event {
   
   @DomName('MediaKeyEvent.message')
   @DocsEditable()
-  Uint8List get message => wrap_jso(_blink.BlinkMediaKeyEvent.instance.message_Getter_(unwrap_jso(this)));
+  Uint8List get message => _blink.BlinkMediaKeyEvent.instance.message_Getter_(unwrap_jso(this));
   
   @DomName('MediaKeyEvent.sessionId')
   @DocsEditable()
@@ -24880,7 +24880,7 @@ class MediaKeyMessageEvent extends Event {
   
   @DomName('MediaKeyMessageEvent.message')
   @DocsEditable()
-  ByteBuffer get message => wrap_jso(_blink.BlinkMediaKeyMessageEvent.instance.message_Getter_(unwrap_jso(this)));
+  ByteBuffer get message => _blink.BlinkMediaKeyMessageEvent.instance.message_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24917,7 +24917,7 @@ class MediaKeyNeededEvent extends Event {
   
   @DomName('MediaKeyNeededEvent.initData')
   @DocsEditable()
-  Uint8List get initData => wrap_jso(_blink.BlinkMediaKeyNeededEvent.instance.initData_Getter_(unwrap_jso(this)));
+  Uint8List get initData => _blink.BlinkMediaKeyNeededEvent.instance.initData_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24950,7 +24950,7 @@ class MediaKeySession extends EventTarget {
   @DomName('MediaKeySession.closed')
   @DocsEditable()
   @Experimental() // untriaged
-  Future get closed => _blink.BlinkMediaKeySession.instance.closed_Getter_(unwrap_jso(this));
+  Future get closed => wrap_jso(_blink.BlinkMediaKeySession.instance.closed_Getter_(unwrap_jso(this)));
   
   @DomName('MediaKeySession.error')
   @DocsEditable()
@@ -25882,7 +25882,7 @@ class MessageEvent extends Event {
 
   @DomName('MessageEvent.data')
   @DocsEditable()
-  Object get data => _blink.BlinkMessageEvent.instance.data_Getter_(unwrap_jso(this));
+  Object get data => wrap_jso(_blink.BlinkMessageEvent.instance.data_Getter_(unwrap_jso(this)));
   
   @DomName('MessageEvent.lastEventId')
   @DocsEditable()
@@ -26397,7 +26397,7 @@ class MidiMessageEvent extends Event {
 
   @DomName('MIDIMessageEvent.data')
   @DocsEditable()
-  Uint8List get data => wrap_jso(_blink.BlinkMIDIMessageEvent.instance.data_Getter_(unwrap_jso(this)));
+  Uint8List get data => _blink.BlinkMIDIMessageEvent.instance.data_Getter_(unwrap_jso(this));
   
   @DomName('MIDIMessageEvent.receivedTime')
   @DocsEditable()
@@ -30193,7 +30193,7 @@ class PopStateEvent extends Event {
 
   @DomName('PopStateEvent.state')
   @DocsEditable()
-  Object get state => _blink.BlinkPopStateEvent.instance.state_Getter_(unwrap_jso(this));
+  Object get state => wrap_jso(_blink.BlinkPopStateEvent.instance.state_Getter_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30888,7 +30888,7 @@ class ReadableStream extends NativeFieldWrapperClass2 {
   @DomName('ReadableStream.closed')
   @DocsEditable()
   @Experimental() // untriaged
-  Future get closed => _blink.BlinkReadableStream.instance.closed_Getter_(unwrap_jso(this));
+  Future get closed => wrap_jso(_blink.BlinkReadableStream.instance.closed_Getter_(unwrap_jso(this)));
   
   @DomName('ReadableStream.state')
   @DocsEditable()
@@ -32603,7 +32603,7 @@ class ServiceWorkerContainer extends NativeFieldWrapperClass2 {
   @DomName('ServiceWorkerContainer.ready')
   @DocsEditable()
   @Experimental() // untriaged
-  Future get ready => _blink.BlinkServiceWorkerContainer.instance.ready_Getter_(unwrap_jso(this));
+  Future get ready => wrap_jso(_blink.BlinkServiceWorkerContainer.instance.ready_Getter_(unwrap_jso(this)));
   
   Future getRegistration([String documentURL]) {
     if (documentURL != null) {
