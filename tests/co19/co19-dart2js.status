@@ -1270,7 +1270,6 @@ WebPlatformTest/html-templates/parsing-html-templates/creating-an-element-for-th
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-image_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-video_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-text/load-text-plain_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/dom/documents/dom-tree-accessors/Document.getElementsByClassName-null_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-getter_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-setter_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.getElementsByName-namespace_t01: RuntimeError # Please triage this failure
@@ -2906,7 +2905,6 @@ WebPlatformTest/html-templates/template-element/template-content_t01: RuntimeErr
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-image_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-video_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-text/load-text-plain_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/dom/documents/dom-tree-accessors/Document.getElementsByClassName-null_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-getter_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-setter_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.getElementsByName-namespace_t01: RuntimeError # Please triage this failure
@@ -4187,7 +4185,6 @@ WebPlatformTest/html-templates/template-element/node-document-changes_t01: Runti
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-image_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-video_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-text/load-text-plain_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/dom/documents/dom-tree-accessors/Document.getElementsByClassName-null_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-getter_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-setter_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.getElementsByName-namespace_t01: RuntimeError # Please triage this failure
@@ -5509,7 +5506,6 @@ WebPlatformTest/html-templates/template-element/template-content_t01: RuntimeErr
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-image_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-video_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-text/load-text-plain_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/dom/documents/dom-tree-accessors/Document.getElementsByClassName-null_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-getter_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-setter_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.getElementsByName-namespace_t01: RuntimeError # Please triage this failure
@@ -7516,7 +7512,6 @@ WebPlatformTest/html-templates/template-element/template-content_t01: RuntimeErr
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-image_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-video_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-text/load-text-plain_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/dom/documents/dom-tree-accessors/Document.getElementsByClassName-null_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-getter_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-setter_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.getElementsByName-namespace_t01: RuntimeError # Please triage this failure
@@ -9382,7 +9377,6 @@ WebPlatformTest/html-templates/template-element/template-content_t01: RuntimeErr
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-image_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-video_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-text/load-text-plain_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/dom/documents/dom-tree-accessors/Document.getElementsByClassName-null_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-getter_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.body-setter_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/documents/dom-tree-accessors/document.getElementsByName-namespace_t01: RuntimeError # Please triage this failure
