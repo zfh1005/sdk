@@ -370,7 +370,7 @@ bool __interop_checks = true;
 /**
  * Return the JsObject associated with a Dart class [dartClass_instance].
  */
-js.JsObject unwrap_jso(dartClass_instance) {
+unwrap_jso(dartClass_instance) {
   try {
     if (dartClass_instance != null)
       return dartClass_instance is NativeFieldWrapperClass2 ?
