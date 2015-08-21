@@ -1247,9 +1247,7 @@ List<Node> wrap_jso_node_list(jso_nodes) {
   for (var i = 0; i < collectionLen; i++) {
     nodes.add(wrap_jso(jso_nodes.callMethod('item', [i])));
   }
-  var frozen_nodes = new _FrozenElementList._wrap(nodes);
-  frozen_nodes.dartClass_instance = jso_nodes;
-  return frozen_nodes;
+  return nodes;
 }
 
 Map<String, dynamic> convertNativeObjectToDartMap(js.JsObject jsObject) {
