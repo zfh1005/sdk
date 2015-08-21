@@ -1380,7 +1380,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAnchorElement.download')
   @DocsEditable()
-  void set download(String value) => _blink.BlinkHTMLAnchorElement.instance.download_Setter_(unwrap_jso(this), value);
+  set download(String value) => _blink.BlinkHTMLAnchorElement.instance.download_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.hreflang')
   @DocsEditable()
@@ -1388,7 +1388,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAnchorElement.hreflang')
   @DocsEditable()
-  void set hreflang(String value) => _blink.BlinkHTMLAnchorElement.instance.hreflang_Setter_(unwrap_jso(this), value);
+  set hreflang(String value) => _blink.BlinkHTMLAnchorElement.instance.hreflang_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.integrity')
   @DocsEditable()
@@ -1398,7 +1398,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   @DomName('HTMLAnchorElement.integrity')
   @DocsEditable()
   @Experimental() // untriaged
-  void set integrity(String value) => _blink.BlinkHTMLAnchorElement.instance.integrity_Setter_(unwrap_jso(this), value);
+  set integrity(String value) => _blink.BlinkHTMLAnchorElement.instance.integrity_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.rel')
   @DocsEditable()
@@ -1406,7 +1406,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAnchorElement.rel')
   @DocsEditable()
-  void set rel(String value) => _blink.BlinkHTMLAnchorElement.instance.rel_Setter_(unwrap_jso(this), value);
+  set rel(String value) => _blink.BlinkHTMLAnchorElement.instance.rel_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.target')
   @DocsEditable()
@@ -1414,7 +1414,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAnchorElement.target')
   @DocsEditable()
-  void set target(String value) => _blink.BlinkHTMLAnchorElement.instance.target_Setter_(unwrap_jso(this), value);
+  set target(String value) => _blink.BlinkHTMLAnchorElement.instance.target_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.type')
   @DocsEditable()
@@ -1422,7 +1422,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAnchorElement.type')
   @DocsEditable()
-  void set type(String value) => _blink.BlinkHTMLAnchorElement.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkHTMLAnchorElement.instance.type_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.hash')
   @DocsEditable()
@@ -1430,7 +1430,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAnchorElement.hash')
   @DocsEditable()
-  void set hash(String value) => _blink.BlinkHTMLAnchorElement.instance.hash_Setter_(unwrap_jso(this), value);
+  set hash(String value) => _blink.BlinkHTMLAnchorElement.instance.hash_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.host')
   @DocsEditable()
@@ -1438,7 +1438,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAnchorElement.host')
   @DocsEditable()
-  void set host(String value) => _blink.BlinkHTMLAnchorElement.instance.host_Setter_(unwrap_jso(this), value);
+  set host(String value) => _blink.BlinkHTMLAnchorElement.instance.host_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.hostname')
   @DocsEditable()
@@ -1446,7 +1446,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAnchorElement.hostname')
   @DocsEditable()
-  void set hostname(String value) => _blink.BlinkHTMLAnchorElement.instance.hostname_Setter_(unwrap_jso(this), value);
+  set hostname(String value) => _blink.BlinkHTMLAnchorElement.instance.hostname_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.href')
   @DocsEditable()
@@ -1454,7 +1454,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAnchorElement.href')
   @DocsEditable()
-  void set href(String value) => _blink.BlinkHTMLAnchorElement.instance.href_Setter_(unwrap_jso(this), value);
+  set href(String value) => _blink.BlinkHTMLAnchorElement.instance.href_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.origin')
   @DocsEditable()
@@ -1470,7 +1470,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   @DomName('HTMLAnchorElement.password')
   @DocsEditable()
   @Experimental() // untriaged
-  void set password(String value) => _blink.BlinkHTMLAnchorElement.instance.password_Setter_(unwrap_jso(this), value);
+  set password(String value) => _blink.BlinkHTMLAnchorElement.instance.password_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.pathname')
   @DocsEditable()
@@ -1478,7 +1478,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAnchorElement.pathname')
   @DocsEditable()
-  void set pathname(String value) => _blink.BlinkHTMLAnchorElement.instance.pathname_Setter_(unwrap_jso(this), value);
+  set pathname(String value) => _blink.BlinkHTMLAnchorElement.instance.pathname_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.port')
   @DocsEditable()
@@ -1486,7 +1486,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAnchorElement.port')
   @DocsEditable()
-  void set port(String value) => _blink.BlinkHTMLAnchorElement.instance.port_Setter_(unwrap_jso(this), value);
+  set port(String value) => _blink.BlinkHTMLAnchorElement.instance.port_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.protocol')
   @DocsEditable()
@@ -1494,7 +1494,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAnchorElement.protocol')
   @DocsEditable()
-  void set protocol(String value) => _blink.BlinkHTMLAnchorElement.instance.protocol_Setter_(unwrap_jso(this), value);
+  set protocol(String value) => _blink.BlinkHTMLAnchorElement.instance.protocol_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.search')
   @DocsEditable()
@@ -1502,7 +1502,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAnchorElement.search')
   @DocsEditable()
-  void set search(String value) => _blink.BlinkHTMLAnchorElement.instance.search_Setter_(unwrap_jso(this), value);
+  set search(String value) => _blink.BlinkHTMLAnchorElement.instance.search_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.username')
   @DocsEditable()
@@ -1512,7 +1512,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   @DomName('HTMLAnchorElement.username')
   @DocsEditable()
   @Experimental() // untriaged
-  void set username(String value) => _blink.BlinkHTMLAnchorElement.instance.username_Setter_(unwrap_jso(this), value);
+  set username(String value) => _blink.BlinkHTMLAnchorElement.instance.username_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.toString')
   @DocsEditable()
@@ -1736,7 +1736,7 @@ class AnimationPlayer extends EventTarget {
   @DomName('AnimationPlayer.currentTime')
   @DocsEditable()
   @Experimental() // untriaged
-  void set currentTime(num value) => _blink.BlinkAnimationPlayer.instance.currentTime_Setter_(unwrap_jso(this), value);
+  set currentTime(num value) => _blink.BlinkAnimationPlayer.instance.currentTime_Setter_(unwrap_jso(this), value);
   
   @DomName('AnimationPlayer.playState')
   @DocsEditable()
@@ -1751,7 +1751,7 @@ class AnimationPlayer extends EventTarget {
   @DomName('AnimationPlayer.playbackRate')
   @DocsEditable()
   @Experimental() // untriaged
-  void set playbackRate(num value) => _blink.BlinkAnimationPlayer.instance.playbackRate_Setter_(unwrap_jso(this), value);
+  set playbackRate(num value) => _blink.BlinkAnimationPlayer.instance.playbackRate_Setter_(unwrap_jso(this), value);
   
   @DomName('AnimationPlayer.source')
   @DocsEditable()
@@ -1761,7 +1761,7 @@ class AnimationPlayer extends EventTarget {
   @DomName('AnimationPlayer.source')
   @DocsEditable()
   @Experimental() // untriaged
-  void set source(AnimationNode value) => _blink.BlinkAnimationPlayer.instance.source_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set source(AnimationNode value) => _blink.BlinkAnimationPlayer.instance.source_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('AnimationPlayer.startTime')
   @DocsEditable()
@@ -1771,7 +1771,7 @@ class AnimationPlayer extends EventTarget {
   @DomName('AnimationPlayer.startTime')
   @DocsEditable()
   @Experimental() // untriaged
-  void set startTime(num value) => _blink.BlinkAnimationPlayer.instance.startTime_Setter_(unwrap_jso(this), value);
+  set startTime(num value) => _blink.BlinkAnimationPlayer.instance.startTime_Setter_(unwrap_jso(this), value);
   
   @DomName('AnimationPlayer.cancel')
   @DocsEditable()
@@ -2177,7 +2177,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAreaElement.alt')
   @DocsEditable()
-  void set alt(String value) => _blink.BlinkHTMLAreaElement.instance.alt_Setter_(unwrap_jso(this), value);
+  set alt(String value) => _blink.BlinkHTMLAreaElement.instance.alt_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAreaElement.coords')
   @DocsEditable()
@@ -2185,7 +2185,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAreaElement.coords')
   @DocsEditable()
-  void set coords(String value) => _blink.BlinkHTMLAreaElement.instance.coords_Setter_(unwrap_jso(this), value);
+  set coords(String value) => _blink.BlinkHTMLAreaElement.instance.coords_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAreaElement.shape')
   @DocsEditable()
@@ -2193,7 +2193,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAreaElement.shape')
   @DocsEditable()
-  void set shape(String value) => _blink.BlinkHTMLAreaElement.instance.shape_Setter_(unwrap_jso(this), value);
+  set shape(String value) => _blink.BlinkHTMLAreaElement.instance.shape_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAreaElement.target')
   @DocsEditable()
@@ -2201,7 +2201,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAreaElement.target')
   @DocsEditable()
-  void set target(String value) => _blink.BlinkHTMLAreaElement.instance.target_Setter_(unwrap_jso(this), value);
+  set target(String value) => _blink.BlinkHTMLAreaElement.instance.target_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAreaElement.hash')
   @DocsEditable()
@@ -2209,7 +2209,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAreaElement.hash')
   @DocsEditable()
-  void set hash(String value) => _blink.BlinkHTMLAreaElement.instance.hash_Setter_(unwrap_jso(this), value);
+  set hash(String value) => _blink.BlinkHTMLAreaElement.instance.hash_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAreaElement.host')
   @DocsEditable()
@@ -2217,7 +2217,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAreaElement.host')
   @DocsEditable()
-  void set host(String value) => _blink.BlinkHTMLAreaElement.instance.host_Setter_(unwrap_jso(this), value);
+  set host(String value) => _blink.BlinkHTMLAreaElement.instance.host_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAreaElement.hostname')
   @DocsEditable()
@@ -2225,7 +2225,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAreaElement.hostname')
   @DocsEditable()
-  void set hostname(String value) => _blink.BlinkHTMLAreaElement.instance.hostname_Setter_(unwrap_jso(this), value);
+  set hostname(String value) => _blink.BlinkHTMLAreaElement.instance.hostname_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAreaElement.href')
   @DocsEditable()
@@ -2233,7 +2233,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAreaElement.href')
   @DocsEditable()
-  void set href(String value) => _blink.BlinkHTMLAreaElement.instance.href_Setter_(unwrap_jso(this), value);
+  set href(String value) => _blink.BlinkHTMLAreaElement.instance.href_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAreaElement.origin')
   @DocsEditable()
@@ -2248,7 +2248,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
   @DomName('HTMLAreaElement.password')
   @DocsEditable()
   @Experimental() // untriaged
-  void set password(String value) => _blink.BlinkHTMLAreaElement.instance.password_Setter_(unwrap_jso(this), value);
+  set password(String value) => _blink.BlinkHTMLAreaElement.instance.password_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAreaElement.pathname')
   @DocsEditable()
@@ -2256,7 +2256,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAreaElement.pathname')
   @DocsEditable()
-  void set pathname(String value) => _blink.BlinkHTMLAreaElement.instance.pathname_Setter_(unwrap_jso(this), value);
+  set pathname(String value) => _blink.BlinkHTMLAreaElement.instance.pathname_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAreaElement.port')
   @DocsEditable()
@@ -2264,7 +2264,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAreaElement.port')
   @DocsEditable()
-  void set port(String value) => _blink.BlinkHTMLAreaElement.instance.port_Setter_(unwrap_jso(this), value);
+  set port(String value) => _blink.BlinkHTMLAreaElement.instance.port_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAreaElement.protocol')
   @DocsEditable()
@@ -2272,7 +2272,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAreaElement.protocol')
   @DocsEditable()
-  void set protocol(String value) => _blink.BlinkHTMLAreaElement.instance.protocol_Setter_(unwrap_jso(this), value);
+  set protocol(String value) => _blink.BlinkHTMLAreaElement.instance.protocol_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAreaElement.search')
   @DocsEditable()
@@ -2280,7 +2280,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
   
   @DomName('HTMLAreaElement.search')
   @DocsEditable()
-  void set search(String value) => _blink.BlinkHTMLAreaElement.instance.search_Setter_(unwrap_jso(this), value);
+  set search(String value) => _blink.BlinkHTMLAreaElement.instance.search_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAreaElement.username')
   @DocsEditable()
@@ -2290,7 +2290,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
   @DomName('HTMLAreaElement.username')
   @DocsEditable()
   @Experimental() // untriaged
-  void set username(String value) => _blink.BlinkHTMLAreaElement.instance.username_Setter_(unwrap_jso(this), value);
+  set username(String value) => _blink.BlinkHTMLAreaElement.instance.username_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAreaElement.toString')
   @DocsEditable()
@@ -2375,7 +2375,7 @@ class AudioTrack extends NativeFieldWrapperClass2 {
   @DomName('AudioTrack.enabled')
   @DocsEditable()
   @Experimental() // untriaged
-  void set enabled(bool value) => _blink.BlinkAudioTrack.instance.enabled_Setter_(unwrap_jso(this), value);
+  set enabled(bool value) => _blink.BlinkAudioTrack.instance.enabled_Setter_(unwrap_jso(this), value);
   
   @DomName('AudioTrack.id')
   @DocsEditable()
@@ -2594,7 +2594,7 @@ class BaseElement extends HtmlElement {
   
   @DomName('HTMLBaseElement.href')
   @DocsEditable()
-  void set href(String value) => _blink.BlinkHTMLBaseElement.instance.href_Setter_(unwrap_jso(this), value);
+  set href(String value) => _blink.BlinkHTMLBaseElement.instance.href_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLBaseElement.target')
   @DocsEditable()
@@ -2602,7 +2602,7 @@ class BaseElement extends HtmlElement {
   
   @DomName('HTMLBaseElement.target')
   @DocsEditable()
-  void set target(String value) => _blink.BlinkHTMLBaseElement.instance.target_Setter_(unwrap_jso(this), value);
+  set target(String value) => _blink.BlinkHTMLBaseElement.instance.target_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2680,7 +2680,7 @@ class BeforeUnloadEvent extends Event {
   
   @DomName('BeforeUnloadEvent.returnValue')
   @DocsEditable()
-  void set returnValue(String value) => _blink.BlinkBeforeUnloadEvent.instance.returnValue_Setter_(unwrap_jso(this), value);
+  set returnValue(String value) => _blink.BlinkBeforeUnloadEvent.instance.returnValue_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3070,7 +3070,7 @@ class ButtonElement extends HtmlElement {
   
   @DomName('HTMLButtonElement.autofocus')
   @DocsEditable()
-  void set autofocus(bool value) => _blink.BlinkHTMLButtonElement.instance.autofocus_Setter_(unwrap_jso(this), value);
+  set autofocus(bool value) => _blink.BlinkHTMLButtonElement.instance.autofocus_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLButtonElement.disabled')
   @DocsEditable()
@@ -3078,7 +3078,7 @@ class ButtonElement extends HtmlElement {
   
   @DomName('HTMLButtonElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) => _blink.BlinkHTMLButtonElement.instance.disabled_Setter_(unwrap_jso(this), value);
+  set disabled(bool value) => _blink.BlinkHTMLButtonElement.instance.disabled_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLButtonElement.form')
   @DocsEditable()
@@ -3090,7 +3090,7 @@ class ButtonElement extends HtmlElement {
   
   @DomName('HTMLButtonElement.formAction')
   @DocsEditable()
-  void set formAction(String value) => _blink.BlinkHTMLButtonElement.instance.formAction_Setter_(unwrap_jso(this), value);
+  set formAction(String value) => _blink.BlinkHTMLButtonElement.instance.formAction_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLButtonElement.formEnctype')
   @DocsEditable()
@@ -3098,7 +3098,7 @@ class ButtonElement extends HtmlElement {
   
   @DomName('HTMLButtonElement.formEnctype')
   @DocsEditable()
-  void set formEnctype(String value) => _blink.BlinkHTMLButtonElement.instance.formEnctype_Setter_(unwrap_jso(this), value);
+  set formEnctype(String value) => _blink.BlinkHTMLButtonElement.instance.formEnctype_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLButtonElement.formMethod')
   @DocsEditable()
@@ -3106,7 +3106,7 @@ class ButtonElement extends HtmlElement {
   
   @DomName('HTMLButtonElement.formMethod')
   @DocsEditable()
-  void set formMethod(String value) => _blink.BlinkHTMLButtonElement.instance.formMethod_Setter_(unwrap_jso(this), value);
+  set formMethod(String value) => _blink.BlinkHTMLButtonElement.instance.formMethod_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLButtonElement.formNoValidate')
   @DocsEditable()
@@ -3114,7 +3114,7 @@ class ButtonElement extends HtmlElement {
   
   @DomName('HTMLButtonElement.formNoValidate')
   @DocsEditable()
-  void set formNoValidate(bool value) => _blink.BlinkHTMLButtonElement.instance.formNoValidate_Setter_(unwrap_jso(this), value);
+  set formNoValidate(bool value) => _blink.BlinkHTMLButtonElement.instance.formNoValidate_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLButtonElement.formTarget')
   @DocsEditable()
@@ -3122,7 +3122,7 @@ class ButtonElement extends HtmlElement {
   
   @DomName('HTMLButtonElement.formTarget')
   @DocsEditable()
-  void set formTarget(String value) => _blink.BlinkHTMLButtonElement.instance.formTarget_Setter_(unwrap_jso(this), value);
+  set formTarget(String value) => _blink.BlinkHTMLButtonElement.instance.formTarget_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLButtonElement.labels')
   @DocsEditable()
@@ -3135,7 +3135,7 @@ class ButtonElement extends HtmlElement {
   
   @DomName('HTMLButtonElement.name')
   @DocsEditable()
-  void set name(String value) => _blink.BlinkHTMLButtonElement.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkHTMLButtonElement.instance.name_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLButtonElement.type')
   @DocsEditable()
@@ -3143,7 +3143,7 @@ class ButtonElement extends HtmlElement {
   
   @DomName('HTMLButtonElement.type')
   @DocsEditable()
-  void set type(String value) => _blink.BlinkHTMLButtonElement.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkHTMLButtonElement.instance.type_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLButtonElement.validationMessage')
   @DocsEditable()
@@ -3159,7 +3159,7 @@ class ButtonElement extends HtmlElement {
   
   @DomName('HTMLButtonElement.value')
   @DocsEditable()
-  void set value(String value) => _blink.BlinkHTMLButtonElement.instance.value_Setter_(unwrap_jso(this), value);
+  set value(String value) => _blink.BlinkHTMLButtonElement.instance.value_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLButtonElement.willValidate')
   @DocsEditable()
@@ -3293,7 +3293,7 @@ class Canvas2DContextAttributes extends NativeFieldWrapperClass2 {
   
   @DomName('Canvas2DContextAttributes.alpha')
   @DocsEditable()
-  void set alpha(bool value) => _blink.BlinkCanvas2DContextAttributes.instance.alpha_Setter_(unwrap_jso(this), value);
+  set alpha(bool value) => _blink.BlinkCanvas2DContextAttributes.instance.alpha_Setter_(unwrap_jso(this), value);
   
   @DomName('Canvas2DContextAttributes.storage')
   @DocsEditable()
@@ -3303,7 +3303,7 @@ class Canvas2DContextAttributes extends NativeFieldWrapperClass2 {
   @DomName('Canvas2DContextAttributes.storage')
   @DocsEditable()
   @Experimental() // untriaged
-  void set storage(String value) => _blink.BlinkCanvas2DContextAttributes.instance.storage_Setter_(unwrap_jso(this), value);
+  set storage(String value) => _blink.BlinkCanvas2DContextAttributes.instance.storage_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3371,7 +3371,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   /// The height of this canvas element in CSS pixels.
   @DomName('HTMLCanvasElement.height')
   @DocsEditable()
-  void set height(int value) => _blink.BlinkHTMLCanvasElement.instance.height_Setter_(unwrap_jso(this), value);
+  set height(int value) => _blink.BlinkHTMLCanvasElement.instance.height_Setter_(unwrap_jso(this), value);
   
   /// The width of this canvas element in CSS pixels.
   @DomName('HTMLCanvasElement.width')
@@ -3381,7 +3381,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   /// The width of this canvas element in CSS pixels.
   @DomName('HTMLCanvasElement.width')
   @DocsEditable()
-  void set width(int value) => _blink.BlinkHTMLCanvasElement.instance.width_Setter_(unwrap_jso(this), value);
+  set width(int value) => _blink.BlinkHTMLCanvasElement.instance.width_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLCanvasElement.getContext')
   @DocsEditable()
@@ -3653,7 +3653,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   @DomName('CanvasRenderingContext2D.currentTransform')
   @DocsEditable()
   @Experimental() // untriaged
-  void set currentTransform(Matrix value) => _blink.BlinkCanvasRenderingContext2D.instance.currentTransform_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set currentTransform(Matrix value) => _blink.BlinkCanvasRenderingContext2D.instance.currentTransform_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('CanvasRenderingContext2D.direction')
   @DocsEditable()
@@ -3663,7 +3663,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   @DomName('CanvasRenderingContext2D.direction')
   @DocsEditable()
   @Experimental() // untriaged
-  void set direction(String value) => _blink.BlinkCanvasRenderingContext2D.instance.direction_Setter_(unwrap_jso(this), value);
+  set direction(String value) => _blink.BlinkCanvasRenderingContext2D.instance.direction_Setter_(unwrap_jso(this), value);
   
   @DomName('CanvasRenderingContext2D.fillStyle')
   @DocsEditable()
@@ -3671,7 +3671,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.fillStyle')
   @DocsEditable()
-  void set fillStyle(Object value) => _blink.BlinkCanvasRenderingContext2D.instance.fillStyle_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set fillStyle(Object value) => _blink.BlinkCanvasRenderingContext2D.instance.fillStyle_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('CanvasRenderingContext2D.font')
   @DocsEditable()
@@ -3679,7 +3679,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.font')
   @DocsEditable()
-  void set font(String value) => _blink.BlinkCanvasRenderingContext2D.instance.font_Setter_(unwrap_jso(this), value);
+  set font(String value) => _blink.BlinkCanvasRenderingContext2D.instance.font_Setter_(unwrap_jso(this), value);
   
   @DomName('CanvasRenderingContext2D.globalAlpha')
   @DocsEditable()
@@ -3687,7 +3687,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.globalAlpha')
   @DocsEditable()
-  void set globalAlpha(num value) => _blink.BlinkCanvasRenderingContext2D.instance.globalAlpha_Setter_(unwrap_jso(this), value);
+  set globalAlpha(num value) => _blink.BlinkCanvasRenderingContext2D.instance.globalAlpha_Setter_(unwrap_jso(this), value);
   
   @DomName('CanvasRenderingContext2D.globalCompositeOperation')
   @DocsEditable()
@@ -3695,7 +3695,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.globalCompositeOperation')
   @DocsEditable()
-  void set globalCompositeOperation(String value) => _blink.BlinkCanvasRenderingContext2D.instance.globalCompositeOperation_Setter_(unwrap_jso(this), value);
+  set globalCompositeOperation(String value) => _blink.BlinkCanvasRenderingContext2D.instance.globalCompositeOperation_Setter_(unwrap_jso(this), value);
   
   /**
    * Whether images and patterns on this canvas will be smoothed when this
@@ -3725,7 +3725,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   @DomName('CanvasRenderingContext2D.imageSmoothingEnabled')
   @DocsEditable()
   @Experimental() // untriaged
-  void set imageSmoothingEnabled(bool value) => _blink.BlinkCanvasRenderingContext2D.instance.imageSmoothingEnabled_Setter_(unwrap_jso(this), value);
+  set imageSmoothingEnabled(bool value) => _blink.BlinkCanvasRenderingContext2D.instance.imageSmoothingEnabled_Setter_(unwrap_jso(this), value);
   
   @DomName('CanvasRenderingContext2D.lineCap')
   @DocsEditable()
@@ -3733,7 +3733,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.lineCap')
   @DocsEditable()
-  void set lineCap(String value) => _blink.BlinkCanvasRenderingContext2D.instance.lineCap_Setter_(unwrap_jso(this), value);
+  set lineCap(String value) => _blink.BlinkCanvasRenderingContext2D.instance.lineCap_Setter_(unwrap_jso(this), value);
   
   @DomName('CanvasRenderingContext2D.lineDashOffset')
   @DocsEditable()
@@ -3741,7 +3741,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.lineDashOffset')
   @DocsEditable()
-  void set lineDashOffset(num value) => _blink.BlinkCanvasRenderingContext2D.instance.lineDashOffset_Setter_(unwrap_jso(this), value);
+  set lineDashOffset(num value) => _blink.BlinkCanvasRenderingContext2D.instance.lineDashOffset_Setter_(unwrap_jso(this), value);
   
   @DomName('CanvasRenderingContext2D.lineJoin')
   @DocsEditable()
@@ -3749,7 +3749,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.lineJoin')
   @DocsEditable()
-  void set lineJoin(String value) => _blink.BlinkCanvasRenderingContext2D.instance.lineJoin_Setter_(unwrap_jso(this), value);
+  set lineJoin(String value) => _blink.BlinkCanvasRenderingContext2D.instance.lineJoin_Setter_(unwrap_jso(this), value);
   
   @DomName('CanvasRenderingContext2D.lineWidth')
   @DocsEditable()
@@ -3757,7 +3757,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.lineWidth')
   @DocsEditable()
-  void set lineWidth(num value) => _blink.BlinkCanvasRenderingContext2D.instance.lineWidth_Setter_(unwrap_jso(this), value);
+  set lineWidth(num value) => _blink.BlinkCanvasRenderingContext2D.instance.lineWidth_Setter_(unwrap_jso(this), value);
   
   @DomName('CanvasRenderingContext2D.miterLimit')
   @DocsEditable()
@@ -3765,7 +3765,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.miterLimit')
   @DocsEditable()
-  void set miterLimit(num value) => _blink.BlinkCanvasRenderingContext2D.instance.miterLimit_Setter_(unwrap_jso(this), value);
+  set miterLimit(num value) => _blink.BlinkCanvasRenderingContext2D.instance.miterLimit_Setter_(unwrap_jso(this), value);
   
   @DomName('CanvasRenderingContext2D.shadowBlur')
   @DocsEditable()
@@ -3773,7 +3773,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.shadowBlur')
   @DocsEditable()
-  void set shadowBlur(num value) => _blink.BlinkCanvasRenderingContext2D.instance.shadowBlur_Setter_(unwrap_jso(this), value);
+  set shadowBlur(num value) => _blink.BlinkCanvasRenderingContext2D.instance.shadowBlur_Setter_(unwrap_jso(this), value);
   
   @DomName('CanvasRenderingContext2D.shadowColor')
   @DocsEditable()
@@ -3781,7 +3781,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.shadowColor')
   @DocsEditable()
-  void set shadowColor(String value) => _blink.BlinkCanvasRenderingContext2D.instance.shadowColor_Setter_(unwrap_jso(this), value);
+  set shadowColor(String value) => _blink.BlinkCanvasRenderingContext2D.instance.shadowColor_Setter_(unwrap_jso(this), value);
   
   @DomName('CanvasRenderingContext2D.shadowOffsetX')
   @DocsEditable()
@@ -3789,7 +3789,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.shadowOffsetX')
   @DocsEditable()
-  void set shadowOffsetX(num value) => _blink.BlinkCanvasRenderingContext2D.instance.shadowOffsetX_Setter_(unwrap_jso(this), value);
+  set shadowOffsetX(num value) => _blink.BlinkCanvasRenderingContext2D.instance.shadowOffsetX_Setter_(unwrap_jso(this), value);
   
   @DomName('CanvasRenderingContext2D.shadowOffsetY')
   @DocsEditable()
@@ -3797,7 +3797,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.shadowOffsetY')
   @DocsEditable()
-  void set shadowOffsetY(num value) => _blink.BlinkCanvasRenderingContext2D.instance.shadowOffsetY_Setter_(unwrap_jso(this), value);
+  set shadowOffsetY(num value) => _blink.BlinkCanvasRenderingContext2D.instance.shadowOffsetY_Setter_(unwrap_jso(this), value);
   
   @DomName('CanvasRenderingContext2D.strokeStyle')
   @DocsEditable()
@@ -3805,7 +3805,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.strokeStyle')
   @DocsEditable()
-  void set strokeStyle(Object value) => _blink.BlinkCanvasRenderingContext2D.instance.strokeStyle_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set strokeStyle(Object value) => _blink.BlinkCanvasRenderingContext2D.instance.strokeStyle_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('CanvasRenderingContext2D.textAlign')
   @DocsEditable()
@@ -3813,7 +3813,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.textAlign')
   @DocsEditable()
-  void set textAlign(String value) => _blink.BlinkCanvasRenderingContext2D.instance.textAlign_Setter_(unwrap_jso(this), value);
+  set textAlign(String value) => _blink.BlinkCanvasRenderingContext2D.instance.textAlign_Setter_(unwrap_jso(this), value);
   
   @DomName('CanvasRenderingContext2D.textBaseline')
   @DocsEditable()
@@ -3821,7 +3821,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   @DomName('CanvasRenderingContext2D.textBaseline')
   @DocsEditable()
-  void set textBaseline(String value) => _blink.BlinkCanvasRenderingContext2D.instance.textBaseline_Setter_(unwrap_jso(this), value);
+  set textBaseline(String value) => _blink.BlinkCanvasRenderingContext2D.instance.textBaseline_Setter_(unwrap_jso(this), value);
   
   void addHitRegion([Map options]) {
     if (options != null) {
@@ -4432,7 +4432,7 @@ class CharacterData extends Node implements ChildNode {
   
   @DomName('CharacterData.data')
   @DocsEditable()
-  void set data(String value) => _blink.BlinkCharacterData.instance.data_Setter_(unwrap_jso(this), value);
+  set data(String value) => _blink.BlinkCharacterData.instance.data_Setter_(unwrap_jso(this), value);
   
   @DomName('CharacterData.length')
   @DocsEditable()
@@ -4925,7 +4925,7 @@ class ContentElement extends HtmlElement {
   
   @DomName('HTMLContentElement.select')
   @DocsEditable()
-  void set select(String value) => _blink.BlinkHTMLContentElement.instance.select_Setter_(unwrap_jso(this), value);
+  set select(String value) => _blink.BlinkHTMLContentElement.instance.select_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLContentElement.getDistributedNodes')
   @DocsEditable()
@@ -5253,7 +5253,7 @@ class CssCharsetRule extends CssRule {
   
   @DomName('CSSCharsetRule.encoding')
   @DocsEditable()
-  void set encoding(String value) => _blink.BlinkCSSCharsetRule.instance.encoding_Setter_(unwrap_jso(this), value);
+  set encoding(String value) => _blink.BlinkCSSCharsetRule.instance.encoding_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5392,7 +5392,7 @@ class CssKeyframeRule extends CssRule {
   @DomName('CSSKeyframeRule.keyText')
   @DocsEditable()
   @Experimental() // untriaged
-  void set keyText(String value) => _blink.BlinkCSSKeyframeRule.instance.keyText_Setter_(unwrap_jso(this), value);
+  set keyText(String value) => _blink.BlinkCSSKeyframeRule.instance.keyText_Setter_(unwrap_jso(this), value);
   
   @DomName('CSSKeyframeRule.style')
   @DocsEditable()
@@ -5439,7 +5439,7 @@ class CssKeyframesRule extends CssRule {
   @DomName('CSSKeyframesRule.name')
   @DocsEditable()
   @Experimental() // untriaged
-  void set name(String value) => _blink.BlinkCSSKeyframesRule.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkCSSKeyframesRule.instance.name_Setter_(unwrap_jso(this), value);
   
   @DomName('CSSKeyframesRule.__getter__')
   @DocsEditable()
@@ -5535,7 +5535,7 @@ class CssPageRule extends CssRule {
   
   @DomName('CSSPageRule.selectorText')
   @DocsEditable()
-  void set selectorText(String value) => _blink.BlinkCSSPageRule.instance.selectorText_Setter_(unwrap_jso(this), value);
+  set selectorText(String value) => _blink.BlinkCSSPageRule.instance.selectorText_Setter_(unwrap_jso(this), value);
   
   @DomName('CSSPageRule.style')
   @DocsEditable()
@@ -5637,7 +5637,7 @@ class CssRule extends NativeFieldWrapperClass2 {
   
   @DomName('CSSRule.cssText')
   @DocsEditable()
-  void set cssText(String value) => _blink.BlinkCSSRule.instance.cssText_Setter_(unwrap_jso(this), value);
+  set cssText(String value) => _blink.BlinkCSSRule.instance.cssText_Setter_(unwrap_jso(this), value);
   
   @DomName('CSSRule.parentRule')
   @DocsEditable()
@@ -5776,7 +5776,7 @@ class CssStyleDeclaration  extends JsoNativeFieldWrapper with
   
   @DomName('CSSStyleDeclaration.cssText')
   @DocsEditable()
-  void set cssText(String value) => _blink.BlinkCSSStyleDeclaration.instance.cssText_Setter_(unwrap_jso(this), value);
+  set cssText(String value) => _blink.BlinkCSSStyleDeclaration.instance.cssText_Setter_(unwrap_jso(this), value);
   
   @DomName('CSSStyleDeclaration.length')
   @DocsEditable()
@@ -8970,7 +8970,7 @@ class CssStyleRule extends CssRule {
   
   @DomName('CSSStyleRule.selectorText')
   @DocsEditable()
-  void set selectorText(String value) => _blink.BlinkCSSStyleRule.instance.selectorText_Setter_(unwrap_jso(this), value);
+  set selectorText(String value) => _blink.BlinkCSSStyleRule.instance.selectorText_Setter_(unwrap_jso(this), value);
   
   @DomName('CSSStyleRule.style')
   @DocsEditable()
@@ -9297,7 +9297,7 @@ class DataTransfer extends NativeFieldWrapperClass2 {
   @DomName('DataTransfer.dropEffect')
   @DocsEditable()
   @Experimental() // untriaged
-  void set dropEffect(String value) => _blink.BlinkDataTransfer.instance.dropEffect_Setter_(unwrap_jso(this), value);
+  set dropEffect(String value) => _blink.BlinkDataTransfer.instance.dropEffect_Setter_(unwrap_jso(this), value);
   
   @DomName('DataTransfer.effectAllowed')
   @DocsEditable()
@@ -9307,7 +9307,7 @@ class DataTransfer extends NativeFieldWrapperClass2 {
   @DomName('DataTransfer.effectAllowed')
   @DocsEditable()
   @Experimental() // untriaged
-  void set effectAllowed(String value) => _blink.BlinkDataTransfer.instance.effectAllowed_Setter_(unwrap_jso(this), value);
+  set effectAllowed(String value) => _blink.BlinkDataTransfer.instance.effectAllowed_Setter_(unwrap_jso(this), value);
   
   @DomName('DataTransfer.files')
   @DocsEditable()
@@ -9705,7 +9705,7 @@ class DetailsElement extends HtmlElement {
   
   @DomName('HTMLDetailsElement.open')
   @DocsEditable()
-  void set open(bool value) => _blink.BlinkHTMLDetailsElement.instance.open_Setter_(unwrap_jso(this), value);
+  set open(bool value) => _blink.BlinkHTMLDetailsElement.instance.open_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9967,7 +9967,7 @@ class DialogElement extends HtmlElement {
   
   @DomName('HTMLDialogElement.open')
   @DocsEditable()
-  void set open(bool value) => _blink.BlinkHTMLDialogElement.instance.open_Setter_(unwrap_jso(this), value);
+  set open(bool value) => _blink.BlinkHTMLDialogElement.instance.open_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLDialogElement.returnValue')
   @DocsEditable()
@@ -9977,7 +9977,7 @@ class DialogElement extends HtmlElement {
   @DomName('HTMLDialogElement.returnValue')
   @DocsEditable()
   @Experimental() // untriaged
-  void set returnValue(String value) => _blink.BlinkHTMLDialogElement.instance.returnValue_Setter_(unwrap_jso(this), value);
+  set returnValue(String value) => _blink.BlinkHTMLDialogElement.instance.returnValue_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLDialogElement.close')
   @DocsEditable()
@@ -10318,7 +10318,7 @@ class Document extends Node
   
   @DomName('Document.body')
   @DocsEditable()
-  void set _body(HtmlElement value) => _blink.BlinkDocument.instance.body_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set _body(HtmlElement value) => _blink.BlinkDocument.instance.body_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('Document.contentType')
   @DocsEditable()
@@ -10331,7 +10331,7 @@ class Document extends Node
   
   @DomName('Document.cookie')
   @DocsEditable()
-  void set cookie(String value) => _blink.BlinkDocument.instance.cookie_Setter_(unwrap_jso(this), value);
+  set cookie(String value) => _blink.BlinkDocument.instance.cookie_Setter_(unwrap_jso(this), value);
   
   @DomName('Document.currentScript')
   @DocsEditable()
@@ -10410,7 +10410,7 @@ class Document extends Node
   
   @DomName('Document.selectedStylesheetSet')
   @DocsEditable()
-  void set _selectedStylesheetSet(String value) => _blink.BlinkDocument.instance.selectedStylesheetSet_Setter_(unwrap_jso(this), value);
+  set _selectedStylesheetSet(String value) => _blink.BlinkDocument.instance.selectedStylesheetSet_Setter_(unwrap_jso(this), value);
   
   @DomName('Document.styleSheets')
   @DocsEditable()
@@ -10427,7 +10427,7 @@ class Document extends Node
   
   @DomName('Document.title')
   @DocsEditable()
-  void set _title(String value) => _blink.BlinkDocument.instance.title_Setter_(unwrap_jso(this), value);
+  set _title(String value) => _blink.BlinkDocument.instance.title_Setter_(unwrap_jso(this), value);
   
   @DomName('Document.visibilityState')
   @DocsEditable()
@@ -11473,7 +11473,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.a')
   @DocsEditable()
   @Experimental() // untriaged
-  void set a(num value) => _blink.BlinkDOMMatrix.instance.a_Setter_(unwrap_jso(this), value);
+  set a(num value) => _blink.BlinkDOMMatrix.instance.a_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.b')
   @DocsEditable()
@@ -11483,7 +11483,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.b')
   @DocsEditable()
   @Experimental() // untriaged
-  void set b(num value) => _blink.BlinkDOMMatrix.instance.b_Setter_(unwrap_jso(this), value);
+  set b(num value) => _blink.BlinkDOMMatrix.instance.b_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.c')
   @DocsEditable()
@@ -11493,7 +11493,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.c')
   @DocsEditable()
   @Experimental() // untriaged
-  void set c(num value) => _blink.BlinkDOMMatrix.instance.c_Setter_(unwrap_jso(this), value);
+  set c(num value) => _blink.BlinkDOMMatrix.instance.c_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.d')
   @DocsEditable()
@@ -11503,7 +11503,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.d')
   @DocsEditable()
   @Experimental() // untriaged
-  void set d(num value) => _blink.BlinkDOMMatrix.instance.d_Setter_(unwrap_jso(this), value);
+  set d(num value) => _blink.BlinkDOMMatrix.instance.d_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.e')
   @DocsEditable()
@@ -11513,7 +11513,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.e')
   @DocsEditable()
   @Experimental() // untriaged
-  void set e(num value) => _blink.BlinkDOMMatrix.instance.e_Setter_(unwrap_jso(this), value);
+  set e(num value) => _blink.BlinkDOMMatrix.instance.e_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.f')
   @DocsEditable()
@@ -11523,7 +11523,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.f')
   @DocsEditable()
   @Experimental() // untriaged
-  void set f(num value) => _blink.BlinkDOMMatrix.instance.f_Setter_(unwrap_jso(this), value);
+  set f(num value) => _blink.BlinkDOMMatrix.instance.f_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m11')
   @DocsEditable()
@@ -11533,7 +11533,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m11')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m11(num value) => _blink.BlinkDOMMatrix.instance.m11_Setter_(unwrap_jso(this), value);
+  set m11(num value) => _blink.BlinkDOMMatrix.instance.m11_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m12')
   @DocsEditable()
@@ -11543,7 +11543,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m12')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m12(num value) => _blink.BlinkDOMMatrix.instance.m12_Setter_(unwrap_jso(this), value);
+  set m12(num value) => _blink.BlinkDOMMatrix.instance.m12_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m13')
   @DocsEditable()
@@ -11553,7 +11553,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m13')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m13(num value) => _blink.BlinkDOMMatrix.instance.m13_Setter_(unwrap_jso(this), value);
+  set m13(num value) => _blink.BlinkDOMMatrix.instance.m13_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m14')
   @DocsEditable()
@@ -11563,7 +11563,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m14')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m14(num value) => _blink.BlinkDOMMatrix.instance.m14_Setter_(unwrap_jso(this), value);
+  set m14(num value) => _blink.BlinkDOMMatrix.instance.m14_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m21')
   @DocsEditable()
@@ -11573,7 +11573,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m21')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m21(num value) => _blink.BlinkDOMMatrix.instance.m21_Setter_(unwrap_jso(this), value);
+  set m21(num value) => _blink.BlinkDOMMatrix.instance.m21_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m22')
   @DocsEditable()
@@ -11583,7 +11583,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m22')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m22(num value) => _blink.BlinkDOMMatrix.instance.m22_Setter_(unwrap_jso(this), value);
+  set m22(num value) => _blink.BlinkDOMMatrix.instance.m22_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m23')
   @DocsEditable()
@@ -11593,7 +11593,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m23')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m23(num value) => _blink.BlinkDOMMatrix.instance.m23_Setter_(unwrap_jso(this), value);
+  set m23(num value) => _blink.BlinkDOMMatrix.instance.m23_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m24')
   @DocsEditable()
@@ -11603,7 +11603,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m24')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m24(num value) => _blink.BlinkDOMMatrix.instance.m24_Setter_(unwrap_jso(this), value);
+  set m24(num value) => _blink.BlinkDOMMatrix.instance.m24_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m31')
   @DocsEditable()
@@ -11613,7 +11613,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m31')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m31(num value) => _blink.BlinkDOMMatrix.instance.m31_Setter_(unwrap_jso(this), value);
+  set m31(num value) => _blink.BlinkDOMMatrix.instance.m31_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m32')
   @DocsEditable()
@@ -11623,7 +11623,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m32')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m32(num value) => _blink.BlinkDOMMatrix.instance.m32_Setter_(unwrap_jso(this), value);
+  set m32(num value) => _blink.BlinkDOMMatrix.instance.m32_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m33')
   @DocsEditable()
@@ -11633,7 +11633,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m33')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m33(num value) => _blink.BlinkDOMMatrix.instance.m33_Setter_(unwrap_jso(this), value);
+  set m33(num value) => _blink.BlinkDOMMatrix.instance.m33_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m34')
   @DocsEditable()
@@ -11643,7 +11643,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m34')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m34(num value) => _blink.BlinkDOMMatrix.instance.m34_Setter_(unwrap_jso(this), value);
+  set m34(num value) => _blink.BlinkDOMMatrix.instance.m34_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m41')
   @DocsEditable()
@@ -11653,7 +11653,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m41')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m41(num value) => _blink.BlinkDOMMatrix.instance.m41_Setter_(unwrap_jso(this), value);
+  set m41(num value) => _blink.BlinkDOMMatrix.instance.m41_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m42')
   @DocsEditable()
@@ -11663,7 +11663,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m42')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m42(num value) => _blink.BlinkDOMMatrix.instance.m42_Setter_(unwrap_jso(this), value);
+  set m42(num value) => _blink.BlinkDOMMatrix.instance.m42_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m43')
   @DocsEditable()
@@ -11673,7 +11673,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m43')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m43(num value) => _blink.BlinkDOMMatrix.instance.m43_Setter_(unwrap_jso(this), value);
+  set m43(num value) => _blink.BlinkDOMMatrix.instance.m43_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.m44')
   @DocsEditable()
@@ -11683,7 +11683,7 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.m44')
   @DocsEditable()
   @Experimental() // untriaged
-  void set m44(num value) => _blink.BlinkDOMMatrix.instance.m44_Setter_(unwrap_jso(this), value);
+  set m44(num value) => _blink.BlinkDOMMatrix.instance.m44_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMMatrix.multiplySelf')
   @DocsEditable()
@@ -12057,7 +12057,7 @@ class DomPoint extends DomPointReadOnly {
   @DomName('DOMPoint.w')
   @DocsEditable()
   @Experimental() // untriaged
-  void set w(num value) => _blink.BlinkDOMPoint.instance.w_Setter_(unwrap_jso(this), value);
+  set w(num value) => _blink.BlinkDOMPoint.instance.w_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMPoint.x')
   @DocsEditable()
@@ -12067,7 +12067,7 @@ class DomPoint extends DomPointReadOnly {
   @DomName('DOMPoint.x')
   @DocsEditable()
   @Experimental() // untriaged
-  void set x(num value) => _blink.BlinkDOMPoint.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkDOMPoint.instance.x_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMPoint.y')
   @DocsEditable()
@@ -12077,7 +12077,7 @@ class DomPoint extends DomPointReadOnly {
   @DomName('DOMPoint.y')
   @DocsEditable()
   @Experimental() // untriaged
-  void set y(num value) => _blink.BlinkDOMPoint.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkDOMPoint.instance.y_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMPoint.z')
   @DocsEditable()
@@ -12087,7 +12087,7 @@ class DomPoint extends DomPointReadOnly {
   @DomName('DOMPoint.z')
   @DocsEditable()
   @Experimental() // untriaged
-  void set z(num value) => _blink.BlinkDOMPoint.instance.z_Setter_(unwrap_jso(this), value);
+  set z(num value) => _blink.BlinkDOMPoint.instance.z_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12339,7 +12339,7 @@ class DomSettableTokenList extends DomTokenList {
   
   @DomName('DOMSettableTokenList.value')
   @DocsEditable()
-  void set value(String value) => _blink.BlinkDOMSettableTokenList.instance.value_Setter_(unwrap_jso(this), value);
+  set value(String value) => _blink.BlinkDOMSettableTokenList.instance.value_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMSettableTokenList.__getter__')
   @DocsEditable()
@@ -15526,7 +15526,7 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
   
   @DomName('Element.className')
   @DocsEditable()
-  void set className(String value) => _blink.BlinkElement.instance.className_Setter_(unwrap_jso(this), value);
+  set className(String value) => _blink.BlinkElement.instance.className_Setter_(unwrap_jso(this), value);
   
   @DomName('Element.clientHeight')
   @DocsEditable()
@@ -15550,7 +15550,7 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
   
   @DomName('Element.id')
   @DocsEditable()
-  void set id(String value) => _blink.BlinkElement.instance.id_Setter_(unwrap_jso(this), value);
+  set id(String value) => _blink.BlinkElement.instance.id_Setter_(unwrap_jso(this), value);
   
   @DomName('Element.innerHTML')
   @DocsEditable()
@@ -15558,7 +15558,7 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
   
   @DomName('Element.innerHTML')
   @DocsEditable()
-  void set _innerHtml(String value) => _blink.BlinkElement.instance.innerHTML_Setter_(unwrap_jso(this), value);
+  set _innerHtml(String value) => _blink.BlinkElement.instance.innerHTML_Setter_(unwrap_jso(this), value);
   
   @DomName('Element.localName')
   @DocsEditable()
@@ -15604,7 +15604,7 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
   
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  void set _scrollLeft(num value) => _blink.BlinkElement.instance.scrollLeft_Setter_(unwrap_jso(this), value);
+  set _scrollLeft(num value) => _blink.BlinkElement.instance.scrollLeft_Setter_(unwrap_jso(this), value);
   
   @DomName('Element.scrollTop')
   @DocsEditable()
@@ -15612,7 +15612,7 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
   
   @DomName('Element.scrollTop')
   @DocsEditable()
-  void set _scrollTop(num value) => _blink.BlinkElement.instance.scrollTop_Setter_(unwrap_jso(this), value);
+  set _scrollTop(num value) => _blink.BlinkElement.instance.scrollTop_Setter_(unwrap_jso(this), value);
   
   @DomName('Element.scrollWidth')
   @DocsEditable()
@@ -16399,7 +16399,7 @@ class EmbedElement extends HtmlElement {
   
   @DomName('HTMLEmbedElement.height')
   @DocsEditable()
-  void set height(String value) => _blink.BlinkHTMLEmbedElement.instance.height_Setter_(unwrap_jso(this), value);
+  set height(String value) => _blink.BlinkHTMLEmbedElement.instance.height_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLEmbedElement.integrity')
   @DocsEditable()
@@ -16409,7 +16409,7 @@ class EmbedElement extends HtmlElement {
   @DomName('HTMLEmbedElement.integrity')
   @DocsEditable()
   @Experimental() // untriaged
-  void set integrity(String value) => _blink.BlinkHTMLEmbedElement.instance.integrity_Setter_(unwrap_jso(this), value);
+  set integrity(String value) => _blink.BlinkHTMLEmbedElement.instance.integrity_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLEmbedElement.name')
   @DocsEditable()
@@ -16417,7 +16417,7 @@ class EmbedElement extends HtmlElement {
   
   @DomName('HTMLEmbedElement.name')
   @DocsEditable()
-  void set name(String value) => _blink.BlinkHTMLEmbedElement.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkHTMLEmbedElement.instance.name_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLEmbedElement.src')
   @DocsEditable()
@@ -16425,7 +16425,7 @@ class EmbedElement extends HtmlElement {
   
   @DomName('HTMLEmbedElement.src')
   @DocsEditable()
-  void set src(String value) => _blink.BlinkHTMLEmbedElement.instance.src_Setter_(unwrap_jso(this), value);
+  set src(String value) => _blink.BlinkHTMLEmbedElement.instance.src_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLEmbedElement.type')
   @DocsEditable()
@@ -16433,7 +16433,7 @@ class EmbedElement extends HtmlElement {
   
   @DomName('HTMLEmbedElement.type')
   @DocsEditable()
-  void set type(String value) => _blink.BlinkHTMLEmbedElement.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkHTMLEmbedElement.instance.type_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLEmbedElement.width')
   @DocsEditable()
@@ -16441,7 +16441,7 @@ class EmbedElement extends HtmlElement {
   
   @DomName('HTMLEmbedElement.width')
   @DocsEditable()
-  void set width(String value) => _blink.BlinkHTMLEmbedElement.instance.width_Setter_(unwrap_jso(this), value);
+  set width(String value) => _blink.BlinkHTMLEmbedElement.instance.width_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLEmbedElement.__getter__')
   @DocsEditable()
@@ -17335,7 +17335,7 @@ class FieldSetElement extends HtmlElement {
   
   @DomName('HTMLFieldSetElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) => _blink.BlinkHTMLFieldSetElement.instance.disabled_Setter_(unwrap_jso(this), value);
+  set disabled(bool value) => _blink.BlinkHTMLFieldSetElement.instance.disabled_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLFieldSetElement.elements')
   @DocsEditable()
@@ -17351,7 +17351,7 @@ class FieldSetElement extends HtmlElement {
   
   @DomName('HTMLFieldSetElement.name')
   @DocsEditable()
-  void set name(String value) => _blink.BlinkHTMLFieldSetElement.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkHTMLFieldSetElement.instance.name_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLFieldSetElement.type')
   @DocsEditable()
@@ -18193,7 +18193,7 @@ class FontFace extends NativeFieldWrapperClass2 {
   @DomName('FontFace.family')
   @DocsEditable()
   @Experimental() // untriaged
-  void set family(String value) => _blink.BlinkFontFace.instance.family_Setter_(unwrap_jso(this), value);
+  set family(String value) => _blink.BlinkFontFace.instance.family_Setter_(unwrap_jso(this), value);
   
   @DomName('FontFace.featureSettings')
   @DocsEditable()
@@ -18203,7 +18203,7 @@ class FontFace extends NativeFieldWrapperClass2 {
   @DomName('FontFace.featureSettings')
   @DocsEditable()
   @Experimental() // untriaged
-  void set featureSettings(String value) => _blink.BlinkFontFace.instance.featureSettings_Setter_(unwrap_jso(this), value);
+  set featureSettings(String value) => _blink.BlinkFontFace.instance.featureSettings_Setter_(unwrap_jso(this), value);
   
   @DomName('FontFace.loaded')
   @DocsEditable()
@@ -18223,7 +18223,7 @@ class FontFace extends NativeFieldWrapperClass2 {
   @DomName('FontFace.stretch')
   @DocsEditable()
   @Experimental() // untriaged
-  void set stretch(String value) => _blink.BlinkFontFace.instance.stretch_Setter_(unwrap_jso(this), value);
+  set stretch(String value) => _blink.BlinkFontFace.instance.stretch_Setter_(unwrap_jso(this), value);
   
   @DomName('FontFace.style')
   @DocsEditable()
@@ -18233,7 +18233,7 @@ class FontFace extends NativeFieldWrapperClass2 {
   @DomName('FontFace.style')
   @DocsEditable()
   @Experimental() // untriaged
-  void set style(String value) => _blink.BlinkFontFace.instance.style_Setter_(unwrap_jso(this), value);
+  set style(String value) => _blink.BlinkFontFace.instance.style_Setter_(unwrap_jso(this), value);
   
   @DomName('FontFace.unicodeRange')
   @DocsEditable()
@@ -18243,7 +18243,7 @@ class FontFace extends NativeFieldWrapperClass2 {
   @DomName('FontFace.unicodeRange')
   @DocsEditable()
   @Experimental() // untriaged
-  void set unicodeRange(String value) => _blink.BlinkFontFace.instance.unicodeRange_Setter_(unwrap_jso(this), value);
+  set unicodeRange(String value) => _blink.BlinkFontFace.instance.unicodeRange_Setter_(unwrap_jso(this), value);
   
   @DomName('FontFace.variant')
   @DocsEditable()
@@ -18253,7 +18253,7 @@ class FontFace extends NativeFieldWrapperClass2 {
   @DomName('FontFace.variant')
   @DocsEditable()
   @Experimental() // untriaged
-  void set variant(String value) => _blink.BlinkFontFace.instance.variant_Setter_(unwrap_jso(this), value);
+  set variant(String value) => _blink.BlinkFontFace.instance.variant_Setter_(unwrap_jso(this), value);
   
   @DomName('FontFace.weight')
   @DocsEditable()
@@ -18263,7 +18263,7 @@ class FontFace extends NativeFieldWrapperClass2 {
   @DomName('FontFace.weight')
   @DocsEditable()
   @Experimental() // untriaged
-  void set weight(String value) => _blink.BlinkFontFace.instance.weight_Setter_(unwrap_jso(this), value);
+  set weight(String value) => _blink.BlinkFontFace.instance.weight_Setter_(unwrap_jso(this), value);
   
   @DomName('FontFace.load')
   @DocsEditable()
@@ -18478,7 +18478,7 @@ class FormElement extends HtmlElement {
   
   @DomName('HTMLFormElement.acceptCharset')
   @DocsEditable()
-  void set acceptCharset(String value) => _blink.BlinkHTMLFormElement.instance.acceptCharset_Setter_(unwrap_jso(this), value);
+  set acceptCharset(String value) => _blink.BlinkHTMLFormElement.instance.acceptCharset_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLFormElement.action')
   @DocsEditable()
@@ -18486,7 +18486,7 @@ class FormElement extends HtmlElement {
   
   @DomName('HTMLFormElement.action')
   @DocsEditable()
-  void set action(String value) => _blink.BlinkHTMLFormElement.instance.action_Setter_(unwrap_jso(this), value);
+  set action(String value) => _blink.BlinkHTMLFormElement.instance.action_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLFormElement.autocomplete')
   @DocsEditable()
@@ -18498,7 +18498,7 @@ class FormElement extends HtmlElement {
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/association-of-controls-and-forms.html#autofilling-form-controls:-the-autocomplete-attribute
   @Experimental()
-  void set autocomplete(String value) => _blink.BlinkHTMLFormElement.instance.autocomplete_Setter_(unwrap_jso(this), value);
+  set autocomplete(String value) => _blink.BlinkHTMLFormElement.instance.autocomplete_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLFormElement.encoding')
   @DocsEditable()
@@ -18506,7 +18506,7 @@ class FormElement extends HtmlElement {
   
   @DomName('HTMLFormElement.encoding')
   @DocsEditable()
-  void set encoding(String value) => _blink.BlinkHTMLFormElement.instance.encoding_Setter_(unwrap_jso(this), value);
+  set encoding(String value) => _blink.BlinkHTMLFormElement.instance.encoding_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLFormElement.enctype')
   @DocsEditable()
@@ -18514,7 +18514,7 @@ class FormElement extends HtmlElement {
   
   @DomName('HTMLFormElement.enctype')
   @DocsEditable()
-  void set enctype(String value) => _blink.BlinkHTMLFormElement.instance.enctype_Setter_(unwrap_jso(this), value);
+  set enctype(String value) => _blink.BlinkHTMLFormElement.instance.enctype_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLFormElement.length')
   @DocsEditable()
@@ -18526,7 +18526,7 @@ class FormElement extends HtmlElement {
   
   @DomName('HTMLFormElement.method')
   @DocsEditable()
-  void set method(String value) => _blink.BlinkHTMLFormElement.instance.method_Setter_(unwrap_jso(this), value);
+  set method(String value) => _blink.BlinkHTMLFormElement.instance.method_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLFormElement.name')
   @DocsEditable()
@@ -18534,7 +18534,7 @@ class FormElement extends HtmlElement {
   
   @DomName('HTMLFormElement.name')
   @DocsEditable()
-  void set name(String value) => _blink.BlinkHTMLFormElement.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkHTMLFormElement.instance.name_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLFormElement.noValidate')
   @DocsEditable()
@@ -18542,7 +18542,7 @@ class FormElement extends HtmlElement {
   
   @DomName('HTMLFormElement.noValidate')
   @DocsEditable()
-  void set noValidate(bool value) => _blink.BlinkHTMLFormElement.instance.noValidate_Setter_(unwrap_jso(this), value);
+  set noValidate(bool value) => _blink.BlinkHTMLFormElement.instance.noValidate_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLFormElement.target')
   @DocsEditable()
@@ -18550,7 +18550,7 @@ class FormElement extends HtmlElement {
   
   @DomName('HTMLFormElement.target')
   @DocsEditable()
-  void set target(String value) => _blink.BlinkHTMLFormElement.instance.target_Setter_(unwrap_jso(this), value);
+  set target(String value) => _blink.BlinkHTMLFormElement.instance.target_Setter_(unwrap_jso(this), value);
   
   Element __getter__(index_OR_name) {
     if ((index_OR_name is int || index_OR_name == null)) {
@@ -19547,7 +19547,7 @@ class HRElement extends HtmlElement {
   @DomName('HTMLHRElement.color')
   @DocsEditable()
   @Experimental() // untriaged
-  void set color(String value) => _blink.BlinkHTMLHRElement.instance.color_Setter_(unwrap_jso(this), value);
+  set color(String value) => _blink.BlinkHTMLHRElement.instance.color_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -20499,7 +20499,7 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   
   @DomName('HTMLElement.contentEditable')
   @DocsEditable()
-  void set contentEditable(String value) => _blink.BlinkHTMLElement.instance.contentEditable_Setter_(unwrap_jso(this), value);
+  set contentEditable(String value) => _blink.BlinkHTMLElement.instance.contentEditable_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLElement.contextMenu')
   @DocsEditable()
@@ -20509,7 +20509,7 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   @DomName('HTMLElement.contextMenu')
   @DocsEditable()
   @Experimental() // untriaged
-  void set contextMenu(MenuElement value) => _blink.BlinkHTMLElement.instance.contextMenu_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set contextMenu(MenuElement value) => _blink.BlinkHTMLElement.instance.contextMenu_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('HTMLElement.dir')
   @DocsEditable()
@@ -20517,7 +20517,7 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   
   @DomName('HTMLElement.dir')
   @DocsEditable()
-  void set dir(String value) => _blink.BlinkHTMLElement.instance.dir_Setter_(unwrap_jso(this), value);
+  set dir(String value) => _blink.BlinkHTMLElement.instance.dir_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLElement.draggable')
   @DocsEditable()
@@ -20525,7 +20525,7 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   
   @DomName('HTMLElement.draggable')
   @DocsEditable()
-  void set draggable(bool value) => _blink.BlinkHTMLElement.instance.draggable_Setter_(unwrap_jso(this), value);
+  set draggable(bool value) => _blink.BlinkHTMLElement.instance.draggable_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLElement.hidden')
   @DocsEditable()
@@ -20533,7 +20533,7 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   
   @DomName('HTMLElement.hidden')
   @DocsEditable()
-  void set hidden(bool value) => _blink.BlinkHTMLElement.instance.hidden_Setter_(unwrap_jso(this), value);
+  set hidden(bool value) => _blink.BlinkHTMLElement.instance.hidden_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLElement.inputMethodContext')
   @DocsEditable()
@@ -20550,7 +20550,7 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   
   @DomName('HTMLElement.lang')
   @DocsEditable()
-  void set lang(String value) => _blink.BlinkHTMLElement.instance.lang_Setter_(unwrap_jso(this), value);
+  set lang(String value) => _blink.BlinkHTMLElement.instance.lang_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLElement.spellcheck')
   @DocsEditable()
@@ -20562,7 +20562,7 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   @DocsEditable()
   // http://blog.whatwg.org/the-road-to-html-5-spellchecking
   @Experimental() // nonstandard
-  void set spellcheck(bool value) => _blink.BlinkHTMLElement.instance.spellcheck_Setter_(unwrap_jso(this), value);
+  set spellcheck(bool value) => _blink.BlinkHTMLElement.instance.spellcheck_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLElement.tabIndex')
   @DocsEditable()
@@ -20570,7 +20570,7 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   
   @DomName('HTMLElement.tabIndex')
   @DocsEditable()
-  void set tabIndex(int value) => _blink.BlinkHTMLElement.instance.tabIndex_Setter_(unwrap_jso(this), value);
+  set tabIndex(int value) => _blink.BlinkHTMLElement.instance.tabIndex_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLElement.title')
   @DocsEditable()
@@ -20578,7 +20578,7 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   
   @DomName('HTMLElement.title')
   @DocsEditable()
-  void set title(String value) => _blink.BlinkHTMLElement.instance.title_Setter_(unwrap_jso(this), value);
+  set title(String value) => _blink.BlinkHTMLElement.instance.title_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLElement.translate')
   @DocsEditable()
@@ -20586,7 +20586,7 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   
   @DomName('HTMLElement.translate')
   @DocsEditable()
-  void set translate(bool value) => _blink.BlinkHTMLElement.instance.translate_Setter_(unwrap_jso(this), value);
+  set translate(bool value) => _blink.BlinkHTMLElement.instance.translate_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLElement.webkitdropzone')
   @DocsEditable()
@@ -20602,7 +20602,7 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#the-dropzone-attribute
-  void set dropzone(String value) => _blink.BlinkHTMLElement.instance.webkitdropzone_Setter_(unwrap_jso(this), value);
+  set dropzone(String value) => _blink.BlinkHTMLElement.instance.webkitdropzone_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLElement.click')
   @DocsEditable()
@@ -21449,7 +21449,7 @@ class HttpRequest extends HttpRequestEventTarget {
    */
   @DomName('XMLHttpRequest.responseType')
   @DocsEditable()
-  void set responseType(String value) => _blink.BlinkXMLHttpRequest.instance.responseType_Setter_(unwrap_jso(this), value);
+  set responseType(String value) => _blink.BlinkXMLHttpRequest.instance.responseType_Setter_(unwrap_jso(this), value);
   
   @DomName('XMLHttpRequest.responseURL')
   @DocsEditable()
@@ -21523,7 +21523,7 @@ class HttpRequest extends HttpRequestEventTarget {
   @DomName('XMLHttpRequest.timeout')
   @DocsEditable()
   @Experimental() // untriaged
-  void set timeout(int value) => _blink.BlinkXMLHttpRequest.instance.timeout_Setter_(unwrap_jso(this), value);
+  set timeout(int value) => _blink.BlinkXMLHttpRequest.instance.timeout_Setter_(unwrap_jso(this), value);
   
   /**
    * [EventTarget] that can hold listeners to track the progress of the request.
@@ -21552,7 +21552,7 @@ class HttpRequest extends HttpRequestEventTarget {
    */
   @DomName('XMLHttpRequest.withCredentials')
   @DocsEditable()
-  void set withCredentials(bool value) => _blink.BlinkXMLHttpRequest.instance.withCredentials_Setter_(unwrap_jso(this), value);
+  set withCredentials(bool value) => _blink.BlinkXMLHttpRequest.instance.withCredentials_Setter_(unwrap_jso(this), value);
   
   /**
    * Stop the current request.
@@ -21899,7 +21899,7 @@ class IFrameElement extends HtmlElement {
   @DomName('HTMLIFrameElement.allowFullscreen')
   @DocsEditable()
   @Experimental() // untriaged
-  void set allowFullscreen(bool value) => _blink.BlinkHTMLIFrameElement.instance.allowFullscreen_Setter_(unwrap_jso(this), value);
+  set allowFullscreen(bool value) => _blink.BlinkHTMLIFrameElement.instance.allowFullscreen_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLIFrameElement.contentWindow')
   @DocsEditable()
@@ -21911,7 +21911,7 @@ class IFrameElement extends HtmlElement {
   
   @DomName('HTMLIFrameElement.height')
   @DocsEditable()
-  void set height(String value) => _blink.BlinkHTMLIFrameElement.instance.height_Setter_(unwrap_jso(this), value);
+  set height(String value) => _blink.BlinkHTMLIFrameElement.instance.height_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLIFrameElement.integrity')
   @DocsEditable()
@@ -21921,7 +21921,7 @@ class IFrameElement extends HtmlElement {
   @DomName('HTMLIFrameElement.integrity')
   @DocsEditable()
   @Experimental() // untriaged
-  void set integrity(String value) => _blink.BlinkHTMLIFrameElement.instance.integrity_Setter_(unwrap_jso(this), value);
+  set integrity(String value) => _blink.BlinkHTMLIFrameElement.instance.integrity_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLIFrameElement.name')
   @DocsEditable()
@@ -21929,7 +21929,7 @@ class IFrameElement extends HtmlElement {
   
   @DomName('HTMLIFrameElement.name')
   @DocsEditable()
-  void set name(String value) => _blink.BlinkHTMLIFrameElement.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkHTMLIFrameElement.instance.name_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLIFrameElement.sandbox')
   @DocsEditable()
@@ -21937,7 +21937,7 @@ class IFrameElement extends HtmlElement {
   
   @DomName('HTMLIFrameElement.sandbox')
   @DocsEditable()
-  void set sandbox(String value) => _blink.BlinkHTMLIFrameElement.instance.sandbox_Setter_(unwrap_jso(this), value);
+  set sandbox(String value) => _blink.BlinkHTMLIFrameElement.instance.sandbox_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLIFrameElement.src')
   @DocsEditable()
@@ -21945,7 +21945,7 @@ class IFrameElement extends HtmlElement {
   
   @DomName('HTMLIFrameElement.src')
   @DocsEditable()
-  void set src(String value) => _blink.BlinkHTMLIFrameElement.instance.src_Setter_(unwrap_jso(this), value);
+  set src(String value) => _blink.BlinkHTMLIFrameElement.instance.src_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLIFrameElement.srcdoc')
   @DocsEditable()
@@ -21953,7 +21953,7 @@ class IFrameElement extends HtmlElement {
   
   @DomName('HTMLIFrameElement.srcdoc')
   @DocsEditable()
-  void set srcdoc(String value) => _blink.BlinkHTMLIFrameElement.instance.srcdoc_Setter_(unwrap_jso(this), value);
+  set srcdoc(String value) => _blink.BlinkHTMLIFrameElement.instance.srcdoc_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLIFrameElement.width')
   @DocsEditable()
@@ -21961,7 +21961,7 @@ class IFrameElement extends HtmlElement {
   
   @DomName('HTMLIFrameElement.width')
   @DocsEditable()
-  void set width(String value) => _blink.BlinkHTMLIFrameElement.instance.width_Setter_(unwrap_jso(this), value);
+  set width(String value) => _blink.BlinkHTMLIFrameElement.instance.width_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22106,7 +22106,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   
   @DomName('HTMLImageElement.alt')
   @DocsEditable()
-  void set alt(String value) => _blink.BlinkHTMLImageElement.instance.alt_Setter_(unwrap_jso(this), value);
+  set alt(String value) => _blink.BlinkHTMLImageElement.instance.alt_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLImageElement.complete')
   @DocsEditable()
@@ -22118,7 +22118,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   
   @DomName('HTMLImageElement.crossOrigin')
   @DocsEditable()
-  void set crossOrigin(String value) => _blink.BlinkHTMLImageElement.instance.crossOrigin_Setter_(unwrap_jso(this), value);
+  set crossOrigin(String value) => _blink.BlinkHTMLImageElement.instance.crossOrigin_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLImageElement.currentSrc')
   @DocsEditable()
@@ -22131,7 +22131,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   
   @DomName('HTMLImageElement.height')
   @DocsEditable()
-  void set height(int value) => _blink.BlinkHTMLImageElement.instance.height_Setter_(unwrap_jso(this), value);
+  set height(int value) => _blink.BlinkHTMLImageElement.instance.height_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLImageElement.integrity')
   @DocsEditable()
@@ -22141,7 +22141,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   @DomName('HTMLImageElement.integrity')
   @DocsEditable()
   @Experimental() // untriaged
-  void set integrity(String value) => _blink.BlinkHTMLImageElement.instance.integrity_Setter_(unwrap_jso(this), value);
+  set integrity(String value) => _blink.BlinkHTMLImageElement.instance.integrity_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLImageElement.isMap')
   @DocsEditable()
@@ -22149,7 +22149,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   
   @DomName('HTMLImageElement.isMap')
   @DocsEditable()
-  void set isMap(bool value) => _blink.BlinkHTMLImageElement.instance.isMap_Setter_(unwrap_jso(this), value);
+  set isMap(bool value) => _blink.BlinkHTMLImageElement.instance.isMap_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLImageElement.naturalHeight')
   @DocsEditable()
@@ -22167,7 +22167,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   @DomName('HTMLImageElement.sizes')
   @DocsEditable()
   @Experimental() // untriaged
-  void set sizes(String value) => _blink.BlinkHTMLImageElement.instance.sizes_Setter_(unwrap_jso(this), value);
+  set sizes(String value) => _blink.BlinkHTMLImageElement.instance.sizes_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLImageElement.src')
   @DocsEditable()
@@ -22175,7 +22175,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   
   @DomName('HTMLImageElement.src')
   @DocsEditable()
-  void set src(String value) => _blink.BlinkHTMLImageElement.instance.src_Setter_(unwrap_jso(this), value);
+  set src(String value) => _blink.BlinkHTMLImageElement.instance.src_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLImageElement.srcset')
   @DocsEditable()
@@ -22185,7 +22185,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   @DomName('HTMLImageElement.srcset')
   @DocsEditable()
   @Experimental() // untriaged
-  void set srcset(String value) => _blink.BlinkHTMLImageElement.instance.srcset_Setter_(unwrap_jso(this), value);
+  set srcset(String value) => _blink.BlinkHTMLImageElement.instance.srcset_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLImageElement.useMap')
   @DocsEditable()
@@ -22193,7 +22193,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   
   @DomName('HTMLImageElement.useMap')
   @DocsEditable()
-  void set useMap(String value) => _blink.BlinkHTMLImageElement.instance.useMap_Setter_(unwrap_jso(this), value);
+  set useMap(String value) => _blink.BlinkHTMLImageElement.instance.useMap_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLImageElement.width')
   @DocsEditable()
@@ -22201,7 +22201,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   
   @DomName('HTMLImageElement.width')
   @DocsEditable()
-  void set width(int value) => _blink.BlinkHTMLImageElement.instance.width_Setter_(unwrap_jso(this), value);
+  set width(int value) => _blink.BlinkHTMLImageElement.instance.width_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22306,7 +22306,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.accept')
   @DocsEditable()
-  void set accept(String value) => _blink.BlinkHTMLInputElement.instance.accept_Setter_(unwrap_jso(this), value);
+  set accept(String value) => _blink.BlinkHTMLInputElement.instance.accept_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.alt')
   @DocsEditable()
@@ -22314,7 +22314,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.alt')
   @DocsEditable()
-  void set alt(String value) => _blink.BlinkHTMLInputElement.instance.alt_Setter_(unwrap_jso(this), value);
+  set alt(String value) => _blink.BlinkHTMLInputElement.instance.alt_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.autocomplete')
   @DocsEditable()
@@ -22322,7 +22322,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.autocomplete')
   @DocsEditable()
-  void set autocomplete(String value) => _blink.BlinkHTMLInputElement.instance.autocomplete_Setter_(unwrap_jso(this), value);
+  set autocomplete(String value) => _blink.BlinkHTMLInputElement.instance.autocomplete_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.autofocus')
   @DocsEditable()
@@ -22330,7 +22330,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.autofocus')
   @DocsEditable()
-  void set autofocus(bool value) => _blink.BlinkHTMLInputElement.instance.autofocus_Setter_(unwrap_jso(this), value);
+  set autofocus(bool value) => _blink.BlinkHTMLInputElement.instance.autofocus_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.capture')
   @DocsEditable()
@@ -22340,7 +22340,7 @@ class InputElement extends HtmlElement implements
   @DomName('HTMLInputElement.capture')
   @DocsEditable()
   @Experimental() // untriaged
-  void set capture(bool value) => _blink.BlinkHTMLInputElement.instance.capture_Setter_(unwrap_jso(this), value);
+  set capture(bool value) => _blink.BlinkHTMLInputElement.instance.capture_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.checked')
   @DocsEditable()
@@ -22348,7 +22348,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.checked')
   @DocsEditable()
-  void set checked(bool value) => _blink.BlinkHTMLInputElement.instance.checked_Setter_(unwrap_jso(this), value);
+  set checked(bool value) => _blink.BlinkHTMLInputElement.instance.checked_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.defaultChecked')
   @DocsEditable()
@@ -22356,7 +22356,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.defaultChecked')
   @DocsEditable()
-  void set defaultChecked(bool value) => _blink.BlinkHTMLInputElement.instance.defaultChecked_Setter_(unwrap_jso(this), value);
+  set defaultChecked(bool value) => _blink.BlinkHTMLInputElement.instance.defaultChecked_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.defaultValue')
   @DocsEditable()
@@ -22364,7 +22364,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.defaultValue')
   @DocsEditable()
-  void set defaultValue(String value) => _blink.BlinkHTMLInputElement.instance.defaultValue_Setter_(unwrap_jso(this), value);
+  set defaultValue(String value) => _blink.BlinkHTMLInputElement.instance.defaultValue_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.dirName')
   @DocsEditable()
@@ -22372,7 +22372,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.dirName')
   @DocsEditable()
-  void set dirName(String value) => _blink.BlinkHTMLInputElement.instance.dirName_Setter_(unwrap_jso(this), value);
+  set dirName(String value) => _blink.BlinkHTMLInputElement.instance.dirName_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.disabled')
   @DocsEditable()
@@ -22380,7 +22380,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) => _blink.BlinkHTMLInputElement.instance.disabled_Setter_(unwrap_jso(this), value);
+  set disabled(bool value) => _blink.BlinkHTMLInputElement.instance.disabled_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.files')
   @DocsEditable()
@@ -22388,7 +22388,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.files')
   @DocsEditable()
-  void set files(List<File> value) => _blink.BlinkHTMLInputElement.instance.files_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set files(List<File> value) => _blink.BlinkHTMLInputElement.instance.files_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('HTMLInputElement.form')
   @DocsEditable()
@@ -22400,7 +22400,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.formAction')
   @DocsEditable()
-  void set formAction(String value) => _blink.BlinkHTMLInputElement.instance.formAction_Setter_(unwrap_jso(this), value);
+  set formAction(String value) => _blink.BlinkHTMLInputElement.instance.formAction_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.formEnctype')
   @DocsEditable()
@@ -22408,7 +22408,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.formEnctype')
   @DocsEditable()
-  void set formEnctype(String value) => _blink.BlinkHTMLInputElement.instance.formEnctype_Setter_(unwrap_jso(this), value);
+  set formEnctype(String value) => _blink.BlinkHTMLInputElement.instance.formEnctype_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.formMethod')
   @DocsEditable()
@@ -22416,7 +22416,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.formMethod')
   @DocsEditable()
-  void set formMethod(String value) => _blink.BlinkHTMLInputElement.instance.formMethod_Setter_(unwrap_jso(this), value);
+  set formMethod(String value) => _blink.BlinkHTMLInputElement.instance.formMethod_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.formNoValidate')
   @DocsEditable()
@@ -22424,7 +22424,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.formNoValidate')
   @DocsEditable()
-  void set formNoValidate(bool value) => _blink.BlinkHTMLInputElement.instance.formNoValidate_Setter_(unwrap_jso(this), value);
+  set formNoValidate(bool value) => _blink.BlinkHTMLInputElement.instance.formNoValidate_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.formTarget')
   @DocsEditable()
@@ -22432,7 +22432,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.formTarget')
   @DocsEditable()
-  void set formTarget(String value) => _blink.BlinkHTMLInputElement.instance.formTarget_Setter_(unwrap_jso(this), value);
+  set formTarget(String value) => _blink.BlinkHTMLInputElement.instance.formTarget_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.height')
   @DocsEditable()
@@ -22440,7 +22440,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.height')
   @DocsEditable()
-  void set height(int value) => _blink.BlinkHTMLInputElement.instance.height_Setter_(unwrap_jso(this), value);
+  set height(int value) => _blink.BlinkHTMLInputElement.instance.height_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.incremental')
   @DocsEditable()
@@ -22452,7 +22452,7 @@ class InputElement extends HtmlElement implements
   @DocsEditable()
   // http://www.w3.org/TR/html-markup/input.search.html
   @Experimental()
-  void set incremental(bool value) => _blink.BlinkHTMLInputElement.instance.incremental_Setter_(unwrap_jso(this), value);
+  set incremental(bool value) => _blink.BlinkHTMLInputElement.instance.incremental_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.indeterminate')
   @DocsEditable()
@@ -22460,7 +22460,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.indeterminate')
   @DocsEditable()
-  void set indeterminate(bool value) => _blink.BlinkHTMLInputElement.instance.indeterminate_Setter_(unwrap_jso(this), value);
+  set indeterminate(bool value) => _blink.BlinkHTMLInputElement.instance.indeterminate_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.inputMode')
   @DocsEditable()
@@ -22470,7 +22470,7 @@ class InputElement extends HtmlElement implements
   @DomName('HTMLInputElement.inputMode')
   @DocsEditable()
   @Experimental() // untriaged
-  void set inputMode(String value) => _blink.BlinkHTMLInputElement.instance.inputMode_Setter_(unwrap_jso(this), value);
+  set inputMode(String value) => _blink.BlinkHTMLInputElement.instance.inputMode_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.labels')
   @DocsEditable()
@@ -22486,7 +22486,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.max')
   @DocsEditable()
-  void set max(String value) => _blink.BlinkHTMLInputElement.instance.max_Setter_(unwrap_jso(this), value);
+  set max(String value) => _blink.BlinkHTMLInputElement.instance.max_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.maxLength')
   @DocsEditable()
@@ -22494,7 +22494,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.maxLength')
   @DocsEditable()
-  void set maxLength(int value) => _blink.BlinkHTMLInputElement.instance.maxLength_Setter_(unwrap_jso(this), value);
+  set maxLength(int value) => _blink.BlinkHTMLInputElement.instance.maxLength_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.min')
   @DocsEditable()
@@ -22502,7 +22502,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.min')
   @DocsEditable()
-  void set min(String value) => _blink.BlinkHTMLInputElement.instance.min_Setter_(unwrap_jso(this), value);
+  set min(String value) => _blink.BlinkHTMLInputElement.instance.min_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.multiple')
   @DocsEditable()
@@ -22510,7 +22510,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.multiple')
   @DocsEditable()
-  void set multiple(bool value) => _blink.BlinkHTMLInputElement.instance.multiple_Setter_(unwrap_jso(this), value);
+  set multiple(bool value) => _blink.BlinkHTMLInputElement.instance.multiple_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.name')
   @DocsEditable()
@@ -22518,7 +22518,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.name')
   @DocsEditable()
-  void set name(String value) => _blink.BlinkHTMLInputElement.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkHTMLInputElement.instance.name_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.pattern')
   @DocsEditable()
@@ -22526,7 +22526,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.pattern')
   @DocsEditable()
-  void set pattern(String value) => _blink.BlinkHTMLInputElement.instance.pattern_Setter_(unwrap_jso(this), value);
+  set pattern(String value) => _blink.BlinkHTMLInputElement.instance.pattern_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.placeholder')
   @DocsEditable()
@@ -22534,7 +22534,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.placeholder')
   @DocsEditable()
-  void set placeholder(String value) => _blink.BlinkHTMLInputElement.instance.placeholder_Setter_(unwrap_jso(this), value);
+  set placeholder(String value) => _blink.BlinkHTMLInputElement.instance.placeholder_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.readOnly')
   @DocsEditable()
@@ -22542,7 +22542,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.readOnly')
   @DocsEditable()
-  void set readOnly(bool value) => _blink.BlinkHTMLInputElement.instance.readOnly_Setter_(unwrap_jso(this), value);
+  set readOnly(bool value) => _blink.BlinkHTMLInputElement.instance.readOnly_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.required')
   @DocsEditable()
@@ -22550,7 +22550,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.required')
   @DocsEditable()
-  void set required(bool value) => _blink.BlinkHTMLInputElement.instance.required_Setter_(unwrap_jso(this), value);
+  set required(bool value) => _blink.BlinkHTMLInputElement.instance.required_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.selectionDirection')
   @DocsEditable()
@@ -22558,7 +22558,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.selectionDirection')
   @DocsEditable()
-  void set selectionDirection(String value) => _blink.BlinkHTMLInputElement.instance.selectionDirection_Setter_(unwrap_jso(this), value);
+  set selectionDirection(String value) => _blink.BlinkHTMLInputElement.instance.selectionDirection_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.selectionEnd')
   @DocsEditable()
@@ -22566,7 +22566,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.selectionEnd')
   @DocsEditable()
-  void set selectionEnd(int value) => _blink.BlinkHTMLInputElement.instance.selectionEnd_Setter_(unwrap_jso(this), value);
+  set selectionEnd(int value) => _blink.BlinkHTMLInputElement.instance.selectionEnd_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.selectionStart')
   @DocsEditable()
@@ -22574,7 +22574,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.selectionStart')
   @DocsEditable()
-  void set selectionStart(int value) => _blink.BlinkHTMLInputElement.instance.selectionStart_Setter_(unwrap_jso(this), value);
+  set selectionStart(int value) => _blink.BlinkHTMLInputElement.instance.selectionStart_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.size')
   @DocsEditable()
@@ -22582,7 +22582,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.size')
   @DocsEditable()
-  void set size(int value) => _blink.BlinkHTMLInputElement.instance.size_Setter_(unwrap_jso(this), value);
+  set size(int value) => _blink.BlinkHTMLInputElement.instance.size_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.src')
   @DocsEditable()
@@ -22590,7 +22590,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.src')
   @DocsEditable()
-  void set src(String value) => _blink.BlinkHTMLInputElement.instance.src_Setter_(unwrap_jso(this), value);
+  set src(String value) => _blink.BlinkHTMLInputElement.instance.src_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.step')
   @DocsEditable()
@@ -22598,7 +22598,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.step')
   @DocsEditable()
-  void set step(String value) => _blink.BlinkHTMLInputElement.instance.step_Setter_(unwrap_jso(this), value);
+  set step(String value) => _blink.BlinkHTMLInputElement.instance.step_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.type')
   @DocsEditable()
@@ -22606,7 +22606,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.type')
   @DocsEditable()
-  void set type(String value) => _blink.BlinkHTMLInputElement.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkHTMLInputElement.instance.type_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.validationMessage')
   @DocsEditable()
@@ -22622,7 +22622,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.value')
   @DocsEditable()
-  void set value(String value) => _blink.BlinkHTMLInputElement.instance.value_Setter_(unwrap_jso(this), value);
+  set value(String value) => _blink.BlinkHTMLInputElement.instance.value_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.valueAsDate')
   @DocsEditable()
@@ -22630,7 +22630,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.valueAsDate')
   @DocsEditable()
-  void set valueAsDate(DateTime value) => _blink.BlinkHTMLInputElement.instance.valueAsDate_Setter_(unwrap_jso(this), value);
+  set valueAsDate(DateTime value) => _blink.BlinkHTMLInputElement.instance.valueAsDate_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.valueAsNumber')
   @DocsEditable()
@@ -22638,7 +22638,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.valueAsNumber')
   @DocsEditable()
-  void set valueAsNumber(num value) => _blink.BlinkHTMLInputElement.instance.valueAsNumber_Setter_(unwrap_jso(this), value);
+  set valueAsNumber(num value) => _blink.BlinkHTMLInputElement.instance.valueAsNumber_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.webkitEntries')
   @DocsEditable()
@@ -22662,7 +22662,7 @@ class InputElement extends HtmlElement implements
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // https://plus.sandbox.google.com/+AddyOsmani/posts/Dk5UhZ6zfF3
-  void set directory(bool value) => _blink.BlinkHTMLInputElement.instance.webkitdirectory_Setter_(unwrap_jso(this), value);
+  set directory(bool value) => _blink.BlinkHTMLInputElement.instance.webkitdirectory_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.width')
   @DocsEditable()
@@ -22670,7 +22670,7 @@ class InputElement extends HtmlElement implements
   
   @DomName('HTMLInputElement.width')
   @DocsEditable()
-  void set width(int value) => _blink.BlinkHTMLInputElement.instance.width_Setter_(unwrap_jso(this), value);
+  set width(int value) => _blink.BlinkHTMLInputElement.instance.width_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLInputElement.willValidate')
   @DocsEditable()
@@ -23530,7 +23530,7 @@ class KeygenElement extends HtmlElement {
   
   @DomName('HTMLKeygenElement.autofocus')
   @DocsEditable()
-  void set autofocus(bool value) => _blink.BlinkHTMLKeygenElement.instance.autofocus_Setter_(unwrap_jso(this), value);
+  set autofocus(bool value) => _blink.BlinkHTMLKeygenElement.instance.autofocus_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLKeygenElement.challenge')
   @DocsEditable()
@@ -23538,7 +23538,7 @@ class KeygenElement extends HtmlElement {
   
   @DomName('HTMLKeygenElement.challenge')
   @DocsEditable()
-  void set challenge(String value) => _blink.BlinkHTMLKeygenElement.instance.challenge_Setter_(unwrap_jso(this), value);
+  set challenge(String value) => _blink.BlinkHTMLKeygenElement.instance.challenge_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLKeygenElement.disabled')
   @DocsEditable()
@@ -23546,7 +23546,7 @@ class KeygenElement extends HtmlElement {
   
   @DomName('HTMLKeygenElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) => _blink.BlinkHTMLKeygenElement.instance.disabled_Setter_(unwrap_jso(this), value);
+  set disabled(bool value) => _blink.BlinkHTMLKeygenElement.instance.disabled_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLKeygenElement.form')
   @DocsEditable()
@@ -23558,7 +23558,7 @@ class KeygenElement extends HtmlElement {
   
   @DomName('HTMLKeygenElement.keytype')
   @DocsEditable()
-  void set keytype(String value) => _blink.BlinkHTMLKeygenElement.instance.keytype_Setter_(unwrap_jso(this), value);
+  set keytype(String value) => _blink.BlinkHTMLKeygenElement.instance.keytype_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLKeygenElement.labels')
   @DocsEditable()
@@ -23571,7 +23571,7 @@ class KeygenElement extends HtmlElement {
   
   @DomName('HTMLKeygenElement.name')
   @DocsEditable()
-  void set name(String value) => _blink.BlinkHTMLKeygenElement.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkHTMLKeygenElement.instance.name_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLKeygenElement.type')
   @DocsEditable()
@@ -23639,7 +23639,7 @@ class LIElement extends HtmlElement {
   
   @DomName('HTMLLIElement.value')
   @DocsEditable()
-  void set value(int value) => _blink.BlinkHTMLLIElement.instance.value_Setter_(unwrap_jso(this), value);
+  set value(int value) => _blink.BlinkHTMLLIElement.instance.value_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23691,7 +23691,7 @@ class LabelElement extends HtmlElement {
   
   @DomName('HTMLLabelElement.htmlFor')
   @DocsEditable()
-  void set htmlFor(String value) => _blink.BlinkHTMLLabelElement.instance.htmlFor_Setter_(unwrap_jso(this), value);
+  set htmlFor(String value) => _blink.BlinkHTMLLabelElement.instance.htmlFor_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23775,7 +23775,7 @@ class LinkElement extends HtmlElement {
   @DomName('HTMLLinkElement.crossOrigin')
   @DocsEditable()
   @Experimental() // untriaged
-  void set crossOrigin(String value) => _blink.BlinkHTMLLinkElement.instance.crossOrigin_Setter_(unwrap_jso(this), value);
+  set crossOrigin(String value) => _blink.BlinkHTMLLinkElement.instance.crossOrigin_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLLinkElement.disabled')
   @DocsEditable()
@@ -23783,7 +23783,7 @@ class LinkElement extends HtmlElement {
   
   @DomName('HTMLLinkElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) => _blink.BlinkHTMLLinkElement.instance.disabled_Setter_(unwrap_jso(this), value);
+  set disabled(bool value) => _blink.BlinkHTMLLinkElement.instance.disabled_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLLinkElement.href')
   @DocsEditable()
@@ -23791,7 +23791,7 @@ class LinkElement extends HtmlElement {
   
   @DomName('HTMLLinkElement.href')
   @DocsEditable()
-  void set href(String value) => _blink.BlinkHTMLLinkElement.instance.href_Setter_(unwrap_jso(this), value);
+  set href(String value) => _blink.BlinkHTMLLinkElement.instance.href_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLLinkElement.hreflang')
   @DocsEditable()
@@ -23799,7 +23799,7 @@ class LinkElement extends HtmlElement {
   
   @DomName('HTMLLinkElement.hreflang')
   @DocsEditable()
-  void set hreflang(String value) => _blink.BlinkHTMLLinkElement.instance.hreflang_Setter_(unwrap_jso(this), value);
+  set hreflang(String value) => _blink.BlinkHTMLLinkElement.instance.hreflang_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLLinkElement.import')
   @DocsEditable()
@@ -23815,7 +23815,7 @@ class LinkElement extends HtmlElement {
   @DomName('HTMLLinkElement.integrity')
   @DocsEditable()
   @Experimental() // untriaged
-  void set integrity(String value) => _blink.BlinkHTMLLinkElement.instance.integrity_Setter_(unwrap_jso(this), value);
+  set integrity(String value) => _blink.BlinkHTMLLinkElement.instance.integrity_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLLinkElement.media')
   @DocsEditable()
@@ -23823,7 +23823,7 @@ class LinkElement extends HtmlElement {
   
   @DomName('HTMLLinkElement.media')
   @DocsEditable()
-  void set media(String value) => _blink.BlinkHTMLLinkElement.instance.media_Setter_(unwrap_jso(this), value);
+  set media(String value) => _blink.BlinkHTMLLinkElement.instance.media_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLLinkElement.rel')
   @DocsEditable()
@@ -23831,7 +23831,7 @@ class LinkElement extends HtmlElement {
   
   @DomName('HTMLLinkElement.rel')
   @DocsEditable()
-  void set rel(String value) => _blink.BlinkHTMLLinkElement.instance.rel_Setter_(unwrap_jso(this), value);
+  set rel(String value) => _blink.BlinkHTMLLinkElement.instance.rel_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLLinkElement.sheet')
   @DocsEditable()
@@ -23847,7 +23847,7 @@ class LinkElement extends HtmlElement {
   
   @DomName('HTMLLinkElement.type')
   @DocsEditable()
-  void set type(String value) => _blink.BlinkHTMLLinkElement.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkHTMLLinkElement.instance.type_Setter_(unwrap_jso(this), value);
   
 
     /// Checks if HTML imports are supported on the current platform.
@@ -23930,7 +23930,7 @@ class Location extends NativeFieldWrapperClass2 implements LocationBase {
   
   @DomName('Location.hash')
   @DocsEditable()
-  void set hash(String value) => _blink.BlinkLocation.instance.hash_Setter_(unwrap_jso(this), value);
+  set hash(String value) => _blink.BlinkLocation.instance.hash_Setter_(unwrap_jso(this), value);
   
   @DomName('Location.host')
   @DocsEditable()
@@ -23938,7 +23938,7 @@ class Location extends NativeFieldWrapperClass2 implements LocationBase {
   
   @DomName('Location.host')
   @DocsEditable()
-  void set host(String value) => _blink.BlinkLocation.instance.host_Setter_(unwrap_jso(this), value);
+  set host(String value) => _blink.BlinkLocation.instance.host_Setter_(unwrap_jso(this), value);
   
   @DomName('Location.hostname')
   @DocsEditable()
@@ -23946,7 +23946,7 @@ class Location extends NativeFieldWrapperClass2 implements LocationBase {
   
   @DomName('Location.hostname')
   @DocsEditable()
-  void set hostname(String value) => _blink.BlinkLocation.instance.hostname_Setter_(unwrap_jso(this), value);
+  set hostname(String value) => _blink.BlinkLocation.instance.hostname_Setter_(unwrap_jso(this), value);
   
   @DomName('Location.href')
   @DocsEditable()
@@ -23954,7 +23954,7 @@ class Location extends NativeFieldWrapperClass2 implements LocationBase {
   
   @DomName('Location.href')
   @DocsEditable()
-  void set href(String value) => _blink.BlinkLocation.instance.href_Setter_(unwrap_jso(this), value);
+  set href(String value) => _blink.BlinkLocation.instance.href_Setter_(unwrap_jso(this), value);
   
   @DomName('Location.origin')
   @DocsEditable()
@@ -23968,7 +23968,7 @@ class Location extends NativeFieldWrapperClass2 implements LocationBase {
   
   @DomName('Location.pathname')
   @DocsEditable()
-  void set pathname(String value) => _blink.BlinkLocation.instance.pathname_Setter_(unwrap_jso(this), value);
+  set pathname(String value) => _blink.BlinkLocation.instance.pathname_Setter_(unwrap_jso(this), value);
   
   @DomName('Location.port')
   @DocsEditable()
@@ -23976,7 +23976,7 @@ class Location extends NativeFieldWrapperClass2 implements LocationBase {
   
   @DomName('Location.port')
   @DocsEditable()
-  void set port(String value) => _blink.BlinkLocation.instance.port_Setter_(unwrap_jso(this), value);
+  set port(String value) => _blink.BlinkLocation.instance.port_Setter_(unwrap_jso(this), value);
   
   @DomName('Location.protocol')
   @DocsEditable()
@@ -23984,7 +23984,7 @@ class Location extends NativeFieldWrapperClass2 implements LocationBase {
   
   @DomName('Location.protocol')
   @DocsEditable()
-  void set protocol(String value) => _blink.BlinkLocation.instance.protocol_Setter_(unwrap_jso(this), value);
+  set protocol(String value) => _blink.BlinkLocation.instance.protocol_Setter_(unwrap_jso(this), value);
   
   @DomName('Location.search')
   @DocsEditable()
@@ -23992,7 +23992,7 @@ class Location extends NativeFieldWrapperClass2 implements LocationBase {
   
   @DomName('Location.search')
   @DocsEditable()
-  void set search(String value) => _blink.BlinkLocation.instance.search_Setter_(unwrap_jso(this), value);
+  set search(String value) => _blink.BlinkLocation.instance.search_Setter_(unwrap_jso(this), value);
   
   @DomName('Location.assign')
   @DocsEditable()
@@ -24079,7 +24079,7 @@ class MapElement extends HtmlElement {
   
   @DomName('HTMLMapElement.name')
   @DocsEditable()
-  void set name(String value) => _blink.BlinkHTMLMapElement.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkHTMLMapElement.instance.name_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24125,7 +24125,7 @@ class MediaController extends EventTarget {
   
   @DomName('MediaController.currentTime')
   @DocsEditable()
-  void set currentTime(num value) => _blink.BlinkMediaController.instance.currentTime_Setter_(unwrap_jso(this), value);
+  set currentTime(num value) => _blink.BlinkMediaController.instance.currentTime_Setter_(unwrap_jso(this), value);
   
   @DomName('MediaController.defaultPlaybackRate')
   @DocsEditable()
@@ -24133,7 +24133,7 @@ class MediaController extends EventTarget {
   
   @DomName('MediaController.defaultPlaybackRate')
   @DocsEditable()
-  void set defaultPlaybackRate(num value) => _blink.BlinkMediaController.instance.defaultPlaybackRate_Setter_(unwrap_jso(this), value);
+  set defaultPlaybackRate(num value) => _blink.BlinkMediaController.instance.defaultPlaybackRate_Setter_(unwrap_jso(this), value);
   
   @DomName('MediaController.duration')
   @DocsEditable()
@@ -24145,7 +24145,7 @@ class MediaController extends EventTarget {
   
   @DomName('MediaController.muted')
   @DocsEditable()
-  void set muted(bool value) => _blink.BlinkMediaController.instance.muted_Setter_(unwrap_jso(this), value);
+  set muted(bool value) => _blink.BlinkMediaController.instance.muted_Setter_(unwrap_jso(this), value);
   
   @DomName('MediaController.paused')
   @DocsEditable()
@@ -24157,7 +24157,7 @@ class MediaController extends EventTarget {
   
   @DomName('MediaController.playbackRate')
   @DocsEditable()
-  void set playbackRate(num value) => _blink.BlinkMediaController.instance.playbackRate_Setter_(unwrap_jso(this), value);
+  set playbackRate(num value) => _blink.BlinkMediaController.instance.playbackRate_Setter_(unwrap_jso(this), value);
   
   @DomName('MediaController.playbackState')
   @DocsEditable()
@@ -24177,7 +24177,7 @@ class MediaController extends EventTarget {
   
   @DomName('MediaController.volume')
   @DocsEditable()
-  void set volume(num value) => _blink.BlinkMediaController.instance.volume_Setter_(unwrap_jso(this), value);
+  set volume(num value) => _blink.BlinkMediaController.instance.volume_Setter_(unwrap_jso(this), value);
   
   @DomName('MediaController.pause')
   @DocsEditable()
@@ -24387,7 +24387,7 @@ class MediaElement extends HtmlElement {
   
   @DomName('HTMLMediaElement.autoplay')
   @DocsEditable()
-  void set autoplay(bool value) => _blink.BlinkHTMLMediaElement.instance.autoplay_Setter_(unwrap_jso(this), value);
+  set autoplay(bool value) => _blink.BlinkHTMLMediaElement.instance.autoplay_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMediaElement.buffered')
   @DocsEditable()
@@ -24399,7 +24399,7 @@ class MediaElement extends HtmlElement {
   
   @DomName('HTMLMediaElement.controller')
   @DocsEditable()
-  void set controller(MediaController value) => _blink.BlinkHTMLMediaElement.instance.controller_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set controller(MediaController value) => _blink.BlinkHTMLMediaElement.instance.controller_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('HTMLMediaElement.controls')
   @DocsEditable()
@@ -24407,7 +24407,7 @@ class MediaElement extends HtmlElement {
   
   @DomName('HTMLMediaElement.controls')
   @DocsEditable()
-  void set controls(bool value) => _blink.BlinkHTMLMediaElement.instance.controls_Setter_(unwrap_jso(this), value);
+  set controls(bool value) => _blink.BlinkHTMLMediaElement.instance.controls_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMediaElement.crossOrigin')
   @DocsEditable()
@@ -24417,7 +24417,7 @@ class MediaElement extends HtmlElement {
   @DomName('HTMLMediaElement.crossOrigin')
   @DocsEditable()
   @Experimental() // untriaged
-  void set crossOrigin(String value) => _blink.BlinkHTMLMediaElement.instance.crossOrigin_Setter_(unwrap_jso(this), value);
+  set crossOrigin(String value) => _blink.BlinkHTMLMediaElement.instance.crossOrigin_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMediaElement.currentSrc')
   @DocsEditable()
@@ -24429,7 +24429,7 @@ class MediaElement extends HtmlElement {
   
   @DomName('HTMLMediaElement.currentTime')
   @DocsEditable()
-  void set currentTime(num value) => _blink.BlinkHTMLMediaElement.instance.currentTime_Setter_(unwrap_jso(this), value);
+  set currentTime(num value) => _blink.BlinkHTMLMediaElement.instance.currentTime_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMediaElement.defaultMuted')
   @DocsEditable()
@@ -24437,7 +24437,7 @@ class MediaElement extends HtmlElement {
   
   @DomName('HTMLMediaElement.defaultMuted')
   @DocsEditable()
-  void set defaultMuted(bool value) => _blink.BlinkHTMLMediaElement.instance.defaultMuted_Setter_(unwrap_jso(this), value);
+  set defaultMuted(bool value) => _blink.BlinkHTMLMediaElement.instance.defaultMuted_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMediaElement.defaultPlaybackRate')
   @DocsEditable()
@@ -24445,7 +24445,7 @@ class MediaElement extends HtmlElement {
   
   @DomName('HTMLMediaElement.defaultPlaybackRate')
   @DocsEditable()
-  void set defaultPlaybackRate(num value) => _blink.BlinkHTMLMediaElement.instance.defaultPlaybackRate_Setter_(unwrap_jso(this), value);
+  set defaultPlaybackRate(num value) => _blink.BlinkHTMLMediaElement.instance.defaultPlaybackRate_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMediaElement.duration')
   @DocsEditable()
@@ -24467,7 +24467,7 @@ class MediaElement extends HtmlElement {
   @DomName('HTMLMediaElement.integrity')
   @DocsEditable()
   @Experimental() // untriaged
-  void set integrity(String value) => _blink.BlinkHTMLMediaElement.instance.integrity_Setter_(unwrap_jso(this), value);
+  set integrity(String value) => _blink.BlinkHTMLMediaElement.instance.integrity_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMediaElement.loop')
   @DocsEditable()
@@ -24475,7 +24475,7 @@ class MediaElement extends HtmlElement {
   
   @DomName('HTMLMediaElement.loop')
   @DocsEditable()
-  void set loop(bool value) => _blink.BlinkHTMLMediaElement.instance.loop_Setter_(unwrap_jso(this), value);
+  set loop(bool value) => _blink.BlinkHTMLMediaElement.instance.loop_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMediaElement.mediaGroup')
   @DocsEditable()
@@ -24483,7 +24483,7 @@ class MediaElement extends HtmlElement {
   
   @DomName('HTMLMediaElement.mediaGroup')
   @DocsEditable()
-  void set mediaGroup(String value) => _blink.BlinkHTMLMediaElement.instance.mediaGroup_Setter_(unwrap_jso(this), value);
+  set mediaGroup(String value) => _blink.BlinkHTMLMediaElement.instance.mediaGroup_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMediaElement.mediaKeys')
   @DocsEditable()
@@ -24497,7 +24497,7 @@ class MediaElement extends HtmlElement {
   
   @DomName('HTMLMediaElement.muted')
   @DocsEditable()
-  void set muted(bool value) => _blink.BlinkHTMLMediaElement.instance.muted_Setter_(unwrap_jso(this), value);
+  set muted(bool value) => _blink.BlinkHTMLMediaElement.instance.muted_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMediaElement.networkState')
   @DocsEditable()
@@ -24513,7 +24513,7 @@ class MediaElement extends HtmlElement {
   
   @DomName('HTMLMediaElement.playbackRate')
   @DocsEditable()
-  void set playbackRate(num value) => _blink.BlinkHTMLMediaElement.instance.playbackRate_Setter_(unwrap_jso(this), value);
+  set playbackRate(num value) => _blink.BlinkHTMLMediaElement.instance.playbackRate_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMediaElement.played')
   @DocsEditable()
@@ -24525,7 +24525,7 @@ class MediaElement extends HtmlElement {
   
   @DomName('HTMLMediaElement.preload')
   @DocsEditable()
-  void set preload(String value) => _blink.BlinkHTMLMediaElement.instance.preload_Setter_(unwrap_jso(this), value);
+  set preload(String value) => _blink.BlinkHTMLMediaElement.instance.preload_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMediaElement.readyState')
   @DocsEditable()
@@ -24545,7 +24545,7 @@ class MediaElement extends HtmlElement {
   
   @DomName('HTMLMediaElement.src')
   @DocsEditable()
-  void set src(String value) => _blink.BlinkHTMLMediaElement.instance.src_Setter_(unwrap_jso(this), value);
+  set src(String value) => _blink.BlinkHTMLMediaElement.instance.src_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMediaElement.textTracks')
   @DocsEditable()
@@ -24564,7 +24564,7 @@ class MediaElement extends HtmlElement {
   
   @DomName('HTMLMediaElement.volume')
   @DocsEditable()
-  void set volume(num value) => _blink.BlinkHTMLMediaElement.instance.volume_Setter_(unwrap_jso(this), value);
+  set volume(num value) => _blink.BlinkHTMLMediaElement.instance.volume_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMediaElement.webkitAudioDecodedByteCount')
   @DocsEditable()
@@ -25081,7 +25081,7 @@ class MediaList extends NativeFieldWrapperClass2 {
   
   @DomName('MediaList.mediaText')
   @DocsEditable()
-  void set mediaText(String value) => _blink.BlinkMediaList.instance.mediaText_Setter_(unwrap_jso(this), value);
+  set mediaText(String value) => _blink.BlinkMediaList.instance.mediaText_Setter_(unwrap_jso(this), value);
   
   @DomName('MediaList.appendMedium')
   @DocsEditable()
@@ -25234,7 +25234,7 @@ class MediaSource extends EventTarget {
   
   @DomName('MediaSource.duration')
   @DocsEditable()
-  void set duration(num value) => _blink.BlinkMediaSource.instance.duration_Setter_(unwrap_jso(this), value);
+  set duration(num value) => _blink.BlinkMediaSource.instance.duration_Setter_(unwrap_jso(this), value);
   
   @DomName('MediaSource.readyState')
   @DocsEditable()
@@ -25508,7 +25508,7 @@ class MediaStreamTrack extends EventTarget {
   
   @DomName('MediaStreamTrack.enabled')
   @DocsEditable()
-  void set enabled(bool value) => _blink.BlinkMediaStreamTrack.instance.enabled_Setter_(unwrap_jso(this), value);
+  set enabled(bool value) => _blink.BlinkMediaStreamTrack.instance.enabled_Setter_(unwrap_jso(this), value);
   
   @DomName('MediaStreamTrack.id')
   @DocsEditable()
@@ -25710,7 +25710,7 @@ class MenuElement extends HtmlElement {
   @DomName('HTMLMenuElement.label')
   @DocsEditable()
   @Experimental() // untriaged
-  void set label(String value) => _blink.BlinkHTMLMenuElement.instance.label_Setter_(unwrap_jso(this), value);
+  set label(String value) => _blink.BlinkHTMLMenuElement.instance.label_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMenuElement.type')
   @DocsEditable()
@@ -25720,7 +25720,7 @@ class MenuElement extends HtmlElement {
   @DomName('HTMLMenuElement.type')
   @DocsEditable()
   @Experimental() // untriaged
-  void set type(String value) => _blink.BlinkHTMLMenuElement.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkHTMLMenuElement.instance.type_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25763,7 +25763,7 @@ class MenuItemElement extends HtmlElement {
   @DomName('HTMLMenuItemElement.checked')
   @DocsEditable()
   @Experimental() // untriaged
-  void set checked(bool value) => _blink.BlinkHTMLMenuItemElement.instance.checked_Setter_(unwrap_jso(this), value);
+  set checked(bool value) => _blink.BlinkHTMLMenuItemElement.instance.checked_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMenuItemElement.default')
   @DocsEditable()
@@ -25773,7 +25773,7 @@ class MenuItemElement extends HtmlElement {
   @DomName('HTMLMenuItemElement.default')
   @DocsEditable()
   @Experimental() // untriaged
-  void set defaultValue(bool value) => _blink.BlinkHTMLMenuItemElement.instance.default_Setter_(unwrap_jso(this), value);
+  set defaultValue(bool value) => _blink.BlinkHTMLMenuItemElement.instance.default_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMenuItemElement.disabled')
   @DocsEditable()
@@ -25783,7 +25783,7 @@ class MenuItemElement extends HtmlElement {
   @DomName('HTMLMenuItemElement.disabled')
   @DocsEditable()
   @Experimental() // untriaged
-  void set disabled(bool value) => _blink.BlinkHTMLMenuItemElement.instance.disabled_Setter_(unwrap_jso(this), value);
+  set disabled(bool value) => _blink.BlinkHTMLMenuItemElement.instance.disabled_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMenuItemElement.label')
   @DocsEditable()
@@ -25793,7 +25793,7 @@ class MenuItemElement extends HtmlElement {
   @DomName('HTMLMenuItemElement.label')
   @DocsEditable()
   @Experimental() // untriaged
-  void set label(String value) => _blink.BlinkHTMLMenuItemElement.instance.label_Setter_(unwrap_jso(this), value);
+  set label(String value) => _blink.BlinkHTMLMenuItemElement.instance.label_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMenuItemElement.type')
   @DocsEditable()
@@ -25803,7 +25803,7 @@ class MenuItemElement extends HtmlElement {
   @DomName('HTMLMenuItemElement.type')
   @DocsEditable()
   @Experimental() // untriaged
-  void set type(String value) => _blink.BlinkHTMLMenuItemElement.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkHTMLMenuItemElement.instance.type_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -25997,7 +25997,7 @@ class MetaElement extends HtmlElement {
   
   @DomName('HTMLMetaElement.content')
   @DocsEditable()
-  void set content(String value) => _blink.BlinkHTMLMetaElement.instance.content_Setter_(unwrap_jso(this), value);
+  set content(String value) => _blink.BlinkHTMLMetaElement.instance.content_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMetaElement.httpEquiv')
   @DocsEditable()
@@ -26005,7 +26005,7 @@ class MetaElement extends HtmlElement {
   
   @DomName('HTMLMetaElement.httpEquiv')
   @DocsEditable()
-  void set httpEquiv(String value) => _blink.BlinkHTMLMetaElement.instance.httpEquiv_Setter_(unwrap_jso(this), value);
+  set httpEquiv(String value) => _blink.BlinkHTMLMetaElement.instance.httpEquiv_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMetaElement.name')
   @DocsEditable()
@@ -26013,7 +26013,7 @@ class MetaElement extends HtmlElement {
   
   @DomName('HTMLMetaElement.name')
   @DocsEditable()
-  void set name(String value) => _blink.BlinkHTMLMetaElement.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkHTMLMetaElement.instance.name_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26114,7 +26114,7 @@ class MeterElement extends HtmlElement {
   
   @DomName('HTMLMeterElement.high')
   @DocsEditable()
-  void set high(num value) => _blink.BlinkHTMLMeterElement.instance.high_Setter_(unwrap_jso(this), value);
+  set high(num value) => _blink.BlinkHTMLMeterElement.instance.high_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMeterElement.labels')
   @DocsEditable()
@@ -26127,7 +26127,7 @@ class MeterElement extends HtmlElement {
   
   @DomName('HTMLMeterElement.low')
   @DocsEditable()
-  void set low(num value) => _blink.BlinkHTMLMeterElement.instance.low_Setter_(unwrap_jso(this), value);
+  set low(num value) => _blink.BlinkHTMLMeterElement.instance.low_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMeterElement.max')
   @DocsEditable()
@@ -26135,7 +26135,7 @@ class MeterElement extends HtmlElement {
   
   @DomName('HTMLMeterElement.max')
   @DocsEditable()
-  void set max(num value) => _blink.BlinkHTMLMeterElement.instance.max_Setter_(unwrap_jso(this), value);
+  set max(num value) => _blink.BlinkHTMLMeterElement.instance.max_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMeterElement.min')
   @DocsEditable()
@@ -26143,7 +26143,7 @@ class MeterElement extends HtmlElement {
   
   @DomName('HTMLMeterElement.min')
   @DocsEditable()
-  void set min(num value) => _blink.BlinkHTMLMeterElement.instance.min_Setter_(unwrap_jso(this), value);
+  set min(num value) => _blink.BlinkHTMLMeterElement.instance.min_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMeterElement.optimum')
   @DocsEditable()
@@ -26151,7 +26151,7 @@ class MeterElement extends HtmlElement {
   
   @DomName('HTMLMeterElement.optimum')
   @DocsEditable()
-  void set optimum(num value) => _blink.BlinkHTMLMeterElement.instance.optimum_Setter_(unwrap_jso(this), value);
+  set optimum(num value) => _blink.BlinkHTMLMeterElement.instance.optimum_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLMeterElement.value')
   @DocsEditable()
@@ -26159,7 +26159,7 @@ class MeterElement extends HtmlElement {
   
   @DomName('HTMLMeterElement.value')
   @DocsEditable()
-  void set value(num value) => _blink.BlinkHTMLMeterElement.instance.value_Setter_(unwrap_jso(this), value);
+  set value(num value) => _blink.BlinkHTMLMeterElement.instance.value_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26740,7 +26740,7 @@ class ModElement extends HtmlElement {
   
   @DomName('HTMLModElement.cite')
   @DocsEditable()
-  void set cite(String value) => _blink.BlinkHTMLModElement.instance.cite_Setter_(unwrap_jso(this), value);
+  set cite(String value) => _blink.BlinkHTMLModElement.instance.cite_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLModElement.dateTime')
   @DocsEditable()
@@ -26748,7 +26748,7 @@ class ModElement extends HtmlElement {
   
   @DomName('HTMLModElement.dateTime')
   @DocsEditable()
-  void set dateTime(String value) => _blink.BlinkHTMLModElement.instance.dateTime_Setter_(unwrap_jso(this), value);
+  set dateTime(String value) => _blink.BlinkHTMLModElement.instance.dateTime_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28208,7 +28208,7 @@ class Node extends EventTarget {
    */
   @DomName('Node.textContent')
   @DocsEditable()
-  void set text(String value) => _blink.BlinkNode.instance.textContent_Setter_(unwrap_jso(this), value);
+  set text(String value) => _blink.BlinkNode.instance.textContent_Setter_(unwrap_jso(this), value);
   
   /**
    * Adds a node to the end of the child [nodes] list of this node.
@@ -28717,7 +28717,7 @@ class OListElement extends HtmlElement {
   
   @DomName('HTMLOListElement.reversed')
   @DocsEditable()
-  void set reversed(bool value) => _blink.BlinkHTMLOListElement.instance.reversed_Setter_(unwrap_jso(this), value);
+  set reversed(bool value) => _blink.BlinkHTMLOListElement.instance.reversed_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLOListElement.start')
   @DocsEditable()
@@ -28725,7 +28725,7 @@ class OListElement extends HtmlElement {
   
   @DomName('HTMLOListElement.start')
   @DocsEditable()
-  void set start(int value) => _blink.BlinkHTMLOListElement.instance.start_Setter_(unwrap_jso(this), value);
+  set start(int value) => _blink.BlinkHTMLOListElement.instance.start_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLOListElement.type')
   @DocsEditable()
@@ -28733,7 +28733,7 @@ class OListElement extends HtmlElement {
   
   @DomName('HTMLOListElement.type')
   @DocsEditable()
-  void set type(String value) => _blink.BlinkHTMLOListElement.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkHTMLOListElement.instance.type_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -28784,7 +28784,7 @@ class ObjectElement extends HtmlElement {
   
   @DomName('HTMLObjectElement.data')
   @DocsEditable()
-  void set data(String value) => _blink.BlinkHTMLObjectElement.instance.data_Setter_(unwrap_jso(this), value);
+  set data(String value) => _blink.BlinkHTMLObjectElement.instance.data_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLObjectElement.form')
   @DocsEditable()
@@ -28796,7 +28796,7 @@ class ObjectElement extends HtmlElement {
   
   @DomName('HTMLObjectElement.height')
   @DocsEditable()
-  void set height(String value) => _blink.BlinkHTMLObjectElement.instance.height_Setter_(unwrap_jso(this), value);
+  set height(String value) => _blink.BlinkHTMLObjectElement.instance.height_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLObjectElement.integrity')
   @DocsEditable()
@@ -28806,7 +28806,7 @@ class ObjectElement extends HtmlElement {
   @DomName('HTMLObjectElement.integrity')
   @DocsEditable()
   @Experimental() // untriaged
-  void set integrity(String value) => _blink.BlinkHTMLObjectElement.instance.integrity_Setter_(unwrap_jso(this), value);
+  set integrity(String value) => _blink.BlinkHTMLObjectElement.instance.integrity_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLObjectElement.name')
   @DocsEditable()
@@ -28814,7 +28814,7 @@ class ObjectElement extends HtmlElement {
   
   @DomName('HTMLObjectElement.name')
   @DocsEditable()
-  void set name(String value) => _blink.BlinkHTMLObjectElement.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkHTMLObjectElement.instance.name_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLObjectElement.type')
   @DocsEditable()
@@ -28822,7 +28822,7 @@ class ObjectElement extends HtmlElement {
   
   @DomName('HTMLObjectElement.type')
   @DocsEditable()
-  void set type(String value) => _blink.BlinkHTMLObjectElement.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkHTMLObjectElement.instance.type_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLObjectElement.useMap')
   @DocsEditable()
@@ -28830,7 +28830,7 @@ class ObjectElement extends HtmlElement {
   
   @DomName('HTMLObjectElement.useMap')
   @DocsEditable()
-  void set useMap(String value) => _blink.BlinkHTMLObjectElement.instance.useMap_Setter_(unwrap_jso(this), value);
+  set useMap(String value) => _blink.BlinkHTMLObjectElement.instance.useMap_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLObjectElement.validationMessage')
   @DocsEditable()
@@ -28846,7 +28846,7 @@ class ObjectElement extends HtmlElement {
   
   @DomName('HTMLObjectElement.width')
   @DocsEditable()
-  void set width(String value) => _blink.BlinkHTMLObjectElement.instance.width_Setter_(unwrap_jso(this), value);
+  set width(String value) => _blink.BlinkHTMLObjectElement.instance.width_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLObjectElement.willValidate')
   @DocsEditable()
@@ -28910,7 +28910,7 @@ class OptGroupElement extends HtmlElement {
   
   @DomName('HTMLOptGroupElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) => _blink.BlinkHTMLOptGroupElement.instance.disabled_Setter_(unwrap_jso(this), value);
+  set disabled(bool value) => _blink.BlinkHTMLOptGroupElement.instance.disabled_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLOptGroupElement.label')
   @DocsEditable()
@@ -28918,7 +28918,7 @@ class OptGroupElement extends HtmlElement {
   
   @DomName('HTMLOptGroupElement.label')
   @DocsEditable()
-  void set label(String value) => _blink.BlinkHTMLOptGroupElement.instance.label_Setter_(unwrap_jso(this), value);
+  set label(String value) => _blink.BlinkHTMLOptGroupElement.instance.label_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -28962,7 +28962,7 @@ class OptionElement extends HtmlElement {
   
   @DomName('HTMLOptionElement.defaultSelected')
   @DocsEditable()
-  void set defaultSelected(bool value) => _blink.BlinkHTMLOptionElement.instance.defaultSelected_Setter_(unwrap_jso(this), value);
+  set defaultSelected(bool value) => _blink.BlinkHTMLOptionElement.instance.defaultSelected_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLOptionElement.disabled')
   @DocsEditable()
@@ -28970,7 +28970,7 @@ class OptionElement extends HtmlElement {
   
   @DomName('HTMLOptionElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) => _blink.BlinkHTMLOptionElement.instance.disabled_Setter_(unwrap_jso(this), value);
+  set disabled(bool value) => _blink.BlinkHTMLOptionElement.instance.disabled_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLOptionElement.form')
   @DocsEditable()
@@ -28986,7 +28986,7 @@ class OptionElement extends HtmlElement {
   
   @DomName('HTMLOptionElement.label')
   @DocsEditable()
-  void set label(String value) => _blink.BlinkHTMLOptionElement.instance.label_Setter_(unwrap_jso(this), value);
+  set label(String value) => _blink.BlinkHTMLOptionElement.instance.label_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLOptionElement.selected')
   @DocsEditable()
@@ -28994,7 +28994,7 @@ class OptionElement extends HtmlElement {
   
   @DomName('HTMLOptionElement.selected')
   @DocsEditable()
-  void set selected(bool value) => _blink.BlinkHTMLOptionElement.instance.selected_Setter_(unwrap_jso(this), value);
+  set selected(bool value) => _blink.BlinkHTMLOptionElement.instance.selected_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLOptionElement.value')
   @DocsEditable()
@@ -29002,7 +29002,7 @@ class OptionElement extends HtmlElement {
   
   @DomName('HTMLOptionElement.value')
   @DocsEditable()
-  void set value(String value) => _blink.BlinkHTMLOptionElement.instance.value_Setter_(unwrap_jso(this), value);
+  set value(String value) => _blink.BlinkHTMLOptionElement.instance.value_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29052,7 +29052,7 @@ class OutputElement extends HtmlElement {
   
   @DomName('HTMLOutputElement.defaultValue')
   @DocsEditable()
-  void set defaultValue(String value) => _blink.BlinkHTMLOutputElement.instance.defaultValue_Setter_(unwrap_jso(this), value);
+  set defaultValue(String value) => _blink.BlinkHTMLOutputElement.instance.defaultValue_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLOutputElement.form')
   @DocsEditable()
@@ -29073,7 +29073,7 @@ class OutputElement extends HtmlElement {
   
   @DomName('HTMLOutputElement.name')
   @DocsEditable()
-  void set name(String value) => _blink.BlinkHTMLOutputElement.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkHTMLOutputElement.instance.name_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLOutputElement.type')
   @DocsEditable()
@@ -29093,7 +29093,7 @@ class OutputElement extends HtmlElement {
   
   @DomName('HTMLOutputElement.value')
   @DocsEditable()
-  void set value(String value) => _blink.BlinkHTMLOutputElement.instance.value_Setter_(unwrap_jso(this), value);
+  set value(String value) => _blink.BlinkHTMLOutputElement.instance.value_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLOutputElement.willValidate')
   @DocsEditable()
@@ -29269,7 +29269,7 @@ class ParamElement extends HtmlElement {
   
   @DomName('HTMLParamElement.name')
   @DocsEditable()
-  void set name(String value) => _blink.BlinkHTMLParamElement.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkHTMLParamElement.instance.name_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLParamElement.value')
   @DocsEditable()
@@ -29277,7 +29277,7 @@ class ParamElement extends HtmlElement {
   
   @DomName('HTMLParamElement.value')
   @DocsEditable()
-  void set value(String value) => _blink.BlinkHTMLParamElement.instance.value_Setter_(unwrap_jso(this), value);
+  set value(String value) => _blink.BlinkHTMLParamElement.instance.value_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30144,7 +30144,7 @@ class PluginPlaceholderElement extends DivElement {
   @DomName('PluginPlaceholderElement.message')
   @DocsEditable()
   @Experimental() // untriaged
-  void set message(String value) => _blink.BlinkPluginPlaceholderElement.instance.message_Setter_(unwrap_jso(this), value);
+  set message(String value) => _blink.BlinkPluginPlaceholderElement.instance.message_Setter_(unwrap_jso(this), value);
   
   @DomName('PluginPlaceholderElement.createdCallback')
   @DocsEditable()
@@ -30408,7 +30408,7 @@ class ProgressElement extends HtmlElement {
   
   @DomName('HTMLProgressElement.max')
   @DocsEditable()
-  void set max(num value) => _blink.BlinkHTMLProgressElement.instance.max_Setter_(unwrap_jso(this), value);
+  set max(num value) => _blink.BlinkHTMLProgressElement.instance.max_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLProgressElement.position')
   @DocsEditable()
@@ -30420,7 +30420,7 @@ class ProgressElement extends HtmlElement {
   
   @DomName('HTMLProgressElement.value')
   @DocsEditable()
-  void set value(num value) => _blink.BlinkHTMLProgressElement.instance.value_Setter_(unwrap_jso(this), value);
+  set value(num value) => _blink.BlinkHTMLProgressElement.instance.value_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30609,7 +30609,7 @@ class QuoteElement extends HtmlElement {
   
   @DomName('HTMLQuoteElement.cite')
   @DocsEditable()
-  void set cite(String value) => _blink.BlinkHTMLQuoteElement.instance.cite_Setter_(unwrap_jso(this), value);
+  set cite(String value) => _blink.BlinkHTMLQuoteElement.instance.cite_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31047,7 +31047,7 @@ class RtcDataChannel extends EventTarget {
   
   @DomName('RTCDataChannel.binaryType')
   @DocsEditable()
-  void set binaryType(String value) => _blink.BlinkRTCDataChannel.instance.binaryType_Setter_(unwrap_jso(this), value);
+  set binaryType(String value) => _blink.BlinkRTCDataChannel.instance.binaryType_Setter_(unwrap_jso(this), value);
   
   @DomName('RTCDataChannel.bufferedAmount')
   @DocsEditable()
@@ -31340,7 +31340,7 @@ class RtcIceCandidate extends NativeFieldWrapperClass2 {
   
   @DomName('RTCIceCandidate.candidate')
   @DocsEditable()
-  void set candidate(String value) => _blink.BlinkRTCIceCandidate.instance.candidate_Setter_(unwrap_jso(this), value);
+  set candidate(String value) => _blink.BlinkRTCIceCandidate.instance.candidate_Setter_(unwrap_jso(this), value);
   
   @DomName('RTCIceCandidate.sdpMLineIndex')
   @DocsEditable()
@@ -31348,7 +31348,7 @@ class RtcIceCandidate extends NativeFieldWrapperClass2 {
   
   @DomName('RTCIceCandidate.sdpMLineIndex')
   @DocsEditable()
-  void set sdpMLineIndex(int value) => _blink.BlinkRTCIceCandidate.instance.sdpMLineIndex_Setter_(unwrap_jso(this), value);
+  set sdpMLineIndex(int value) => _blink.BlinkRTCIceCandidate.instance.sdpMLineIndex_Setter_(unwrap_jso(this), value);
   
   @DomName('RTCIceCandidate.sdpMid')
   @DocsEditable()
@@ -31356,7 +31356,7 @@ class RtcIceCandidate extends NativeFieldWrapperClass2 {
   
   @DomName('RTCIceCandidate.sdpMid')
   @DocsEditable()
-  void set sdpMid(String value) => _blink.BlinkRTCIceCandidate.instance.sdpMid_Setter_(unwrap_jso(this), value);
+  set sdpMid(String value) => _blink.BlinkRTCIceCandidate.instance.sdpMid_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31732,7 +31732,7 @@ class RtcSessionDescription extends NativeFieldWrapperClass2 {
   
   @DomName('RTCSessionDescription.sdp')
   @DocsEditable()
-  void set sdp(String value) => _blink.BlinkRTCSessionDescription.instance.sdp_Setter_(unwrap_jso(this), value);
+  set sdp(String value) => _blink.BlinkRTCSessionDescription.instance.sdp_Setter_(unwrap_jso(this), value);
   
   @DomName('RTCSessionDescription.type')
   @DocsEditable()
@@ -31740,7 +31740,7 @@ class RtcSessionDescription extends NativeFieldWrapperClass2 {
   
   @DomName('RTCSessionDescription.type')
   @DocsEditable()
-  void set type(String value) => _blink.BlinkRTCSessionDescription.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkRTCSessionDescription.instance.type_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32015,7 +32015,7 @@ class ScriptElement extends HtmlElement {
   
   @DomName('HTMLScriptElement.async')
   @DocsEditable()
-  void set async(bool value) => _blink.BlinkHTMLScriptElement.instance.async_Setter_(unwrap_jso(this), value);
+  set async(bool value) => _blink.BlinkHTMLScriptElement.instance.async_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLScriptElement.charset')
   @DocsEditable()
@@ -32023,7 +32023,7 @@ class ScriptElement extends HtmlElement {
   
   @DomName('HTMLScriptElement.charset')
   @DocsEditable()
-  void set charset(String value) => _blink.BlinkHTMLScriptElement.instance.charset_Setter_(unwrap_jso(this), value);
+  set charset(String value) => _blink.BlinkHTMLScriptElement.instance.charset_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLScriptElement.crossOrigin')
   @DocsEditable()
@@ -32035,7 +32035,7 @@ class ScriptElement extends HtmlElement {
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/scripting-1.html#attr-script-crossorigin
   @Experimental()
-  void set crossOrigin(String value) => _blink.BlinkHTMLScriptElement.instance.crossOrigin_Setter_(unwrap_jso(this), value);
+  set crossOrigin(String value) => _blink.BlinkHTMLScriptElement.instance.crossOrigin_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLScriptElement.defer')
   @DocsEditable()
@@ -32043,7 +32043,7 @@ class ScriptElement extends HtmlElement {
   
   @DomName('HTMLScriptElement.defer')
   @DocsEditable()
-  void set defer(bool value) => _blink.BlinkHTMLScriptElement.instance.defer_Setter_(unwrap_jso(this), value);
+  set defer(bool value) => _blink.BlinkHTMLScriptElement.instance.defer_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLScriptElement.integrity')
   @DocsEditable()
@@ -32053,7 +32053,7 @@ class ScriptElement extends HtmlElement {
   @DomName('HTMLScriptElement.integrity')
   @DocsEditable()
   @Experimental() // untriaged
-  void set integrity(String value) => _blink.BlinkHTMLScriptElement.instance.integrity_Setter_(unwrap_jso(this), value);
+  set integrity(String value) => _blink.BlinkHTMLScriptElement.instance.integrity_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLScriptElement.nonce')
   @DocsEditable()
@@ -32065,7 +32065,7 @@ class ScriptElement extends HtmlElement {
   @DocsEditable()
   // https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html#interaction-with-the-script-src-directive
   @Experimental()
-  void set nonce(String value) => _blink.BlinkHTMLScriptElement.instance.nonce_Setter_(unwrap_jso(this), value);
+  set nonce(String value) => _blink.BlinkHTMLScriptElement.instance.nonce_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLScriptElement.src')
   @DocsEditable()
@@ -32073,7 +32073,7 @@ class ScriptElement extends HtmlElement {
   
   @DomName('HTMLScriptElement.src')
   @DocsEditable()
-  void set src(String value) => _blink.BlinkHTMLScriptElement.instance.src_Setter_(unwrap_jso(this), value);
+  set src(String value) => _blink.BlinkHTMLScriptElement.instance.src_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLScriptElement.type')
   @DocsEditable()
@@ -32081,7 +32081,7 @@ class ScriptElement extends HtmlElement {
   
   @DomName('HTMLScriptElement.type')
   @DocsEditable()
-  void set type(String value) => _blink.BlinkHTMLScriptElement.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkHTMLScriptElement.instance.type_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32191,7 +32191,7 @@ class SelectElement extends HtmlElement {
   
   @DomName('HTMLSelectElement.autofocus')
   @DocsEditable()
-  void set autofocus(bool value) => _blink.BlinkHTMLSelectElement.instance.autofocus_Setter_(unwrap_jso(this), value);
+  set autofocus(bool value) => _blink.BlinkHTMLSelectElement.instance.autofocus_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLSelectElement.disabled')
   @DocsEditable()
@@ -32199,7 +32199,7 @@ class SelectElement extends HtmlElement {
   
   @DomName('HTMLSelectElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) => _blink.BlinkHTMLSelectElement.instance.disabled_Setter_(unwrap_jso(this), value);
+  set disabled(bool value) => _blink.BlinkHTMLSelectElement.instance.disabled_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLSelectElement.form')
   @DocsEditable()
@@ -32216,7 +32216,7 @@ class SelectElement extends HtmlElement {
   
   @DomName('HTMLSelectElement.length')
   @DocsEditable()
-  void set length(int value) => _blink.BlinkHTMLSelectElement.instance.length_Setter_(unwrap_jso(this), value);
+  set length(int value) => _blink.BlinkHTMLSelectElement.instance.length_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLSelectElement.multiple')
   @DocsEditable()
@@ -32224,7 +32224,7 @@ class SelectElement extends HtmlElement {
   
   @DomName('HTMLSelectElement.multiple')
   @DocsEditable()
-  void set multiple(bool value) => _blink.BlinkHTMLSelectElement.instance.multiple_Setter_(unwrap_jso(this), value);
+  set multiple(bool value) => _blink.BlinkHTMLSelectElement.instance.multiple_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLSelectElement.name')
   @DocsEditable()
@@ -32232,7 +32232,7 @@ class SelectElement extends HtmlElement {
   
   @DomName('HTMLSelectElement.name')
   @DocsEditable()
-  void set name(String value) => _blink.BlinkHTMLSelectElement.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkHTMLSelectElement.instance.name_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLSelectElement.required')
   @DocsEditable()
@@ -32240,7 +32240,7 @@ class SelectElement extends HtmlElement {
   
   @DomName('HTMLSelectElement.required')
   @DocsEditable()
-  void set required(bool value) => _blink.BlinkHTMLSelectElement.instance.required_Setter_(unwrap_jso(this), value);
+  set required(bool value) => _blink.BlinkHTMLSelectElement.instance.required_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLSelectElement.selectedIndex')
   @DocsEditable()
@@ -32248,7 +32248,7 @@ class SelectElement extends HtmlElement {
   
   @DomName('HTMLSelectElement.selectedIndex')
   @DocsEditable()
-  void set selectedIndex(int value) => _blink.BlinkHTMLSelectElement.instance.selectedIndex_Setter_(unwrap_jso(this), value);
+  set selectedIndex(int value) => _blink.BlinkHTMLSelectElement.instance.selectedIndex_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLSelectElement.size')
   @DocsEditable()
@@ -32256,7 +32256,7 @@ class SelectElement extends HtmlElement {
   
   @DomName('HTMLSelectElement.size')
   @DocsEditable()
-  void set size(int value) => _blink.BlinkHTMLSelectElement.instance.size_Setter_(unwrap_jso(this), value);
+  set size(int value) => _blink.BlinkHTMLSelectElement.instance.size_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLSelectElement.type')
   @DocsEditable()
@@ -32276,7 +32276,7 @@ class SelectElement extends HtmlElement {
   
   @DomName('HTMLSelectElement.value')
   @DocsEditable()
-  void set value(String value) => _blink.BlinkHTMLSelectElement.instance.value_Setter_(unwrap_jso(this), value);
+  set value(String value) => _blink.BlinkHTMLSelectElement.instance.value_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLSelectElement.willValidate')
   @DocsEditable()
@@ -32824,7 +32824,7 @@ class ShadowRoot extends DocumentFragment {
   
   @DomName('ShadowRoot.innerHTML')
   @DocsEditable()
-  void set innerHtml(String value) => _blink.BlinkShadowRoot.instance.innerHTML_Setter_(unwrap_jso(this), value);
+  set innerHtml(String value) => _blink.BlinkShadowRoot.instance.innerHTML_Setter_(unwrap_jso(this), value);
   
   @DomName('ShadowRoot.olderShadowRoot')
   @DocsEditable()
@@ -33034,7 +33034,7 @@ class SourceBuffer extends EventTarget {
   @DomName('SourceBuffer.appendWindowEnd')
   @DocsEditable()
   @Experimental() // untriaged
-  void set appendWindowEnd(num value) => _blink.BlinkSourceBuffer.instance.appendWindowEnd_Setter_(unwrap_jso(this), value);
+  set appendWindowEnd(num value) => _blink.BlinkSourceBuffer.instance.appendWindowEnd_Setter_(unwrap_jso(this), value);
   
   @DomName('SourceBuffer.appendWindowStart')
   @DocsEditable()
@@ -33044,7 +33044,7 @@ class SourceBuffer extends EventTarget {
   @DomName('SourceBuffer.appendWindowStart')
   @DocsEditable()
   @Experimental() // untriaged
-  void set appendWindowStart(num value) => _blink.BlinkSourceBuffer.instance.appendWindowStart_Setter_(unwrap_jso(this), value);
+  set appendWindowStart(num value) => _blink.BlinkSourceBuffer.instance.appendWindowStart_Setter_(unwrap_jso(this), value);
   
   @DomName('SourceBuffer.buffered')
   @DocsEditable()
@@ -33058,7 +33058,7 @@ class SourceBuffer extends EventTarget {
   @DomName('SourceBuffer.mode')
   @DocsEditable()
   @Experimental() // untriaged
-  void set mode(String value) => _blink.BlinkSourceBuffer.instance.mode_Setter_(unwrap_jso(this), value);
+  set mode(String value) => _blink.BlinkSourceBuffer.instance.mode_Setter_(unwrap_jso(this), value);
   
   @DomName('SourceBuffer.timestampOffset')
   @DocsEditable()
@@ -33066,7 +33066,7 @@ class SourceBuffer extends EventTarget {
   
   @DomName('SourceBuffer.timestampOffset')
   @DocsEditable()
-  void set timestampOffset(num value) => _blink.BlinkSourceBuffer.instance.timestampOffset_Setter_(unwrap_jso(this), value);
+  set timestampOffset(num value) => _blink.BlinkSourceBuffer.instance.timestampOffset_Setter_(unwrap_jso(this), value);
   
   @DomName('SourceBuffer.updating')
   @DocsEditable()
@@ -33227,7 +33227,7 @@ class SourceElement extends HtmlElement {
   @DomName('HTMLSourceElement.integrity')
   @DocsEditable()
   @Experimental() // untriaged
-  void set integrity(String value) => _blink.BlinkHTMLSourceElement.instance.integrity_Setter_(unwrap_jso(this), value);
+  set integrity(String value) => _blink.BlinkHTMLSourceElement.instance.integrity_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLSourceElement.media')
   @DocsEditable()
@@ -33235,7 +33235,7 @@ class SourceElement extends HtmlElement {
   
   @DomName('HTMLSourceElement.media')
   @DocsEditable()
-  void set media(String value) => _blink.BlinkHTMLSourceElement.instance.media_Setter_(unwrap_jso(this), value);
+  set media(String value) => _blink.BlinkHTMLSourceElement.instance.media_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLSourceElement.sizes')
   @DocsEditable()
@@ -33245,7 +33245,7 @@ class SourceElement extends HtmlElement {
   @DomName('HTMLSourceElement.sizes')
   @DocsEditable()
   @Experimental() // untriaged
-  void set sizes(String value) => _blink.BlinkHTMLSourceElement.instance.sizes_Setter_(unwrap_jso(this), value);
+  set sizes(String value) => _blink.BlinkHTMLSourceElement.instance.sizes_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLSourceElement.src')
   @DocsEditable()
@@ -33253,7 +33253,7 @@ class SourceElement extends HtmlElement {
   
   @DomName('HTMLSourceElement.src')
   @DocsEditable()
-  void set src(String value) => _blink.BlinkHTMLSourceElement.instance.src_Setter_(unwrap_jso(this), value);
+  set src(String value) => _blink.BlinkHTMLSourceElement.instance.src_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLSourceElement.srcset')
   @DocsEditable()
@@ -33263,7 +33263,7 @@ class SourceElement extends HtmlElement {
   @DomName('HTMLSourceElement.srcset')
   @DocsEditable()
   @Experimental() // untriaged
-  void set srcset(String value) => _blink.BlinkHTMLSourceElement.instance.srcset_Setter_(unwrap_jso(this), value);
+  set srcset(String value) => _blink.BlinkHTMLSourceElement.instance.srcset_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLSourceElement.type')
   @DocsEditable()
@@ -33271,7 +33271,7 @@ class SourceElement extends HtmlElement {
   
   @DomName('HTMLSourceElement.type')
   @DocsEditable()
-  void set type(String value) => _blink.BlinkHTMLSourceElement.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkHTMLSourceElement.instance.type_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33402,7 +33402,7 @@ class SpeechGrammar extends NativeFieldWrapperClass2 {
   
   @DomName('SpeechGrammar.src')
   @DocsEditable()
-  void set src(String value) => _blink.BlinkSpeechGrammar.instance.src_Setter_(unwrap_jso(this), value);
+  set src(String value) => _blink.BlinkSpeechGrammar.instance.src_Setter_(unwrap_jso(this), value);
   
   @DomName('SpeechGrammar.weight')
   @DocsEditable()
@@ -33410,7 +33410,7 @@ class SpeechGrammar extends NativeFieldWrapperClass2 {
   
   @DomName('SpeechGrammar.weight')
   @DocsEditable()
-  void set weight(num value) => _blink.BlinkSpeechGrammar.instance.weight_Setter_(unwrap_jso(this), value);
+  set weight(num value) => _blink.BlinkSpeechGrammar.instance.weight_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33675,7 +33675,7 @@ class SpeechRecognition extends EventTarget {
   
   @DomName('SpeechRecognition.continuous')
   @DocsEditable()
-  void set continuous(bool value) => _blink.BlinkSpeechRecognition.instance.continuous_Setter_(unwrap_jso(this), value);
+  set continuous(bool value) => _blink.BlinkSpeechRecognition.instance.continuous_Setter_(unwrap_jso(this), value);
   
   @DomName('SpeechRecognition.grammars')
   @DocsEditable()
@@ -33683,7 +33683,7 @@ class SpeechRecognition extends EventTarget {
   
   @DomName('SpeechRecognition.grammars')
   @DocsEditable()
-  void set grammars(SpeechGrammarList value) => _blink.BlinkSpeechRecognition.instance.grammars_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set grammars(SpeechGrammarList value) => _blink.BlinkSpeechRecognition.instance.grammars_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('SpeechRecognition.interimResults')
   @DocsEditable()
@@ -33691,7 +33691,7 @@ class SpeechRecognition extends EventTarget {
   
   @DomName('SpeechRecognition.interimResults')
   @DocsEditable()
-  void set interimResults(bool value) => _blink.BlinkSpeechRecognition.instance.interimResults_Setter_(unwrap_jso(this), value);
+  set interimResults(bool value) => _blink.BlinkSpeechRecognition.instance.interimResults_Setter_(unwrap_jso(this), value);
   
   @DomName('SpeechRecognition.lang')
   @DocsEditable()
@@ -33699,7 +33699,7 @@ class SpeechRecognition extends EventTarget {
   
   @DomName('SpeechRecognition.lang')
   @DocsEditable()
-  void set lang(String value) => _blink.BlinkSpeechRecognition.instance.lang_Setter_(unwrap_jso(this), value);
+  set lang(String value) => _blink.BlinkSpeechRecognition.instance.lang_Setter_(unwrap_jso(this), value);
   
   @DomName('SpeechRecognition.maxAlternatives')
   @DocsEditable()
@@ -33707,7 +33707,7 @@ class SpeechRecognition extends EventTarget {
   
   @DomName('SpeechRecognition.maxAlternatives')
   @DocsEditable()
-  void set maxAlternatives(int value) => _blink.BlinkSpeechRecognition.instance.maxAlternatives_Setter_(unwrap_jso(this), value);
+  set maxAlternatives(int value) => _blink.BlinkSpeechRecognition.instance.maxAlternatives_Setter_(unwrap_jso(this), value);
   
   @DomName('SpeechRecognition.abort')
   @DocsEditable()
@@ -34152,7 +34152,7 @@ class SpeechSynthesisUtterance extends EventTarget {
   
   @DomName('SpeechSynthesisUtterance.lang')
   @DocsEditable()
-  void set lang(String value) => _blink.BlinkSpeechSynthesisUtterance.instance.lang_Setter_(unwrap_jso(this), value);
+  set lang(String value) => _blink.BlinkSpeechSynthesisUtterance.instance.lang_Setter_(unwrap_jso(this), value);
   
   @DomName('SpeechSynthesisUtterance.pitch')
   @DocsEditable()
@@ -34160,7 +34160,7 @@ class SpeechSynthesisUtterance extends EventTarget {
   
   @DomName('SpeechSynthesisUtterance.pitch')
   @DocsEditable()
-  void set pitch(num value) => _blink.BlinkSpeechSynthesisUtterance.instance.pitch_Setter_(unwrap_jso(this), value);
+  set pitch(num value) => _blink.BlinkSpeechSynthesisUtterance.instance.pitch_Setter_(unwrap_jso(this), value);
   
   @DomName('SpeechSynthesisUtterance.rate')
   @DocsEditable()
@@ -34168,7 +34168,7 @@ class SpeechSynthesisUtterance extends EventTarget {
   
   @DomName('SpeechSynthesisUtterance.rate')
   @DocsEditable()
-  void set rate(num value) => _blink.BlinkSpeechSynthesisUtterance.instance.rate_Setter_(unwrap_jso(this), value);
+  set rate(num value) => _blink.BlinkSpeechSynthesisUtterance.instance.rate_Setter_(unwrap_jso(this), value);
   
   @DomName('SpeechSynthesisUtterance.text')
   @DocsEditable()
@@ -34176,7 +34176,7 @@ class SpeechSynthesisUtterance extends EventTarget {
   
   @DomName('SpeechSynthesisUtterance.text')
   @DocsEditable()
-  void set text(String value) => _blink.BlinkSpeechSynthesisUtterance.instance.text_Setter_(unwrap_jso(this), value);
+  set text(String value) => _blink.BlinkSpeechSynthesisUtterance.instance.text_Setter_(unwrap_jso(this), value);
   
   @DomName('SpeechSynthesisUtterance.voice')
   @DocsEditable()
@@ -34184,7 +34184,7 @@ class SpeechSynthesisUtterance extends EventTarget {
   
   @DomName('SpeechSynthesisUtterance.voice')
   @DocsEditable()
-  void set voice(SpeechSynthesisVoice value) => _blink.BlinkSpeechSynthesisUtterance.instance.voice_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set voice(SpeechSynthesisVoice value) => _blink.BlinkSpeechSynthesisUtterance.instance.voice_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('SpeechSynthesisUtterance.volume')
   @DocsEditable()
@@ -34192,7 +34192,7 @@ class SpeechSynthesisUtterance extends EventTarget {
   
   @DomName('SpeechSynthesisUtterance.volume')
   @DocsEditable()
-  void set volume(num value) => _blink.BlinkSpeechSynthesisUtterance.instance.volume_Setter_(unwrap_jso(this), value);
+  set volume(num value) => _blink.BlinkSpeechSynthesisUtterance.instance.volume_Setter_(unwrap_jso(this), value);
   
   /// Stream of `boundary` events handled by this [SpeechSynthesisUtterance].
   @DomName('SpeechSynthesisUtterance.onboundary')
@@ -34674,7 +34674,7 @@ class StyleElement extends HtmlElement {
   
   @DomName('HTMLStyleElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) => _blink.BlinkHTMLStyleElement.instance.disabled_Setter_(unwrap_jso(this), value);
+  set disabled(bool value) => _blink.BlinkHTMLStyleElement.instance.disabled_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLStyleElement.media')
   @DocsEditable()
@@ -34682,7 +34682,7 @@ class StyleElement extends HtmlElement {
   
   @DomName('HTMLStyleElement.media')
   @DocsEditable()
-  void set media(String value) => _blink.BlinkHTMLStyleElement.instance.media_Setter_(unwrap_jso(this), value);
+  set media(String value) => _blink.BlinkHTMLStyleElement.instance.media_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLStyleElement.sheet')
   @DocsEditable()
@@ -34694,7 +34694,7 @@ class StyleElement extends HtmlElement {
   
   @DomName('HTMLStyleElement.type')
   @DocsEditable()
-  void set type(String value) => _blink.BlinkHTMLStyleElement.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkHTMLStyleElement.instance.type_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34770,7 +34770,7 @@ class StyleSheet extends NativeFieldWrapperClass2 {
   
   @DomName('StyleSheet.disabled')
   @DocsEditable()
-  void set disabled(bool value) => _blink.BlinkStyleSheet.instance.disabled_Setter_(unwrap_jso(this), value);
+  set disabled(bool value) => _blink.BlinkStyleSheet.instance.disabled_Setter_(unwrap_jso(this), value);
   
   @DomName('StyleSheet.href')
   @DocsEditable()
@@ -34878,7 +34878,7 @@ class TableCellElement extends HtmlElement {
   
   @DomName('HTMLTableCellElement.colSpan')
   @DocsEditable()
-  void set colSpan(int value) => _blink.BlinkHTMLTableCellElement.instance.colSpan_Setter_(unwrap_jso(this), value);
+  set colSpan(int value) => _blink.BlinkHTMLTableCellElement.instance.colSpan_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTableCellElement.headers')
   @DocsEditable()
@@ -34886,7 +34886,7 @@ class TableCellElement extends HtmlElement {
   
   @DomName('HTMLTableCellElement.headers')
   @DocsEditable()
-  void set headers(String value) => _blink.BlinkHTMLTableCellElement.instance.headers_Setter_(unwrap_jso(this), value);
+  set headers(String value) => _blink.BlinkHTMLTableCellElement.instance.headers_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTableCellElement.rowSpan')
   @DocsEditable()
@@ -34894,7 +34894,7 @@ class TableCellElement extends HtmlElement {
   
   @DomName('HTMLTableCellElement.rowSpan')
   @DocsEditable()
-  void set rowSpan(int value) => _blink.BlinkHTMLTableCellElement.instance.rowSpan_Setter_(unwrap_jso(this), value);
+  set rowSpan(int value) => _blink.BlinkHTMLTableCellElement.instance.rowSpan_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34938,7 +34938,7 @@ class TableColElement extends HtmlElement {
   
   @DomName('HTMLTableColElement.span')
   @DocsEditable()
-  void set span(int value) => _blink.BlinkHTMLTableColElement.instance.span_Setter_(unwrap_jso(this), value);
+  set span(int value) => _blink.BlinkHTMLTableColElement.instance.span_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -35000,7 +35000,7 @@ class TableElement extends HtmlElement {
   
   @DomName('HTMLTableElement.caption')
   @DocsEditable()
-  void set caption(TableCaptionElement value) => _blink.BlinkHTMLTableElement.instance.caption_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set caption(TableCaptionElement value) => _blink.BlinkHTMLTableElement.instance.caption_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('HTMLTableElement.rows')
   @DocsEditable()
@@ -35016,7 +35016,7 @@ class TableElement extends HtmlElement {
   
   @DomName('HTMLTableElement.tFoot')
   @DocsEditable()
-  void set tFoot(TableSectionElement value) => _blink.BlinkHTMLTableElement.instance.tFoot_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set tFoot(TableSectionElement value) => _blink.BlinkHTMLTableElement.instance.tFoot_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('HTMLTableElement.tHead')
   @DocsEditable()
@@ -35024,7 +35024,7 @@ class TableElement extends HtmlElement {
   
   @DomName('HTMLTableElement.tHead')
   @DocsEditable()
-  void set tHead(TableSectionElement value) => _blink.BlinkHTMLTableElement.instance.tHead_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set tHead(TableSectionElement value) => _blink.BlinkHTMLTableElement.instance.tHead_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('HTMLTableElement.createCaption')
   @DocsEditable()
@@ -35331,7 +35331,7 @@ class TextAreaElement extends HtmlElement {
   
   @DomName('HTMLTextAreaElement.autofocus')
   @DocsEditable()
-  void set autofocus(bool value) => _blink.BlinkHTMLTextAreaElement.instance.autofocus_Setter_(unwrap_jso(this), value);
+  set autofocus(bool value) => _blink.BlinkHTMLTextAreaElement.instance.autofocus_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.cols')
   @DocsEditable()
@@ -35339,7 +35339,7 @@ class TextAreaElement extends HtmlElement {
   
   @DomName('HTMLTextAreaElement.cols')
   @DocsEditable()
-  void set cols(int value) => _blink.BlinkHTMLTextAreaElement.instance.cols_Setter_(unwrap_jso(this), value);
+  set cols(int value) => _blink.BlinkHTMLTextAreaElement.instance.cols_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.defaultValue')
   @DocsEditable()
@@ -35347,7 +35347,7 @@ class TextAreaElement extends HtmlElement {
   
   @DomName('HTMLTextAreaElement.defaultValue')
   @DocsEditable()
-  void set defaultValue(String value) => _blink.BlinkHTMLTextAreaElement.instance.defaultValue_Setter_(unwrap_jso(this), value);
+  set defaultValue(String value) => _blink.BlinkHTMLTextAreaElement.instance.defaultValue_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.dirName')
   @DocsEditable()
@@ -35359,7 +35359,7 @@ class TextAreaElement extends HtmlElement {
   @DocsEditable()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-button-element.html#dom-textarea-dirname
   @Experimental()
-  void set dirName(String value) => _blink.BlinkHTMLTextAreaElement.instance.dirName_Setter_(unwrap_jso(this), value);
+  set dirName(String value) => _blink.BlinkHTMLTextAreaElement.instance.dirName_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.disabled')
   @DocsEditable()
@@ -35367,7 +35367,7 @@ class TextAreaElement extends HtmlElement {
   
   @DomName('HTMLTextAreaElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) => _blink.BlinkHTMLTextAreaElement.instance.disabled_Setter_(unwrap_jso(this), value);
+  set disabled(bool value) => _blink.BlinkHTMLTextAreaElement.instance.disabled_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.form')
   @DocsEditable()
@@ -35381,7 +35381,7 @@ class TextAreaElement extends HtmlElement {
   @DomName('HTMLTextAreaElement.inputMode')
   @DocsEditable()
   @Experimental() // untriaged
-  void set inputMode(String value) => _blink.BlinkHTMLTextAreaElement.instance.inputMode_Setter_(unwrap_jso(this), value);
+  set inputMode(String value) => _blink.BlinkHTMLTextAreaElement.instance.inputMode_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.labels')
   @DocsEditable()
@@ -35394,7 +35394,7 @@ class TextAreaElement extends HtmlElement {
   
   @DomName('HTMLTextAreaElement.maxLength')
   @DocsEditable()
-  void set maxLength(int value) => _blink.BlinkHTMLTextAreaElement.instance.maxLength_Setter_(unwrap_jso(this), value);
+  set maxLength(int value) => _blink.BlinkHTMLTextAreaElement.instance.maxLength_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.name')
   @DocsEditable()
@@ -35402,7 +35402,7 @@ class TextAreaElement extends HtmlElement {
   
   @DomName('HTMLTextAreaElement.name')
   @DocsEditable()
-  void set name(String value) => _blink.BlinkHTMLTextAreaElement.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkHTMLTextAreaElement.instance.name_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.placeholder')
   @DocsEditable()
@@ -35410,7 +35410,7 @@ class TextAreaElement extends HtmlElement {
   
   @DomName('HTMLTextAreaElement.placeholder')
   @DocsEditable()
-  void set placeholder(String value) => _blink.BlinkHTMLTextAreaElement.instance.placeholder_Setter_(unwrap_jso(this), value);
+  set placeholder(String value) => _blink.BlinkHTMLTextAreaElement.instance.placeholder_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.readOnly')
   @DocsEditable()
@@ -35418,7 +35418,7 @@ class TextAreaElement extends HtmlElement {
   
   @DomName('HTMLTextAreaElement.readOnly')
   @DocsEditable()
-  void set readOnly(bool value) => _blink.BlinkHTMLTextAreaElement.instance.readOnly_Setter_(unwrap_jso(this), value);
+  set readOnly(bool value) => _blink.BlinkHTMLTextAreaElement.instance.readOnly_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.required')
   @DocsEditable()
@@ -35426,7 +35426,7 @@ class TextAreaElement extends HtmlElement {
   
   @DomName('HTMLTextAreaElement.required')
   @DocsEditable()
-  void set required(bool value) => _blink.BlinkHTMLTextAreaElement.instance.required_Setter_(unwrap_jso(this), value);
+  set required(bool value) => _blink.BlinkHTMLTextAreaElement.instance.required_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.rows')
   @DocsEditable()
@@ -35434,7 +35434,7 @@ class TextAreaElement extends HtmlElement {
   
   @DomName('HTMLTextAreaElement.rows')
   @DocsEditable()
-  void set rows(int value) => _blink.BlinkHTMLTextAreaElement.instance.rows_Setter_(unwrap_jso(this), value);
+  set rows(int value) => _blink.BlinkHTMLTextAreaElement.instance.rows_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.selectionDirection')
   @DocsEditable()
@@ -35442,7 +35442,7 @@ class TextAreaElement extends HtmlElement {
   
   @DomName('HTMLTextAreaElement.selectionDirection')
   @DocsEditable()
-  void set selectionDirection(String value) => _blink.BlinkHTMLTextAreaElement.instance.selectionDirection_Setter_(unwrap_jso(this), value);
+  set selectionDirection(String value) => _blink.BlinkHTMLTextAreaElement.instance.selectionDirection_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.selectionEnd')
   @DocsEditable()
@@ -35450,7 +35450,7 @@ class TextAreaElement extends HtmlElement {
   
   @DomName('HTMLTextAreaElement.selectionEnd')
   @DocsEditable()
-  void set selectionEnd(int value) => _blink.BlinkHTMLTextAreaElement.instance.selectionEnd_Setter_(unwrap_jso(this), value);
+  set selectionEnd(int value) => _blink.BlinkHTMLTextAreaElement.instance.selectionEnd_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.selectionStart')
   @DocsEditable()
@@ -35458,7 +35458,7 @@ class TextAreaElement extends HtmlElement {
   
   @DomName('HTMLTextAreaElement.selectionStart')
   @DocsEditable()
-  void set selectionStart(int value) => _blink.BlinkHTMLTextAreaElement.instance.selectionStart_Setter_(unwrap_jso(this), value);
+  set selectionStart(int value) => _blink.BlinkHTMLTextAreaElement.instance.selectionStart_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.textLength')
   @DocsEditable()
@@ -35482,7 +35482,7 @@ class TextAreaElement extends HtmlElement {
   
   @DomName('HTMLTextAreaElement.value')
   @DocsEditable()
-  void set value(String value) => _blink.BlinkHTMLTextAreaElement.instance.value_Setter_(unwrap_jso(this), value);
+  set value(String value) => _blink.BlinkHTMLTextAreaElement.instance.value_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.willValidate')
   @DocsEditable()
@@ -35494,7 +35494,7 @@ class TextAreaElement extends HtmlElement {
   
   @DomName('HTMLTextAreaElement.wrap')
   @DocsEditable()
-  void set wrap(String value) => _blink.BlinkHTMLTextAreaElement.instance.wrap_Setter_(unwrap_jso(this), value);
+  set wrap(String value) => _blink.BlinkHTMLTextAreaElement.instance.wrap_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTextAreaElement.checkValidity')
   @DocsEditable()
@@ -35729,7 +35729,7 @@ class TextTrack extends EventTarget {
   
   @DomName('TextTrack.mode')
   @DocsEditable()
-  void set mode(String value) => _blink.BlinkTextTrack.instance.mode_Setter_(unwrap_jso(this), value);
+  set mode(String value) => _blink.BlinkTextTrack.instance.mode_Setter_(unwrap_jso(this), value);
   
   @DomName('TextTrack.regions')
   @DocsEditable()
@@ -35813,7 +35813,7 @@ class TextTrackCue extends EventTarget {
   
   @DomName('TextTrackCue.endTime')
   @DocsEditable()
-  void set endTime(num value) => _blink.BlinkTextTrackCue.instance.endTime_Setter_(unwrap_jso(this), value);
+  set endTime(num value) => _blink.BlinkTextTrackCue.instance.endTime_Setter_(unwrap_jso(this), value);
   
   @DomName('TextTrackCue.id')
   @DocsEditable()
@@ -35821,7 +35821,7 @@ class TextTrackCue extends EventTarget {
   
   @DomName('TextTrackCue.id')
   @DocsEditable()
-  void set id(String value) => _blink.BlinkTextTrackCue.instance.id_Setter_(unwrap_jso(this), value);
+  set id(String value) => _blink.BlinkTextTrackCue.instance.id_Setter_(unwrap_jso(this), value);
   
   @DomName('TextTrackCue.pauseOnExit')
   @DocsEditable()
@@ -35829,7 +35829,7 @@ class TextTrackCue extends EventTarget {
   
   @DomName('TextTrackCue.pauseOnExit')
   @DocsEditable()
-  void set pauseOnExit(bool value) => _blink.BlinkTextTrackCue.instance.pauseOnExit_Setter_(unwrap_jso(this), value);
+  set pauseOnExit(bool value) => _blink.BlinkTextTrackCue.instance.pauseOnExit_Setter_(unwrap_jso(this), value);
   
   @DomName('TextTrackCue.startTime')
   @DocsEditable()
@@ -35837,7 +35837,7 @@ class TextTrackCue extends EventTarget {
   
   @DomName('TextTrackCue.startTime')
   @DocsEditable()
-  void set startTime(num value) => _blink.BlinkTextTrackCue.instance.startTime_Setter_(unwrap_jso(this), value);
+  set startTime(num value) => _blink.BlinkTextTrackCue.instance.startTime_Setter_(unwrap_jso(this), value);
   
   @DomName('TextTrackCue.track')
   @DocsEditable()
@@ -36143,7 +36143,7 @@ class Timing extends NativeFieldWrapperClass2 {
   @DomName('Timing.delay')
   @DocsEditable()
   @Experimental() // untriaged
-  void set delay(num value) => _blink.BlinkTiming.instance.delay_Setter_(unwrap_jso(this), value);
+  set delay(num value) => _blink.BlinkTiming.instance.delay_Setter_(unwrap_jso(this), value);
   
   @DomName('Timing.direction')
   @DocsEditable()
@@ -36153,7 +36153,7 @@ class Timing extends NativeFieldWrapperClass2 {
   @DomName('Timing.direction')
   @DocsEditable()
   @Experimental() // untriaged
-  void set direction(String value) => _blink.BlinkTiming.instance.direction_Setter_(unwrap_jso(this), value);
+  set direction(String value) => _blink.BlinkTiming.instance.direction_Setter_(unwrap_jso(this), value);
   
   @DomName('Timing.easing')
   @DocsEditable()
@@ -36163,7 +36163,7 @@ class Timing extends NativeFieldWrapperClass2 {
   @DomName('Timing.easing')
   @DocsEditable()
   @Experimental() // untriaged
-  void set easing(String value) => _blink.BlinkTiming.instance.easing_Setter_(unwrap_jso(this), value);
+  set easing(String value) => _blink.BlinkTiming.instance.easing_Setter_(unwrap_jso(this), value);
   
   @DomName('Timing.endDelay')
   @DocsEditable()
@@ -36173,7 +36173,7 @@ class Timing extends NativeFieldWrapperClass2 {
   @DomName('Timing.endDelay')
   @DocsEditable()
   @Experimental() // untriaged
-  void set endDelay(num value) => _blink.BlinkTiming.instance.endDelay_Setter_(unwrap_jso(this), value);
+  set endDelay(num value) => _blink.BlinkTiming.instance.endDelay_Setter_(unwrap_jso(this), value);
   
   @DomName('Timing.fill')
   @DocsEditable()
@@ -36183,7 +36183,7 @@ class Timing extends NativeFieldWrapperClass2 {
   @DomName('Timing.fill')
   @DocsEditable()
   @Experimental() // untriaged
-  void set fill(String value) => _blink.BlinkTiming.instance.fill_Setter_(unwrap_jso(this), value);
+  set fill(String value) => _blink.BlinkTiming.instance.fill_Setter_(unwrap_jso(this), value);
   
   @DomName('Timing.iterationStart')
   @DocsEditable()
@@ -36193,7 +36193,7 @@ class Timing extends NativeFieldWrapperClass2 {
   @DomName('Timing.iterationStart')
   @DocsEditable()
   @Experimental() // untriaged
-  void set iterationStart(num value) => _blink.BlinkTiming.instance.iterationStart_Setter_(unwrap_jso(this), value);
+  set iterationStart(num value) => _blink.BlinkTiming.instance.iterationStart_Setter_(unwrap_jso(this), value);
   
   @DomName('Timing.iterations')
   @DocsEditable()
@@ -36203,7 +36203,7 @@ class Timing extends NativeFieldWrapperClass2 {
   @DomName('Timing.iterations')
   @DocsEditable()
   @Experimental() // untriaged
-  void set iterations(num value) => _blink.BlinkTiming.instance.iterations_Setter_(unwrap_jso(this), value);
+  set iterations(num value) => _blink.BlinkTiming.instance.iterations_Setter_(unwrap_jso(this), value);
   
   @DomName('Timing.playbackRate')
   @DocsEditable()
@@ -36213,7 +36213,7 @@ class Timing extends NativeFieldWrapperClass2 {
   @DomName('Timing.playbackRate')
   @DocsEditable()
   @Experimental() // untriaged
-  void set playbackRate(num value) => _blink.BlinkTiming.instance.playbackRate_Setter_(unwrap_jso(this), value);
+  set playbackRate(num value) => _blink.BlinkTiming.instance.playbackRate_Setter_(unwrap_jso(this), value);
   
   @DomName('Timing.__getter__')
   @DocsEditable()
@@ -36620,7 +36620,7 @@ class TrackElement extends HtmlElement {
   
   @DomName('HTMLTrackElement.default')
   @DocsEditable()
-  void set defaultValue(bool value) => _blink.BlinkHTMLTrackElement.instance.default_Setter_(unwrap_jso(this), value);
+  set defaultValue(bool value) => _blink.BlinkHTMLTrackElement.instance.default_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTrackElement.integrity')
   @DocsEditable()
@@ -36630,7 +36630,7 @@ class TrackElement extends HtmlElement {
   @DomName('HTMLTrackElement.integrity')
   @DocsEditable()
   @Experimental() // untriaged
-  void set integrity(String value) => _blink.BlinkHTMLTrackElement.instance.integrity_Setter_(unwrap_jso(this), value);
+  set integrity(String value) => _blink.BlinkHTMLTrackElement.instance.integrity_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTrackElement.kind')
   @DocsEditable()
@@ -36638,7 +36638,7 @@ class TrackElement extends HtmlElement {
   
   @DomName('HTMLTrackElement.kind')
   @DocsEditable()
-  void set kind(String value) => _blink.BlinkHTMLTrackElement.instance.kind_Setter_(unwrap_jso(this), value);
+  set kind(String value) => _blink.BlinkHTMLTrackElement.instance.kind_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTrackElement.label')
   @DocsEditable()
@@ -36646,7 +36646,7 @@ class TrackElement extends HtmlElement {
   
   @DomName('HTMLTrackElement.label')
   @DocsEditable()
-  void set label(String value) => _blink.BlinkHTMLTrackElement.instance.label_Setter_(unwrap_jso(this), value);
+  set label(String value) => _blink.BlinkHTMLTrackElement.instance.label_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTrackElement.readyState')
   @DocsEditable()
@@ -36658,7 +36658,7 @@ class TrackElement extends HtmlElement {
   
   @DomName('HTMLTrackElement.src')
   @DocsEditable()
-  void set src(String value) => _blink.BlinkHTMLTrackElement.instance.src_Setter_(unwrap_jso(this), value);
+  set src(String value) => _blink.BlinkHTMLTrackElement.instance.src_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTrackElement.srclang')
   @DocsEditable()
@@ -36666,7 +36666,7 @@ class TrackElement extends HtmlElement {
   
   @DomName('HTMLTrackElement.srclang')
   @DocsEditable()
-  void set srclang(String value) => _blink.BlinkHTMLTrackElement.instance.srclang_Setter_(unwrap_jso(this), value);
+  set srclang(String value) => _blink.BlinkHTMLTrackElement.instance.srclang_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLTrackElement.track')
   @DocsEditable()
@@ -36777,7 +36777,7 @@ class TreeWalker extends NativeFieldWrapperClass2 {
   
   @DomName('TreeWalker.currentNode')
   @DocsEditable()
-  void set currentNode(Node value) => _blink.BlinkTreeWalker.instance.currentNode_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set currentNode(Node value) => _blink.BlinkTreeWalker.instance.currentNode_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('TreeWalker.filter')
   @DocsEditable()
@@ -37020,10 +37020,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -37053,7 +37053,7 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
   @DomName('URL.hash')
   @DocsEditable()
   @Experimental() // untriaged
-  void set hash(String value) => _blink.BlinkURL.instance.hash_Setter_(unwrap_jso(this), value);
+  set hash(String value) => _blink.BlinkURL.instance.hash_Setter_(unwrap_jso(this), value);
   
   @DomName('URL.host')
   @DocsEditable()
@@ -37063,7 +37063,7 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
   @DomName('URL.host')
   @DocsEditable()
   @Experimental() // untriaged
-  void set host(String value) => _blink.BlinkURL.instance.host_Setter_(unwrap_jso(this), value);
+  set host(String value) => _blink.BlinkURL.instance.host_Setter_(unwrap_jso(this), value);
   
   @DomName('URL.hostname')
   @DocsEditable()
@@ -37073,7 +37073,7 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
   @DomName('URL.hostname')
   @DocsEditable()
   @Experimental() // untriaged
-  void set hostname(String value) => _blink.BlinkURL.instance.hostname_Setter_(unwrap_jso(this), value);
+  set hostname(String value) => _blink.BlinkURL.instance.hostname_Setter_(unwrap_jso(this), value);
   
   @DomName('URL.href')
   @DocsEditable()
@@ -37083,7 +37083,7 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
   @DomName('URL.href')
   @DocsEditable()
   @Experimental() // untriaged
-  void set href(String value) => _blink.BlinkURL.instance.href_Setter_(unwrap_jso(this), value);
+  set href(String value) => _blink.BlinkURL.instance.href_Setter_(unwrap_jso(this), value);
   
   @DomName('URL.origin')
   @DocsEditable()
@@ -37098,7 +37098,7 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
   @DomName('URL.password')
   @DocsEditable()
   @Experimental() // untriaged
-  void set password(String value) => _blink.BlinkURL.instance.password_Setter_(unwrap_jso(this), value);
+  set password(String value) => _blink.BlinkURL.instance.password_Setter_(unwrap_jso(this), value);
   
   @DomName('URL.pathname')
   @DocsEditable()
@@ -37108,7 +37108,7 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
   @DomName('URL.pathname')
   @DocsEditable()
   @Experimental() // untriaged
-  void set pathname(String value) => _blink.BlinkURL.instance.pathname_Setter_(unwrap_jso(this), value);
+  set pathname(String value) => _blink.BlinkURL.instance.pathname_Setter_(unwrap_jso(this), value);
   
   @DomName('URL.port')
   @DocsEditable()
@@ -37118,7 +37118,7 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
   @DomName('URL.port')
   @DocsEditable()
   @Experimental() // untriaged
-  void set port(String value) => _blink.BlinkURL.instance.port_Setter_(unwrap_jso(this), value);
+  set port(String value) => _blink.BlinkURL.instance.port_Setter_(unwrap_jso(this), value);
   
   @DomName('URL.protocol')
   @DocsEditable()
@@ -37128,7 +37128,7 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
   @DomName('URL.protocol')
   @DocsEditable()
   @Experimental() // untriaged
-  void set protocol(String value) => _blink.BlinkURL.instance.protocol_Setter_(unwrap_jso(this), value);
+  set protocol(String value) => _blink.BlinkURL.instance.protocol_Setter_(unwrap_jso(this), value);
   
   @DomName('URL.search')
   @DocsEditable()
@@ -37138,7 +37138,7 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
   @DomName('URL.search')
   @DocsEditable()
   @Experimental() // untriaged
-  void set search(String value) => _blink.BlinkURL.instance.search_Setter_(unwrap_jso(this), value);
+  set search(String value) => _blink.BlinkURL.instance.search_Setter_(unwrap_jso(this), value);
   
   @DomName('URL.username')
   @DocsEditable()
@@ -37148,7 +37148,7 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
   @DomName('URL.username')
   @DocsEditable()
   @Experimental() // untriaged
-  void set username(String value) => _blink.BlinkURL.instance.username_Setter_(unwrap_jso(this), value);
+  set username(String value) => _blink.BlinkURL.instance.username_Setter_(unwrap_jso(this), value);
   
   @DomName('URL.toString')
   @DocsEditable()
@@ -37193,7 +37193,7 @@ abstract class UrlUtils extends NativeFieldWrapperClass2 {
   @DomName('URLUtils.hash')
   @DocsEditable()
   @Experimental() // untriaged
-  void set hash(String value);
+  set hash(String value);
 
   @DomName('URLUtils.host')
   @DocsEditable()
@@ -37203,7 +37203,7 @@ abstract class UrlUtils extends NativeFieldWrapperClass2 {
   @DomName('URLUtils.host')
   @DocsEditable()
   @Experimental() // untriaged
-  void set host(String value);
+  set host(String value);
 
   @DomName('URLUtils.hostname')
   @DocsEditable()
@@ -37213,7 +37213,7 @@ abstract class UrlUtils extends NativeFieldWrapperClass2 {
   @DomName('URLUtils.hostname')
   @DocsEditable()
   @Experimental() // untriaged
-  void set hostname(String value);
+  set hostname(String value);
 
   @DomName('URLUtils.href')
   @DocsEditable()
@@ -37223,7 +37223,7 @@ abstract class UrlUtils extends NativeFieldWrapperClass2 {
   @DomName('URLUtils.href')
   @DocsEditable()
   @Experimental() // untriaged
-  void set href(String value);
+  set href(String value);
 
   @DomName('URLUtils.origin')
   @DocsEditable()
@@ -37238,7 +37238,7 @@ abstract class UrlUtils extends NativeFieldWrapperClass2 {
   @DomName('URLUtils.password')
   @DocsEditable()
   @Experimental() // untriaged
-  void set password(String value);
+  set password(String value);
 
   @DomName('URLUtils.pathname')
   @DocsEditable()
@@ -37248,7 +37248,7 @@ abstract class UrlUtils extends NativeFieldWrapperClass2 {
   @DomName('URLUtils.pathname')
   @DocsEditable()
   @Experimental() // untriaged
-  void set pathname(String value);
+  set pathname(String value);
 
   @DomName('URLUtils.port')
   @DocsEditable()
@@ -37258,7 +37258,7 @@ abstract class UrlUtils extends NativeFieldWrapperClass2 {
   @DomName('URLUtils.port')
   @DocsEditable()
   @Experimental() // untriaged
-  void set port(String value);
+  set port(String value);
 
   @DomName('URLUtils.protocol')
   @DocsEditable()
@@ -37268,7 +37268,7 @@ abstract class UrlUtils extends NativeFieldWrapperClass2 {
   @DomName('URLUtils.protocol')
   @DocsEditable()
   @Experimental() // untriaged
-  void set protocol(String value);
+  set protocol(String value);
 
   @DomName('URLUtils.search')
   @DocsEditable()
@@ -37278,7 +37278,7 @@ abstract class UrlUtils extends NativeFieldWrapperClass2 {
   @DomName('URLUtils.search')
   @DocsEditable()
   @Experimental() // untriaged
-  void set search(String value);
+  set search(String value);
 
   @DomName('URLUtils.username')
   @DocsEditable()
@@ -37288,7 +37288,7 @@ abstract class UrlUtils extends NativeFieldWrapperClass2 {
   @DomName('URLUtils.username')
   @DocsEditable()
   @Experimental() // untriaged
-  void set username(String value);
+  set username(String value);
 
   @DomName('URLUtils.toString')
   @DocsEditable()
@@ -37483,7 +37483,7 @@ class VideoElement extends MediaElement implements CanvasImageSource {
   
   @DomName('HTMLVideoElement.height')
   @DocsEditable()
-  void set height(int value) => _blink.BlinkHTMLVideoElement.instance.height_Setter_(unwrap_jso(this), value);
+  set height(int value) => _blink.BlinkHTMLVideoElement.instance.height_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLVideoElement.poster')
   @DocsEditable()
@@ -37491,7 +37491,7 @@ class VideoElement extends MediaElement implements CanvasImageSource {
   
   @DomName('HTMLVideoElement.poster')
   @DocsEditable()
-  void set poster(String value) => _blink.BlinkHTMLVideoElement.instance.poster_Setter_(unwrap_jso(this), value);
+  set poster(String value) => _blink.BlinkHTMLVideoElement.instance.poster_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLVideoElement.videoHeight')
   @DocsEditable()
@@ -37521,7 +37521,7 @@ class VideoElement extends MediaElement implements CanvasImageSource {
   
   @DomName('HTMLVideoElement.width')
   @DocsEditable()
-  void set width(int value) => _blink.BlinkHTMLVideoElement.instance.width_Setter_(unwrap_jso(this), value);
+  set width(int value) => _blink.BlinkHTMLVideoElement.instance.width_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLVideoElement.getVideoPlaybackQuality')
   @DocsEditable()
@@ -37652,7 +37652,7 @@ class VideoTrack extends NativeFieldWrapperClass2 {
   @DomName('VideoTrack.selected')
   @DocsEditable()
   @Experimental() // untriaged
-  void set selected(bool value) => _blink.BlinkVideoTrack.instance.selected_Setter_(unwrap_jso(this), value);
+  set selected(bool value) => _blink.BlinkVideoTrack.instance.selected_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -37763,7 +37763,7 @@ class VttCue extends TextTrackCue {
   @DomName('VTTCue.align')
   @DocsEditable()
   @Experimental() // untriaged
-  void set align(String value) => _blink.BlinkVTTCue.instance.align_Setter_(unwrap_jso(this), value);
+  set align(String value) => _blink.BlinkVTTCue.instance.align_Setter_(unwrap_jso(this), value);
   
   @DomName('VTTCue.line')
   @DocsEditable()
@@ -37773,7 +37773,7 @@ class VttCue extends TextTrackCue {
   @DomName('VTTCue.line')
   @DocsEditable()
   @Experimental() // untriaged
-  void set line(int value) => _blink.BlinkVTTCue.instance.line_Setter_(unwrap_jso(this), value);
+  set line(int value) => _blink.BlinkVTTCue.instance.line_Setter_(unwrap_jso(this), value);
   
   @DomName('VTTCue.position')
   @DocsEditable()
@@ -37783,7 +37783,7 @@ class VttCue extends TextTrackCue {
   @DomName('VTTCue.position')
   @DocsEditable()
   @Experimental() // untriaged
-  void set position(int value) => _blink.BlinkVTTCue.instance.position_Setter_(unwrap_jso(this), value);
+  set position(int value) => _blink.BlinkVTTCue.instance.position_Setter_(unwrap_jso(this), value);
   
   @DomName('VTTCue.regionId')
   @DocsEditable()
@@ -37793,7 +37793,7 @@ class VttCue extends TextTrackCue {
   @DomName('VTTCue.regionId')
   @DocsEditable()
   @Experimental() // untriaged
-  void set regionId(String value) => _blink.BlinkVTTCue.instance.regionId_Setter_(unwrap_jso(this), value);
+  set regionId(String value) => _blink.BlinkVTTCue.instance.regionId_Setter_(unwrap_jso(this), value);
   
   @DomName('VTTCue.size')
   @DocsEditable()
@@ -37803,7 +37803,7 @@ class VttCue extends TextTrackCue {
   @DomName('VTTCue.size')
   @DocsEditable()
   @Experimental() // untriaged
-  void set size(int value) => _blink.BlinkVTTCue.instance.size_Setter_(unwrap_jso(this), value);
+  set size(int value) => _blink.BlinkVTTCue.instance.size_Setter_(unwrap_jso(this), value);
   
   @DomName('VTTCue.snapToLines')
   @DocsEditable()
@@ -37813,7 +37813,7 @@ class VttCue extends TextTrackCue {
   @DomName('VTTCue.snapToLines')
   @DocsEditable()
   @Experimental() // untriaged
-  void set snapToLines(bool value) => _blink.BlinkVTTCue.instance.snapToLines_Setter_(unwrap_jso(this), value);
+  set snapToLines(bool value) => _blink.BlinkVTTCue.instance.snapToLines_Setter_(unwrap_jso(this), value);
   
   @DomName('VTTCue.text')
   @DocsEditable()
@@ -37823,7 +37823,7 @@ class VttCue extends TextTrackCue {
   @DomName('VTTCue.text')
   @DocsEditable()
   @Experimental() // untriaged
-  void set text(String value) => _blink.BlinkVTTCue.instance.text_Setter_(unwrap_jso(this), value);
+  set text(String value) => _blink.BlinkVTTCue.instance.text_Setter_(unwrap_jso(this), value);
   
   @DomName('VTTCue.vertical')
   @DocsEditable()
@@ -37833,7 +37833,7 @@ class VttCue extends TextTrackCue {
   @DomName('VTTCue.vertical')
   @DocsEditable()
   @Experimental() // untriaged
-  void set vertical(String value) => _blink.BlinkVTTCue.instance.vertical_Setter_(unwrap_jso(this), value);
+  set vertical(String value) => _blink.BlinkVTTCue.instance.vertical_Setter_(unwrap_jso(this), value);
   
   @DomName('VTTCue.getCueAsHTML')
   @DocsEditable()
@@ -37884,7 +37884,7 @@ class VttRegion extends NativeFieldWrapperClass2 {
   @DomName('VTTRegion.height')
   @DocsEditable()
   @Experimental() // untriaged
-  void set height(int value) => _blink.BlinkVTTRegion.instance.height_Setter_(unwrap_jso(this), value);
+  set height(int value) => _blink.BlinkVTTRegion.instance.height_Setter_(unwrap_jso(this), value);
   
   @DomName('VTTRegion.id')
   @DocsEditable()
@@ -37894,7 +37894,7 @@ class VttRegion extends NativeFieldWrapperClass2 {
   @DomName('VTTRegion.id')
   @DocsEditable()
   @Experimental() // untriaged
-  void set id(String value) => _blink.BlinkVTTRegion.instance.id_Setter_(unwrap_jso(this), value);
+  set id(String value) => _blink.BlinkVTTRegion.instance.id_Setter_(unwrap_jso(this), value);
   
   @DomName('VTTRegion.regionAnchorX')
   @DocsEditable()
@@ -37904,7 +37904,7 @@ class VttRegion extends NativeFieldWrapperClass2 {
   @DomName('VTTRegion.regionAnchorX')
   @DocsEditable()
   @Experimental() // untriaged
-  void set regionAnchorX(num value) => _blink.BlinkVTTRegion.instance.regionAnchorX_Setter_(unwrap_jso(this), value);
+  set regionAnchorX(num value) => _blink.BlinkVTTRegion.instance.regionAnchorX_Setter_(unwrap_jso(this), value);
   
   @DomName('VTTRegion.regionAnchorY')
   @DocsEditable()
@@ -37914,7 +37914,7 @@ class VttRegion extends NativeFieldWrapperClass2 {
   @DomName('VTTRegion.regionAnchorY')
   @DocsEditable()
   @Experimental() // untriaged
-  void set regionAnchorY(num value) => _blink.BlinkVTTRegion.instance.regionAnchorY_Setter_(unwrap_jso(this), value);
+  set regionAnchorY(num value) => _blink.BlinkVTTRegion.instance.regionAnchorY_Setter_(unwrap_jso(this), value);
   
   @DomName('VTTRegion.scroll')
   @DocsEditable()
@@ -37924,7 +37924,7 @@ class VttRegion extends NativeFieldWrapperClass2 {
   @DomName('VTTRegion.scroll')
   @DocsEditable()
   @Experimental() // untriaged
-  void set scroll(String value) => _blink.BlinkVTTRegion.instance.scroll_Setter_(unwrap_jso(this), value);
+  set scroll(String value) => _blink.BlinkVTTRegion.instance.scroll_Setter_(unwrap_jso(this), value);
   
   @DomName('VTTRegion.track')
   @DocsEditable()
@@ -37939,7 +37939,7 @@ class VttRegion extends NativeFieldWrapperClass2 {
   @DomName('VTTRegion.viewportAnchorX')
   @DocsEditable()
   @Experimental() // untriaged
-  void set viewportAnchorX(num value) => _blink.BlinkVTTRegion.instance.viewportAnchorX_Setter_(unwrap_jso(this), value);
+  set viewportAnchorX(num value) => _blink.BlinkVTTRegion.instance.viewportAnchorX_Setter_(unwrap_jso(this), value);
   
   @DomName('VTTRegion.viewportAnchorY')
   @DocsEditable()
@@ -37949,7 +37949,7 @@ class VttRegion extends NativeFieldWrapperClass2 {
   @DomName('VTTRegion.viewportAnchorY')
   @DocsEditable()
   @Experimental() // untriaged
-  void set viewportAnchorY(num value) => _blink.BlinkVTTRegion.instance.viewportAnchorY_Setter_(unwrap_jso(this), value);
+  set viewportAnchorY(num value) => _blink.BlinkVTTRegion.instance.viewportAnchorY_Setter_(unwrap_jso(this), value);
   
   @DomName('VTTRegion.width')
   @DocsEditable()
@@ -37959,7 +37959,7 @@ class VttRegion extends NativeFieldWrapperClass2 {
   @DomName('VTTRegion.width')
   @DocsEditable()
   @Experimental() // untriaged
-  void set width(num value) => _blink.BlinkVTTRegion.instance.width_Setter_(unwrap_jso(this), value);
+  set width(num value) => _blink.BlinkVTTRegion.instance.width_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -38152,7 +38152,7 @@ class WebSocket extends EventTarget {
   
   @DomName('WebSocket.binaryType')
   @DocsEditable()
-  void set binaryType(String value) => _blink.BlinkWebSocket.instance.binaryType_Setter_(unwrap_jso(this), value);
+  set binaryType(String value) => _blink.BlinkWebSocket.instance.binaryType_Setter_(unwrap_jso(this), value);
   
   @DomName('WebSocket.bufferedAmount')
   @DocsEditable()
@@ -38729,7 +38729,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @DomName('Window.defaultStatus')
   @DocsEditable()
   @Experimental() // non-standard
-  void set defaultStatus(String value) => _blink.BlinkWindow.instance.defaultStatus_Setter_(unwrap_jso(this), value);
+  set defaultStatus(String value) => _blink.BlinkWindow.instance.defaultStatus_Setter_(unwrap_jso(this), value);
   
   /// *Deprecated*.
   @DomName('Window.defaultstatus')
@@ -38741,7 +38741,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @DomName('Window.defaultstatus')
   @DocsEditable()
   @Experimental() // non-standard
-  void set defaultstatus(String value) => _blink.BlinkWindow.instance.defaultstatus_Setter_(unwrap_jso(this), value);
+  set defaultstatus(String value) => _blink.BlinkWindow.instance.defaultstatus_Setter_(unwrap_jso(this), value);
   
   /**
    * The ratio between physical pixels and logical CSS pixels.
@@ -38883,7 +38883,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.name')
   @DocsEditable()
-  void set name(String value) => _blink.BlinkWindow.instance.name_Setter_(unwrap_jso(this), value);
+  set name(String value) => _blink.BlinkWindow.instance.name_Setter_(unwrap_jso(this), value);
   
   /**
    * The user agent accessing this window.
@@ -38918,7 +38918,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   
   @DomName('Window.opener')
   @DocsEditable()
-  void set opener(Window value) => _blink.BlinkWindow.instance.opener_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set opener(Window value) => _blink.BlinkWindow.instance.opener_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('Window.orientation')
   @DocsEditable()
@@ -39139,7 +39139,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   /// *Deprecated*.
   @DomName('Window.status')
   @DocsEditable()
-  void set status(String value) => _blink.BlinkWindow.instance.status_Setter_(unwrap_jso(this), value);
+  set status(String value) => _blink.BlinkWindow.instance.status_Setter_(unwrap_jso(this), value);
   
   /**
    * This window's status bar.
@@ -40839,7 +40839,7 @@ class _Attr extends Node {
   @DomName('Attr.textContent')
   @DocsEditable()
   @Experimental() // untriaged
-  void set text(String value) => _blink.BlinkAttr.instance.textContent_Setter_(unwrap_jso(this), value);
+  set text(String value) => _blink.BlinkAttr.instance.textContent_Setter_(unwrap_jso(this), value);
   
   @DomName('Attr.value')
   @DocsEditable()
@@ -40847,7 +40847,7 @@ class _Attr extends Node {
   
   @DomName('Attr.value')
   @DocsEditable()
-  void set value(String value) => _blink.BlinkAttr.instance.value_Setter_(unwrap_jso(this), value);
+  set value(String value) => _blink.BlinkAttr.instance.value_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -41622,7 +41622,7 @@ class _DomRect extends DomRectReadOnly {
   @DomName('DOMRect.height')
   @DocsEditable()
   @Experimental() // untriaged
-  void set height(num value) => _blink.BlinkDOMRect.instance.height_Setter_(unwrap_jso(this), value);
+  set height(num value) => _blink.BlinkDOMRect.instance.height_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMRect.width')
   @DocsEditable()
@@ -41632,7 +41632,7 @@ class _DomRect extends DomRectReadOnly {
   @DomName('DOMRect.width')
   @DocsEditable()
   @Experimental() // untriaged
-  void set width(num value) => _blink.BlinkDOMRect.instance.width_Setter_(unwrap_jso(this), value);
+  set width(num value) => _blink.BlinkDOMRect.instance.width_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMRect.x')
   @DocsEditable()
@@ -41642,7 +41642,7 @@ class _DomRect extends DomRectReadOnly {
   @DomName('DOMRect.x')
   @DocsEditable()
   @Experimental() // untriaged
-  void set x(num value) => _blink.BlinkDOMRect.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkDOMRect.instance.x_Setter_(unwrap_jso(this), value);
   
   @DomName('DOMRect.y')
   @DocsEditable()
@@ -41652,7 +41652,7 @@ class _DomRect extends DomRectReadOnly {
   @DomName('DOMRect.y')
   @DocsEditable()
   @Experimental() // untriaged
-  void set y(num value) => _blink.BlinkDOMRect.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkDOMRect.instance.y_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

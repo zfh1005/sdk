@@ -995,7 +995,7 @@ class DartiumBackend(HtmlDartGenerator):
                                           not(attr.type.id) or ptype == 'Object')
                   else 'value']
 
-    dart_declaration = 'void set %s(%s value)' % (html_name, ptype)
+    dart_declaration = 'set %s(%s value)' % (html_name, ptype)
     is_custom = _IsCustom(attr) and (_IsCustomValue(attr, None) or
                                      _IsCustomValue(attr, 'Setter'))
     # This seems to have been replaced with Custom=Setter (see above), but

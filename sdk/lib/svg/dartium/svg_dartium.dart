@@ -426,7 +426,7 @@ class AltGlyphElement extends TextPositioningElement implements UriReference {
   
   @DomName('SVGAltGlyphElement.format')
   @DocsEditable()
-  void set format(String value) => _blink.BlinkSVGAltGlyphElement.instance.format_Setter_(unwrap_jso(this), value);
+  set format(String value) => _blink.BlinkSVGAltGlyphElement.instance.format_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGAltGlyphElement.glyphRef')
   @DocsEditable()
@@ -434,7 +434,7 @@ class AltGlyphElement extends TextPositioningElement implements UriReference {
   
   @DomName('SVGAltGlyphElement.glyphRef')
   @DocsEditable()
-  void set glyphRef(String value) => _blink.BlinkSVGAltGlyphElement.instance.glyphRef_Setter_(unwrap_jso(this), value);
+  set glyphRef(String value) => _blink.BlinkSVGAltGlyphElement.instance.glyphRef_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGAltGlyphElement.href')
   @DocsEditable()
@@ -500,7 +500,7 @@ class Angle extends NativeFieldWrapperClass2 {
   
   @DomName('SVGAngle.value')
   @DocsEditable()
-  void set value(num value) => _blink.BlinkSVGAngle.instance.value_Setter_(unwrap_jso(this), value);
+  set value(num value) => _blink.BlinkSVGAngle.instance.value_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGAngle.valueAsString')
   @DocsEditable()
@@ -508,7 +508,7 @@ class Angle extends NativeFieldWrapperClass2 {
   
   @DomName('SVGAngle.valueAsString')
   @DocsEditable()
-  void set valueAsString(String value) => _blink.BlinkSVGAngle.instance.valueAsString_Setter_(unwrap_jso(this), value);
+  set valueAsString(String value) => _blink.BlinkSVGAngle.instance.valueAsString_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGAngle.valueInSpecifiedUnits')
   @DocsEditable()
@@ -516,7 +516,7 @@ class Angle extends NativeFieldWrapperClass2 {
   
   @DomName('SVGAngle.valueInSpecifiedUnits')
   @DocsEditable()
-  void set valueInSpecifiedUnits(num value) => _blink.BlinkSVGAngle.instance.valueInSpecifiedUnits_Setter_(unwrap_jso(this), value);
+  set valueInSpecifiedUnits(num value) => _blink.BlinkSVGAngle.instance.valueInSpecifiedUnits_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGAngle.convertToSpecifiedUnits')
   @DocsEditable()
@@ -733,7 +733,7 @@ class AnimatedBoolean extends NativeFieldWrapperClass2 {
   
   @DomName('SVGAnimatedBoolean.baseVal')
   @DocsEditable()
-  void set baseVal(bool value) => _blink.BlinkSVGAnimatedBoolean.instance.baseVal_Setter_(unwrap_jso(this), value);
+  set baseVal(bool value) => _blink.BlinkSVGAnimatedBoolean.instance.baseVal_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -775,7 +775,7 @@ class AnimatedEnumeration extends NativeFieldWrapperClass2 {
   
   @DomName('SVGAnimatedEnumeration.baseVal')
   @DocsEditable()
-  void set baseVal(int value) => _blink.BlinkSVGAnimatedEnumeration.instance.baseVal_Setter_(unwrap_jso(this), value);
+  set baseVal(int value) => _blink.BlinkSVGAnimatedEnumeration.instance.baseVal_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -817,7 +817,7 @@ class AnimatedInteger extends NativeFieldWrapperClass2 {
   
   @DomName('SVGAnimatedInteger.baseVal')
   @DocsEditable()
-  void set baseVal(int value) => _blink.BlinkSVGAnimatedInteger.instance.baseVal_Setter_(unwrap_jso(this), value);
+  set baseVal(int value) => _blink.BlinkSVGAnimatedInteger.instance.baseVal_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -935,7 +935,7 @@ class AnimatedNumber extends NativeFieldWrapperClass2 {
   
   @DomName('SVGAnimatedNumber.baseVal')
   @DocsEditable()
-  void set baseVal(num value) => _blink.BlinkSVGAnimatedNumber.instance.baseVal_Setter_(unwrap_jso(this), value);
+  set baseVal(num value) => _blink.BlinkSVGAnimatedNumber.instance.baseVal_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1091,7 +1091,7 @@ class AnimatedString extends NativeFieldWrapperClass2 {
   
   @DomName('SVGAnimatedString.baseVal')
   @DocsEditable()
-  void set baseVal(String value) => _blink.BlinkSVGAnimatedString.instance.baseVal_Setter_(unwrap_jso(this), value);
+  set baseVal(String value) => _blink.BlinkSVGAnimatedString.instance.baseVal_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3808,7 +3808,7 @@ class Length extends NativeFieldWrapperClass2 {
   
   @DomName('SVGLength.value')
   @DocsEditable()
-  void set value(num value) => _blink.BlinkSVGLength.instance.value_Setter_(unwrap_jso(this), value);
+  set value(num value) => _blink.BlinkSVGLength.instance.value_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGLength.valueAsString')
   @DocsEditable()
@@ -3816,7 +3816,7 @@ class Length extends NativeFieldWrapperClass2 {
   
   @DomName('SVGLength.valueAsString')
   @DocsEditable()
-  void set valueAsString(String value) => _blink.BlinkSVGLength.instance.valueAsString_Setter_(unwrap_jso(this), value);
+  set valueAsString(String value) => _blink.BlinkSVGLength.instance.valueAsString_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGLength.valueInSpecifiedUnits')
   @DocsEditable()
@@ -3824,7 +3824,7 @@ class Length extends NativeFieldWrapperClass2 {
   
   @DomName('SVGLength.valueInSpecifiedUnits')
   @DocsEditable()
-  void set valueInSpecifiedUnits(num value) => _blink.BlinkSVGLength.instance.valueInSpecifiedUnits_Setter_(unwrap_jso(this), value);
+  set valueInSpecifiedUnits(num value) => _blink.BlinkSVGLength.instance.valueInSpecifiedUnits_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGLength.convertToSpecifiedUnits')
   @DocsEditable()
@@ -4274,7 +4274,7 @@ class Matrix extends NativeFieldWrapperClass2 {
   
   @DomName('SVGMatrix.a')
   @DocsEditable()
-  void set a(num value) => _blink.BlinkSVGMatrix.instance.a_Setter_(unwrap_jso(this), value);
+  set a(num value) => _blink.BlinkSVGMatrix.instance.a_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGMatrix.b')
   @DocsEditable()
@@ -4282,7 +4282,7 @@ class Matrix extends NativeFieldWrapperClass2 {
   
   @DomName('SVGMatrix.b')
   @DocsEditable()
-  void set b(num value) => _blink.BlinkSVGMatrix.instance.b_Setter_(unwrap_jso(this), value);
+  set b(num value) => _blink.BlinkSVGMatrix.instance.b_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGMatrix.c')
   @DocsEditable()
@@ -4290,7 +4290,7 @@ class Matrix extends NativeFieldWrapperClass2 {
   
   @DomName('SVGMatrix.c')
   @DocsEditable()
-  void set c(num value) => _blink.BlinkSVGMatrix.instance.c_Setter_(unwrap_jso(this), value);
+  set c(num value) => _blink.BlinkSVGMatrix.instance.c_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGMatrix.d')
   @DocsEditable()
@@ -4298,7 +4298,7 @@ class Matrix extends NativeFieldWrapperClass2 {
   
   @DomName('SVGMatrix.d')
   @DocsEditable()
-  void set d(num value) => _blink.BlinkSVGMatrix.instance.d_Setter_(unwrap_jso(this), value);
+  set d(num value) => _blink.BlinkSVGMatrix.instance.d_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGMatrix.e')
   @DocsEditable()
@@ -4306,7 +4306,7 @@ class Matrix extends NativeFieldWrapperClass2 {
   
   @DomName('SVGMatrix.e')
   @DocsEditable()
-  void set e(num value) => _blink.BlinkSVGMatrix.instance.e_Setter_(unwrap_jso(this), value);
+  set e(num value) => _blink.BlinkSVGMatrix.instance.e_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGMatrix.f')
   @DocsEditable()
@@ -4314,7 +4314,7 @@ class Matrix extends NativeFieldWrapperClass2 {
   
   @DomName('SVGMatrix.f')
   @DocsEditable()
-  void set f(num value) => _blink.BlinkSVGMatrix.instance.f_Setter_(unwrap_jso(this), value);
+  set f(num value) => _blink.BlinkSVGMatrix.instance.f_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGMatrix.flipX')
   @DocsEditable()
@@ -4429,7 +4429,7 @@ class Number extends NativeFieldWrapperClass2 {
   
   @DomName('SVGNumber.value')
   @DocsEditable()
-  void set value(num value) => _blink.BlinkSVGNumber.instance.value_Setter_(unwrap_jso(this), value);
+  set value(num value) => _blink.BlinkSVGNumber.instance.value_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4843,7 +4843,7 @@ class PathSegArcAbs extends PathSeg {
   
   @DomName('SVGPathSegArcAbs.angle')
   @DocsEditable()
-  void set angle(num value) => _blink.BlinkSVGPathSegArcAbs.instance.angle_Setter_(unwrap_jso(this), value);
+  set angle(num value) => _blink.BlinkSVGPathSegArcAbs.instance.angle_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegArcAbs.largeArcFlag')
   @DocsEditable()
@@ -4851,7 +4851,7 @@ class PathSegArcAbs extends PathSeg {
   
   @DomName('SVGPathSegArcAbs.largeArcFlag')
   @DocsEditable()
-  void set largeArcFlag(bool value) => _blink.BlinkSVGPathSegArcAbs.instance.largeArcFlag_Setter_(unwrap_jso(this), value);
+  set largeArcFlag(bool value) => _blink.BlinkSVGPathSegArcAbs.instance.largeArcFlag_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegArcAbs.r1')
   @DocsEditable()
@@ -4859,7 +4859,7 @@ class PathSegArcAbs extends PathSeg {
   
   @DomName('SVGPathSegArcAbs.r1')
   @DocsEditable()
-  void set r1(num value) => _blink.BlinkSVGPathSegArcAbs.instance.r1_Setter_(unwrap_jso(this), value);
+  set r1(num value) => _blink.BlinkSVGPathSegArcAbs.instance.r1_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegArcAbs.r2')
   @DocsEditable()
@@ -4867,7 +4867,7 @@ class PathSegArcAbs extends PathSeg {
   
   @DomName('SVGPathSegArcAbs.r2')
   @DocsEditable()
-  void set r2(num value) => _blink.BlinkSVGPathSegArcAbs.instance.r2_Setter_(unwrap_jso(this), value);
+  set r2(num value) => _blink.BlinkSVGPathSegArcAbs.instance.r2_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegArcAbs.sweepFlag')
   @DocsEditable()
@@ -4875,7 +4875,7 @@ class PathSegArcAbs extends PathSeg {
   
   @DomName('SVGPathSegArcAbs.sweepFlag')
   @DocsEditable()
-  void set sweepFlag(bool value) => _blink.BlinkSVGPathSegArcAbs.instance.sweepFlag_Setter_(unwrap_jso(this), value);
+  set sweepFlag(bool value) => _blink.BlinkSVGPathSegArcAbs.instance.sweepFlag_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegArcAbs.x')
   @DocsEditable()
@@ -4883,7 +4883,7 @@ class PathSegArcAbs extends PathSeg {
   
   @DomName('SVGPathSegArcAbs.x')
   @DocsEditable()
-  void set x(num value) => _blink.BlinkSVGPathSegArcAbs.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegArcAbs.instance.x_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegArcAbs.y')
   @DocsEditable()
@@ -4891,7 +4891,7 @@ class PathSegArcAbs extends PathSeg {
   
   @DomName('SVGPathSegArcAbs.y')
   @DocsEditable()
-  void set y(num value) => _blink.BlinkSVGPathSegArcAbs.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegArcAbs.instance.y_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4926,7 +4926,7 @@ class PathSegArcRel extends PathSeg {
   
   @DomName('SVGPathSegArcRel.angle')
   @DocsEditable()
-  void set angle(num value) => _blink.BlinkSVGPathSegArcRel.instance.angle_Setter_(unwrap_jso(this), value);
+  set angle(num value) => _blink.BlinkSVGPathSegArcRel.instance.angle_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegArcRel.largeArcFlag')
   @DocsEditable()
@@ -4934,7 +4934,7 @@ class PathSegArcRel extends PathSeg {
   
   @DomName('SVGPathSegArcRel.largeArcFlag')
   @DocsEditable()
-  void set largeArcFlag(bool value) => _blink.BlinkSVGPathSegArcRel.instance.largeArcFlag_Setter_(unwrap_jso(this), value);
+  set largeArcFlag(bool value) => _blink.BlinkSVGPathSegArcRel.instance.largeArcFlag_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegArcRel.r1')
   @DocsEditable()
@@ -4942,7 +4942,7 @@ class PathSegArcRel extends PathSeg {
   
   @DomName('SVGPathSegArcRel.r1')
   @DocsEditable()
-  void set r1(num value) => _blink.BlinkSVGPathSegArcRel.instance.r1_Setter_(unwrap_jso(this), value);
+  set r1(num value) => _blink.BlinkSVGPathSegArcRel.instance.r1_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegArcRel.r2')
   @DocsEditable()
@@ -4950,7 +4950,7 @@ class PathSegArcRel extends PathSeg {
   
   @DomName('SVGPathSegArcRel.r2')
   @DocsEditable()
-  void set r2(num value) => _blink.BlinkSVGPathSegArcRel.instance.r2_Setter_(unwrap_jso(this), value);
+  set r2(num value) => _blink.BlinkSVGPathSegArcRel.instance.r2_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegArcRel.sweepFlag')
   @DocsEditable()
@@ -4958,7 +4958,7 @@ class PathSegArcRel extends PathSeg {
   
   @DomName('SVGPathSegArcRel.sweepFlag')
   @DocsEditable()
-  void set sweepFlag(bool value) => _blink.BlinkSVGPathSegArcRel.instance.sweepFlag_Setter_(unwrap_jso(this), value);
+  set sweepFlag(bool value) => _blink.BlinkSVGPathSegArcRel.instance.sweepFlag_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegArcRel.x')
   @DocsEditable()
@@ -4966,7 +4966,7 @@ class PathSegArcRel extends PathSeg {
   
   @DomName('SVGPathSegArcRel.x')
   @DocsEditable()
-  void set x(num value) => _blink.BlinkSVGPathSegArcRel.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegArcRel.instance.x_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegArcRel.y')
   @DocsEditable()
@@ -4974,7 +4974,7 @@ class PathSegArcRel extends PathSeg {
   
   @DomName('SVGPathSegArcRel.y')
   @DocsEditable()
-  void set y(num value) => _blink.BlinkSVGPathSegArcRel.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegArcRel.instance.y_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5036,7 +5036,7 @@ class PathSegCurvetoCubicAbs extends PathSeg {
   
   @DomName('SVGPathSegCurvetoCubicAbs.x')
   @DocsEditable()
-  void set x(num value) => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.x_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegCurvetoCubicAbs.x1')
   @DocsEditable()
@@ -5044,7 +5044,7 @@ class PathSegCurvetoCubicAbs extends PathSeg {
   
   @DomName('SVGPathSegCurvetoCubicAbs.x1')
   @DocsEditable()
-  void set x1(num value) => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.x1_Setter_(unwrap_jso(this), value);
+  set x1(num value) => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.x1_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegCurvetoCubicAbs.x2')
   @DocsEditable()
@@ -5052,7 +5052,7 @@ class PathSegCurvetoCubicAbs extends PathSeg {
   
   @DomName('SVGPathSegCurvetoCubicAbs.x2')
   @DocsEditable()
-  void set x2(num value) => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.x2_Setter_(unwrap_jso(this), value);
+  set x2(num value) => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.x2_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegCurvetoCubicAbs.y')
   @DocsEditable()
@@ -5060,7 +5060,7 @@ class PathSegCurvetoCubicAbs extends PathSeg {
   
   @DomName('SVGPathSegCurvetoCubicAbs.y')
   @DocsEditable()
-  void set y(num value) => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.y_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegCurvetoCubicAbs.y1')
   @DocsEditable()
@@ -5068,7 +5068,7 @@ class PathSegCurvetoCubicAbs extends PathSeg {
   
   @DomName('SVGPathSegCurvetoCubicAbs.y1')
   @DocsEditable()
-  void set y1(num value) => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.y1_Setter_(unwrap_jso(this), value);
+  set y1(num value) => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.y1_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegCurvetoCubicAbs.y2')
   @DocsEditable()
@@ -5076,7 +5076,7 @@ class PathSegCurvetoCubicAbs extends PathSeg {
   
   @DomName('SVGPathSegCurvetoCubicAbs.y2')
   @DocsEditable()
-  void set y2(num value) => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.y2_Setter_(unwrap_jso(this), value);
+  set y2(num value) => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.y2_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5111,7 +5111,7 @@ class PathSegCurvetoCubicRel extends PathSeg {
   
   @DomName('SVGPathSegCurvetoCubicRel.x')
   @DocsEditable()
-  void set x(num value) => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.x_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegCurvetoCubicRel.x1')
   @DocsEditable()
@@ -5119,7 +5119,7 @@ class PathSegCurvetoCubicRel extends PathSeg {
   
   @DomName('SVGPathSegCurvetoCubicRel.x1')
   @DocsEditable()
-  void set x1(num value) => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.x1_Setter_(unwrap_jso(this), value);
+  set x1(num value) => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.x1_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegCurvetoCubicRel.x2')
   @DocsEditable()
@@ -5127,7 +5127,7 @@ class PathSegCurvetoCubicRel extends PathSeg {
   
   @DomName('SVGPathSegCurvetoCubicRel.x2')
   @DocsEditable()
-  void set x2(num value) => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.x2_Setter_(unwrap_jso(this), value);
+  set x2(num value) => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.x2_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegCurvetoCubicRel.y')
   @DocsEditable()
@@ -5135,7 +5135,7 @@ class PathSegCurvetoCubicRel extends PathSeg {
   
   @DomName('SVGPathSegCurvetoCubicRel.y')
   @DocsEditable()
-  void set y(num value) => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.y_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegCurvetoCubicRel.y1')
   @DocsEditable()
@@ -5143,7 +5143,7 @@ class PathSegCurvetoCubicRel extends PathSeg {
   
   @DomName('SVGPathSegCurvetoCubicRel.y1')
   @DocsEditable()
-  void set y1(num value) => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.y1_Setter_(unwrap_jso(this), value);
+  set y1(num value) => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.y1_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegCurvetoCubicRel.y2')
   @DocsEditable()
@@ -5151,7 +5151,7 @@ class PathSegCurvetoCubicRel extends PathSeg {
   
   @DomName('SVGPathSegCurvetoCubicRel.y2')
   @DocsEditable()
-  void set y2(num value) => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.y2_Setter_(unwrap_jso(this), value);
+  set y2(num value) => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.y2_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5186,7 +5186,7 @@ class PathSegCurvetoCubicSmoothAbs extends PathSeg {
   
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.x')
   @DocsEditable()
-  void set x(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance.x_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.x2')
   @DocsEditable()
@@ -5194,7 +5194,7 @@ class PathSegCurvetoCubicSmoothAbs extends PathSeg {
   
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.x2')
   @DocsEditable()
-  void set x2(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance.x2_Setter_(unwrap_jso(this), value);
+  set x2(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance.x2_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.y')
   @DocsEditable()
@@ -5202,7 +5202,7 @@ class PathSegCurvetoCubicSmoothAbs extends PathSeg {
   
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.y')
   @DocsEditable()
-  void set y(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance.y_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.y2')
   @DocsEditable()
@@ -5210,7 +5210,7 @@ class PathSegCurvetoCubicSmoothAbs extends PathSeg {
   
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.y2')
   @DocsEditable()
-  void set y2(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance.y2_Setter_(unwrap_jso(this), value);
+  set y2(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance.y2_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5245,7 +5245,7 @@ class PathSegCurvetoCubicSmoothRel extends PathSeg {
   
   @DomName('SVGPathSegCurvetoCubicSmoothRel.x')
   @DocsEditable()
-  void set x(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance.x_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegCurvetoCubicSmoothRel.x2')
   @DocsEditable()
@@ -5253,7 +5253,7 @@ class PathSegCurvetoCubicSmoothRel extends PathSeg {
   
   @DomName('SVGPathSegCurvetoCubicSmoothRel.x2')
   @DocsEditable()
-  void set x2(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance.x2_Setter_(unwrap_jso(this), value);
+  set x2(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance.x2_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegCurvetoCubicSmoothRel.y')
   @DocsEditable()
@@ -5261,7 +5261,7 @@ class PathSegCurvetoCubicSmoothRel extends PathSeg {
   
   @DomName('SVGPathSegCurvetoCubicSmoothRel.y')
   @DocsEditable()
-  void set y(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance.y_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegCurvetoCubicSmoothRel.y2')
   @DocsEditable()
@@ -5269,7 +5269,7 @@ class PathSegCurvetoCubicSmoothRel extends PathSeg {
   
   @DomName('SVGPathSegCurvetoCubicSmoothRel.y2')
   @DocsEditable()
-  void set y2(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance.y2_Setter_(unwrap_jso(this), value);
+  set y2(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance.y2_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5304,7 +5304,7 @@ class PathSegCurvetoQuadraticAbs extends PathSeg {
   
   @DomName('SVGPathSegCurvetoQuadraticAbs.x')
   @DocsEditable()
-  void set x(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance.x_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegCurvetoQuadraticAbs.x1')
   @DocsEditable()
@@ -5312,7 +5312,7 @@ class PathSegCurvetoQuadraticAbs extends PathSeg {
   
   @DomName('SVGPathSegCurvetoQuadraticAbs.x1')
   @DocsEditable()
-  void set x1(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance.x1_Setter_(unwrap_jso(this), value);
+  set x1(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance.x1_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegCurvetoQuadraticAbs.y')
   @DocsEditable()
@@ -5320,7 +5320,7 @@ class PathSegCurvetoQuadraticAbs extends PathSeg {
   
   @DomName('SVGPathSegCurvetoQuadraticAbs.y')
   @DocsEditable()
-  void set y(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance.y_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegCurvetoQuadraticAbs.y1')
   @DocsEditable()
@@ -5328,7 +5328,7 @@ class PathSegCurvetoQuadraticAbs extends PathSeg {
   
   @DomName('SVGPathSegCurvetoQuadraticAbs.y1')
   @DocsEditable()
-  void set y1(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance.y1_Setter_(unwrap_jso(this), value);
+  set y1(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance.y1_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5363,7 +5363,7 @@ class PathSegCurvetoQuadraticRel extends PathSeg {
   
   @DomName('SVGPathSegCurvetoQuadraticRel.x')
   @DocsEditable()
-  void set x(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance.x_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegCurvetoQuadraticRel.x1')
   @DocsEditable()
@@ -5371,7 +5371,7 @@ class PathSegCurvetoQuadraticRel extends PathSeg {
   
   @DomName('SVGPathSegCurvetoQuadraticRel.x1')
   @DocsEditable()
-  void set x1(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance.x1_Setter_(unwrap_jso(this), value);
+  set x1(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance.x1_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegCurvetoQuadraticRel.y')
   @DocsEditable()
@@ -5379,7 +5379,7 @@ class PathSegCurvetoQuadraticRel extends PathSeg {
   
   @DomName('SVGPathSegCurvetoQuadraticRel.y')
   @DocsEditable()
-  void set y(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance.y_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegCurvetoQuadraticRel.y1')
   @DocsEditable()
@@ -5387,7 +5387,7 @@ class PathSegCurvetoQuadraticRel extends PathSeg {
   
   @DomName('SVGPathSegCurvetoQuadraticRel.y1')
   @DocsEditable()
-  void set y1(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance.y1_Setter_(unwrap_jso(this), value);
+  set y1(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance.y1_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5422,7 +5422,7 @@ class PathSegCurvetoQuadraticSmoothAbs extends PathSeg {
   
   @DomName('SVGPathSegCurvetoQuadraticSmoothAbs.x')
   @DocsEditable()
-  void set x(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticSmoothAbs.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticSmoothAbs.instance.x_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegCurvetoQuadraticSmoothAbs.y')
   @DocsEditable()
@@ -5430,7 +5430,7 @@ class PathSegCurvetoQuadraticSmoothAbs extends PathSeg {
   
   @DomName('SVGPathSegCurvetoQuadraticSmoothAbs.y')
   @DocsEditable()
-  void set y(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticSmoothAbs.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticSmoothAbs.instance.y_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5465,7 +5465,7 @@ class PathSegCurvetoQuadraticSmoothRel extends PathSeg {
   
   @DomName('SVGPathSegCurvetoQuadraticSmoothRel.x')
   @DocsEditable()
-  void set x(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticSmoothRel.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticSmoothRel.instance.x_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegCurvetoQuadraticSmoothRel.y')
   @DocsEditable()
@@ -5473,7 +5473,7 @@ class PathSegCurvetoQuadraticSmoothRel extends PathSeg {
   
   @DomName('SVGPathSegCurvetoQuadraticSmoothRel.y')
   @DocsEditable()
-  void set y(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticSmoothRel.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticSmoothRel.instance.y_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5508,7 +5508,7 @@ class PathSegLinetoAbs extends PathSeg {
   
   @DomName('SVGPathSegLinetoAbs.x')
   @DocsEditable()
-  void set x(num value) => _blink.BlinkSVGPathSegLinetoAbs.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegLinetoAbs.instance.x_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegLinetoAbs.y')
   @DocsEditable()
@@ -5516,7 +5516,7 @@ class PathSegLinetoAbs extends PathSeg {
   
   @DomName('SVGPathSegLinetoAbs.y')
   @DocsEditable()
-  void set y(num value) => _blink.BlinkSVGPathSegLinetoAbs.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegLinetoAbs.instance.y_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5551,7 +5551,7 @@ class PathSegLinetoHorizontalAbs extends PathSeg {
   
   @DomName('SVGPathSegLinetoHorizontalAbs.x')
   @DocsEditable()
-  void set x(num value) => _blink.BlinkSVGPathSegLinetoHorizontalAbs.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegLinetoHorizontalAbs.instance.x_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5586,7 +5586,7 @@ class PathSegLinetoHorizontalRel extends PathSeg {
   
   @DomName('SVGPathSegLinetoHorizontalRel.x')
   @DocsEditable()
-  void set x(num value) => _blink.BlinkSVGPathSegLinetoHorizontalRel.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegLinetoHorizontalRel.instance.x_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5621,7 +5621,7 @@ class PathSegLinetoRel extends PathSeg {
   
   @DomName('SVGPathSegLinetoRel.x')
   @DocsEditable()
-  void set x(num value) => _blink.BlinkSVGPathSegLinetoRel.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegLinetoRel.instance.x_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegLinetoRel.y')
   @DocsEditable()
@@ -5629,7 +5629,7 @@ class PathSegLinetoRel extends PathSeg {
   
   @DomName('SVGPathSegLinetoRel.y')
   @DocsEditable()
-  void set y(num value) => _blink.BlinkSVGPathSegLinetoRel.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegLinetoRel.instance.y_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5664,7 +5664,7 @@ class PathSegLinetoVerticalAbs extends PathSeg {
   
   @DomName('SVGPathSegLinetoVerticalAbs.y')
   @DocsEditable()
-  void set y(num value) => _blink.BlinkSVGPathSegLinetoVerticalAbs.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegLinetoVerticalAbs.instance.y_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5699,7 +5699,7 @@ class PathSegLinetoVerticalRel extends PathSeg {
   
   @DomName('SVGPathSegLinetoVerticalRel.y')
   @DocsEditable()
-  void set y(num value) => _blink.BlinkSVGPathSegLinetoVerticalRel.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegLinetoVerticalRel.instance.y_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5850,7 +5850,7 @@ class PathSegMovetoAbs extends PathSeg {
   
   @DomName('SVGPathSegMovetoAbs.x')
   @DocsEditable()
-  void set x(num value) => _blink.BlinkSVGPathSegMovetoAbs.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegMovetoAbs.instance.x_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegMovetoAbs.y')
   @DocsEditable()
@@ -5858,7 +5858,7 @@ class PathSegMovetoAbs extends PathSeg {
   
   @DomName('SVGPathSegMovetoAbs.y')
   @DocsEditable()
-  void set y(num value) => _blink.BlinkSVGPathSegMovetoAbs.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegMovetoAbs.instance.y_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5893,7 +5893,7 @@ class PathSegMovetoRel extends PathSeg {
   
   @DomName('SVGPathSegMovetoRel.x')
   @DocsEditable()
-  void set x(num value) => _blink.BlinkSVGPathSegMovetoRel.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegMovetoRel.instance.x_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPathSegMovetoRel.y')
   @DocsEditable()
@@ -5901,7 +5901,7 @@ class PathSegMovetoRel extends PathSeg {
   
   @DomName('SVGPathSegMovetoRel.y')
   @DocsEditable()
-  void set y(num value) => _blink.BlinkSVGPathSegMovetoRel.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegMovetoRel.instance.y_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6032,7 +6032,7 @@ class Point extends NativeFieldWrapperClass2 {
   
   @DomName('SVGPoint.x')
   @DocsEditable()
-  void set x(num value) => _blink.BlinkSVGPoint.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPoint.instance.x_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPoint.y')
   @DocsEditable()
@@ -6040,7 +6040,7 @@ class Point extends NativeFieldWrapperClass2 {
   
   @DomName('SVGPoint.y')
   @DocsEditable()
-  void set y(num value) => _blink.BlinkSVGPoint.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPoint.instance.y_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPoint.matrixTransform')
   @DocsEditable()
@@ -6300,7 +6300,7 @@ class PreserveAspectRatio extends NativeFieldWrapperClass2 {
   
   @DomName('SVGPreserveAspectRatio.align')
   @DocsEditable()
-  void set align(int value) => _blink.BlinkSVGPreserveAspectRatio.instance.align_Setter_(unwrap_jso(this), value);
+  set align(int value) => _blink.BlinkSVGPreserveAspectRatio.instance.align_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGPreserveAspectRatio.meetOrSlice')
   @DocsEditable()
@@ -6308,7 +6308,7 @@ class PreserveAspectRatio extends NativeFieldWrapperClass2 {
   
   @DomName('SVGPreserveAspectRatio.meetOrSlice')
   @DocsEditable()
-  void set meetOrSlice(int value) => _blink.BlinkSVGPreserveAspectRatio.instance.meetOrSlice_Setter_(unwrap_jso(this), value);
+  set meetOrSlice(int value) => _blink.BlinkSVGPreserveAspectRatio.instance.meetOrSlice_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6407,7 +6407,7 @@ class Rect extends NativeFieldWrapperClass2 {
   
   @DomName('SVGRect.height')
   @DocsEditable()
-  void set height(num value) => _blink.BlinkSVGRect.instance.height_Setter_(unwrap_jso(this), value);
+  set height(num value) => _blink.BlinkSVGRect.instance.height_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGRect.width')
   @DocsEditable()
@@ -6415,7 +6415,7 @@ class Rect extends NativeFieldWrapperClass2 {
   
   @DomName('SVGRect.width')
   @DocsEditable()
-  void set width(num value) => _blink.BlinkSVGRect.instance.width_Setter_(unwrap_jso(this), value);
+  set width(num value) => _blink.BlinkSVGRect.instance.width_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGRect.x')
   @DocsEditable()
@@ -6423,7 +6423,7 @@ class Rect extends NativeFieldWrapperClass2 {
   
   @DomName('SVGRect.x')
   @DocsEditable()
-  void set x(num value) => _blink.BlinkSVGRect.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGRect.instance.x_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGRect.y')
   @DocsEditable()
@@ -6431,7 +6431,7 @@ class Rect extends NativeFieldWrapperClass2 {
   
   @DomName('SVGRect.y')
   @DocsEditable()
-  void set y(num value) => _blink.BlinkSVGRect.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGRect.instance.y_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6591,7 +6591,7 @@ class ScriptElement extends SvgElement implements UriReference {
   
   @DomName('SVGScriptElement.type')
   @DocsEditable()
-  void set type(String value) => _blink.BlinkSVGScriptElement.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkSVGScriptElement.instance.type_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGScriptElement.href')
   @DocsEditable()
@@ -6841,7 +6841,7 @@ class StyleElement extends SvgElement {
   
   @DomName('SVGStyleElement.disabled')
   @DocsEditable()
-  void set disabled(bool value) => _blink.BlinkSVGStyleElement.instance.disabled_Setter_(unwrap_jso(this), value);
+  set disabled(bool value) => _blink.BlinkSVGStyleElement.instance.disabled_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGStyleElement.media')
   @DocsEditable()
@@ -6849,7 +6849,7 @@ class StyleElement extends SvgElement {
   
   @DomName('SVGStyleElement.media')
   @DocsEditable()
-  void set media(String value) => _blink.BlinkSVGStyleElement.instance.media_Setter_(unwrap_jso(this), value);
+  set media(String value) => _blink.BlinkSVGStyleElement.instance.media_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGStyleElement.sheet')
   @DocsEditable()
@@ -6862,7 +6862,7 @@ class StyleElement extends SvgElement {
   
   @DomName('SVGStyleElement.title')
   @DocsEditable()
-  void set title(String value) => _blink.BlinkSVGStyleElement.instance.title_Setter_(unwrap_jso(this), value);
+  set title(String value) => _blink.BlinkSVGStyleElement.instance.title_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGStyleElement.type')
   @DocsEditable()
@@ -6870,7 +6870,7 @@ class StyleElement extends SvgElement {
   
   @DomName('SVGStyleElement.type')
   @DocsEditable()
-  void set type(String value) => _blink.BlinkSVGStyleElement.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkSVGStyleElement.instance.type_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -7333,7 +7333,7 @@ class SvgElement extends Element implements GlobalEventHandlers {
   @DomName('SVGElement.tabIndex')
   @DocsEditable()
   @Experimental() // untriaged
-  void set tabIndex(int value) => _blink.BlinkSVGElement.instance.tabIndex_Setter_(unwrap_jso(this), value);
+  set tabIndex(int value) => _blink.BlinkSVGElement.instance.tabIndex_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGElement.viewportElement')
   @DocsEditable()
@@ -7345,7 +7345,7 @@ class SvgElement extends Element implements GlobalEventHandlers {
   
   @DomName('SVGElement.xmlbase')
   @DocsEditable()
-  void set xmlbase(String value) => _blink.BlinkSVGElement.instance.xmlbase_Setter_(unwrap_jso(this), value);
+  set xmlbase(String value) => _blink.BlinkSVGElement.instance.xmlbase_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGElement.xmllang')
   @DocsEditable()
@@ -7355,7 +7355,7 @@ class SvgElement extends Element implements GlobalEventHandlers {
   @DomName('SVGElement.xmllang')
   @DocsEditable()
   @Experimental() // untriaged
-  void set xmllang(String value) => _blink.BlinkSVGElement.instance.xmllang_Setter_(unwrap_jso(this), value);
+  set xmllang(String value) => _blink.BlinkSVGElement.instance.xmllang_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGElement.xmlspace')
   @DocsEditable()
@@ -7365,7 +7365,7 @@ class SvgElement extends Element implements GlobalEventHandlers {
   @DomName('SVGElement.xmlspace')
   @DocsEditable()
   @Experimental() // untriaged
-  void set xmlspace(String value) => _blink.BlinkSVGElement.instance.xmlspace_Setter_(unwrap_jso(this), value);
+  set xmlspace(String value) => _blink.BlinkSVGElement.instance.xmlspace_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGElement.onabort')
   @DocsEditable()
@@ -7670,7 +7670,7 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ZoomAndPan 
   
   @DomName('SVGSVGElement.currentScale')
   @DocsEditable()
-  void set currentScale(num value) => _blink.BlinkSVGSVGElement.instance.currentScale_Setter_(unwrap_jso(this), value);
+  set currentScale(num value) => _blink.BlinkSVGSVGElement.instance.currentScale_Setter_(unwrap_jso(this), value);
   
   @DomName('SVGSVGElement.currentTranslate')
   @DocsEditable()
@@ -7826,7 +7826,7 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ZoomAndPan 
   
   @DomName('SVGSVGElement.zoomAndPan')
   @DocsEditable()
-  void set zoomAndPan(int value) => _blink.BlinkSVGSVGElement.instance.zoomAndPan_Setter_(unwrap_jso(this), value);
+  set zoomAndPan(int value) => _blink.BlinkSVGSVGElement.instance.zoomAndPan_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8688,7 +8688,7 @@ class ViewElement extends SvgElement implements FitToViewBox, ZoomAndPan {
   
   @DomName('SVGViewElement.zoomAndPan')
   @DocsEditable()
-  void set zoomAndPan(int value) => _blink.BlinkSVGViewElement.instance.zoomAndPan_Setter_(unwrap_jso(this), value);
+  set zoomAndPan(int value) => _blink.BlinkSVGViewElement.instance.zoomAndPan_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8762,7 +8762,7 @@ class ViewSpec extends NativeFieldWrapperClass2 implements FitToViewBox, ZoomAnd
   @DomName('SVGViewSpec.zoomAndPan')
   @DocsEditable()
   @Experimental() // nonstandard
-  void set zoomAndPan(int value) => _blink.BlinkSVGViewSpec.instance.zoomAndPan_Setter_(unwrap_jso(this), value);
+  set zoomAndPan(int value) => _blink.BlinkSVGViewSpec.instance.zoomAndPan_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8812,7 +8812,7 @@ abstract class ZoomAndPan extends NativeFieldWrapperClass2 {
 
   @DomName('SVGZoomAndPan.zoomAndPan')
   @DocsEditable()
-  void set zoomAndPan(int value);
+  set zoomAndPan(int value);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

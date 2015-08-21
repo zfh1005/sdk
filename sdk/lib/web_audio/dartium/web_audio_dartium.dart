@@ -114,7 +114,7 @@ class AnalyserNode extends AudioNode {
   
   @DomName('AnalyserNode.fftSize')
   @DocsEditable()
-  void set fftSize(int value) => _blink.BlinkAnalyserNode.instance.fftSize_Setter_(unwrap_jso(this), value);
+  set fftSize(int value) => _blink.BlinkAnalyserNode.instance.fftSize_Setter_(unwrap_jso(this), value);
   
   @DomName('AnalyserNode.frequencyBinCount')
   @DocsEditable()
@@ -126,7 +126,7 @@ class AnalyserNode extends AudioNode {
   
   @DomName('AnalyserNode.maxDecibels')
   @DocsEditable()
-  void set maxDecibels(num value) => _blink.BlinkAnalyserNode.instance.maxDecibels_Setter_(unwrap_jso(this), value);
+  set maxDecibels(num value) => _blink.BlinkAnalyserNode.instance.maxDecibels_Setter_(unwrap_jso(this), value);
   
   @DomName('AnalyserNode.minDecibels')
   @DocsEditable()
@@ -134,7 +134,7 @@ class AnalyserNode extends AudioNode {
   
   @DomName('AnalyserNode.minDecibels')
   @DocsEditable()
-  void set minDecibels(num value) => _blink.BlinkAnalyserNode.instance.minDecibels_Setter_(unwrap_jso(this), value);
+  set minDecibels(num value) => _blink.BlinkAnalyserNode.instance.minDecibels_Setter_(unwrap_jso(this), value);
   
   @DomName('AnalyserNode.smoothingTimeConstant')
   @DocsEditable()
@@ -142,7 +142,7 @@ class AnalyserNode extends AudioNode {
   
   @DomName('AnalyserNode.smoothingTimeConstant')
   @DocsEditable()
-  void set smoothingTimeConstant(num value) => _blink.BlinkAnalyserNode.instance.smoothingTimeConstant_Setter_(unwrap_jso(this), value);
+  set smoothingTimeConstant(num value) => _blink.BlinkAnalyserNode.instance.smoothingTimeConstant_Setter_(unwrap_jso(this), value);
   
   @DomName('AnalyserNode.getByteFrequencyData')
   @DocsEditable()
@@ -270,7 +270,7 @@ class AudioBufferSourceNode extends AudioSourceNode {
   
   @DomName('AudioBufferSourceNode.buffer')
   @DocsEditable()
-  void set buffer(AudioBuffer value) => _blink.BlinkAudioBufferSourceNode.instance.buffer_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set buffer(AudioBuffer value) => _blink.BlinkAudioBufferSourceNode.instance.buffer_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('AudioBufferSourceNode.loop')
   @DocsEditable()
@@ -278,7 +278,7 @@ class AudioBufferSourceNode extends AudioSourceNode {
   
   @DomName('AudioBufferSourceNode.loop')
   @DocsEditable()
-  void set loop(bool value) => _blink.BlinkAudioBufferSourceNode.instance.loop_Setter_(unwrap_jso(this), value);
+  set loop(bool value) => _blink.BlinkAudioBufferSourceNode.instance.loop_Setter_(unwrap_jso(this), value);
   
   @DomName('AudioBufferSourceNode.loopEnd')
   @DocsEditable()
@@ -286,7 +286,7 @@ class AudioBufferSourceNode extends AudioSourceNode {
   
   @DomName('AudioBufferSourceNode.loopEnd')
   @DocsEditable()
-  void set loopEnd(num value) => _blink.BlinkAudioBufferSourceNode.instance.loopEnd_Setter_(unwrap_jso(this), value);
+  set loopEnd(num value) => _blink.BlinkAudioBufferSourceNode.instance.loopEnd_Setter_(unwrap_jso(this), value);
   
   @DomName('AudioBufferSourceNode.loopStart')
   @DocsEditable()
@@ -294,7 +294,7 @@ class AudioBufferSourceNode extends AudioSourceNode {
   
   @DomName('AudioBufferSourceNode.loopStart')
   @DocsEditable()
-  void set loopStart(num value) => _blink.BlinkAudioBufferSourceNode.instance.loopStart_Setter_(unwrap_jso(this), value);
+  set loopStart(num value) => _blink.BlinkAudioBufferSourceNode.instance.loopStart_Setter_(unwrap_jso(this), value);
   
   @DomName('AudioBufferSourceNode.playbackRate')
   @DocsEditable()
@@ -581,7 +581,7 @@ class AudioListener extends NativeFieldWrapperClass2 {
   
   @DomName('AudioListener.dopplerFactor')
   @DocsEditable()
-  void set dopplerFactor(num value) => _blink.BlinkAudioListener.instance.dopplerFactor_Setter_(unwrap_jso(this), value);
+  set dopplerFactor(num value) => _blink.BlinkAudioListener.instance.dopplerFactor_Setter_(unwrap_jso(this), value);
   
   @DomName('AudioListener.speedOfSound')
   @DocsEditable()
@@ -589,7 +589,7 @@ class AudioListener extends NativeFieldWrapperClass2 {
   
   @DomName('AudioListener.speedOfSound')
   @DocsEditable()
-  void set speedOfSound(num value) => _blink.BlinkAudioListener.instance.speedOfSound_Setter_(unwrap_jso(this), value);
+  set speedOfSound(num value) => _blink.BlinkAudioListener.instance.speedOfSound_Setter_(unwrap_jso(this), value);
   
   @DomName('AudioListener.setOrientation')
   @DocsEditable()
@@ -634,7 +634,7 @@ class AudioNode extends EventTarget {
   
   @DomName('AudioNode.channelCount')
   @DocsEditable()
-  void set channelCount(int value) => _blink.BlinkAudioNode.instance.channelCount_Setter_(unwrap_jso(this), value);
+  set channelCount(int value) => _blink.BlinkAudioNode.instance.channelCount_Setter_(unwrap_jso(this), value);
   
   @DomName('AudioNode.channelCountMode')
   @DocsEditable()
@@ -642,7 +642,7 @@ class AudioNode extends EventTarget {
   
   @DomName('AudioNode.channelCountMode')
   @DocsEditable()
-  void set channelCountMode(String value) => _blink.BlinkAudioNode.instance.channelCountMode_Setter_(unwrap_jso(this), value);
+  set channelCountMode(String value) => _blink.BlinkAudioNode.instance.channelCountMode_Setter_(unwrap_jso(this), value);
   
   @DomName('AudioNode.channelInterpretation')
   @DocsEditable()
@@ -650,7 +650,7 @@ class AudioNode extends EventTarget {
   
   @DomName('AudioNode.channelInterpretation')
   @DocsEditable()
-  void set channelInterpretation(String value) => _blink.BlinkAudioNode.instance.channelInterpretation_Setter_(unwrap_jso(this), value);
+  set channelInterpretation(String value) => _blink.BlinkAudioNode.instance.channelInterpretation_Setter_(unwrap_jso(this), value);
   
   @DomName('AudioNode.context')
   @DocsEditable()
@@ -728,7 +728,7 @@ class AudioParam extends NativeFieldWrapperClass2 {
   
   @DomName('AudioParam.value')
   @DocsEditable()
-  void set value(num value) => _blink.BlinkAudioParam.instance.value_Setter_(unwrap_jso(this), value);
+  set value(num value) => _blink.BlinkAudioParam.instance.value_Setter_(unwrap_jso(this), value);
   
   @DomName('AudioParam.cancelScheduledValues')
   @DocsEditable()
@@ -873,7 +873,7 @@ class BiquadFilterNode extends AudioNode {
   
   @DomName('BiquadFilterNode.type')
   @DocsEditable()
-  void set type(String value) => _blink.BlinkBiquadFilterNode.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkBiquadFilterNode.instance.type_Setter_(unwrap_jso(this), value);
   
   @DomName('BiquadFilterNode.getFrequencyResponse')
   @DocsEditable()
@@ -969,7 +969,7 @@ class ConvolverNode extends AudioNode {
   
   @DomName('ConvolverNode.buffer')
   @DocsEditable()
-  void set buffer(AudioBuffer value) => _blink.BlinkConvolverNode.instance.buffer_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set buffer(AudioBuffer value) => _blink.BlinkConvolverNode.instance.buffer_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('ConvolverNode.normalize')
   @DocsEditable()
@@ -977,7 +977,7 @@ class ConvolverNode extends AudioNode {
   
   @DomName('ConvolverNode.normalize')
   @DocsEditable()
-  void set normalize(bool value) => _blink.BlinkConvolverNode.instance.normalize_Setter_(unwrap_jso(this), value);
+  set normalize(bool value) => _blink.BlinkConvolverNode.instance.normalize_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1311,7 +1311,7 @@ class OscillatorNode extends AudioSourceNode {
   
   @DomName('OscillatorNode.type')
   @DocsEditable()
-  void set type(String value) => _blink.BlinkOscillatorNode.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkOscillatorNode.instance.type_Setter_(unwrap_jso(this), value);
   
   @DomName('OscillatorNode.noteOff')
   @DocsEditable()
@@ -1384,7 +1384,7 @@ class PannerNode extends AudioNode {
   
   @DomName('PannerNode.coneInnerAngle')
   @DocsEditable()
-  void set coneInnerAngle(num value) => _blink.BlinkPannerNode.instance.coneInnerAngle_Setter_(unwrap_jso(this), value);
+  set coneInnerAngle(num value) => _blink.BlinkPannerNode.instance.coneInnerAngle_Setter_(unwrap_jso(this), value);
   
   @DomName('PannerNode.coneOuterAngle')
   @DocsEditable()
@@ -1392,7 +1392,7 @@ class PannerNode extends AudioNode {
   
   @DomName('PannerNode.coneOuterAngle')
   @DocsEditable()
-  void set coneOuterAngle(num value) => _blink.BlinkPannerNode.instance.coneOuterAngle_Setter_(unwrap_jso(this), value);
+  set coneOuterAngle(num value) => _blink.BlinkPannerNode.instance.coneOuterAngle_Setter_(unwrap_jso(this), value);
   
   @DomName('PannerNode.coneOuterGain')
   @DocsEditable()
@@ -1400,7 +1400,7 @@ class PannerNode extends AudioNode {
   
   @DomName('PannerNode.coneOuterGain')
   @DocsEditable()
-  void set coneOuterGain(num value) => _blink.BlinkPannerNode.instance.coneOuterGain_Setter_(unwrap_jso(this), value);
+  set coneOuterGain(num value) => _blink.BlinkPannerNode.instance.coneOuterGain_Setter_(unwrap_jso(this), value);
   
   @DomName('PannerNode.distanceModel')
   @DocsEditable()
@@ -1408,7 +1408,7 @@ class PannerNode extends AudioNode {
   
   @DomName('PannerNode.distanceModel')
   @DocsEditable()
-  void set distanceModel(String value) => _blink.BlinkPannerNode.instance.distanceModel_Setter_(unwrap_jso(this), value);
+  set distanceModel(String value) => _blink.BlinkPannerNode.instance.distanceModel_Setter_(unwrap_jso(this), value);
   
   @DomName('PannerNode.maxDistance')
   @DocsEditable()
@@ -1416,7 +1416,7 @@ class PannerNode extends AudioNode {
   
   @DomName('PannerNode.maxDistance')
   @DocsEditable()
-  void set maxDistance(num value) => _blink.BlinkPannerNode.instance.maxDistance_Setter_(unwrap_jso(this), value);
+  set maxDistance(num value) => _blink.BlinkPannerNode.instance.maxDistance_Setter_(unwrap_jso(this), value);
   
   @DomName('PannerNode.panningModel')
   @DocsEditable()
@@ -1424,7 +1424,7 @@ class PannerNode extends AudioNode {
   
   @DomName('PannerNode.panningModel')
   @DocsEditable()
-  void set panningModel(String value) => _blink.BlinkPannerNode.instance.panningModel_Setter_(unwrap_jso(this), value);
+  set panningModel(String value) => _blink.BlinkPannerNode.instance.panningModel_Setter_(unwrap_jso(this), value);
   
   @DomName('PannerNode.refDistance')
   @DocsEditable()
@@ -1432,7 +1432,7 @@ class PannerNode extends AudioNode {
   
   @DomName('PannerNode.refDistance')
   @DocsEditable()
-  void set refDistance(num value) => _blink.BlinkPannerNode.instance.refDistance_Setter_(unwrap_jso(this), value);
+  set refDistance(num value) => _blink.BlinkPannerNode.instance.refDistance_Setter_(unwrap_jso(this), value);
   
   @DomName('PannerNode.rolloffFactor')
   @DocsEditable()
@@ -1440,7 +1440,7 @@ class PannerNode extends AudioNode {
   
   @DomName('PannerNode.rolloffFactor')
   @DocsEditable()
-  void set rolloffFactor(num value) => _blink.BlinkPannerNode.instance.rolloffFactor_Setter_(unwrap_jso(this), value);
+  set rolloffFactor(num value) => _blink.BlinkPannerNode.instance.rolloffFactor_Setter_(unwrap_jso(this), value);
   
   @DomName('PannerNode.setOrientation')
   @DocsEditable()
@@ -1579,7 +1579,7 @@ class WaveShaperNode extends AudioNode {
   
   @DomName('WaveShaperNode.curve')
   @DocsEditable()
-  void set curve(Float32List value) => _blink.BlinkWaveShaperNode.instance.curve_Setter_(unwrap_jso(this), unwrap_jso(value));
+  set curve(Float32List value) => _blink.BlinkWaveShaperNode.instance.curve_Setter_(unwrap_jso(this), unwrap_jso(value));
   
   @DomName('WaveShaperNode.oversample')
   @DocsEditable()
@@ -1587,6 +1587,6 @@ class WaveShaperNode extends AudioNode {
   
   @DomName('WaveShaperNode.oversample')
   @DocsEditable()
-  void set oversample(String value) => _blink.BlinkWaveShaperNode.instance.oversample_Setter_(unwrap_jso(this), value);
+  set oversample(String value) => _blink.BlinkWaveShaperNode.instance.oversample_Setter_(unwrap_jso(this), value);
   
 }

@@ -750,7 +750,7 @@ class ContextAttributes extends NativeFieldWrapperClass2 {
   
   @DomName('WebGLContextAttributes.alpha')
   @DocsEditable()
-  void set alpha(bool value) => _blink.BlinkWebGLContextAttributes.instance.alpha_Setter_(unwrap_jso(this), value);
+  set alpha(bool value) => _blink.BlinkWebGLContextAttributes.instance.alpha_Setter_(unwrap_jso(this), value);
   
   @DomName('WebGLContextAttributes.antialias')
   @DocsEditable()
@@ -758,7 +758,7 @@ class ContextAttributes extends NativeFieldWrapperClass2 {
   
   @DomName('WebGLContextAttributes.antialias')
   @DocsEditable()
-  void set antialias(bool value) => _blink.BlinkWebGLContextAttributes.instance.antialias_Setter_(unwrap_jso(this), value);
+  set antialias(bool value) => _blink.BlinkWebGLContextAttributes.instance.antialias_Setter_(unwrap_jso(this), value);
   
   @DomName('WebGLContextAttributes.depth')
   @DocsEditable()
@@ -766,7 +766,7 @@ class ContextAttributes extends NativeFieldWrapperClass2 {
   
   @DomName('WebGLContextAttributes.depth')
   @DocsEditable()
-  void set depth(bool value) => _blink.BlinkWebGLContextAttributes.instance.depth_Setter_(unwrap_jso(this), value);
+  set depth(bool value) => _blink.BlinkWebGLContextAttributes.instance.depth_Setter_(unwrap_jso(this), value);
   
   @DomName('WebGLContextAttributes.failIfMajorPerformanceCaveat')
   @DocsEditable()
@@ -776,7 +776,7 @@ class ContextAttributes extends NativeFieldWrapperClass2 {
   @DomName('WebGLContextAttributes.failIfMajorPerformanceCaveat')
   @DocsEditable()
   @Experimental() // untriaged
-  void set failIfMajorPerformanceCaveat(bool value) => _blink.BlinkWebGLContextAttributes.instance.failIfMajorPerformanceCaveat_Setter_(unwrap_jso(this), value);
+  set failIfMajorPerformanceCaveat(bool value) => _blink.BlinkWebGLContextAttributes.instance.failIfMajorPerformanceCaveat_Setter_(unwrap_jso(this), value);
   
   @DomName('WebGLContextAttributes.premultipliedAlpha')
   @DocsEditable()
@@ -784,7 +784,7 @@ class ContextAttributes extends NativeFieldWrapperClass2 {
   
   @DomName('WebGLContextAttributes.premultipliedAlpha')
   @DocsEditable()
-  void set premultipliedAlpha(bool value) => _blink.BlinkWebGLContextAttributes.instance.premultipliedAlpha_Setter_(unwrap_jso(this), value);
+  set premultipliedAlpha(bool value) => _blink.BlinkWebGLContextAttributes.instance.premultipliedAlpha_Setter_(unwrap_jso(this), value);
   
   @DomName('WebGLContextAttributes.preserveDrawingBuffer')
   @DocsEditable()
@@ -792,7 +792,7 @@ class ContextAttributes extends NativeFieldWrapperClass2 {
   
   @DomName('WebGLContextAttributes.preserveDrawingBuffer')
   @DocsEditable()
-  void set preserveDrawingBuffer(bool value) => _blink.BlinkWebGLContextAttributes.instance.preserveDrawingBuffer_Setter_(unwrap_jso(this), value);
+  set preserveDrawingBuffer(bool value) => _blink.BlinkWebGLContextAttributes.instance.preserveDrawingBuffer_Setter_(unwrap_jso(this), value);
   
   @DomName('WebGLContextAttributes.stencil')
   @DocsEditable()
@@ -800,7 +800,7 @@ class ContextAttributes extends NativeFieldWrapperClass2 {
   
   @DomName('WebGLContextAttributes.stencil')
   @DocsEditable()
-  void set stencil(bool value) => _blink.BlinkWebGLContextAttributes.instance.stencil_Setter_(unwrap_jso(this), value);
+  set stencil(bool value) => _blink.BlinkWebGLContextAttributes.instance.stencil_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
