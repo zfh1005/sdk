@@ -296,7 +296,7 @@ $if DARTIUM
   @DocsEditable()
   @Returns('NodeList')
   @Creates('NodeList')
-  List<Node> get childNodes => wrap_jso_node_list(_blink.BlinkNode.instance.childNodes_Getter_(unwrap_jso(this)));
+  List<Node> get childNodes => wrap_jso(_blink.BlinkNode.instance.childNodes_Getter_(unwrap_jso(this)));
 $else
   /**
    * A list of this node's children.

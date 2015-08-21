@@ -608,11 +608,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    */
   @DomName('Element.querySelectorAll')
   ElementList<Element> querySelectorAll(String selectors) =>
-$if JSINTEROP
-    _querySelectorAll(selectors);
-$else
     new _FrozenElementList._wrap(_querySelectorAll(selectors));
-$endif
 
   /**
    * Alias for [querySelector]. Note this function is deprecated because its

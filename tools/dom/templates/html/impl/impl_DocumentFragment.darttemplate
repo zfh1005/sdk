@@ -58,12 +58,7 @@ $endif
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
   ElementList<Element> querySelectorAll(String selectors) =>
-$if JSINTEROP
-    _querySelectorAll(selectors);
-$else
     new _FrozenElementList._wrap(_querySelectorAll(selectors));
-$endif
-
 
   String get innerHtml {
     final e = new Element.tag("div");

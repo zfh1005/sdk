@@ -1172,9 +1172,6 @@ wrap_jso(jsObject) {
 
       debug_or_assert("constructor != null", constructor != null);
     }
-    if (constructor == js.context['NodeList']) {
-      return wrap_jso_node_list(jsObject);
-    }
     if (constructor == js.context['Object']) {
       return convertNativeObjectToDartMap(jsObject);
     }
@@ -1238,16 +1235,6 @@ js.JsFunction wrap_media_event_listener(Function listener) {
     new js.JsFunction.withThis((theObject, eventListener) => listener(wrap_jso(eventListener))));
 
   return _knownListeners[thisHashCode][listenerHashCode];
-}
-
-// Wrap JsObject node list to return a List<node>.
-List<Node> wrap_jso_node_list(jso_nodes) {
-  List<Node> nodes = new List<Node>();
-  var collectionLen = jso_nodes['length'];
-  for (var i = 0; i < collectionLen; i++) {
-    nodes.add(wrap_jso(jso_nodes.callMethod('item', [i])));
-  }
-  return nodes;
 }
 
 Map<String, dynamic> convertNativeObjectToDartMap(js.JsObject jsObject) {
@@ -11035,7 +11022,7 @@ class Document extends Node
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
   ElementList<Element> querySelectorAll(String selectors) {
-    return _querySelectorAll(selectors);
+    return new _FrozenElementList._wrap(_querySelectorAll(selectors));
   }
 
   /**
@@ -11127,8 +11114,7 @@ class DocumentFragment extends Node implements ParentNode {
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
   ElementList<Element> querySelectorAll(String selectors) =>
-    _querySelectorAll(selectors);
-
+    new _FrozenElementList._wrap(_querySelectorAll(selectors));
 
   String get innerHtml {
     final e = new Element.tag("div");
@@ -14087,7 +14073,7 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
    */
   @DomName('Element.querySelectorAll')
   ElementList<Element> querySelectorAll(String selectors) =>
-    _querySelectorAll(selectors);
+    new _FrozenElementList._wrap(_querySelectorAll(selectors));
 
   /**
    * Alias for [querySelector]. Note this function is deprecated because its
@@ -27951,7 +27937,7 @@ class Node extends EventTarget {
   @DocsEditable()
   @Returns('NodeList')
   @Creates('NodeList')
-  List<Node> get childNodes => wrap_jso_node_list(_blink.BlinkNode.instance.childNodes_Getter_(unwrap_jso(this)));
+  List<Node> get childNodes => wrap_jso(_blink.BlinkNode.instance.childNodes_Getter_(unwrap_jso(this)));
   // To suppress missing implicit constructor warnings.
   factory Node._() { throw new UnsupportedError("Not supported"); }
 

@@ -9909,7 +9909,6 @@ class DocumentFragment extends Node implements ParentNode {
   ElementList<Element> querySelectorAll(String selectors) =>
     new _FrozenElementList._wrap(_querySelectorAll(selectors));
 
-
   String get innerHtml {
     final e = new Element.tag("div");
     e.append(this.clone(true));

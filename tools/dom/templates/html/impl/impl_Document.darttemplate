@@ -26,11 +26,7 @@ $!MEMBERS
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
   ElementList<Element> querySelectorAll(String selectors) {
-$if JSINTEROP
-    return _querySelectorAll(selectors);
-$else
     return new _FrozenElementList._wrap(_querySelectorAll(selectors));
-$endif
   }
 
   /**
