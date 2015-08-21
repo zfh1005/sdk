@@ -352,7 +352,8 @@ Function _getSvgFunction(String key) {
  **********                                                          **********
  ******************************************************************************/
 
-Rectangle make_dart_rectangle(r) => new Rectangle(r['left'], r['top'], r['width'], r['height']);
+Rectangle make_dart_rectangle(r) =>
+    r == null ? null : new Rectangle(r['left'], r['top'], r['width'], r['height']);
 
 // Need a default constructor for constructing classes with mixins that are
 // also extending NativeFieldWrapperClass2.  Defining JsoNativeFieldWrapper
