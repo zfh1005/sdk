@@ -11307,7 +11307,7 @@ class DomException extends NativeFieldWrapperClass2 {
   String _message;
 
   DomException.jsInterop(String m) {
-    var name_index = _message = m.indexOf(': ');
+    var name_index = m.indexOf(': ');
     if (name_index < 0) {
       _name = "";
       _message = m;
