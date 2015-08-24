@@ -341,7 +341,7 @@ class SqlResultSetRowList extends JsoNativeFieldWrapper with ListMixin<Map>, Imm
   // Map is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 

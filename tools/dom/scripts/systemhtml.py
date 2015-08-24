@@ -997,7 +997,7 @@ class Dart2JSBackend(HtmlDartGenerator):
       return self._AddConvertingSetter(attr, html_name, conversion)
     self._members_emitter.Emit(
         # TODO(sra): Use metadata to provide native name.
-        '\n  void set $HTML_NAME($TYPE value) {'
+        '\n  set $HTML_NAME($TYPE value) {'
         '\n    JS("void", "#.$NAME = #", this, value);'
         '\n  }'
         '\n',
@@ -1024,10 +1024,10 @@ class Dart2JSBackend(HtmlDartGenerator):
   def _AddConvertingSetter(self, attr, html_name, conversion):
     self._members_emitter.Emit(
         # TODO(sra): Use metadata to provide native name.
-        '\n  void set $HTML_NAME($INPUT_TYPE value) {'
+        '\n  set $HTML_NAME($INPUT_TYPE value) {'
         '\n    this._set_$HTML_NAME = $CONVERT(value);'
         '\n  }'
-        '\n  void set _set_$HTML_NAME(/*$NATIVE_TYPE*/ value) {'
+        '\n  set _set_$HTML_NAME(/*$NATIVE_TYPE*/ value) {'
         '\n    JS("void", "#.$NAME = #", this, value);'
         '\n  }'
         '\n',

@@ -33,7 +33,7 @@ class _ChildrenElementList extends ListBase<Element>
     _element._replaceChild(value, _childElements[index]);
   }
 
-  void set length(int newLength) {
+  length(int newLength) {
     // TODO(jacobr): remove children when length is reduced.
     throw new UnsupportedError('Cannot resize element lists');
   }
@@ -286,7 +286,7 @@ $endif
     throw new UnsupportedError('Cannot modify list');
   }
 
-  void set length(int newLength) {
+  set length(int newLength) {
     throw new UnsupportedError('Cannot modify list');
   }
 
@@ -309,7 +309,7 @@ $endif
   CssStyleDeclarationBase get style =>
       new _CssStyleDeclarationSet(this);
 
-  void set classes(Iterable<String> value) {
+  set classes(Iterable<String> value) {
     // TODO(sra): This might be faster for Sets:
     //
     //     new _MultiElementCssClassSet(this).writeClasses(value)
@@ -565,7 +565,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    */
   Map<String, String> get attributes => new _ElementAttributeMap(this);
 
-  void set attributes(Map<String, String> value) {
+  set attributes(Map<String, String> value) {
     Map<String, String> attributes = this.attributes;
     attributes.clear();
     for (String key in value.keys) {
@@ -587,7 +587,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    */
   List<Element> get children => new _ChildrenElementList._wrap(this);
 
-  void set children(List<Element> value) {
+  set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
     List copy = new List.from(value);
     var children = this.children;
@@ -641,7 +641,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    */
   CssClassSet get classes => new _ElementCssClassSet(this);
 
-  void set classes(Iterable<String> value) {
+  set classes(Iterable<String> value) {
     // TODO(sra): Do this without reading the classes in clear() and addAll(),
     // or writing the classes in clear().
     CssClassSet classSet = classes;
@@ -675,7 +675,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   Map<String, String> get dataset =>
     new _DataAttributeMap(attributes);
 
-  void set dataset(Map<String, String> value) {
+  set dataset(Map<String, String> value) {
     final data = this.dataset;
     data.clear();
     for (String key in value.keys) {
@@ -871,7 +871,7 @@ $endif
   // members of the component are used. The actual type is a subtype of Element.
   get xtag => _xtag != null ? _xtag : this;
 
-  void set xtag(Element value) {
+  set xtag(Element value) {
     _xtag = value;
   }
 
@@ -1386,7 +1386,7 @@ $endif
    * This uses the default sanitization behavior to sanitize the HTML fragment,
    * use [setInnerHtml] to override the default behavior.
    */
-  void set innerHtml(String html) {
+  set innerHtml(String html) {
     this.setInnerHtml(html);
   }
 
@@ -1504,7 +1504,7 @@ $if DART2JS
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  void set scrollLeft(int value) {
+  set scrollLeft(int value) {
     JS("void", "#.scrollLeft = #", this, value.round());
   }
 
@@ -1514,7 +1514,7 @@ $if DART2JS
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  void set scrollTop(int value) {
+  set scrollTop(int value) {
     JS("void", "#.scrollTop = #", this, value.round());
   }
 
@@ -1566,7 +1566,7 @@ $else
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  void set scrollLeft(int value) => _blink.BlinkElement.instance.scrollLeft_Setter_(unwrap_jso(this), value.round());
+  set scrollLeft(int value) => _blink.BlinkElement.instance.scrollLeft_Setter_(unwrap_jso(this), value.round());
 
   @DomName('Element.scrollTop')
   @DocsEditable()
@@ -1574,7 +1574,7 @@ $else
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  void set scrollTop(int value) => _blink.BlinkElement.instance.scrollTop_Setter_(unwrap_jso(this), value.round());
+  set scrollTop(int value) => _blink.BlinkElement.instance.scrollTop_Setter_(unwrap_jso(this), value.round());
 
   @DomName('Element.scrollWidth')
   @DocsEditable()
@@ -1622,7 +1622,7 @@ $else
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  void set scrollLeft(int value) => _blink.BlinkElement.scrollLeft_Setter(this, value.round());
+  set scrollLeft(int value) => _blink.BlinkElement.scrollLeft_Setter(this, value.round());
 
   @DomName('Element.scrollTop')
   @DocsEditable()
@@ -1630,7 +1630,7 @@ $else
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  void set scrollTop(int value) => _blink.BlinkElement.scrollTop_Setter(this, value.round());
+  set scrollTop(int value) => _blink.BlinkElement.scrollTop_Setter(this, value.round());
 
   @DomName('Element.scrollWidth')
   @DocsEditable()

@@ -3886,7 +3886,7 @@ class LengthList extends JsoNativeFieldWrapper with ListMixin<Length>, Immutable
   // Length is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -4483,7 +4483,7 @@ class NumberList extends JsoNativeFieldWrapper with ListMixin<Number>, Immutable
   // Number is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -5753,7 +5753,7 @@ class PathSegList extends JsoNativeFieldWrapper with ListMixin<PathSeg>, Immutab
   // PathSeg is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -6733,7 +6733,7 @@ class StringList extends JsoNativeFieldWrapper with ListMixin<String>, Immutable
   // String is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 
@@ -6934,7 +6934,7 @@ class SvgElement extends Element implements GlobalEventHandlers {
 
   List<Element> get children => new FilteredElementList<Element>(this);
 
-  void set children(List<Element> value) {
+  set children(List<Element> value) {
     final children = this.children;
     children.clear();
     children.addAll(value);
@@ -6954,7 +6954,7 @@ class SvgElement extends Element implements GlobalEventHandlers {
     return container.innerHtml;
   }
 
-  void set innerHtml(String value) {
+  set innerHtml(String value) {
     this.setInnerHtml(value);
   }
 
@@ -8428,7 +8428,7 @@ class TransformList extends JsoNativeFieldWrapper with ListMixin<Transform>, Imm
   // Transform is the element type.
 
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError("Cannot resize immutable List.");
   }
 

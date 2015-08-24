@@ -242,7 +242,7 @@ $if DART2JS
   String get %s => this._%s;
 
   /** Sets the value of "%s" */
-  void set %s(String value) {
+  set %s(String value) {
     _%s = value == null ? '' : value;
   }
   @Returns('String')
@@ -291,7 +291,7 @@ $if DART2JS
     property = dashifyName(camelName)
     class_file.write("""
   /** Sets the value of "%s" */
-  void set %s(String value) {
+  set %s(String value) {
     _setAll('%s', value);
   }
     """ % (property, camelName, camelName))
@@ -353,7 +353,7 @@ $endif
     if base_css_name in annotated:
       class_lines.append(annotated[base_css_name])
     class_lines.append("""
-  void set %s(String value) {
+  set %s(String value) {
     setProperty('%s', value, '');
   }
 """ % (camel_case_name, css_name))

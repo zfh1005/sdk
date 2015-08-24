@@ -873,7 +873,7 @@ class _LocationCrossFrame extends NativeFieldWrapperClass2 implements LocationBa
   _LocationCrossFrame.internal();
 
   // Fields.
-  void set href(String h) => _blink.Blink_LocationCrossFrame.set_href(this, h);
+  set href(String h) => _blink.Blink_LocationCrossFrame.set_href(this, h);
 
   // Implementation support.
   String get typeName => "Location";

@@ -58,7 +58,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
 
   List<Element> get children => new FilteredElementList<Element>(this);
 
-  void set children(List<Element> value) {
+  set children(List<Element> value) {
     final children = this.children;
     children.clear();
     children.addAll(value);
@@ -78,7 +78,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     return container.innerHtml;
   }
 
-  void set innerHtml(String value) {
+  set innerHtml(String value) {
     this.setInnerHtml(value);
   }
 

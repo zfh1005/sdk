@@ -183,7 +183,7 @@ $endif
   // a local copy of childNodes is more efficient.
   int get length => _this.childNodes.length;
 
-  void set length(int value) {
+  set length(int value) {
     throw new UnsupportedError(
         "Cannot set length on immutable List.");
   }
@@ -206,7 +206,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     return new _ChildNodeListLazy(this);
   }
 
-  void set nodes(Iterable<Node> value) {
+  set nodes(Iterable<Node> value) {
     // Copy list first since we don't want liveness during iteration.
     // TODO(jacobr): there is a better way to do this.
     List copy = new List.from(value);

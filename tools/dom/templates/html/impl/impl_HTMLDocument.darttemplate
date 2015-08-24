@@ -17,7 +17,7 @@ $else
   BodyElement get body => _body;
 
   @DomName('Document.body')
-  void set body(BodyElement value) {
+  set body(BodyElement value) {
     _body = value;
   }
 $endif
@@ -90,7 +90,7 @@ $endif
 
   @DomName('Document.selectedStylesheetSet')
   String get selectedStylesheetSet => _selectedStylesheetSet;
-  void set selectedStylesheetSet(String value) {
+  set selectedStylesheetSet(String value) {
     _selectedStylesheetSet = value;
   }
 
@@ -101,7 +101,7 @@ $endif
   String get title => _title;
 
   @DomName('Document.title')
-  void set title(String value) {
+  set title(String value) {
     _title = value;
   }
 
