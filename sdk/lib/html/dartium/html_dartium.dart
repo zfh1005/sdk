@@ -26989,14 +26989,8 @@ class MutationObserver extends NativeFieldWrapperClass2 {
     return true;
   }
   @DocsEditable()
-  static MutationObserver _create(callback) => wrap_jso(_blink.BlinkMutationObserver.instance.constructorCallback_1_((List<MutationRecord> mutations, MutationObserver observer) {
-      var wrapped_mutations = [];
-      for (var mutation in mutations) {
-        // Wrap the Javascript object for each MutationRecord.
-        wrapped_mutations.add(wrap_jso(mutation));
-      }
-      // Wrap the MutationObserver too.
-      callback(wrapped_mutations, wrap_jso(observer));
+  static MutationObserver _create(callback) => wrap_jso(_blink.BlinkMutationObserver.instance.constructorCallback_1_((mutations, observer) {
+    callback(mutations, wrap_jso(observer));
   }));
 
   /**
@@ -37005,10 +36999,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
