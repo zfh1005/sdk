@@ -159,7 +159,7 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
    *
    * Throws an [UnsupportedError] if the list is fixed-length.
    */
-  void set length(int newLength);
+  set length(int newLength);
 
   /**
    * Adds [value] to the end of this list,
@@ -323,7 +323,7 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
    *
    * Returns the removed object.
    *
-   * The [index] must be in the range `0 ≤ index < length`.
+   * The [index] must be in the range `0 ��� index < length`.
    *
    * Throws an [UnsupportedError] if this is a fixed-length list. In that case
    * the list is not modified.
@@ -409,7 +409,7 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
    *     list1.setRange(1, 3, list2, 3);
    *     list1.join(', '); // '1, 8, 9, 4'
    *
-   * The [start] and [end] indices must satisfy `0 ≤ start ≤ end ≤ length`.
+   * The [start] and [end] indices must satisfy `0 ��� start ��� end ��� length`.
    * If [start] equals [end], this method has no effect.
    *
    * The [iterable] must have enough objects to fill the range from `start`
@@ -428,7 +428,7 @@ abstract class List<E> implements Iterable<E>, EfficientLength {
    * Removes the objects in the range [start] inclusive to [end] exclusive.
    *
    * The [start] and [end] indices must be in the range
-   * `0 ≤ index ≤ length`, and `start ≤ end`.
+   * `0 ��� index ��� length`, and `start ��� end`.
    *
    * Throws an [UnsupportedError] if this is a fixed-length list. In that case
    * the list is not modified.

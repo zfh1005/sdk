@@ -788,7 +788,7 @@ class JsArray<E> extends JsObject with ListMixin<E> {
 
   int get length native "JsArray_length";
 
-  void set length(int length) {
+  set length(int length) {
     super['length'] = length;
   }
 

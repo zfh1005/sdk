@@ -41,7 +41,7 @@ class FilteredElementList<T extends Element> extends ListBase<T>
     this[index].replaceWith(value);
   }
 
-  void set length(int newLength) {
+  set length(int newLength) {
     final len = this.length;
     if (newLength >= len) {
       return;
