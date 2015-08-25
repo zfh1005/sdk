@@ -825,6 +825,7 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'Window.on:wheel',
     'WindowEventHandlers.on:beforeUnload',
     'WorkerGlobalScope.webkitIndexedDB',
+    'XMLHttpRequest.open',
 # TODO(jacobr): should these be removed?
     'Document.close',
     'Document.hasFocus',

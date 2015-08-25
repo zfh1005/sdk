@@ -1128,8 +1128,6 @@ LayoutTests/fast/table/table-width-exceeding-max-width_t01: RuntimeError # co19-
 LayoutTests/fast/text/line-break-after-inline-latin1_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/url/trivial-segments_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/url/trivial_t01: RuntimeError # co19-roll r786: Please triage this failure.
-LayoutTests/fast/xmlhttprequest/xmlhttprequest-bad-mimetype_t01: RuntimeError # co19-roll r786: Please triage this failure.
-LayoutTests/fast/xmlhttprequest/xmlhttprequest-invalid-values_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/dom/HTMLDialogElement/top-layer-position-relative_t01: RuntimeError # Please triage this failure.
 LayoutTests/fast/dom/HTMLDialogElement/top-layer-position-static_t01: RuntimeError # Please triage this failure.
 

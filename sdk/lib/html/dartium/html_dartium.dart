@@ -18393,7 +18393,7 @@ class FormData extends NativeFieldWrapperClass2 {
   factory FormData([FormElement form]) => wrap_jso(_create(form));
 
   @DocsEditable()
-  static FormData _create(form) => _blink.BlinkFormData.instance.constructorCallback_1_(form);
+  static FormData _create(form) => wrap_jso(_blink.BlinkFormData.instance.constructorCallback_1_(form));
 
   static FormData internalCreateFormData() {
     return new FormData._internalWrap();
@@ -21282,6 +21282,31 @@ class HttpRequest extends HttpRequestEventTarget {
     return headers;
   }
 
+  /**
+   * Specify the desired `url`, and `method` to use in making the request.
+   *
+   * By default the request is done asyncronously, with no user or password
+   * authentication information. If `async` is false, the request will be send
+   * synchronously.
+   *
+   * Calling `open` again on a currently active request is equivalent to
+   * calling `abort`.
+   *
+   * Note: Most simple HTTP requests can be accomplished using the [getString],
+   * [request], [requestCrossOrigin], or [postFormData] methods. Use of this
+   * `open` method is intended only for more complext HTTP requests where
+   * finer-grained control is needed.
+   */
+  @DomName('XMLHttpRequest.open')
+  @DocsEditable()
+  void open(String method, String url, {bool async, String user, String password}) {
+    if (async == null && user == null && password == null) {
+      _blink.BlinkXMLHttpRequest.instance.open_Callback_2_(unwrap_jso(this), method, url);
+    } else {
+      _blink.BlinkXMLHttpRequest.instance.open_Callback_5_(unwrap_jso(this), method, url, async, user, password);
+    }
+  }
+
   // To suppress missing implicit constructor warnings.
   factory HttpRequest._() { throw new UnsupportedError("Not supported"); }
 
@@ -21316,7 +21341,7 @@ class HttpRequest extends HttpRequestEventTarget {
   factory HttpRequest() => wrap_jso(_create());
 
   @DocsEditable()
-  static HttpRequest _create() => _blink.BlinkXMLHttpRequest.instance.constructorCallback_0_();
+  static HttpRequest _create() => wrap_jso(_blink.BlinkXMLHttpRequest.instance.constructorCallback_0_());
 
 
   static HttpRequest internalCreateHttpRequest() {
@@ -21575,25 +21600,6 @@ class HttpRequest extends HttpRequestEventTarget {
   @DocsEditable()
   @Unstable()
   String getResponseHeader(String header) => _blink.BlinkXMLHttpRequest.instance.getResponseHeader_Callback_1_(unwrap_jso(this), header);
-  
-  /**
-   * Specify the desired `url`, and `method` to use in making the request.
-   *
-   * By default the request is done asyncronously, with no user or password
-   * authentication information. If `async` is false, the request will be send
-   * synchronously.
-   *
-   * Calling `open` again on a currently active request is equivalent to
-   * calling `abort`.
-   *
-   * Note: Most simple HTTP requests can be accomplished using the [getString],
-   * [request], [requestCrossOrigin], or [postFormData] methods. Use of this
-   * `open` method is intended only for more complext HTTP requests where
-   * finer-grained control is needed.
-   */
-  @DomName('XMLHttpRequest.open')
-  @DocsEditable()
-  void open(String method, String url, {bool async, String user, String password}) => _blink.BlinkXMLHttpRequest.instance.open_Callback_5_(unwrap_jso(this), method, url, async, user, password);
   
   /**
    * Specify a particular MIME type (such as `text/xml`) desired for the

@@ -645,7 +645,7 @@ class DartiumBackend(HtmlDartGenerator):
         self._members_emitter.Emit(
             '\n  @DocsEditable()\n'
             '  static $INTERFACE_NAME $FACTORY_METHOD_NAME($PARAMETERS) => '
-            '$TOPLEVEL_NAME($OUTPARAMETERS);\n',
+            'wrap_jso($TOPLEVEL_NAME($OUTPARAMETERS));\n',
             INTERFACE_NAME=self._interface_type_info.interface_name(),
             FACTORY_METHOD_NAME=factory_method_name,
             PARAMETERS=typed_formals,

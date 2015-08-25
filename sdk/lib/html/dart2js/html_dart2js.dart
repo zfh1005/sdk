@@ -18575,6 +18575,25 @@ class HttpRequest extends HttpRequestEventTarget {
     return headers;
   }
 
+  /**
+   * Specify the desired `url`, and `method` to use in making the request.
+   *
+   * By default the request is done asyncronously, with no user or password
+   * authentication information. If `async` is false, the request will be send
+   * synchronously.
+   *
+   * Calling `open` again on a currently active request is equivalent to
+   * calling `abort`.
+   *
+   * Note: Most simple HTTP requests can be accomplished using the [getString],
+   * [request], [requestCrossOrigin], or [postFormData] methods. Use of this
+   * `open` method is intended only for more complext HTTP requests where
+   * finer-grained control is needed.
+   */
+  @DomName('XMLHttpRequest.open')
+  @DocsEditable()
+  void open(String method, String url, {bool async, String user, String password}) native;
+
   // To suppress missing implicit constructor warnings.
   factory HttpRequest._() { throw new UnsupportedError("Not supported"); }
 
@@ -18829,25 +18848,6 @@ class HttpRequest extends HttpRequestEventTarget {
   @DocsEditable()
   @Unstable()
   String getResponseHeader(String header) native;
-
-  /**
-   * Specify the desired `url`, and `method` to use in making the request.
-   *
-   * By default the request is done asyncronously, with no user or password
-   * authentication information. If `async` is false, the request will be send
-   * synchronously.
-   *
-   * Calling `open` again on a currently active request is equivalent to
-   * calling `abort`.
-   *
-   * Note: Most simple HTTP requests can be accomplished using the [getString],
-   * [request], [requestCrossOrigin], or [postFormData] methods. Use of this
-   * `open` method is intended only for more complext HTTP requests where
-   * finer-grained control is needed.
-   */
-  @DomName('XMLHttpRequest.open')
-  @DocsEditable()
-  void open(String method, String url, {bool async, String user, String password}) native;
 
   /**
    * Specify a particular MIME type (such as `text/xml`) desired for the
