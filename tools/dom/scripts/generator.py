@@ -553,7 +553,7 @@ class OperationInfo(object):
           elif (dart_js_interop and type_id == 'EventListener' and
               (self.name == 'removeEventListener')):
               # Find the JsFunction that corresponds to this Dart function.
-              parameters.append('_knownListeners[identityHashCode(this)][identityHashCode(%s)]' % p.name)
+              parameters.append('_knownListeners[this.hashCode][identityHashCode(%s)]' % p.name)
           elif dart_js_interop and type_id == 'FontFaceSetForEachCallback':
               # forEach is supported in the DOM for FontFaceSet as it iterates
               # over the Javascript Object the callback parameters are also

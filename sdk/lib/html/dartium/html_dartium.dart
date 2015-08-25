@@ -1217,7 +1217,7 @@ debug_or_assert(message, expression) {
 Map<int, Map<int, js.JsFunction>> _knownListeners = {};
 
 js.JsFunction wrap_event_listener(theObject, Function listener) {
-  var thisHashCode = identityHashCode(theObject);
+  var thisHashCode = theObject.hashCode;
   var listenerHashCode = identityHashCode(listener);
 
   _knownListeners.putIfAbsent(thisHashCode, () => new Map<int, js.JsFunction>());
@@ -1228,7 +1228,7 @@ js.JsFunction wrap_event_listener(theObject, Function listener) {
 }
 
 js.JsFunction wrap_media_event_listener(Function listener) {
-  var thisHashCode = identityHashCode(theObject);
+  var thisHashCode = theObject.hashCode;
   var listenerHashCode = identityHashCode(listener);
 
   _knownListeners.putIfAbsent(thisHashCode, () => new Map<int, js.JsFunction>());
@@ -17150,11 +17150,11 @@ class EventTarget extends NativeFieldWrapperClass2 {
   
   void _removeEventListener([String type, EventListener listener, bool useCapture]) {
     if (useCapture != null) {
-      _blink.BlinkEventTarget.instance.removeEventListener_Callback_3_(unwrap_jso(this), type, _knownListeners[identityHashCode(this)][identityHashCode(listener)], useCapture);
+      _blink.BlinkEventTarget.instance.removeEventListener_Callback_3_(unwrap_jso(this), type, _knownListeners[this.hashCode][identityHashCode(listener)], useCapture);
       return;
     }
     if (listener != null) {
-      _blink.BlinkEventTarget.instance.removeEventListener_Callback_2_(unwrap_jso(this), type, _knownListeners[identityHashCode(this)][identityHashCode(listener)]);
+      _blink.BlinkEventTarget.instance.removeEventListener_Callback_2_(unwrap_jso(this), type, _knownListeners[this.hashCode][identityHashCode(listener)]);
       return;
     }
     if (type != null) {
@@ -37005,10 +37005,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
