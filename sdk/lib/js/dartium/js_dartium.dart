@@ -4,7 +4,7 @@
 
 /**
  * Support for interoperating with JavaScript.
- * 
+ *
  * This library provides access to JavaScript objects from Dart, allowing
  * Dart code to get and set properties, and call methods of JavaScript objects
  * and invoke JavaScript functions. The library takes care of converting
@@ -27,14 +27,14 @@
  * global function `alert()`:
  *
  *     import 'dart:js';
- *     
+ *
  *     main() => context.callMethod('alert', ['Hello from Dart!']);
  *
  * This example shows how to create a [JsObject] from a JavaScript constructor
  * and access its properties:
  *
  *     import 'dart:js';
- *     
+ *
  *     main() {
  *       var object = new JsObject(context['Object']);
  *       object['greeting'] = 'Hello';
@@ -44,7 +44,7 @@
  *     }
  *
  * ## Proxying and automatic conversion
- * 
+ *
  * When setting properties on a JsObject or passing arguments to a Javascript
  * method or function, Dart objects are automatically converted or proxied to
  * JavaScript objects. When accessing JavaScript properties, or when a Dart
@@ -80,7 +80,7 @@
  * `a` and `b` defined:
  *
  *     var jsMap = new JsObject.jsify({'a': 1, 'b': 2});
- * 
+ *
  * This expression creates a JavaScript array:
  *
  *     var jsArray = new JsObject.jsify([1, 2, 3]);
@@ -492,8 +492,14 @@ class JsObject extends NativeFieldWrapperClass2 {
    * Constructs a new JavaScript object from [constructor] and returns a proxy
    * to it.
    */
-  factory JsObject(JsFunction constructor, [List arguments]) =>
-      _create(constructor, arguments);
+  factory JsObject(JsFunction constructor, [List arguments]) {
+    try {
+      return _create(constructor, arguments);
+    } catch (e) {
+      // Re-throw any errors (returned as a string) as a DomException.
+      throw new html.DomException.jsInterop(e);
+    }
+  }
 
   static JsObject _create(
       JsFunction constructor, arguments) native "JsObject_constructorCallback";
@@ -518,7 +524,7 @@ class JsObject extends NativeFieldWrapperClass2 {
    * Use this constructor only if you wish to get access to JavaScript
    * properties attached to a browser host object, such as a Node or Blob, that
    * is normally automatically converted into a native Dart object.
-   * 
+   *
    * An exception will be thrown if [object] either is `null` or has the type
    * `bool`, `num`, or `String`.
    */
@@ -568,7 +574,7 @@ class JsObject extends NativeFieldWrapperClass2 {
     try {
       _operator_setter(property, value);
     } catch (e) {
-      // Re-throw any errors (returned as a string) as a DomExcetion. 
+      // Re-throw any errors (returned as a string) as a DomException.
       throw new html.DomException.jsInterop(e);
     }
   }
