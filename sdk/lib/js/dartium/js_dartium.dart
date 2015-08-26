@@ -562,7 +562,15 @@ class JsObject extends NativeFieldWrapperClass2 {
    *
    * The type of [property] must be either [String] or [num].
    */
-  operator [](property) native "JsObject_[]";
+  operator [](property) {
+    try {
+      return _operator_getter(property);
+    } catch (e) {
+      // Re-throw any errors (returned as a string) as a DomException.
+      throw new html.DomException.jsInterop(e);
+    }
+  }
+  _operator_getter(property) native "JsObject_[]";
 
   /**
    * Sets the value associated with [property] on the proxied JavaScript

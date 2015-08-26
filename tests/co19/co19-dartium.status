@@ -1303,6 +1303,8 @@ LayoutTests/fast/events/clipboard-dataTransferItemList-remove_t01: RuntimeError 
 LayoutTests/fast/forms/textarea-paste-newline_t01: Pass, RuntimeError # Issue 23433
 LayoutTests/fast/canvas/canvas-currentTransform_t01: RuntimeError # Feature is behind a flag in Chrome
 LayoutTests/fast/files/blob-close-revoke_t01: RuntimeError # Experimental feature not exposed anywhere yet
+LayoutTests/fast/forms/file/file-input-capture_t01: RuntimeError # Experimental feature not exposed in Chrome yet
+LayoutTests/fast/forms/input-inputmode_t01: RuntimeError # Experimental feature not exposed in Chrome yet
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid) && $system != windows ]
 LayoutTests/fast/css/font-face-unicode-range-monospace_t01: RuntimeError # co19-roll r761: Please triage this failure.
