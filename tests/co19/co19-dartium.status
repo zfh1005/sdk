@@ -287,6 +287,7 @@ WebPlatformTest/shadow-dom/elements-and-dom-objects/the-shadow-html-element/test
 WebPlatformTest/shadow-dom/events/event-dispatch/test-001_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/events/event-dispatch/test-003_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/events/event-retargeting/test-001_t01: RuntimeError # co19-roll r722: Please triage this failure.
+WebPlatformTest/shadow-dom/events/event-retargeting/test-002_t01: RuntimeError # Not clear that any of this works. Also suppressed in dart2js
 WebPlatformTest/shadow-dom/events/event-retargeting/test-004_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t02: Skip # co19-roll r722: Please triage this failure.
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t05: Skip # co19-roll r722: Please triage this failure.
