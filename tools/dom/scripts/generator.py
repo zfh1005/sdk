@@ -571,8 +571,11 @@ class OperationInfo(object):
             callback_args_decl = []
             callback_args_call = []
             for callback_arg in callback_type.operations[0].arguments:
-              dart_type = type_registry.DartType(callback_arg.type.id)
-              callback_args_decl.append('%s %s' % (dart_type, callback_arg.id))
+              if dart_js_interop:
+                dart_type = '' # For non-primitives we will be passing JsObject for non-primitives, so ignore types
+              else:
+                dart_type = type_registry.DartType(callback_arg.type.id) + ' '
+              callback_args_decl.append('%s%s' % (dart_type, callback_arg.id))
               if wrap_unwrap_type_blink(callback_arg.type.id, type_registry):
                 callback_args_call.append('wrap_jso(%s)' % callback_arg.id)
               else:

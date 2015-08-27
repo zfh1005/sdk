@@ -9380,7 +9380,7 @@ class DataTransferItem extends NativeFieldWrapperClass2 {
   
   @DomName('DataTransferItem.getAsString')
   @DocsEditable()
-  void _getAsString(_StringCallback callback) => _blink.BlinkDataTransferItem.instance.getAsString_Callback_1_(unwrap_jso(this), unwrap_jso((String data) => callback(data)));
+  void _getAsString(_StringCallback callback) => _blink.BlinkDataTransferItem.instance.getAsString_Callback_1_(unwrap_jso(this), unwrap_jso((data) => callback(data)));
   
   Future<String> getAsString() {
     var completer = new Completer<String>();
@@ -9568,11 +9568,11 @@ class DeprecatedStorageInfo extends NativeFieldWrapperClass2 {
 
   void queryUsageAndQuota(int storageType, [StorageUsageCallback usageCallback, StorageErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkDeprecatedStorageInfo.instance.queryUsageAndQuota_Callback_3_(unwrap_jso(this), storageType, unwrap_jso((int currentUsageInBytes, int currentQuotaInBytes) => usageCallback(currentUsageInBytes, currentQuotaInBytes)), unwrap_jso((DomError error) => errorCallback(wrap_jso(error))));
+      _blink.BlinkDeprecatedStorageInfo.instance.queryUsageAndQuota_Callback_3_(unwrap_jso(this), storageType, unwrap_jso((currentUsageInBytes, currentQuotaInBytes) => usageCallback(currentUsageInBytes, currentQuotaInBytes)), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
     if (usageCallback != null) {
-      _blink.BlinkDeprecatedStorageInfo.instance.queryUsageAndQuota_Callback_2_(unwrap_jso(this), storageType, unwrap_jso((int currentUsageInBytes, int currentQuotaInBytes) => usageCallback(currentUsageInBytes, currentQuotaInBytes)));
+      _blink.BlinkDeprecatedStorageInfo.instance.queryUsageAndQuota_Callback_2_(unwrap_jso(this), storageType, unwrap_jso((currentUsageInBytes, currentQuotaInBytes) => usageCallback(currentUsageInBytes, currentQuotaInBytes)));
       return;
     }
     _blink.BlinkDeprecatedStorageInfo.instance.queryUsageAndQuota_Callback_1_(unwrap_jso(this), storageType);
@@ -9581,11 +9581,11 @@ class DeprecatedStorageInfo extends NativeFieldWrapperClass2 {
 
   void requestQuota(int storageType, int newQuotaInBytes, [StorageQuotaCallback quotaCallback, StorageErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkDeprecatedStorageInfo.instance.requestQuota_Callback_4_(unwrap_jso(this), storageType, newQuotaInBytes, unwrap_jso((int grantedQuotaInBytes) => quotaCallback(grantedQuotaInBytes)), unwrap_jso((DomError error) => errorCallback(wrap_jso(error))));
+      _blink.BlinkDeprecatedStorageInfo.instance.requestQuota_Callback_4_(unwrap_jso(this), storageType, newQuotaInBytes, unwrap_jso((grantedQuotaInBytes) => quotaCallback(grantedQuotaInBytes)), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
     if (quotaCallback != null) {
-      _blink.BlinkDeprecatedStorageInfo.instance.requestQuota_Callback_3_(unwrap_jso(this), storageType, newQuotaInBytes, unwrap_jso((int grantedQuotaInBytes) => quotaCallback(grantedQuotaInBytes)));
+      _blink.BlinkDeprecatedStorageInfo.instance.requestQuota_Callback_3_(unwrap_jso(this), storageType, newQuotaInBytes, unwrap_jso((grantedQuotaInBytes) => quotaCallback(grantedQuotaInBytes)));
       return;
     }
     _blink.BlinkDeprecatedStorageInfo.instance.requestQuota_Callback_2_(unwrap_jso(this), storageType, newQuotaInBytes);
@@ -9624,20 +9624,20 @@ class DeprecatedStorageQuota extends NativeFieldWrapperClass2 {
 
   void queryUsageAndQuota(StorageUsageCallback usageCallback, [StorageErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkDeprecatedStorageQuota.instance.queryUsageAndQuota_Callback_2_(unwrap_jso(this), unwrap_jso((int currentUsageInBytes, int currentQuotaInBytes) => usageCallback(currentUsageInBytes, currentQuotaInBytes)), unwrap_jso((DomError error) => errorCallback(wrap_jso(error))));
+      _blink.BlinkDeprecatedStorageQuota.instance.queryUsageAndQuota_Callback_2_(unwrap_jso(this), unwrap_jso((currentUsageInBytes, currentQuotaInBytes) => usageCallback(currentUsageInBytes, currentQuotaInBytes)), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
-    _blink.BlinkDeprecatedStorageQuota.instance.queryUsageAndQuota_Callback_1_(unwrap_jso(this), unwrap_jso((int currentUsageInBytes, int currentQuotaInBytes) => usageCallback(currentUsageInBytes, currentQuotaInBytes)));
+    _blink.BlinkDeprecatedStorageQuota.instance.queryUsageAndQuota_Callback_1_(unwrap_jso(this), unwrap_jso((currentUsageInBytes, currentQuotaInBytes) => usageCallback(currentUsageInBytes, currentQuotaInBytes)));
     return;
   }
 
   void requestQuota(int newQuotaInBytes, [StorageQuotaCallback quotaCallback, StorageErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkDeprecatedStorageQuota.instance.requestQuota_Callback_3_(unwrap_jso(this), newQuotaInBytes, unwrap_jso((int grantedQuotaInBytes) => quotaCallback(grantedQuotaInBytes)), unwrap_jso((DomError error) => errorCallback(wrap_jso(error))));
+      _blink.BlinkDeprecatedStorageQuota.instance.requestQuota_Callback_3_(unwrap_jso(this), newQuotaInBytes, unwrap_jso((grantedQuotaInBytes) => quotaCallback(grantedQuotaInBytes)), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
     if (quotaCallback != null) {
-      _blink.BlinkDeprecatedStorageQuota.instance.requestQuota_Callback_2_(unwrap_jso(this), newQuotaInBytes, unwrap_jso((int grantedQuotaInBytes) => quotaCallback(grantedQuotaInBytes)));
+      _blink.BlinkDeprecatedStorageQuota.instance.requestQuota_Callback_2_(unwrap_jso(this), newQuotaInBytes, unwrap_jso((grantedQuotaInBytes) => quotaCallback(grantedQuotaInBytes)));
       return;
     }
     _blink.BlinkDeprecatedStorageQuota.instance.requestQuota_Callback_1_(unwrap_jso(this), newQuotaInBytes);
@@ -10046,11 +10046,11 @@ class DirectoryEntry extends Entry {
   
   void __getDirectory(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
     if (errorCallback != null) {
-      _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_4_(unwrap_jso(this), path, options != null ? new js.JsObject.jsify(options) : options, unwrap_jso((Entry entry) => successCallback(wrap_jso(entry))), unwrap_jso((FileError error) => errorCallback(wrap_jso(error))));
+      _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_4_(unwrap_jso(this), path, options != null ? new js.JsObject.jsify(options) : options, unwrap_jso((entry) => successCallback(wrap_jso(entry))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
     if (successCallback != null) {
-      _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_3_(unwrap_jso(this), path, options != null ? new js.JsObject.jsify(options) : options, unwrap_jso((Entry entry) => successCallback(wrap_jso(entry))));
+      _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_3_(unwrap_jso(this), path, options != null ? new js.JsObject.jsify(options) : options, unwrap_jso((entry) => successCallback(wrap_jso(entry))));
       return;
     }
     if (options != null) {
@@ -10071,11 +10071,11 @@ class DirectoryEntry extends Entry {
 
   void __getFile(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
     if (errorCallback != null) {
-      _blink.BlinkDirectoryEntry.instance.getFile_Callback_4_(unwrap_jso(this), path, options != null ? new js.JsObject.jsify(options) : options, unwrap_jso((Entry entry) => successCallback(wrap_jso(entry))), unwrap_jso((FileError error) => errorCallback(wrap_jso(error))));
+      _blink.BlinkDirectoryEntry.instance.getFile_Callback_4_(unwrap_jso(this), path, options != null ? new js.JsObject.jsify(options) : options, unwrap_jso((entry) => successCallback(wrap_jso(entry))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
     if (successCallback != null) {
-      _blink.BlinkDirectoryEntry.instance.getFile_Callback_3_(unwrap_jso(this), path, options != null ? new js.JsObject.jsify(options) : options, unwrap_jso((Entry entry) => successCallback(wrap_jso(entry))));
+      _blink.BlinkDirectoryEntry.instance.getFile_Callback_3_(unwrap_jso(this), path, options != null ? new js.JsObject.jsify(options) : options, unwrap_jso((entry) => successCallback(wrap_jso(entry))));
       return;
     }
     if (options != null) {
@@ -10096,7 +10096,7 @@ class DirectoryEntry extends Entry {
 
   void _removeRecursively(VoidCallback successCallback, [_ErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkDirectoryEntry.instance.removeRecursively_Callback_2_(unwrap_jso(this), unwrap_jso(() => successCallback()), unwrap_jso((FileError error) => errorCallback(wrap_jso(error))));
+      _blink.BlinkDirectoryEntry.instance.removeRecursively_Callback_2_(unwrap_jso(this), unwrap_jso(() => successCallback()), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
     _blink.BlinkDirectoryEntry.instance.removeRecursively_Callback_1_(unwrap_jso(this), unwrap_jso(() => successCallback()));
@@ -10144,10 +10144,10 @@ class DirectoryReader extends NativeFieldWrapperClass2 {
 
   void _readEntries(_EntriesCallback successCallback, [_ErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkDirectoryReader.instance.readEntries_Callback_2_(unwrap_jso(this), unwrap_jso((List<Entry> entries) => successCallback(entries)), unwrap_jso((FileError error) => errorCallback(wrap_jso(error))));
+      _blink.BlinkDirectoryReader.instance.readEntries_Callback_2_(unwrap_jso(this), unwrap_jso((entries) => successCallback(entries)), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
-    _blink.BlinkDirectoryReader.instance.readEntries_Callback_1_(unwrap_jso(this), unwrap_jso((List<Entry> entries) => successCallback(entries)));
+    _blink.BlinkDirectoryReader.instance.readEntries_Callback_1_(unwrap_jso(this), unwrap_jso((entries) => successCallback(entries)));
     return;
   }
 
@@ -16501,11 +16501,11 @@ class Entry extends NativeFieldWrapperClass2 {
   
   void _copyTo(DirectoryEntry parent, {String name, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
     if (errorCallback != null) {
-      _blink.BlinkEntry.instance.copyTo_Callback_4_(unwrap_jso(this), unwrap_jso(parent), name, unwrap_jso((Entry entry) => successCallback(wrap_jso(entry))), unwrap_jso((FileError error) => errorCallback(wrap_jso(error))));
+      _blink.BlinkEntry.instance.copyTo_Callback_4_(unwrap_jso(this), unwrap_jso(parent), name, unwrap_jso((entry) => successCallback(wrap_jso(entry))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
     if (successCallback != null) {
-      _blink.BlinkEntry.instance.copyTo_Callback_3_(unwrap_jso(this), unwrap_jso(parent), name, unwrap_jso((Entry entry) => successCallback(wrap_jso(entry))));
+      _blink.BlinkEntry.instance.copyTo_Callback_3_(unwrap_jso(this), unwrap_jso(parent), name, unwrap_jso((entry) => successCallback(wrap_jso(entry))));
       return;
     }
     if (name != null) {
@@ -16526,10 +16526,10 @@ class Entry extends NativeFieldWrapperClass2 {
 
   void _getMetadata(MetadataCallback successCallback, [_ErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkEntry.instance.getMetadata_Callback_2_(unwrap_jso(this), unwrap_jso((Metadata metadata) => successCallback(wrap_jso(metadata))), unwrap_jso((FileError error) => errorCallback(wrap_jso(error))));
+      _blink.BlinkEntry.instance.getMetadata_Callback_2_(unwrap_jso(this), unwrap_jso((metadata) => successCallback(wrap_jso(metadata))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
-    _blink.BlinkEntry.instance.getMetadata_Callback_1_(unwrap_jso(this), unwrap_jso((Metadata metadata) => successCallback(wrap_jso(metadata))));
+    _blink.BlinkEntry.instance.getMetadata_Callback_1_(unwrap_jso(this), unwrap_jso((metadata) => successCallback(wrap_jso(metadata))));
     return;
   }
 
@@ -16543,11 +16543,11 @@ class Entry extends NativeFieldWrapperClass2 {
 
   void _getParent([_EntryCallback successCallback, _ErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkEntry.instance.getParent_Callback_2_(unwrap_jso(this), unwrap_jso((Entry entry) => successCallback(wrap_jso(entry))), unwrap_jso((FileError error) => errorCallback(wrap_jso(error))));
+      _blink.BlinkEntry.instance.getParent_Callback_2_(unwrap_jso(this), unwrap_jso((entry) => successCallback(wrap_jso(entry))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
     if (successCallback != null) {
-      _blink.BlinkEntry.instance.getParent_Callback_1_(unwrap_jso(this), unwrap_jso((Entry entry) => successCallback(wrap_jso(entry))));
+      _blink.BlinkEntry.instance.getParent_Callback_1_(unwrap_jso(this), unwrap_jso((entry) => successCallback(wrap_jso(entry))));
       return;
     }
     _blink.BlinkEntry.instance.getParent_Callback_0_(unwrap_jso(this));
@@ -16564,11 +16564,11 @@ class Entry extends NativeFieldWrapperClass2 {
 
   void _moveTo(DirectoryEntry parent, {String name, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
     if (errorCallback != null) {
-      _blink.BlinkEntry.instance.moveTo_Callback_4_(unwrap_jso(this), unwrap_jso(parent), name, unwrap_jso((Entry entry) => successCallback(wrap_jso(entry))), unwrap_jso((FileError error) => errorCallback(wrap_jso(error))));
+      _blink.BlinkEntry.instance.moveTo_Callback_4_(unwrap_jso(this), unwrap_jso(parent), name, unwrap_jso((entry) => successCallback(wrap_jso(entry))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
     if (successCallback != null) {
-      _blink.BlinkEntry.instance.moveTo_Callback_3_(unwrap_jso(this), unwrap_jso(parent), name, unwrap_jso((Entry entry) => successCallback(wrap_jso(entry))));
+      _blink.BlinkEntry.instance.moveTo_Callback_3_(unwrap_jso(this), unwrap_jso(parent), name, unwrap_jso((entry) => successCallback(wrap_jso(entry))));
       return;
     }
     if (name != null) {
@@ -16589,7 +16589,7 @@ class Entry extends NativeFieldWrapperClass2 {
 
   void _remove(VoidCallback successCallback, [_ErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkEntry.instance.remove_Callback_2_(unwrap_jso(this), unwrap_jso(() => successCallback()), unwrap_jso((FileError error) => errorCallback(wrap_jso(error))));
+      _blink.BlinkEntry.instance.remove_Callback_2_(unwrap_jso(this), unwrap_jso(() => successCallback()), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
     _blink.BlinkEntry.instance.remove_Callback_1_(unwrap_jso(this), unwrap_jso(() => successCallback()));
@@ -17451,10 +17451,10 @@ class FileEntry extends Entry {
 
   void _createWriter(_FileWriterCallback successCallback, [_ErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkFileEntry.instance.createWriter_Callback_2_(unwrap_jso(this), unwrap_jso((FileWriter fileWriter) => successCallback(wrap_jso(fileWriter))), unwrap_jso((FileError error) => errorCallback(wrap_jso(error))));
+      _blink.BlinkFileEntry.instance.createWriter_Callback_2_(unwrap_jso(this), unwrap_jso((fileWriter) => successCallback(wrap_jso(fileWriter))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
-    _blink.BlinkFileEntry.instance.createWriter_Callback_1_(unwrap_jso(this), unwrap_jso((FileWriter fileWriter) => successCallback(wrap_jso(fileWriter))));
+    _blink.BlinkFileEntry.instance.createWriter_Callback_1_(unwrap_jso(this), unwrap_jso((fileWriter) => successCallback(wrap_jso(fileWriter))));
     return;
   }
 
@@ -17468,10 +17468,10 @@ class FileEntry extends Entry {
 
   void _file(_FileCallback successCallback, [_ErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkFileEntry.instance.file_Callback_2_(unwrap_jso(this), unwrap_jso((File file) => successCallback(wrap_jso(file))), unwrap_jso((FileError error) => errorCallback(wrap_jso(error))));
+      _blink.BlinkFileEntry.instance.file_Callback_2_(unwrap_jso(this), unwrap_jso((file) => successCallback(wrap_jso(file))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
-    _blink.BlinkFileEntry.instance.file_Callback_1_(unwrap_jso(this), unwrap_jso((File file) => successCallback(wrap_jso(file))));
+    _blink.BlinkFileEntry.instance.file_Callback_1_(unwrap_jso(this), unwrap_jso((file) => successCallback(wrap_jso(file))));
     return;
   }
 
@@ -18880,25 +18880,25 @@ class Geolocation extends NativeFieldWrapperClass2 {
   
   void _getCurrentPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Map options]) {
     if (options != null) {
-      _blink.BlinkGeolocation.instance.getCurrentPosition_Callback_3_(unwrap_jso(this), unwrap_jso((Geoposition position) => successCallback(wrap_jso(position))), unwrap_jso((PositionError error) => errorCallback(wrap_jso(error))), options != null ? new js.JsObject.jsify(options) : options);
+      _blink.BlinkGeolocation.instance.getCurrentPosition_Callback_3_(unwrap_jso(this), unwrap_jso((position) => successCallback(wrap_jso(position))), unwrap_jso((error) => errorCallback(wrap_jso(error))), options != null ? new js.JsObject.jsify(options) : options);
       return;
     }
     if (errorCallback != null) {
-      _blink.BlinkGeolocation.instance.getCurrentPosition_Callback_2_(unwrap_jso(this), unwrap_jso((Geoposition position) => successCallback(wrap_jso(position))), unwrap_jso((PositionError error) => errorCallback(wrap_jso(error))));
+      _blink.BlinkGeolocation.instance.getCurrentPosition_Callback_2_(unwrap_jso(this), unwrap_jso((position) => successCallback(wrap_jso(position))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
-    _blink.BlinkGeolocation.instance.getCurrentPosition_Callback_1_(unwrap_jso(this), unwrap_jso((Geoposition position) => successCallback(wrap_jso(position))));
+    _blink.BlinkGeolocation.instance.getCurrentPosition_Callback_1_(unwrap_jso(this), unwrap_jso((position) => successCallback(wrap_jso(position))));
     return;
   }
 
   int _watchPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Map options]) {
     if (options != null) {
-      return _blink.BlinkGeolocation.instance.watchPosition_Callback_3_(unwrap_jso(this), unwrap_jso((Geoposition position) => successCallback(wrap_jso(position))), unwrap_jso((PositionError error) => errorCallback(wrap_jso(error))), options != null ? new js.JsObject.jsify(options) : options);
+      return _blink.BlinkGeolocation.instance.watchPosition_Callback_3_(unwrap_jso(this), unwrap_jso((position) => successCallback(wrap_jso(position))), unwrap_jso((error) => errorCallback(wrap_jso(error))), options != null ? new js.JsObject.jsify(options) : options);
     }
     if (errorCallback != null) {
-      return _blink.BlinkGeolocation.instance.watchPosition_Callback_2_(unwrap_jso(this), unwrap_jso((Geoposition position) => successCallback(wrap_jso(position))), unwrap_jso((PositionError error) => errorCallback(wrap_jso(error))));
+      return _blink.BlinkGeolocation.instance.watchPosition_Callback_2_(unwrap_jso(this), unwrap_jso((position) => successCallback(wrap_jso(position))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
     }
-    return _blink.BlinkGeolocation.instance.watchPosition_Callback_1_(unwrap_jso(this), unwrap_jso((Geoposition position) => successCallback(wrap_jso(position))));
+    return _blink.BlinkGeolocation.instance.watchPosition_Callback_1_(unwrap_jso(this), unwrap_jso((position) => successCallback(wrap_jso(position))));
   }
 }
 
@@ -25129,7 +25129,7 @@ class MediaQueryList extends EventTarget {
   
   @DomName('MediaQueryList.addListener')
   @DocsEditable()
-  void addListener(EventListener listener) => _blink.BlinkMediaQueryList.instance.addListener_Callback_1_(unwrap_jso(this), unwrap_jso((Event event) => listener(wrap_jso(event))));
+  void addListener(EventListener listener) => _blink.BlinkMediaQueryList.instance.addListener_Callback_1_(unwrap_jso(this), unwrap_jso((event) => listener(wrap_jso(event))));
   
   @DomName('MediaQueryList.removeListener')
   @DocsEditable()
@@ -25531,7 +25531,7 @@ class MediaStreamTrack extends EventTarget {
   @DomName('MediaStreamTrack.getSources')
   @DocsEditable()
   @Experimental() // untriaged
-  static void _getSources(MediaStreamTrackSourcesCallback callback) => _blink.BlinkMediaStreamTrack.instance.getSources_Callback_1_(unwrap_jso((List<SourceInfo> sources) => callback(sources)));
+  static void _getSources(MediaStreamTrackSourcesCallback callback) => _blink.BlinkMediaStreamTrack.instance.getSources_Callback_1_(unwrap_jso((sources) => callback(sources)));
   
   static Future<List<SourceInfo>> getSources() {
     var completer = new Completer<List<SourceInfo>>();
@@ -27340,7 +27340,7 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorCpu, Naviga
   @DocsEditable()
   // http://dev.w3.org/2011/webrtc/editor/getusermedia.html#navigatorusermedia
   @Experimental()
-  void _getUserMedia(Map options, _NavigatorUserMediaSuccessCallback successCallback, _NavigatorUserMediaErrorCallback errorCallback) => _blink.BlinkNavigator.instance.webkitGetUserMedia_Callback_3_(unwrap_jso(this), options != null ? new js.JsObject.jsify(options) : options, unwrap_jso((MediaStream stream) => successCallback(wrap_jso(stream))), unwrap_jso((NavigatorUserMediaError error) => errorCallback(wrap_jso(error))));
+  void _getUserMedia(Map options, _NavigatorUserMediaSuccessCallback successCallback, _NavigatorUserMediaErrorCallback errorCallback) => _blink.BlinkNavigator.instance.webkitGetUserMedia_Callback_3_(unwrap_jso(this), options != null ? new js.JsObject.jsify(options) : options, unwrap_jso((stream) => successCallback(wrap_jso(stream))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
   
   @DomName('Navigator.hardwareConcurrency')
   @DocsEditable()
@@ -28616,7 +28616,7 @@ class Notification extends EventTarget {
   
   static void _requestPermission([_NotificationPermissionCallback callback]) {
     if (callback != null) {
-      _blink.BlinkNotification.instance.requestPermission_Callback_1_(unwrap_jso((String permission) => callback(permission)));
+      _blink.BlinkNotification.instance.requestPermission_Callback_1_(unwrap_jso((permission) => callback(permission)));
       return;
     }
     _blink.BlinkNotification.instance.requestPermission_Callback_0_();
@@ -31534,7 +31534,7 @@ class RtcPeerConnection extends EventTarget {
   
   @DomName('RTCPeerConnection.addIceCandidate')
   @DocsEditable()
-  void addIceCandidate(RtcIceCandidate candidate, VoidCallback successCallback, _RtcErrorCallback failureCallback) => _blink.BlinkRTCPeerConnection.instance.addIceCandidate_Callback_3_(unwrap_jso(this), unwrap_jso(candidate), unwrap_jso(() => successCallback()), unwrap_jso((String errorInformation) => failureCallback(errorInformation)));
+  void addIceCandidate(RtcIceCandidate candidate, VoidCallback successCallback, _RtcErrorCallback failureCallback) => _blink.BlinkRTCPeerConnection.instance.addIceCandidate_Callback_3_(unwrap_jso(this), unwrap_jso(candidate), unwrap_jso(() => successCallback()), unwrap_jso((errorInformation) => failureCallback(errorInformation)));
   
   void addStream(MediaStream stream, [Map mediaConstraints]) {
     if (mediaConstraints != null) {
@@ -31551,10 +31551,10 @@ class RtcPeerConnection extends EventTarget {
   
   void _createAnswer(_RtcSessionDescriptionCallback successCallback, [_RtcErrorCallback failureCallback, Map mediaConstraints]) {
     if (mediaConstraints != null) {
-      _blink.BlinkRTCPeerConnection.instance.createAnswer_Callback_3_(unwrap_jso(this), unwrap_jso((RtcSessionDescription sdp) => successCallback(wrap_jso(sdp))), unwrap_jso((String errorInformation) => failureCallback(errorInformation)), mediaConstraints != null ? new js.JsObject.jsify(mediaConstraints) : mediaConstraints);
+      _blink.BlinkRTCPeerConnection.instance.createAnswer_Callback_3_(unwrap_jso(this), unwrap_jso((sdp) => successCallback(wrap_jso(sdp))), unwrap_jso((errorInformation) => failureCallback(errorInformation)), mediaConstraints != null ? new js.JsObject.jsify(mediaConstraints) : mediaConstraints);
       return;
     }
-    _blink.BlinkRTCPeerConnection.instance.createAnswer_Callback_2_(unwrap_jso(this), unwrap_jso((RtcSessionDescription sdp) => successCallback(wrap_jso(sdp))), unwrap_jso((String errorInformation) => failureCallback(errorInformation)));
+    _blink.BlinkRTCPeerConnection.instance.createAnswer_Callback_2_(unwrap_jso(this), unwrap_jso((sdp) => successCallback(wrap_jso(sdp))), unwrap_jso((errorInformation) => failureCallback(errorInformation)));
     return;
   }
 
@@ -31571,10 +31571,10 @@ class RtcPeerConnection extends EventTarget {
 
   void _createOffer(_RtcSessionDescriptionCallback successCallback, [_RtcErrorCallback failureCallback, Map rtcOfferOptions]) {
     if (rtcOfferOptions != null) {
-      _blink.BlinkRTCPeerConnection.instance.createOffer_Callback_3_(unwrap_jso(this), unwrap_jso((RtcSessionDescription sdp) => successCallback(wrap_jso(sdp))), unwrap_jso((String errorInformation) => failureCallback(errorInformation)), rtcOfferOptions != null ? new js.JsObject.jsify(rtcOfferOptions) : rtcOfferOptions);
+      _blink.BlinkRTCPeerConnection.instance.createOffer_Callback_3_(unwrap_jso(this), unwrap_jso((sdp) => successCallback(wrap_jso(sdp))), unwrap_jso((errorInformation) => failureCallback(errorInformation)), rtcOfferOptions != null ? new js.JsObject.jsify(rtcOfferOptions) : rtcOfferOptions);
       return;
     }
-    _blink.BlinkRTCPeerConnection.instance.createOffer_Callback_2_(unwrap_jso(this), unwrap_jso((RtcSessionDescription sdp) => successCallback(wrap_jso(sdp))), unwrap_jso((String errorInformation) => failureCallback(errorInformation)));
+    _blink.BlinkRTCPeerConnection.instance.createOffer_Callback_2_(unwrap_jso(this), unwrap_jso((sdp) => successCallback(wrap_jso(sdp))), unwrap_jso((errorInformation) => failureCallback(errorInformation)));
     return;
   }
 
@@ -31588,7 +31588,7 @@ class RtcPeerConnection extends EventTarget {
   
   @DomName('RTCPeerConnection.getStats')
   @DocsEditable()
-  void _getStats(RtcStatsCallback successCallback, MediaStreamTrack selector) => _blink.BlinkRTCPeerConnection.instance.getStats_Callback_2_(unwrap_jso(this), unwrap_jso((RtcStatsResponse response) => successCallback(wrap_jso(response))), unwrap_jso(selector));
+  void _getStats(RtcStatsCallback successCallback, MediaStreamTrack selector) => _blink.BlinkRTCPeerConnection.instance.getStats_Callback_2_(unwrap_jso(this), unwrap_jso((response) => successCallback(wrap_jso(response))), unwrap_jso(selector));
   
   @DomName('RTCPeerConnection.getStreamById')
   @DocsEditable()
@@ -31600,7 +31600,7 @@ class RtcPeerConnection extends EventTarget {
   
   @DomName('RTCPeerConnection.setLocalDescription')
   @DocsEditable()
-  void _setLocalDescription(RtcSessionDescription description, [VoidCallback successCallback, _RtcErrorCallback failureCallback]) => _blink.BlinkRTCPeerConnection.instance.setLocalDescription_Callback_3_(unwrap_jso(this), unwrap_jso(description), unwrap_jso(() => successCallback()), unwrap_jso((String errorInformation) => failureCallback(errorInformation)));
+  void _setLocalDescription(RtcSessionDescription description, [VoidCallback successCallback, _RtcErrorCallback failureCallback]) => _blink.BlinkRTCPeerConnection.instance.setLocalDescription_Callback_3_(unwrap_jso(this), unwrap_jso(description), unwrap_jso(() => successCallback()), unwrap_jso((errorInformation) => failureCallback(errorInformation)));
   
   Future setLocalDescription(RtcSessionDescription description) {
     var completer = new Completer();
@@ -31612,7 +31612,7 @@ class RtcPeerConnection extends EventTarget {
 
   @DomName('RTCPeerConnection.setRemoteDescription')
   @DocsEditable()
-  void _setRemoteDescription(RtcSessionDescription description, [VoidCallback successCallback, _RtcErrorCallback failureCallback]) => _blink.BlinkRTCPeerConnection.instance.setRemoteDescription_Callback_3_(unwrap_jso(this), unwrap_jso(description), unwrap_jso(() => successCallback()), unwrap_jso((String errorInformation) => failureCallback(errorInformation)));
+  void _setRemoteDescription(RtcSessionDescription description, [VoidCallback successCallback, _RtcErrorCallback failureCallback]) => _blink.BlinkRTCPeerConnection.instance.setRemoteDescription_Callback_3_(unwrap_jso(this), unwrap_jso(description), unwrap_jso(() => successCallback()), unwrap_jso((errorInformation) => failureCallback(errorInformation)));
   
   Future setRemoteDescription(RtcSessionDescription description) {
     var completer = new Completer();
@@ -39297,7 +39297,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   
   SqlDatabase openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) {
     if (creationCallback != null) {
-      return wrap_jso(_blink.BlinkWindow.instance.openDatabase_Callback_5_(unwrap_jso(this), name, version, displayName, estimatedSize, unwrap_jso((SqlDatabase database) => creationCallback(wrap_jso(database)))));
+      return wrap_jso(_blink.BlinkWindow.instance.openDatabase_Callback_5_(unwrap_jso(this), name, version, displayName, estimatedSize, unwrap_jso((database) => creationCallback(wrap_jso(database)))));
     }
     return wrap_jso(_blink.BlinkWindow.instance.openDatabase_Callback_4_(unwrap_jso(this), name, version, displayName, estimatedSize));
   }
@@ -39320,7 +39320,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   
   @DomName('Window.requestAnimationFrame')
   @DocsEditable()
-  int _requestAnimationFrame(RequestAnimationFrameCallback callback) => _blink.BlinkWindow.instance.requestAnimationFrame_Callback_1_(unwrap_jso(this), unwrap_jso((num highResTime) => callback(highResTime)));
+  int _requestAnimationFrame(RequestAnimationFrameCallback callback) => _blink.BlinkWindow.instance.requestAnimationFrame_Callback_1_(unwrap_jso(this), unwrap_jso((highResTime) => callback(highResTime)));
   
   /**
    * Resizes this window by an offset.
@@ -39434,10 +39434,10 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   
   void __requestFileSystem(int type, int size, _FileSystemCallback successCallback, [_ErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkWindow.instance.webkitRequestFileSystem_Callback_4_(unwrap_jso(this), type, size, unwrap_jso((FileSystem fileSystem) => successCallback(wrap_jso(fileSystem))), unwrap_jso((FileError error) => errorCallback(wrap_jso(error))));
+      _blink.BlinkWindow.instance.webkitRequestFileSystem_Callback_4_(unwrap_jso(this), type, size, unwrap_jso((fileSystem) => successCallback(wrap_jso(fileSystem))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
-    _blink.BlinkWindow.instance.webkitRequestFileSystem_Callback_3_(unwrap_jso(this), type, size, unwrap_jso((FileSystem fileSystem) => successCallback(wrap_jso(fileSystem))));
+    _blink.BlinkWindow.instance.webkitRequestFileSystem_Callback_3_(unwrap_jso(this), type, size, unwrap_jso((fileSystem) => successCallback(wrap_jso(fileSystem))));
     return;
   }
 
@@ -39451,10 +39451,10 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
 
   void _resolveLocalFileSystemUrl(String url, _EntryCallback successCallback, [_ErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkWindow.instance.webkitResolveLocalFileSystemURL_Callback_3_(unwrap_jso(this), url, unwrap_jso((Entry entry) => successCallback(wrap_jso(entry))), unwrap_jso((FileError error) => errorCallback(wrap_jso(error))));
+      _blink.BlinkWindow.instance.webkitResolveLocalFileSystemURL_Callback_3_(unwrap_jso(this), url, unwrap_jso((entry) => successCallback(wrap_jso(entry))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
-    _blink.BlinkWindow.instance.webkitResolveLocalFileSystemURL_Callback_2_(unwrap_jso(this), url, unwrap_jso((Entry entry) => successCallback(wrap_jso(entry))));
+    _blink.BlinkWindow.instance.webkitResolveLocalFileSystemURL_Callback_2_(unwrap_jso(this), url, unwrap_jso((entry) => successCallback(wrap_jso(entry))));
     return;
   }
 
@@ -40276,11 +40276,11 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   
   void _webkitRequestFileSystem(int type, int size, [_FileSystemCallback successCallback, _ErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkWorkerGlobalScope.instance.webkitRequestFileSystem_Callback_4_(unwrap_jso(this), type, size, unwrap_jso((FileSystem fileSystem) => successCallback(wrap_jso(fileSystem))), unwrap_jso((FileError error) => errorCallback(wrap_jso(error))));
+      _blink.BlinkWorkerGlobalScope.instance.webkitRequestFileSystem_Callback_4_(unwrap_jso(this), type, size, unwrap_jso((fileSystem) => successCallback(wrap_jso(fileSystem))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
     if (successCallback != null) {
-      _blink.BlinkWorkerGlobalScope.instance.webkitRequestFileSystem_Callback_3_(unwrap_jso(this), type, size, unwrap_jso((FileSystem fileSystem) => successCallback(wrap_jso(fileSystem))));
+      _blink.BlinkWorkerGlobalScope.instance.webkitRequestFileSystem_Callback_3_(unwrap_jso(this), type, size, unwrap_jso((fileSystem) => successCallback(wrap_jso(fileSystem))));
       return;
     }
     _blink.BlinkWorkerGlobalScope.instance.webkitRequestFileSystem_Callback_2_(unwrap_jso(this), type, size);
@@ -40313,10 +40313,10 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   
   void _webkitResolveLocalFileSystemUrl(String url, _EntryCallback successCallback, [_ErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkWorkerGlobalScope.instance.webkitResolveLocalFileSystemURL_Callback_3_(unwrap_jso(this), url, unwrap_jso((Entry entry) => successCallback(wrap_jso(entry))), unwrap_jso((FileError error) => errorCallback(wrap_jso(error))));
+      _blink.BlinkWorkerGlobalScope.instance.webkitResolveLocalFileSystemURL_Callback_3_(unwrap_jso(this), url, unwrap_jso((entry) => successCallback(wrap_jso(entry))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
-    _blink.BlinkWorkerGlobalScope.instance.webkitResolveLocalFileSystemURL_Callback_2_(unwrap_jso(this), url, unwrap_jso((Entry entry) => successCallback(wrap_jso(entry))));
+    _blink.BlinkWorkerGlobalScope.instance.webkitResolveLocalFileSystemURL_Callback_2_(unwrap_jso(this), url, unwrap_jso((entry) => successCallback(wrap_jso(entry))));
     return;
   }
 
