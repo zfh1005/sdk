@@ -66,7 +66,11 @@ indexeddb_5_test: Pass, RuntimeError # Issue 21262
 native_gc_test: Pass, Slow
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $checked ]
-element_test/attributes: RuntimeError # Known issue, fixed in 1.12. Remove this once we merge
+element_test/attributes: RuntimeError # Known issue, WhereIterable<Node> vs. Iterable<Element>. Fixed in 1.12. Remove this once we merge
+svgelement_test/additionalConstructors: RuntimeError # Same known issue as element_test/attributes. Fixed in 1.12
+svgelement_test/innerHtml: RuntimeError # Same.
+svgelement_test/elementget: RuntimeError # Same.
+
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
