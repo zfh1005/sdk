@@ -914,7 +914,7 @@ class DartiumBackend(HtmlDartGenerator):
     if self._interface.id == 'ImageData' and html_name == 'data':
       html_name = '_data'
     type_info = self._TypeInfo(attr.type.id)
-    return_type = self.SecureOutputType(attr.type.id, False, read_only)
+    return_type = self.SecureOutputType(attr.type.id, False, False if self._dart_use_blink else True)
     parameters = []
     dart_declaration = '%s get %s' % (return_type, html_name)
     is_custom = _IsCustom(attr) and (_IsCustomValue(attr, None) or
@@ -1189,7 +1189,7 @@ class DartiumBackend(HtmlDartGenerator):
     Arguments:
       info: An OperationInfo object.
     """
-    return_type = self.SecureOutputType(info.type_name, False, True)
+    return_type = self.SecureOutputType(info.type_name, False, False if dart_js_interop else True)
 
     formals = info.ParametersAsDeclaration(self._DartType)
 

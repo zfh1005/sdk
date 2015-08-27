@@ -1612,7 +1612,7 @@ class AnimationEvent extends Event {
   
   @DomName('WebKitAnimationEvent.elapsedTime')
   @DocsEditable()
-  double get elapsedTime => _blink.BlinkWebKitAnimationEvent.instance.elapsedTime_Getter_(unwrap_jso(this));
+  num get elapsedTime => _blink.BlinkWebKitAnimationEvent.instance.elapsedTime_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1647,7 +1647,7 @@ class AnimationNode extends NativeFieldWrapperClass2 {
   @DomName('AnimationNode.activeDuration')
   @DocsEditable()
   @Experimental() // untriaged
-  double get activeDuration => _blink.BlinkAnimationNode.instance.activeDuration_Getter_(unwrap_jso(this));
+  num get activeDuration => _blink.BlinkAnimationNode.instance.activeDuration_Getter_(unwrap_jso(this));
   
   @DomName('AnimationNode.currentIteration')
   @DocsEditable()
@@ -1657,17 +1657,17 @@ class AnimationNode extends NativeFieldWrapperClass2 {
   @DomName('AnimationNode.duration')
   @DocsEditable()
   @Experimental() // untriaged
-  double get duration => _blink.BlinkAnimationNode.instance.duration_Getter_(unwrap_jso(this));
+  num get duration => _blink.BlinkAnimationNode.instance.duration_Getter_(unwrap_jso(this));
   
   @DomName('AnimationNode.endTime')
   @DocsEditable()
   @Experimental() // untriaged
-  double get endTime => _blink.BlinkAnimationNode.instance.endTime_Getter_(unwrap_jso(this));
+  num get endTime => _blink.BlinkAnimationNode.instance.endTime_Getter_(unwrap_jso(this));
   
   @DomName('AnimationNode.localTime')
   @DocsEditable()
   @Experimental() // untriaged
-  double get localTime => _blink.BlinkAnimationNode.instance.localTime_Getter_(unwrap_jso(this));
+  num get localTime => _blink.BlinkAnimationNode.instance.localTime_Getter_(unwrap_jso(this));
   
   @DomName('AnimationNode.player')
   @DocsEditable()
@@ -1677,7 +1677,7 @@ class AnimationNode extends NativeFieldWrapperClass2 {
   @DomName('AnimationNode.startTime')
   @DocsEditable()
   @Experimental() // untriaged
-  double get startTime => _blink.BlinkAnimationNode.instance.startTime_Getter_(unwrap_jso(this));
+  num get startTime => _blink.BlinkAnimationNode.instance.startTime_Getter_(unwrap_jso(this));
   
   @DomName('AnimationNode.timing')
   @DocsEditable()
@@ -1814,12 +1814,12 @@ class AnimationPlayerEvent extends Event {
   @DomName('AnimationPlayerEvent.currentTime')
   @DocsEditable()
   @Experimental() // untriaged
-  double get currentTime => _blink.BlinkAnimationPlayerEvent.instance.currentTime_Getter_(unwrap_jso(this));
+  num get currentTime => _blink.BlinkAnimationPlayerEvent.instance.currentTime_Getter_(unwrap_jso(this));
   
   @DomName('AnimationPlayerEvent.timelineTime')
   @DocsEditable()
   @Experimental() // untriaged
-  double get timelineTime => _blink.BlinkAnimationPlayerEvent.instance.timelineTime_Getter_(unwrap_jso(this));
+  num get timelineTime => _blink.BlinkAnimationPlayerEvent.instance.timelineTime_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1854,7 +1854,7 @@ class AnimationTimeline extends NativeFieldWrapperClass2 {
   @DomName('AnimationTimeline.currentTime')
   @DocsEditable()
   @Experimental() // untriaged
-  double get currentTime => _blink.BlinkAnimationTimeline.instance.currentTime_Getter_(unwrap_jso(this));
+  num get currentTime => _blink.BlinkAnimationTimeline.instance.currentTime_Getter_(unwrap_jso(this));
   
   @DomName('AnimationTimeline.getAnimationPlayers')
   @DocsEditable()
@@ -2624,15 +2624,15 @@ class BatteryManager extends EventTarget {
   
   @DomName('BatteryManager.chargingTime')
   @DocsEditable()
-  double get chargingTime => _blink.BlinkBatteryManager.instance.chargingTime_Getter_(unwrap_jso(this));
+  num get chargingTime => _blink.BlinkBatteryManager.instance.chargingTime_Getter_(unwrap_jso(this));
   
   @DomName('BatteryManager.dischargingTime')
   @DocsEditable()
-  double get dischargingTime => _blink.BlinkBatteryManager.instance.dischargingTime_Getter_(unwrap_jso(this));
+  num get dischargingTime => _blink.BlinkBatteryManager.instance.dischargingTime_Getter_(unwrap_jso(this));
   
   @DomName('BatteryManager.level')
   @DocsEditable()
-  double get level => _blink.BlinkBatteryManager.instance.level_Getter_(unwrap_jso(this));
+  num get level => _blink.BlinkBatteryManager.instance.level_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4545,17 +4545,17 @@ class CircularGeofencingRegion extends GeofencingRegion {
   @DomName('CircularGeofencingRegion.latitude')
   @DocsEditable()
   @Experimental() // untriaged
-  double get latitude => _blink.BlinkCircularGeofencingRegion.instance.latitude_Getter_(unwrap_jso(this));
+  num get latitude => _blink.BlinkCircularGeofencingRegion.instance.latitude_Getter_(unwrap_jso(this));
   
   @DomName('CircularGeofencingRegion.longitude')
   @DocsEditable()
   @Experimental() // untriaged
-  double get longitude => _blink.BlinkCircularGeofencingRegion.instance.longitude_Getter_(unwrap_jso(this));
+  num get longitude => _blink.BlinkCircularGeofencingRegion.instance.longitude_Getter_(unwrap_jso(this));
   
   @DomName('CircularGeofencingRegion.radius')
   @DocsEditable()
   @Experimental() // untriaged
-  double get radius => _blink.BlinkCircularGeofencingRegion.instance.radius_Getter_(unwrap_jso(this));
+  num get radius => _blink.BlinkCircularGeofencingRegion.instance.radius_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4949,31 +4949,31 @@ class Coordinates extends NativeFieldWrapperClass2 {
 
   @DomName('Coordinates.accuracy')
   @DocsEditable()
-  double get accuracy => _blink.BlinkCoordinates.instance.accuracy_Getter_(unwrap_jso(this));
+  num get accuracy => _blink.BlinkCoordinates.instance.accuracy_Getter_(unwrap_jso(this));
   
   @DomName('Coordinates.altitude')
   @DocsEditable()
-  double get altitude => _blink.BlinkCoordinates.instance.altitude_Getter_(unwrap_jso(this));
+  num get altitude => _blink.BlinkCoordinates.instance.altitude_Getter_(unwrap_jso(this));
   
   @DomName('Coordinates.altitudeAccuracy')
   @DocsEditable()
-  double get altitudeAccuracy => _blink.BlinkCoordinates.instance.altitudeAccuracy_Getter_(unwrap_jso(this));
+  num get altitudeAccuracy => _blink.BlinkCoordinates.instance.altitudeAccuracy_Getter_(unwrap_jso(this));
   
   @DomName('Coordinates.heading')
   @DocsEditable()
-  double get heading => _blink.BlinkCoordinates.instance.heading_Getter_(unwrap_jso(this));
+  num get heading => _blink.BlinkCoordinates.instance.heading_Getter_(unwrap_jso(this));
   
   @DomName('Coordinates.latitude')
   @DocsEditable()
-  double get latitude => _blink.BlinkCoordinates.instance.latitude_Getter_(unwrap_jso(this));
+  num get latitude => _blink.BlinkCoordinates.instance.latitude_Getter_(unwrap_jso(this));
   
   @DomName('Coordinates.longitude')
   @DocsEditable()
-  double get longitude => _blink.BlinkCoordinates.instance.longitude_Getter_(unwrap_jso(this));
+  num get longitude => _blink.BlinkCoordinates.instance.longitude_Getter_(unwrap_jso(this));
   
   @DomName('Coordinates.speed')
   @DocsEditable()
-  double get speed => _blink.BlinkCoordinates.instance.speed_Getter_(unwrap_jso(this));
+  num get speed => _blink.BlinkCoordinates.instance.speed_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9727,15 +9727,15 @@ class DeviceAcceleration extends NativeFieldWrapperClass2 {
 
   @DomName('DeviceAcceleration.x')
   @DocsEditable()
-  double get x => _blink.BlinkDeviceAcceleration.instance.x_Getter_(unwrap_jso(this));
+  num get x => _blink.BlinkDeviceAcceleration.instance.x_Getter_(unwrap_jso(this));
   
   @DomName('DeviceAcceleration.y')
   @DocsEditable()
-  double get y => _blink.BlinkDeviceAcceleration.instance.y_Getter_(unwrap_jso(this));
+  num get y => _blink.BlinkDeviceAcceleration.instance.y_Getter_(unwrap_jso(this));
   
   @DomName('DeviceAcceleration.z')
   @DocsEditable()
-  double get z => _blink.BlinkDeviceAcceleration.instance.z_Getter_(unwrap_jso(this));
+  num get z => _blink.BlinkDeviceAcceleration.instance.z_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9767,7 +9767,7 @@ class DeviceLightEvent extends Event {
   @DomName('DeviceLightEvent.value')
   @DocsEditable()
   @Experimental() // untriaged
-  double get value => _blink.BlinkDeviceLightEvent.instance.value_Getter_(unwrap_jso(this));
+  num get value => _blink.BlinkDeviceLightEvent.instance.value_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9807,7 +9807,7 @@ class DeviceMotionEvent extends Event {
   
   @DomName('DeviceMotionEvent.interval')
   @DocsEditable()
-  double get interval => _blink.BlinkDeviceMotionEvent.instance.interval_Getter_(unwrap_jso(this));
+  num get interval => _blink.BlinkDeviceMotionEvent.instance.interval_Getter_(unwrap_jso(this));
   
   @DomName('DeviceMotionEvent.rotationRate')
   @DocsEditable()
@@ -9858,15 +9858,15 @@ class DeviceOrientationEvent extends Event {
   
   @DomName('DeviceOrientationEvent.alpha')
   @DocsEditable()
-  double get alpha => _blink.BlinkDeviceOrientationEvent.instance.alpha_Getter_(unwrap_jso(this));
+  num get alpha => _blink.BlinkDeviceOrientationEvent.instance.alpha_Getter_(unwrap_jso(this));
   
   @DomName('DeviceOrientationEvent.beta')
   @DocsEditable()
-  double get beta => _blink.BlinkDeviceOrientationEvent.instance.beta_Getter_(unwrap_jso(this));
+  num get beta => _blink.BlinkDeviceOrientationEvent.instance.beta_Getter_(unwrap_jso(this));
   
   @DomName('DeviceOrientationEvent.gamma')
   @DocsEditable()
-  double get gamma => _blink.BlinkDeviceOrientationEvent.instance.gamma_Getter_(unwrap_jso(this));
+  num get gamma => _blink.BlinkDeviceOrientationEvent.instance.gamma_Getter_(unwrap_jso(this));
   
   @DomName('DeviceOrientationEvent.initDeviceOrientationEvent')
   @DocsEditable()
@@ -9905,15 +9905,15 @@ class DeviceRotationRate extends NativeFieldWrapperClass2 {
 
   @DomName('DeviceRotationRate.alpha')
   @DocsEditable()
-  double get alpha => _blink.BlinkDeviceRotationRate.instance.alpha_Getter_(unwrap_jso(this));
+  num get alpha => _blink.BlinkDeviceRotationRate.instance.alpha_Getter_(unwrap_jso(this));
   
   @DomName('DeviceRotationRate.beta')
   @DocsEditable()
-  double get beta => _blink.BlinkDeviceRotationRate.instance.beta_Getter_(unwrap_jso(this));
+  num get beta => _blink.BlinkDeviceRotationRate.instance.beta_Getter_(unwrap_jso(this));
   
   @DomName('DeviceRotationRate.gamma')
   @DocsEditable()
-  double get gamma => _blink.BlinkDeviceRotationRate.instance.gamma_Getter_(unwrap_jso(this));
+  num get gamma => _blink.BlinkDeviceRotationRate.instance.gamma_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11763,32 +11763,32 @@ class DomMatrixReadOnly extends NativeFieldWrapperClass2 {
   @DomName('DOMMatrixReadOnly.a')
   @DocsEditable()
   @Experimental() // untriaged
-  double get a => _blink.BlinkDOMMatrixReadOnly.instance.a_Getter_(unwrap_jso(this));
+  num get a => _blink.BlinkDOMMatrixReadOnly.instance.a_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.b')
   @DocsEditable()
   @Experimental() // untriaged
-  double get b => _blink.BlinkDOMMatrixReadOnly.instance.b_Getter_(unwrap_jso(this));
+  num get b => _blink.BlinkDOMMatrixReadOnly.instance.b_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.c')
   @DocsEditable()
   @Experimental() // untriaged
-  double get c => _blink.BlinkDOMMatrixReadOnly.instance.c_Getter_(unwrap_jso(this));
+  num get c => _blink.BlinkDOMMatrixReadOnly.instance.c_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.d')
   @DocsEditable()
   @Experimental() // untriaged
-  double get d => _blink.BlinkDOMMatrixReadOnly.instance.d_Getter_(unwrap_jso(this));
+  num get d => _blink.BlinkDOMMatrixReadOnly.instance.d_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.e')
   @DocsEditable()
   @Experimental() // untriaged
-  double get e => _blink.BlinkDOMMatrixReadOnly.instance.e_Getter_(unwrap_jso(this));
+  num get e => _blink.BlinkDOMMatrixReadOnly.instance.e_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.f')
   @DocsEditable()
   @Experimental() // untriaged
-  double get f => _blink.BlinkDOMMatrixReadOnly.instance.f_Getter_(unwrap_jso(this));
+  num get f => _blink.BlinkDOMMatrixReadOnly.instance.f_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.is2D')
   @DocsEditable()
@@ -11803,82 +11803,82 @@ class DomMatrixReadOnly extends NativeFieldWrapperClass2 {
   @DomName('DOMMatrixReadOnly.m11')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m11 => _blink.BlinkDOMMatrixReadOnly.instance.m11_Getter_(unwrap_jso(this));
+  num get m11 => _blink.BlinkDOMMatrixReadOnly.instance.m11_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.m12')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m12 => _blink.BlinkDOMMatrixReadOnly.instance.m12_Getter_(unwrap_jso(this));
+  num get m12 => _blink.BlinkDOMMatrixReadOnly.instance.m12_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.m13')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m13 => _blink.BlinkDOMMatrixReadOnly.instance.m13_Getter_(unwrap_jso(this));
+  num get m13 => _blink.BlinkDOMMatrixReadOnly.instance.m13_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.m14')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m14 => _blink.BlinkDOMMatrixReadOnly.instance.m14_Getter_(unwrap_jso(this));
+  num get m14 => _blink.BlinkDOMMatrixReadOnly.instance.m14_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.m21')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m21 => _blink.BlinkDOMMatrixReadOnly.instance.m21_Getter_(unwrap_jso(this));
+  num get m21 => _blink.BlinkDOMMatrixReadOnly.instance.m21_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.m22')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m22 => _blink.BlinkDOMMatrixReadOnly.instance.m22_Getter_(unwrap_jso(this));
+  num get m22 => _blink.BlinkDOMMatrixReadOnly.instance.m22_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.m23')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m23 => _blink.BlinkDOMMatrixReadOnly.instance.m23_Getter_(unwrap_jso(this));
+  num get m23 => _blink.BlinkDOMMatrixReadOnly.instance.m23_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.m24')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m24 => _blink.BlinkDOMMatrixReadOnly.instance.m24_Getter_(unwrap_jso(this));
+  num get m24 => _blink.BlinkDOMMatrixReadOnly.instance.m24_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.m31')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m31 => _blink.BlinkDOMMatrixReadOnly.instance.m31_Getter_(unwrap_jso(this));
+  num get m31 => _blink.BlinkDOMMatrixReadOnly.instance.m31_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.m32')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m32 => _blink.BlinkDOMMatrixReadOnly.instance.m32_Getter_(unwrap_jso(this));
+  num get m32 => _blink.BlinkDOMMatrixReadOnly.instance.m32_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.m33')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m33 => _blink.BlinkDOMMatrixReadOnly.instance.m33_Getter_(unwrap_jso(this));
+  num get m33 => _blink.BlinkDOMMatrixReadOnly.instance.m33_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.m34')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m34 => _blink.BlinkDOMMatrixReadOnly.instance.m34_Getter_(unwrap_jso(this));
+  num get m34 => _blink.BlinkDOMMatrixReadOnly.instance.m34_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.m41')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m41 => _blink.BlinkDOMMatrixReadOnly.instance.m41_Getter_(unwrap_jso(this));
+  num get m41 => _blink.BlinkDOMMatrixReadOnly.instance.m41_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.m42')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m42 => _blink.BlinkDOMMatrixReadOnly.instance.m42_Getter_(unwrap_jso(this));
+  num get m42 => _blink.BlinkDOMMatrixReadOnly.instance.m42_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.m43')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m43 => _blink.BlinkDOMMatrixReadOnly.instance.m43_Getter_(unwrap_jso(this));
+  num get m43 => _blink.BlinkDOMMatrixReadOnly.instance.m43_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.m44')
   @DocsEditable()
   @Experimental() // untriaged
-  double get m44 => _blink.BlinkDOMMatrixReadOnly.instance.m44_Getter_(unwrap_jso(this));
+  num get m44 => _blink.BlinkDOMMatrixReadOnly.instance.m44_Getter_(unwrap_jso(this));
   
   @DomName('DOMMatrixReadOnly.multiply')
   @DocsEditable()
@@ -12114,22 +12114,22 @@ class DomPointReadOnly extends NativeFieldWrapperClass2 {
   @DomName('DOMPointReadOnly.w')
   @DocsEditable()
   @Experimental() // untriaged
-  double get w => _blink.BlinkDOMPointReadOnly.instance.w_Getter_(unwrap_jso(this));
+  num get w => _blink.BlinkDOMPointReadOnly.instance.w_Getter_(unwrap_jso(this));
   
   @DomName('DOMPointReadOnly.x')
   @DocsEditable()
   @Experimental() // untriaged
-  double get x => _blink.BlinkDOMPointReadOnly.instance.x_Getter_(unwrap_jso(this));
+  num get x => _blink.BlinkDOMPointReadOnly.instance.x_Getter_(unwrap_jso(this));
   
   @DomName('DOMPointReadOnly.y')
   @DocsEditable()
   @Experimental() // untriaged
-  double get y => _blink.BlinkDOMPointReadOnly.instance.y_Getter_(unwrap_jso(this));
+  num get y => _blink.BlinkDOMPointReadOnly.instance.y_Getter_(unwrap_jso(this));
   
   @DomName('DOMPointReadOnly.z')
   @DocsEditable()
   @Experimental() // untriaged
-  double get z => _blink.BlinkDOMPointReadOnly.instance.z_Getter_(unwrap_jso(this));
+  num get z => _blink.BlinkDOMPointReadOnly.instance.z_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -12256,42 +12256,42 @@ class DomRectReadOnly extends NativeFieldWrapperClass2 implements Rectangle {
   @DomName('DOMRectReadOnly.bottom')
   @DocsEditable()
   @Experimental() // untriaged
-  double get bottom => _blink.BlinkDOMRectReadOnly.instance.bottom_Getter_(unwrap_jso(this));
+  num get bottom => _blink.BlinkDOMRectReadOnly.instance.bottom_Getter_(unwrap_jso(this));
   
   @DomName('DOMRectReadOnly.height')
   @DocsEditable()
   @Experimental() // untriaged
-  double get height => _blink.BlinkDOMRectReadOnly.instance.height_Getter_(unwrap_jso(this));
+  num get height => _blink.BlinkDOMRectReadOnly.instance.height_Getter_(unwrap_jso(this));
   
   @DomName('DOMRectReadOnly.left')
   @DocsEditable()
   @Experimental() // untriaged
-  double get left => _blink.BlinkDOMRectReadOnly.instance.left_Getter_(unwrap_jso(this));
+  num get left => _blink.BlinkDOMRectReadOnly.instance.left_Getter_(unwrap_jso(this));
   
   @DomName('DOMRectReadOnly.right')
   @DocsEditable()
   @Experimental() // untriaged
-  double get right => _blink.BlinkDOMRectReadOnly.instance.right_Getter_(unwrap_jso(this));
+  num get right => _blink.BlinkDOMRectReadOnly.instance.right_Getter_(unwrap_jso(this));
   
   @DomName('DOMRectReadOnly.top')
   @DocsEditable()
   @Experimental() // untriaged
-  double get top => _blink.BlinkDOMRectReadOnly.instance.top_Getter_(unwrap_jso(this));
+  num get top => _blink.BlinkDOMRectReadOnly.instance.top_Getter_(unwrap_jso(this));
   
   @DomName('DOMRectReadOnly.width')
   @DocsEditable()
   @Experimental() // untriaged
-  double get width => _blink.BlinkDOMRectReadOnly.instance.width_Getter_(unwrap_jso(this));
+  num get width => _blink.BlinkDOMRectReadOnly.instance.width_Getter_(unwrap_jso(this));
   
   @DomName('DOMRectReadOnly.x')
   @DocsEditable()
   @Experimental() // untriaged
-  double get x => _blink.BlinkDOMRectReadOnly.instance.x_Getter_(unwrap_jso(this));
+  num get x => _blink.BlinkDOMRectReadOnly.instance.x_Getter_(unwrap_jso(this));
   
   @DomName('DOMRectReadOnly.y')
   @DocsEditable()
   @Experimental() // untriaged
-  double get y => _blink.BlinkDOMRectReadOnly.instance.y_Getter_(unwrap_jso(this));
+  num get y => _blink.BlinkDOMRectReadOnly.instance.y_Getter_(unwrap_jso(this));
   }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18661,7 +18661,7 @@ class GamepadButton extends NativeFieldWrapperClass2 {
   @DomName('GamepadButton.value')
   @DocsEditable()
   @Experimental() // untriaged
-  double get value => _blink.BlinkGamepadButton.instance.value_Getter_(unwrap_jso(this));
+  num get value => _blink.BlinkGamepadButton.instance.value_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24129,7 +24129,7 @@ class MediaController extends EventTarget {
   
   @DomName('MediaController.duration')
   @DocsEditable()
-  double get duration => _blink.BlinkMediaController.instance.duration_Getter_(unwrap_jso(this));
+  num get duration => _blink.BlinkMediaController.instance.duration_Getter_(unwrap_jso(this));
   
   @DomName('MediaController.muted')
   @DocsEditable()
@@ -24441,7 +24441,7 @@ class MediaElement extends HtmlElement {
   
   @DomName('HTMLMediaElement.duration')
   @DocsEditable()
-  double get duration => _blink.BlinkHTMLMediaElement.instance.duration_Getter_(unwrap_jso(this));
+  num get duration => _blink.BlinkHTMLMediaElement.instance.duration_Getter_(unwrap_jso(this));
   
   @DomName('HTMLMediaElement.ended')
   @DocsEditable()
@@ -26393,7 +26393,7 @@ class MidiMessageEvent extends Event {
   
   @DomName('MIDIMessageEvent.receivedTime')
   @DocsEditable()
-  double get receivedTime => _blink.BlinkMIDIMessageEvent.instance.receivedTime_Getter_(unwrap_jso(this));
+  num get receivedTime => _blink.BlinkMIDIMessageEvent.instance.receivedTime_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29527,7 +29527,7 @@ class Performance extends EventTarget {
   
   @DomName('Performance.now')
   @DocsEditable()
-  double now() => _blink.BlinkPerformance.instance.now_Callback_0_(unwrap_jso(this));
+  num now() => _blink.BlinkPerformance.instance.now_Callback_0_(unwrap_jso(this));
   
   @DomName('Performance.webkitClearResourceTimings')
   @DocsEditable()
@@ -29585,7 +29585,7 @@ class PerformanceEntry extends NativeFieldWrapperClass2 {
 
   @DomName('PerformanceEntry.duration')
   @DocsEditable()
-  double get duration => _blink.BlinkPerformanceEntry.instance.duration_Getter_(unwrap_jso(this));
+  num get duration => _blink.BlinkPerformanceEntry.instance.duration_Getter_(unwrap_jso(this));
   
   @DomName('PerformanceEntry.entryType')
   @DocsEditable()
@@ -29597,7 +29597,7 @@ class PerformanceEntry extends NativeFieldWrapperClass2 {
   
   @DomName('PerformanceEntry.startTime')
   @DocsEditable()
-  double get startTime => _blink.BlinkPerformanceEntry.instance.startTime_Getter_(unwrap_jso(this));
+  num get startTime => _blink.BlinkPerformanceEntry.instance.startTime_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -29739,23 +29739,23 @@ class PerformanceResourceTiming extends PerformanceEntry {
 
   @DomName('PerformanceResourceTiming.connectEnd')
   @DocsEditable()
-  double get connectEnd => _blink.BlinkPerformanceResourceTiming.instance.connectEnd_Getter_(unwrap_jso(this));
+  num get connectEnd => _blink.BlinkPerformanceResourceTiming.instance.connectEnd_Getter_(unwrap_jso(this));
   
   @DomName('PerformanceResourceTiming.connectStart')
   @DocsEditable()
-  double get connectStart => _blink.BlinkPerformanceResourceTiming.instance.connectStart_Getter_(unwrap_jso(this));
+  num get connectStart => _blink.BlinkPerformanceResourceTiming.instance.connectStart_Getter_(unwrap_jso(this));
   
   @DomName('PerformanceResourceTiming.domainLookupEnd')
   @DocsEditable()
-  double get domainLookupEnd => _blink.BlinkPerformanceResourceTiming.instance.domainLookupEnd_Getter_(unwrap_jso(this));
+  num get domainLookupEnd => _blink.BlinkPerformanceResourceTiming.instance.domainLookupEnd_Getter_(unwrap_jso(this));
   
   @DomName('PerformanceResourceTiming.domainLookupStart')
   @DocsEditable()
-  double get domainLookupStart => _blink.BlinkPerformanceResourceTiming.instance.domainLookupStart_Getter_(unwrap_jso(this));
+  num get domainLookupStart => _blink.BlinkPerformanceResourceTiming.instance.domainLookupStart_Getter_(unwrap_jso(this));
   
   @DomName('PerformanceResourceTiming.fetchStart')
   @DocsEditable()
-  double get fetchStart => _blink.BlinkPerformanceResourceTiming.instance.fetchStart_Getter_(unwrap_jso(this));
+  num get fetchStart => _blink.BlinkPerformanceResourceTiming.instance.fetchStart_Getter_(unwrap_jso(this));
   
   @DomName('PerformanceResourceTiming.initiatorType')
   @DocsEditable()
@@ -29763,30 +29763,30 @@ class PerformanceResourceTiming extends PerformanceEntry {
   
   @DomName('PerformanceResourceTiming.redirectEnd')
   @DocsEditable()
-  double get redirectEnd => _blink.BlinkPerformanceResourceTiming.instance.redirectEnd_Getter_(unwrap_jso(this));
+  num get redirectEnd => _blink.BlinkPerformanceResourceTiming.instance.redirectEnd_Getter_(unwrap_jso(this));
   
   @DomName('PerformanceResourceTiming.redirectStart')
   @DocsEditable()
-  double get redirectStart => _blink.BlinkPerformanceResourceTiming.instance.redirectStart_Getter_(unwrap_jso(this));
+  num get redirectStart => _blink.BlinkPerformanceResourceTiming.instance.redirectStart_Getter_(unwrap_jso(this));
   
   @DomName('PerformanceResourceTiming.requestStart')
   @DocsEditable()
   @Experimental() // nonstandard
-  double get requestStart => _blink.BlinkPerformanceResourceTiming.instance.requestStart_Getter_(unwrap_jso(this));
+  num get requestStart => _blink.BlinkPerformanceResourceTiming.instance.requestStart_Getter_(unwrap_jso(this));
   
   @DomName('PerformanceResourceTiming.responseEnd')
   @DocsEditable()
   @Experimental() // nonstandard
-  double get responseEnd => _blink.BlinkPerformanceResourceTiming.instance.responseEnd_Getter_(unwrap_jso(this));
+  num get responseEnd => _blink.BlinkPerformanceResourceTiming.instance.responseEnd_Getter_(unwrap_jso(this));
   
   @DomName('PerformanceResourceTiming.responseStart')
   @DocsEditable()
   @Experimental() // nonstandard
-  double get responseStart => _blink.BlinkPerformanceResourceTiming.instance.responseStart_Getter_(unwrap_jso(this));
+  num get responseStart => _blink.BlinkPerformanceResourceTiming.instance.responseStart_Getter_(unwrap_jso(this));
   
   @DomName('PerformanceResourceTiming.secureConnectionStart')
   @DocsEditable()
-  double get secureConnectionStart => _blink.BlinkPerformanceResourceTiming.instance.secureConnectionStart_Getter_(unwrap_jso(this));
+  num get secureConnectionStart => _blink.BlinkPerformanceResourceTiming.instance.secureConnectionStart_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30398,7 +30398,7 @@ class ProgressElement extends HtmlElement {
   
   @DomName('HTMLProgressElement.position')
   @DocsEditable()
-  double get position => _blink.BlinkHTMLProgressElement.instance.position_Getter_(unwrap_jso(this));
+  num get position => _blink.BlinkHTMLProgressElement.instance.position_Getter_(unwrap_jso(this));
   
   @DomName('HTMLProgressElement.value')
   @DocsEditable()
@@ -32928,7 +32928,7 @@ class SharedWorker extends EventTarget implements AbstractWorker {
   @DomName('SharedWorker.workerStart')
   @DocsEditable()
   @Experimental() // untriaged
-  double get workerStart => _blink.BlinkSharedWorker.instance.workerStart_Getter_(unwrap_jso(this));
+  num get workerStart => _blink.BlinkSharedWorker.instance.workerStart_Getter_(unwrap_jso(this));
   
   @DomName('SharedWorker.onerror')
   @DocsEditable()
@@ -33796,7 +33796,7 @@ class SpeechRecognitionAlternative extends NativeFieldWrapperClass2 {
 
   @DomName('SpeechRecognitionAlternative.confidence')
   @DocsEditable()
-  double get confidence => _blink.BlinkSpeechRecognitionAlternative.instance.confidence_Getter_(unwrap_jso(this));
+  num get confidence => _blink.BlinkSpeechRecognitionAlternative.instance.confidence_Getter_(unwrap_jso(this));
   
   @DomName('SpeechRecognitionAlternative.transcript')
   @DocsEditable()
@@ -34022,7 +34022,7 @@ class SpeechSynthesisEvent extends Event {
   
   @DomName('SpeechSynthesisEvent.elapsedTime')
   @DocsEditable()
-  double get elapsedTime => _blink.BlinkSpeechSynthesisEvent.instance.elapsedTime_Getter_(unwrap_jso(this));
+  num get elapsedTime => _blink.BlinkSpeechSynthesisEvent.instance.elapsedTime_Getter_(unwrap_jso(this));
   
   @DomName('SpeechSynthesisEvent.name')
   @DocsEditable()
@@ -35590,61 +35590,61 @@ class TextMetrics extends NativeFieldWrapperClass2 {
   @DomName('TextMetrics.actualBoundingBoxAscent')
   @DocsEditable()
   @Experimental() // untriaged
-  double get actualBoundingBoxAscent => _blink.BlinkTextMetrics.instance.actualBoundingBoxAscent_Getter_(unwrap_jso(this));
+  num get actualBoundingBoxAscent => _blink.BlinkTextMetrics.instance.actualBoundingBoxAscent_Getter_(unwrap_jso(this));
   
   @DomName('TextMetrics.actualBoundingBoxDescent')
   @DocsEditable()
   @Experimental() // untriaged
-  double get actualBoundingBoxDescent => _blink.BlinkTextMetrics.instance.actualBoundingBoxDescent_Getter_(unwrap_jso(this));
+  num get actualBoundingBoxDescent => _blink.BlinkTextMetrics.instance.actualBoundingBoxDescent_Getter_(unwrap_jso(this));
   
   @DomName('TextMetrics.actualBoundingBoxLeft')
   @DocsEditable()
   @Experimental() // untriaged
-  double get actualBoundingBoxLeft => _blink.BlinkTextMetrics.instance.actualBoundingBoxLeft_Getter_(unwrap_jso(this));
+  num get actualBoundingBoxLeft => _blink.BlinkTextMetrics.instance.actualBoundingBoxLeft_Getter_(unwrap_jso(this));
   
   @DomName('TextMetrics.actualBoundingBoxRight')
   @DocsEditable()
   @Experimental() // untriaged
-  double get actualBoundingBoxRight => _blink.BlinkTextMetrics.instance.actualBoundingBoxRight_Getter_(unwrap_jso(this));
+  num get actualBoundingBoxRight => _blink.BlinkTextMetrics.instance.actualBoundingBoxRight_Getter_(unwrap_jso(this));
   
   @DomName('TextMetrics.alphabeticBaseline')
   @DocsEditable()
   @Experimental() // untriaged
-  double get alphabeticBaseline => _blink.BlinkTextMetrics.instance.alphabeticBaseline_Getter_(unwrap_jso(this));
+  num get alphabeticBaseline => _blink.BlinkTextMetrics.instance.alphabeticBaseline_Getter_(unwrap_jso(this));
   
   @DomName('TextMetrics.emHeightAscent')
   @DocsEditable()
   @Experimental() // untriaged
-  double get emHeightAscent => _blink.BlinkTextMetrics.instance.emHeightAscent_Getter_(unwrap_jso(this));
+  num get emHeightAscent => _blink.BlinkTextMetrics.instance.emHeightAscent_Getter_(unwrap_jso(this));
   
   @DomName('TextMetrics.emHeightDescent')
   @DocsEditable()
   @Experimental() // untriaged
-  double get emHeightDescent => _blink.BlinkTextMetrics.instance.emHeightDescent_Getter_(unwrap_jso(this));
+  num get emHeightDescent => _blink.BlinkTextMetrics.instance.emHeightDescent_Getter_(unwrap_jso(this));
   
   @DomName('TextMetrics.fontBoundingBoxAscent')
   @DocsEditable()
   @Experimental() // untriaged
-  double get fontBoundingBoxAscent => _blink.BlinkTextMetrics.instance.fontBoundingBoxAscent_Getter_(unwrap_jso(this));
+  num get fontBoundingBoxAscent => _blink.BlinkTextMetrics.instance.fontBoundingBoxAscent_Getter_(unwrap_jso(this));
   
   @DomName('TextMetrics.fontBoundingBoxDescent')
   @DocsEditable()
   @Experimental() // untriaged
-  double get fontBoundingBoxDescent => _blink.BlinkTextMetrics.instance.fontBoundingBoxDescent_Getter_(unwrap_jso(this));
+  num get fontBoundingBoxDescent => _blink.BlinkTextMetrics.instance.fontBoundingBoxDescent_Getter_(unwrap_jso(this));
   
   @DomName('TextMetrics.hangingBaseline')
   @DocsEditable()
   @Experimental() // untriaged
-  double get hangingBaseline => _blink.BlinkTextMetrics.instance.hangingBaseline_Getter_(unwrap_jso(this));
+  num get hangingBaseline => _blink.BlinkTextMetrics.instance.hangingBaseline_Getter_(unwrap_jso(this));
   
   @DomName('TextMetrics.ideographicBaseline')
   @DocsEditable()
   @Experimental() // untriaged
-  double get ideographicBaseline => _blink.BlinkTextMetrics.instance.ideographicBaseline_Getter_(unwrap_jso(this));
+  num get ideographicBaseline => _blink.BlinkTextMetrics.instance.ideographicBaseline_Getter_(unwrap_jso(this));
   
   @DomName('TextMetrics.width')
   @DocsEditable()
-  double get width => _blink.BlinkTextMetrics.instance.width_Getter_(unwrap_jso(this));
+  num get width => _blink.BlinkTextMetrics.instance.width_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36076,11 +36076,11 @@ class TimeRanges extends NativeFieldWrapperClass2 {
   
   @DomName('TimeRanges.end')
   @DocsEditable()
-  double end(int index) => _blink.BlinkTimeRanges.instance.end_Callback_1_(unwrap_jso(this), index);
+  num end(int index) => _blink.BlinkTimeRanges.instance.end_Callback_1_(unwrap_jso(this), index);
   
   @DomName('TimeRanges.start')
   @DocsEditable()
-  double start(int index) => _blink.BlinkTimeRanges.instance.start_Callback_1_(unwrap_jso(this), index);
+  num start(int index) => _blink.BlinkTimeRanges.instance.start_Callback_1_(unwrap_jso(this), index);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36278,16 +36278,16 @@ class Touch extends NativeFieldWrapperClass2 {
 
   @DomName('Touch.clientX')
   @DocsEditable()
-  double get _clientX => _blink.BlinkTouch.instance.clientX_Getter_(unwrap_jso(this));
+  num get _clientX => _blink.BlinkTouch.instance.clientX_Getter_(unwrap_jso(this));
   
   @DomName('Touch.clientY')
   @DocsEditable()
-  double get _clientY => _blink.BlinkTouch.instance.clientY_Getter_(unwrap_jso(this));
+  num get _clientY => _blink.BlinkTouch.instance.clientY_Getter_(unwrap_jso(this));
   
   @DomName('Touch.force')
   @DocsEditable()
   @Experimental() // untriaged
-  double get force => _blink.BlinkTouch.instance.force_Getter_(unwrap_jso(this));
+  num get force => _blink.BlinkTouch.instance.force_Getter_(unwrap_jso(this));
   
   @DomName('Touch.identifier')
   @DocsEditable()
@@ -36295,29 +36295,29 @@ class Touch extends NativeFieldWrapperClass2 {
   
   @DomName('Touch.pageX')
   @DocsEditable()
-  double get _pageX => _blink.BlinkTouch.instance.pageX_Getter_(unwrap_jso(this));
+  num get _pageX => _blink.BlinkTouch.instance.pageX_Getter_(unwrap_jso(this));
   
   @DomName('Touch.pageY')
   @DocsEditable()
-  double get _pageY => _blink.BlinkTouch.instance.pageY_Getter_(unwrap_jso(this));
+  num get _pageY => _blink.BlinkTouch.instance.pageY_Getter_(unwrap_jso(this));
   
   @DomName('Touch.radiusX')
   @DocsEditable()
   @Experimental() // untriaged
-  double get _radiusX => _blink.BlinkTouch.instance.radiusX_Getter_(unwrap_jso(this));
+  num get _radiusX => _blink.BlinkTouch.instance.radiusX_Getter_(unwrap_jso(this));
   
   @DomName('Touch.radiusY')
   @DocsEditable()
   @Experimental() // untriaged
-  double get _radiusY => _blink.BlinkTouch.instance.radiusY_Getter_(unwrap_jso(this));
+  num get _radiusY => _blink.BlinkTouch.instance.radiusY_Getter_(unwrap_jso(this));
   
   @DomName('Touch.screenX')
   @DocsEditable()
-  double get _screenX => _blink.BlinkTouch.instance.screenX_Getter_(unwrap_jso(this));
+  num get _screenX => _blink.BlinkTouch.instance.screenX_Getter_(unwrap_jso(this));
   
   @DomName('Touch.screenY')
   @DocsEditable()
-  double get _screenY => _blink.BlinkTouch.instance.screenY_Getter_(unwrap_jso(this));
+  num get _screenY => _blink.BlinkTouch.instance.screenY_Getter_(unwrap_jso(this));
   
   @DomName('Touch.target')
   @DocsEditable()
@@ -36328,7 +36328,7 @@ class Touch extends NativeFieldWrapperClass2 {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
-  double get rotationAngle => _blink.BlinkTouch.instance.webkitRotationAngle_Getter_(unwrap_jso(this));
+  num get rotationAngle => _blink.BlinkTouch.instance.webkitRotationAngle_Getter_(unwrap_jso(this));
   
 
 // As of Chrome 37, these all changed from long to double.  This code
@@ -36717,7 +36717,7 @@ class TransitionEvent extends Event {
 
   @DomName('TransitionEvent.elapsedTime')
   @DocsEditable()
-  double get elapsedTime => _blink.BlinkTransitionEvent.instance.elapsedTime_Getter_(unwrap_jso(this));
+  num get elapsedTime => _blink.BlinkTransitionEvent.instance.elapsedTime_Getter_(unwrap_jso(this));
   
   @DomName('TransitionEvent.propertyName')
   @DocsEditable()
@@ -37568,7 +37568,7 @@ class VideoPlaybackQuality extends NativeFieldWrapperClass2 {
   @DomName('VideoPlaybackQuality.creationTime')
   @DocsEditable()
   @Experimental() // untriaged
-  double get creationTime => _blink.BlinkVideoPlaybackQuality.instance.creationTime_Getter_(unwrap_jso(this));
+  num get creationTime => _blink.BlinkVideoPlaybackQuality.instance.creationTime_Getter_(unwrap_jso(this));
   
   @DomName('VideoPlaybackQuality.droppedVideoFrames')
   @DocsEditable()
@@ -38303,15 +38303,15 @@ class WheelEvent extends MouseEvent {
   
   @DomName('WheelEvent.deltaX')
   @DocsEditable()
-  double get _deltaX => _blink.BlinkWheelEvent.instance.deltaX_Getter_(unwrap_jso(this));
+  num get _deltaX => _blink.BlinkWheelEvent.instance.deltaX_Getter_(unwrap_jso(this));
   
   @DomName('WheelEvent.deltaY')
   @DocsEditable()
-  double get _deltaY => _blink.BlinkWheelEvent.instance.deltaY_Getter_(unwrap_jso(this));
+  num get _deltaY => _blink.BlinkWheelEvent.instance.deltaY_Getter_(unwrap_jso(this));
   
   @DomName('WheelEvent.deltaZ')
   @DocsEditable()
-  double get deltaZ => _blink.BlinkWheelEvent.instance.deltaZ_Getter_(unwrap_jso(this));
+  num get deltaZ => _blink.BlinkWheelEvent.instance.deltaZ_Getter_(unwrap_jso(this));
   
 
   /**
@@ -38745,7 +38745,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @DocsEditable()
   // http://www.quirksmode.org/blog/archives/2012/06/devicepixelrati.html
   @Experimental() // non-standard
-  double get devicePixelRatio => _blink.BlinkWindow.instance.devicePixelRatio_Getter_(unwrap_jso(this));
+  num get devicePixelRatio => _blink.BlinkWindow.instance.devicePixelRatio_Getter_(unwrap_jso(this));
   
   @DomName('Window.document')
   @DocsEditable()
@@ -38951,7 +38951,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.pageXOffset')
   @DocsEditable()
-  double get _pageXOffset => _blink.BlinkWindow.instance.pageXOffset_Getter_(unwrap_jso(this));
+  num get _pageXOffset => _blink.BlinkWindow.instance.pageXOffset_Getter_(unwrap_jso(this));
   
   /**
    * The distance this window has been scrolled vertically.
@@ -38967,7 +38967,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.pageYOffset')
   @DocsEditable()
-  double get _pageYOffset => _blink.BlinkWindow.instance.pageYOffset_Getter_(unwrap_jso(this));
+  num get _pageYOffset => _blink.BlinkWindow.instance.pageYOffset_Getter_(unwrap_jso(this));
   
   @DomName('Window.parent')
   @DocsEditable()
@@ -39054,11 +39054,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   
   @DomName('Window.scrollX')
   @DocsEditable()
-  double get _scrollX => _blink.BlinkWindow.instance.scrollX_Getter_(unwrap_jso(this));
+  num get _scrollX => _blink.BlinkWindow.instance.scrollX_Getter_(unwrap_jso(this));
   
   @DomName('Window.scrollY')
   @DocsEditable()
-  double get _scrollY => _blink.BlinkWindow.instance.scrollY_Getter_(unwrap_jso(this));
+  num get _scrollY => _blink.BlinkWindow.instance.scrollY_Getter_(unwrap_jso(this));
   
   /**
    * This window's scroll bars.
@@ -40402,7 +40402,7 @@ class WorkerPerformance extends NativeFieldWrapperClass2 {
   @DomName('WorkerPerformance.now')
   @DocsEditable()
   @Experimental() // untriaged
-  double now() => _blink.BlinkWorkerPerformance.instance.now_Callback_0_(unwrap_jso(this));
+  num now() => _blink.BlinkWorkerPerformance.instance.now_Callback_0_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40604,7 +40604,7 @@ class XPathResult extends NativeFieldWrapperClass2 {
   
   @DomName('XPathResult.numberValue')
   @DocsEditable()
-  double get numberValue => _blink.BlinkXPathResult.instance.numberValue_Getter_(unwrap_jso(this));
+  num get numberValue => _blink.BlinkXPathResult.instance.numberValue_Getter_(unwrap_jso(this));
   
   @DomName('XPathResult.resultType')
   @DocsEditable()
@@ -41099,27 +41099,27 @@ class _ClientRect extends NativeFieldWrapperClass2 implements Rectangle {
 
   @DomName('ClientRect.bottom')
   @DocsEditable()
-  double get bottom => _blink.BlinkClientRect.instance.bottom_Getter_(unwrap_jso(this));
+  num get bottom => _blink.BlinkClientRect.instance.bottom_Getter_(unwrap_jso(this));
   
   @DomName('ClientRect.height')
   @DocsEditable()
-  double get height => _blink.BlinkClientRect.instance.height_Getter_(unwrap_jso(this));
+  num get height => _blink.BlinkClientRect.instance.height_Getter_(unwrap_jso(this));
   
   @DomName('ClientRect.left')
   @DocsEditable()
-  double get left => _blink.BlinkClientRect.instance.left_Getter_(unwrap_jso(this));
+  num get left => _blink.BlinkClientRect.instance.left_Getter_(unwrap_jso(this));
   
   @DomName('ClientRect.right')
   @DocsEditable()
-  double get right => _blink.BlinkClientRect.instance.right_Getter_(unwrap_jso(this));
+  num get right => _blink.BlinkClientRect.instance.right_Getter_(unwrap_jso(this));
   
   @DomName('ClientRect.top')
   @DocsEditable()
-  double get top => _blink.BlinkClientRect.instance.top_Getter_(unwrap_jso(this));
+  num get top => _blink.BlinkClientRect.instance.top_Getter_(unwrap_jso(this));
   
   @DomName('ClientRect.width')
   @DocsEditable()
-  double get width => _blink.BlinkClientRect.instance.width_Getter_(unwrap_jso(this));
+  num get width => _blink.BlinkClientRect.instance.width_Getter_(unwrap_jso(this));
   }
 
 /**

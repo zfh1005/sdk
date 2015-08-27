@@ -927,7 +927,7 @@ class AnimatedNumber extends NativeFieldWrapperClass2 {
 
   @DomName('SVGAnimatedNumber.animVal')
   @DocsEditable()
-  double get animVal => _blink.BlinkSVGAnimatedNumber.instance.animVal_Getter_(unwrap_jso(this));
+  num get animVal => _blink.BlinkSVGAnimatedNumber.instance.animVal_Getter_(unwrap_jso(this));
   
   @DomName('SVGAnimatedNumber.baseVal')
   @DocsEditable()
@@ -1190,15 +1190,15 @@ class AnimationElement extends SvgElement implements Tests {
   
   @DomName('SVGAnimationElement.getCurrentTime')
   @DocsEditable()
-  double getCurrentTime() => _blink.BlinkSVGAnimationElement.instance.getCurrentTime_Callback_0_(unwrap_jso(this));
+  num getCurrentTime() => _blink.BlinkSVGAnimationElement.instance.getCurrentTime_Callback_0_(unwrap_jso(this));
   
   @DomName('SVGAnimationElement.getSimpleDuration')
   @DocsEditable()
-  double getSimpleDuration() => _blink.BlinkSVGAnimationElement.instance.getSimpleDuration_Callback_0_(unwrap_jso(this));
+  num getSimpleDuration() => _blink.BlinkSVGAnimationElement.instance.getSimpleDuration_Callback_0_(unwrap_jso(this));
   
   @DomName('SVGAnimationElement.getStartTime')
   @DocsEditable()
-  double getStartTime() => _blink.BlinkSVGAnimationElement.instance.getStartTime_Callback_0_(unwrap_jso(this));
+  num getStartTime() => _blink.BlinkSVGAnimationElement.instance.getStartTime_Callback_0_(unwrap_jso(this));
   
   @DomName('SVGAnimationElement.requiredExtensions')
   @DocsEditable()
@@ -4690,7 +4690,7 @@ class PathElement extends GeometryElement {
   
   @DomName('SVGPathElement.getTotalLength')
   @DocsEditable()
-  double getTotalLength() => _blink.BlinkSVGPathElement.instance.getTotalLength_Callback_0_(unwrap_jso(this));
+  num getTotalLength() => _blink.BlinkSVGPathElement.instance.getTotalLength_Callback_0_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7026,7 +7026,7 @@ class SvgElement extends Element implements GlobalEventHandlers {
   String get className => _svgClassName.baseVal;
 
   // Unbelievable hack. We can't create an SvgAnimatedString, but we can get
-  // the existing one and change its baseVal. Then we call the blink setter
+  // the existing one and change its baseVal. Then we call the blink setter directly
   // TODO(alanknight): Handle suppressing the SVGAnimated<*> better
   set className(String s) {
     var oldClass = _svgClassName;
@@ -7689,19 +7689,19 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ZoomAndPan 
   
   @DomName('SVGSVGElement.pixelUnitToMillimeterX')
   @DocsEditable()
-  double get pixelUnitToMillimeterX => _blink.BlinkSVGSVGElement.instance.pixelUnitToMillimeterX_Getter_(unwrap_jso(this));
+  num get pixelUnitToMillimeterX => _blink.BlinkSVGSVGElement.instance.pixelUnitToMillimeterX_Getter_(unwrap_jso(this));
   
   @DomName('SVGSVGElement.pixelUnitToMillimeterY')
   @DocsEditable()
-  double get pixelUnitToMillimeterY => _blink.BlinkSVGSVGElement.instance.pixelUnitToMillimeterY_Getter_(unwrap_jso(this));
+  num get pixelUnitToMillimeterY => _blink.BlinkSVGSVGElement.instance.pixelUnitToMillimeterY_Getter_(unwrap_jso(this));
   
   @DomName('SVGSVGElement.screenPixelToMillimeterX')
   @DocsEditable()
-  double get screenPixelToMillimeterX => _blink.BlinkSVGSVGElement.instance.screenPixelToMillimeterX_Getter_(unwrap_jso(this));
+  num get screenPixelToMillimeterX => _blink.BlinkSVGSVGElement.instance.screenPixelToMillimeterX_Getter_(unwrap_jso(this));
   
   @DomName('SVGSVGElement.screenPixelToMillimeterY')
   @DocsEditable()
-  double get screenPixelToMillimeterY => _blink.BlinkSVGSVGElement.instance.screenPixelToMillimeterY_Getter_(unwrap_jso(this));
+  num get screenPixelToMillimeterY => _blink.BlinkSVGSVGElement.instance.screenPixelToMillimeterY_Getter_(unwrap_jso(this));
   
   @DomName('SVGSVGElement.useCurrentView')
   @DocsEditable()
@@ -7777,7 +7777,7 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ZoomAndPan 
   
   @DomName('SVGSVGElement.getCurrentTime')
   @DocsEditable()
-  double getCurrentTime() => _blink.BlinkSVGSVGElement.instance.getCurrentTime_Callback_0_(unwrap_jso(this));
+  num getCurrentTime() => _blink.BlinkSVGSVGElement.instance.getCurrentTime_Callback_0_(unwrap_jso(this));
   
   @DomName('SVGSVGElement.getElementById')
   @DocsEditable()
@@ -8055,7 +8055,7 @@ class TextContentElement extends GraphicsElement {
   
   @DomName('SVGTextContentElement.getComputedTextLength')
   @DocsEditable()
-  double getComputedTextLength() => _blink.BlinkSVGTextContentElement.instance.getComputedTextLength_Callback_0_(unwrap_jso(this));
+  num getComputedTextLength() => _blink.BlinkSVGTextContentElement.instance.getComputedTextLength_Callback_0_(unwrap_jso(this));
   
   @DomName('SVGTextContentElement.getEndPositionOfChar')
   @DocsEditable()
@@ -8071,7 +8071,7 @@ class TextContentElement extends GraphicsElement {
   
   @DomName('SVGTextContentElement.getRotationOfChar')
   @DocsEditable()
-  double getRotationOfChar(int offset) => _blink.BlinkSVGTextContentElement.instance.getRotationOfChar_Callback_1_(unwrap_jso(this), offset);
+  num getRotationOfChar(int offset) => _blink.BlinkSVGTextContentElement.instance.getRotationOfChar_Callback_1_(unwrap_jso(this), offset);
   
   @DomName('SVGTextContentElement.getStartPositionOfChar')
   @DocsEditable()
@@ -8079,7 +8079,7 @@ class TextContentElement extends GraphicsElement {
   
   @DomName('SVGTextContentElement.getSubStringLength')
   @DocsEditable()
-  double getSubStringLength(int offset, int length) => _blink.BlinkSVGTextContentElement.instance.getSubStringLength_Callback_2_(unwrap_jso(this), offset, length);
+  num getSubStringLength(int offset, int length) => _blink.BlinkSVGTextContentElement.instance.getSubStringLength_Callback_2_(unwrap_jso(this), offset, length);
   
   @DomName('SVGTextContentElement.selectSubString')
   @DocsEditable()
@@ -8345,7 +8345,7 @@ class Transform extends NativeFieldWrapperClass2 {
 
   @DomName('SVGTransform.angle')
   @DocsEditable()
-  double get angle => _blink.BlinkSVGTransform.instance.angle_Getter_(unwrap_jso(this));
+  num get angle => _blink.BlinkSVGTransform.instance.angle_Getter_(unwrap_jso(this));
   
   @DomName('SVGTransform.matrix')
   @DocsEditable()
@@ -8846,7 +8846,7 @@ class ZoomEvent extends UIEvent {
 
   @DomName('SVGZoomEvent.newScale')
   @DocsEditable()
-  double get newScale => _blink.BlinkSVGZoomEvent.instance.newScale_Getter_(unwrap_jso(this));
+  num get newScale => _blink.BlinkSVGZoomEvent.instance.newScale_Getter_(unwrap_jso(this));
   
   @DomName('SVGZoomEvent.newTranslate')
   @DocsEditable()
@@ -8854,7 +8854,7 @@ class ZoomEvent extends UIEvent {
   
   @DomName('SVGZoomEvent.previousScale')
   @DocsEditable()
-  double get previousScale => _blink.BlinkSVGZoomEvent.instance.previousScale_Getter_(unwrap_jso(this));
+  num get previousScale => _blink.BlinkSVGZoomEvent.instance.previousScale_Getter_(unwrap_jso(this));
   
   @DomName('SVGZoomEvent.previousTranslate')
   @DocsEditable()

@@ -194,7 +194,7 @@ class AudioBuffer extends NativeFieldWrapperClass2 {
 
   @DomName('AudioBuffer.duration')
   @DocsEditable()
-  double get duration => _blink.BlinkAudioBuffer.instance.duration_Getter_(unwrap_jso(this));
+  num get duration => _blink.BlinkAudioBuffer.instance.duration_Getter_(unwrap_jso(this));
   
   @DomName('AudioBuffer.length')
   @DocsEditable()
@@ -206,7 +206,7 @@ class AudioBuffer extends NativeFieldWrapperClass2 {
   
   @DomName('AudioBuffer.sampleRate')
   @DocsEditable()
-  double get sampleRate => _blink.BlinkAudioBuffer.instance.sampleRate_Getter_(unwrap_jso(this));
+  num get sampleRate => _blink.BlinkAudioBuffer.instance.sampleRate_Getter_(unwrap_jso(this));
   
   @DomName('AudioBuffer.getChannelData')
   @DocsEditable()
@@ -380,7 +380,7 @@ class AudioContext extends EventTarget {
 
   @DomName('AudioContext.currentTime')
   @DocsEditable()
-  double get currentTime => _blink.BlinkAudioContext.instance.currentTime_Getter_(unwrap_jso(this));
+  num get currentTime => _blink.BlinkAudioContext.instance.currentTime_Getter_(unwrap_jso(this));
   
   @DomName('AudioContext.destination')
   @DocsEditable()
@@ -392,7 +392,7 @@ class AudioContext extends EventTarget {
   
   @DomName('AudioContext.sampleRate')
   @DocsEditable()
-  double get sampleRate => _blink.BlinkAudioContext.instance.sampleRate_Getter_(unwrap_jso(this));
+  num get sampleRate => _blink.BlinkAudioContext.instance.sampleRate_Getter_(unwrap_jso(this));
   
   @DomName('AudioContext.createAnalyser')
   @DocsEditable()
@@ -720,7 +720,7 @@ class AudioParam extends NativeFieldWrapperClass2 {
 
   @DomName('AudioParam.defaultValue')
   @DocsEditable()
-  double get defaultValue => _blink.BlinkAudioParam.instance.defaultValue_Getter_(unwrap_jso(this));
+  num get defaultValue => _blink.BlinkAudioParam.instance.defaultValue_Getter_(unwrap_jso(this));
   
   @DomName('AudioParam.value')
   @DocsEditable()
@@ -793,7 +793,7 @@ class AudioProcessingEvent extends Event {
   @DomName('AudioProcessingEvent.playbackTime')
   @DocsEditable()
   @Experimental() // untriaged
-  double get playbackTime => _blink.BlinkAudioProcessingEvent.instance.playbackTime_Getter_(unwrap_jso(this));
+  num get playbackTime => _blink.BlinkAudioProcessingEvent.instance.playbackTime_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
