@@ -18317,10 +18317,10 @@ class FontFaceSet extends EventTarget {
   
   void forEach(FontFaceSetForEachCallback callback, [Object thisArg]) {
     if (thisArg != null) {
-      _blink.BlinkFontFaceSet.instance.forEach_Callback_2_(unwrap_jso(this), unwrap_jso((FontFace fontFace, FontFace fontFaceAgain, FontFaceSet set) => callback(wrap_jso(fontFace), wrap_jso(fontFaceAgain), wrap_jso(set))), thisArg);
+      _blink.BlinkFontFaceSet.instance.forEach_Callback_2_(unwrap_jso(this), unwrap_jso((fontFace, fontFaceAgain, set) => callback(wrap_jso(fontFace), wrap_jso(fontFaceAgain), wrap_jso(set))), thisArg);
       return;
     }
-    _blink.BlinkFontFaceSet.instance.forEach_Callback_1_(unwrap_jso(this), unwrap_jso((FontFace fontFace, FontFace fontFaceAgain, FontFaceSet set) => callback(wrap_jso(fontFace), wrap_jso(fontFaceAgain), wrap_jso(set))));
+    _blink.BlinkFontFaceSet.instance.forEach_Callback_1_(unwrap_jso(this), unwrap_jso((fontFace, fontFaceAgain, set) => callback(wrap_jso(fontFace), wrap_jso(fontFaceAgain), wrap_jso(set))));
     return;
   }
 
@@ -19674,10 +19674,10 @@ class Headers extends NativeFieldWrapperClass2 {
   
   void forEach(HeadersForEachCallback callback, [Object thisArg]) {
     if (thisArg != null) {
-      _blink.BlinkHeaders.instance.forEach_Callback_2_(unwrap_jso(this), unwrap_jso((String value, String key, Headers map) => callback(value, key, wrap_jso(map))), thisArg);
+      _blink.BlinkHeaders.instance.forEach_Callback_2_(unwrap_jso(this), unwrap_jso((String value, String key, map) => callback(value, key, wrap_jso(map))), thisArg);
       return;
     }
-    _blink.BlinkHeaders.instance.forEach_Callback_1_(unwrap_jso(this), unwrap_jso((String value, String key, Headers map) => callback(value, key, wrap_jso(map))));
+    _blink.BlinkHeaders.instance.forEach_Callback_1_(unwrap_jso(this), unwrap_jso((String value, String key, map) => callback(value, key, wrap_jso(map))));
     return;
   }
 

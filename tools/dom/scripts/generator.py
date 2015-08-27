@@ -558,12 +558,12 @@ class OperationInfo(object):
               # forEach is supported in the DOM for FontFaceSet as it iterates
               # over the Javascript Object the callback parameters are also
               # Javascript objects and must be wrapped.
-              parameters.append('unwrap_jso((FontFace fontFace, FontFace fontFaceAgain, FontFaceSet set) => %s(wrap_jso(fontFace), wrap_jso(fontFaceAgain), wrap_jso(set)))' % p.name)
+              parameters.append('unwrap_jso((fontFace, fontFaceAgain, set) => %s(wrap_jso(fontFace), wrap_jso(fontFaceAgain), wrap_jso(set)))' % p.name)
           elif dart_js_interop and type_id == 'HeadersForEachCallback':
               # forEach is supported in the DOM for Headers as it iterates
               # over the Javascript Object the callback parameters are also
               # Javascript objects and must be wrapped.
-              parameters.append('unwrap_jso((String value, String key, Headers map) => %s(value, key, wrap_jso(map)))' % p.name)
+              parameters.append('unwrap_jso((String value, String key, map) => %s(value, key, wrap_jso(map)))' % p.name)
           elif dart_js_interop and type_is_callback and not(isRemoveOperation):
             # Any remove operation that has a a callback doesn't need wrapping.
             # TODO(terry): Kind of hacky but handles all the cases we care about
