@@ -65,6 +65,9 @@ fileapi_test/fileEntry: Pass, RuntimeError # Issue 20488
 indexeddb_5_test: Pass, RuntimeError # Issue 21262
 native_gc_test: Pass, Slow
 
+[ $compiler == none && ($runtime == drt || $runtime == dartium) && $checked ]
+html/element_test/attributes: RuntimeError # Known issue, fixed in 1.12. Remove this once we merge
+
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.
 
