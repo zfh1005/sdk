@@ -7020,15 +7020,18 @@ class SvgElement extends Element implements GlobalEventHandlers {
     return e is SvgElement && !(e is UnknownElement);
   }
 
+  set _svgClassName(AnimatedString value) =>
+      _blink.BlinkSVGElement.instance.className_Setter_(unwrap_jso(this), unwrap_jso(value));
+
   String get className => _svgClassName.baseVal;
 
   // Unbelievable hack. We can't create an SvgAnimatedString, but we can get
-  // the existing one and change its baseVal.
+  // the existing one and change its baseVal. Then we call the blink setter
   // TODO(alanknight): Handle suppressing the SVGAnimated<*> better
   set className(String s) {
     var oldClass = _svgClassName;
     oldClass.baseVal = s;
-    super.className = oldClass;
+    _svgClassName = oldClass;
   }
   // To suppress missing implicit constructor warnings.
   factory SvgElement._() { throw new UnsupportedError("Not supported"); }
