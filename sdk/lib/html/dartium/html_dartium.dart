@@ -20233,7 +20233,6 @@ class HtmlDocument extends Document {
     //              See https://github.com/dart-lang/sdk/issues/23666
     int creating = 0;
     elemProto['createdCallback'] = new js.JsFunction.withThis(($this) {
-      window.console.log("Creating...");
       if (_getJSClassName(reflectClass(customElementClass).superclass) != null && creating < 2) {
         creating++;
         _blink.Blink_Utils.constructElement(customElementClass, $this);
