@@ -67,7 +67,16 @@ $if DART2JS
     return _createElement(tagName, typeExtension);
 $else
   $if JSINTEROP
-    return _createElement(tagName, typeExtension);
+    var newElement = (typeExtension == null) ?
+      _blink.BlinkDocument.instance.createElement_Callback_1_(unwrap_jso(this), tagName) :
+      _blink.BlinkDocument.instance.createElement_Callback_2_(unwrap_jso(this), tagName, typeExtension);
+
+    var wrapped = wrap_jso(newElement);
+    if (wrapped == null) {
+      wrapped = wrap_jso_custom_element(newElement);
+    }
+
+    return wrapped;
   $else
     if (typeExtension != null) {  
       return _createElement(tagName, typeExtension);  

@@ -250,7 +250,6 @@ Type _getSvgType(String key) {
   return null;
 }
 
-
 $if JSINTEROP
 // FIXME: Can we make this private?
 final htmlBlinkFunctionMap = {
@@ -414,8 +413,46 @@ wrap_jso(jsObject) {
       debug_or_assert("constructor != null && jsTypeName.length > 0", constructor != null && jsTypeName.length > 0);
     }
     var func = getHtmlCreateFunction(jsTypeName);
+    if (func != null) {
+      var dartClass_instance = func();
+      dartClass_instance.blink_jsObject = jsObject;
+      return dartClass_instance;
+    }
+  } catch(e, stacktrace){
+    if (__interop_checks) {
+      if (e is DebugAssertException)
+        window.console.log("${e.message}\n ${stacktrace}");
+      else
+        window.console.log("${stacktrace}");
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Create Dart class that maps to the JS Type that is the JS type being 
+ * extended using JS interop createCallback (we need the base type of the
+ * custom element) not the Dart created constructor.
+ */
+wrap_jso_custom_element(jsObject) {
+  try {
+    if (jsObject is! js.JsObject) {
+      // JS Interop converted the object to a Dart class e.g., Uint8ClampedList.
+      return jsObject;
+    }
+
+    // Find out what object we're extending.
+    var objectName = jsObject.toString();
+    // Expect to see something like '[object HTMLElement]'.
+    if (!objectName.startsWith('[object ')) {
+      return jsObject;
+    }
+
+    var extendsClass = objectName.substring(8, objectName.length - 1);
+    var func = getHtmlCreateFunction(extendsClass);
     if (__interop_checks)
-      debug_or_assert("func != null name = ${jsTypeName}", func != null);
+      debug_or_assert("func != null name = ${extendsClass}", func != null);
     var dartClass_instance = func();
     dartClass_instance.blink_jsObject = jsObject;
     return dartClass_instance;
@@ -426,6 +463,9 @@ wrap_jso(jsObject) {
       else
         window.console.log("${stacktrace}");
     }
+
+    // Problem?
+    return null;
   }
 }
 

@@ -806,9 +806,6 @@ class _Utils {
   static Element createElement(Document document, String tagName) =>
     wrap_jso(_blink.Blink_Utils.createElement(unwrap_jso(document), tagName));
 
-  static void initializeCustomElement(HtmlElement element) =>
-    _blink.Blink_Utils.initializeCustomElement(unwrap_jso(element));
-
   static Element changeElementWrapper(HtmlElement element, Type type) =>
     _blink.Blink_Utils.changeElementWrapper(unwrap_jso(element), type);
 }
@@ -1108,10 +1105,6 @@ get _scheduleImmediateClosure => (void callback()) {
 get _pureIsolateScheduleImmediateClosure => ((void callback()) =>
   throw new UnimplementedError("scheduleMicrotask in background isolates "
                                "are not supported in the browser"));
-
-void _initializeCustomElement(Element e) {
-  _Utils.initializeCustomElement(e);
-}
 
 // Class for unsupported native browser 'DOM' objects.
 class _UnsupportedBrowserObject extends NativeFieldWrapperClass2 {

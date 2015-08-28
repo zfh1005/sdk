@@ -171,7 +171,7 @@ class Cursor extends NativeFieldWrapperClass2 {
     return new Cursor._internalWrap();
   }
 
-  js.JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject;
 
   factory Cursor._internalWrap() {
     return new Cursor.internal_();
@@ -532,7 +532,7 @@ class IdbFactory extends NativeFieldWrapperClass2 {
     return new IdbFactory._internalWrap();
   }
 
-  js.JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject;
 
   factory IdbFactory._internalWrap() {
     return new IdbFactory.internal_();
@@ -685,7 +685,7 @@ class Index extends NativeFieldWrapperClass2 {
     return new Index._internalWrap();
   }
 
-  js.JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject;
 
   factory Index._internalWrap() {
     return new Index.internal_();
@@ -776,7 +776,7 @@ class KeyRange extends NativeFieldWrapperClass2 {
     return new KeyRange._internalWrap();
   }
 
-  js.JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject;
 
   factory KeyRange._internalWrap() {
     return new KeyRange.internal_();
@@ -975,7 +975,7 @@ class ObjectStore extends NativeFieldWrapperClass2 {
     return new ObjectStore._internalWrap();
   }
 
-  js.JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject;
 
   factory ObjectStore._internalWrap() {
     return new ObjectStore.internal_();

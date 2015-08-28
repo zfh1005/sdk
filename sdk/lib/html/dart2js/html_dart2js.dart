@@ -12260,11 +12260,7 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
    *     }
    *     document.registerElement('x-custom', CustomElement);
    */
-  Element.created() : super._created() {
-    // Validate that this is a custom element & perform any additional
-    // initialization.
-    _initializeCustomElement(this);
-  }
+  Element.created() : super._created();
 
   /**
    * Creates the HTML element specified by the tag name.

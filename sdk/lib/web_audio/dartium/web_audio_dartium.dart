@@ -181,7 +181,7 @@ class AudioBuffer extends NativeFieldWrapperClass2 {
     return new AudioBuffer._internalWrap();
   }
 
-  js.JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject;
 
   factory AudioBuffer._internalWrap() {
     return new AudioBuffer.internal_();
@@ -564,7 +564,7 @@ class AudioListener extends NativeFieldWrapperClass2 {
     return new AudioListener._internalWrap();
   }
 
-  js.JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject;
 
   factory AudioListener._internalWrap() {
     return new AudioListener.internal_();
@@ -707,7 +707,7 @@ class AudioParam extends NativeFieldWrapperClass2 {
     return new AudioParam._internalWrap();
   }
 
-  js.JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject;
 
   factory AudioParam._internalWrap() {
     return new AudioParam.internal_();
@@ -1473,7 +1473,7 @@ class PeriodicWave extends NativeFieldWrapperClass2 {
     return new PeriodicWave._internalWrap();
   }
 
-  js.JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject;
 
   factory PeriodicWave._internalWrap() {
     return new PeriodicWave.internal_();

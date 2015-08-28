@@ -630,7 +630,7 @@ class HtmlDartInterfaceGenerator(object):
     return new {0}._internalWrap();
   }}
 
-  js.JsObject blink_jsObject = null;
+  js.JsObject blink_jsObject;
 
   factory {0}._internalWrap() {{
     return new {0}.internal_();

@@ -187,6 +187,24 @@ $if DART2JS
 $else
   String get visibilityState => _webkitVisibilityState;
 $endif
+$if DARTIUM
+
+  /**
+   * Internal routine to find the DOM JS class name being extended for custom
+   * elements.
+   */
+  String _getJSClassName(ClassMirror classMirror) {
+    // Lookup base class to JS class name
+    var metadatas = classMirror.metadata;
+    for (var metadata in metadatas) {
+      var metaType = metadata.reflectee.runtimeType;
+      if (MirrorSystem.getName(reflectClass(metaType).simpleName) == 'DomName') {
+        return metadata.reflectee.name;
+      } 
+    }
+    return null;
+  }
+$endif
 
   @Experimental()
   /**
@@ -236,7 +254,50 @@ $if DART2JS
     _registerCustomElement(JS('', 'window'), this, tag, customElementClass,
         extendsTag);
 $else
-    _Utils.register(this, tag, customElementClass, extendsTag);
+    // TODO(terry): Need to handle the extendsTag.
+
+    // Figure out which DOM class is being extended from the user's Dart class.
+    var classMirror = reflectClass(customElementClass);
+    var baseClassMirror = classMirror.superclass;
+    var jsClassName = _getJSClassName(baseClassMirror);
+    if (jsClassName == null) {
+      window.console.log(">>>>> ERROR: registerElement failure jsClassName == null");
+      return;
+    }
+
+    // Start the hookup the JS way create an <x-foo> element that extends the
+    // <x-base> custom element. Inherit its prototype and signal what tag is
+    // inherited:
+    //
+    //     var myProto = Object.create(HTMLElement.prototype);
+    //     var myElement = document.registerElement('x-foo', {prototype: myProto});
+    var baseElement = js.context[jsClassName];
+    var elemProto = js.context['Object'].callMethod("create", [baseElement['prototype']]);
+
+    // TODO(terry): Hack to stop recursion re-creating custom element when the
+    //              created() constructor of the custom element does e.g.,
+    //
+    //                  MyElement.created() : super.created() {
+    //                    this.innerHtml = "<b>I'm an x-foo-with-markup!</b>";
+    //                  }
+    //
+    //              sanitizing causes custom element to created recursively
+    //              until stack overflow.
+    //
+    //              See https://github.com/dart-lang/sdk/issues/23666
+    int creating = 0;
+    elemProto['createdCallback'] = new js.JsFunction.withThis(($this) {
+      window.console.log("Creating...");
+      if (_getJSClassName(reflectClass(customElementClass).superclass) != null && creating < 2) {
+        creating++;
+        _blink.Blink_Utils.constructElement(customElementClass, $this);
+        creating--;
+      }
+    });
+
+    // document.registerElement('x-foo', {prototype: elemProto, extends: extendsTag});
+    var jsMap = new js.JsObject.jsify({'prototype': elemProto, 'extends': extendsTag});
+    js.context['document'].callMethod('registerElement', [tag, jsMap]);
 $endif
   }
 
