@@ -1086,7 +1086,7 @@ class DartiumBackend(HtmlDartGenerator):
       wrap_jso_start = ''
       wrap_jso_end = ''
       if (isinstance(type_info, InterfaceIDLTypeInfo) or
-          wrap_type_blink(type_info.narrow_dart_type, self._type_registry)):
+          wrap_type_blink(type_info.narrow_dart_type(), self._type_registry)):
           wrap_jso_start = 'wrap_jso('
           wrap_jso_end = ')'
       blinkNativeIndexed = """

@@ -329,10 +329,10 @@ class SqlResultSetRowList extends JsoNativeFieldWrapper with ListMixin<Map>, Imm
   Map operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.index(index, this);
-    return _blink.BlinkSQLResultSetRowList.instance.item_Callback_1_(unwrap_jso(this), index);
+    return wrap_jso(_blink.BlinkSQLResultSetRowList.instance.item_Callback_1_(unwrap_jso(this), index));
   }
 
-  Map _nativeIndexedGetter(int index) => _blink.BlinkSQLResultSetRowList.instance.item_Callback_1_(unwrap_jso(this), index);
+  Map _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkSQLResultSetRowList.instance.item_Callback_1_(unwrap_jso(this), index));
 
   void operator[]=(int index, Map value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
