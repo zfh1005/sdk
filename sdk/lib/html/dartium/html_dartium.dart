@@ -20181,15 +20181,32 @@ class HtmlDocument extends Document {
    * elements.
    */
   String _getJSClassName(ClassMirror classMirror) {
-    // Lookup base class to JS class name
-    var metadatas = classMirror.metadata;
-    for (var metadata in metadatas) {
-      var metaType = metadata.reflectee.runtimeType;
-      if (MirrorSystem.getName(reflectClass(metaType).simpleName) == 'DomName') {
-        return metadata.reflectee.name;
-      } 
+    var jsClassName = null;
+    var isElement = false;
+
+    while (classMirror.superclass != null) {
+      var fullName = classMirror.superclass.qualifiedName;
+      isElement = isElement || (fullName == #dart.dom.html.Element);
+
+      var domLibrary = MirrorSystem.getName(fullName).startsWith('dart.dom.');
+      if (jsClassName == null && domLibrary) {
+        // Lookup JS class name (if not found).
+        var metadatas = classMirror.metadata;
+        for (var metadata in metadatas) {
+          var metaDataMirror = metadata.reflectee;
+          var metaType = reflectClass(metaDataMirror.runtimeType);
+          if (MirrorSystem.getName(metaType.simpleName) == 'DomName' &&
+              metaDataMirror.name.startsWith('HTML')) {
+            jsClassName = metadata.reflectee.name;
+          }
+        }
+      }
+
+      classMirror = classMirror.superclass;
     }
-    return null;
+
+    // If we're an element then everything is okay.
+    return isElement ? jsClassName : null;
   }
 
   @Experimental()
@@ -20240,11 +20257,10 @@ class HtmlDocument extends Document {
 
     // Figure out which DOM class is being extended from the user's Dart class.
     var classMirror = reflectClass(customElementClass);
-    var baseClassMirror = classMirror.superclass;
-    var jsClassName = _getJSClassName(baseClassMirror);
+    var jsClassName = _getJSClassName(classMirror);
     if (jsClassName == null) {
-      window.console.log("ERROR: registerElement failure jsClassName == null");
-      return;
+      // Only components derived from HTML* can be extended.
+      throw new DomException.jsInterop("HierarchyRequestError: Only HTML elements can be customized.");
     }
 
     // Start the hookup the JS way create an <x-foo> element that extends the
