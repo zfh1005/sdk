@@ -9232,9 +9232,10 @@ class Document extends Node
   @DocsEditable()
   Element _createElement(String localName_OR_tagName, [String typeExtension]) native;
 
+  @JSName('createElementNS')
   @DomName('Document.createElementNS')
   @DocsEditable()
-  Element createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) native;
+  Element _createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) native;
 
   @JSName('createEvent')
   @DomName('Document.createEvent')
@@ -9834,6 +9835,12 @@ class Document extends Node
   @DomName('Document.createElement')
   Element createElement(String tagName, [String typeExtension]) {
     return _createElement(tagName, typeExtension);
+  }
+
+  @DomName('Document.createElementNS')
+  @DocsEditable()
+  Element createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) {
+    return _createElementNS(tagName, qualifiedName, typeExtension);
   }
 
   @DomName('Document.createNodeIterator')

@@ -205,6 +205,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'CustomEvent.initCustomEvent',
   'DeviceOrientationEvent.initDeviceOrientationEvent',
   'Document.createElement',
+  'Document.createElementNS',
   'Document.createEvent',
   'Document.createNodeIterator',
   'Document.createTextNode',

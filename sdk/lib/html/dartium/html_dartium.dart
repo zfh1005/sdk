@@ -10513,7 +10513,7 @@ class Document extends Node
   
   @DomName('Document.createElementNS')
   @DocsEditable()
-  Element createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) => wrap_jso(_blink.BlinkDocument.instance.createElementNS_Callback_3_(unwrap_jso(this), namespaceURI, qualifiedName, typeExtension));
+  Element _createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) => wrap_jso(_blink.BlinkDocument.instance.createElementNS_Callback_3_(unwrap_jso(this), namespaceURI, qualifiedName, typeExtension));
   
   @DomName('Document.createEvent')
   @DocsEditable()
@@ -11101,11 +11101,42 @@ class Document extends Node
       _blink.BlinkDocument.instance.createElement_Callback_1_(unwrap_jso(this), tagName) :
       _blink.BlinkDocument.instance.createElement_Callback_2_(unwrap_jso(this), tagName, typeExtension);
 
-    var wrapped = wrap_jso(newElement);
-    if (wrapped == null) {
-      wrapped = wrap_jso_custom_element(newElement);
+    var wrapped;
+
+    if (newElement['dart_class'] != null) {
+      wrapped = newElement['dart_class'];         // Here's our Dart class.
+      wrapped.blink_jsObject = newElement;
+      newElement['dart_class'] = null;            // Remove circularity.
+    } else {
+      wrapped = wrap_jso(newElement);
+      if (wrapped == null) {
+        wrapped = wrap_jso_custom_element(newElement);
+      }
     }
 
+    return wrapped;
+  }
+
+  @DomName('Document.createElementNS')
+  @DocsEditable()
+  Element createElementNS(String namespaceURI, String qualifiedName, [String typeExtension]) {
+    var newElement = (typeExtension == null) ?
+      _blink.BlinkDocument.instance.createElementNS_Callback_2_(unwrap_jso(this), namespaceURI, qualifiedName) :
+      _blink.BlinkDocument.instance.createElementNS_Callback_3_(unwrap_jso(this), namespaceURI, qualifiedName, typeExtension);
+  
+    var wrapped;
+  
+    if (newElement['dart_class'] != null) {
+      wrapped = newElement['dart_class'];         // Here's our Dart class.
+      wrapped.blink_jsObject = newElement;
+      newElement['dart_class'] = null;            // Remove circularity.
+    } else {
+      wrapped = wrap_jso(newElement);
+      if (wrapped == null) {
+        wrapped = wrap_jso_custom_element(newElement);
+      }
+    }
+  
     return wrapped;
   }
 
@@ -20207,7 +20238,7 @@ class HtmlDocument extends Document {
     var baseClassMirror = classMirror.superclass;
     var jsClassName = _getJSClassName(baseClassMirror);
     if (jsClassName == null) {
-      window.console.log(">>>>> ERROR: registerElement failure jsClassName == null");
+      window.console.log("ERROR: registerElement failure jsClassName == null");
       return;
     }
 
@@ -20218,6 +20249,10 @@ class HtmlDocument extends Document {
     //     var myProto = Object.create(HTMLElement.prototype);
     //     var myElement = document.registerElement('x-foo', {prototype: myProto});
     var baseElement = js.context[jsClassName];
+    if (baseElement == null) {
+      // Couldn't find the HTML element so use a generic one.
+      baseElement = js.context['HTMLElement'];
+    }
     var elemProto = js.context['Object'].callMethod("create", [baseElement['prototype']]);
 
     // TODO(terry): Hack to stop recursion re-creating custom element when the
@@ -20235,7 +20270,14 @@ class HtmlDocument extends Document {
     elemProto['createdCallback'] = new js.JsFunction.withThis(($this) {
       if (_getJSClassName(reflectClass(customElementClass).superclass) != null && creating < 2) {
         creating++;
-        _blink.Blink_Utils.constructElement(customElementClass, $this);
+
+        var dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
+
+        // Need to remember the Dart class that was created for this custom so
+        // return it and setup the blink_jsObject to the $this that we'll be working
+        // with as we talk to blink. 
+        $this['dart_class'] = dartClass;
+
         creating--;
       }
     });
