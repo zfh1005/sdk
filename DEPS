@@ -3,9 +3,6 @@
 # BSD-style license that can be found in the LICENSE file.
 
 vars = {
-  # BRANCH SPECIFIC, we pull in fletch to get the bots annotated steps.
-  "fletch_rev" : "@3ef1c4b8952d603c1fc458cd69b83c14d4b727dd",
-
   # The dart_root is the root of our sdk checkout. This is normally
   # simply sdk, but if using special gclient specs it can be different.
   "dart_root": "sdk",
@@ -125,7 +122,7 @@ vars = {
 deps = {
   # Pull in fletch for annotated steps -  ONLY ON FLETCH BRANCH OF SDK.
   Var("dart_root") + "/third_party/fletch":
-      "https://github.com/dart-lang/fletch.git" + Var("fletch_rev"),
+      "https://github.com/dart-lang/fletch.git",
 
   # Stuff needed for GYP to run.
   Var("dart_root") + "/third_party/gyp":
