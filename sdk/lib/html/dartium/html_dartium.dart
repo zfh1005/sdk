@@ -1182,12 +1182,19 @@ wrap_jso(jsObject) {
     if (__interop_checks) {
       debug_or_assert("constructor != null && jsTypeName.length > 0", constructor != null && jsTypeName.length > 0);
     }
-    var func = getHtmlCreateFunction(jsTypeName);
-    if (func != null) {
-      var dartClass_instance = func();
-      dartClass_instance.blink_jsObject = jsObject;
-      return dartClass_instance;
+
+    var dartClass_instance;
+    if (jsObject.hasProperty('dart_class')) {
+      // Got a dart_class (it's a custom element) use it it's already set up.
+      dartClass_instance = jsObject['dart_class'];
+    } else {
+      var func = getHtmlCreateFunction(jsTypeName);
+      if (func != null) {
+        dartClass_instance = func();
+        dartClass_instance.blink_jsObject = jsObject;
+      }
     }
+    return dartClass_instance;
   } catch(e, stacktrace){
     if (__interop_checks) {
       if (e is DebugAssertException)
@@ -11106,7 +11113,6 @@ class Document extends Node
     if (newElement['dart_class'] != null) {
       wrapped = newElement['dart_class'];         // Here's our Dart class.
       wrapped.blink_jsObject = newElement;
-      newElement['dart_class'] = null;            // Remove circularity.
     } else {
       wrapped = wrap_jso(newElement);
       if (wrapped == null) {
@@ -11129,7 +11135,6 @@ class Document extends Node
     if (newElement['dart_class'] != null) {
       wrapped = newElement['dart_class'];         // Here's our Dart class.
       wrapped.blink_jsObject = newElement;
-      newElement['dart_class'] = null;            // Remove circularity.
     } else {
       wrapped = wrap_jso(newElement);
       if (wrapped == null) {
@@ -20281,7 +20286,21 @@ class HtmlDocument extends Document {
         creating--;
       }
     });
-
+    elemProto['attributeChangedCallback'] = new js.JsFunction.withThis(($this, attrName, oldVal, newVal) {
+      if ($this["dart_class"] != null && $this['dart_class'].attributeChanged != null) {
+        $this['dart_class'].attributeChanged(attrName, oldVal, newVal);
+      }
+    });
+    elemProto['attachedCallback'] = new js.JsFunction.withThis(($this) {
+      if ($this["dart_class"] != null && $this['dart_class'].attached != null) {
+        $this['dart_class'].attached();
+      }
+    });
+    elemProto['detachedCallback'] = new js.JsFunction.withThis(($this) {
+      if ($this["dart_class"] != null && $this['dart_class'].detached != null) {
+        $this['dart_class'].detached();
+      }
+    });
     // document.registerElement('x-foo', {prototype: elemProto, extends: extendsTag});
     var jsMap = new js.JsObject.jsify({'prototype': elemProto, 'extends': extendsTag});
     js.context['document'].callMethod('registerElement', [tag, jsMap]);

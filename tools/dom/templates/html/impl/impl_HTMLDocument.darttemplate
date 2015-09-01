@@ -304,7 +304,21 @@ $else
         creating--;
       }
     });
-
+    elemProto['attributeChangedCallback'] = new js.JsFunction.withThis(($this, attrName, oldVal, newVal) {
+      if ($this["dart_class"] != null && $this['dart_class'].attributeChanged != null) {
+        $this['dart_class'].attributeChanged(attrName, oldVal, newVal);
+      }
+    });
+    elemProto['attachedCallback'] = new js.JsFunction.withThis(($this) {
+      if ($this["dart_class"] != null && $this['dart_class'].attached != null) {
+        $this['dart_class'].attached();
+      }
+    });
+    elemProto['detachedCallback'] = new js.JsFunction.withThis(($this) {
+      if ($this["dart_class"] != null && $this['dart_class'].detached != null) {
+        $this['dart_class'].detached();
+      }
+    });
     // document.registerElement('x-foo', {prototype: elemProto, extends: extendsTag});
     var jsMap = new js.JsObject.jsify({'prototype': elemProto, 'extends': extendsTag});
     js.context['document'].callMethod('registerElement', [tag, jsMap]);

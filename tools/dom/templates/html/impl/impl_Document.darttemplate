@@ -75,7 +75,6 @@ $else
     if (newElement['dart_class'] != null) {
       wrapped = newElement['dart_class'];         // Here's our Dart class.
       wrapped.blink_jsObject = newElement;
-      newElement['dart_class'] = null;            // Remove circularity.
     } else {
       wrapped = wrap_jso(newElement);
       if (wrapped == null) {
@@ -102,7 +101,6 @@ $else
     if (newElement['dart_class'] != null) {
       wrapped = newElement['dart_class'];         // Here's our Dart class.
       wrapped.blink_jsObject = newElement;
-      newElement['dart_class'] = null;            // Remove circularity.
     } else {
       wrapped = wrap_jso(newElement);
       if (wrapped == null) {
