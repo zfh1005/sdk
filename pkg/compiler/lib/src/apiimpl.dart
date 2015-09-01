@@ -48,7 +48,8 @@ class Compiler extends leg.Compiler {
            List<String> options,
            this.environment,
            [this.packageConfig,
-            this.packagesDiscoveryProvider])
+            this.packagesDiscoveryProvider,
+            leg.Backend makeBackend(Compiler compiler)])
       : this.options = options,
         this.allowedLibraryCategories = getAllowedLibraryCategories(options),
         super(
@@ -105,7 +106,8 @@ class Compiler extends leg.Compiler {
                 hasOption(options, '--generate-code-with-compile-time-errors'),
             testMode: hasOption(options, '--test-mode'),
             allowNativeExtensions:
-                hasOption(options, '--allow-native-extensions')) {
+                hasOption(options, '--allow-native-extensions'),
+            makeBackend: makeBackend) {
     tasks.addAll([
         userHandlerTask = new leg.GenericTask('Diagnostic handler', this),
         userProviderTask = new leg.GenericTask('Input provider', this),
