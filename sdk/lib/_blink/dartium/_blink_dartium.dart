@@ -17189,7 +17189,7 @@ class Blink_Utils {
 
   static createElement(document, tagName) native "Utils_createElement";
 
-  static constructElement(element_type, jsObject) native "Utils_constructor_create
+  static constructElement(element_type, jsObject) native "Utils_constructor_create";
 
   static initializeCustomElement(element) native "Utils_initializeCustomElement";
 
