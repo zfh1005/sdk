@@ -51,9 +51,6 @@ isolates_test: Fail # Issue 13921
 indexeddb_3_test: Skip # Issue 19578.  Timeouts and RuntimeError
 fileapi_test/getFile: Pass, Fail # Issue 20488
 
-# DO NOT Suppress/Skip the below XSS security test for dart2js - any failure is a P0 bug.
-node_validator_important_if_you_suppress_make_the_bug_critical_test/dom_clobbering: Fail # Dartium is immune to DOM clobbering, so the HTML passes through the sanitizer.
-
 [ $compiler == none && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) && $mode == debug ]
 websocket_test/websocket: Skip # Issue 17666
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip # Issue 17666
@@ -63,13 +60,6 @@ request_animation_frame_test: Skip # Times out, and also passes while taking 4.0
 fileapi_test/fileEntry: Pass, RuntimeError # Issue 20488
 indexeddb_5_test: Pass, RuntimeError # Issue 21262
 native_gc_test: Pass, Slow
-
-[ $compiler == none && ($runtime == drt || $runtime == dartium) && $checked ]
-element_test/attributes: RuntimeError # Known issue, WhereIterable<Node> vs. Iterable<Element>. Fixed in 1.12. Remove this once we merge
-svgelement_test/additionalConstructors: RuntimeError # Same known issue as element_test/attributes. Fixed in 1.12
-svgelement_test/innerHtml: RuntimeError # Same.
-svgelement_test/elementget: RuntimeError # Same.
-
 
 [ $compiler == none && $runtime == drt && $system == windows ]
 worker_test/functional: Pass, Crash # Issue 9929.

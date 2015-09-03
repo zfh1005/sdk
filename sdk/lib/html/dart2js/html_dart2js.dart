@@ -13314,6 +13314,16 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
           })(#)''', element);
   }
 
+  String get _safeTagName {
+    String result = 'element tag unavailable';
+    try {
+      if (tagName is String) {
+        result = tagName;
+      }
+    } catch (e) {}
+    return result;
+  }
+
   @DomName('Element.offsetHeight')
   @DocsEditable()
   int get offsetHeight => JS('num', '#.offsetHeight', this).round();
@@ -37893,11 +37903,11 @@ class _Html5NodeValidator implements NodeValidator {
   }
 
   bool allowsElement(Element element) {
-    return _allowedElements.contains(element.tagName);
+    return _allowedElements.contains(element._safeTagName);
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
-    var tagName = element.tagName;
+    var tagName = element._safeTagName;
     var validator = _attributeValidators['$tagName::$attributeName'];
     if (validator == null) {
       validator = _attributeValidators['*::$attributeName'];
@@ -39554,11 +39564,11 @@ class _SimpleNodeValidator implements NodeValidator {
           new Set.from(allowedUriAttributes) : new Set();
 
   bool allowsElement(Element element) {
-    return allowedElements.contains(element.tagName);
+    return allowedElements.contains(element._safeTagName);
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
-    var tagName = element.tagName;
+    var tagName = element._safeTagName;
     if (allowedUriAttributes.contains('$tagName::$attributeName')) {
       return uriPolicy.allowsUri(value);
     } else if (allowedUriAttributes.contains('*::$attributeName')) {
@@ -39599,10 +39609,10 @@ class _CustomElementNodeValidator extends _SimpleNodeValidator {
       var isAttr = element.attributes['is'];
       if (isAttr != null) {
         return allowedElements.contains(isAttr.toUpperCase()) &&
-          allowedElements.contains(element.tagName);
+          allowedElements.contains(element._safeTagName);
       }
     }
-    return allowCustomTag && allowedElements.contains(element.tagName);
+    return allowCustomTag && allowedElements.contains(element._safeTagName);
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
@@ -39658,7 +39668,7 @@ class _SvgNodeValidator implements NodeValidator {
     // foreignobject tag as SvgElement. We don't want foreignobject contents
     // anyway, so just remove the whole tree outright. And we can't rely
     // on IE recognizing the SvgForeignObject type, so go by tagName. Bug 23144
-    if (element is svg.SvgElement && element.tagName == 'foreignObject') {
+    if (element is svg.SvgElement && element._safeTagName == 'foreignObject') {
       return false;
     }
     if (element is svg.SvgElement) {
@@ -40716,7 +40726,7 @@ abstract class NodeTreeSanitizer {
   /**
    * A sanitizer for trees that we trust. It does no validation and allows
    * any elements. It is also more efficient, since it can pass the text
-   * directly through to the underlying APIs without creating a document 
+   * directly through to the underlying APIs without creating a document
    * fragment to be sanitized.
    */
   static const trusted = const _TrustedHtmlTreeSanitizer();
@@ -40731,7 +40741,7 @@ class _TrustedHtmlTreeSanitizer implements NodeTreeSanitizer {
 
   sanitizeTree(Node node) {}
 }
-  
+
 /**
  * Defines the policy for what types of uris are allowed for particular
  * attribute values.
@@ -40785,14 +40795,14 @@ class _ThrowsNodeValidator implements NodeValidator {
 
   bool allowsElement(Element element) {
     if (!validator.allowsElement(element)) {
-      throw new ArgumentError(element.tagName);
+      throw new ArgumentError(element._safeTagName);
     }
     return true;
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
     if (!validator.allowsAttribute(element, attributeName, value)) {
-      throw new ArgumentError('${element.tagName}[$attributeName="$value"]');
+      throw new ArgumentError('${element._safeTagName}[$attributeName="$value"]');
     }
   }
 }
@@ -40857,10 +40867,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
     try {
       elementText = element.toString();
     } catch(e) {}
-    var elementTagName = 'element tag unavailable';
-    try {
-      elementTagName = element.tagName;
-    } catch(e) {}
+    var elementTagName = element._safeTagName;
     _sanitizeElement(element, parent, corrupted, elementText, elementTagName,
         attrs, isAttr);
   }

@@ -353,11 +353,11 @@ class _SimpleNodeValidator implements NodeValidator {
           new Set.from(allowedUriAttributes) : new Set();
 
   bool allowsElement(Element element) {
-    return allowedElements.contains(element.tagName);
+    return allowedElements.contains(element._safeTagName);
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
-    var tagName = element.tagName;
+    var tagName = element._safeTagName;
     if (allowedUriAttributes.contains('$tagName::$attributeName')) {
       return uriPolicy.allowsUri(value);
     } else if (allowedUriAttributes.contains('*::$attributeName')) {
@@ -398,10 +398,10 @@ class _CustomElementNodeValidator extends _SimpleNodeValidator {
       var isAttr = element.attributes['is'];
       if (isAttr != null) {
         return allowedElements.contains(isAttr.toUpperCase()) &&
-          allowedElements.contains(element.tagName);
+          allowedElements.contains(element._safeTagName);
       }
     }
-    return allowCustomTag && allowedElements.contains(element.tagName);
+    return allowCustomTag && allowedElements.contains(element._safeTagName);
   }
 
   bool allowsAttribute(Element element, String attributeName, String value) {
@@ -457,7 +457,7 @@ class _SvgNodeValidator implements NodeValidator {
     // foreignobject tag as SvgElement. We don't want foreignobject contents
     // anyway, so just remove the whole tree outright. And we can't rely
     // on IE recognizing the SvgForeignObject type, so go by tagName. Bug 23144
-    if (element is svg.SvgElement && element.tagName == 'foreignObject') {
+    if (element is svg.SvgElement && element._safeTagName == 'foreignObject') {
       return false;
     }
     if (element is svg.SvgElement) {

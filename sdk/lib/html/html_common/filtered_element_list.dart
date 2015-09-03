@@ -30,8 +30,11 @@ class FilteredElementList<T extends Element> extends ListBase<T>
   //
   // TODO(nweiz): we don't always need to create a new list. For example
   // forEach, every, any, ... could directly work on the _childNodes.
-  Iterable<T> get _iterable => _childNodes.where((n) => n is Element);
-  List<T> get _filtered => new List<T>.from(_iterable, growable: false);
+  // TODO(alanknight): This will be a merge conflict with trunk, where the
+  // types are fixed properly. Disregard these change here where
+  // I just remove the types and use the version  from trunk.
+  Iterable get _iterable => _childNodes.where((n) => n is Element);
+  List get _filtered => new List.from(_iterable, growable: false);
 
   void forEach(void f(T element)) {
     _filtered.forEach(f);
@@ -68,7 +71,7 @@ class FilteredElementList<T extends Element> extends ListBase<T>
     return element.parentNode == _node;
   }
 
-  Iterable<T> get reversed => _filtered.reversed;
+  Iterable get reversed => _filtered.reversed;
 
   void sort([int compare(T a, T b)]) {
     throw new UnsupportedError('Cannot sort filtered list');
@@ -134,7 +137,7 @@ class FilteredElementList<T extends Element> extends ListBase<T>
 
   int get length => _filtered.length;
   T operator [](int index) => _filtered[index];
-  Iterator<T> get iterator => _filtered.iterator;
+  Iterator get iterator => _filtered.iterator;
 
   List<Node> get rawList => _node.childNodes;
 }
