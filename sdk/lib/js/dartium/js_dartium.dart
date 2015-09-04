@@ -553,8 +553,7 @@ class JsObject extends NativeFieldWrapperClass2 {
 
   static JsObject _jsify(object) native "JsObject_jsify";
 
-  static JsObject _fromBrowserObject(
-      object) native "JsObject_fromBrowserObject";
+  static JsObject _fromBrowserObject(object) => html.unwrap_jso(object);
 
   /**
    * Returns the value associated with [property] from the proxied JavaScript
