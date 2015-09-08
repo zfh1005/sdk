@@ -15,6 +15,7 @@ class ServiceEvent {
  public:
   enum EventKind {
     kIsolateStart,       // New isolate has started
+    kIsolateRunnable,    // Isolate is ready to run
     kIsolateExit,        // Isolate has exited
     kIsolateUpdate,      // Isolate identity information has changed
 
@@ -34,22 +35,23 @@ class ServiceEvent {
 
     kEmbedder,
 
+    kLogging,
+
     kIllegal,
   };
 
-  ServiceEvent(Isolate* isolate, EventKind event_kind)
-      : isolate_(isolate),
-        kind_(event_kind),
-        embedder_kind_(NULL),
-        embedder_stream_id_(NULL),
-        breakpoint_(NULL),
-        top_frame_(NULL),
-        exception_(NULL),
-        async_continuation_(NULL),
-        inspectee_(NULL),
-        gc_stats_(NULL),
-        bytes_(NULL),
-        bytes_length_(0) {}
+  struct LogRecord {
+    int64_t sequence_number;
+    int64_t timestamp;
+    intptr_t level;
+    const String* name;
+    const String* message;
+    const Instance* zone;
+    const Object* error;
+    const Instance* stack_trace;
+  };
+
+  ServiceEvent(Isolate* isolate, EventKind event_kind);
 
   explicit ServiceEvent(const DebuggerEvent* debugger_event);
 
@@ -109,6 +111,13 @@ class ServiceEvent {
     async_continuation_ = closure;
   }
 
+  bool at_async_jump() const {
+    return at_async_jump_;
+  }
+  void set_at_async_jump(bool value) {
+    at_async_jump_ = value;
+  }
+
   const Object* inspectee() const {
     return inspectee_;
   }
@@ -138,7 +147,17 @@ class ServiceEvent {
     bytes_length_ = bytes_length;
   }
 
+  void set_log_record(const LogRecord& log_record) {
+    log_record_ = log_record;
+  }
+
+  int64_t timestamp() const {
+    return timestamp_;
+  }
+
   void PrintJSON(JSONStream* js) const;
+
+  void PrintJSONHeader(JSONObject* jsobj) const;
 
  private:
   Isolate* isolate_;
@@ -149,10 +168,13 @@ class ServiceEvent {
   ActivationFrame* top_frame_;
   const Object* exception_;
   const Object* async_continuation_;
+  bool at_async_jump_;
   const Object* inspectee_;
   const Heap::GCStats* gc_stats_;
   const uint8_t* bytes_;
   intptr_t bytes_length_;
+  LogRecord log_record_;
+  int64_t timestamp_;
 };
 
 }  // namespace dart

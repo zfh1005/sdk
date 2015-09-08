@@ -37220,10 +37220,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -46604,17 +46604,17 @@ class NodeValidatorBuilder implements NodeValidator {
 }
 
 class _SimpleNodeValidator implements NodeValidator {
-  final Set<String> allowedElements;
-  final Set<String> allowedAttributes;
-  final Set<String> allowedUriAttributes;
+  final Set<String> allowedElements = new Set<String>();
+  final Set<String> allowedAttributes = new Set<String>();
+  final Set<String> allowedUriAttributes = new Set<String>();
   final UriPolicy uriPolicy;
 
   factory _SimpleNodeValidator.allowNavigation(UriPolicy uriPolicy) {
     return new _SimpleNodeValidator(uriPolicy,
-      allowedElements: [
+      allowedElements: const [
         'A',
         'FORM'],
-      allowedAttributes: [
+      allowedAttributes: const [
         'A::accesskey',
         'A::coords',
         'A::hreflang',
@@ -46631,7 +46631,7 @@ class _SimpleNodeValidator implements NodeValidator {
         'FORM::novalidate',
         'FORM::target',
       ],
-      allowedUriAttributes: [
+      allowedUriAttributes: const [
         'A::href',
         'FORM::action',
       ]);
@@ -46639,10 +46639,10 @@ class _SimpleNodeValidator implements NodeValidator {
 
   factory _SimpleNodeValidator.allowImages(UriPolicy uriPolicy) {
     return new _SimpleNodeValidator(uriPolicy,
-      allowedElements: [
+      allowedElements: const [
         'IMG'
       ],
-      allowedAttributes: [
+      allowedAttributes: const [
         'IMG::align',
         'IMG::alt',
         'IMG::border',
@@ -46654,14 +46654,14 @@ class _SimpleNodeValidator implements NodeValidator {
         'IMG::vspace',
         'IMG::width',
       ],
-      allowedUriAttributes: [
+      allowedUriAttributes: const [
         'IMG::src',
       ]);
   }
 
   factory _SimpleNodeValidator.allowTextElements() {
     return new _SimpleNodeValidator(null,
-      allowedElements: [
+      allowedElements: const [
         'B',
         'BLOCKQUOTE',
         'BR',
@@ -46689,13 +46689,18 @@ class _SimpleNodeValidator implements NodeValidator {
    */
   _SimpleNodeValidator(this.uriPolicy,
       {Iterable<String> allowedElements, Iterable<String> allowedAttributes,
-      Iterable<String> allowedUriAttributes}):
-      this.allowedElements = allowedElements != null ?
-          new Set.from(allowedElements) : new Set(),
-      this.allowedAttributes = allowedAttributes != null ?
-          new Set.from(allowedAttributes) : new Set(),
-      this.allowedUriAttributes = allowedUriAttributes != null ?
-          new Set.from(allowedUriAttributes) : new Set();
+        Iterable<String> allowedUriAttributes}) {
+    this.allowedElements.addAll(allowedElements ?? const []);
+    allowedAttributes = allowedAttributes ?? const [];
+    allowedUriAttributes = allowedUriAttributes ?? const [];
+    var legalAttributes = allowedAttributes.where(
+        (x) => !_Html5NodeValidator._uriAttributes.contains(x));
+    var extraUriAttributes = allowedAttributes.where(
+        (x) => _Html5NodeValidator._uriAttributes.contains(x));
+    this.allowedAttributes.addAll(legalAttributes);
+    this.allowedUriAttributes.addAll(allowedUriAttributes);
+    this.allowedUriAttributes.addAll(extraUriAttributes);
+  }
 
   bool allowsElement(Element element) {
     return allowedElements.contains(element._safeTagName);

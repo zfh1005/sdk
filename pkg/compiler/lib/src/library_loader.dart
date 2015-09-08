@@ -6,31 +6,31 @@ library dart2js.library_loader;
 
 import 'dart:async';
 
-import 'dart2jslib.dart' show
-    Compiler,
-    CompilerTask,
-    DiagnosticListener,
-    MessageKind,
-    Script,
+import 'common/names.dart' show
+    Uris;
+import 'common/tasks.dart' show
+    CompilerTask;
+import 'compiler.dart' show
+    Compiler;
+import 'diagnostics/diagnostic_listener.dart';
+import 'diagnostics/invariant.dart' show
     invariant;
-
+import 'diagnostics/messages.dart' show
+    MessageKind;
 import 'elements/elements.dart' show
     CompilationUnitElement,
     Element,
     LibraryElement,
     PrefixElement;
-
 import 'elements/modelx.dart' show
     CompilationUnitElementX,
     DeferredLoaderGetterElementX,
     ErroneousElementX,
     LibraryElementX,
     PrefixElementX;
-
 import 'native/native.dart' as native;
-
+import 'script.dart';
 import 'tree/tree.dart';
-
 import 'util/util.dart' show
     Link,
     LinkBuilder;
@@ -413,8 +413,8 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
         checkDuplicatedLibraryName(library);
 
         // Import dart:core if not already imported.
-        if (!importsDartCore && library.canonicalUri != Compiler.DART_CORE) {
-          return createLibrary(handler, null, Compiler.DART_CORE)
+        if (!importsDartCore && library.canonicalUri != Uris.dart_core) {
+          return createLibrary(handler, null, Uris.dart_core)
               .then((LibraryElement coreLibrary) {
             handler.registerDependency(library, null, coreLibrary);
           });
@@ -530,15 +530,15 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
   /// loaded as well.
   Future<LibraryElement> loadDeserializedLibrary(
       LibraryDependencyHandler handler,
-      LibraryElement library) async {
+      LibraryElement library) {
     compiler.onLibraryCreated(library);
     libraryCanonicalUriMap[library.canonicalUri] = library;
-    await compiler.onLibraryScanned(library, handler);
-    for (LibraryTag tag in library.tags) {
-      LibraryElement dependency = library.getLibraryFromTag(tag);
-      await createLibrary(handler, library, dependency.canonicalUri);
-    }
-    return library;
+    return compiler.onLibraryScanned(library, handler).then((_) {
+      return Future.forEach(library.tags, (LibraryTag tag) {
+        LibraryElement dependency = library.getLibraryFromTag(tag);
+        return createLibrary(handler, library, dependency.canonicalUri);
+      }).then((_) => library);
+    });
   }
 
   /**

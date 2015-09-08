@@ -354,7 +354,9 @@ class DebuggerEvent {
         top_frame_(NULL),
         breakpoint_(NULL),
         exception_(NULL),
-        async_continuation_(NULL) {}
+        async_continuation_(NULL),
+        at_async_jump_(false),
+        timestamp_(-1) {}
 
   Isolate* isolate() const { return isolate_; }
 
@@ -402,8 +404,21 @@ class DebuggerEvent {
     async_continuation_ = closure;
   }
 
+  bool at_async_jump() const {
+    return at_async_jump_;
+  }
+  void set_at_async_jump(bool value) {
+    at_async_jump_ = value;
+  }
+
   Dart_Port isolate_id() const {
     return isolate_->main_port();
+  }
+
+  void UpdateTimestamp();
+
+  int64_t timestamp() const {
+    return timestamp_;
   }
 
  private:
@@ -413,6 +428,8 @@ class DebuggerEvent {
   Breakpoint* breakpoint_;
   const Object* exception_;
   const Object* async_continuation_;
+  bool at_async_jump_;
+  int64_t timestamp_;
 };
 
 
@@ -458,6 +475,12 @@ class Debugger {
   bool IsStepping() const { return resume_action_ != kContinue; }
 
   bool IsPaused() const { return pause_event_ != NULL; }
+
+  // Put the isolate into single stepping mode when Dart code next runs.
+  //
+  // This is used by the vm service to allow the user to step while
+  // paused at isolate start.
+  void EnterSingleStepMode();
 
   // Indicates why the debugger is currently paused.  If the debugger
   // is not paused, this returns NULL.  Note that the debugger can be

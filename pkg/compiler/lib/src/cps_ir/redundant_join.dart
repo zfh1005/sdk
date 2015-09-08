@@ -94,8 +94,7 @@ class RedundantJoinEliminator extends RecursiveVisitor implements Pass {
     // enclosing continuation.
     // Note: Do not use the parent pointer for this check, because parameters
     // are temporarily shared between different continuations during this pass.
-    IsTrue isTrue = branch.condition;
-    Primitive condition = isTrue.value.definition;
+    Primitive condition = branch.condition.definition;
     int parameterIndex = branchCont.parameters.indexOf(condition);
     if (parameterIndex == -1) return;
 
@@ -234,7 +233,7 @@ class RedundantJoinEliminator extends RecursiveVisitor implements Pass {
 class AlphaRenamer extends RecursiveVisitor {
   Map<Parameter, Parameter> renaming = <Parameter, Parameter>{};
 
-  visitContinuation(Continuation cont) {
+  processContinuation(Continuation cont) {
     if (cont.isReturnContinuation) return;
 
     List<Parameter> shadowedKeys = <Parameter>[];
@@ -255,16 +254,15 @@ class AlphaRenamer extends RecursiveVisitor {
       }
     }
 
-    // Visit the body with the updated environment.
-    visit(cont.body);
-
-    // Restore the original environment.
-    for (int i = 0; i < cont.parameters.length; ++i) {
-      renaming.remove(cont.parameters[i]);
-      if (shadowedValues[i] != null) {
-        renaming[shadowedKeys[i]] = shadowedValues[i];
+    pushAction(() {
+      // Restore the original environment.
+      for (int i = 0; i < cont.parameters.length; ++i) {
+        renaming.remove(cont.parameters[i]);
+        if (shadowedValues[i] != null) {
+          renaming[shadowedKeys[i]] = shadowedValues[i];
+        }
       }
-    }
+    });
   }
 
   processReference(Reference ref) {

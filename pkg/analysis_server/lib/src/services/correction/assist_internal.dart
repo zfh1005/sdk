@@ -394,18 +394,30 @@ class AssistProcessor {
   void _addProposal_convertToBlockFunctionBody() {
     FunctionBody body = getEnclosingFunctionBody();
     // prepare expression body
-    if (body is! ExpressionFunctionBody) {
+    if (body is! ExpressionFunctionBody || body.isGenerator) {
       _coverageMarker();
       return;
     }
     Expression returnValue = (body as ExpressionFunctionBody).expression;
+    DartType returnValueType = returnValue.staticType;
+    String returnValueCode = _getNodeText(returnValue);
     // prepare prefix
     String prefix = utils.getNodePrefix(body.parent);
-    // add change
     String indent = utils.getIndent(1);
-    String returnSource = 'return ' + _getNodeText(returnValue);
-    String newBodySource = '{$eol$prefix$indent$returnSource;$eol$prefix}';
-    _addReplaceEdit(rangeNode(body), newBodySource);
+    // add change
+    SourceBuilder sb = new SourceBuilder(file, body.offset);
+    if (body.isAsynchronous) {
+      sb.append('async ');
+    }
+    sb.append('{$eol$prefix$indent');
+    if (!returnValueType.isVoid) {
+      sb.append('return ');
+    }
+    sb.append(returnValueCode);
+    sb.append(';');
+    sb.setExitOffset();
+    sb.append('$eol$prefix}');
+    _insertBuilder(sb, body.length);
     // add proposal
     _addAssist(DartAssistKind.CONVERT_INTO_BLOCK_BODY, []);
   }
@@ -413,7 +425,7 @@ class AssistProcessor {
   void _addProposal_convertToExpressionFunctionBody() {
     // prepare current body
     FunctionBody body = getEnclosingFunctionBody();
-    if (body is! BlockFunctionBody) {
+    if (body is! BlockFunctionBody || body.isGenerator) {
       _coverageMarker();
       return;
     }
@@ -423,24 +435,30 @@ class AssistProcessor {
       _coverageMarker();
       return;
     }
-    if (statements[0] is! ReturnStatement) {
-      _coverageMarker();
-      return;
-    }
-    ReturnStatement returnStatement = statements[0] as ReturnStatement;
+    Statement onlyStatement = statements.first;
     // prepare returned expression
-    Expression returnExpression = returnStatement.expression;
+    Expression returnExpression;
+    if (onlyStatement is ReturnStatement) {
+      returnExpression = onlyStatement.expression;
+    } else if (onlyStatement is ExpressionStatement) {
+      returnExpression = onlyStatement.expression;
+    }
     if (returnExpression == null) {
       _coverageMarker();
       return;
     }
     // add change
-    String newBodySource = '=> ${_getNodeText(returnExpression)}';
+    SourceBuilder sb = new SourceBuilder(file, body.offset);
+    if (body.isAsynchronous) {
+      sb.append('async ');
+    }
+    sb.append('=> ');
+    sb.append(_getNodeText(returnExpression));
     if (body.parent is! FunctionExpression ||
         body.parent.parent is FunctionDeclaration) {
-      newBodySource += ';';
+      sb.append(';');
     }
-    _addReplaceEdit(rangeNode(body), newBodySource);
+    _insertBuilder(sb, body.length);
     // add proposal
     _addAssist(DartAssistKind.CONVERT_INTO_EXPRESSION_BODY, []);
   }
@@ -484,8 +502,8 @@ class AssistProcessor {
       // check number of references
       {
         int numOfReferences = 0;
-        AstVisitor visitor = new _SimpleIdentifierRecursiveAstVisitor(
-            (SimpleIdentifier node) {
+        AstVisitor visitor =
+            new _SimpleIdentifierRecursiveAstVisitor((SimpleIdentifier node) {
           if (node.staticElement == parameterElement) {
             numOfReferences++;
           }

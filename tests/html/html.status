@@ -14,7 +14,7 @@ form_data_test/functional: Skip # Issue 19726
 indexeddb_1_test/functional: Skip # Issue 19512 (timing out)
 indexeddb_4_test: Skip # Issue 19726
 worker_api_test: Fail # Issue 10223
-storage_quota_test: Fail # API is present but doesn't return anything yet.
+resource_http_test: Fail # Issue 24203
 
 [ $compiler == none && $mode == debug && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 datalistelement_test: Skip # Issue 20540
@@ -92,12 +92,19 @@ element_types_test/supported_meter: RuntimeError # Issue 18573
 
 [ $runtime == chrome ]
 touchevent_test/supported: Fail # Touch events are only supported on touch devices
+element_animate_test/omit_timing: RuntimeError # Also timing out on MacOS. Issue 23507
+element_animate_test/timing_dict: RuntimeError # Also timing out on MacOS. Issue 23507
 
 [ $runtime == chrome && $system == macos ]
 element_animate_test/omit_timing: Skip # Timing out on MacOS. Issue 23507
 element_animate_test/timing_dict: Skip # Timing out on MacOS. Issue 23507
 transition_event_test/functional: Skip # Times out. Issue 22167
 request_animation_frame_test: Skip # Times out. Issue 22167
+
+[ $runtime == chrome && $system != linux ]
+# These are failures in Chrome 45, which is not yet on Linux.
+# This will be merged with the earlier blocks when Linux is updated.
+element_animate_test/simple_timing: RuntimeError # Please triage this failure
 
 [$runtime == drt || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == ContentShellOnAndroid ]
 webgl_1_test: Pass, Fail # Issue 8219
@@ -401,3 +408,11 @@ typed_arrays_range_checks_test: StaticWarning
 typing_test: StaticWarning
 webgl_1_test: StaticWarning
 window_nosuchmethod_test: StaticWarning
+<<<<<<< HEAD
+||||||| merged common ancestors
+
+=======
+
+[ $compiler == dart2js && $cps_ir ]
+resource_http_test: Crash # (await for(var b in r.openRead()){bytes.addAll(b);}): await for
+>>>>>>> master

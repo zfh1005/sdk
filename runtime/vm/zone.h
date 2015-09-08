@@ -49,6 +49,8 @@ class Zone {
   // Make a zone-allocated string based on printf format and args.
   char* PrintToString(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
 
+  char* VPrint(const char* format, va_list args);
+
   // Compute the total size of this zone. This includes wasted space that is
   // due to internal fragmentation in the segments.
   intptr_t SizeInBytes() const;
@@ -176,13 +178,15 @@ class StackZone : public StackResource {
  public:
   // Create an empty zone and set is at the current zone for the Thread.
   explicit StackZone(Thread* thread) : StackResource(thread), zone_() {
-    Initialize();
-  }
-
-  // DEPRECATED: Use Thread-based interface. During migration, this defaults
-  // to using the mutator thread (which must also be the current thread).
-  explicit StackZone(Isolate* isolate) : StackResource(isolate), zone_() {
-    Initialize();
+#ifdef DEBUG
+    if (FLAG_trace_zones) {
+      OS::PrintErr("*** Starting a new Stack zone 0x%" Px "(0x%" Px ")\n",
+                   reinterpret_cast<intptr_t>(this),
+                   reinterpret_cast<intptr_t>(&zone_));
+    }
+#endif
+    zone_.Link(thread->zone());
+    thread->set_zone(&zone_);
   }
 
   // Delete all memory associated with the zone.
@@ -206,18 +210,6 @@ class StackZone : public StackResource {
 
  private:
   Zone zone_;
-
-  void Initialize() {
-#ifdef DEBUG
-    if (FLAG_trace_zones) {
-      OS::PrintErr("*** Starting a new Stack zone 0x%" Px "(0x%" Px ")\n",
-                   reinterpret_cast<intptr_t>(this),
-                   reinterpret_cast<intptr_t>(&zone_));
-    }
-#endif
-    zone_.Link(thread()->zone());
-    thread()->set_zone(&zone_);
-  }
 
   template<typename T> friend class GrowableArray;
   template<typename T> friend class ZoneGrowableArray;

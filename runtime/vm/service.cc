@@ -37,6 +37,9 @@
 
 namespace dart {
 
+#define Z (T->zone())
+
+
 DECLARE_FLAG(bool, trace_service);
 DECLARE_FLAG(bool, trace_service_pause_events);
 
@@ -48,11 +51,9 @@ ServiceIdZone::~ServiceIdZone() {
 }
 
 
-RingServiceIdZone::RingServiceIdZone(
-    ObjectIdRing* ring, ObjectIdRing::IdPolicy policy)
-        : ring_(ring),
-          policy_(policy) {
-  ASSERT(ring_ != NULL);
+RingServiceIdZone::RingServiceIdZone()
+    : ring_(NULL),
+      policy_(ObjectIdRing::kAllocateId) {
 }
 
 
@@ -60,7 +61,15 @@ RingServiceIdZone::~RingServiceIdZone() {
 }
 
 
+void RingServiceIdZone::Init(
+    ObjectIdRing* ring, ObjectIdRing::IdPolicy policy) {
+  ring_ = ring;
+  policy_ = policy;
+}
+
+
 char* RingServiceIdZone::GetServiceId(const Object& obj) {
+  ASSERT(ring_ != NULL);
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   ASSERT(zone != NULL);
@@ -87,7 +96,7 @@ StreamInfo Service::debug_stream("Debug");
 StreamInfo Service::gc_stream("GC");
 StreamInfo Service::echo_stream("_Echo");
 StreamInfo Service::graph_stream("_Graph");
-
+StreamInfo Service::logging_stream("_Logging");
 
 static StreamInfo* streams_[] = {
   &Service::isolate_stream,
@@ -95,6 +104,7 @@ static StreamInfo* streams_[] = {
   &Service::gc_stream,
   &Service::echo_stream,
   &Service::graph_stream,
+  &Service::logging_stream,
 };
 
 
@@ -498,20 +508,41 @@ static bool ValidateParameters(const MethodParameter* const* parameters,
 }
 
 
-void Service::InvokeMethod(Isolate* isolate, const Array& msg) {
-  ASSERT(isolate != NULL);
+void Service::PostError(const String& method_name,
+                        const Array& parameter_keys,
+                        const Array& parameter_values,
+                        const Instance& reply_port,
+                        const Instance& id,
+                        const Error& error) {
+  Thread* T = Thread::Current();
+  StackZone zone(T);
+  HANDLESCOPE(T);
+  JSONStream js;
+  js.Setup(zone.GetZone(), SendPort::Cast(reply_port).Id(),
+           id, method_name, parameter_keys, parameter_values);
+  js.PrintError(kExtensionError,
+                "Error in extension `%s`: %s",
+                js.method(), error.ToErrorCString());
+  js.PostReply();
+}
+
+
+void Service::InvokeMethod(Isolate* I, const Array& msg) {
+  Thread* T = Thread::Current();
+  ASSERT(I == T->isolate());
+  ASSERT(I != NULL);
   ASSERT(!msg.IsNull());
   ASSERT(msg.Length() == 6);
 
   {
-    StackZone zone(isolate);
-    HANDLESCOPE(isolate);
+    StackZone zone(T);
+    HANDLESCOPE(T);
 
-    Instance& reply_port = Instance::Handle(isolate);
-    String& seq = String::Handle(isolate);
-    String& method_name = String::Handle(isolate);
-    Array& param_keys = Array::Handle(isolate);
-    Array& param_values = Array::Handle(isolate);
+    Instance& reply_port = Instance::Handle(Z);
+    Instance& seq = String::Handle(Z);
+    String& method_name = String::Handle(Z);
+    Array& param_keys = Array::Handle(Z);
+    Array& param_values = Array::Handle(Z);
     reply_port ^= msg.At(1);
     seq ^= msg.At(2);
     method_name ^= msg.At(3);
@@ -519,7 +550,7 @@ void Service::InvokeMethod(Isolate* isolate, const Array& msg) {
     param_values ^= msg.At(5);
 
     ASSERT(!method_name.IsNull());
-    ASSERT(!seq.IsNull());
+    ASSERT(seq.IsNull() || seq.IsString() || seq.IsNumber());
     ASSERT(!param_keys.IsNull());
     ASSERT(!param_values.IsNull());
     ASSERT(param_keys.Length() == param_values.Length());
@@ -563,7 +594,7 @@ void Service::InvokeMethod(Isolate* isolate, const Array& msg) {
         js.PostReply();
         return;
       }
-      if (method->entry(isolate, &js)) {
+      if (method->entry(I, &js)) {
         js.PostReply();
       } else {
         // NOTE(turnidge): All message handlers currently return true,
@@ -581,6 +612,20 @@ void Service::InvokeMethod(Isolate* isolate, const Array& msg) {
     if (handler != NULL) {
       EmbedderHandleMessage(handler, &js);
       js.PostReply();
+      return;
+    }
+
+    const Instance& extension_handler = Instance::Handle(Z,
+        I->LookupServiceExtensionHandler(method_name));
+    if (!extension_handler.IsNull()) {
+      ScheduleExtensionHandler(extension_handler,
+                               method_name,
+                               param_keys,
+                               param_values,
+                               reply_port,
+                               seq);
+      // Schedule was successful. Extension code will post a reply
+      // asynchronously.
       return;
     }
 
@@ -610,9 +655,10 @@ void Service::SendEvent(const char* stream_id,
   if (!ServiceIsolate::IsRunning()) {
     return;
   }
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
-  HANDLESCOPE(isolate);
+  HANDLESCOPE(thread);
 
   const Array& list = Array::Handle(Array::New(2));
   ASSERT(!list.IsNull());
@@ -627,8 +673,8 @@ void Service::SendEvent(const char* stream_id,
   intptr_t len = writer.BytesWritten();
   if (FLAG_trace_service) {
     OS::Print(
-        "vm-service: Pushing event of type %s to stream %s, len %" Pd "\n",
-        event_type, stream_id, len);
+        "vm-service: Pushing event of type %s to stream %s (%s), len %" Pd "\n",
+        event_type, stream_id, isolate->name(), len);
   }
   // TODO(turnidge): For now we ignore failure to send an event.  Revisit?
   PortMap::PostMessage(
@@ -680,9 +726,22 @@ void Service::HandleEvent(ServiceEvent* event) {
   ASSERT(stream_id != NULL);
   {
     JSONObject jsobj(&js);
-    jsobj.AddProperty("event", event);
-    jsobj.AddProperty("streamId", stream_id);
+    jsobj.AddProperty("jsonrpc", "2.0");
+    jsobj.AddProperty("method", "streamNotify");
+    JSONObject params(&jsobj, "params");
+    params.AddProperty("streamId", stream_id);
+    params.AddProperty("event", event);
   }
+  PostEvent(stream_id, event->KindAsCString(), &js);
+}
+
+
+void Service::PostEvent(const char* stream_id,
+                        const char* kind,
+                        JSONStream* event) {
+  ASSERT(stream_id != NULL);
+  ASSERT(kind != NULL);
+  ASSERT(event != NULL);
 
   // Message is of the format [<stream id>, <json string>].
   //
@@ -702,13 +761,18 @@ void Service::HandleEvent(ServiceEvent* event) {
 
   Dart_CObject json_cobj;
   json_cobj.type = Dart_CObject_kString;
-  json_cobj.value.as_string = const_cast<char*>(js.ToCString());
+  json_cobj.value.as_string = const_cast<char*>(event->ToCString());
   list_values[1] = &json_cobj;
 
   if (FLAG_trace_service) {
+    Isolate* isolate = Isolate::Current();
+    const char* isolate_name = "<no current isolate>";
+    if (isolate != NULL) {
+      isolate_name = isolate->name();
+    }
     OS::Print(
-        "vm-service: Pushing event of type %s to stream %s\n",
-        event->KindAsCString(), stream_id);
+        "vm-service: Pushing event of type %s to stream %s (%s)\n",
+        kind, stream_id, isolate_name);
   }
 
   Dart_PostCObject(ServiceIsolate::Port(), &list_cobj);
@@ -856,6 +920,28 @@ EmbedderServiceHandler* Service::FindRootEmbedderHandler(
 }
 
 
+void Service::ScheduleExtensionHandler(const Instance& handler,
+                                       const String& method_name,
+                                       const Array& parameter_keys,
+                                       const Array& parameter_values,
+                                       const Instance& reply_port,
+                                       const Instance& id) {
+  ASSERT(!handler.IsNull());
+  ASSERT(!method_name.IsNull());
+  ASSERT(!parameter_keys.IsNull());
+  ASSERT(!parameter_values.IsNull());
+  ASSERT(!reply_port.IsNull());
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  isolate->AppendServiceExtensionCall(handler,
+                                      method_name,
+                                      parameter_keys,
+                                      parameter_values,
+                                      reply_port,
+                                      id);
+}
+
+
 static const MethodParameter* get_isolate_params[] = {
   ISOLATE_PARAMETER,
   NULL,
@@ -917,16 +1003,22 @@ void Service::SendEchoEvent(Isolate* isolate, const char* text) {
   JSONStream js;
   {
     JSONObject jsobj(&js);
+    jsobj.AddProperty("jsonrpc", "2.0");
+    jsobj.AddProperty("method", "streamNotify");
     {
-      JSONObject event(&jsobj, "event");
-      event.AddProperty("type", "Event");
-      event.AddProperty("kind", "_Echo");
-      event.AddProperty("isolate", isolate);
-      if (text != NULL) {
-        event.AddProperty("text", text);
+      JSONObject params(&jsobj, "params");
+      params.AddProperty("streamId", echo_stream.id());
+      {
+        JSONObject event(&params, "event");
+        event.AddProperty("type", "Event");
+        event.AddProperty("kind", "_Echo");
+        event.AddProperty("isolate", isolate);
+        if (text != NULL) {
+          event.AddProperty("text", text);
+        }
+        event.AddPropertyTimeMillis("timestamp", OS::GetCurrentTimeMillis());
       }
     }
-    jsobj.AddProperty("streamId", echo_stream.id());
   }
   const String& message = String::Handle(String::New(js.ToCString()));
   uint8_t data[] = {0, 128, 255};
@@ -950,7 +1042,8 @@ static bool DumpIdZone(Isolate* isolate, JSONStream* js) {
   ObjectIdRing* ring = isolate->object_id_ring();
   ASSERT(ring != NULL);
   // When printing the ObjectIdRing, force object id reuse policy.
-  RingServiceIdZone reuse_zone(ring, ObjectIdRing::kReuseId);
+  RingServiceIdZone reuse_zone;
+  reuse_zone.Init(ring, ObjectIdRing::kReuseId);
   js->set_id_zone(&reuse_zone);
   ring->PrintJSON(js);
   return true;
@@ -1391,8 +1484,7 @@ static bool PrintMessage(JSONStream* js, Isolate* isolate, const char* id) {
       }
       MessageSnapshotReader reader(message->data(),
                                    message->len(),
-                                   isolate,
-                                   Thread::Current()->zone());
+                                   Thread::Current());
       const Object& msg_obj = Object::Handle(reader.ReadObject());
       msg_obj.PrintJSON(js);
       return true;
@@ -1425,19 +1517,21 @@ static bool PrintInboundReferences(Isolate* isolate,
       slot_offset ^= path.At((i * 2) + 1);
 
       jselement.AddProperty("source", source);
-      jselement.AddProperty("slot", "<unknown>");
       if (source.IsArray()) {
         intptr_t element_index = slot_offset.Value() -
             (Array::element_offset(0) >> kWordSizeLog2);
-        jselement.AddProperty("slot", element_index);
+        jselement.AddProperty("parentListIndex", element_index);
       } else if (source.IsInstance()) {
         source_class ^= source.clazz();
         parent_field_map = source_class.OffsetToFieldMap();
         intptr_t offset = slot_offset.Value();
         if (offset > 0 && offset < parent_field_map.Length()) {
           field ^= parent_field_map.At(offset);
-          jselement.AddProperty("slot", field);
+          jselement.AddProperty("parentField", field);
         }
+      } else {
+        intptr_t element_index = slot_offset.Value();
+        jselement.AddProperty("_parentWordOffset", element_index);
       }
 
       // We nil out the array after generating the response to prevent
@@ -1457,6 +1551,9 @@ static const MethodParameter* get_inbound_references_params[] = {
 
 
 static bool GetInboundReferences(Isolate* isolate, JSONStream* js) {
+  Thread* thread = Thread::Current();
+  ASSERT(isolate == thread->isolate());
+
   const char* target_id = js->LookupParam("targetId");
   if (target_id == NULL) {
     PrintMissingParamError(js, "targetId");
@@ -1476,7 +1573,7 @@ static bool GetInboundReferences(Isolate* isolate, JSONStream* js) {
   Object& obj = Object::Handle(isolate);
   ObjectIdRing::LookupResult lookup_result;
   {
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     obj = LookupHeapObject(isolate, target_id, &lookup_result);
   }
   if (obj.raw() == Object::sentinel().raw()) {
@@ -1505,10 +1602,9 @@ static bool PrintRetainingPath(Isolate* isolate,
   jsobj.AddProperty("length", length);
   JSONArray elements(&jsobj, "elements");
   Object& element = Object::Handle();
-  Object& parent = Object::Handle();
-  Smi& offset_from_parent = Smi::Handle();
-  Class& parent_class = Class::Handle();
-  Array& parent_field_map = Array::Handle();
+  Smi& slot_offset = Smi::Handle();
+  Class& element_class = Class::Handle();
+  Array& element_field_map = Array::Handle();
   Field& field = Field::Handle();
   limit = Utils::Minimum(limit, length);
   for (intptr_t i = 0; i < limit; ++i) {
@@ -1518,22 +1614,23 @@ static bool PrintRetainingPath(Isolate* isolate,
     jselement.AddProperty("value", element);
     // Interpret the word offset from parent as list index or instance field.
     // TODO(koda): User-friendly interpretation for map entries.
-    offset_from_parent ^= path.At((i * 2) + 1);
-    int parent_i = i + 1;
-    if (parent_i < limit) {
-      parent = path.At(parent_i * 2);
-      if (parent.IsArray()) {
-        intptr_t element_index = offset_from_parent.Value() -
+    if (i > 0) {
+      slot_offset ^= path.At((i * 2) - 1);
+      if (element.IsArray()) {
+        intptr_t element_index = slot_offset.Value() -
             (Array::element_offset(0) >> kWordSizeLog2);
         jselement.AddProperty("parentListIndex", element_index);
-      } else if (parent.IsInstance()) {
-        parent_class ^= parent.clazz();
-        parent_field_map = parent_class.OffsetToFieldMap();
-        intptr_t offset = offset_from_parent.Value();
-        if (offset > 0 && offset < parent_field_map.Length()) {
-          field ^= parent_field_map.At(offset);
+      } else if (element.IsInstance()) {
+        element_class ^= element.clazz();
+        element_field_map = element_class.OffsetToFieldMap();
+        intptr_t offset = slot_offset.Value();
+        if (offset > 0 && offset < element_field_map.Length()) {
+          field ^= element_field_map.At(offset);
           jselement.AddProperty("parentField", field);
         }
+      } else {
+        intptr_t element_index = slot_offset.Value();
+        jselement.AddProperty("_parentWordOffset", element_index);
       }
     }
   }
@@ -1556,6 +1653,9 @@ static const MethodParameter* get_retaining_path_params[] = {
 
 
 static bool GetRetainingPath(Isolate* isolate, JSONStream* js) {
+  Thread* thread = Thread::Current();
+  ASSERT(isolate == thread->isolate());
+
   const char* target_id = js->LookupParam("targetId");
   if (target_id == NULL) {
     PrintMissingParamError(js, "targetId");
@@ -1575,7 +1675,7 @@ static bool GetRetainingPath(Isolate* isolate, JSONStream* js) {
   Object& obj = Object::Handle(isolate);
   ObjectIdRing::LookupResult lookup_result;
   {
-    HANDLESCOPE(isolate);
+    HANDLESCOPE(thread);
     obj = LookupHeapObject(isolate, target_id, &lookup_result);
   }
   if (obj.raw() == Object::sentinel().raw()) {
@@ -1810,7 +1910,7 @@ static bool GetInstances(Isolate* isolate, JSONStream* js) {
     JSONArray samples(&jsobj, "samples");
     for (int i = 0; i < storage.Length(); i++) {
       const Object& sample = Object::Handle(storage.At(i));
-      samples.AddValue(Instance::Cast(sample));
+      samples.AddValue(sample);
     }
   }
   return true;
@@ -1916,6 +2016,7 @@ static bool GetHitsOrSites(Isolate* isolate, JSONStream* js, bool as_sites) {
 
 static const MethodParameter* get_coverage_params[] = {
   ISOLATE_PARAMETER,
+  new IdParameter("targetId", false),
   NULL,
 };
 
@@ -1928,7 +2029,7 @@ static bool GetCoverage(Isolate* isolate, JSONStream* js) {
 
 static const MethodParameter* get_call_site_data_params[] = {
   ISOLATE_PARAMETER,
-  new IdParameter("targetId", true),
+  new IdParameter("targetId", false),
   NULL,
 };
 
@@ -2240,7 +2341,13 @@ static const MethodParameter* resume_params[] = {
 static bool Resume(Isolate* isolate, JSONStream* js) {
   const char* step_param = js->LookupParam("step");
   if (isolate->message_handler()->paused_on_start()) {
+    // If the user is issuing a 'Over' or an 'Out' step, that is the
+    // same as a regular resume request.
+    if ((step_param != NULL) && (strcmp(step_param, "Into") == 0)) {
+      isolate->debugger()->EnterSingleStepMode();
+    }
     isolate->message_handler()->set_pause_on_start(false);
+    isolate->set_last_resume_timestamp();
     if (Service::debug_stream.enabled()) {
       ServiceEvent event(isolate, ServiceEvent::kResume);
       Service::HandleEvent(&event);
@@ -2328,6 +2435,7 @@ static Profile::TagOrder tags_enum_values[] = {
 static const MethodParameter* get_cpu_profile_params[] = {
   ISOLATE_PARAMETER,
   new EnumParameter("tags", true, tags_enum_names),
+  new BoolParameter("_codeTransitionTags", false),
   NULL,
 };
 
@@ -2336,7 +2444,11 @@ static const MethodParameter* get_cpu_profile_params[] = {
 static bool GetCpuProfile(Isolate* isolate, JSONStream* js) {
   Profile::TagOrder tag_order =
       EnumMapper(js->LookupParam("tags"), tags_enum_names, tags_enum_values);
-  ProfilerService::PrintJSON(js, tag_order);
+  intptr_t extra_tags = 0;
+  if (BoolParameter::Parse(js->LookupParam("_codeTransitionTags"))) {
+    extra_tags |= ProfilerService::kCodeTransitionTagsBit;
+  }
+  ProfilerService::PrintJSON(js, tag_order, extra_tags);
   return true;
 }
 
@@ -2460,17 +2572,23 @@ void Service::SendGraphEvent(Isolate* isolate) {
     JSONStream js;
     {
       JSONObject jsobj(&js);
+      jsobj.AddProperty("jsonrpc", "2.0");
+      jsobj.AddProperty("method", "streamNotify");
       {
-        JSONObject event(&jsobj, "event");
-        event.AddProperty("type", "Event");
-        event.AddProperty("kind", "_Graph");
-        event.AddProperty("isolate", isolate);
+        JSONObject params(&jsobj, "params");
+        params.AddProperty("streamId", graph_stream.id());
+        {
+          JSONObject event(&params, "event");
+          event.AddProperty("type", "Event");
+          event.AddProperty("kind", "_Graph");
+          event.AddProperty("isolate", isolate);
+          event.AddPropertyTimeMillis("timestamp", OS::GetCurrentTimeMillis());
 
-        event.AddProperty("chunkIndex", i);
-        event.AddProperty("chunkCount", num_chunks);
-        event.AddProperty("nodeCount", node_count);
+          event.AddProperty("chunkIndex", i);
+          event.AddProperty("chunkCount", num_chunks);
+          event.AddProperty("nodeCount", node_count);
+        }
       }
-      jsobj.AddProperty("streamId", graph_stream.id());
     }
 
     const String& message = String::Handle(String::New(js.ToCString()));
@@ -2512,6 +2630,30 @@ void Service::SendEmbedderEvent(Isolate* isolate,
 }
 
 
+void Service::SendLogEvent(Isolate* isolate,
+                           int64_t sequence_number,
+                           int64_t timestamp,
+                           intptr_t level,
+                           const String& name,
+                           const String& message,
+                           const Instance& zone,
+                           const Object& error,
+                           const Instance& stack_trace) {
+  ServiceEvent::LogRecord log_record;
+  log_record.sequence_number = sequence_number;
+  log_record.timestamp = timestamp;
+  log_record.level = level;
+  log_record.name = &name;
+  log_record.message = &message;
+  log_record.zone = &zone;
+  log_record.error = &error;
+  log_record.stack_trace = &stack_trace;
+  ServiceEvent event(isolate, ServiceEvent::kLogging);
+  event.set_log_record(log_record);
+  Service::HandleEvent(&event);
+}
+
+
 class ContainsAddressVisitor : public FindObjectVisitor {
  public:
   ContainsAddressVisitor(Isolate* isolate, uword addr)
@@ -2540,6 +2682,29 @@ static const MethodParameter* get_object_by_address_params[] = {
 };
 
 
+static RawObject* GetObjectHelper(Isolate* isolate, uword addr) {
+  Object& object = Object::Handle(isolate);
+
+  {
+    NoSafepointScope no_safepoint;
+    ContainsAddressVisitor visitor(isolate, addr);
+    object = isolate->heap()->FindObject(&visitor);
+  }
+
+  if (!object.IsNull()) {
+    return object.raw();
+  }
+
+  {
+    NoSafepointScope no_safepoint;
+    ContainsAddressVisitor visitor(Dart::vm_isolate(), addr);
+    object = Dart::vm_isolate()->heap()->FindObject(&visitor);
+  }
+
+  return object.raw();
+}
+
+
 static bool GetObjectByAddress(Isolate* isolate, JSONStream* js) {
   const char* addr_str = js->LookupParam("address");
   if (addr_str == NULL) {
@@ -2554,16 +2719,11 @@ static bool GetObjectByAddress(Isolate* isolate, JSONStream* js) {
     return true;
   }
   bool ref = js->HasParam("ref") && js->ParamIs("ref", "true");
-  Object& object = Object::Handle(isolate);
-  {
-    NoSafepointScope no_safepoint;
-    ContainsAddressVisitor visitor(isolate, addr);
-    object = isolate->heap()->FindObject(&visitor);
-  }
-  if (object.IsNull()) {
+  const Object& obj = Object::Handle(isolate, GetObjectHelper(isolate, addr));
+  if (obj.IsNull()) {
     PrintSentinel(js, kFreeSentinel);
   } else {
-    object.PrintJSON(js, ref);
+    obj.PrintJSON(js, ref);
   }
   return true;
 }
@@ -2706,8 +2866,8 @@ static const MethodParameter* get_version_params[] = {
 static bool GetVersion(Isolate* isolate, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Version");
-  jsobj.AddProperty("major", static_cast<intptr_t>(1));
-  jsobj.AddProperty("minor", static_cast<intptr_t>(0));
+  jsobj.AddProperty("major", static_cast<intptr_t>(2));
+  jsobj.AddProperty("minor", static_cast<intptr_t>(1));
   jsobj.AddProperty("_privateMajor", static_cast<intptr_t>(0));
   jsobj.AddProperty("_privateMinor", static_cast<intptr_t>(0));
   return true;
@@ -2755,7 +2915,7 @@ static bool GetVM(Isolate* isolate, JSONStream* js) {
   jsobj.AddProperty("_typeChecksEnabled", isolate->flags().type_checks());
   int64_t start_time_millis = (Dart::vm_isolate()->start_time() /
                                kMicrosecondsPerMillisecond);
-  jsobj.AddProperty64("startTime", start_time_millis);
+  jsobj.AddPropertyTimeMillis("startTime", start_time_millis);
   // Construct the isolate list.
   {
     JSONArray jsarr(&jsobj, "isolates");

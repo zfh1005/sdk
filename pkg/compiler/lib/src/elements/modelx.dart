@@ -4,44 +4,50 @@
 
 library elements.modelx;
 
-import 'common.dart';
-import 'elements.dart';
-import '../constants/expressions.dart';
+import '../compiler.dart' show
+    Compiler;
+import '../constants/constant_constructors.dart';
 import '../constants/constructors.dart';
-import '../helpers/helpers.dart';
-import '../tree/tree.dart';
-import '../util/util.dart';
-import '../resolution/resolution.dart';
-import '../resolution/class_members.dart' show ClassMemberMixin;
-
-import '../dart2jslib.dart' show
-    Backend,
-    Compiler,
-    Constant,
-    DartType,
-    DiagnosticListener,
-    DualKind,
-    FunctionType,
-    InterfaceType,
-    MessageKind,
-    Script,
-    Selector,
-    SourceSpan,
-    TypeVariableType,
-    TypedefType,
-    invariant,
-    isPrivateName;
-
+import '../constants/expressions.dart';
 import '../dart_types.dart';
-
-import '../scanner/scannerlib.dart' show
-    EOF_TOKEN,
+import '../diagnostics/diagnostic_listener.dart';
+import '../diagnostics/invariant.dart' show
+    invariant;
+import '../diagnostics/messages.dart';
+import '../diagnostics/source_span.dart' show
+    SourceSpan;
+import '../diagnostics/spannable.dart' show
+    Spannable,
+    SpannableAssertionFailure;
+import '../helpers/helpers.dart';
+import '../ordered_typeset.dart' show
+    OrderedTypeSet;
+import '../resolution/class_members.dart' show
+    ClassMemberMixin;
+import '../resolution/scope.dart' show
+    ClassScope,
+    LibraryScope,
+    Scope,
+    TypeDeclarationScope;
+import '../resolution/resolution.dart' show
+    AnalyzableElementX;
+import '../resolution/tree_elements.dart' show
+    TreeElements;
+import '../resolution/typedefs.dart' show
+    TypedefCyclicVisitor;
+import '../script.dart';
+import '../tokens/token.dart' show
     ErrorToken,
     Token;
+import '../tokens/token_constants.dart' as Tokens show
+    EOF_TOKEN;
+import '../tree/tree.dart';
+import '../util/util.dart';
 
-import '../ordered_typeset.dart' show OrderedTypeSet;
-
-import 'visitor.dart' show ElementVisitor;
+import 'common.dart';
+import 'elements.dart';
+import 'visitor.dart' show
+    ElementVisitor;
 
 abstract class DeclarationSite {
 }
@@ -133,7 +139,7 @@ abstract class ElementX extends Element with ElementCommon {
     String needle = isConstructor ? enclosingClassName : name;
     // The unary '-' operator has a special element name (specified).
     if (needle == 'unary-') needle = '-';
-    for (Token t = token; EOF_TOKEN != t.kind; t = t.next) {
+    for (Token t = token; Tokens.EOF_TOKEN != t.kind; t = t.next) {
       if (t is !ErrorToken && needle == t.value) return t;
     }
     return token;
@@ -308,7 +314,10 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
 
   FunctionElement asFunctionElement() => this;
 
-  String get message => '${messageKind.message(messageArguments)}';
+  String get message {
+    return MessageTemplate.TEMPLATES[messageKind]
+        .message(messageArguments).toString();
+  }
 
   String toString() => '<$name: $message>';
 
@@ -687,6 +696,7 @@ class CompilationUnitElementX extends ElementX
   void setPartOf(PartOf tag, DiagnosticListener listener) {
     LibraryElementX library = enclosingElement;
     if (library.entryCompilationUnit == this) {
+      partTag = tag;
       listener.reportError(tag, MessageKind.IMPORT_PART_OF);
       return;
     }
@@ -1004,10 +1014,12 @@ class LibraryElementX
   /** Look up a top-level element in this library, but only look for
     * non-imported elements. Returns null if no such element exist. */
   Element findLocal(String elementName) {
-    // TODO(johnniwinther): How to handle injected elements in the patch
+    // TODO((johnniwinther): How to handle injected elements in the patch
     // library?
     Element result = localScope.lookup(elementName);
-    if (result == null || result.library != this) return null;
+    if (result == null && isPatch) {
+      return origin.findLocal(elementName);
+    }
     return result;
   }
 
@@ -1051,7 +1063,7 @@ class LibraryElementX
     return localScope.values.where((Element element) {
       // At this point [localScope] only contains members so we don't need
       // to check for foreign or prefix elements.
-      return !isPrivateName(element.name);
+      return !Name.isPrivateName(element.name);
     });
   }
 
@@ -1120,6 +1132,8 @@ class PrefixElementX extends ElementX implements PrefixElement {
   void markAsDeferred(Import deferredImport) {
     _deferredImport = deferredImport;
   }
+
+  String toString() => '$kind($name)';
 }
 
 class TypedefElementX extends ElementX
@@ -1240,8 +1254,12 @@ abstract class ConstantVariableMixin implements VariableElement {
       originVariable.constant = value;
       return null;
     }
-    assert(invariant(this, constantCache == null || constantCache == value,
-        message: "Constant has already been computed for $this."));
+    assert(invariant(
+        this, constantCache == null || constantCache == value,
+        message: "Constant has already been computed for $this. "
+                 "Existing constant: "
+                 "${constantCache != null ? constantCache.getText() : ''}, "
+                 "New constant: ${value != null ? value.getText() : ''}."));
     constantCache = value;
   }
 }
@@ -2308,7 +2326,11 @@ abstract class BaseClassElementX extends ElementX
   bool get isEnumClass => false;
 
   InterfaceType computeType(Compiler compiler) {
-    if (thisTypeCache == null) {
+    if (isPatch) {
+      origin.computeType(compiler);
+      thisTypeCache = origin.thisType;
+      rawTypeCache = origin.rawType;
+    } else if (thisTypeCache == null) {
       computeThisAndRawType(compiler, computeTypeParameters(compiler));
     }
     return thisTypeCache;

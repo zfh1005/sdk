@@ -30,7 +30,7 @@ import '../../elements/elements.dart' show
     MethodElement,
     ParameterElement;
 
-import '../../universe/universe.dart' show Universe, TypeMaskSet;
+import '../../universe/universe.dart' show Universe, ReceiverMaskSet;
 import '../../deferred_load.dart' show DeferredLoadTask, OutputUnit;
 
 part 'collector.dart';
@@ -82,6 +82,13 @@ class ProgramBuilder {
   /// update field-initializers to point to the ConstantModel.
   final Map<ConstantValue, Constant> _constants = <ConstantValue, Constant>{};
 
+  /// Mapping from names to strings.
+  ///
+  /// This mapping is used to support `const Symbol` expressions.
+  ///
+  /// This map is filled when building classes.
+  final Map<js.Name, String> _symbolsMap = <js.Name, String>{};
+
   Set<Class> _unneededNativeClasses;
 
   Program buildProgram({bool storeFunctionTypesInMetadata: false}) {
@@ -100,8 +107,7 @@ class ProgramBuilder {
         _registry.registerElements);
 
     // We always add the current isolate holder.
-    _registry.registerHolder(
-        namer.staticStateHolder, isStaticStateHolder: true);
+    _registerStaticStateHolder();
 
     // We need to run the native-preparation before we build the output. The
     // preparation code, in turn needs the classes to be set up.
@@ -163,6 +169,7 @@ class ProgramBuilder {
         fragments,
         holders,
         _buildLoadMap(),
+        _symbolsMap,
         _buildTypeToInterceptorMap(),
         _task.metadataCollector,
         finalizers,
@@ -251,17 +258,19 @@ class ProgramBuilder {
     ConstantValue initialValue = handler.getInitialValueFor(element);
     // TODO(zarah): The holder should not be registered during building of
     // a static field.
-    _registry.registerHolder(namer.globalObjectForConstant(initialValue));
+    _registry.registerHolder(
+        namer.globalObjectForConstant(initialValue), isConstantsHolder: true);
     js.Expression code = _task.emitter.constantReference(initialValue);
     js.Name name = namer.globalPropertyName(element);
     bool isFinal = false;
     bool isLazy = false;
 
     // TODO(floitsch): we shouldn't update the registry in the middle of
-    // building a static field. (Note that the $ holder is already registered
-    // earlier).
+    // building a static field. (Note that the static-state holder was
+    // already registered earlier, and that we just call the register to get
+    // the holder-instance.
     return new StaticField(element,
-                           name, _registry.registerHolder(r'$'), code,
+                           name, _registerStaticStateHolder(), code,
                            isFinal, isLazy);
   }
 
@@ -293,10 +302,11 @@ class ProgramBuilder {
     bool isFinal = element.isFinal;
     bool isLazy = true;
     // TODO(floitsch): we shouldn't update the registry in the middle of
-    // building a static field. (Note that the $ holder is already registered
-    // earlier).
+    // building a static field. (Note that the static-state holder was
+    // already registered earlier, and that we just call the register to get
+    // the holder-instance.
     return new StaticField(element,
-                           name, _registry.registerHolder(r'$'), code,
+                           name, _registerStaticStateHolder(), code,
                            isFinal, isLazy);
   }
 
@@ -348,7 +358,7 @@ class ProgramBuilder {
     js.Name name = namer.className(element);
 
     return new Class(
-        element, name, null, [], instanceFields, [], [], [], [], [], null,
+        element, name, null, [], instanceFields, [], [], [], [], [], [], null,
         isDirectlyInstantiated: true,
         onlyForRti: false,
         isNative: element.isNative);
@@ -375,7 +385,7 @@ class ProgramBuilder {
         if (method != null) methods.add(method);
       }
       if (member.isGetter || member.isField) {
-        Map<Selector, TypeMaskSet> selectors =
+        Map<Selector, ReceiverMaskSet> selectors =
             _compiler.codegenWorld.invocationsByName(member.name);
         if (selectors != null && !selectors.isEmpty) {
 
@@ -392,10 +402,17 @@ class ProgramBuilder {
         runtimeTypeGenerator.generateTypeVariableReaderStubs(element);
 
     List<StubMethod> noSuchMethodStubs = <StubMethod>[];
+
     if (backend.enabledNoSuchMethod && element == _compiler.objectClass) {
       Map<js.Name, Selector> selectors =
           classStubGenerator.computeSelectorsForNsmHandlers();
       selectors.forEach((js.Name name, Selector selector) {
+        // If the program contains `const Symbol` names we have to retain them.
+        String selectorName = selector.name;
+        if (selector.isSetter) selectorName = "$selectorName=";
+        if (backend.symbolsUsed.contains(selectorName)) {
+          _symbolsMap[name] = selectorName;
+        }
         noSuchMethodStubs
             .add(classStubGenerator.generateStubForNoSuchMethod(name,
                                                                 selector));
@@ -428,6 +445,18 @@ class ProgramBuilder {
             element,
             storeFunctionTypeInMetadata: _storeFunctionTypesInMetadata);
 
+    List<StubMethod> checkedSetters = <StubMethod>[];
+    for (Field field in instanceFields) {
+      if (field.needsCheckedSetter) {
+        assert(!field.needsUncheckedSetter);
+        Element element = field.element;
+        js.Expression code = backend.generatedCode[element];
+        assert(code != null);
+        js.Name name = namer.deriveSetterName(field.accessorName);
+        checkedSetters.add(_buildStubMethod(name, code, element: element));
+      }
+    }
+
     List<StubMethod> isChecks = <StubMethod>[];
     typeTests.properties.forEach((js.Name name, js.Node code) {
       isChecks.add(_buildStubMethod(name, code));
@@ -452,6 +481,7 @@ class ProgramBuilder {
                                     staticFieldsForReflection,
                                     callStubs,
                                     typeVariableReaderStubs,
+                                    checkedSetters,
                                     isChecks,
                                     typeTests.functionTypeIndex,
                                     isDirectlyInstantiated: isInstantiated,
@@ -463,6 +493,7 @@ class ProgramBuilder {
                          callStubs,
                          typeVariableReaderStubs,
                          noSuchMethodStubs,
+                         checkedSetters,
                          isChecks,
                          typeTests.functionTypeIndex,
                          isDirectlyInstantiated: isInstantiated,
@@ -528,7 +559,7 @@ class ProgramBuilder {
 
     bool canTearOff = false;
     js.Name tearOffName;
-    bool isClosure = false;
+    bool isClosureCallMethod = false;
     bool isNotApplyTarget = !element.isFunction || element.isAccessor;
 
     bool canBeReflected = _methodCanBeReflected(element);
@@ -543,7 +574,7 @@ class ProgramBuilder {
     } else {
       if (element.enclosingClass.isClosure) {
         canTearOff = false;
-        isClosure = true;
+        isClosureCallMethod = true;
       } else {
         // Careful with operators.
         canTearOff = universe.hasInvokedGetter(element, _compiler.world) ||
@@ -597,7 +628,7 @@ class ProgramBuilder {
     return new InstanceMethod(element, name, code,
         _generateParameterStubs(element, canTearOff), callName,
         needsTearOff: canTearOff, tearOffName: tearOffName,
-        isClosure: isClosure, aliasName: aliasName,
+        isClosureCallMethod: isClosureCallMethod, aliasName: aliasName,
         canBeApplied: canBeApplied, canBeReflected: canBeReflected,
         requiredParameterCount: requiredParameterCount,
         optionalParameterDefaultValues: optionalParameterDefaultValues,
@@ -793,9 +824,15 @@ class ProgramBuilder {
       assert(!_constants.containsKey(constantValue));
       js.Name name = namer.constantName(constantValue);
       String constantObject = namer.globalObjectForConstant(constantValue);
-      Holder holder = _registry.registerHolder(constantObject);
+      Holder holder =
+          _registry.registerHolder(constantObject, isConstantsHolder: true);
       Constant constant = new Constant(name, holder, constantValue);
       _constants[constantValue] = constant;
     }
+  }
+
+  Holder _registerStaticStateHolder() {
+    return _registry.registerHolder(
+        namer.staticStateHolder, isStaticStateHolder: true);
   }
 }

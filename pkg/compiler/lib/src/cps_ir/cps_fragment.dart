@@ -33,19 +33,19 @@ import '../elements/elements.dart';
 ///
 /// If `condition` is true then invoke `cont1`, else `cont2`.
 ///
-///   cps.ifTrue(condition).invokeContinuation(cont1, []);
+///   cps.ifTruthy(condition).invokeContinuation(cont1, []);
 ///   cps.invokeContinuation(cont2, []);
 ///
 /// If `condition` is true then invoke `cont` with a bound primitive:
 ///
-///   CpsFragment branch = cps.ifTrue(condition);
+///   CpsFragment branch = cps.ifTruthy(condition);
 ///   branch.invokeContinuation(cont, [branch.letPrim(arg)]);
 ///
 /// Loop and call a method until it returns false:
 ///
 ///   Continuation loop = cps.beginLoop();
 ///   var result = cps.invokeMethod(receiver, selector, ...);
-///   cps.ifFalse(result).invokeContinuation(exit, []);
+///   cps.ifFalsy(result).invokeContinuation(exit, []);
 ///   cps.continueLoop(loop);
 ///
 class CpsFragment {
@@ -109,7 +109,17 @@ class CpsFragment {
 
   /// Invoke a built-in operator.
   Primitive applyBuiltin(BuiltinOperator op, List<Primitive> args) {
-    return letPrim(new ApplyBuiltinOperator(op, args));
+    return letPrim(new ApplyBuiltinOperator(op, args, sourceInformation));
+  }
+
+  Primitive invokeBuiltin(BuiltinMethod method, 
+                          Primitive receiver, 
+                          List<Primitive> arguments,
+                          {bool receiverIsNotNull: false}) {
+    ApplyBuiltinMethod apply = 
+        new ApplyBuiltinMethod(method, receiver, arguments, sourceInformation);
+    apply.receiverIsNotNull = receiverIsNotNull;
+    return letPrim(apply);
   }
 
   /// Inserts an invocation. binds its continuation, and returns the
@@ -188,11 +198,11 @@ class CpsFragment {
   /// Returns a new fragment for the 'then' branch.
   ///
   /// The 'else' branch becomes the new hole.
-  CpsFragment ifTrue(Primitive condition) {
+  CpsFragment ifTruthy(Primitive condition) {
     Continuation trueCont = new Continuation(<Parameter>[]);
     Continuation falseCont = new Continuation(<Parameter>[]);
     put(new LetCont.two(trueCont, falseCont,
-            new Branch(new IsTrue(condition), trueCont, falseCont)));
+            new Branch.loose(condition, trueCont, falseCont)));
     context = falseCont;
     return new CpsFragment(sourceInformation, trueCont);
   }
@@ -202,11 +212,11 @@ class CpsFragment {
   /// Returns a new fragment for the 'else' branch.
   ///
   /// The 'then' branch becomes the new hole.
-  CpsFragment ifFalse(Primitive condition) {
+  CpsFragment ifFalsy(Primitive condition) {
     Continuation trueCont = new Continuation(<Parameter>[]);
     Continuation falseCont = new Continuation(<Parameter>[]);
     put(new LetCont.two(trueCont, falseCont,
-            new Branch(new IsTrue(condition), trueCont, falseCont)));
+            new Branch.loose(condition, trueCont, falseCont)));
     context = trueCont;
     return new CpsFragment(sourceInformation, falseCont);
   }
@@ -258,10 +268,10 @@ class CpsFragment {
   }
 
   /// Puts the given fragment into this one.
-  /// 
+  ///
   /// If [other] was an open fragment, its hole becomes the new hole
   /// in this fragment.
-  /// 
+  ///
   /// [other] is reset to an empty fragment after this.
   void append(CpsFragment other) {
     if (other.root == null) return;
@@ -273,14 +283,12 @@ class CpsFragment {
 
   /// Reads the value of the given mutable variable.
   Primitive getMutable(MutableVariable variable) {
-    return letPrim(new GetMutableVariable(variable));
+    return letPrim(new GetMutable(variable));
   }
 
   /// Sets the value of the given mutable variable.
   void setMutable(MutableVariable variable, Primitive value) {
-    SetMutableVariable setter = new SetMutableVariable(variable, value);
-    put(setter);
-    context = setter;
+    letPrim(new SetMutable(variable, value));
   }
 
   /// Declare a new mutable variable.

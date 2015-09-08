@@ -234,6 +234,11 @@ ActivationFrame::ActivationFrame(
 }
 
 
+void DebuggerEvent::UpdateTimestamp() {
+  timestamp_ = OS::GetCurrentTimeMillis();
+}
+
+
 bool Debugger::HasEventHandler() {
   return ((event_handler_ != NULL) ||
           Service::isolate_stream.enabled() ||
@@ -1270,6 +1275,7 @@ void Debugger::SetStepOut() {
   resume_action_ = kStepOut;
 }
 
+
 RawFunction* Debugger::ResolveFunction(const Library& library,
                                        const String& class_name,
                                        const String& function_name) {
@@ -2132,7 +2138,7 @@ RawObject* Debugger::GetStaticField(const Class& cls,
   const Field& fld = Field::Handle(cls.LookupStaticField(field_name));
   if (!fld.IsNull()) {
     // Return the value in the field if it has been initialized already.
-    const Instance& value = Instance::Handle(fld.value());
+    const Instance& value = Instance::Handle(fld.StaticValue());
     ASSERT(value.raw() != Object::transition_sentinel().raw());
     if (value.raw() != Object::sentinel().raw()) {
       return value.raw();
@@ -2229,11 +2235,11 @@ void Debugger::CollectLibraryFields(const GrowableObjectArray& field_list,
       // If the field is not initialized yet, report the value to be
       // "<not initialized>". We don't want to execute the implicit getter
       // since it may have side effects.
-      if ((field.value() == Object::sentinel().raw()) ||
-          (field.value() == Object::transition_sentinel().raw())) {
+      if ((field.StaticValue() == Object::sentinel().raw()) ||
+          (field.StaticValue() == Object::transition_sentinel().raw())) {
         field_value = Symbols::NotInitialized().raw();
       } else {
-        field_value = field.value();
+        field_value = field.StaticValue();
       }
       if (!prefix.IsNull()) {
         field_name = String::Concat(prefix, field_name);
@@ -2313,12 +2319,20 @@ void Debugger::Pause(DebuggerEvent* event) {
   ASSERT(obj_cache_ == NULL);
 
   pause_event_ = event;
+  pause_event_->UpdateTimestamp();
   obj_cache_ = new RemoteObjectCache(64);
 
   InvokeEventHandler(event);
 
   pause_event_ = NULL;
   obj_cache_ = NULL;    // Zone allocated
+}
+
+
+void Debugger::EnterSingleStepMode() {
+  stepping_fp_ = 0;
+  DeoptimizeWorld();
+  isolate_->set_single_step(true);
 }
 
 
@@ -2387,7 +2401,17 @@ void Debugger::SignalPausedEvent(ActivationFrame* top_frame,
   event.set_top_frame(top_frame);
   event.set_breakpoint(bpt);
   Object& closure_or_null = Object::Handle(top_frame->GetAsyncOperation());
-  event.set_async_continuation(&closure_or_null);
+  if (!closure_or_null.IsNull()) {
+    event.set_async_continuation(&closure_or_null);
+    const Script& script = Script::Handle(top_frame->SourceScript());
+    const TokenStream& tokens = TokenStream::Handle(script.tokens());
+    TokenStream::Iterator iter(tokens, top_frame->TokenPos());
+    if ((iter.CurrentTokenKind() == Token::kIDENT) &&
+        ((iter.CurrentLiteral() == Symbols::Await().raw()) ||
+         (iter.CurrentLiteral() == Symbols::YieldKw().raw()))) {
+      event.set_at_async_jump(true);
+    }
+  }
   Pause(&event);
 }
 

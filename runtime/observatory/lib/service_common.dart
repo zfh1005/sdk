@@ -204,12 +204,12 @@ abstract class CommonWebSocketVM extends VM {
           bytes.offsetInBytes + offset,
           bytes.lengthInBytes - offset);
       var map = _parseJSON(meta);
-      if (map == null) {
+      if (map == null || map['method'] != 'streamNotify') {
         return;
       }
-      var event = map['event'];
-      var streamId = map['streamId'];
-      postServiceEvent(streamId, event, data);
+      var event = map['params']['event'];
+      var streamId = map['params']['streamId'];
+      scheduleMicrotask(() { postServiceEvent(streamId, event, data); });
     });
   }
 
@@ -218,10 +218,11 @@ abstract class CommonWebSocketVM extends VM {
     if (map == null) {
       return;
     }
-    var event = map['event'];
-    if (event != null) {
-      var streamId = map['streamId'];
-      postServiceEvent(streamId, event, null);
+
+    if (map['method'] == 'streamNotify') {
+      var event = map['params']['event'];
+      var streamId = map['params']['streamId'];
+      scheduleMicrotask(() { postServiceEvent(streamId, event, null); });
       return;
     }
 
