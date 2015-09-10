@@ -621,7 +621,6 @@ Type _getSvgType(String key) {
 
 // FIXME: Can we make this private?
 final htmlBlinkFunctionMap = {
-  'AbstractWorker': () => AbstractWorker.internalCreateAbstractWorker,
   'Animation': () => Animation.internalCreateAnimation,
   'AnimationEffect': () => AnimationEffect.internalCreateAnimationEffect,
   'AnimationNode': () => AnimationNode.internalCreateAnimationNode,
@@ -667,7 +666,6 @@ final htmlBlinkFunctionMap = {
   'CanvasPattern': () => CanvasPattern.internalCreateCanvasPattern,
   'CanvasRenderingContext2D': () => CanvasRenderingContext2D.internalCreateCanvasRenderingContext2D,
   'CharacterData': () => CharacterData.internalCreateCharacterData,
-  'ChildNode': () => ChildNode.internalCreateChildNode,
   'CircularGeofencingRegion': () => CircularGeofencingRegion.internalCreateCircularGeofencingRegion,
   'ClientRect': () => _ClientRect.internalCreate_ClientRect,
   'ClientRectList': () => _ClientRectList.internalCreate_ClientRectList,
@@ -749,7 +747,6 @@ final htmlBlinkFunctionMap = {
   'GeofencingRegion': () => GeofencingRegion.internalCreateGeofencingRegion,
   'Geolocation': () => Geolocation.internalCreateGeolocation,
   'Geoposition': () => Geoposition.internalCreateGeoposition,
-  'GlobalEventHandlers': () => GlobalEventHandlers.internalCreateGlobalEventHandlers,
   'HTMLAllCollection': () => _HTMLAllCollection.internalCreate_HTMLAllCollection,
   'HTMLAnchorElement': () => AnchorElement.internalCreateAnchorElement,
   'HTMLAppletElement': () => _HTMLAppletElement.internalCreate_HTMLAppletElement,
@@ -879,9 +876,6 @@ final htmlBlinkFunctionMap = {
   'NamedNodeMap': () => _NamedNodeMap.internalCreate_NamedNodeMap,
   'Navigator': () => Navigator.internalCreateNavigator,
   'NavigatorCPU': () => NavigatorCpu.internalCreateNavigatorCpu,
-  'NavigatorID': () => NavigatorID.internalCreateNavigatorID,
-  'NavigatorLanguage': () => NavigatorLanguage.internalCreateNavigatorLanguage,
-  'NavigatorOnLine': () => NavigatorOnLine.internalCreateNavigatorOnLine,
   'NavigatorUserMediaError': () => NavigatorUserMediaError.internalCreateNavigatorUserMediaError,
   'NetworkInformation': () => NetworkInformation.internalCreateNetworkInformation,
   'Node': () => Node.internalCreateNode,
@@ -892,7 +886,6 @@ final htmlBlinkFunctionMap = {
   'OverflowEvent': () => OverflowEvent.internalCreateOverflowEvent,
   'PagePopupController': () => _PagePopupController.internalCreate_PagePopupController,
   'PageTransitionEvent': () => PageTransitionEvent.internalCreatePageTransitionEvent,
-  'ParentNode': () => ParentNode.internalCreateParentNode,
   'Path2D': () => Path2D.internalCreatePath2D,
   'Performance': () => Performance.internalCreatePerformance,
   'PerformanceEntry': () => PerformanceEntry.internalCreatePerformanceEntry,
@@ -1002,8 +995,6 @@ final htmlBlinkFunctionMap = {
   'WebSocket': () => WebSocket.internalCreateWebSocket,
   'WheelEvent': () => WheelEvent.internalCreateWheelEvent,
   'Window': () => Window.internalCreateWindow,
-  'WindowBase64': () => WindowBase64.internalCreateWindowBase64,
-  'WindowEventHandlers': () => WindowEventHandlers.internalCreateWindowEventHandlers,
   'WindowTimers': () => _WindowTimers.internalCreate_WindowTimers,
   'Worker': () => Worker.internalCreateWorker,
   'WorkerConsole': () => WorkerConsole.internalCreateWorkerConsole,
@@ -1274,17 +1265,6 @@ js.JsFunction wrap_event_listener(theObject, Function listener) {
   return _knownListeners[thisHashCode][listenerHashCode];
 }
 
-js.JsFunction wrap_media_event_listener(Function listener) {
-  var thisHashCode = theObject.hashCode;
-  var listenerHashCode = identityHashCode(listener);
-
-  _knownListeners.putIfAbsent(thisHashCode, () => new Map<int, js.JsFunction>());
-  _knownListeners[thisHashCode].putIfAbsent(listenerHashCode, () =>
-    new js.JsFunction.withThis((theObject, eventListener) => listener(wrap_jso(eventListener))));
-
-  return _knownListeners[thisHashCode][listenerHashCode];
-}
-
 Map<String, dynamic> convertNativeObjectToDartMap(js.JsObject jsObject) {
   var result = new Map();
   var keys = js.context['Object'].callMethod('keys', [jsObject]);
@@ -1347,21 +1327,6 @@ abstract class AbstractWorker extends NativeFieldWrapperClass2 implements EventT
   @DomName('AbstractWorker.errorEvent')
   @DocsEditable()
   static const EventStreamProvider<ErrorEvent> errorEvent = const EventStreamProvider<ErrorEvent>('error');
-
-  static AbstractWorker internalCreateAbstractWorker() {
-    return new AbstractWorker._internalWrap();
-  }
-
-  js.JsObject blink_jsObject;
-
-  factory AbstractWorker._internalWrap() {
-    return new AbstractWorker.internal_();
-  }
-
-  AbstractWorker.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
 
   /// Stream of `error` events handled by this [AbstractWorker].
   @DomName('AbstractWorker.onerror')
@@ -4514,21 +4479,6 @@ class CharacterData extends Node implements ChildNode {
 abstract class ChildNode extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory ChildNode._() { throw new UnsupportedError("Not supported"); }
-
-  static ChildNode internalCreateChildNode() {
-    return new ChildNode._internalWrap();
-  }
-
-  js.JsObject blink_jsObject;
-
-  factory ChildNode._internalWrap() {
-    return new ChildNode.internal_();
-  }
-
-  ChildNode.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('ChildNode.nextElementSibling')
   @DocsEditable()
@@ -11392,6 +11342,21 @@ class DomException extends NativeFieldWrapperClass2 {
   String _name;
   String _message;
 
+  // To suppress missing implicit constructor warnings.
+  factory DomException._() { throw new UnsupportedError("Not supported"); }
+
+  static DomException internalCreateDomException() {
+    return new DomException._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory DomException._internalWrap() {
+    return new class DomException.internal_();
+  }
+
+  DomException.internal_() { }
+
   DomException.jsInterop(String m) {
     var name_index = m.indexOf(': ');
     if (name_index < 0) {
@@ -14364,7 +14329,7 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
    * for the transition, or a Map with fields corresponding to those
    * of the [Timing] object.
   **/
-  @Experimental
+  @Experimental()
   @SupportedBrowser(SupportedBrowser.CHROME, '36')
   AnimationPlayer animate(Iterable<Map<String, dynamic>> frames, [timing]) {
     if (frames is! Iterable || !(frames.every((x) => x is Map))) {
@@ -14851,6 +14816,10 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
     } catch (e) {}
     return result;
   }
+
+  // Need to explicitly delegate because Element is no longer abstract for Dartium.
+  bool get isContentEditable => _blink.BlinkHTMLElement.instance.isContentEditable_Getter_(unwrap_jso(this));
+  void click() => _blink.BlinkHTMLElement.instance.click_Callback_0_(unwrap_jso(this));
 
   @DomName('Element.offsetHeight')
   @DocsEditable()
@@ -15601,8 +15570,6 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
 
   bool hidden;
 
-  bool get isContentEditable;
-
   String lang;
 
   bool spellcheck;
@@ -15614,8 +15581,6 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
   bool translate;
 
   String dropzone;
-
-  void click();
 
   @DomName('Element.attributes')
   @DocsEditable()
@@ -17197,6 +17162,10 @@ class ElementEvents extends Events {
  */
 @DomName('EventTarget')
 class EventTarget extends NativeFieldWrapperClass2 {
+
+  // Default constructor to allow other classes e.g. GlobalEventHandlers to be
+  // constructed using _internalWrap when mapping Blink object to Dart class.
+  EventTarget();
 
   // Custom element created callback.
   EventTarget._created();
@@ -19326,21 +19295,6 @@ abstract class GlobalEventHandlers extends EventTarget {
   @DocsEditable()
   @Experimental() // untriaged
   static const EventStreamProvider<Event> waitingEvent = const EventStreamProvider<Event>('waiting');
-
-  static GlobalEventHandlers internalCreateGlobalEventHandlers() {
-    return new GlobalEventHandlers._internalWrap();
-  }
-
-  js.JsObject blink_jsObject;
-
-  factory GlobalEventHandlers._internalWrap() {
-    return new GlobalEventHandlers.internal_();
-  }
-
-  GlobalEventHandlers.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('GlobalEventHandlers.onabort')
   @DocsEditable()
@@ -27656,21 +27610,6 @@ abstract class NavigatorID extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory NavigatorID._() { throw new UnsupportedError("Not supported"); }
 
-  static NavigatorID internalCreateNavigatorID() {
-    return new NavigatorID._internalWrap();
-  }
-
-  js.JsObject blink_jsObject;
-
-  factory NavigatorID._internalWrap() {
-    return new NavigatorID.internal_();
-  }
-
-  NavigatorID.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('NavigatorID.appCodeName')
   @DocsEditable()
   @Experimental() // untriaged
@@ -27721,21 +27660,6 @@ abstract class NavigatorLanguage extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory NavigatorLanguage._() { throw new UnsupportedError("Not supported"); }
 
-  static NavigatorLanguage internalCreateNavigatorLanguage() {
-    return new NavigatorLanguage._internalWrap();
-  }
-
-  js.JsObject blink_jsObject;
-
-  factory NavigatorLanguage._internalWrap() {
-    return new NavigatorLanguage.internal_();
-  }
-
-  NavigatorLanguage.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('NavigatorLanguage.language')
   @DocsEditable()
   @Experimental() // untriaged
@@ -27760,21 +27684,6 @@ abstract class NavigatorLanguage extends NativeFieldWrapperClass2 {
 abstract class NavigatorOnLine extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory NavigatorOnLine._() { throw new UnsupportedError("Not supported"); }
-
-  static NavigatorOnLine internalCreateNavigatorOnLine() {
-    return new NavigatorOnLine._internalWrap();
-  }
-
-  js.JsObject blink_jsObject;
-
-  factory NavigatorOnLine._internalWrap() {
-    return new NavigatorOnLine.internal_();
-  }
-
-  NavigatorOnLine.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('NavigatorOnLine.onLine')
   @DocsEditable()
@@ -28151,8 +28060,6 @@ class Node extends EventTarget {
    */
   @DomName('Node.childNodes')
   @DocsEditable()
-  @Returns('NodeList')
-  @Creates('NodeList')
   List<Node> get childNodes => wrap_jso(_blink.BlinkNode.instance.childNodes_Getter_(unwrap_jso(this)));
   // To suppress missing implicit constructor warnings.
   factory Node._() { throw new UnsupportedError("Not supported"); }
@@ -29493,21 +29400,6 @@ class ParamElement extends HtmlElement {
 abstract class ParentNode extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory ParentNode._() { throw new UnsupportedError("Not supported"); }
-
-  static ParentNode internalCreateParentNode() {
-    return new ParentNode._internalWrap();
-  }
-
-  js.JsObject blink_jsObject;
-
-  factory ParentNode._internalWrap() {
-    return new ParentNode.internal_();
-  }
-
-  ParentNode.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('ParentNode.childElementCount')
   @DocsEditable()
@@ -40165,21 +40057,6 @@ abstract class WindowBase64 extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory WindowBase64._() { throw new UnsupportedError("Not supported"); }
 
-  static WindowBase64 internalCreateWindowBase64() {
-    return new WindowBase64._internalWrap();
-  }
-
-  js.JsObject blink_jsObject;
-
-  factory WindowBase64._internalWrap() {
-    return new WindowBase64.internal_();
-  }
-
-  WindowBase64.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('WindowBase64.atob')
   @DocsEditable()
   @Experimental() // untriaged
@@ -40237,21 +40114,6 @@ abstract class WindowEventHandlers extends EventTarget {
   @DocsEditable()
   @Experimental() // untriaged
   static const EventStreamProvider<Event> unloadEvent = const EventStreamProvider<Event>('unload');
-
-  static WindowEventHandlers internalCreateWindowEventHandlers() {
-    return new WindowEventHandlers._internalWrap();
-  }
-
-  js.JsObject blink_jsObject;
-
-  factory WindowEventHandlers._internalWrap() {
-    return new WindowEventHandlers.internal_();
-  }
-
-  WindowEventHandlers.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('WindowEventHandlers.onhashchange')
   @DocsEditable()
@@ -41746,8 +41608,6 @@ class _DirectoryReaderSync extends NativeFieldWrapperClass2 {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 
 @DocsEditable()
 @DomName('DocumentType')
@@ -41769,7 +41629,11 @@ class _DocumentType extends Node implements ChildNode {
   _DocumentType.internal_() : super.internal_();
 
 
+  // Override this methods for Dartium _DocumentType can't be abstract.
+  Element get nextElementSibling => wrap_jso(_blink.BlinkDocumentType.instance.nextElementSibling_Getter_(unwrap_jso(this)));
+  Element get previousElementSibling => wrap_jso(_blink.BlinkDocumentType.instance.previousElementSibling_Getter_(unwrap_jso(this)));
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -42242,8 +42106,6 @@ class _HTMLFrameElement extends HtmlElement {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 
 @DocsEditable()
 @DomName('HTMLFrameSetElement')
@@ -42271,7 +42133,16 @@ class _HTMLFrameSetElement extends HtmlElement implements WindowEventHandlers {
    */
   _HTMLFrameSetElement.created() : super.created();
 
+  // Override these methods for Dartium _HTMLFrameSetElement can't be abstract.
+  Stream<Event> get onHashChange => hashChangeEvent.forTarget(this);
+  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
+  Stream<Event> get onOffline => offlineEvent.forTarget(this);
+  Stream<Event> get onOnline => onlineEvent.forTarget(this);
+  Stream<PopStateEvent> get onPopState => popStateEvent.forTarget(this);
+  Stream<StorageEvent> get onStorage => storageEvent.forTarget(this);
+  Stream<Event> get onUnload => unloadEvent.forTarget(this);
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -42710,8 +42581,6 @@ class _Response extends Body {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 
 @DocsEditable()
 @DomName('ServiceWorker')
@@ -42732,7 +42601,10 @@ class _ServiceWorker extends EventTarget implements AbstractWorker {
   _ServiceWorker.internal_() : super.internal_();
 
 
+  // Override these methods for Dartium _ServiceWorker can't be abstract.
+  Stream<ErrorEvent> get onError => errorEvent.forTarget(this);
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -43085,8 +42957,6 @@ abstract class _WindowTimers extends NativeFieldWrapperClass2 {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 
 @DocsEditable()
 @DomName('WorkerLocation')
@@ -43111,12 +42981,21 @@ class _WorkerLocation extends NativeFieldWrapperClass2 implements UrlUtilsReadOn
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
   int get hashCode => unwrap_jso(this).hashCode;
 
+  // Override these methods for Dartium _WorkerLocation can't be abstract.
+  String get hash => _blink.BlinkWorkerLocation.instance.hash_Getter_(unwrap_jso(this));
+  String get host => _blink.BlinkWorkerLocation.instance.host_Getter_(unwrap_jso(this));
+  String get hostname => _blink.BlinkWorkerLocation.instance.hostname_Getter_(unwrap_jso(this));
+  String get href => _blink.BlinkWorkerLocation.instance.href_Getter_(unwrap_jso(this));
+  String get origin => _blink.BlinkWorkerLocation.instance.origin_Getter_(unwrap_jso(this));
+  String get pathname => _blink.BlinkWorkerLocation.instance.pathname_Getter_(unwrap_jso(this));
+  String get port => _blink.BlinkWorkerLocation.instance.port_Getter_(unwrap_jso(this));
+  String get protocol => _blink.BlinkWorkerLocation.instance.protocol_Getter_(unwrap_jso(this));
+  String get search => _blink.BlinkWorkerLocation.instance.search_Getter_(unwrap_jso(this));
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
 
 
 @DocsEditable()
@@ -43142,7 +43021,18 @@ class _WorkerNavigator extends NativeFieldWrapperClass2 implements NavigatorCpu,
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
   int get hashCode => unwrap_jso(this).hashCode;
 
+  // Override these methods for Dartium _WorkerNavigator can't be abstract.
+  String get appCodeName => _blink.BlinkWorkerNavigator.instance.appCodeName_Getter_(unwrap_jso(this));
+  String get appName => _blink.BlinkWorkerNavigator.instance.appCodeName_Getter_(unwrap_jso(this));
+  String get appVersion => _blink.BlinkWorkerNavigator.instance.appVersion_Getter_(unwrap_jso(this));
+  bool get dartEnabled => _blink.BlinkWorkerNavigator.instance.dartEnabled_Getter_(unwrap_jso(this));
+  String get platform => _blink.BlinkWorkerNavigator.instance.platform_Getter_(unwrap_jso(this));
+  String get product => _blink.BlinkWorkerNavigator.instance.product_Getter_(unwrap_jso(this));
+  String get userAgent => _blink.BlinkWorkerNavigator.instance.userAgent_Getter_(unwrap_jso(this));
+  int get hardwareConcurrency => _blink.BlinkWorkerNavigator.instance.hardwareConcurrency_Getter_(unwrap_jso(this));
+  bool get onLine => _blink.BlinkWorkerNavigator.instance.onLine_Getter_(unwrap_jso(this));
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

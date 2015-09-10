@@ -12699,7 +12699,7 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
    * for the transition, or a Map with fields corresponding to those
    * of the [Timing] object.
   **/
-  @Experimental
+  @Experimental()
   @SupportedBrowser(SupportedBrowser.CHROME, '36')
   AnimationPlayer animate(Iterable<Map<String, dynamic>> frames, [timing]) {
     if (frames is! Iterable || !(frames.every((x) => x is Map))) {
@@ -23771,8 +23771,6 @@ class Node extends EventTarget {
    */
   @DomName('Node.childNodes')
   @DocsEditable()
-  @Returns('NodeList')
-  @Creates('NodeList')
   final List<Node> childNodes;
 
   // To suppress missing implicit constructor warnings.
@@ -34960,7 +34958,9 @@ abstract class _DocumentType extends Node implements ChildNode {
   factory _DocumentType._() { throw new UnsupportedError("Not supported"); }
 
   // From ChildNode
+
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -35272,7 +35272,9 @@ abstract class _HTMLFrameSetElement extends HtmlElement implements WindowEventHa
    * This can only be called by subclasses from their created constructor.
    */
   _HTMLFrameSetElement.created() : super.created();
+
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -35594,7 +35596,9 @@ abstract class _Response extends Body {
 abstract class _ServiceWorker extends EventTarget implements AbstractWorker {
   // To suppress missing implicit constructor warnings.
   factory _ServiceWorker._() { throw new UnsupportedError("Not supported"); }
+
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -35833,7 +35837,9 @@ abstract class _WorkerLocation extends Interceptor implements UrlUtilsReadOnly {
   factory _WorkerLocation._() { throw new UnsupportedError("Not supported"); }
 
   // From URLUtilsReadOnly
+
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -35853,7 +35859,9 @@ abstract class _WorkerNavigator extends Interceptor implements NavigatorCpu, Nav
   // From NavigatorID
 
   // From NavigatorOnLine
+
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

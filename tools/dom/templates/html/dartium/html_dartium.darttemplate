@@ -504,17 +504,6 @@ js.JsFunction wrap_event_listener(theObject, Function listener) {
   return _knownListeners[thisHashCode][listenerHashCode];
 }
 
-js.JsFunction wrap_media_event_listener(Function listener) {
-  var thisHashCode = theObject.hashCode;
-  var listenerHashCode = identityHashCode(listener);
-
-  _knownListeners.putIfAbsent(thisHashCode, () => new Map<int, js.JsFunction>());
-  _knownListeners[thisHashCode].putIfAbsent(listenerHashCode, () =>
-    new js.JsFunction.withThis((theObject, eventListener) => listener(wrap_jso(eventListener))));
-
-  return _knownListeners[thisHashCode][listenerHashCode];
-}
-
 Map<String, dynamic> convertNativeObjectToDartMap(js.JsObject jsObject) {
   var result = new Map();
   var keys = js.context['Object'].callMethod('keys', [jsObject]);

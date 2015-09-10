@@ -294,8 +294,6 @@ $if DARTIUM
    */
   @DomName('Node.childNodes')
   @DocsEditable()
-  @Returns('NodeList')
-  @Creates('NodeList')
   List<Node> get childNodes => wrap_jso(_blink.BlinkNode.instance.childNodes_Getter_(unwrap_jso(this)));
 $else
   /**
@@ -309,8 +307,6 @@ $else
    */
   @DomName('Node.childNodes')
   @DocsEditable()
-  @Returns('NodeList')
-  @Creates('NodeList')
   final List<Node> childNodes;
 
 $endif

@@ -812,7 +812,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * for the transition, or a Map with fields corresponding to those
    * of the [Timing] object.
   **/
-  @Experimental
+  @Experimental()
   @SupportedBrowser(SupportedBrowser.CHROME, '36')
   AnimationPlayer animate(Iterable<Map<String, dynamic>> frames, [timing]) {
     if (frames is! Iterable || !(frames.every((x) => x is Map))) {
@@ -1554,6 +1554,10 @@ $if DART2JS
 
 $else
   $if JSINTEROP
+  // Need to explicitly delegate because Element is no longer abstract for Dartium.
+  bool get isContentEditable => _blink.BlinkHTMLElement.instance.isContentEditable_Getter_(unwrap_jso(this));
+  void click() => _blink.BlinkHTMLElement.instance.click_Callback_0_(unwrap_jso(this));
+
   @DomName('Element.offsetHeight')
   @DocsEditable()
   int get offsetHeight => _blink.BlinkElement.instance.offsetHeight_Getter_(unwrap_jso(this)).round();

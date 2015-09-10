@@ -9294,7 +9294,7 @@ class BlinkNotification extends BlinkEventTarget {
 
   onshow_Setter_(mthis, __arg_0) => mthis["onshow"] = __arg_0;
 
-  permission_Getter_() => mthis["permission"];
+  permission_Getter_() => js.context["Notification"]["permission"];
 
   requestPermission_Callback_0_() => js.context["Notification"].callMethod("requestPermission", []);
 

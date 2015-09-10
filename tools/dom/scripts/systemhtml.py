@@ -619,11 +619,6 @@ class HtmlDartInterfaceGenerator(object):
   {0}.internal_() : super.internal_();
 
 '''.format(class_name)
-    """
-    TODO(terry): Don't use Dart expando really don't need.
-      final Object expandoJsObject = new Object();
-      final Expando<JsObject> dartium_expando = new Expando<JsObject>("Expando_jsObject");
-    """
     if base_class == 'NativeFieldWrapperClass2' or base_class == 'JsoNativeFieldWrapper':
         js_interop_wrapper = '''
   static {0} internalCreate{0}() {{
@@ -653,7 +648,7 @@ class HtmlDartInterfaceGenerator(object):
         LIBRARYNAME='dart.dom.%s' % self._library_name,
         ANNOTATIONS=annotations,
         CLASS_MODIFIERS=class_modifiers,
-        CLASSNAME=self._interface_type_info.implementation_name(),
+        CLASSNAME=class_name,
         EXTENDS=' extends %s' % base_class if base_class else '',
         IMPLEMENTS=implements_str,
         MIXINS=mixins_str,
@@ -690,7 +685,8 @@ class HtmlDartInterfaceGenerator(object):
     # Write out the JsInterop code.
     if (implementation_members_emitter and
         self._options.templates._conditions['DARTIUM'] and
-        self._options.dart_js_interop):
+        self._options.dart_js_interop and
+        not IsPureInterface(class_name)):
       implementation_members_emitter.Emit(js_interop_wrapper)
 
     if isElement and self._interface.id != 'Element':
@@ -1316,10 +1312,12 @@ class DartLibrary():
       items = self._typeMap.items()
       items.sort()
       for (idl_name, dart_name) in items:
-        function_emitter.Emit(
-          "  '$IDL_NAME': () => $DART_NAME.internalCreate$DART_NAME,\n",
-          IDL_NAME=idl_name,
-          DART_NAME=dart_name)
+        if not IsPureInterface(dart_name):
+          # Handle classes that are concrete (abstract can't be instantiated).
+          function_emitter.Emit(
+            "  '$IDL_NAME': () => $DART_NAME.internalCreate$DART_NAME,\n",
+            IDL_NAME=idl_name,
+            DART_NAME=dart_name)
       if self._dart_path.endswith('html_dartium.dart'):
         function_emitter.Emit("  'polymer-element': () => HtmlElement.internalCreateHtmlElement,\n")
 

@@ -44,6 +44,21 @@ $if JSINTEROP
   String _name;
   String _message;
 
+  // To suppress missing implicit constructor warnings.
+  factory DomException._() { throw new UnsupportedError("Not supported"); }
+
+  static DomException internalCreateDomException() {
+    return new DomException._internalWrap();
+  }
+
+  js.JsObject blink_jsObject;
+
+  factory DomException._internalWrap() {
+    return new class DomException.internal_();
+  }
+
+  DomException.internal_() { }
+
   DomException.jsInterop(String m) {
     var name_index = m.indexOf(': ');
     if (name_index < 0) {

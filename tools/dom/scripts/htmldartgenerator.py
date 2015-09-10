@@ -707,7 +707,14 @@ class HtmlDartGenerator(object):
     """ Declares an attribute but does not include the code to invoke it.
     """
     if read_only:
-      template = '\n  $TYPE get $NAME;\n'
+      # HACK(terry): Element is not abstract for Dartium so isContentEditable
+      # must have a body see impl_Element.darttemplate
+      if (self._interface.id == 'Element' and
+          attr_name == 'isContentEditable' and
+          self._dart_js_interop):
+        return
+      else:
+        template = '\n  $TYPE get $NAME;\n'
     else:
       template = '\n  $TYPE $NAME;\n'
 
@@ -722,9 +729,17 @@ class HtmlDartGenerator(object):
       return_type_name - The name of the return type.
       method_name - The name of the method.
     """
+      # HACK(terry): Element is not abstract for Dartium so click
+      # must have a body see impl_Element.darttemplate
+    if (self._interface.id == 'Element' and
+        method_name == 'click' and
+        self._dart_js_interop):
+      return
+    else:
+      template = '\n  $TYPE $NAME($PARAMS);\n'
+
     self._members_emitter.Emit(
-             '\n'
-             '  $TYPE $NAME($PARAMS);\n',
+             template,
              TYPE=return_type_name,
              NAME=method_name,
              PARAMS=operation.ParametersAsDeclaration(self._DartType))

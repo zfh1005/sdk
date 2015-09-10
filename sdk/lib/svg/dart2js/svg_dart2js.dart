@@ -6537,7 +6537,9 @@ abstract class _SVGCursorElement extends SvgElement implements UriReference, Tes
   // From SVGTests
 
   // From SVGURIReference
+
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -6558,7 +6560,9 @@ abstract class _SVGFEDropShadowElement extends SvgElement implements FilterPrimi
   _SVGFEDropShadowElement.created() : super.created();
 
   // From SVGFilterPrimitiveStandardAttributes
+
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -6716,7 +6720,9 @@ abstract class _SVGGlyphRefElement extends SvgElement implements UriReference {
   _SVGGlyphRefElement.created() : super.created();
 
   // From SVGURIReference
+
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -6763,7 +6769,9 @@ abstract class _SVGMPathElement extends SvgElement implements UriReference {
   _SVGMPathElement.created() : super.created();
 
   // From SVGURIReference
+
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

@@ -246,21 +246,6 @@ class AnalysisContextImplTest extends EngineTestCase {
     super.tearDown();
   }
 
-  Future test_analyzedSources_added() async {
-    AnalyzedSourcesListener listener = new AnalyzedSourcesListener();
-    _context.implicitAnalysisEvents.listen(listener.onData);
-    //
-    // Create a file that references an file that is not explicitly being
-    // analyzed and fully analyze it. Ensure that the listener is told about
-    // the implicitly analyzed file.
-    //
-    Source sourceA = _addSource('/a.dart', "library a; import 'b.dart';");
-    Source sourceB = _createSource('/b.dart', "library b;");
-    _context.computeErrors(sourceA);
-    await pumpEventQueue();
-    listener.expectAnalyzed(sourceB);
-  }
-
   Future test_applyChanges_add() {
     SourcesChangedListener listener = new SourcesChangedListener();
     _context.onSourcesChanged.listen(listener.onData);
@@ -5728,11 +5713,6 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
-  Stream<ImplicitAnalysisEvent> get implicitAnalysisEvents {
-    fail("Unexpected invocation of analyzedSources");
-    return null;
-  }
-  @override
   bool get isDisposed {
     fail("Unexpected invocation of isDisposed");
     return false;
@@ -5802,6 +5782,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
     fail("Unexpected invocation of getResolverVisitorFactory");
     return null;
   }
+
   @override
   SourceFactory get sourceFactory {
     fail("Unexpected invocation of getSourceFactory");
@@ -6169,6 +6150,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
       int oldLength, int newLength) {
     fail("Unexpected invocation of setChangedContents");
   }
+
   @override
   void setContents(Source source, String contents) {
     fail("Unexpected invocation of setContents");

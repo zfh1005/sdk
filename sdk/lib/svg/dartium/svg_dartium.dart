@@ -9033,8 +9033,6 @@ class _SVGComponentTransferFunctionElement extends SvgElement {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 
 @DocsEditable()
 @DomName('SVGCursorElement')
@@ -9068,12 +9066,18 @@ class _SVGCursorElement extends SvgElement implements UriReference, Tests {
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
+  // Override these methods for Dartium _SVGCursorElement can't be abstract.
+  StringList get requiredExtensions => wrap_jso(_blink.BlinkSVGCursorElement.instance.requiredExtensions_Getter_(unwrap_jso(this)));
+  StringList get requiredFeatures => wrap_jso(_blink.BlinkSVGCursorElement.instance.requiredFeatures_Getter_(unwrap_jso(this)));
+  StringList get systemLanguage => wrap_jso(_blink.BlinkSVGCursorElement.instance.systemLanguage_Getter_(unwrap_jso(this)));
+  bool hasExtension(String extension);
+  AnimatedString get href => wrap_jso(_blink.BlinkSVGCursorElement.instance.href_Getter_(unwrap_jso(this)));
+  bool hasExtension(String extension) => _blink.BlinkSVGCursorElement.instance.hasExtension_Callback_1_(unwrap_jso(this), extension);
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
 
 
 @DocsEditable()
@@ -9101,7 +9105,14 @@ class _SVGFEDropShadowElement extends SvgElement implements FilterPrimitiveStand
    */
   _SVGFEDropShadowElement.created() : super.created();
 
+  // Override these methods for Dartium _SVGFEDropShadowElement can't be abstract.
+  AnimatedLength get height => wrap_jso(_blink.BlinkSVGFEDropShadowElement.instance.height_Getter_(unwrap_jso(this)));
+  AnimatedString get result => wrap_jso(_blink.BlinkSVGFEDropShadowElement.instance.result_Getter_(unwrap_jso(this)));;
+  AnimatedLength get width => wrap_jso(_blink.BlinkSVGFEDropShadowElement.instance.width_Getter_(unwrap_jso(this)));;
+  AnimatedLength get x => wrap_jso(_blink.BlinkSVGFEDropShadowElement.instance.x_Getter_(unwrap_jso(this)));;
+  AnimatedLength get y => wrap_jso(_blink.BlinkSVGFEDropShadowElement.instance.y_Getter_(unwrap_jso(this)));;
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -9341,8 +9352,6 @@ class _SVGGlyphElement extends SvgElement {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 
 @DocsEditable()
 @DomName('SVGGlyphRefElement')
@@ -9369,7 +9378,10 @@ class _SVGGlyphRefElement extends SvgElement implements UriReference {
    */
   _SVGGlyphRefElement.created() : super.created();
 
+  // Override these methods for Dartium _SVGGlyphRefElement can't be abstract.
+  AnimatedString get href => wrap_jso(_blink.BlinkSVGGlyphRefElement.instance.href_Getter_(unwrap_jso(this)));
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -9411,8 +9423,6 @@ class _SVGHKernElement extends SvgElement {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
 
 @DocsEditable()
 @DomName('SVGMPathElement')
@@ -9442,7 +9452,10 @@ class _SVGMPathElement extends SvgElement implements UriReference {
    */
   _SVGMPathElement.created() : super.created();
 
+  // Override these methods for Dartium _SVGMPathElement can't be abstract.
+  AnimatedString get href => wrap_jso(_blink.BlinkSVGMPathElement.instance.href_Getter_(unwrap_jso(this)));
 }
+
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
