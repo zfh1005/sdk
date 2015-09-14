@@ -9106,10 +9106,10 @@ class _SVGFEDropShadowElement extends SvgElement implements FilterPrimitiveStand
 
   // Override these methods for Dartium _SVGFEDropShadowElement can't be abstract.
   AnimatedLength get height => wrap_jso(_blink.BlinkSVGFEDropShadowElement.instance.height_Getter_(unwrap_jso(this)));
-  AnimatedString get result => wrap_jso(_blink.BlinkSVGFEDropShadowElement.instance.result_Getter_(unwrap_jso(this)));;
-  AnimatedLength get width => wrap_jso(_blink.BlinkSVGFEDropShadowElement.instance.width_Getter_(unwrap_jso(this)));;
-  AnimatedLength get x => wrap_jso(_blink.BlinkSVGFEDropShadowElement.instance.x_Getter_(unwrap_jso(this)));;
-  AnimatedLength get y => wrap_jso(_blink.BlinkSVGFEDropShadowElement.instance.y_Getter_(unwrap_jso(this)));;
+  AnimatedString get result => wrap_jso(_blink.BlinkSVGFEDropShadowElement.instance.result_Getter_(unwrap_jso(this)));
+  AnimatedLength get width => wrap_jso(_blink.BlinkSVGFEDropShadowElement.instance.width_Getter_(unwrap_jso(this)));
+  AnimatedLength get x => wrap_jso(_blink.BlinkSVGFEDropShadowElement.instance.x_Getter_(unwrap_jso(this)));
+  AnimatedLength get y => wrap_jso(_blink.BlinkSVGFEDropShadowElement.instance.y_Getter_(unwrap_jso(this)));
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
