@@ -233,8 +233,6 @@ final svgBlinkFunctionMap = {
   'SVGFETileElement': () => FETileElement.internalCreateFETileElement,
   'SVGFETurbulenceElement': () => FETurbulenceElement.internalCreateFETurbulenceElement,
   'SVGFilterElement': () => FilterElement.internalCreateFilterElement,
-  'SVGFilterPrimitiveStandardAttributes': () => FilterPrimitiveStandardAttributes.internalCreateFilterPrimitiveStandardAttributes,
-  'SVGFitToViewBox': () => FitToViewBox.internalCreateFitToViewBox,
   'SVGFontElement': () => _SVGFontElement.internalCreate_SVGFontElement,
   'SVGFontFaceElement': () => _SVGFontFaceElement.internalCreate_SVGFontFaceElement,
   'SVGFontFaceFormatElement': () => _SVGFontFaceFormatElement.internalCreate_SVGFontFaceFormatElement,
@@ -303,7 +301,6 @@ final svgBlinkFunctionMap = {
   'SVGSwitchElement': () => SwitchElement.internalCreateSwitchElement,
   'SVGSymbolElement': () => SymbolElement.internalCreateSymbolElement,
   'SVGTSpanElement': () => TSpanElement.internalCreateTSpanElement,
-  'SVGTests': () => Tests.internalCreateTests,
   'SVGTextContentElement': () => TextContentElement.internalCreateTextContentElement,
   'SVGTextElement': () => TextElement.internalCreateTextElement,
   'SVGTextPathElement': () => TextPathElement.internalCreateTextPathElement,
@@ -311,13 +308,11 @@ final svgBlinkFunctionMap = {
   'SVGTitleElement': () => TitleElement.internalCreateTitleElement,
   'SVGTransform': () => Transform.internalCreateTransform,
   'SVGTransformList': () => TransformList.internalCreateTransformList,
-  'SVGURIReference': () => UriReference.internalCreateUriReference,
   'SVGUnitTypes': () => UnitTypes.internalCreateUnitTypes,
   'SVGUseElement': () => UseElement.internalCreateUseElement,
   'SVGVKernElement': () => _SVGVKernElement.internalCreate_SVGVKernElement,
   'SVGViewElement': () => ViewElement.internalCreateViewElement,
   'SVGViewSpec': () => ViewSpec.internalCreateViewSpec,
-  'SVGZoomAndPan': () => ZoomAndPan.internalCreateZoomAndPan,
   'SVGZoomEvent': () => ZoomEvent.internalCreateZoomEvent,
 
 };
@@ -3363,21 +3358,6 @@ abstract class FilterPrimitiveStandardAttributes extends NativeFieldWrapperClass
   // To suppress missing implicit constructor warnings.
   factory FilterPrimitiveStandardAttributes._() { throw new UnsupportedError("Not supported"); }
 
-  static FilterPrimitiveStandardAttributes internalCreateFilterPrimitiveStandardAttributes() {
-    return new FilterPrimitiveStandardAttributes._internalWrap();
-  }
-
-  js.JsObject blink_jsObject;
-
-  factory FilterPrimitiveStandardAttributes._internalWrap() {
-    return new FilterPrimitiveStandardAttributes.internal_();
-  }
-
-  FilterPrimitiveStandardAttributes.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('SVGFilterPrimitiveStandardAttributes.height')
   @DocsEditable()
   AnimatedLength get height;
@@ -3412,21 +3392,6 @@ abstract class FilterPrimitiveStandardAttributes extends NativeFieldWrapperClass
 abstract class FitToViewBox extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory FitToViewBox._() { throw new UnsupportedError("Not supported"); }
-
-  static FitToViewBox internalCreateFitToViewBox() {
-    return new FitToViewBox._internalWrap();
-  }
-
-  js.JsObject blink_jsObject;
-
-  factory FitToViewBox._internalWrap() {
-    return new FitToViewBox.internal_();
-  }
-
-  FitToViewBox.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGFitToViewBox.preserveAspectRatio')
   @DocsEditable()
@@ -7965,21 +7930,6 @@ abstract class Tests extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Tests._() { throw new UnsupportedError("Not supported"); }
 
-  static Tests internalCreateTests() {
-    return new Tests._internalWrap();
-  }
-
-  js.JsObject blink_jsObject;
-
-  factory Tests._internalWrap() {
-    return new Tests.internal_();
-  }
-
-  Tests.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('SVGTests.requiredExtensions')
   @DocsEditable()
   StringList get requiredExtensions;
@@ -8560,21 +8510,6 @@ abstract class UriReference extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory UriReference._() { throw new UnsupportedError("Not supported"); }
 
-  static UriReference internalCreateUriReference() {
-    return new UriReference._internalWrap();
-  }
-
-  js.JsObject blink_jsObject;
-
-  factory UriReference._internalWrap() {
-    return new UriReference.internal_();
-  }
-
-  UriReference.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('SVGURIReference.href')
   @DocsEditable()
   AnimatedString get href;
@@ -8781,21 +8716,6 @@ class ViewSpec extends NativeFieldWrapperClass2 implements FitToViewBox, ZoomAnd
 abstract class ZoomAndPan extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory ZoomAndPan._() { throw new UnsupportedError("Not supported"); }
-
-  static ZoomAndPan internalCreateZoomAndPan() {
-    return new ZoomAndPan._internalWrap();
-  }
-
-  js.JsObject blink_jsObject;
-
-  factory ZoomAndPan._internalWrap() {
-    return new ZoomAndPan.internal_();
-  }
-
-  ZoomAndPan.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGZoomAndPan.SVG_ZOOMANDPAN_DISABLE')
   @DocsEditable()

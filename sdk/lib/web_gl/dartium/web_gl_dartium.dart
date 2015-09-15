@@ -90,7 +90,6 @@ final web_glBlinkFunctionMap = {
   'WebGLProgram': () => Program.internalCreateProgram,
   'WebGLRenderbuffer': () => Renderbuffer.internalCreateRenderbuffer,
   'WebGLRenderingContext': () => RenderingContext.internalCreateRenderingContext,
-  'WebGLRenderingContextBase': () => _WebGLRenderingContextBase.internalCreate_WebGLRenderingContextBase,
   'WebGLShader': () => Shader.internalCreateShader,
   'WebGLShaderPrecisionFormat': () => ShaderPrecisionFormat.internalCreateShaderPrecisionFormat,
   'WebGLTexture': () => Texture.internalCreateTexture,
@@ -3748,20 +3747,5 @@ class VertexArrayObject extends NativeFieldWrapperClass2 {
 class _WebGLRenderingContextBase extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _WebGLRenderingContextBase._() { throw new UnsupportedError("Not supported"); }
-
-  static _WebGLRenderingContextBase internalCreate_WebGLRenderingContextBase() {
-    return new _WebGLRenderingContextBase._internalWrap();
-  }
-
-  js.JsObject blink_jsObject;
-
-  factory _WebGLRenderingContextBase._internalWrap() {
-    return new _WebGLRenderingContextBase.internal_();
-  }
-
-  _WebGLRenderingContextBase.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
 
 }

@@ -662,7 +662,6 @@ final htmlBlinkFunctionMap = {
   'CacheStorage': () => CacheStorage.internalCreateCacheStorage,
   'Canvas2DContextAttributes': () => Canvas2DContextAttributes.internalCreateCanvas2DContextAttributes,
   'CanvasGradient': () => CanvasGradient.internalCreateCanvasGradient,
-  'CanvasPathMethods': () => _CanvasPathMethods.internalCreate_CanvasPathMethods,
   'CanvasPattern': () => CanvasPattern.internalCreateCanvasPattern,
   'CanvasRenderingContext2D': () => CanvasRenderingContext2D.internalCreateCanvasRenderingContext2D,
   'CharacterData': () => CharacterData.internalCreateCharacterData,
@@ -695,7 +694,6 @@ final htmlBlinkFunctionMap = {
   'DOMRectReadOnly': () => DomRectReadOnly.internalCreateDomRectReadOnly,
   'DOMSettableTokenList': () => DomSettableTokenList.internalCreateDomSettableTokenList,
   'DOMStringList': () => DomStringList.internalCreateDomStringList,
-  'DOMStringMap': () => DomStringMap.internalCreateDomStringMap,
   'DOMTokenList': () => DomTokenList.internalCreateDomTokenList,
   'DataTransfer': () => DataTransfer.internalCreateDataTransfer,
   'DataTransferItem': () => DataTransferItem.internalCreateDataTransferItem,
@@ -875,7 +873,6 @@ final htmlBlinkFunctionMap = {
   'MutationRecord': () => MutationRecord.internalCreateMutationRecord,
   'NamedNodeMap': () => _NamedNodeMap.internalCreate_NamedNodeMap,
   'Navigator': () => Navigator.internalCreateNavigator,
-  'NavigatorCPU': () => NavigatorCpu.internalCreateNavigatorCpu,
   'NavigatorUserMediaError': () => NavigatorUserMediaError.internalCreateNavigatorUserMediaError,
   'NetworkInformation': () => NetworkInformation.internalCreateNetworkInformation,
   'Node': () => Node.internalCreateNode,
@@ -978,8 +975,6 @@ final htmlBlinkFunctionMap = {
   'TreeWalker': () => TreeWalker.internalCreateTreeWalker,
   'UIEvent': () => UIEvent.internalCreateUIEvent,
   'URL': () => Url.internalCreateUrl,
-  'URLUtils': () => UrlUtils.internalCreateUrlUtils,
-  'URLUtilsReadOnly': () => UrlUtilsReadOnly.internalCreateUrlUtilsReadOnly,
   'VTTCue': () => VttCue.internalCreateVttCue,
   'VTTRegion': () => VttRegion.internalCreateVttRegion,
   'VTTRegionList': () => VttRegionList.internalCreateVttRegionList,
@@ -995,7 +990,6 @@ final htmlBlinkFunctionMap = {
   'WebSocket': () => WebSocket.internalCreateWebSocket,
   'WheelEvent': () => WheelEvent.internalCreateWheelEvent,
   'Window': () => Window.internalCreateWindow,
-  'WindowTimers': () => _WindowTimers.internalCreate_WindowTimers,
   'Worker': () => Worker.internalCreateWorker,
   'WorkerConsole': () => WorkerConsole.internalCreateWorkerConsole,
   'WorkerGlobalScope': () => WorkerGlobalScope.internalCreateWorkerGlobalScope,
@@ -11352,7 +11346,7 @@ class DomException extends NativeFieldWrapperClass2 {
   js.JsObject blink_jsObject;
 
   factory DomException._internalWrap() {
-    return new class DomException.internal_();
+    return new DomException.internal_();
   }
 
   DomException.internal_() { }
@@ -12478,24 +12472,9 @@ class DomStringList extends JsoNativeFieldWrapper with ListMixin<String>, Immuta
 
 @DocsEditable()
 @DomName('DOMStringMap')
-abstract class DomStringMap extends NativeFieldWrapperClass2 {
+class DomStringMap extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DomStringMap._() { throw new UnsupportedError("Not supported"); }
-
-  static DomStringMap internalCreateDomStringMap() {
-    return new DomStringMap._internalWrap();
-  }
-
-  js.JsObject blink_jsObject;
-
-  factory DomStringMap._internalWrap() {
-    return new DomStringMap.internal_();
-  }
-
-  DomStringMap.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
 
   bool __delete__(index_OR_name) {
     if ((index_OR_name is int || index_OR_name == null)) {
@@ -27575,21 +27554,6 @@ abstract class NavigatorCpu extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory NavigatorCpu._() { throw new UnsupportedError("Not supported"); }
 
-  static NavigatorCpu internalCreateNavigatorCpu() {
-    return new NavigatorCpu._internalWrap();
-  }
-
-  js.JsObject blink_jsObject;
-
-  factory NavigatorCpu._internalWrap() {
-    return new NavigatorCpu.internal_();
-  }
-
-  NavigatorCpu.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('NavigatorCPU.hardwareConcurrency')
   @DocsEditable()
   @Experimental() // untriaged
@@ -36439,14 +36403,14 @@ class Touch extends NativeFieldWrapperClass2 {
 
 // As of Chrome 37, these all changed from long to double.  This code
 // preserves backwards compatability for the time being.
-  int get __clientX => _blink.BlinkTouch.clientX_Getter(unwrap_jso(this)).round();
-  int get __clientY => _blink.BlinkTouch.clientY_Getter(unwrap_jso(this)).round();
-  int get __screenX => _blink.BlinkTouch.screenX_Getter(unwrap_jso(this)).round();
-  int get __screenY => _blink.BlinkTouch.screenY_Getter(unwrap_jso(this)).round();
-  int get __pageX => _blink.BlinkTouch.pageX_Getter(unwrap_jso(this)).round();
-  int get __pageY => _blink.BlinkTouch.pageY_Getter(unwrap_jso(this)).round();
-  int get __radiusX => _blink.BlinkTouch.radiusX_Getter(unwrap_jso(this)).round();
-  int get __radiusY => _blink.BlinkTouch.radiusY_Getter(unwrap_jso(this)).round();
+  int get __clientX => _blink.BlinkTouch.instance.clientX_Getter_(unwrap_jso(this)).round();
+  int get __clientY => _blink.BlinkTouch.instance.clientY_Getter_(unwrap_jso(this)).round();
+  int get __screenX => _blink.BlinkTouch.instance.screenX_Getter_(unwrap_jso(this)).round();
+  int get __screenY => _blink.BlinkTouch.instance.screenY_Getter_(unwrap_jso(this)).round();
+  int get __pageX => _blink.BlinkTouch.instance.pageX_Getter_(unwrap_jso(this)).round();
+  int get __pageY => _blink.BlinkTouch.instance.pageY_Getter_(unwrap_jso(this)).round();
+  int get __radiusX => _blink.BlinkTouch.instance.radiusX_Getter_(unwrap_jso(this)).round();
+  int get __radiusY => _blink.BlinkTouch.instance.radiusY_Getter_(unwrap_jso(this)).round();
 
   @DomName('Touch.clientX')
   @DomName('Touch.clientY')
@@ -37262,21 +37226,6 @@ abstract class UrlUtils extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory UrlUtils._() { throw new UnsupportedError("Not supported"); }
 
-  static UrlUtils internalCreateUrlUtils() {
-    return new UrlUtils._internalWrap();
-  }
-
-  js.JsObject blink_jsObject;
-
-  factory UrlUtils._internalWrap() {
-    return new UrlUtils.internal_();
-  }
-
-  UrlUtils.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('URLUtils.hash')
   @DocsEditable()
   @Experimental() // untriaged
@@ -37401,21 +37350,6 @@ abstract class UrlUtils extends NativeFieldWrapperClass2 {
 abstract class UrlUtilsReadOnly extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory UrlUtilsReadOnly._() { throw new UnsupportedError("Not supported"); }
-
-  static UrlUtilsReadOnly internalCreateUrlUtilsReadOnly() {
-    return new UrlUtilsReadOnly._internalWrap();
-  }
-
-  js.JsObject blink_jsObject;
-
-  factory UrlUtilsReadOnly._internalWrap() {
-    return new UrlUtilsReadOnly.internal_();
-  }
-
-  UrlUtilsReadOnly.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('URLUtilsReadOnly.hash')
   @DocsEditable()
@@ -41043,21 +40977,6 @@ class _CanvasPathMethods extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _CanvasPathMethods._() { throw new UnsupportedError("Not supported"); }
 
-  static _CanvasPathMethods internalCreate_CanvasPathMethods() {
-    return new _CanvasPathMethods._internalWrap();
-  }
-
-  js.JsObject blink_jsObject;
-
-  factory _CanvasPathMethods._internalWrap() {
-    return new _CanvasPathMethods.internal_();
-  }
-
-  _CanvasPathMethods.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -42916,21 +42835,6 @@ class _WebKitCSSTransformValue extends _CssValueList {
 abstract class _WindowTimers extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory _WindowTimers._() { throw new UnsupportedError("Not supported"); }
-
-  static _WindowTimers internalCreate_WindowTimers() {
-    return new _WindowTimers._internalWrap();
-  }
-
-  js.JsObject blink_jsObject;
-
-  factory _WindowTimers._internalWrap() {
-    return new _WindowTimers.internal_();
-  }
-
-  _WindowTimers.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('WindowTimers.clearInterval')
   @DocsEditable()
@@ -47302,6 +47206,13 @@ bool _isBuiltinType(ClassMirror cls) {
 
 @Experimental()
 class KeyEvent extends _WrappedEvent implements KeyboardEvent {
+  /** Needed because KeyboardEvent is implements.
+   *  TODO(terry): Consider making blink_jsObject private (add underscore) for
+   *               all blink_jsObject.  Then needed private wrap/unwrap_jso
+   *               functions that delegate to a public wrap/unwrap_jso.
+   */
+  js.JsObject blink_jsObject;
+
   /** The parent KeyboardEvent that this KeyEvent is wrapping and "fixing". */
   KeyboardEvent _parent;
 
@@ -47454,6 +47365,13 @@ class Platform {
  * Helper class to implement custom events which wrap DOM events.
  */
 class _WrappedEvent implements Event {
+  /** Needed because KeyboardEvent is implements.
+   *  TODO(terry): Consider making blink_jsObject private (add underscore) for
+   *               all blink_jsObject.  Then needed private wrap/unwrap_jso
+   *               functions that delegate to a public wrap/unwrap_jso.
+   */
+  js.JsObject blink_jsObject;
+
   final Event wrapped;
 
   /** The CSS selector involved with event delegation. */
@@ -48419,6 +48337,13 @@ class _Utils {
 
 class _DOMWindowCrossFrame extends NativeFieldWrapperClass2 implements
     WindowBase {
+  /** Needed because KeyboardEvent is implements.
+   *  TODO(terry): Consider making blink_jsObject private (add underscore) for
+   *               all blink_jsObject.  Then needed private wrap/unwrap_jso
+   *               functions that delegate to a public wrap/unwrap_jso.
+   */
+  js.JsObject blink_jsObject;
+
   _DOMWindowCrossFrame.internal();
 
   // Fields.

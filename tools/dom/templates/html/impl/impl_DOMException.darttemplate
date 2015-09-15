@@ -54,7 +54,7 @@ $if JSINTEROP
   js.JsObject blink_jsObject;
 
   factory DomException._internalWrap() {
-    return new class DomException.internal_();
+    return new DomException.internal_();
   }
 
   DomException.internal_() { }

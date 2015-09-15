@@ -579,9 +579,10 @@ class HtmlDartInterfaceGenerator(object):
       # XMLHttpRequestProgressEvent can't be abstract we need to instantiate
       # for JsInterop.
       if (not(isinstance(self._backend, Dart2JSBackend)) and
-        self._interface.id == 'XMLHttpRequestProgressEvent'):
-        # Only suppress abstract for XMLHttpRequestProgressEvent for Dartium.
-        # Need to be able to instantiate the class; can't be abstract.
+        (self._interface.id == 'XMLHttpRequestProgressEvent' or
+         self._interface.id == 'DOMStringMap')):
+        # Suppress abstract for XMLHttpRequestProgressEvent and DOMStringMap
+        # for Dartium.  Need to be able to instantiate the class; can't be abstract.
         class_modifiers = ''
       else:
         # For Dartium w/ JsInterop these suppressed interfaces are needed to
@@ -686,7 +687,7 @@ class HtmlDartInterfaceGenerator(object):
     if (implementation_members_emitter and
         self._options.templates._conditions['DARTIUM'] and
         self._options.dart_js_interop and
-        not IsPureInterface(class_name)):
+        not IsPureInterface(self._interface.id)):
       implementation_members_emitter.Emit(js_interop_wrapper)
 
     if isElement and self._interface.id != 'Element':
@@ -1312,7 +1313,9 @@ class DartLibrary():
       items = self._typeMap.items()
       items.sort()
       for (idl_name, dart_name) in items:
-        if not IsPureInterface(dart_name):
+        # DOMStringMap is in the abstract list but is used as a concrete class
+        # in Dartium.
+        if not IsPureInterface(idl_name):
           # Handle classes that are concrete (abstract can't be instantiated).
           function_emitter.Emit(
             "  '$IDL_NAME': () => $DART_NAME.internalCreate$DART_NAME,\n",
