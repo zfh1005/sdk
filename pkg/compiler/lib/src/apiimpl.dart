@@ -48,8 +48,7 @@ class Compiler extends leg.Compiler {
            List<String> options,
            this.environment,
            [this.packageConfig,
-            this.packagesDiscoveryProvider,
-            leg.Backend makeBackend(Compiler compiler)])
+            this.packagesDiscoveryProvider])
       : this.options = options,
         this.allowedLibraryCategories = getAllowedLibraryCategories(options),
         super(
@@ -106,8 +105,7 @@ class Compiler extends leg.Compiler {
                 hasOption(options, '--generate-code-with-compile-time-errors'),
             testMode: hasOption(options, '--test-mode'),
             allowNativeExtensions:
-                hasOption(options, '--allow-native-extensions'),
-            makeBackend: makeBackend) {
+                hasOption(options, '--allow-native-extensions')) {
     tasks.addAll([
         userHandlerTask = new leg.GenericTask('Diagnostic handler', this),
         userProviderTask = new leg.GenericTask('Input provider', this),
@@ -381,8 +379,20 @@ class Compiler extends leg.Compiler {
         if (packageConfigContents is String) {
           packageConfigContents = UTF8.encode(packageConfigContents);
         }
+        // The input provider may put a trailing 0 byte when it reads a source
+        // file, which confuses the package config parser.
+        if (packageConfigContents.length > 0 &&
+            packageConfigContents.last == 0) {
+          packageConfigContents = packageConfigContents.sublist(
+              0, packageConfigContents.length - 1);
+        }
         packages =
             new MapPackages(pkgs.parse(packageConfigContents, packageConfig));
+      }).catchError((error) {
+        reportError(leg.NO_LOCATION_SPANNABLE,
+            leg.MessageKind.INVALID_PACKAGE_CONFIG,
+            {'uri': packageConfig, 'exception': error});
+        packages = Packages.noPackages;
       });
     } else {
       if (packagesDiscoveryProvider == null) {

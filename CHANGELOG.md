@@ -1,4 +1,34 @@
-## 1.12.0
+## 1.12.1
+
+### Tool changes
+
+* Pub
+
+  * Pub will now respect `.gitignore` when validating a package before it's
+    published. For example, if a `LICENSE` file exists but is ignored, that is
+    now an error.
+
+  * If the package is in a subdirectory of a Git repository and the entire
+    subdirectory is ignored with `.gitignore`, pub will act as though nothing
+    was ignored instead of uploading an empty package.
+
+  * The heuristics for determining when `pub get` needs to be run before various
+    commands have been improved. There should no longer be false positives when
+    non-dependency sections of the pubspec have been modified.
+
+## 1.12.0 - 2015-08-31
+
+### Language changes
+
+* Null-aware operators
+    * `??`: if null operator. `expr1 ?? expr2` evaluates to `expr1` if
+      not `null`, otherwise `expr2`.
+    * `??=`: null-aware assignment. `v ??= expr` causes `v` to be assigned
+      `expr` only if `v` is `null`.
+    * `x?.p`: null-aware access. `x?.p` evaluates to `x.p` if `x` is not
+      `null`, otherwise evaluates to `null`.
+    * `x?.m()`: null-aware method invocation. `x?.m()` invokes `m` only
+      if `x` is not `null`.
 
 ### Core library changes
 
@@ -28,6 +58,10 @@
     [eaeecf2](https://github.com/dart-lang/sdk/commit/eaeecf2ed13ba6c7fbfd653c3c592974a7120960)
   * Change stdout/stderr to binary mode on Windows.
     [4205b29](https://github.com/dart-lang/sdk/commit/4205b2997e01f2cea8e2f44c6f46ed6259ab7277)
+
+* `dart:isolate`
+  * Added `onError`, `onExit` and `errorsAreFatal` parameters to
+    `Isolate.spawnUri`.
 
 ### Tool changes
 

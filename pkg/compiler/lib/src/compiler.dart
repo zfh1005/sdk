@@ -549,8 +549,6 @@ abstract class Backend {
   void registerAsyncMarker(FunctionElement element,
                              Enqueuer enqueuer,
                              Registry registry) {}
-
-  EnqueueTask makeEnqueuer() => new EnqueueTask(compiler);
 }
 
 /// Backend callbacks function specific to the resolution phase.
@@ -1068,8 +1066,7 @@ abstract class Compiler implements DiagnosticListener {
             this.generateCodeWithCompileTimeErrors: false,
             this.testMode: false,
             api.CompilerOutput outputProvider,
-            List<String> strips: const [],
-            Backend makeBackend(Compiler compiler)})
+            List<String> strips: const []})
       : this.disableTypeInferenceFlag =
           disableTypeInferenceFlag || !emitJavaScript,
         this.analyzeOnly =
@@ -1101,9 +1098,7 @@ abstract class Compiler implements DiagnosticListener {
     globalDependencies =
         new CodegenRegistry(this, new TreeElementMapping(null));
 
-    if (makeBackend != null) {
-      backend = makeBackend(this);
-    } else if (emitJavaScript) {
+    if (emitJavaScript) {
       js_backend.JavaScriptBackend jsBackend =
           new js_backend.JavaScriptBackend(
               this, generateSourceMap: generateSourceMap,
@@ -1132,7 +1127,7 @@ abstract class Compiler implements DiagnosticListener {
       constants = backend.constantCompilerTask,
       deferredLoadTask = new DeferredLoadTask(this),
       mirrorUsageAnalyzerTask = new MirrorUsageAnalyzerTask(this),
-      enqueuer = backend.makeEnqueuer(),
+      enqueuer = new EnqueueTask(this),
       dumpInfoTask = new DumpInfoTask(this),
       reuseLibraryTask = new GenericTask('Reuse library', this),
     ];
