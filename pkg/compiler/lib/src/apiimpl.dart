@@ -331,7 +331,7 @@ class Compiler extends leg.Compiler {
     }
 
     String path = info.path;
-    if (path == null) {
+    if (info.dart2jsPath != null) {
       path = info.dart2jsPath;
     }
     if (!allowInternalLibraryAccess &&

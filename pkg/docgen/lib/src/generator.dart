@@ -416,7 +416,7 @@ List<String> _allDependentPackageDirs(String packageDirectory) {
 /// the SDK.
 List<Uri> _listSdk() {
   var sdk = new List<Uri>();
-  LIBRARIES.forEach((String name, LibraryInfo info) {
+  libraries.forEach((String name, LibraryInfo info) {
     if (info.documented) {
       sdk.add(Uri.parse('dart:$name'));
       logger.info('Add to SDK: ${sdk.last}');

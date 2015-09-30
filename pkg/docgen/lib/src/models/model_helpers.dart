@@ -432,7 +432,7 @@ const List<String> _SKIPPED_ANNOTATIONS = const [
 bool _isLibraryPrivate(dart2js_mirrors.Dart2JsLibraryMirror mirror) {
   // This method is needed because LibraryMirror.isPrivate returns `false` all
   // the time.
-  var sdkLibrary = LIBRARIES[dart2js_util.nameOf(mirror)];
+  var sdkLibrary = libraries[dart2js_util.nameOf(mirror)];
   if (sdkLibrary != null) {
     return !sdkLibrary.documented;
   } else if (dart2js_util.nameOf(mirror).startsWith('_') || dart2js_util.nameOf(
