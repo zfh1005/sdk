@@ -32,7 +32,7 @@ vars = {
       "https://chromium.googlesource.com/external/github.com/dart-lang/%s.git",
 
   "gyp_rev": "@6ee91ad8659871916f9aa840d42e1513befdf638",
-  "co19_rev": "@fad777939a2b891c0a79b69a4d79c914049c69b0",
+  "co19_rev": "@ead3698f33d2cd41e75b6ce5d4a1203767cedd50",
   "chromium_url": "http://src.chromium.org/svn",
   "chromium_git": "https://chromium.googlesource.com",
 
@@ -41,7 +41,7 @@ vars = {
   "analyzer_cli_rev" : "@0b89a16c0566f36676fa8f2016eb2c332178f616",
   "args_tag": "@0.13.0",
   "async_tag": "@1.2.0",
-  "barback_tag" : "@0.15.2+6",
+  "barback_tag" : "@0.15.2+7",
   "boringssl_rev" : "@daeafc22c66ad48f6b32fc8d3362eb9ba31b774e",
   "charcode_tag": "@1.1.0",
   "chrome_rev" : "@19997",
@@ -51,10 +51,10 @@ vars = {
   "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
   "csslib_tag" : "@0.12.0",
   "dart2js_info_rev" : "@bad01369f1f605ab688d505c135db54de927318f",
-  "dartdoc_rev" : "@ae12ca7aa2ea15535fac9e262cab65e3c2b66a04",
+  "dartdoc_rev" : "@786426c4bbea96729d5eab2add744def41a5a690",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag": "@0.2.0",
-  "dev_compiler_rev": "@0.1.7",
+  "dev_compiler_rev": "@0.1.8",
   "fake_async_rev" : "@38614",
   "firefox_jsshell_rev" : "@45554",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
@@ -68,18 +68,16 @@ vars = {
   "intl_rev": "@32047558bd220a53c1f4d93a26d54b83533b1475",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@1.1.1",
-  "linter_tag": "@0.1.0",
+  "linter_rev": "@1df9178fbb475c77658531b3d702ac9e615f9714",
   "logging_rev": "@85d83e002670545e9039ad3985f0018ab640e597",
-  "markdown_rev": "@9a1071a859df9c9edd4f556e948f898f70bf1e5e",
+  "markdown_rev": "@4aaadf3d940bb172e1f6285af4d2b1710d309982",
   "matcher_tag": "@0.12.0",
   "metatest_rev": "@e5aa8e4e19fc4188ac2f6d38368a47d8f07c3df1",
   "mime_rev": "@75890811d4af5af080351ba8a2853ad4c8df98dd",
   "mustache4dart_rev" : "@5724cfd85151e5b6b53ddcd3380daf188fe47f92",
-  "net_nss_rev": "@f81948e9a402db94287a43bb34a07ee0daf56cb5",
-  "nss_rev": "@87b96db4268293187d7cf741907a6d5d1d8080e0",
   "oauth2_rev": "@1bff41f4d54505c36f2d1a001b83b8b745c452f5",
   "observe_rev": "@eee2b8ec34236fa46982575fbccff84f61202ac6",
-  "observatory_pub_packages_rev": "@cdc4b3d4c15b9c0c8e7702dff127b440afbb7485",
+  "observatory_pub_packages_rev": "@a731d3b1caf27b45aecdce9378b87a510240264d",
   "package_config_rev": "@0.1.3",
   "path_tag": "@1.3.6",
   "petitparser_rev" : "@37878",
@@ -95,7 +93,6 @@ vars = {
   "shelf_tag": "@0.6.2+1",
   "smoke_rev" : "@f3361191cc2a85ebc1e4d4c33aec672d7915aba9",
   "source_maps_tag": "@0.10.1",
-  "sqlite_rev": "@38811b79f42801662adc0458a25270ab690a6b81",
   "shelf_static_tag": "@0.2.3+1",
   "shelf_web_socket_tag": "@0.0.1+4",
   "source_map_stack_trace_tag": "@1.0.4",
@@ -113,7 +110,7 @@ vars = {
   "which_tag": "@0.1.3+1",
   "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
   "WebCore_rev" : "@44061",
-  "yaml_rev": "@563a5ffd4a800a2897b8f4dd6b19f2a370df2f2b",
+  "yaml_tag": "@2.1.5",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
   "font_awesome_rev": "@31824",
   "barback-0.13.0_rev": "@34853",
@@ -130,20 +127,9 @@ deps = {
   Var("dart_root") + "/tests/co19/src":
       (Var("github_mirror") % "co19") + Var("co19_rev"),
 
-  Var("dart_root") + "/third_party/nss":
-      Var("chromium_git") + "/chromium/deps/nss.git" + Var("nss_rev"),
-
-  Var("dart_root") + "/third_party/sqlite":
-      Var("chromium_git") + "/chromium/src/third_party/sqlite.git" +
-      Var("sqlite_rev"),
-
   Var("dart_root") + "/third_party/zlib":
       Var("chromium_git") + "/chromium/src/third_party/zlib.git" +
       Var("zlib_rev"),
-
-  Var("dart_root") + "/third_party/net_nss":
-      Var("chromium_git") + "/chromium/src/net/third_party/nss.git" +
-      Var("net_nss_rev"),
 
   Var("dart_root") + "/third_party/boringssl/src":
       "https://boringssl.googlesource.com/boringssl.git" +
@@ -231,7 +217,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/json_rpc_2":
       (Var("github_mirror") % "json_rpc_2") + Var("json_rpc_2_tag"),
   Var("dart_root") + "/third_party/pkg/linter":
-      (Var("github_mirror") % "linter") + Var("linter_tag"),
+      (Var("github_mirror") % "linter") + Var("linter_rev"),
   Var("dart_root") + "/third_party/pkg/logging":
       (Var("github_mirror") % "logging") + Var("logging_rev"),
   Var("dart_root") + "/third_party/pkg/markdown":
@@ -319,7 +305,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/which":
       (Var("github_mirror") % "which") + Var("which_tag"),
   Var("dart_root") + "/third_party/pkg/yaml":
-      (Var("github_mirror") % "yaml") + Var("yaml_rev"),
+      (Var("github_mirror") % "yaml") + Var("yaml_tag"),
 
   # These specific versions of barback and source_maps are used for testing and
   # should be pulled from bleeding_edge even on channels.

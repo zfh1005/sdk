@@ -212,19 +212,38 @@ class Isolate {
    *
    * WARNING: The [checked] parameter is not implemented on all platforms yet.
    *
-   * If the [packageRoot] parameter is provided, it is used to find the location
-   * of packages imports in the spawned isolate.
+   * If either the [packageRoot] or the [packages] parameter is provided,
+   * it is used to find the location of package sources in the spawned isolate.
+   *
    * The `packageRoot` URI must be a "file" or "http"/"https" URI that specifies
    * a directory. If it doesn't end in a slash, one will be added before
    * using the URI, and any query or fragment parts are ignored.
-   * Package imports (like "package:foo/bar.dart") in the new isolate are
+   * Package imports (like `"package:foo/bar.dart"`) in the new isolate are
    * resolved against this location, as by
    * `packageRoot.resolve("foo/bar.dart")`.
-   * This includes the main entry [uri] if it happens to be a package-URL.
-   * If [packageRoot] is omitted, it defaults to the same URI that
-   * the current isolate is using.
    *
-   * WARNING: The [packageRoot] parameter is not implemented on all
+   * The `packages` map maps package names to URIs with the same requirements
+   * as `packageRoot`. Package imports (like `"package:foo/bar/baz.dart"`) in
+   * the new isolate are resolved against the URI for that package (if any),
+   * as by `packages["foo"].resolve("bar/baz.dart")
+   *
+   * This resolution also applies to the main entry [uri]
+   * if that happens to be a package-URI.
+   *
+   * If both [packageRoot] and [packages] are omitted, the new isolate uses
+   * the same package resolution as the current isolate.
+   * It's not allowed to provide both a `packageRoot` and a `package` parameter.
+   *
+   * WARNING: The [packageRoot] and [packages] parameters are not implemented
+   * on all platforms yet.
+   *
+   * The [environment] is a mapping from strings to strings which the
+   * spawned isolate uses when looking up [String.fromEnvironment] values.
+   * The system may add its own entries to environment as well.
+   * If `environment` is omitted, the spawned isolate has the same environment
+   * declarations as the spawning isolate.
+   *
+   * WARNING: The [environment] parameter is not implemented on all
    * platforms yet.
    *
    * Returns a future that will complete with an [Isolate] instance if the
@@ -235,11 +254,13 @@ class Isolate {
       List<String> args,
       var message,
       {bool paused: false,
-       bool checked,
-       Uri packageRoot,
-       bool errorsAreFatal,
        SendPort onExit,
-       SendPort onError});
+       SendPort onError,
+       bool errorsAreFatal,
+       bool checked,
+       Map<String, String> environment,
+       Uri packageRoot,
+       Map<String, Uri> packages});
 
   /**
    * Requests the isolate to pause.

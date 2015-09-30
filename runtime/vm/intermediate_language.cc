@@ -37,6 +37,8 @@ DEFINE_FLAG(bool, two_args_smi_icd, true,
     "Generate special IC stubs for two args Smi operations");
 DEFINE_FLAG(bool, unbox_numeric_fields, true,
     "Support unboxed double and float32x4 fields.");
+DEFINE_FLAG(bool, fields_may_be_reset, false,
+            "Don't optimize away static field initialization");
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, trace_optimization);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
@@ -385,7 +387,11 @@ Instruction* InitStaticFieldInstr::Canonicalize(FlowGraph* flow_graph) {
   const bool is_initialized =
       (field_.StaticValue() != Object::sentinel().raw()) &&
       (field_.StaticValue() != Object::transition_sentinel().raw());
-  return is_initialized ? NULL : this;
+  // When precompiling, the fact that a field is currently initialized does not
+  // make it safe to omit code that checks if the field needs initialization
+  // because the field will be reset so it starts uninitialized in the process
+  // running the precompiled code. We must be prepared to reinitialize fields.
+  return is_initialized && !FLAG_fields_may_be_reset ? NULL : this;
 }
 
 
@@ -968,6 +974,7 @@ bool BlockEntryInstr::DiscoverBlock(
     last = it.Current();
   }
   set_last_instruction(last);
+  if (last->IsGoto()) last->AsGoto()->set_block(this);
 
   return true;
 }
@@ -2026,7 +2033,8 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
         TypeArguments::Cast(constant_type_args->value());
     Error& bound_error = Error::Handle();
     const AbstractType& new_dst_type = AbstractType::Handle(
-        dst_type().InstantiateFrom(instantiator_type_args, &bound_error));
+        dst_type().InstantiateFrom(
+            instantiator_type_args, &bound_error, NULL, Heap::kOld));
     // If dst_type is instantiated to dynamic or Object, skip the test.
     if (!new_dst_type.IsMalformedOrMalbounded() && bound_error.IsNull() &&
         (new_dst_type.IsDynamicType() || new_dst_type.IsObjectType())) {
@@ -2311,7 +2319,7 @@ static bool MayBeBoxableNumber(intptr_t cid) {
 
 static bool MaybeNumber(CompileType* type) {
   ASSERT(Type::Handle(Type::Number()).IsMoreSpecificThan(
-         Type::Handle(Type::Number()), NULL));
+         Type::Handle(Type::Number()), NULL, Heap::kOld));
   return type->ToAbstractType()->IsDynamicType()
       || type->ToAbstractType()->IsObjectType()
       || type->ToAbstractType()->IsTypeParameter()
@@ -2719,7 +2727,7 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetJumpLabel(this));
   if (!compiler->is_optimizing()) {
     if (compiler->NeedsEdgeCounter(this)) {
-      compiler->EmitEdgeCounter();
+      compiler->EmitEdgeCounter(preorder_number());
     }
     // The deoptimization descriptor points after the edge counter code for
     // uniformity with ARM and MIPS, where we can reuse pattern matching
@@ -2763,7 +2771,6 @@ void IndirectGotoInstr::ComputeOffsetTable() {
     }
 
     ASSERT(offset > 0);
-    offset -= Assembler::EntryPointToPcMarkerOffset();
     offsets_.SetInt32(i * element_size, offset);
   }
 }

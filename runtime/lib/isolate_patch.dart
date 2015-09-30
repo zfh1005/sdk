@@ -130,6 +130,8 @@ class _RawReceivePortImpl implements RawReceivePort {
     return sendPort.hashCode();
   }
 
+  Uri get remotePortUri => new Uri.https('localhost', '55');
+
   /**** Internal implementation details ****/
   _get_id() native "RawReceivePortImpl_get_id";
   _get_sendport() native "RawReceivePortImpl_get_sendport";
@@ -306,11 +308,19 @@ patch class Isolate {
 
   /* patch */ static Future<Isolate> spawnUri(
       Uri uri, List<String> args, var message,
-      {bool paused: false, bool checked, Uri packageRoot, bool errorsAreFatal,
-       SendPort onExit, SendPort onError}) {
+      {bool paused: false,
+       SendPort onExit,
+       SendPort onError,
+       bool errorsAreFatal,
+       bool checked,
+       Map<String, String> environment,
+       Uri packageRoot,
+       Map<String, Uri> packages}) {
     RawReceivePort readyPort;
+    if (environment != null) throw new UnimplementedError("environment");
     try {
       // The VM will invoke [_startIsolate] and not `main`.
+      // TODO: Handle [packages].
       readyPort = new RawReceivePort();
       var packageRootString =
           (packageRoot == null) ? null : packageRoot.toString();

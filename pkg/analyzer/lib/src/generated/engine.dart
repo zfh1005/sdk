@@ -429,6 +429,11 @@ abstract class AnalysisContext {
   TypeProvider get typeProvider;
 
   /**
+   * Return a type system for this context.
+   */
+  TypeSystem get typeSystem;
+
+  /**
    * Add the given [listener] to the list of objects that are to be notified
    * when various analysis results are produced in this context.
    */
@@ -1040,6 +1045,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   TypeProvider _typeProvider;
 
   /**
+   * The [TypeSystem] for this context, `null` if not yet created.
+   */
+  TypeSystem _typeSystem;
+
+  /**
    * The object used to manage the list of sources that need to be analyzed.
    */
   WorkManager _workManager = new WorkManager();
@@ -1547,6 +1557,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   void set typeProvider(TypeProvider typeProvider) {
     _typeProvider = typeProvider;
+  }
+
+  @override
+  TypeSystem get typeSystem {
+    if (_typeSystem == null) {
+      _typeSystem = TypeSystem.create(this);
+    }
+    return _typeSystem;
   }
 
   @override
@@ -10309,6 +10327,12 @@ class RecursiveXmlVisitor_ResolveHtmlTask_internalPerform
  * used to visit that structure.
  */
 class ResolutionEraser extends GeneralizingAstVisitor<Object> {
+  /**
+   * A flag indicating whether the elements associated with declarations should
+   * be erased.
+   */
+  bool eraseDeclarations = true;
+
   @override
   Object visitAssignmentExpression(AssignmentExpression node) {
     node.staticElement = null;
@@ -10331,13 +10355,17 @@ class ResolutionEraser extends GeneralizingAstVisitor<Object> {
 
   @override
   Object visitCompilationUnit(CompilationUnit node) {
-    node.element = null;
+    if (eraseDeclarations) {
+      node.element = null;
+    }
     return super.visitCompilationUnit(node);
   }
 
   @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
-    node.element = null;
+    if (eraseDeclarations) {
+      node.element = null;
+    }
     return super.visitConstructorDeclaration(node);
   }
 
@@ -10355,7 +10383,9 @@ class ResolutionEraser extends GeneralizingAstVisitor<Object> {
 
   @override
   Object visitDirective(Directive node) {
-    node.element = null;
+    if (eraseDeclarations) {
+      node.element = null;
+    }
     return super.visitDirective(node);
   }
 
@@ -10368,7 +10398,9 @@ class ResolutionEraser extends GeneralizingAstVisitor<Object> {
 
   @override
   Object visitFunctionExpression(FunctionExpression node) {
-    node.element = null;
+    if (eraseDeclarations) {
+      node.element = null;
+    }
     return super.visitFunctionExpression(node);
   }
 
@@ -10415,7 +10447,9 @@ class ResolutionEraser extends GeneralizingAstVisitor<Object> {
 
   @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
-    node.staticElement = null;
+    if (eraseDeclarations || !node.inDeclarationContext()) {
+      node.staticElement = null;
+    }
     node.propagatedElement = null;
     return super.visitSimpleIdentifier(node);
   }
@@ -10429,8 +10463,10 @@ class ResolutionEraser extends GeneralizingAstVisitor<Object> {
   /**
    * Remove any resolution information from the given AST structure.
    */
-  static void erase(AstNode node) {
-    node.accept(new ResolutionEraser());
+  static void erase(AstNode node, {bool eraseDeclarations: true}) {
+    ResolutionEraser eraser = new ResolutionEraser();
+    eraser.eraseDeclarations = eraseDeclarations;
+    node.accept(eraser);
   }
 }
 

@@ -35,16 +35,15 @@ import '../types/types.dart' show
     FlatTypeMask,
     TypeMask,
     ContainerTypeMask,
-    ElementTypeMask,
-    ValueTypeMask,
-    TypeSystem,
-    MinimalInferrerEngine;
+    ValueTypeMask;
 import '../util/util.dart' show
     Link,
     Setlet;
-import '../universe/universe.dart' show
-    CallStructure,
-    Selector,
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
+    Selector;
+import '../universe/side_effects.dart' show
     SideEffects;
 import '../world.dart' show ClassWorld;
 
@@ -122,6 +121,7 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   bool isNull(TypeMask mask) => mask.isEmpty && mask.isNullable;
 
   TypeMask stringLiteralType(ast.DartString value) => stringType;
+  TypeMask boolLiteralType(ast.LiteralBool value) => boolType;
 
   TypeMask nonNullSubtype(ClassElement type)
       => new TypeMask.nonNullSubtype(type.declaration, classWorld);
@@ -1569,20 +1569,6 @@ class SimpleTypeInferrerVisitor<T>
   T visitAwait(ast.Await node) {
     T futureType = node.expression.accept(this);
     return inferrer.registerAwait(node, futureType);
-  }
-
-  @override
-  T handleAssert(ast.Send node, ast.Node expression) {
-    js.JavaScriptBackend backend = compiler.backend;
-    Element element = backend.assertMethod;
-    ArgumentsTypes<T> arguments =
-        new ArgumentsTypes<T>(<T>[expression.accept(this)], null);
-    return handleStaticSend(
-        node,
-        new Selector.fromElement(element),
-        null,
-        element,
-        arguments);
   }
 
   @override

@@ -28,6 +28,7 @@ import 'diagnostics/spannable.dart' show
 import 'elements/elements.dart' show
     ClassElement,
     Element,
+    ImportElement,
     LibraryElement,
     MetadataAnnotation,
     ScopeContainerElement,
@@ -199,12 +200,10 @@ class MirrorUsageAnalyzer {
         new Map<LibraryElement, List<MirrorUsage>>();
     for (LibraryElement library in compiler.libraryLoader.libraries) {
       if (library.isInternalLibrary) continue;
-      for (LibraryTag tag in library.tags) {
-        Import importTag = tag.asImport();
-        if (importTag == null) continue;
+      for (ImportElement import in library.imports) {
         compiler.withCurrentElement(library, () {
           List<MirrorUsage> usages =
-              mirrorsUsedOnLibraryTag(library, importTag);
+              mirrorsUsedOnLibraryTag(library, import);
           if (usages != null) {
             List<MirrorUsage> existing = result[library];
             if (existing != null) {
@@ -255,13 +254,13 @@ class MirrorUsageAnalyzer {
   /// Find @MirrorsUsed annotations on the given import [tag] in [library]. The
   /// annotations are represented as [MirrorUsage].
   List<MirrorUsage> mirrorsUsedOnLibraryTag(LibraryElement library,
-                                            Import tag) {
-    LibraryElement importedLibrary = library.getLibraryFromTag(tag);
+                                            ImportElement import) {
+    LibraryElement importedLibrary = import.importedLibrary;
     if (importedLibrary != compiler.mirrorsLibrary) {
       return null;
     }
     List<MirrorUsage> result = <MirrorUsage>[];
-    for (MetadataAnnotation metadata in tag.metadata) {
+    for (MetadataAnnotation metadata in import.metadata) {
       metadata.ensureResolved(compiler);
       ConstantValue value =
           compiler.constants.getConstantValue(metadata.constant);
@@ -410,9 +409,8 @@ class MirrorUsageBuilder {
           MessageKind kind = onlyStrings
               ? MessageKind.MIRRORS_EXPECTED_STRING
               : MessageKind.MIRRORS_EXPECTED_STRING_OR_TYPE;
-          compiler.reportHint(
-              node,
-              kind, {'name': node, 'type': apiTypeOf(entry)});
+          compiler.reportHintMessage(
+              node, kind, {'name': node, 'type': apiTypeOf(entry)});
         }
       }
       return result;
@@ -429,9 +427,8 @@ class MirrorUsageBuilder {
       MessageKind kind = onlyStrings
           ? MessageKind.MIRRORS_EXPECTED_STRING_OR_LIST
           : MessageKind.MIRRORS_EXPECTED_STRING_TYPE_OR_LIST;
-      compiler.reportHint(
-          node,
-          kind, {'name': node, 'type': apiTypeOf(constant)});
+      compiler.reportHintMessage(
+          node, kind, {'name': node, 'type': apiTypeOf(constant)});
       return null;
     }
   }
@@ -476,8 +473,8 @@ class MirrorUsageBuilder {
         LibraryElement libraryCandiate;
         String libraryNameCandiate;
         for (LibraryElement l in compiler.libraryLoader.libraries) {
-          if (l.hasLibraryName()) {
-            String libraryName = l.getLibraryOrScriptName();
+          if (l.hasLibraryName) {
+            String libraryName = l.libraryOrScriptName;
             if (string == libraryName) {
               // Found an exact match.
               libraryCandiate = l;
@@ -514,8 +511,9 @@ class MirrorUsageBuilder {
     List<String> identifiers = expression.split('.');
     Element element = enclosingLibrary.find(identifiers[0]);
     if (element == null) {
-      compiler.reportHint(
-          spannable, MessageKind.MIRRORS_CANNOT_RESOLVE_IN_CURRENT_LIBRARY,
+      compiler.reportHintMessage(
+          spannable,
+          MessageKind.MIRRORS_CANNOT_RESOLVE_IN_CURRENT_LIBRARY,
           {'name': expression});
       return null;
     } else {
@@ -532,12 +530,12 @@ class MirrorUsageBuilder {
       if (e == null) {
         if (current.isLibrary) {
           LibraryElement library = current;
-          compiler.reportHint(
+          compiler.reportHintMessage(
               spannable, MessageKind.MIRRORS_CANNOT_RESOLVE_IN_LIBRARY,
               {'name': identifiers[0],
-               'library': library.getLibraryOrScriptName()});
+               'library': library.libraryOrScriptName});
         } else {
-          compiler.reportHint(
+          compiler.reportHintMessage(
               spannable, MessageKind.MIRRORS_CANNOT_FIND_IN_ELEMENT,
               {'name': identifier, 'element': current.name});
         }

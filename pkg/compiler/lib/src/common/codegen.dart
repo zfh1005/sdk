@@ -26,8 +26,9 @@ import '../js_backend/js_backend.dart' show
     JavaScriptBackend;
 import '../resolution/tree_elements.dart' show
     TreeElements;
+import '../universe/selector.dart' show
+    Selector;
 import '../universe/universe.dart' show
-    Selector,
     UniverseSelector;
 import '../util/util.dart' show
     Setlet;
@@ -49,12 +50,19 @@ class CodegenRegistry extends Registry {
 
   Element get currentElement => treeElements.analyzedElement;
 
+  String toString() => 'CodegenRegistry for $currentElement';
+
   // TODO(johnniwinther): Remove this getter when [Registry] creates a
   // dependency node.
   Setlet<Element> get otherDependencies => treeElements.otherDependencies;
 
   CodegenEnqueuer get world => compiler.enqueuer.codegen;
   JavaScriptBackend get backend => compiler.backend;
+
+  void registerAssert(bool hasMessage) {
+    // Codegen does not register asserts.  They have been lowered to calls.
+    assert(false);
+  }
 
   void registerDependency(Element element) {
     treeElements.registerDependency(element);
@@ -67,11 +75,11 @@ class CodegenRegistry extends Registry {
   }
 
   void registerInstantiatedClass(ClassElement element) {
-    world.registerInstantiatedType(element.rawType, this);
+    backend.registerInstantiatedType(element.rawType, world, this);
   }
 
   void registerInstantiatedType(InterfaceType type) {
-    world.registerInstantiatedType(type, this);
+    backend.registerInstantiatedType(type, world, this);
   }
 
   void registerStaticUse(Element element) {
@@ -161,7 +169,7 @@ class CodegenRegistry extends Registry {
   }
 
   void registerInstantiation(InterfaceType type) {
-    world.registerInstantiatedType(type, this);
+    backend.registerInstantiatedType(type, world, this);
   }
 
   void registerAsyncMarker(FunctionElement element) {

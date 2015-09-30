@@ -16,10 +16,12 @@ class CHA;
 class HandleScope;
 class Heap;
 class Isolate;
+class Log;
 class LongJumpScope;
 class Object;
 class RawBool;
 class RawObject;
+class RawCode;
 class RawString;
 class RuntimeEntry;
 class StackResource;
@@ -31,10 +33,21 @@ class Zone;
   V(RawObject*, object_null_, Object::null(), NULL)                            \
   V(RawBool*, bool_true_, Object::bool_true().raw(), NULL)                     \
   V(RawBool*, bool_false_, Object::bool_false().raw(), NULL)                   \
+  V(RawCode*, update_store_buffer_code_,                                       \
+    StubCode::UpdateStoreBuffer_entry()->code(), NULL)                         \
+  V(RawCode*, fix_callers_target_code_,                                        \
+    StubCode::FixCallersTarget_entry()->code(), NULL)                          \
+  V(RawCode*, fix_allocation_stub_code_,                                       \
+    StubCode::FixAllocationStubTarget_entry()->code(), NULL)                   \
+  V(RawCode*, invoke_dart_code_stub_,                                          \
+    StubCode::InvokeDartCode_entry()->code(), NULL)                            \
+
 
 #define CACHED_ADDRESSES_LIST(V)                                               \
   V(uword, update_store_buffer_entry_point_,                                   \
     StubCode::UpdateStoreBuffer_entry()->EntryPoint(), 0)                      \
+  V(uword, native_call_wrapper_entry_point_,                                   \
+    NativeEntry::NativeCallWrapperEntry(), 0)                                  \
   V(RawString**, predefined_symbols_address_,                                  \
     Symbols::PredefinedAddress(), NULL)                                        \
 
@@ -128,7 +141,7 @@ class Thread {
     return store_buffer_block_->Contains(obj);
   }
 #endif
-  void StoreBufferBlockProcess(bool check_threshold);
+  void StoreBufferBlockProcess(StoreBuffer::ThresholdPolicy policy);
   static intptr_t store_buffer_block_offset() {
     return OFFSET_OF(Thread, store_buffer_block_);
   }
@@ -248,13 +261,21 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   static intptr_t OffsetFromThread(const Object& object);
   static intptr_t OffsetFromThread(const RuntimeEntry* runtime_entry);
 
+  Mutex* timeline_block_lock() {
+    return &timeline_block_lock_;
+  }
+
+  // Only safe to access when holding |timeline_block_lock_|.
   TimelineEventBlock* timeline_block() const {
     return state_.timeline_block;
   }
 
+  // Only safe to access when holding |timeline_block_lock_|.
   void set_timeline_block(TimelineEventBlock* block) {
     state_.timeline_block = block;
   }
+
+  class Log* log() const;
 
   LongJumpScope* long_jump_base() const { return state_.long_jump_base; }
   void set_long_jump_base(LongJumpScope* value) {
@@ -280,7 +301,9 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   Isolate* isolate_;
   Heap* heap_;
   State state_;
+  Mutex timeline_block_lock_;
   StoreBufferBlock* store_buffer_block_;
+  class Log* log_;
 #define DECLARE_MEMBERS(type_name, member_name, expr, default_init_value)      \
   type_name member_name;
 CACHED_CONSTANTS_LIST(DECLARE_MEMBERS)
@@ -304,7 +327,8 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
     memset(&state_, 0, sizeof(state_));
   }
 
-  void StoreBufferRelease(bool check_threshold = true);
+  void StoreBufferRelease(
+      StoreBuffer::ThresholdPolicy policy = StoreBuffer::kCheckThreshold);
   void StoreBufferAcquire();
 
   void set_zone(Zone* zone) {

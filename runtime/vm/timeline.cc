@@ -8,32 +8,101 @@
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
 #include "vm/lockers.h"
+#include "vm/log.h"
 #include "vm/object.h"
 #include "vm/thread.h"
 #include "vm/timeline.h"
 
 namespace dart {
 
-DEFINE_FLAG(bool, trace_timeline, false, "Trace timeline backend");
 DEFINE_FLAG(bool, complete_timeline, false, "Record the complete timeline");
-
+DEFINE_FLAG(bool, trace_timeline, false,
+            "Trace timeline backend");
+DEFINE_FLAG(bool, trace_timeline_analysis, false,
+            "Trace timeline analysis backend");
+DEFINE_FLAG(bool, timing, false,
+            "Dump isolate timing information from timeline.");
 DEFINE_FLAG(charp, timeline_dir, NULL,
             "Enable all timeline trace streams and output VM global trace "
             "into specified directory.");
+
+// Implementation notes:
+//
+// Writing events:
+// |TimelineEvent|s are written into |TimelineEventBlock|s. Each |Thread| caches
+// a |TimelineEventBlock| in TLS so that it can write events without
+// synchronizing with other threads in the system. Even though the |Thread| owns
+// the |TimelineEventBlock| the block may need to be reclaimed by the reporting
+// system. To support that, a |Thread| must hold its |timeline_block_lock_|
+// when operating on the |TimelineEventBlock|. This lock will only ever be
+// busy if blocks are being reclaimed by the reporting system.
+//
+// Reporting:
+// When requested, the timeline is serialized in the trace-event format
+// (https://goo.gl/hDZw5M). The request can be for a VM-wide timeline or an
+// isolate specific timeline. In both cases it may be that a thread has
+// a |TimelineEventBlock| cached in TLS. In order to report a complete timeline
+// the cached |TimelineEventBlock|s need to be reclaimed.
+//
+// Reclaiming open |TimelineEventBlock|s for an isolate:
+//
+// Cached |TimelineEventBlock|s can be in two places:
+// 1) In a |Thread| (Thread currently in an |Isolate|)
+// 2) In a |Thread::State| (Thread not currently in an |Isolate|).
+//
+// As a |Thread| enters and exits an |Isolate|, a |TimelineEventBlock|
+// will move between (1) and (2).
+//
+// The first case occurs for |Thread|s that are currently running inside an
+// isolate. The second case occurs for |Thread|s that are not currently
+// running inside an isolate.
+//
+// To reclaim the first case, we take the |Thread|'s |timeline_block_lock_|
+// and reclaim the cached block.
+//
+// To reclaim the second case, we can take the |ThreadRegistry| lock and
+// reclaim these blocks.
+//
+// |Timeline::ReclaimIsolateBlocks| and |Timeline::ReclaimAllBlocks| are
+// the two utility methods used to reclaim blocks before reporting.
+//
+// Locking notes:
+// The following locks are used by the timeline system:
+// - |TimelineEventRecorder::lock_| This lock is held whenever a
+// |TimelineEventBlock| is being requested or reclaimed.
+// - |Thread::timeline_block_lock_| This lock is held whenever a |Thread|'s
+// cached block is being operated on.
+// - |ThreadRegistry::monitor_| This lock protects the cached block for
+// unscheduled threads of an isolate.
+// - |Isolate::isolates_list_monitor_| This lock protects the list of
+// isolates in the system.
+//
+// Locks must always be taken in the following order:
+// |Isolate::isolates_list_monitor_|
+//   |ThreadRegistry::monitor_|
+//     |Thread::timeline_block_lock_|
+//       |TimelineEventRecorder::lock_|
+//
 
 void Timeline::InitOnce() {
   ASSERT(recorder_ == NULL);
   // Default to ring recorder being enabled.
   const bool use_ring_recorder = true;
   // Some flags require that we use the endless recorder.
-  const bool use_endless_recorder = (FLAG_timeline_dir != NULL);
+  const bool use_endless_recorder =
+      (FLAG_timeline_dir != NULL) || FLAG_timing;
   if (use_endless_recorder) {
     recorder_ = new TimelineEventEndlessRecorder();
   } else if (use_ring_recorder) {
     recorder_ = new TimelineEventRingRecorder();
   }
   vm_stream_ = new TimelineStream();
-  vm_stream_->Init("VM", EnableStreamByDefault("VM"));
+  vm_stream_->Init("VM", EnableStreamByDefault("VM"), NULL);
+  // Global overrides.
+#define ISOLATE_TIMELINE_STREAM_FLAG_DEFAULT(name, not_used)                   \
+  stream_##name##_enabled_ = false;
+  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_FLAG_DEFAULT)
+#undef ISOLATE_TIMELINE_STREAM_FLAG_DEFAULT
 }
 
 
@@ -56,7 +125,7 @@ TimelineEventRecorder* Timeline::recorder() {
 
 bool Timeline::EnableStreamByDefault(const char* stream_name) {
   // TODO(johnmccutchan): Allow for command line control over streams.
-  return FLAG_timeline_dir != NULL;
+  return (FLAG_timeline_dir != NULL) || FLAG_timing;
 }
 
 
@@ -66,8 +135,51 @@ TimelineStream* Timeline::GetVMStream() {
 }
 
 
+void Timeline::ReclaimIsolateBlocks() {
+  ReclaimBlocksForIsolate(Isolate::Current());
+}
+
+
+class ReclaimBlocksIsolateVisitor : public IsolateVisitor {
+ public:
+  ReclaimBlocksIsolateVisitor() {}
+
+  virtual void VisitIsolate(Isolate* isolate) {
+    Timeline::ReclaimBlocksForIsolate(isolate);
+  }
+
+ private:
+};
+
+
+void Timeline::ReclaimAllBlocks() {
+  if (recorder() == NULL) {
+    return;
+  }
+  // Reclaim all blocks cached for all isolates.
+  ReclaimBlocksIsolateVisitor visitor;
+  Isolate::VisitIsolates(&visitor);
+  // Reclaim the global VM block.
+  recorder()->ReclaimGlobalBlock();
+}
+
+
+void Timeline::ReclaimBlocksForIsolate(Isolate* isolate) {
+  if (recorder() == NULL) {
+    return;
+  }
+  ASSERT(isolate != NULL);
+  isolate->ReclaimTimelineBlocks();
+}
+
+
 TimelineEventRecorder* Timeline::recorder_ = NULL;
 TimelineStream* Timeline::vm_stream_ = NULL;
+
+#define ISOLATE_TIMELINE_STREAM_DEFINE_FLAG(name, enabled_by_default)          \
+  bool Timeline::stream_##name##_enabled_ = false;
+  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_DEFINE_FLAG)
+#undef ISOLATE_TIMELINE_STREAM_DEFINE_FLAG
 
 TimelineEvent::TimelineEvent()
     : timestamp0_(0),
@@ -98,7 +210,7 @@ void TimelineEvent::Reset() {
 
 void TimelineEvent::AsyncBegin(const char* label, int64_t async_id) {
   Init(kAsyncBegin, label);
-  timestamp0_ = OS::GetCurrentTimeMicros();
+  timestamp0_ = OS::GetCurrentTraceMicros();
   // Overload timestamp1_ with the async_id.
   timestamp1_ = async_id;
 }
@@ -107,7 +219,7 @@ void TimelineEvent::AsyncBegin(const char* label, int64_t async_id) {
 void TimelineEvent::AsyncInstant(const char* label,
                                  int64_t async_id) {
   Init(kAsyncInstant, label);
-  timestamp0_ = OS::GetCurrentTimeMicros();
+  timestamp0_ = OS::GetCurrentTraceMicros();
   // Overload timestamp1_ with the async_id.
   timestamp1_ = async_id;
 }
@@ -116,7 +228,7 @@ void TimelineEvent::AsyncInstant(const char* label,
 void TimelineEvent::AsyncEnd(const char* label,
                              int64_t async_id) {
   Init(kAsyncEnd, label);
-  timestamp0_ = OS::GetCurrentTimeMicros();
+  timestamp0_ = OS::GetCurrentTraceMicros();
   // Overload timestamp1_ with the async_id.
   timestamp1_ = async_id;
 }
@@ -124,18 +236,18 @@ void TimelineEvent::AsyncEnd(const char* label,
 
 void TimelineEvent::DurationBegin(const char* label) {
   Init(kDuration, label);
-  timestamp0_ = OS::GetCurrentTimeMicros();
+  timestamp0_ = OS::GetCurrentTraceMicros();
 }
 
 
 void TimelineEvent::DurationEnd() {
-  timestamp1_ = OS::GetCurrentTimeMicros();
+  timestamp1_ = OS::GetCurrentTraceMicros();
 }
 
 
 void TimelineEvent::Instant(const char* label) {
   Init(kInstant, label);
-  timestamp0_ = OS::GetCurrentTimeMicros();
+  timestamp0_ = OS::GetCurrentTraceMicros();
 }
 
 
@@ -228,7 +340,7 @@ void TimelineEvent::Init(EventType event_type,
   set_event_type(event_type);
   timestamp0_ = 0;
   timestamp1_ = 0;
-  thread_ = OSThread::GetCurrentThreadId();
+  thread_ = OSThread::GetCurrentThreadTraceId();
   isolate_ = Isolate::Current();
   label_ = label;
   FreeArguments();
@@ -243,12 +355,12 @@ void TimelineEvent::PrintJSON(JSONStream* stream) const {
   obj.AddProperty("cat", category_);
   obj.AddProperty64("tid", tid);
   obj.AddProperty64("pid", pid);
-  obj.AddPropertyTimeMillis("ts", TimeOrigin());
+  obj.AddPropertyTimeMicros("ts", TimeOrigin());
 
   switch (event_type()) {
     case kDuration: {
       obj.AddProperty("ph", "X");
-      obj.AddPropertyTimeMillis("dur", TimeDuration());
+      obj.AddPropertyTimeMicros("dur", TimeDuration());
     }
     break;
     case kInstant: {
@@ -297,7 +409,7 @@ int64_t TimelineEvent::AsyncId() const {
 int64_t TimelineEvent::TimeDuration() const {
   if (timestamp1_ == 0) {
     // This duration is still open, use current time as end.
-    return OS::GetCurrentTimeMicros() - timestamp0_;
+    return OS::GetCurrentTraceMicros() - timestamp0_;
   }
   return timestamp1_ - timestamp0_;
 }
@@ -305,19 +417,23 @@ int64_t TimelineEvent::TimeDuration() const {
 
 TimelineStream::TimelineStream()
     : name_(NULL),
-      enabled_(false) {
+      enabled_(false),
+      globally_enabled_(NULL) {
 }
 
 
-void TimelineStream::Init(const char* name, bool enabled) {
+void TimelineStream::Init(const char* name,
+                          bool enabled,
+                          const bool* globally_enabled) {
   name_ = name;
   enabled_ = enabled;
+  globally_enabled_ = globally_enabled;
 }
 
 
 TimelineEvent* TimelineStream::StartEvent() {
   TimelineEventRecorder* recorder = Timeline::recorder();
-  if (!enabled_ || (recorder == NULL)) {
+  if (!Enabled() || (recorder == NULL)) {
     return NULL;
   }
   ASSERT(name_ != NULL);
@@ -374,9 +490,11 @@ void TimelineEventRecorder::PrintJSONMeta(JSONArray* events) const {
 
 
 TimelineEvent* TimelineEventRecorder::ThreadBlockStartEvent() {
-  // Grab the thread's timeline event block.
+  // Grab the current thread.
   Thread* thread = Thread::Current();
   ASSERT(thread != NULL);
+  // We are accessing the thread's timeline block- so take the lock.
+  MutexLocker ml(thread->timeline_block_lock());
 
   if (thread->isolate() == NULL) {
     // Non-isolate thread case. This should be infrequent.
@@ -410,6 +528,10 @@ TimelineEvent* TimelineEventRecorder::ThreadBlockStartEvent() {
 
 TimelineEvent* TimelineEventRecorder::GlobalBlockStartEvent() {
   MutexLocker ml(&lock_);
+  if (FLAG_trace_timeline) {
+    OS::Print("GlobalBlockStartEvent in block %p for thread %" Px "\n",
+              global_block_, OSThread::CurrentCurrentThreadIdAsIntPtr());
+  }
   if ((global_block_ != NULL) && global_block_->IsFull()) {
     // Global block is full.
     global_block_->Finish();
@@ -418,6 +540,7 @@ TimelineEvent* TimelineEventRecorder::GlobalBlockStartEvent() {
   if (global_block_ == NULL) {
     // Allocate a new block.
     global_block_ = GetNewBlockLocked(NULL);
+    ASSERT(global_block_ != NULL);
   }
   if (global_block_ != NULL) {
     ASSERT(!global_block_->IsFull());
@@ -435,17 +558,15 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
     return;
   }
 
-  FinishGlobalBlock();
+  Timeline::ReclaimAllBlocks();
 
   JSONStream js;
   TimelineEventFilter filter;
   PrintJSON(&js, &filter);
 
-  const char* format = "%s/dart-timeline-%" Pd ".json";
   intptr_t pid = OS::ProcessId();
-  intptr_t len = OS::SNPrint(NULL, 0, format, directory, pid);
-  char* filename = reinterpret_cast<char*>(malloc(len + 1));
-  OS::SNPrint(filename, len + 1, format, directory, pid);
+  char* filename = OS::SCreate(NULL,
+      "%s/dart-timeline-%" Pd ".json", directory, pid);
   void* file = (*file_open)(filename, true);
   if (file == NULL) {
     OS::Print("Failed to write timeline file: %s\n", filename);
@@ -458,7 +579,7 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
 }
 
 
-void TimelineEventRecorder::FinishGlobalBlock() {
+void TimelineEventRecorder::ReclaimGlobalBlock() {
   MutexLocker ml(&lock_);
   if (global_block_ != NULL) {
     global_block_->Finish();
@@ -472,6 +593,15 @@ int64_t TimelineEventRecorder::GetNextAsyncId() {
   uint32_t next = static_cast<uint32_t>(
       AtomicOperations::FetchAndIncrement(&async_id_));
   return static_cast<int64_t>(next);
+}
+
+
+void TimelineEventRecorder::FinishBlock(TimelineEventBlock* block) {
+  if (block == NULL) {
+    return;
+  }
+  MutexLocker ml(&lock_);
+  block->Finish();
 }
 
 
@@ -551,6 +681,13 @@ void TimelineEventRingRecorder::PrintJSON(JSONStream* js,
 }
 
 
+void TimelineEventRingRecorder::PrintTraceEvent(JSONStream* js,
+                                                TimelineEventFilter* filter) {
+  JSONArray events(js);
+  PrintJSONEvents(&events, filter);
+}
+
+
 TimelineEventBlock* TimelineEventRingRecorder::GetHeadBlockLocked() {
   return blocks_[0];
 }
@@ -617,6 +754,13 @@ void TimelineEventStreamingRecorder::PrintJSON(JSONStream* js,
 }
 
 
+void TimelineEventStreamingRecorder::PrintTraceEvent(
+    JSONStream* js,
+    TimelineEventFilter* filter) {
+  JSONArray events(js);
+}
+
+
 TimelineEvent* TimelineEventStreamingRecorder::StartEvent() {
   TimelineEvent* event = new TimelineEvent();
   return event;
@@ -632,7 +776,6 @@ void TimelineEventStreamingRecorder::CompleteEvent(TimelineEvent* event) {
 TimelineEventEndlessRecorder::TimelineEventEndlessRecorder()
     : head_(NULL),
       block_index_(0) {
-  GetNewBlock();
 }
 
 
@@ -646,6 +789,14 @@ void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
     PrintJSONMeta(&events);
     PrintJSONEvents(&events, filter);
   }
+}
+
+
+void TimelineEventEndlessRecorder::PrintTraceEvent(
+    JSONStream* js,
+    TimelineEventFilter* filter) {
+  JSONArray events(js);
+  PrintJSONEvents(&events, filter);
 }
 
 
@@ -670,6 +821,14 @@ TimelineEventBlock* TimelineEventEndlessRecorder::GetNewBlockLocked(
   block->set_next(head_);
   block->Open(isolate);
   head_ = block;
+  if (FLAG_trace_timeline) {
+    if (isolate != NULL) {
+      OS::Print("Created new isolate block %p for %s\n",
+                block, isolate->name());
+    } else {
+      OS::Print("Created new global block %p\n", block);
+    }
+  }
   return head_;
 }
 
@@ -714,7 +873,9 @@ void TimelineEventEndlessRecorder::Clear() {
 TimelineEventBlock::TimelineEventBlock(intptr_t block_index)
     : next_(NULL),
       length_(0),
-      block_index_(block_index) {
+      block_index_(block_index),
+      isolate_(NULL),
+      in_use_(false) {
 }
 
 
@@ -725,6 +886,10 @@ TimelineEventBlock::~TimelineEventBlock() {
 
 TimelineEvent* TimelineEventBlock::StartEvent() {
   ASSERT(!IsFull());
+  if (FLAG_trace_timeline) {
+    OS::Print("StartEvent in block %p for thread %" Px "\n",
+              this, OSThread::CurrentCurrentThreadIdAsIntPtr());
+  }
   return &events_[length_++];
 }
 
@@ -774,18 +939,21 @@ void TimelineEventBlock::Reset() {
   }
   length_ = 0;
   isolate_ = NULL;
-  open_ = false;
+  in_use_ = false;
 }
 
 
 void TimelineEventBlock::Open(Isolate* isolate) {
   isolate_ = isolate;
-  open_ = true;
+  in_use_ = true;
 }
 
 
 void TimelineEventBlock::Finish() {
-  open_ = false;
+  if (FLAG_trace_timeline) {
+    OS::Print("Finish block %p\n", this);
+  }
+  in_use_ = false;
 }
 
 

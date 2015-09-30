@@ -17,6 +17,9 @@ issue14236_test: Pass # Do not remove this line. It serves as a marker for Issue
 
 javascript_compatibility_errors_test/none: Fail, OK  # Not possible to exclude or annotate with '/// none:'
 
+[ $runtime != vm && ($runtime != drt || $compiler != none)) ]
+no_assert_test: Fail, OK # This is testing a vm flag.
+
 [ $runtime == vm ]
 package/package_isolate_test: Fail # Issue 12474
 io/observatory_test: Fail
@@ -58,6 +61,7 @@ javascript_compatibility_warnings_test: Skip
 oom_error_stacktrace_test: Skip
 out_of_memory_test: Skip
 verbose_gc_to_bmu_test: Skip
+precompilation_test: Skip # Standalone only test.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 javascript_int_overflow_literal_test/01: Fail, OK
@@ -100,6 +104,13 @@ javascript_compatibility_errors_test: Skip
 javascript_compatibility_warnings_test: Skip
 unboxed_int_converter_test: Skip
 pair_location_remapping_test: Skip
+precompilation_test: Skip # Standalone only test.
+
+[ $runtime == vm && $arch == ia32]
+precompilation_test: Skip # Not expected to pass on ia32.
+
+[ $runtime == vm && $arch == arm]
+precompilation_test: Skip # Issue 24427
 
 [ $compiler == dart2js && $jscl ]
 assert_test: RuntimeError, OK # Assumes unspecified fields on the AssertionError.
@@ -195,11 +206,4 @@ io/secure_socket_renegotiate_test: RuntimeError
 io/secure_socket_bad_data_test: RuntimeError  # An error in a secure connection just puts a READ_CLOSED on the stream, rather than signaling an error on the stream.
 
 [ $compiler == dart2js && $cps_ir ]
-coverage_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
-io/addlatexhash_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
-io/file_error_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
-io/file_read_encoded_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
-io/file_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
-io/http_client_connect_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
-io/skipping_dart2js_compilations_test: Crash # (static Iterable<Str...  cannot handle sync*/async* functions
 priority_queue_stress_test: RuntimeError # Cannot read property 'length' of undefined

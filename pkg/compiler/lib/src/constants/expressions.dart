@@ -17,8 +17,10 @@ import '../elements/elements.dart' show
     PrefixElement,
     VariableElement;
 import '../resolution/operators.dart';
-import '../tree/tree.dart' show DartString;
-import '../universe/universe.dart' show CallStructure;
+import '../tree/tree.dart' show
+    DartString;
+import '../universe/call_structure.dart' show
+    CallStructure;
 import 'evaluation.dart';
 import 'values.dart';
 
@@ -1563,7 +1565,7 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
 
   @override
   void visitDeferred(DeferredConstantExpression exp, context) {
-    sb.write(exp.prefix.deferredImport.prefix.source);
+    sb.write(exp.prefix.name);
     sb.write('.');
     write(exp, exp.expression);
   }

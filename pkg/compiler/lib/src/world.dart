@@ -11,10 +11,7 @@ import 'common/backend_api.dart' show
 import 'common/registry.dart' show
     Registry;
 import 'compiler.dart' show
-    invariant,
-    Backend,
-    Compiler,
-    Registry;
+    Compiler;
 import 'dart_types.dart';
 import 'diagnostics/invariant.dart' show
     invariant;
@@ -27,11 +24,13 @@ import 'elements/elements.dart' show
     VariableElement;
 import 'ordered_typeset.dart';
 import 'types/types.dart' as ti;
-import 'universe/universe.dart' show
-    FunctionSet,
-    Selector,
-    SideEffects;
 import 'universe/class_set.dart';
+import 'universe/function_set.dart' show
+    FunctionSet;
+import 'universe/selector.dart' show
+    Selector;
+import 'universe/side_effects.dart' show
+    SideEffects;
 import 'util/util.dart' show
     Link;
 
@@ -67,6 +66,9 @@ abstract class ClassWorld {
   /// Returns `true` if [cls] is instantiated.
   bool isInstantiated(ClassElement cls);
 
+  /// Returns `true` if [cls] is implemented by an instantiated class.
+  bool isImplemented(ClassElement cls);
+
   /// Returns `true` if the class world is closed.
   bool get isClosed;
 
@@ -88,6 +90,9 @@ abstract class ClassWorld {
   /// Returns an iterable over the live classes that implement [cls] _not_
   /// including [cls] if it is live.
   Iterable<ClassElement> strictSubtypesOf(ClassElement cls);
+
+  /// Returns `true` if [a] and [b] have any known common subtypes.
+  bool haveAnyCommonSubtypes(ClassElement a, ClassElement b);
 
   /// Returns `true` if any live class other than [cls] extends [cls].
   bool hasAnyStrictSubclass(ClassElement cls);
@@ -121,6 +126,9 @@ abstract class ClassWorld {
   /// Returns `true` if closed-world assumptions can be made, that is,
   /// incremental compilation isn't enabled.
   bool get hasClosedWorldAssumption;
+
+  /// Returns a string representation of the closed world.
+  String dump();
 }
 
 class World implements ClassWorld {
@@ -143,10 +151,11 @@ class World implements ClassWorld {
       invariant(cls, cls.isDeclaration,
                 message: '$cls must be the declaration.') &&
       invariant(cls, cls.isResolved,
-                message: '$cls must be resolved.') &&
+                message: '$cls must be resolved.')/* &&
+      // TODO(johnniwinther): Reinsert this or similar invariant.
       (!mustBeInstantiated ||
        invariant(cls, isInstantiated(cls),
-                 message: '$cls is not instantiated.'));
+                 message: '$cls is not instantiated.'))*/;
  }
 
   /// Returns `true` if [x] is a subtype of [y], that is, if [x] implements an
@@ -176,9 +185,15 @@ class World implements ClassWorld {
     return false;
   }
 
-  /// Returns `true` if [cls] is instantiated.
+  /// Returns `true` if [cls] is instantiated either directly or through a
+  /// subclass.
   bool isInstantiated(ClassElement cls) {
     return compiler.resolverWorld.isInstantiated(cls);
+  }
+
+  /// Returns `true` if [cls] is implemented by an instantiated class.
+  bool isImplemented(ClassElement cls) {
+    return compiler.resolverWorld.isImplemented(cls);
   }
 
   /// Returns an iterable over the directly instantiated classes that extend
@@ -214,6 +229,21 @@ class World implements ClassWorld {
           includeIndirectlyInstantiated: false,
           includeUninstantiated: false);
     }
+  }
+
+  /// Returns `true` if [a] and [b] have any known common subtypes.
+  bool haveAnyCommonSubtypes(ClassElement a, ClassElement b) {
+    ClassSet classSetA = _classSets[a.declaration];
+    ClassSet classSetB = _classSets[b.declaration];
+    if (classSetA == null || classSetB == null) return false;
+    // TODO(johnniwinther): Implement an optimized query on [ClassSet].
+    Set<ClassElement> subtypesOfB = classSetB.subtypes().toSet();
+    for (ClassElement subtypeOfA in classSetA.subtypes()) {
+      if (subtypesOfB.contains(subtypeOfA)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /// Returns `true` if any directly instantiated class other than [cls] extends
@@ -291,9 +321,23 @@ class World implements ClassWorld {
     if (_liveMixinUses == null) {
       _liveMixinUses = new Map<ClassElement, List<MixinApplicationElement>>();
       for (ClassElement mixin in _mixinUses.keys) {
-        Iterable<MixinApplicationElement> uses =
-            _mixinUses[mixin].where(isInstantiated);
-        if (uses.isNotEmpty) _liveMixinUses[mixin] = uses.toList();
+        List<MixinApplicationElement> uses = <MixinApplicationElement>[];
+
+        void addLiveUse(MixinApplicationElement mixinApplication) {
+          if (isInstantiated(mixinApplication)) {
+            uses.add(mixinApplication);
+          } else if (mixinApplication.isNamedMixinApplication) {
+            List<MixinApplicationElement> next = _mixinUses[mixinApplication];
+            if (next != null) {
+              next.forEach(addLiveUse);
+            }
+          }
+        }
+
+        _mixinUses[mixin].forEach(addLiveUse);
+        if (uses.isNotEmpty) {
+          _liveMixinUses[mixin] = uses;
+        }
       }
     }
     Iterable<MixinApplicationElement> uses = _liveMixinUses[cls];
@@ -358,11 +402,6 @@ class World implements ClassWorld {
   final Set<Element> alreadyPopulated;
 
   bool get isClosed => compiler.phase > Compiler.PHASE_RESOLVING;
-
-  // Used by selectors.
-  bool isAssertMethod(Element element) {
-    return compiler.backend.isAssertMethod(element);
-  }
 
   // Used by selectors.
   bool isForeign(Element element) {
@@ -485,6 +524,15 @@ class World implements ClassWorld {
     // they also need RTI, so that a constructor passes the type
     // variables to the super constructor.
     compiler.resolverWorld.directlyInstantiatedClasses.forEach(addSubtypes);
+  }
+
+  @override
+  String dump() {
+    StringBuffer sb = new StringBuffer();
+    sb.write("Instantiated classes in the closed world:\n");
+    getClassHierarchyNode(compiler.objectClass)
+        .printOn(sb, ' ', instantiatedOnly: true);
+    return sb.toString();
   }
 
   void registerMixinUse(MixinApplicationElement mixinApplication,

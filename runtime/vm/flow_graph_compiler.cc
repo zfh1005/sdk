@@ -28,6 +28,8 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, allow_absolute_addresses, true,
+    "Allow embedding absolute addresses in generated code.");
 DEFINE_FLAG(bool, always_megamorphic_calls, false,
     "Instance call always as megamorphic.");
 DEFINE_FLAG(bool, enable_simd_inline, true,
@@ -51,6 +53,7 @@ DECLARE_FLAG(charp, deoptimize_filter);
 DECLARE_FLAG(bool, disassemble);
 DECLARE_FLAG(bool, disassemble_optimized);
 DECLARE_FLAG(bool, emit_edge_counters);
+DECLARE_FLAG(bool, fields_may_be_reset);
 DECLARE_FLAG(bool, guess_other_cid);
 DECLARE_FLAG(bool, ic_range_profiling);
 DECLARE_FLAG(bool, intrinsify);
@@ -114,12 +117,18 @@ DECLARE_FLAG(bool, link_natives_lazily);
 
 static void PrecompileModeHandler(bool value) {
   if (value) {
+#if defined(TARGET_ARCH_IA32)
+    FATAL("Precompilation not supported on IA32");
+#endif
+
     NooptModeHandler(true);
     FLAG_lazy_dispatchers = false;
     FLAG_interpret_irregexp = true;
     FLAG_enable_mirrors = false;
     FLAG_precompile_collect_closures = true;
     FLAG_link_natives_lazily = true;
+    FLAG_fields_may_be_reset = true;
+    FLAG_allow_absolute_addresses = false;
   }
 }
 
@@ -197,10 +206,9 @@ FlowGraphCompiler::FlowGraphCompiler(
                 LookupClass(Symbols::List()))),
         parallel_move_resolver_(this),
         pending_deoptimization_env_(NULL),
-        entry_patch_pc_offset_(Code::kInvalidPc),
-        patch_code_pc_offset_(Code::kInvalidPc),
         lazy_deopt_pc_offset_(Code::kInvalidPc),
         deopt_id_to_ic_data_(NULL),
+        edge_counters_array_(Array::ZoneHandle()),
         inlined_code_intervals_(Array::ZoneHandle(Object::empty_array().raw())),
         inline_id_to_function_(inline_id_to_function),
         caller_inline_id_(caller_inline_id) {
@@ -213,14 +221,15 @@ FlowGraphCompiler::FlowGraphCompiler(
     for (intptr_t i = 0; i < len; i++) {
       (*deopt_id_to_ic_data_)[i] = NULL;
     }
-    const Array& old_saved_icdata = Array::Handle(zone(),
+    // TODO(fschneider): Abstract iteration into ICDataArrayIterator.
+    const Array& old_saved_ic_data = Array::Handle(zone(),
         flow_graph->function().ic_data_array());
     const intptr_t saved_len =
-        old_saved_icdata.IsNull() ? 0 : old_saved_icdata.Length();
-    for (intptr_t i = 0; i < saved_len; i++) {
-      ICData& icd = ICData::ZoneHandle(zone());
-      icd ^= old_saved_icdata.At(i);
-      (*deopt_id_to_ic_data_)[icd.deopt_id()] = &icd;
+        old_saved_ic_data.IsNull() ? 0 : old_saved_ic_data.Length();
+    for (intptr_t i = 1; i < saved_len; i++) {
+      ICData& ic_data = ICData::ZoneHandle(zone());
+      ic_data ^= old_saved_ic_data.At(i);
+      (*deopt_id_to_ic_data_)[ic_data.deopt_id()] = &ic_data;
     }
   }
   ASSERT(assembler != NULL);
@@ -274,6 +283,17 @@ void FlowGraphCompiler::InitCompiler() {
     // Remove the stack overflow check at function entry.
     Instruction* first = flow_graph_.graph_entry()->normal_entry()->next();
     if (first->IsCheckStackOverflow()) first->RemoveFromGraph();
+  }
+  if (!is_optimizing()) {
+    // Initialize edge counter array.
+    const intptr_t num_counters = flow_graph_.preorder().length();
+    const Array& edge_counters =
+        Array::Handle(Array::New(num_counters, Heap::kOld));
+    const Smi& zero_smi = Smi::Handle(Smi::New(0));
+    for (intptr_t i = 0; i < num_counters; ++i) {
+      edge_counters.SetAt(i, zero_smi);
+    }
+    edge_counters_array_ = edge_counters.raw();
   }
 }
 
@@ -431,7 +451,7 @@ struct IntervalStruct {
   intptr_t inlining_id;
   IntervalStruct(intptr_t s, intptr_t id) : start(s), inlining_id(id) {}
   void Dump() {
-    ISL_Print("start: 0x%" Px " iid: %" Pd " ",  start, inlining_id);
+    THR_Print("start: 0x%" Px " iid: %" Pd " ",  start, inlining_id);
   }
 };
 
@@ -520,7 +540,7 @@ void FlowGraphCompiler::VisitBlocks() {
   }
 
   if (is_optimizing()) {
-    LogBlock lb(Thread::Current());
+    LogBlock lb;
     intervals.Add(IntervalStruct(prev_offset, prev_inlining_id));
     inlined_code_intervals_ =
         Array::New(intervals.length() * Code::kInlIntNumEntries, Heap::kOld);
@@ -532,7 +552,7 @@ void FlowGraphCompiler::VisitBlocks() {
         const Function& function =
             *inline_id_to_function_.At(intervals[i].inlining_id);
         intervals[i].Dump();
-        ISL_Print(" parent iid %" Pd " %s\n",
+        THR_Print(" parent iid %" Pd " %s\n",
             caller_inline_id_[intervals[i].inlining_id],
             function.ToQualifiedCString());
       }
@@ -549,10 +569,10 @@ void FlowGraphCompiler::VisitBlocks() {
   }
   set_current_block(NULL);
   if (FLAG_trace_inlining_intervals && is_optimizing()) {
-    LogBlock lb(Isolate::Current());
-    ISL_Print("Intervals:\n");
+    LogBlock lb;
+    THR_Print("Intervals:\n");
     for (intptr_t cc = 0; cc < caller_inline_id_.length(); cc++) {
-      ISL_Print("  iid: %" Pd " caller iid: %" Pd "\n",
+      THR_Print("  iid: %" Pd " caller iid: %" Pd "\n",
           cc, caller_inline_id_[cc]);
     }
     Smi& temp = Smi::Handle();
@@ -560,9 +580,9 @@ void FlowGraphCompiler::VisitBlocks() {
          i += Code::kInlIntNumEntries) {
       temp ^= inlined_code_intervals_.At(i + Code::kInlIntStart);
       ASSERT(!temp.IsNull());
-      ISL_Print("% " Pd " start: 0x%" Px " ", i, temp.Value());
+      THR_Print("% " Pd " start: 0x%" Px " ", i, temp.Value());
       temp ^= inlined_code_intervals_.At(i + Code::kInlIntInliningId);
-      ISL_Print("iid: %" Pd " ", temp.Value());
+      THR_Print("iid: %" Pd " ", temp.Value());
     }
   }
 }
@@ -917,8 +937,6 @@ void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
       pc_descriptors_list_->FinalizePcDescriptors(code.EntryPoint()));
   if (!is_optimizing_) descriptors.Verify(parsed_function_.function());
   code.set_pc_descriptors(descriptors);
-  code.set_entry_patch_pc_offset(entry_patch_pc_offset_);
-  code.set_patch_code_pc_offset(patch_code_pc_offset_);
   code.set_lazy_deopt_pc_offset(lazy_deopt_pc_offset_);
 }
 

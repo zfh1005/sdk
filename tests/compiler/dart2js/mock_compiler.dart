@@ -74,6 +74,7 @@ class MockCompiler extends Compiler {
   MockCompiler.internal(
       {Map<String, String> coreSource,
        bool enableTypeAssertions: false,
+       bool enableUserAssertions: false,
        bool enableMinification: false,
        bool enableConcreteTypeInference: false,
        int maxConcreteTypeSize: 5,
@@ -95,6 +96,8 @@ class MockCompiler extends Compiler {
       : sourceFiles = new Map<String, SourceFile>(),
         testedPatchVersion = patchVersion,
         super(enableTypeAssertions: enableTypeAssertions,
+              enableUserAssertions: enableUserAssertions,
+              enableAssertMessage: true,
               enableMinification: enableMinification,
               enableConcreteTypeInference: enableConcreteTypeInference,
               maxConcreteTypeSize: maxConcreteTypeSize,
@@ -191,37 +194,41 @@ class MockCompiler extends Compiler {
 
   // TODO(johnniwinther): Remove this when we don't filter certain type checker
   // warnings.
-  void reportWarning(Spannable node, MessageKind messageKind,
-                     [Map arguments = const {}]) {
-    MessageTemplate template = MessageTemplate.TEMPLATES[messageKind];
-    reportDiagnostic(node,
-                     template.message(arguments, terseDiagnostics),
-                     api.Diagnostic.WARNING);
+  void reportWarning(
+      DiagnosticMessage message,
+      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
+    reportDiagnostic(message, infos, api.Diagnostic.WARNING);
   }
 
-  void reportDiagnostic(Spannable node,
-                        Message message,
+  void reportDiagnostic(DiagnosticMessage message,
+                        List<DiagnosticMessage> infoMessages,
                         api.Diagnostic kind) {
-    var diagnostic = new WarningMessage(node, message);
-    if (kind == api.Diagnostic.CRASH) {
-      crashes.add(diagnostic);
-    } else if (kind == api.Diagnostic.ERROR) {
-      errors.add(diagnostic);
-    } else if (kind == api.Diagnostic.WARNING) {
-      warnings.add(diagnostic);
-    } else if (kind == api.Diagnostic.INFO) {
-      infos.add(diagnostic);
-    } else if (kind == api.Diagnostic.HINT) {
-      hints.add(diagnostic);
-    }
-    if (diagnosticHandler != null) {
-      SourceSpan span = spanFromSpannable(node);
-      if (span != null) {
-        diagnosticHandler(span.uri, span.begin, span.end, '$message', kind);
-      } else {
-        diagnosticHandler(null, null, null, '$message', kind);
+
+    void processMessage(DiagnosticMessage message, api.Diagnostic kind) {
+      var diagnostic = new WarningMessage(message.spannable, message.message);
+      if (kind == api.Diagnostic.CRASH) {
+        crashes.add(diagnostic);
+      } else if (kind == api.Diagnostic.ERROR) {
+        errors.add(diagnostic);
+      } else if (kind == api.Diagnostic.WARNING) {
+        warnings.add(diagnostic);
+      } else if (kind == api.Diagnostic.INFO) {
+        infos.add(diagnostic);
+      } else if (kind == api.Diagnostic.HINT) {
+        hints.add(diagnostic);
+      }
+      if (diagnosticHandler != null) {
+        SourceSpan span = message.sourceSpan;
+        if (span != null) {
+          diagnosticHandler(span.uri, span.begin, span.end, '$message', kind);
+        } else {
+          diagnosticHandler(null, null, null, '$message', kind);
+        }
       }
     }
+
+    processMessage(message, kind);
+    infoMessages.forEach((i) => processMessage(i, api.Diagnostic.INFO));
   }
 
   bool get compilationFailed => !crashes.isEmpty || !errors.isEmpty;
@@ -279,7 +286,7 @@ class MockCompiler extends Compiler {
   }
 
   Uri translateResolvedUri(LibraryElement importingLibrary,
-                           Uri resolvedUri, Node node) => resolvedUri;
+                           Uri resolvedUri, Spannable spannable) => resolvedUri;
 
   // The mock library doesn't need any patches.
   Uri resolvePatchUri(String dartLibraryName) {
@@ -370,7 +377,8 @@ void compareMessageKinds(String text,
   }
   if (foundIterator.hasNext) {
     do {
-      print('Additional $kind "${foundIterator.next()}"');
+      WarningMessage message = foundIterator.next();
+      print('Additional $kind "${message}: ${message.message}"');
     } while (foundIterator.hasNext);
     fail('Too many ${kind}s');
   }
@@ -435,4 +443,34 @@ class MockElement extends FunctionElementX {
   parseNode(_) => null;
 
   bool get hasNode => false;
+}
+
+// TODO(herhut): Disallow warnings and errors during compilation by default.
+MockCompiler compilerFor(String code, Uri uri,
+                         {bool analyzeAll: false,
+                          bool analyzeOnly: false,
+                          Map<String, String> coreSource,
+                          bool disableInlining: true,
+                          bool minify: false,
+                          bool trustTypeAnnotations: false,
+                          bool enableTypeAssertions: false,
+                          bool enableUserAssertions: false,
+                          int expectedErrors,
+                          int expectedWarnings,
+                          api.CompilerOutputProvider outputProvider}) {
+  MockCompiler compiler = new MockCompiler.internal(
+      analyzeAll: analyzeAll,
+      analyzeOnly: analyzeOnly,
+      coreSource: coreSource,
+      disableInlining: disableInlining,
+      enableMinification: minify,
+      trustTypeAnnotations: trustTypeAnnotations,
+      enableTypeAssertions: enableTypeAssertions,
+      enableUserAssertions: enableUserAssertions,
+      expectedErrors: expectedErrors,
+      expectedWarnings: expectedWarnings,
+      outputProvider: outputProvider);
+  compiler.registerSource(uri, code);
+  compiler.diagnosticHandler = createHandler(compiler, code);
+  return compiler;
 }

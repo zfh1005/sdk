@@ -1,10 +1,10 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 library domains.analysis.navigation_dart;
 
-import 'package:analysis_server/analysis/navigation/navigation_core.dart';
+import 'package:analysis_server/analysis/navigation_core.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -37,6 +37,52 @@ class DartNavigationComputer implements NavigationContributor {
         }
       }
     }
+  }
+}
+
+/**
+ * A Dart specific wrapper around [NavigationCollector].
+ */
+class _DartNavigationCollector {
+  final NavigationCollector collector;
+
+  _DartNavigationCollector(this.collector);
+
+  void _addRegion(int offset, int length, Element element) {
+    if (element is FieldFormalParameterElement) {
+      element = (element as FieldFormalParameterElement).field;
+    }
+    if (element == null || element == DynamicElementImpl.instance) {
+      return;
+    }
+    if (element.location == null) {
+      return;
+    }
+    protocol.ElementKind kind =
+        protocol.newElementKind_fromEngine(element.kind);
+    protocol.Location location = protocol.newLocation_fromElement(element);
+    if (location == null) {
+      return;
+    }
+    collector.addRegion(offset, length, kind, location);
+  }
+
+  void _addRegion_nodeStart_nodeEnd(AstNode a, AstNode b, Element element) {
+    int offset = a.offset;
+    int length = b.end - offset;
+    _addRegion(offset, length, element);
+  }
+
+  void _addRegionForNode(AstNode node, Element element) {
+    int offset = node.offset;
+    int length = node.length;
+    _addRegion(offset, length, element);
+  }
+
+  void _addRegionForToken(Token token, Element element) {
+    int offset = token.offset;
+    int length = token.length;
+    _addRegion(offset, length, element);
   }
 }
 
@@ -130,6 +176,11 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
   }
 
   @override
+  visitLibraryDirective(LibraryDirective node) {
+    computer._addRegionForNode(node.name, node.element);
+  }
+
+  @override
   visitPartDirective(PartDirective node) {
     _addUriDirectiveRegion(node, node.element);
     super.visitPartDirective(node);
@@ -137,8 +188,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
 
   @override
   visitPartOfDirective(PartOfDirective node) {
-    computer._addRegion_tokenStart_nodeEnd(
-        node.keyword, node.libraryName, node.element);
+    computer._addRegionForNode(node.libraryName, node.element);
     super.visitPartOfDirective(node);
   }
 
@@ -220,58 +270,6 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
     if (node != null) {
       node.accept(this);
     }
-  }
-}
-
-/**
- * A Dart specific wrapper around [NavigationCollector].
- */
-class _DartNavigationCollector {
-  final NavigationCollector collector;
-
-  _DartNavigationCollector(this.collector);
-
-  void _addRegion(int offset, int length, Element element) {
-    if (element is FieldFormalParameterElement) {
-      element = (element as FieldFormalParameterElement).field;
-    }
-    if (element == null || element == DynamicElementImpl.instance) {
-      return;
-    }
-    if (element.location == null) {
-      return;
-    }
-    protocol.ElementKind kind =
-        protocol.newElementKind_fromEngine(element.kind);
-    protocol.Location location = protocol.newLocation_fromElement(element);
-    if (location == null) {
-      return;
-    }
-    collector.addRegion(offset, length, kind, location);
-  }
-
-  void _addRegion_nodeStart_nodeEnd(AstNode a, AstNode b, Element element) {
-    int offset = a.offset;
-    int length = b.end - offset;
-    _addRegion(offset, length, element);
-  }
-
-  void _addRegion_tokenStart_nodeEnd(Token a, AstNode b, Element element) {
-    int offset = a.offset;
-    int length = b.end - offset;
-    _addRegion(offset, length, element);
-  }
-
-  void _addRegionForNode(AstNode node, Element element) {
-    int offset = node.offset;
-    int length = node.length;
-    _addRegion(offset, length, element);
-  }
-
-  void _addRegionForToken(Token token, Element element) {
-    int offset = token.offset;
-    int length = token.length;
-    _addRegion(offset, length, element);
   }
 }
 

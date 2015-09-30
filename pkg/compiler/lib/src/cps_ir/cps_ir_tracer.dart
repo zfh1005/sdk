@@ -5,7 +5,7 @@
 library dart2js.ir_tracer;
 
 import 'dart:async' show EventSink;
-import 'cps_ir_nodes.dart' as cps_ir hide Function;
+import 'cps_ir_nodes.dart' as cps_ir;
 import '../tracer.dart';
 
 /**
@@ -82,7 +82,10 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
       });
       tag("HIR", () {
         if (entryPointParameters != null) {
-          String params = entryPointParameters.map(names.name).join(', ');
+          String formatParameter(cps_ir.Parameter param) {
+            return '${names.name(param)} ${param.type}';
+          }
+          String params = entryPointParameters.map(formatParameter).join(', ');
           printStmt('x0', 'Entry ($params)');
         }
         for (cps_ir.Parameter param in block.parameters) {
@@ -103,7 +106,8 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
 
   visitLetPrim(cps_ir.LetPrim node) {
     String id = names.name(node.primitive);
-    printStmt(id, "LetPrim $id = ${formatPrimitive(node.primitive)}");
+    String primitive = visit(node.primitive);
+    printStmt(id, "LetPrim $id = $primitive [type=${node.primitive.type}]");
     visit(node.body);
   }
 
@@ -115,7 +119,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
         String name = names.name(cont);
         return cont.isRecursive ? '$name*' : name;
       }
-      
+
       String ids = node.continuations.map(nameContinuation).join(', ');
       printStmt(dummy, "LetCont $ids");
     }
@@ -215,7 +219,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     String value = formatReference(node.value);
     String args = node.typeArguments.map(formatReference).join(', ');
     String kont = formatReference(node.continuation);
-    printStmt(dummy, "TypeCast ($value ${node.type} ($args)) $kont");
+    printStmt(dummy, "TypeCast ($value ${node.dartType} ($args)) $kont");
   }
 
   visitInvokeContinuation(cps_ir.InvokeContinuation node) {
@@ -248,8 +252,6 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
       return names.name(ref.definition);
     }
   }
-
-  String formatPrimitive(cps_ir.Primitive p) => visit(p);
 
   visitConstant(cps_ir.Constant node) {
     return "Constant ${node.value.toStructuredString()}";
@@ -344,7 +346,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   visitTypeTest(cps_ir.TypeTest node) {
     String value = formatReference(node.value);
     String args = node.typeArguments.map(formatReference).join(', ');
-    return "TypeTest ($value ${node.type} ($args))";
+    return "TypeTest ($value ${node.dartType} ($args))";
   }
 
   visitApplyBuiltinOperator(cps_ir.ApplyBuiltinOperator node) {
@@ -392,6 +394,13 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     String value = formatReference(node.input);
     String continuation = formatReference(node.continuation);
     return 'Await $value $continuation';
+  }
+
+  @override
+  visitYield(cps_ir.Yield node) {
+    String value = formatReference(node.input);
+    String continuation = formatReference(node.continuation);
+    return 'Yield $value $continuation';
   }
 
   @override
@@ -673,9 +682,15 @@ class BlockCollector implements cps_ir.Visitor {
 
   @override
   visitAwait(cps_ir.Await node) {
-    unexpectedNode(node);
+    addEdgeToContinuation(node.continuation);
   }
 
+  @override
+  visitYield(cps_ir.Yield node) {
+    addEdgeToContinuation(node.continuation);
+  }
+
+  @override
   visitRefinement(cps_ir.Refinement node) {
     unexpectedNode(node);
   }

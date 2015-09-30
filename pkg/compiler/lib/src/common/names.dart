@@ -9,8 +9,9 @@ library dart2js.common.names;
 import '../elements/elements.dart' show
     Name,
     PublicName;
-import '../universe/universe.dart' show
-    CallStructure,
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
     Selector;
 
 /// [String]s commonly used.
@@ -18,9 +19,16 @@ class Identifiers {
   /// The name of the call operator.
   static const String call = 'call';
 
+  /// The name of the current element property used on iterators in for-each
+  /// loops.
+  static const String current = 'current';
+
   /// The name of the from environment constructors on 'int', 'bool' and
   /// 'String'.
   static const String fromEnvironment = 'fromEnvironment';
+
+  /// The name of the iterator property used in for-each loops.
+  static const String iterator = 'iterator';
 
   /// The name of the main method.
   static const String main = 'main';
@@ -39,13 +47,13 @@ class Names {
 
   /// The name of the current element property used on iterators in for-each
   /// loops.
-  static const Name current = const PublicName('current');
+  static const Name current = const PublicName(Identifiers.current);
 
   /// The name of the dynamic type.
   static const Name dynamic_ = const PublicName('dynamic');
 
   /// The name of the iterator property used in for-each loops.
-  static const Name iterator = const PublicName('iterator');
+  static const Name iterator = const PublicName(Identifiers.iterator);
 
   /// The name of the move next method used on iterators in for-each loops.
   static const Name moveNext = const PublicName('moveNext');
@@ -55,6 +63,10 @@ class Names {
 
   /// The name of the to-string method on 'Object'.
   static const Name toString_ = const PublicName('toString');
+
+  static const Name INDEX_NAME = const PublicName("[]");
+  static const Name INDEX_SET_NAME = const PublicName("[]=");
+  static const Name CALL_NAME = Names.call;
 }
 
 /// [Selector]s commonly used.

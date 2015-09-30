@@ -154,6 +154,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   Compiler get compiler => backend.compiler;
   NativeEmitter get nativeEmitter => backend.emitter.nativeEmitter;
   CodegenRegistry get registry => work.registry;
+  native.NativeEnqueuer get nativeEnqueuer {
+    return compiler.enqueuer.codegen.nativeEnqueuer;
+  }
 
   bool isGenerateAtUseSite(HInstruction instruction) {
     return generateAtUseSite.contains(instruction);
@@ -1598,8 +1601,18 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // type because our optimizations might end up in a state where the
       // invoke dynamic knows more than the receiver.
       ClassElement enclosing = node.element.enclosingClass;
-      return
-          new TypeMask.nonNullExact(enclosing.declaration, compiler.world);
+      if (compiler.world.isInstantiated(enclosing)) {
+        return new TypeMask.nonNullExact(
+            enclosing.declaration, compiler.world);
+      } else {
+        // The element is mixed in so a non-null subtype mask is the most
+        // precise we have.
+        assert(invariant(node, compiler.world.isUsedAsMixin(enclosing),
+            message: "Element ${node.element} from $enclosing expected "
+                     "to be mixed in."));
+        return new TypeMask.nonNullSubtype(
+            enclosing.declaration, compiler.world);
+      }
     }
     // If [JSInvocationMirror._invokeOn] is enabled, and this call
     // might hit a `noSuchMethod`, we register an untyped selector.
@@ -1832,11 +1845,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void registerForeignTypes(HForeign node) {
     native.NativeBehavior nativeBehavior = node.nativeBehavior;
     if (nativeBehavior == null) return;
-    nativeBehavior.typesReturned.forEach((type) {
-      if (type is InterfaceType) {
-        registry.registerInstantiatedType(type);
-      }
-    });
+    nativeEnqueuer.registerNativeBehavior(nativeBehavior, node);
   }
 
   visitForeignCode(HForeignCode node) {
@@ -2122,7 +2131,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       js.Statement thenBody = new js.Block.empty();
       js.Block oldContainer = currentContainer;
       currentContainer = thenBody;
-      generateThrowWithHelper('ioore', [node.array, node.index]);
+      generateThrowWithHelper('ioore', [node.array, node.reportedIndex]);
       currentContainer = oldContainer;
       thenBody = unwrapStatement(thenBody);
       pushStatement(new js.If.noElse(underOver, thenBody)
@@ -2694,7 +2703,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       checkString(input, '!==', input.sourceInformation);
       return pop();
     }
-    compiler.internalError(input, 'Unexpected check.');
+    compiler.internalError(input, 'Unexpected check: $checkedType.');
     return null;
   }
 

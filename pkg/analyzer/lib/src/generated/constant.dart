@@ -214,6 +214,11 @@ class ConstantEvaluationEngine {
       "^(?:${ConstantValueComputer._OPERATOR_RE}\$|$_PUBLIC_IDENTIFIER_RE(?:=?\$|[.](?!\$)))+?\$");
 
   /**
+   * The type provider used to access the known types.
+   */
+  final TypeProvider typeProvider;
+
+  /**
    * The type system.  This is used to gues the types of constants when their
    * exact value is unknown.
    */
@@ -237,17 +242,12 @@ class ConstantEvaluationEngine {
    * given, is used to verify correct dependency analysis when running unit
    * tests.
    */
-  ConstantEvaluationEngine(TypeProvider typeProvider, this._declaredVariables,
-      {ConstantEvaluationValidator validator})
+  ConstantEvaluationEngine(this.typeProvider, this._declaredVariables,
+      {ConstantEvaluationValidator validator, TypeSystem typeSystem})
       : validator = validator != null
             ? validator
             : new ConstantEvaluationValidator_ForProduction(),
-        typeSystem = new TypeSystemImpl(typeProvider);
-
-  /**
-   * The type provider used to access the known types.
-   */
-  TypeProvider get typeProvider => typeSystem.typeProvider;
+        typeSystem = typeSystem != null ? typeSystem : new TypeSystemImpl();
 
   /**
    * Check that the arguments to a call to fromEnvironment() are correct. The
@@ -1018,6 +1018,9 @@ class ConstantEvaluationTarget_Annotation implements ConstantEvaluationTarget {
       return false;
     }
   }
+
+  @override
+  String toString() => 'Constant: $annotation';
 }
 
 /**
@@ -1082,62 +1085,81 @@ class ConstantEvaluationValidator_ForProduction
   void beforeGetParameterDefault(ParameterElement parameter) {}
 }
 
-/**
- * Instances of the class `ConstantEvaluator` evaluate constant expressions to
- * produce their compile-time value. According to the Dart Language
- * Specification:
- * <blockquote>
- * A constant expression is one of the following:
- * * A literal number.
- * * A literal boolean.
- * * A literal string where any interpolated expression is a compile-time
- *   constant that evaluates to a numeric, string or boolean value or to
- *   <b>null</b>.
- * * A literal symbol.
- * * <b>null</b>.
- * * A qualified reference to a static constant variable.
- * * An identifier expression that denotes a constant variable, class or type
- *   alias.
- * * A constant constructor invocation.
- * * A constant list literal.
- * * A constant map literal.
- * * A simple or qualified identifier denoting a top-level function or a static
- *   method.
- * * A parenthesized expression <i>(e)</i> where <i>e</i> is a constant
- *   expression.
- * * An expression of the form <i>identical(e<sub>1</sub>, e<sub>2</sub>)</i>
- *   where <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant
- *   expressions and <i>identical()</i> is statically bound to the predefined
- *   dart function <i>identical()</i> discussed above.
- * * An expression of one of the forms <i>e<sub>1</sub> == e<sub>2</sub></i> or
- *   <i>e<sub>1</sub> != e<sub>2</sub></i> where <i>e<sub>1</sub></i> and
- *   <i>e<sub>2</sub></i> are constant expressions that evaluate to a numeric,
- *   string or boolean value.
- * * An expression of one of the forms <i>!e</i>, <i>e<sub>1</sub> &amp;&amp;
- *   e<sub>2</sub></i> or <i>e<sub>1</sub> || e<sub>2</sub></i>, where <i>e</i>,
- *   <i>e1</sub></i> and <i>e2</sub></i> are constant expressions that evaluate
- *   to a boolean value.
- * * An expression of one of the forms <i>~e</i>, <i>e<sub>1</sub> ^
- *   e<sub>2</sub></i>, <i>e<sub>1</sub> &amp; e<sub>2</sub></i>,
- *   <i>e<sub>1</sub> | e<sub>2</sub></i>, <i>e<sub>1</sub> &gt;&gt;
- *   e<sub>2</sub></i> or <i>e<sub>1</sub> &lt;&lt; e<sub>2</sub></i>, where
- *   <i>e</i>, <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant
- *   expressions that evaluate to an integer value or to <b>null</b>.
- * * An expression of one of the forms <i>-e</i>, <i>e<sub>1</sub> +
- *   e<sub>2</sub></i>, <i>e<sub>1</sub> -e<sub>2</sub></i>, <i>e<sub>1</sub> *
- *   e<sub>2</sub></i>, <i>e<sub>1</sub> / e<sub>2</sub></i>, <i>e<sub>1</sub>
- *   ~/ e<sub>2</sub></i>, <i>e<sub>1</sub> &gt; e<sub>2</sub></i>,
- *   <i>e<sub>1</sub> &lt; e<sub>2</sub></i>, <i>e<sub>1</sub> &gt;=
- *   e<sub>2</sub></i>, <i>e<sub>1</sub> &lt;= e<sub>2</sub></i> or
- *   <i>e<sub>1</sub> % e<sub>2</sub></i>, where <i>e</i>, <i>e<sub>1</sub></i>
- *   and <i>e<sub>2</sub></i> are constant expressions that evaluate to a
- *   numeric value or to <b>null</b>.
- * * An expression of the form <i>e<sub>1</sub> ? e<sub>2</sub> :
- *   e<sub>3</sub></i> where <i>e<sub>1</sub></i>, <i>e<sub>2</sub></i> and
- *   <i>e<sub>3</sub></i> are constant expressions, and <i>e<sub>1</sub></i>
- *   evaluates to a boolean value.
- * </blockquote>
- */
+/// Instances of the class [ConstantEvaluator] evaluate constant expressions to
+/// produce their compile-time value.
+///
+/// According to the Dart Language Specification:
+///
+/// > A constant expression is one of the following:
+/// >
+/// > * A literal number.
+/// > * A literal boolean.
+/// > * A literal string where any interpolated expression is a compile-time
+/// >   constant that evaluates to a numeric, string or boolean value or to
+/// >   **null**.
+/// > * A literal symbol.
+/// > * **null**.
+/// > * A qualified reference to a static constant variable.
+/// > * An identifier expression that denotes a constant variable, class or type
+/// >   alias.
+/// > * A constant constructor invocation.
+/// > * A constant list literal.
+/// > * A constant map literal.
+/// > * A simple or qualified identifier denoting a top-level function or a
+/// >   static method.
+/// > * A parenthesized expression _(e)_ where _e_ is a constant expression.
+/// > * <span>
+/// >   An expression of the form <i>identical(e<sub>1</sub>, e<sub>2</sub>)</i>
+/// >   where <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant
+/// >   expressions and <i>identical()</i> is statically bound to the predefined
+/// >   dart function <i>identical()</i> discussed above.
+/// >   </span>
+/// > * <span>
+/// >   An expression of one of the forms <i>e<sub>1</sub> == e<sub>2</sub></i>
+/// >   or <i>e<sub>1</sub> != e<sub>2</sub></i> where <i>e<sub>1</sub></i> and
+/// >   <i>e<sub>2</sub></i> are constant expressions that evaluate to a
+/// >   numeric, string or boolean value.
+/// >   </span>
+/// > * <span>
+/// >   An expression of one of the forms <i>!e</i>, <i>e<sub>1</sub> &amp;&amp;
+/// >   e<sub>2</sub></i> or <i>e<sub>1</sub> || e<sub>2</sub></i>, where
+/// >   <i>e</i>, <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant
+/// >   expressions that evaluate to a boolean value.
+/// >   </span>
+/// > * <span>
+/// >   An expression of one of the forms <i>~e</i>, <i>e<sub>1</sub> ^
+/// >   e<sub>2</sub></i>, <i>e<sub>1</sub> &amp; e<sub>2</sub></i>,
+/// >   <i>e<sub>1</sub> | e<sub>2</sub></i>, <i>e<sub>1</sub> &gt;&gt;
+/// >   e<sub>2</sub></i> or <i>e<sub>1</sub> &lt;&lt; e<sub>2</sub></i>, where
+/// >   <i>e</i>, <i>e<sub>1</sub></i> and <i>e<sub>2</sub></i> are constant
+/// >   expressions that evaluate to an integer value or to <b>null</b>.
+/// >   </span>
+/// > * <span>
+/// >   An expression of one of the forms <i>-e</i>, <i>e<sub>1</sub> +
+/// >   e<sub>2</sub></i>, <i>e<sub>1</sub> -e<sub>2</sub></i>,
+/// >   <i>e<sub>1</sub> * e<sub>2</sub></i>, <i>e<sub>1</sub> /
+/// >   e<sub>2</sub></i>, <i>e<sub>1</sub> ~/ e<sub>2</sub></i>,
+/// >   <i>e<sub>1</sub> &gt; e<sub>2</sub></i>, <i>e<sub>1</sub> &lt;
+/// >   e<sub>2</sub></i>, <i>e<sub>1</sub> &gt;= e<sub>2</sub></i>,
+/// >   <i>e<sub>1</sub> &lt;= e<sub>2</sub></i> or <i>e<sub>1</sub> %
+/// >   e<sub>2</sub></i>, where <i>e</i>, <i>e<sub>1</sub></i> and
+/// >   <i>e<sub>2</sub></i> are constant expressions that evaluate to a numeric
+/// >   value or to <b>null</b>.
+/// >   </span>
+/// > * <span>
+/// >   An expression of the form <i>e<sub>1</sub> ? e<sub>2</sub> :
+/// >   e<sub>3</sub></i> where <i>e<sub>1</sub></i>, <i>e<sub>2</sub></i> and
+/// >   <i>e<sub>3</sub></i> are constant expressions, and <i>e<sub>1</sub></i>
+/// >   evaluates to a boolean value.
+/// >   </span>
+///
+/// The values returned by instances of this class are therefore `null` and
+/// instances of the classes `Boolean`, `BigInteger`, `Double`, `String`, and
+/// `DartObject`.
+///
+/// In addition, this class defines several values that can be returned to
+/// indicate various conditions encountered during evaluation. These are
+/// documented with the static fields that define those values.
 class ConstantEvaluator {
   /**
    * The source containing the expression(s) that will be evaluated.
@@ -1150,17 +1172,24 @@ class ConstantEvaluator {
   final TypeProvider _typeProvider;
 
   /**
+   * The type system primitives.
+   */
+  final TypeSystem _typeSystem;
+
+  /**
    * Initialize a newly created evaluator to evaluate expressions in the given
    * [source]. The [typeProvider] is the type provider used to access known
    * types.
    */
-  ConstantEvaluator(this._source, this._typeProvider);
+  ConstantEvaluator(this._source, this._typeProvider, {TypeSystem typeSystem})
+      : _typeSystem = typeSystem != null ? typeSystem : new TypeSystemImpl();
 
   EvaluationResult evaluate(Expression expression) {
     RecordingErrorListener errorListener = new RecordingErrorListener();
     ErrorReporter errorReporter = new ErrorReporter(errorListener, _source);
     DartObjectImpl result = expression.accept(new ConstantVisitor(
-        new ConstantEvaluationEngine(_typeProvider, new DeclaredVariables()),
+        new ConstantEvaluationEngine(_typeProvider, new DeclaredVariables(),
+            typeSystem: _typeSystem),
         errorReporter));
     if (result != null) {
       return EvaluationResult.forValue(result);
@@ -1304,10 +1333,10 @@ class ConstantValueComputer {
    */
   ConstantValueComputer(this._context, TypeProvider typeProvider,
       DeclaredVariables declaredVariables,
-      [ConstantEvaluationValidator validator])
+      [ConstantEvaluationValidator validator, TypeSystem typeSystem])
       : evaluationEngine = new ConstantEvaluationEngine(
             typeProvider, declaredVariables,
-            validator: validator);
+            validator: validator, typeSystem: typeSystem);
 
   /**
    * Add the constants in the given compilation [unit] to the list of constants
@@ -1577,7 +1606,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     ParameterizedType thenType = thenResult.type;
     ParameterizedType elseType = elseResult.type;
     return new DartObjectImpl.validWithUnknownValue(
-        _typeSystem.getLeastUpperBound(thenType, elseType) as InterfaceType);
+        _typeSystem.getLeastUpperBound(_typeProvider, thenType, elseType)
+        as InterfaceType);
   }
 
   @override

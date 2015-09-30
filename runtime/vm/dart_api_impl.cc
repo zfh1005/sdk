@@ -26,6 +26,7 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os_thread.h"
+#include "vm/os.h"
 #include "vm/port.h"
 #include "vm/precompiler.h"
 #include "vm/profiler.h"
@@ -1254,7 +1255,7 @@ DART_EXPORT const char* Dart_VersionString() {
   return Version::String();
 }
 
-DART_EXPORT bool Dart_Initialize(
+DART_EXPORT char* Dart_Initialize(
     const uint8_t* vm_isolate_snapshot,
     const uint8_t* instructions_snapshot,
     Dart_IsolateCreateCallback create,
@@ -1272,21 +1273,19 @@ DART_EXPORT bool Dart_Initialize(
                                        file_open, file_read, file_write,
                                        file_close, entropy_source);
   if (err_msg != NULL) {
-    OS::PrintErr("Dart_Initialize: %s\n", err_msg);
-    return false;
+    return strdup(err_msg);
   }
-  return true;
+  return NULL;
 }
 
 
-DART_EXPORT bool Dart_Cleanup() {
+DART_EXPORT char* Dart_Cleanup() {
   CHECK_NO_ISOLATE(Isolate::Current());
   const char* err_msg = Dart::Cleanup();
   if (err_msg != NULL) {
-    OS::PrintErr("Dart_Cleanup: %s\n", err_msg);
-    return false;
+    return strdup(err_msg);
   }
-  return true;
+  return NULL;
 }
 
 
@@ -1357,6 +1356,10 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
   }
   Isolate* I = Dart::CreateIsolate(isolate_name, *flags);
   free(isolate_name);
+  if (I == NULL) {
+    *error = strdup("Isolate creation failed");
+    return reinterpret_cast<Dart_Isolate>(NULL);
+  }
   {
     Thread* T = Thread::Current();
     StackZone zone(T);
@@ -1594,16 +1597,7 @@ DART_EXPORT void Dart_InterruptIsolate(Dart_Isolate isolate) {
   }
   // TODO(16615): Validate isolate parameter.
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
-  // Schedule the interrupt. The isolate will notice this bit being set if it
-  // is currently executing in Dart code.
-  iso->ScheduleInterrupts(Isolate::kApiInterrupt);
-  // If the isolate is blocked on the message queue, we post a dummy message
-  // to the isolate's main port. The message will be ultimately ignored, but as
-  // part of handling the message the interrupt bit which was set above will be
-  // honored.
-  // Can't use Dart_Post() since there isn't a current isolate.
-  Dart_CObject api_null = { Dart_CObject_kNull , { 0 } };
-  Dart_PostCObject(iso->main_port(), &api_null);
+  iso->SendInternalLibMessage(Isolate::kInterruptMsg, iso->pause_capability());
 }
 
 
@@ -5674,6 +5668,11 @@ DART_EXPORT Dart_Handle Dart_ServiceSendDataEvent(const char* stream_id,
 }
 
 
+DART_EXPORT int64_t Dart_TimelineGetMicros() {
+  return OS::GetCurrentTraceMicros();
+}
+
+
 DART_EXPORT void Dart_TimelineSetRecordedStreams(int64_t stream_mask) {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
@@ -5690,34 +5689,45 @@ DART_EXPORT void Dart_TimelineSetRecordedStreams(int64_t stream_mask) {
 }
 
 
-DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
-                                       void* user_data) {
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
-  if (consumer == NULL) {
-    return false;
-  }
-  TimelineEventRecorder* timeline_recorder = Timeline::recorder();
-  if (timeline_recorder == NULL) {
-    // Nothing has been recorded.
-    return false;
-  }
-  // Suspend execution of other threads while serializing to JSON.
-  isolate->thread_registry()->SafepointThreads();
-  JSONStream js;
-  IsolateTimelineEventFilter filter(isolate);
-  timeline_recorder->PrintJSON(&js, &filter);
-  // Resume execution of other threads.
-  isolate->thread_registry()->ResumeAllThreads();
+DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask) {
+  // Per isolate overrides.
+  const bool api_enabled = (stream_mask & DART_TIMELINE_STREAM_API) != 0;
+  const bool compiler_enabled =
+      (stream_mask & DART_TIMELINE_STREAM_COMPILER) != 0;
+  const bool embedder_enabled =
+      (stream_mask & DART_TIMELINE_STREAM_EMBEDDER) != 0;
+  const bool gc_enabled = (stream_mask & DART_TIMELINE_STREAM_GC) != 0;
+  const bool isolate_enabled =
+      (stream_mask & DART_TIMELINE_STREAM_ISOLATE) != 0;
+  Timeline::SetStreamAPIEnabled(api_enabled);
+  Timeline::SetStreamCompilerEnabled(compiler_enabled);
+  Timeline::SetStreamEmbedderEnabled(embedder_enabled);
+  Timeline::SetStreamGCEnabled(gc_enabled);
+  Timeline::SetStreamIsolateEnabled(isolate_enabled);
+  // VM wide.
+  const bool vm_enabled =
+      (stream_mask & DART_TIMELINE_STREAM_VM) != 0;
+  Timeline::GetVMStream()->set_enabled(vm_enabled);
+}
 
-  // Copy output.
-  char* output = NULL;
-  intptr_t output_length = 0;
-  js.Steal(const_cast<const char**>(&output), &output_length);
-  if (output != NULL) {
-    // Add one for the '\0' character.
-    output_length++;
+
+// '[' + ']' + '\0'.
+#define MINIMUM_OUTPUT_LENGTH 3
+
+static void StreamToConsumer(Dart_StreamConsumer consumer,
+                             void* user_data,
+                             char* output,
+                             intptr_t output_length) {
+  if (output == NULL) {
+    return;
   }
+  if (output_length <= MINIMUM_OUTPUT_LENGTH) {
+    return;
+  }
+  // We expect the first character to be the opening of an array.
+  ASSERT(output[0] == '[');
+  // We expect the last character to be the closing of an array.
+  ASSERT(output[output_length - 2] == ']');
   // Start stream.
   const char* kStreamName = "timeline";
   const intptr_t kDataSize = 64 * KB;
@@ -5727,9 +5737,13 @@ DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
            0,
            user_data);
 
-  // Stream out data.
-  intptr_t cursor = 0;
-  intptr_t remaining = output_length;
+  // Stream out data. Skipping the array characters.
+  // Replace array close with '\0'.
+  output[output_length - 2] = '\0';
+  intptr_t cursor = 1;
+  output_length -= 1;
+  intptr_t remaining = output_length - 1;
+
   while (remaining >= kDataSize) {
     consumer(Dart_StreamConsumer_kData,
              kStreamName,
@@ -5751,8 +5765,6 @@ DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
   }
   ASSERT(cursor == output_length);
   ASSERT(remaining == 0);
-  // We stole the JSONStream's output buffer, free it.
-  free(output);
 
   // Finish stream.
   consumer(Dart_StreamConsumer_kFinish,
@@ -5760,7 +5772,73 @@ DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
            NULL,
            0,
            user_data);
-  return true;
+}
+
+
+DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
+                                       void* user_data) {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  if (consumer == NULL) {
+    return false;
+  }
+  TimelineEventRecorder* timeline_recorder = Timeline::recorder();
+  if (timeline_recorder == NULL) {
+    // Nothing has been recorded.
+    return false;
+  }
+  // Reclaim all blocks cached by isolate.
+  Timeline::ReclaimIsolateBlocks();
+  JSONStream js;
+  IsolateTimelineEventFilter filter(isolate);
+  timeline_recorder->PrintTraceEvent(&js, &filter);
+
+  // Copy output.
+  char* output = NULL;
+  intptr_t output_length = 0;
+  js.Steal(const_cast<const char**>(&output), &output_length);
+  if (output != NULL) {
+    // Add one for the '\0' character.
+    output_length++;
+    StreamToConsumer(consumer, user_data, output, output_length);
+    // We stole the JSONStream's output buffer, free it.
+    free(output);
+    return output_length > MINIMUM_OUTPUT_LENGTH;
+  }
+  return false;
+}
+
+
+DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
+                                             void* user_data) {
+  if (consumer == NULL) {
+    return false;
+  }
+  TimelineEventRecorder* timeline_recorder = Timeline::recorder();
+  if (timeline_recorder == NULL) {
+    // Nothing has been recorded.
+    return false;
+  }
+
+  // Reclaim all blocks cached in the system.
+  Timeline::ReclaimAllBlocks();
+  JSONStream js;
+  TimelineEventFilter filter;
+  timeline_recorder->PrintTraceEvent(&js, &filter);
+
+  // Copy output.
+  char* output = NULL;
+  intptr_t output_length = 0;
+  js.Steal(const_cast<const char**>(&output), &output_length);
+  if (output != NULL) {
+    // Add one for the '\0' character.
+    output_length++;
+    StreamToConsumer(consumer, user_data, output, output_length);
+    // We stole the JSONStream's output buffer, free it.
+    free(output);
+    return output_length > MINIMUM_OUTPUT_LENGTH;
+  }
+  return false;
 }
 
 
@@ -5871,26 +5949,19 @@ DART_EXPORT Dart_Handle Dart_TimelineAsyncEnd(const char* label,
 }
 
 
-static void Precompile(Isolate* isolate, Dart_Handle* result) {
-  ASSERT(isolate != NULL);
-  const Error& error = Error::Handle(isolate, Precompiler::CompileAll());
-  if (error.IsNull()) {
-    *result = Api::Success();
-  } else {
-    *result = Api::NewHandle(isolate, error.raw());
-  }
-}
-
-
-DART_EXPORT Dart_Handle Dart_Precompile() {
+DART_EXPORT Dart_Handle Dart_Precompile(
+    Dart_QualifiedFunctionName entry_points[]) {
   DARTSCOPE(Thread::Current());
   Dart_Handle result = Api::CheckAndFinalizePendingClasses(I);
   if (::Dart_IsError(result)) {
     return result;
   }
   CHECK_CALLBACK_STATE(I);
-  Precompile(I, &result);
-  return result;
+  const Error& error = Error::Handle(Precompiler::CompileAll(entry_points));
+  if (!error.IsNull()) {
+    return Api::NewHandle(I, error.raw());
+  }
+  return Api::Success();
 }
 
 

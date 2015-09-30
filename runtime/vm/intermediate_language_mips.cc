@@ -23,6 +23,7 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, allow_absolute_addresses);
 DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, use_osr);
@@ -273,6 +274,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(0).reg() == T0);
   __ LoadImmediate(S5, 0);
   __ lw(T2, FieldAddress(T0, Function::entry_point_offset()));
+  __ lw(CODE_REG, FieldAddress(T0, Function::code_offset()));
   __ jalr(T2);
   compiler->RecordSafepoint(locs());
   // Marks either the continuation point in unoptimized code or the
@@ -995,18 +997,14 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const StubEntry* stub_entry;
   if (link_lazily()) {
     stub_entry = StubCode::CallBootstrapCFunction_entry();
-    entry = reinterpret_cast<uword>(&NativeEntry::LinkNativeCall);
-#if defined(USING_SIMULATOR)
-    entry = Simulator::RedirectExternalReference(
-        entry, Simulator::kBootstrapNativeCall, function().NumParameters());
-#endif
+    entry = NativeEntry::LinkNativeCallEntry();
   } else {
     entry = reinterpret_cast<uword>(native_c_function());
     if (is_bootstrap_native() || is_leaf_call) {
       stub_entry = StubCode::CallBootstrapCFunction_entry();
 #if defined(USING_SIMULATOR)
       entry = Simulator::RedirectExternalReference(
-          entry, Simulator::kBootstrapNativeCall, function().NumParameters());
+          entry, Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments);
 #endif
     } else {
       // In the case of non bootstrap native methods the CallNativeCFunction
@@ -1016,14 +1014,14 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #if defined(USING_SIMULATOR)
       if (!function().IsNativeAutoSetupScope()) {
         entry = Simulator::RedirectExternalReference(
-            entry, Simulator::kBootstrapNativeCall, function().NumParameters());
+            entry, Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments);
       }
 #endif
     }
   }
   __ LoadImmediate(A1, argc_tag);
   ExternalLabel label(entry);
-  __ LoadExternalLabel(T5, &label, kNotPatchable);
+  __ LoadNativeEntry(T5, &label, kNotPatchable);
   compiler->GenerateCall(token_pos(),
                          *stub_entry,
                          RawPcDescriptors::kOther,
@@ -1737,7 +1735,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ LoadImmediate(TMP, kNullCid);
           __ subu(CMPRES1, value_cid_reg, TMP);
         } else {
-          __ LoadImmediate(TMP, reinterpret_cast<int32_t>(Object::null()));
+          __ LoadObject(TMP, Object::null_object());
           __ subu(CMPRES1, value_reg, TMP);
         }
       }
@@ -2204,7 +2202,7 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
   // T7: null.
   if (num_elements > 0) {
     const intptr_t array_size = instance_size - sizeof(RawArray);
-    __ LoadImmediate(T7, reinterpret_cast<int32_t>(Object::null()));
+    __ LoadObject(T7, Object::null_object());
     __ AddImmediate(T2, V0, sizeof(RawArray) - kHeapObjectTag);
     if (array_size < (kInlineArraySize * kWordSize)) {
       intptr_t current_offset = 0;
@@ -2665,11 +2663,8 @@ void CatchBlockEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                 catch_handler_types_,
                                 needs_stacktrace());
   // Restore pool pointer.
-  __ GetNextPC(CMPRES1, TMP);
-  const intptr_t object_pool_pc_dist =
-     Instructions::HeaderSize() - Instructions::object_pool_offset() +
-     compiler->assembler()->CodeSize() - 1 * Instr::kInstrSize;
-  __ LoadFromOffset(PP, CMPRES1, -object_pool_pc_dist);
+  __ RestoreCodePointer();
+  __ LoadPoolPointer();
 
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -2715,6 +2710,7 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
       Register value = instruction_->locs()->temp(0).reg();
       __ Comment("CheckStackOverflowSlowPathOsr");
       __ Bind(osr_entry_label());
+      ASSERT(FLAG_allow_absolute_addresses);
       __ LoadImmediate(TMP, flags_address);
       __ LoadImmediate(value, Isolate::kOsrRequest);
       __ sw(value, Address(TMP));
@@ -2760,7 +2756,7 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   CheckStackOverflowSlowPath* slow_path = new CheckStackOverflowSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
-  if (compiler->is_optimizing()) {
+  if (compiler->is_optimizing() && FLAG_allow_absolute_addresses) {
     __ LoadImmediate(TMP, Isolate::Current()->stack_limit_address());
     __ lw(CMPRES1, Address(TMP));
   } else {
@@ -5386,13 +5382,10 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Comment("GotoInstr");
   if (!compiler->is_optimizing()) {
     if (FLAG_emit_edge_counters) {
-      compiler->EmitEdgeCounter();
+      compiler->EmitEdgeCounter(block()->preorder_number());
     }
     // Add a deoptimization descriptor for deoptimizing instructions that
-    // may be inserted before this instruction.  On MIPS this descriptor
-    // points after the edge counter code so that we can reuse the same
-    // pattern matching code as at call sites, which matches backwards from
-    // the end of the pattern.
+    // may be inserted before this instruction.
     compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                                    GetDeoptId(),
                                    Scanner::kNoSourcePos);
@@ -5425,20 +5418,22 @@ LocationSummary* IndirectGotoInstr::MakeLocationSummary(Zone* zone,
 
 
 void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register target_address_reg = locs()->temp_slot(0)->reg();
+  Register target_reg = locs()->temp_slot(0)->reg();
 
-  // Load from [current frame pointer] + kPcMarkerSlotFromFp.
-  __ lw(target_address_reg, Address(FP, kPcMarkerSlotFromFp * kWordSize));
+  __ GetNextPC(target_reg, TMP);
+  const intptr_t entry_offset =
+     __ CodeSize() - 1 * Instr::kInstrSize;
+  __ AddImmediate(target_reg, target_reg, -entry_offset);
 
   // Add the offset.
   Register offset_reg = locs()->in(0).reg();
   if (offset()->definition()->representation() == kTagged) {
   __ SmiUntag(offset_reg);
   }
-  __ addu(target_address_reg, target_address_reg, offset_reg);
+  __ addu(target_reg, target_reg, offset_reg);
 
   // Jump to the absolute address.
-  __ jr(target_address_reg);
+  __ jr(target_reg);
 }
 
 

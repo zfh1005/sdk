@@ -81,6 +81,10 @@ class DiagnosticCollector implements CompilerDiagnostics {
   bool get hasRegularMessages {
     return messages.any((m) => m.kind != Diagnostic.VERBOSE_INFO);
   }
+
+  void clear() {
+    messages.clear();
+  }
 }
 
 class MultiDiagnostics implements CompilerDiagnostics {
@@ -259,7 +263,6 @@ Compiler compilerFor(
     cachedCompiler.resolver = null;
     cachedCompiler.closureToClassMapper = null;
     cachedCompiler.checker = null;
-    cachedCompiler.irBuilder = null;
     cachedCompiler.typesTask = null;
     cachedCompiler.backend = null;
     // Don't null out the enqueuer as it prevents us from using cachedCompiler

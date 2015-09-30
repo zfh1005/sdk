@@ -58,7 +58,7 @@ void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
     __ lw(T2, Address(SP, 0 * kWordSize));  // Value.
 
     // Null value is valid for any type.
-    __ LoadImmediate(T7, reinterpret_cast<int32_t>(Object::null()));
+    __ LoadObject(T7, Object::null_object());
     __ beq(T2, T7, &checked_ok);
 
     __ lw(T1, Address(SP, 2 * kWordSize));  // Array.
@@ -169,7 +169,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   __ StoreIntoObject(T2,
                      FieldAddress(T1, Array::data_offset()),
                      T0);
-  __ LoadImmediate(T7, reinterpret_cast<int32_t>(Object::null()));
+  __ LoadObject(T7, Object::null_object());
   __ Ret();
   __ delay_slot()->mov(V0, T7);
   __ Bind(&fall_through);
@@ -2125,6 +2125,7 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
   __ mov(S5, ZR);
 
   // Tail-call the function.
+  __ lw(CODE_REG, FieldAddress(T0, Function::code_offset()));
   __ lw(T3, FieldAddress(T0, Function::entry_point_offset()));
   __ jr(T3);
 }

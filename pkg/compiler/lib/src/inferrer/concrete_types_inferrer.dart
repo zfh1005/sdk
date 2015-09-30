@@ -25,7 +25,11 @@ import '../types/types.dart' show
     TypeMask,
     TypesInferrer,
     UnionTypeMask;
-import '../universe/universe.dart';
+import '../universe/selector.dart' show
+    Selector,
+    SelectorKind;
+import '../universe/side_effects.dart' show
+    SideEffects;
 import '../world.dart' show
     ClassWorld;
 
@@ -432,6 +436,12 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
     return _stringType;
   }
 
+  @override
+  ConcreteType boolLiteralType(_) {
+    inferrer.augmentSeenClasses(compiler.backend.boolImplementation);
+    return _boolType;
+  }
+
   /**
    * Returns the [TypeMask] representation of [baseType].
    */
@@ -450,6 +460,8 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
       } else if (element == compiler.backend.intImplementation) {
         return new TypeMask.nonNullSubclass(compiler.backend.intImplementation,
                                             compiler.world);
+      } else if (!compiler.world.isInstantiated(element.declaration)) {
+        return new TypeMask.nonNullSubtype(element.declaration, compiler.world);
       } else {
         return new TypeMask.nonNullExact(element.declaration, compiler.world);
       }
@@ -2011,7 +2023,7 @@ class ConcreteTypesInferrer
                                      SideEffects sideEffects,
                                      bool inLoop) {
     caller = getRealCaller(caller);
-    if ((selector == null) || (selector.kind == SelectorKind.CALL)) {
+    if ((selector == null) || (selector.isCall)) {
       callee = callee.implementation;
       if (selector != null && selector.name == 'JS') {
         return null;
@@ -2044,7 +2056,7 @@ class ConcreteTypesInferrer
         }
         return getSendReturnType(selector, callee, receiverClass, arguments);
       }
-    } else if (selector.kind == SelectorKind.GETTER) {
+    } else if (selector.isGetter) {
       if (callee.isField) {
         addFieldReader(callee, caller);
         return getFieldType(selector, callee);
@@ -2058,7 +2070,7 @@ class ConcreteTypesInferrer
         addClosure(callee, null, null);
         return singletonConcreteType(baseTypes.functionBaseType);
       }
-    } else if (selector.kind == SelectorKind.SETTER) {
+    } else if (selector.isSetter) {
       ConcreteType argumentType = arguments.positional.first;
       if (callee.isField) {
         augmentFieldType(callee, argumentType);

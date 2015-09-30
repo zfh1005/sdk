@@ -133,9 +133,9 @@ abstract class LibraryElementCommon implements LibraryElement {
   bool get isInternalLibrary =>
       isPlatformLibrary && canonicalUri.path.startsWith('_');
 
-  String getLibraryOrScriptName() {
-    if (hasLibraryName()) {
-      return getLibraryName();
+  String get libraryOrScriptName {
+    if (hasLibraryName) {
+      return libraryName;
     } else {
       // Use the file name as script name.
       String path = canonicalUri.path;
@@ -145,7 +145,7 @@ abstract class LibraryElementCommon implements LibraryElement {
 
   int compareTo(LibraryElement other) {
     if (this == other) return 0;
-    return getLibraryOrScriptName().compareTo(other.getLibraryOrScriptName());
+    return libraryOrScriptName.compareTo(other.libraryOrScriptName);
   }
 }
 
@@ -415,13 +415,7 @@ abstract class ClassElementCommon implements ClassElement {
     return false;
   }
 
-  /**
-   * Returns true if [this] is a subclass of [cls].
-   *
-   * This method is not to be used for checking type hierarchy and
-   * assignments, because it does not take parameterized types into
-   * account.
-   */
+  @override
   bool isSubclassOf(ClassElement cls) {
     // Use [declaration] for both [this] and [cls], because
     // declaration classes hold the superclass hierarchy.
@@ -435,6 +429,11 @@ abstract class ClassElementCommon implements ClassElement {
   FunctionType get callType {
     MemberSignature member = lookupInterfaceMember(Names.call);
     return member != null && member.isMethod ? member.type : null;
+  }
+
+  @override
+  bool get isNamedMixinApplication {
+    return isMixinApplication && !isUnnamedMixinApplication;
   }
 }
 

@@ -22,6 +22,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, shutdown);
+
 #define Z (T->zone())
 
 
@@ -518,8 +520,6 @@ void ServiceIsolate::SetServiceIsolate(Isolate* isolate) {
   if (isolate_ != NULL) {
     isolate_->is_service_isolate_ = true;
     origin_ = isolate_->origin_id();
-  } else {
-    origin_ = ILLEGAL_PORT;
   }
 }
 
@@ -675,6 +675,8 @@ class RunServiceTask : public ThreadPool::Task {
   static void ShutdownIsolate(uword parameter) {
     Isolate* I = reinterpret_cast<Isolate*>(parameter);
     ASSERT(ServiceIsolate::IsServiceIsolate(I));
+    ServiceIsolate::SetServiceIsolate(NULL);
+    ServiceIsolate::SetServicePort(ILLEGAL_PORT);
     {
       // Print the error if there is one.  This may execute dart code to
       // print the exception object, so we need to use a StartIsolateScope.
@@ -685,7 +687,7 @@ class RunServiceTask : public ThreadPool::Task {
       HandleScope handle_scope(T);
       Error& error = Error::Handle(Z);
       error = I->object_store()->sticky_error();
-      if (!error.IsNull()) {
+      if (!error.IsNull() && !error.IsUnwindError()) {
         OS::PrintErr("vm-service: Error: %s\n", error.ToErrorCString());
       }
       Dart::RunShutdownCallback();
@@ -695,8 +697,6 @@ class RunServiceTask : public ThreadPool::Task {
       SwitchIsolateScope switch_scope(I);
       Dart::ShutdownIsolate();
     }
-    ServiceIsolate::SetServiceIsolate(NULL);
-    ServiceIsolate::SetServicePort(ILLEGAL_PORT);
     if (FLAG_trace_service) {
       OS::Print("vm-service: Shutdown.\n");
     }
@@ -762,8 +762,33 @@ void ServiceIsolate::Run() {
 }
 
 
+void ServiceIsolate::KillServiceIsolate() {
+  if (!FLAG_shutdown) {
+    return;
+  }
+  {
+    MonitorLocker ml(monitor_);
+    shutting_down_ = true;
+  }
+  Isolate::KillIfExists(isolate_);
+  {
+    MonitorLocker ml(monitor_);
+    while (shutting_down_) {
+      ml.Wait();
+    }
+  }
+}
+
+
 void ServiceIsolate::Shutdown() {
   if (!IsRunning()) {
+    if (isolate_ != NULL) {
+      // TODO(johnmccutchan,turnidge) When it is possible to properly create
+      // the VMService object and set up its shutdown handler in the service
+      // isolate's main() function, this case will no longer be possible and
+      // can be removed.
+      KillServiceIsolate();
+    }
     return;
   }
   {

@@ -284,9 +284,6 @@ class AnalysisServer {
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
    *
-   * If a [contextManager] is provided, then the [packageResolverProvider] will
-   * be ignored.
-   *
    * If [rethrowExceptions] is true, then any exceptions thrown by analysis are
    * propagated up the call stack.  The default is true to allow analysis
    * exceptions to show up in unit tests, but it should be set to false when
@@ -301,17 +298,14 @@ class AnalysisServer {
       this.options,
       this.defaultSdk,
       this.instrumentationService,
-      {ContextManager contextManager: null,
-      ResolverProvider packageResolverProvider: null,
+      {ResolverProvider packageResolverProvider: null,
       this.rethrowExceptions: true})
       : index = _index,
         searchEngine = _index != null ? createSearchEngine(_index) : null {
     _performance = performanceDuringStartup;
     operationQueue = new ServerOperationQueue();
-    if (contextManager == null) {
-      contextManager = new ContextManagerImpl(resourceProvider,
-          packageResolverProvider, packageMapProvider, instrumentationService);
-    }
+    contextManager = new ContextManagerImpl(resourceProvider,
+        packageResolverProvider, packageMapProvider, instrumentationService);
     ServerContextManagerCallbacks contextManagerCallbacks =
         new ServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
@@ -321,7 +315,6 @@ class AnalysisServer {
     defaultContextOptions.incrementalValidation =
         options.enableIncrementalResolutionValidation;
     defaultContextOptions.generateImplicitErrors = false;
-    this.contextManager = contextManager;
     _noErrorNotification = options.noErrorNotification;
     AnalysisEngine.instance.logger = new AnalysisLogger();
     _onAnalysisStartedController = new StreamController.broadcast();
@@ -457,6 +450,26 @@ class AnalysisServer {
     return folderMap.values;
   }
 
+  CompilationUnitElement getCompilationUnitElement(String file) {
+    ContextSourcePair pair = getContextSourcePair(file);
+    if (pair == null) {
+      return null;
+    }
+    // prepare AnalysisContext and Source
+    AnalysisContext context = pair.context;
+    Source unitSource = pair.source;
+    if (context == null || unitSource == null) {
+      return null;
+    }
+    // get element in the first library
+    List<Source> librarySources = context.getLibrariesContaining(unitSource);
+    if (!librarySources.isNotEmpty) {
+      return null;
+    }
+    Source librarySource = librarySources.first;
+    return context.getCompilationUnitElement(unitSource, librarySource);
+  }
+
   /**
    * Return the [AnalysisContext] that contains the given [path].
    * Return `null` if no context contains the [path].
@@ -543,7 +556,7 @@ class AnalysisServer {
    */
   List<Element> getElementsAtOffset(String file, int offset) {
     List<AstNode> nodes = getNodesAtOffset(file, offset);
-    return getElementsOfNodes(nodes, offset);
+    return getElementsOfNodes(nodes);
   }
 
   /**
@@ -551,7 +564,7 @@ class AnalysisServer {
    *
    * May be empty if not resolved, but not `null`.
    */
-  List<Element> getElementsOfNodes(List<AstNode> nodes, int offset) {
+  List<Element> getElementsOfNodes(List<AstNode> nodes) {
     List<Element> elements = <Element>[];
     for (AstNode node in nodes) {
       if (node is SimpleIdentifier && node.parent is LibraryIdentifier) {
@@ -560,7 +573,7 @@ class AnalysisServer {
       if (node is LibraryIdentifier) {
         node = node.parent;
       }
-      Element element = ElementLocator.locateWithOffset(node, offset);
+      Element element = ElementLocator.locate(node);
       if (node is SimpleIdentifier && element is PrefixElement) {
         element = getImportElement(node);
       }
@@ -570,6 +583,23 @@ class AnalysisServer {
     }
     return elements;
   }
+
+// TODO(brianwilkerson) Add the following method after 'prioritySources' has
+// been added to InternalAnalysisContext.
+//  /**
+//   * Return a list containing the full names of all of the sources that are
+//   * priority sources.
+//   */
+//  List<String> getPriorityFiles() {
+//    List<String> priorityFiles = new List<String>();
+//    folderMap.values.forEach((ContextDirectory directory) {
+//      InternalAnalysisContext context = directory.context;
+//      context.prioritySources.forEach((Source source) {
+//        priorityFiles.add(source.fullName);
+//      });
+//    });
+//    return priorityFiles;
+//  }
 
   /**
    * Return an analysis error info containing the array of all of the errors and
@@ -596,23 +626,6 @@ class AnalysisServer {
     }
     return context.getErrors(source);
   }
-
-// TODO(brianwilkerson) Add the following method after 'prioritySources' has
-// been added to InternalAnalysisContext.
-//  /**
-//   * Return a list containing the full names of all of the sources that are
-//   * priority sources.
-//   */
-//  List<String> getPriorityFiles() {
-//    List<String> priorityFiles = new List<String>();
-//    folderMap.values.forEach((ContextDirectory directory) {
-//      InternalAnalysisContext context = directory.context;
-//      context.prioritySources.forEach((Source source) {
-//        priorityFiles.add(source.fullName);
-//      });
-//    });
-//    return priorityFiles;
-//  }
 
   /**
    * Returns resolved [AstNode]s at the given [offset] of the given [file].
@@ -797,6 +810,7 @@ class AnalysisServer {
           sendAnalysisNotificationAnalyzedFiles(this);
         }
         sendStatusNotification(null);
+        _scheduleAnalysisImplementedNotification();
         if (_onAnalysisCompleteCompleter != null) {
           _onAnalysisCompleteCompleter.complete();
           _onAnalysisCompleteCompleter = null;
@@ -958,9 +972,23 @@ class AnalysisServer {
         if (context == null) {
           continue;
         }
+        Source source = contextSource.source;
+        // Ensure that if the AST is flushed / not ready, it will be
+        // computed eventually.
+        if (AnalysisEngine.isDartFileName(file)) {
+          (context as InternalAnalysisContext).ensureResolvedDartUnits(source);
+        }
+        // Send notifications that don't directly take an AST.
+        switch (service) {
+          case AnalysisService.NAVIGATION:
+            sendAnalysisNotificationNavigation(this, context, source);
+            continue;
+          case AnalysisService.OCCURRENCES:
+            sendAnalysisNotificationOccurrences(this, context, source);
+            continue;
+        }
         // Dart unit notifications.
         if (AnalysisEngine.isDartFileName(file)) {
-          Source source = contextSource.source;
           // TODO(scheglov) This way to get resolved information is very Dart
           // specific. OTOH as it is planned now Angular results are not
           // flushable.
@@ -970,12 +998,6 @@ class AnalysisServer {
             switch (service) {
               case AnalysisService.HIGHLIGHTS:
                 sendAnalysisNotificationHighlights(this, file, dartUnit);
-                break;
-              case AnalysisService.NAVIGATION:
-                sendAnalysisNotificationNavigation(this, context, source);
-                break;
-              case AnalysisService.OCCURRENCES:
-                sendAnalysisNotificationOccurrences(this, file, dartUnit);
                 break;
               case AnalysisService.OUTLINE:
                 AnalysisContext context = dartUnit.element.context;
@@ -992,6 +1014,11 @@ class AnalysisServer {
     });
     // remember new subscriptions
     this.analysisServices = subscriptions;
+    // special case for implemented elements
+    if (analysisServices.containsKey(AnalysisService.IMPLEMENTED) &&
+        isAnalysisComplete()) {
+      _scheduleAnalysisImplementedNotification();
+    }
   }
 
   /**
@@ -1279,6 +1306,13 @@ class AnalysisServer {
     return runWithWorkingCacheSize(context, () {
       return context.resolveCompilationUnit2(source, librarySource);
     });
+  }
+
+  _scheduleAnalysisImplementedNotification() async {
+    Set<String> files = analysisServices[AnalysisService.IMPLEMENTED];
+    if (files != null) {
+      scheduleImplementedNotification(this, files);
+    }
   }
 
   /**

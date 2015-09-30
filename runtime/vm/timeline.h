@@ -22,6 +22,13 @@ class TimelineEventBlock;
 class TimelineEventRecorder;
 class TimelineStream;
 
+// (name, enabled by default for isolate).
+#define ISOLATE_TIMELINE_STREAM_LIST(V)                                        \
+  V(API, false)                                                                \
+  V(Compiler, false)                                                           \
+  V(Embedder, false)                                                           \
+  V(GC, false)                                                                 \
+  V(Isolate, false)                                                            \
 
 class Timeline : public AllStatic {
  public:
@@ -38,11 +45,36 @@ class Timeline : public AllStatic {
 
   static TimelineStream* GetVMStream();
 
+  // Reclaim all |TimelineEventBlock|s that are owned by the current isolate.
+  static void ReclaimIsolateBlocks();
+
+  // Reclaim all |TimelineEventBlocks|s that are owned by all isolates and
+  // the global block owned by the VM.
+  static void ReclaimAllBlocks();
+
+#define ISOLATE_TIMELINE_STREAM_FLAGS(name, not_used)                          \
+  static const bool* Stream##name##EnabledFlag() {                             \
+    return &stream_##name##_enabled_;                                          \
+  }                                                                            \
+  static void SetStream##name##Enabled(bool enabled) {                         \
+    stream_##name##_enabled_ = enabled;                                        \
+  }
+  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_FLAGS)
+#undef ISOLATE_TIMELINE_STREAM_FLAGS
+
  private:
+  static void ReclaimBlocksForIsolate(Isolate* isolate);
+
   static TimelineEventRecorder* recorder_;
   static TimelineStream* vm_stream_;
 
+#define ISOLATE_TIMELINE_STREAM_DECLARE_FLAG(name, not_used)                   \
+  static bool stream_##name##_enabled_;
+  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_DECLARE_FLAG)
+#undef ISOLATE_TIMELINE_STREAM_DECLARE_FLAG
+
   friend class TimelineRecorderOverride;
+  friend class ReclaimBlocksIsolateVisitor;
 };
 
 
@@ -190,15 +222,22 @@ class TimelineEvent {
 
 
 // A stream of timeline events. A stream has a name and can be enabled or
-// disabled.
+// disabled (globally and per isolate).
 class TimelineStream {
  public:
   TimelineStream();
 
-  void Init(const char* name, bool enabled);
+  void Init(const char* name,
+            bool enabled,
+            const bool* globally_enabled = NULL);
 
   const char* name() const {
     return name_;
+  }
+
+  bool Enabled() const {
+    return ((globally_enabled_ != NULL) && *globally_enabled_) ||
+           enabled();
   }
 
   bool enabled() const {
@@ -216,17 +255,8 @@ class TimelineStream {
  private:
   const char* name_;
   bool enabled_;
+  const bool* globally_enabled_;
 };
-
-
-// (name, enabled by default).
-#define ISOLATE_TIMELINE_STREAM_LIST(V)                                        \
-  V(API, false)                                                                \
-  V(Compiler, false)                                                           \
-  V(Embedder, false)                                                           \
-  V(GC, false)                                                                 \
-  V(Isolate, false)                                                            \
-
 
 #define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, suffix, function)       \
   TimelineDurationScope tds(thread,                                            \
@@ -372,8 +402,8 @@ class TimelineEventBlock {
   void Reset();
 
   // Only safe to access under the recorder's lock.
-  bool open() const {
-    return open_;
+  bool in_use() const {
+    return in_use_;
   }
 
   // Only safe to access under the recorder's lock.
@@ -391,11 +421,12 @@ class TimelineEventBlock {
 
   // Only accessed under the recorder's lock.
   Isolate* isolate_;
-  bool open_;
+  bool in_use_;
 
   void Open(Isolate* isolate);
   void Finish();
 
+  friend class Thread;
   friend class ThreadRegistry;
   friend class TimelineEventRecorder;
   friend class TimelineEventRingRecorder;
@@ -416,8 +447,8 @@ class TimelineEventFilter : public ValueObject {
     if (block == NULL) {
       return false;
     }
-    // Not empty and not open.
-    return !block->IsEmpty() && !block->open();
+    // Not empty and not in use.
+    return !block->IsEmpty() && !block->in_use();
   }
 
   virtual bool IncludeEvent(TimelineEvent* event) {
@@ -439,8 +470,8 @@ class IsolateTimelineEventFilter : public TimelineEventFilter {
     if (block == NULL) {
       return false;
     }
-    // Not empty, not open, and isolate match.
-    return !block->IsEmpty() &&
+    // Not empty, not in use, and isolate match.
+    return !block->IsEmpty() && !block->in_use() &&
            (block->isolate() == isolate_);
   }
 
@@ -459,8 +490,11 @@ class TimelineEventRecorder {
 
   // Interface method(s) which must be implemented.
   virtual void PrintJSON(JSONStream* js, TimelineEventFilter* filter) = 0;
+  virtual void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter) = 0;
 
   int64_t GetNextAsyncId();
+
+  void FinishBlock(TimelineEventBlock* block);
 
  protected:
   void WriteTo(const char* directory);
@@ -479,17 +513,15 @@ class TimelineEventRecorder {
   Mutex lock_;
   // Only accessed under |lock_|.
   TimelineEventBlock* global_block_;
-  void FinishGlobalBlock();
+  void ReclaimGlobalBlock();
 
   uintptr_t async_id_;
 
-  friend class ThreadRegistry;
   friend class TimelineEvent;
   friend class TimelineEventBlockIterator;
   friend class TimelineStream;
   friend class TimelineTestHelper;
   friend class Timeline;
-  friend class Isolate;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(TimelineEventRecorder);
@@ -505,6 +537,7 @@ class TimelineEventRingRecorder : public TimelineEventRecorder {
   ~TimelineEventRingRecorder();
 
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
+  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
 
  protected:
   TimelineEvent* StartEvent();
@@ -529,6 +562,7 @@ class TimelineEventStreamingRecorder : public TimelineEventRecorder {
   ~TimelineEventStreamingRecorder();
 
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
+  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
 
   // Called when |event| is ready to be streamed. It is unsafe to keep a
   // reference to |event| as it may be freed as soon as this function returns.
@@ -553,10 +587,8 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
  public:
   TimelineEventEndlessRecorder();
 
-  // NOTE: Calling this while threads are filling in their blocks is not safe
-  // and there are no checks in place to ensure that doesn't happen.
-  // TODO(koda): Add isolate count to |ThreadRegistry| and verify that it is 1.
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
+  void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
 
  protected:
   TimelineEvent* StartEvent();

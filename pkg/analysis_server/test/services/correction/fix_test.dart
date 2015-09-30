@@ -541,6 +541,15 @@ class Test {
     _assertLinkedGroup(change.linkedEditGroups[0], ['Test v =', 'Test {']);
   }
 
+  void test_createClass_BAD_hasUnresolvedPrefix() {
+    resolveTestUnit('''
+main() {
+  prefix.Test v = null;
+}
+''');
+    assertNoFix(DartFixKind.CREATE_CLASS);
+  }
+
   void test_createClass_inLibraryOfPrefix() {
     String libCode = r'''
 library my.lib;
@@ -2612,44 +2621,6 @@ main() {
 ''');
   }
 
-  void test_importLibraryPrefix_withClass() {
-    resolveTestUnit('''
-import 'dart:async' as pref;
-main() {
-  pref.Stream s = null;
-  Future f = null;
-}
-''');
-    assertHasFix(
-        DartFixKind.IMPORT_LIBRARY_PREFIX,
-        '''
-import 'dart:async' as pref;
-main() {
-  pref.Stream s = null;
-  pref.Future f = null;
-}
-''');
-  }
-
-  void test_importLibraryPrefix_withTopLevelVariable() {
-    resolveTestUnit('''
-import 'dart:math' as pref;
-main() {
-  print(pref.E);
-  print(PI);
-}
-''');
-    assertHasFix(
-        DartFixKind.IMPORT_LIBRARY_PREFIX,
-        '''
-import 'dart:math' as pref;
-main() {
-  print(pref.E);
-  print(pref.PI);
-}
-''');
-  }
-
   void test_importLibraryProject_withClass_annotation() {
     addSource(
         '/lib.dart',
@@ -4202,6 +4173,84 @@ main() {
 ''');
   }
 
+  void test_undefinedMethod_parameterType_differentPrefixInTargetUnit() {
+    String code2 = r'''
+library test2;
+import 'test3.dart' as bbb;
+export 'test3.dart';
+class D {
+}
+''';
+    addSource('/test2.dart', code2);
+    addSource(
+        '/test3.dart',
+        r'''
+library test3;
+class E {}
+''');
+    resolveTestUnit('''
+library test;
+import 'test2.dart' as aaa;
+main(aaa.D d, aaa.E e) {
+  d.foo(e);
+}
+''');
+    AnalysisError error = _findErrorToFix();
+    fix = _assertHasFix(DartFixKind.CREATE_METHOD, error);
+    change = fix.change;
+    // apply to "test2.dart"
+    List<SourceFileEdit> fileEdits = change.edits;
+    expect(fileEdits, hasLength(1));
+    SourceFileEdit fileEdit = change.edits[0];
+    expect(fileEdit.file, '/test2.dart');
+    expect(
+        SourceEdit.applySequence(code2, fileEdit.edits),
+        r'''
+library test2;
+import 'test3.dart' as bbb;
+export 'test3.dart';
+class D {
+  void foo(bbb.E e) {
+  }
+}
+''');
+  }
+
+  void test_undefinedMethod_parameterType_inTargetUnit() {
+    String code2 = r'''
+library test2;
+class D {
+}
+class E {}
+''';
+    addSource('/test2.dart', code2);
+    resolveTestUnit('''
+library test;
+import 'test2.dart' as test2;
+main(test2.D d, test2.E e) {
+  d.foo(e);
+}
+''');
+    AnalysisError error = _findErrorToFix();
+    fix = _assertHasFix(DartFixKind.CREATE_METHOD, error);
+    change = fix.change;
+    // apply to "test2.dart"
+    List<SourceFileEdit> fileEdits = change.edits;
+    expect(fileEdits, hasLength(1));
+    SourceFileEdit fileEdit = change.edits[0];
+    expect(fileEdit.file, '/test2.dart');
+    expect(
+        SourceEdit.applySequence(code2, fileEdit.edits),
+        r'''
+library test2;
+class D {
+  void foo(E e) {
+  }
+}
+class E {}
+''');
+  }
+
   void test_undefinedMethod_useSimilar_ignoreOperators() {
     resolveTestUnit('''
 main(Object object) {
@@ -4360,6 +4409,44 @@ main() {
   var a = 5;
   var b = 2;
   print(a ~/ b);
+}
+''');
+  }
+
+  void test_useImportPrefix_withClass() {
+    resolveTestUnit('''
+import 'dart:async' as pref;
+main() {
+  pref.Stream s = null;
+  Future f = null;
+}
+''');
+    assertHasFix(
+        DartFixKind.IMPORT_LIBRARY_PREFIX,
+        '''
+import 'dart:async' as pref;
+main() {
+  pref.Stream s = null;
+  pref.Future f = null;
+}
+''');
+  }
+
+  void test_useImportPrefix_withTopLevelVariable() {
+    resolveTestUnit('''
+import 'dart:math' as pref;
+main() {
+  print(pref.E);
+  print(PI);
+}
+''');
+    assertHasFix(
+        DartFixKind.IMPORT_LIBRARY_PREFIX,
+        '''
+import 'dart:math' as pref;
+main() {
+  print(pref.E);
+  print(pref.PI);
 }
 ''');
   }

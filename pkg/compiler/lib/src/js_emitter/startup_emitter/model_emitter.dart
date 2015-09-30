@@ -38,7 +38,7 @@ import '../../util/uri_extras.dart' show
     relativize;
 
 import '../headers.dart';
-import '../js_emitter.dart' show AstContainer, NativeEmitter;
+import '../js_emitter.dart' show NativeEmitter;
 
 import 'package:js_runtime/shared/embedded_names.dart' show
     CLASS_FIELDS_EXTRACTOR,
@@ -211,7 +211,8 @@ class ModelEmitter {
 
     if (backend.requiresPreamble &&
         !backend.htmlLibraryIsLoaded) {
-      compiler.reportHint(NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
+      compiler.reportHintMessage(
+          NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
     }
 
     if (compiler.deferredMapUri != null) {

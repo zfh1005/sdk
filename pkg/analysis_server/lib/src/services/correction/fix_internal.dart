@@ -35,7 +35,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:path/path.dart';
-import 'package:path/path.dart' as ppp;
 
 /**
  * A predicate is a one-argument function that returns a boolean value.
@@ -452,6 +451,9 @@ class FixProcessor {
       if (parent is PrefixedIdentifier) {
         PrefixedIdentifier prefixedIdentifier = parent;
         prefixElement = prefixedIdentifier.prefix.staticElement;
+        if (prefixElement == null) {
+          return;
+        }
         parent = prefixedIdentifier.parent;
         nameNode = prefixedIdentifier.identifier;
         name = prefixedIdentifier.identifier.name;
@@ -1867,6 +1869,11 @@ class FixProcessor {
           sourcePrefix = eol;
         }
         sourceSuffix = eol;
+        // use different utils
+        CompilationUnitElement targetUnitElement =
+            getCompilationUnitElement(targetClassElement);
+        CompilationUnit targetUnit = getParsedUnit(targetUnitElement);
+        utils = new CorrectionUtils(targetUnit);
       }
       String targetFile = targetElement.source.fullName;
       // build method source

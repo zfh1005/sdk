@@ -12,7 +12,6 @@ import 'dart:collection';
 import 'dart:_internal' hide Symbol;
 import "dart:_internal" as _symbol_dev show Symbol;
 import 'dart:_js_helper' show allMatchesInStringUnchecked,
-                              Null,
                               JSSyntaxRegExp,
                               Primitives,
                               argumentErrorValue,
@@ -35,8 +34,8 @@ import 'dart:_js_helper' show allMatchesInStringUnchecked,
                               stringReplaceFirstUnchecked,
                               stringReplaceFirstMappedUnchecked,
                               stringReplaceRangeUnchecked,
+                              throwConcurrentModificationError,
                               lookupAndCacheInterceptor,
-                              lookupDispatchRecord,
                               StringMatch,
                               firstMatchAfter,
                               NoInline;

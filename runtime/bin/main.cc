@@ -96,7 +96,6 @@ static bool has_trace_loading = false;
 static const char* DEFAULT_VM_SERVICE_SERVER_IP = "127.0.0.1";
 static const int DEFAULT_VM_SERVICE_SERVER_PORT = 8181;
 // VM Service options.
-static bool start_vm_service = false;
 static const char* vm_service_server_ip = DEFAULT_VM_SERVICE_SERVER_IP;
 // The 0 port is a magic value which results in the first available port
 // being allocated.
@@ -110,6 +109,7 @@ static const int kCompilationErrorExitCode = 254;
 // Exit code indicating an unhandled error that is not a compilation error.
 static const int kErrorExitCode = 255;
 
+extern bool do_vm_shutdown;  // Defined in bin/process.cc
 static void ErrorExit(int exit_code, const char* format, ...) {
   va_list arguments;
   va_start(arguments, format);
@@ -120,11 +120,19 @@ static void ErrorExit(int exit_code, const char* format, ...) {
   Dart_ExitScope();
   Dart_ShutdownIsolate();
 
-  Dart_Cleanup();
+  // Terminate process exit-code handler.
+  Process::TerminateExitCodeHandler();
 
-  DebuggerConnectionHandler::StopHandler();
-  // TODO(zra): Stop the EventHandler once thread shutdown is enabled.
-  // EventHandler::Stop();
+  char* error = Dart_Cleanup();
+  if (error != NULL) {
+    Log::PrintErr("VM cleanup failed: %s\n", error);
+    free(error);
+  }
+
+  if (do_vm_shutdown) {
+    DebuggerConnectionHandler::StopHandler();
+    EventHandler::Stop();
+  }
   exit(exit_code);
 }
 
@@ -314,7 +322,7 @@ static bool ProcessGenPrecompiledSnapshotOption(
   // Ensure that we are not already running using a full snapshot.
   if (isolate_snapshot_buffer != NULL) {
     Log::PrintErr("Precompiled snapshots must be generated with"
-                  " dart_no_snapshot.");
+                  " dart_no_snapshot.\n");
     return false;
   }
   has_gen_precompiled_snapshot = true;
@@ -383,7 +391,6 @@ static bool ProcessEnableVmServiceOption(const char* option_value,
     return false;
   }
 
-  start_vm_service = true;
   return true;
 }
 
@@ -401,8 +408,6 @@ static bool ProcessObserveOption(const char* option_value,
                   "Use --observe[:<port number>[/<IPv4 address>]]\n");
     return false;
   }
-
-  start_vm_service = true;
 
   vm_options->AddArgument("--pause-isolates-on-exit");
   return true;
@@ -430,30 +435,60 @@ static bool ProcessTraceLoadingOption(const char* arg,
 }
 
 
+
+static bool ProcessShutdownOption(const char* arg,
+                                  CommandLineOptions* vm_options) {
+  ASSERT(arg != NULL);
+  if (*arg == '\0') {
+    do_vm_shutdown = true;
+    vm_options->AddArgument("--shutdown");
+    return true;
+  }
+
+  if ((*arg != '=') && (*arg != ':')) {
+    return false;
+  }
+
+  if (strcmp(arg + 1, "true") == 0) {
+    do_vm_shutdown = true;
+    vm_options->AddArgument("--shutdown");
+    return true;
+  } else if (strcmp(arg + 1, "false") == 0) {
+    do_vm_shutdown = false;
+    vm_options->AddArgument("--no-shutdown");
+    return true;
+  }
+
+  return false;
+}
+
+
 static struct {
   const char* option_name;
   bool (*process)(const char* option, CommandLineOptions* vm_options);
 } main_options[] = {
   // Standard options shared with dart2js.
-  { "--version", ProcessVersionOption },
-  { "--help", ProcessHelpOption },
-  { "-h", ProcessHelpOption },
-  { "--verbose", ProcessVerboseOption },
-  { "-v", ProcessVerboseOption },
-  { "--package-root=", ProcessPackageRootOption },
-  { "--packages=", ProcessPackagesOption },
   { "-D", ProcessEnvironmentOption },
+  { "-h", ProcessHelpOption },
+  { "--help", ProcessHelpOption },
+  { "--packages=", ProcessPackagesOption },
+  { "--package-root=", ProcessPackageRootOption },
+  { "-v", ProcessVerboseOption },
+  { "--verbose", ProcessVerboseOption },
+  { "--version", ProcessVersionOption },
+
   // VM specific options to the standalone dart program.
   { "--break-at=", ProcessBreakpointOption },
   { "--compile_all", ProcessCompileAllOption },
-  { "--gen-precompiled-snapshot", ProcessGenPrecompiledSnapshotOption },
-  { "--run-precompiled-snapshot", ProcessRunPrecompiledSnapshotOption },
   { "--debug", ProcessDebugOption },
-  { "--snapshot=", ProcessGenScriptSnapshotOption },
   { "--enable-vm-service", ProcessEnableVmServiceOption },
+  { "--gen-precompiled-snapshot", ProcessGenPrecompiledSnapshotOption },
   { "--observe", ProcessObserveOption },
+  { "--run-precompiled-snapshot", ProcessRunPrecompiledSnapshotOption },
+  { "--shutdown", ProcessShutdownOption },
+  { "--snapshot=", ProcessGenScriptSnapshotOption },
   { "--trace-debug-protocol", ProcessTraceDebugProtocolOption },
-  { "--trace-loading", ProcessTraceLoadingOption},
+  { "--trace-loading", ProcessTraceLoadingOption },
   { NULL, NULL }
 };
 
@@ -660,6 +695,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
                                error);
 
   if (isolate == NULL) {
+    delete isolate_data;
     return NULL;
   }
 
@@ -681,10 +717,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
       *error = strdup(VmService::GetErrorMessage());
       return NULL;
     }
-    if (has_gen_precompiled_snapshot) {
-      result = Dart_Precompile();
-      CHECK_RESULT(result);
-    } else if (has_compile_all) {
+    if (has_compile_all) {
       result = Dart_CompileAll();
       CHECK_RESULT(result);
     }
@@ -714,21 +747,24 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   result = Dart_SetEnvironmentCallback(EnvironmentCallback);
   CHECK_RESULT(result);
 
-  // Load the script.
-  result = DartUtils::LoadScript(script_uri, builtin_lib);
-  CHECK_RESULT(result);
+  if (!has_run_precompiled_snapshot) {
+    // Load the script.
+    result = DartUtils::LoadScript(script_uri, builtin_lib);
+    CHECK_RESULT(result);
 
-  // Run event-loop and wait for script loading to complete.
-  result = Dart_RunLoop();
-  CHECK_RESULT(result);
+    // Run event-loop and wait for script loading to complete.
+    result = Dart_RunLoop();
+    CHECK_RESULT(result);
 
-  if (isolate_data->load_async_id >= 0) {
-    Dart_TimelineAsyncEnd("LoadScript", isolate_data->load_async_id);
+    if (isolate_data->load_async_id >= 0) {
+      Dart_TimelineAsyncEnd("LoadScript", isolate_data->load_async_id);
+    }
+
+    Platform::SetPackageRoot(package_root);
+
+    result = DartUtils::SetupIOLibrary(script_uri);
+    CHECK_RESULT(result);
   }
-
-  Platform::SetPackageRoot(package_root);
-
-  DartUtils::SetupIOLibrary(script_uri);
 
   // Make the isolate runnable so that it is ready to handle messages.
   Dart_ExitScope();
@@ -1001,7 +1037,9 @@ static void WriteSnapshotFile(const char* filename,
   File* file = File::Open(filename, File::kWriteTruncate);
   ASSERT(file != NULL);
   if (!file->WriteFully(buffer, size)) {
-    Log::PrintErr("Error: Failed to write snapshot file.\n\n");
+    ErrorExit(kErrorExitCode,
+              "Unable to open file %s for writing snapshot\n",
+              filename);
   }
   delete file;
 }
@@ -1011,14 +1049,14 @@ static void ReadSnapshotFile(const char* filename,
                              const uint8_t** buffer) {
   void* file = DartUtils::OpenFile(filename, false);
   if (file == NULL) {
-    Log::PrintErr("Error: Failed to open '%s'.\n\n", filename);
-    exit(kErrorExitCode);
+    ErrorExit(kErrorExitCode,
+              "Error: Unable to open file %s for reading snapshot\n", filename);
   }
   intptr_t len = -1;
   DartUtils::ReadFile(buffer, &len, file);
   if (*buffer == NULL || len == -1) {
-    Log::PrintErr("Error: Failed to read '%s'.\n\n", filename);
-    exit(kErrorExitCode);
+    ErrorExit(kErrorExitCode,
+              "Error: Unable to read snapshot file %s\n", filename);
   }
   DartUtils::CloseFile(file);
 }
@@ -1027,12 +1065,12 @@ static void ReadSnapshotFile(const char* filename,
 static void* LoadLibrarySymbol(const char* libname, const char* symname) {
   void* library = Extensions::LoadExtensionLibrary(libname);
   if (library == NULL) {
-    Log::PrintErr("Error: Failed to load library '%s'.\n\n", libname);
+    Log::PrintErr("Error: Failed to load library '%s'\n", libname);
     exit(kErrorExitCode);
   }
   void* symbol = Extensions::ResolveSymbol(library, symname);
   if (symbol == NULL) {
-    Log::PrintErr("Failed to load symbol '%s'\n", symname);
+    Log::PrintErr("Error: Failed to load symbol '%s'\n", symname);
     exit(kErrorExitCode);
   }
   return symbol;
@@ -1121,18 +1159,22 @@ void main(int argc, char** argv) {
   }
 
   // Initialize the Dart VM.
-  if (!Dart_Initialize(vm_isolate_snapshot_buffer, instructions_snapshot,
-                       CreateIsolateAndSetup, NULL, NULL, ShutdownIsolate,
-                       DartUtils::OpenFile,
-                       DartUtils::ReadFile,
-                       DartUtils::WriteFile,
-                       DartUtils::CloseFile,
-                       DartUtils::EntropySource)) {
-    fprintf(stderr, "%s", "VM initialization failed\n");
+  char* error = Dart_Initialize(
+      vm_isolate_snapshot_buffer, instructions_snapshot,
+      CreateIsolateAndSetup, NULL, NULL, ShutdownIsolate,
+      DartUtils::OpenFile,
+      DartUtils::ReadFile,
+      DartUtils::WriteFile,
+      DartUtils::CloseFile,
+      DartUtils::EntropySource);
+  if (error != NULL) {
+    if (do_vm_shutdown) {
+      DebuggerConnectionHandler::StopHandler();
+      EventHandler::Stop();
+    }
+    fprintf(stderr, "VM initialization failed: %s\n", error);
     fflush(stderr);
-    DebuggerConnectionHandler::StopHandler();
-    // TODO(zra): Stop the EventHandler once thread shutdown is enabled.
-    // EventHandler::Stop();
+    free(error);
     exit(kErrorExitCode);
   }
 
@@ -1143,7 +1185,6 @@ void main(int argc, char** argv) {
 
   // Call CreateIsolateAndSetup which creates an isolate and loads up
   // the specified application script.
-  char* error = NULL;
   int exit_code = 0;
   char* isolate_name = BuildIsolateName(script_name, "main");
   Dart_Isolate isolate = CreateIsolateAndSetupHelper(script_name,
@@ -1156,10 +1197,18 @@ void main(int argc, char** argv) {
   if (isolate == NULL) {
     Log::PrintErr("%s\n", error);
     free(error);
+    error = NULL;
     delete [] isolate_name;
-    DebuggerConnectionHandler::StopHandler();
-    // TODO(zra): Stop the EventHandler once thread shutdown is enabled.
-    // EventHandler::Stop();
+    Process::TerminateExitCodeHandler();
+    error = Dart_Cleanup();
+    if (error != NULL) {
+      Log::PrintErr("VM cleanup failed: %s\n", error);
+      free(error);
+    }
+    if (do_vm_shutdown) {
+      DebuggerConnectionHandler::StopHandler();
+      EventHandler::Stop();
+    }
     exit((exit_code != 0) ? exit_code : kErrorExitCode);
   }
   delete [] isolate_name;
@@ -1206,7 +1255,32 @@ void main(int argc, char** argv) {
     result = Dart_LibraryImportLibrary(builtin_lib, root_lib, Dart_Null());
 
     if (has_gen_precompiled_snapshot) {
-      result = Dart_Precompile();
+      Dart_QualifiedFunctionName standalone_entry_points[] = {
+        { "dart:_builtin", "::", "_getMainClosure" },
+        { "dart:_builtin", "::", "_getPrintClosure" },
+        { "dart:_builtin", "::", "_getUriBaseClosure" },
+        { "dart:_builtin", "::", "_resolveUri" },
+        { "dart:_builtin", "::", "_setWorkingDirectory" },
+        { "dart:_builtin", "::", "_loadDataAsync" },
+        { "dart:io", "::", "_makeUint8ListView" },
+        { "dart:io", "::", "_makeDatagram" },
+        { "dart:io", "::", "_setupHooks" },
+        { "dart:io", "CertificateException", "CertificateException." },
+        { "dart:io", "HandshakeException", "HandshakeException." },
+        { "dart:io", "TlsException", "TlsException." },
+        { "dart:io", "X509Certificate", "X509Certificate." },
+        { "dart:io", "_ExternalBuffer", "set:data" },
+        { "dart:io", "_Platform", "set:_nativeScript" },
+        { "dart:io", "_ProcessStartStatus", "set:_errorCode" },
+        { "dart:io", "_ProcessStartStatus", "set:_errorMessage" },
+        { "dart:io", "_SecureFilterImpl", "get:ENCRYPTED_SIZE" },
+        { "dart:io", "_SecureFilterImpl", "get:SIZE" },
+        { "dart:vmservice_io", "::", "_addResource" },
+        { "dart:vmservice_io", "::", "main" },
+        { NULL, NULL, NULL }  // Must be terminated with NULL entries.
+      };
+
+      result = Dart_Precompile(standalone_entry_points);
       DartExitOnError(result);
 
       uint8_t* vm_isolate_buffer = NULL;
@@ -1231,53 +1305,55 @@ void main(int argc, char** argv) {
       WriteSnapshotFile(kPrecompiledInstructionsName,
                         instructions_buffer,
                         instructions_size);
-    } else if (has_compile_all) {
-      result = Dart_CompileAll();
+    } else {
+      if (has_compile_all) {
+        result = Dart_CompileAll();
+        DartExitOnError(result);
+      }
+
+      if (Dart_IsNull(root_lib)) {
+        ErrorExit(kErrorExitCode,
+                  "Unable to find root library for '%s'\n",
+                  script_name);
+      }
+
+      // The helper function _getMainClosure creates a closure for the main
+      // entry point which is either explicitly or implictly exported from the
+      // root library.
+      Dart_Handle main_closure = Dart_Invoke(builtin_lib,
+          Dart_NewStringFromCString("_getMainClosure"), 0, NULL);
+      DartExitOnError(main_closure);
+
+      // Set debug breakpoint if specified on the command line before calling
+      // the main function.
+      if (breakpoint_at != NULL) {
+        result = SetBreakpoint(breakpoint_at, root_lib);
+        if (Dart_IsError(result)) {
+          ErrorExit(kErrorExitCode,
+                    "Error setting breakpoint at '%s': %s\n",
+                    breakpoint_at,
+                    Dart_GetError(result));
+        }
+      }
+
+      // Call _startIsolate in the isolate library to enable dispatching the
+      // initial startup message.
+      const intptr_t kNumIsolateArgs = 2;
+      Dart_Handle isolate_args[kNumIsolateArgs];
+      isolate_args[0] = main_closure;                         // entryPoint
+      isolate_args[1] = CreateRuntimeOptions(&dart_options);  // args
+
+      Dart_Handle isolate_lib =
+          Dart_LookupLibrary(Dart_NewStringFromCString("dart:isolate"));
+      result = Dart_Invoke(isolate_lib,
+                           Dart_NewStringFromCString("_startMainIsolate"),
+                           kNumIsolateArgs, isolate_args);
+      DartExitOnError(result);
+
+      // Keep handling messages until the last active receive port is closed.
+      result = Dart_RunLoop();
       DartExitOnError(result);
     }
-
-    if (Dart_IsNull(root_lib)) {
-      ErrorExit(kErrorExitCode,
-                "Unable to find root library for '%s'\n",
-                script_name);
-    }
-
-    // The helper function _getMainClosure creates a closure for the main
-    // entry point which is either explicitly or implictly exported from the
-    // root library.
-    Dart_Handle main_closure = Dart_Invoke(
-        builtin_lib, Dart_NewStringFromCString("_getMainClosure"), 0, NULL);
-    DartExitOnError(main_closure);
-
-    // Set debug breakpoint if specified on the command line before calling
-    // the main function.
-    if (breakpoint_at != NULL) {
-      result = SetBreakpoint(breakpoint_at, root_lib);
-      if (Dart_IsError(result)) {
-        ErrorExit(kErrorExitCode,
-                  "Error setting breakpoint at '%s': %s\n",
-                  breakpoint_at,
-                  Dart_GetError(result));
-      }
-    }
-
-    // Call _startIsolate in the isolate library to enable dispatching the
-    // initial startup message.
-    const intptr_t kNumIsolateArgs = 2;
-    Dart_Handle isolate_args[kNumIsolateArgs];
-    isolate_args[0] = main_closure;                         // entryPoint
-    isolate_args[1] = CreateRuntimeOptions(&dart_options);  // args
-
-    Dart_Handle isolate_lib = Dart_LookupLibrary(
-        Dart_NewStringFromCString("dart:isolate"));
-    result = Dart_Invoke(isolate_lib,
-                         Dart_NewStringFromCString("_startMainIsolate"),
-                         kNumIsolateArgs, isolate_args);
-    DartExitOnError(result);
-
-    // Keep handling messages until the last active receive port is closed.
-    result = Dart_RunLoop();
-    DartExitOnError(result);
   }
 
   Dart_ExitScope();
@@ -1286,11 +1362,15 @@ void main(int argc, char** argv) {
   // Terminate process exit-code handler.
   Process::TerminateExitCodeHandler();
 
-  Dart_Cleanup();
-
-  DebuggerConnectionHandler::StopHandler();
-  // TODO(zra): Stop the EventHandler once thread shutdown is enabled.
-  // EventHandler::Stop();
+  error = Dart_Cleanup();
+  if (error != NULL) {
+    Log::PrintErr("VM cleanup failed: %s\n", error);
+    free(error);
+  }
+  if (do_vm_shutdown) {
+    DebuggerConnectionHandler::StopHandler();
+    EventHandler::Stop();
+  }
 
   // Free copied argument strings if converted.
   if (argv_converted) {

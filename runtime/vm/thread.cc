@@ -7,6 +7,8 @@
 #include "vm/growable_array.h"
 #include "vm/isolate.h"
 #include "vm/lockers.h"
+#include "vm/log.h"
+#include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/os_thread.h"
 #include "vm/profiler.h"
@@ -52,6 +54,8 @@ Thread::~Thread() {
   // Clear |this| from all isolate's thread registry.
   ThreadPruner pruner(this);
   Isolate::VisitIsolates(&pruner);
+  delete log_;
+  log_ = NULL;
 }
 
 
@@ -108,7 +112,8 @@ Thread::Thread(bool init_vm_constants)
       thread_interrupt_data_(NULL),
       isolate_(NULL),
       heap_(NULL),
-      store_buffer_block_(NULL) {
+      store_buffer_block_(NULL),
+      log_(new class Log()) {
   ClearState();
 
 #define DEFAULT_INIT(type_name, member_name, init_expr, default_init_value)    \
@@ -251,8 +256,8 @@ void Thread::ExitIsolateAsHelper(bool bypass_safepoint) {
 // TODO(koda): Make non-static and invoke in SafepointThreads.
 void Thread::PrepareForGC() {
   Thread* thread = Thread::Current();
-  const bool kDoNotCheckThreshold = false;  // Prevent scheduling another GC.
-  thread->StoreBufferRelease(kDoNotCheckThreshold);
+  // Prevent scheduling another GC.
+  thread->StoreBufferRelease(StoreBuffer::kIgnoreThreshold);
   // Make sure to get an *empty* block; the isolate needs all entries
   // at GC time.
   // TODO(koda): Replace with an epilogue (PrepareAfterGC) that acquires.
@@ -261,8 +266,8 @@ void Thread::PrepareForGC() {
 }
 
 
-void Thread::StoreBufferBlockProcess(bool check_threshold) {
-  StoreBufferRelease(check_threshold);
+void Thread::StoreBufferBlockProcess(StoreBuffer::ThresholdPolicy policy) {
+  StoreBufferRelease(policy);
   StoreBufferAcquire();
 }
 
@@ -270,7 +275,7 @@ void Thread::StoreBufferBlockProcess(bool check_threshold) {
 void Thread::StoreBufferAddObject(RawObject* obj) {
   store_buffer_block_->Push(obj);
   if (store_buffer_block_->IsFull()) {
-    StoreBufferBlockProcess(true);
+    StoreBufferBlockProcess(StoreBuffer::kCheckThreshold);
   }
 }
 
@@ -278,15 +283,15 @@ void Thread::StoreBufferAddObject(RawObject* obj) {
 void Thread::StoreBufferAddObjectGC(RawObject* obj) {
   store_buffer_block_->Push(obj);
   if (store_buffer_block_->IsFull()) {
-    StoreBufferBlockProcess(false);
+    StoreBufferBlockProcess(StoreBuffer::kIgnoreThreshold);
   }
 }
 
 
-void Thread::StoreBufferRelease(bool check_threshold) {
+void Thread::StoreBufferRelease(StoreBuffer::ThresholdPolicy policy) {
   StoreBufferBlock* block = store_buffer_block_;
   store_buffer_block_ = NULL;
-  isolate_->store_buffer()->PushBlock(block, check_threshold);
+  isolate_->store_buffer()->PushBlock(block, policy);
 }
 
 
@@ -304,6 +309,11 @@ CHA* Thread::cha() const {
 void Thread::set_cha(CHA* value) {
   ASSERT(isolate_ != NULL);
   isolate_->cha_ = value;
+}
+
+
+Log* Thread::log() const {
+  return log_;
 }
 
 
@@ -351,6 +361,7 @@ CACHED_VM_OBJECTS_LIST(COMPUTE_OFFSET)
   UNREACHABLE();
   return -1;
 }
+
 
 intptr_t Thread::OffsetFromThread(const RuntimeEntry* runtime_entry) {
 #define COMPUTE_OFFSET(name)                                                   \

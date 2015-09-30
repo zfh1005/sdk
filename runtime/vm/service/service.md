@@ -478,18 +478,21 @@ See [FlagList](#flaglist).
 ### getIsolate
 
 ```
-Isolate getIsolate(string isolateId)
+Isolate|Sentinel getIsolate(string isolateId)
 ```
 
 The _getIsolate_ RPC is used to lookup an _Isolate_ object by its _id_.
+
+If _isolateId_ refers to an isolate which has exited, then the
+_Collected_ [Sentinel](#sentinel) is returned.
 
 See [Isolate](#isolate).
 
 ### getObject
 
 ```
-Object|Sentinel  getObject(string isolateId,
-                           string objectId)
+Object|Sentinel getObject(string isolateId,
+                          string objectId)
 ```
 
 The _getObject_ RPC is used to lookup an _object_ from some isolate by
@@ -498,9 +501,12 @@ its _id_.
 If _objectId_ is a temporary id which has expired, then then _Expired_
 [Sentinel](#sentinel) is returned.
 
-If _objectId_ refers to an object which has been collected by the VM's
+If _objectId_ refers to a heap object which has been collected by the VM's
 garbage collector, then the _Collected_ [Sentinel](#sentinel) is
 returned.
+
+If _objectId_ refers to a non-heap object which has been deleted, then
+the _Collected_ [Sentinel](#sentinel) is returned.
 
 If the object handle has not expired and the object has not been
 collected, then an [Object](#object) will be returned.
@@ -774,13 +780,24 @@ will be the _OptimizedOut_ [Sentinel](#sentinel).
 
 ```
 class Breakpoint extends Object {
+  // A number identifying this breakpoint to the user.
   int breakpointNumber;
+
+  // Has this breakpoint been assigned to a specific program location?
   bool resolved;
+
+  // SourceLocation when breakpoint is resolved, UnresolvedSourceLocation
+  // when a breakpoint is not resolved.
   SourceLocation|UnresolvedSourceLocation location;
 }
 ```
 
 A _Breakpoint_ describes a debugger breakpoint.
+
+A breakpoint is _resolved_ when it has been assigned to a specific
+program location.  A breakpoint my remain unresolved when it is in
+code which has not yet been compiled or in a library which has not
+been loaded (i.e. a deferred library).
 
 ### Class
 
@@ -885,14 +902,14 @@ enum CodeKind {
 ### Context
 
 ```
-class @Context {
+class @Context extends @Object {
   // The number of variables in this context.
   int length;
 }
 ```
 
 ```
-class Context {
+class Context extends Object {
   // The number of variables in this context.
   int length;
 
@@ -903,6 +920,9 @@ class Context {
   ContextElement[] variables;
 }
 ```
+
+A _Context_ is a data structure which holds the captured variables for
+some closure.
 
 ### ContextElement
 
@@ -1009,6 +1029,9 @@ class Event extends Response {
   //   PauseBreakpoint
   //   PauseInterrupted
   //   PauseException
+  //
+  // For PauseInterrupted events, there will be no top frame if the
+  // isolate is idle (waiting in the message loop).
   //
   // For the Resume event, the top frame is provided at
   // all times except for the initial resume event that is delivered
@@ -1310,9 +1333,11 @@ class @Instance extends @Object {
 
   // The pattern of a RegExp instance.
   //
+  // The pattern is always an instance of kind String.
+  //
   // Provided for instance kinds:
   //   RegExp
-  String pattern [optional];
+  @Instance pattern [optional];
 }
 ```
 
@@ -1395,6 +1420,8 @@ class Instance extends Object {
 
   // The bytes of a TypedData instance.
   //
+  // The data is provided as a Base64 encoded string.
+  //
   // Provided for instance kinds:
   //   Uint8ClampedList
   //   Uint8List
@@ -1410,7 +1437,7 @@ class Instance extends Object {
   //   Int32x4List
   //   Float32x4List
   //   Float64x2List
-  int[] bytes [optional];
+  string bytes [optional];
 
   // The function associated with a Closure instance.
   //
@@ -1422,7 +1449,7 @@ class Instance extends Object {
   //
   // Provided for instance kinds:
   //   Closure
-  @Function closureContext [optional];
+  @Context closureContext [optional];
 
   // The referent of a MirrorReference instance.
   //
@@ -1732,14 +1759,31 @@ class MapAssociation {
 
 ```
 class Message extends Response {
+  // The index in the isolate's message queue. The 0th message being the next
+  // message to be processed.
   int index;
+
+  // An advisory name describing this message.
   string name;
+
+  // An instance id for the decoded message. This id can be passed to other
+  // RPCs, for example, getObject or evaluate.
   string messageObjectId;
+
+  // The size (bytes) of the encoded message.
   int size;
+
+  // A reference to the function that will be invoked to handle this message.
   @Function handler [optional];
+
+  // The source location of handler.
   SourceLocation location [optional];
 }
 ```
+
+A _Message_ provides information about a pending isolate message and the
+function that will be invoked to handle it.
+
 
 ### Null
 
@@ -1998,15 +2042,15 @@ class UnresolvedSourceLocation extends Response {
   // has yet to be loaded.
   string scriptUri [optional];
 
-  // An approximate token position for the source location.  This may  
+  // An approximate token position for the source location.  This may
   // change when the location is resolved.
   int tokenPos [optional];
 
-  // An approximate line number for the source location.  This may  
+  // An approximate line number for the source location.  This may
   // change when the location is resolved.
   int line [optional];
 
-  // An approximate column number for the source location.  This may  
+  // An approximate column number for the source location.  This may
   // change when the location is resolved.
   int column [optional];
 
@@ -2075,7 +2119,7 @@ version | comments
 ------- | --------
 1.0 draft 1 | initial revision
 1.1 | Describe protocol version 2.0.
-1.2 | Describe protocol version 3.0.  Added UnresolvedSourceLocation.
+1.2 | Describe protocol version 3.0.  Added UnresolvedSourceLocation.  Added Sentinel return to getIsolate.
 
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

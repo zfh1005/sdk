@@ -15,11 +15,18 @@ import '../diagnostics/invariant.dart' show
 import '../diagnostics/spannable.dart' show
     NO_LOCATION_SPANNABLE;
 import '../elements/elements.dart';
-import '../inferrer/concrete_types_inferrer.dart' show ConcreteTypesInferrer;
-import '../inferrer/type_graph_inferrer.dart' show TypeGraphInferrer;
+import '../inferrer/concrete_types_inferrer.dart' show
+    ConcreteTypesInferrer;
+import '../inferrer/type_graph_inferrer.dart' show
+    TypeGraphInferrer;
 import '../tree/tree.dart';
 import '../util/util.dart';
-import '../universe/universe.dart';
+import '../universe/selector.dart' show
+    Selector;
+import '../universe/universe.dart' show
+    ReceiverConstraint,
+    UniverseSelectorConstraints,
+    SelectorConstraintsStrategy;
 import '../world.dart' show
     ClassWorld,
     World;
@@ -259,7 +266,7 @@ class TypesTask extends CompilerTask {
     return result;
   }
 
-  /** Returns true if [type1] is strictly bettern than [type2]. */
+  /** Returns true if [type1] is strictly better than [type2]. */
   bool better(TypeMask type1, TypeMask type2) {
     if (type1 == null) return false;
     if (type2 == null) {

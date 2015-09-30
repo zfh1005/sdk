@@ -4,7 +4,7 @@
 
 library dart2js.type_mask_system;
 
-import '../closure.dart' show ClosureClassElement, Identifiers;
+import '../closure.dart' show ClosureClassElement;
 import '../common/names.dart' show Selectors, Identifiers;
 import '../compiler.dart' as dart2js show Compiler;
 import '../constants/constant_system.dart';
@@ -15,7 +15,7 @@ import '../io/source_information.dart' show SourceInformation;
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
 import '../types/types.dart';
 import '../types/constants.dart' show computeTypeMask;
-import '../universe/universe.dart';
+import '../universe/selector.dart' show Selector;
 import '../world.dart' show World;
 
 enum AbstractBool {
@@ -105,7 +105,14 @@ class TypeMaskSystem {
   }
 
   TypeMask getInvokeReturnType(Selector selector, TypeMask mask) {
-    return inferrer.getGuaranteedTypeOfSelector(selector, mask);
+    TypeMask result = inferrer.getGuaranteedTypeOfSelector(selector, mask);
+    // Tearing off .call from a function returns the function itself.
+    if (selector.isGetter &&
+        selector.name == Identifiers.call &&
+        !areDisjoint(functionType, mask)) {
+      result = join(result, functionType);
+    }
+    return result;
   }
 
   TypeMask getFieldType(FieldElement field) {
@@ -118,6 +125,20 @@ class TypeMaskSystem {
 
   TypeMask getTypeOf(ConstantValue constant) {
     return computeTypeMask(inferrer.compiler, constant);
+  }
+
+  // Returns the constant value if a TypeMask represents a single value.
+  // Returns `null` if [mask] is not a constant.
+  ConstantValue getConstantOf(TypeMask mask) {
+    if (!mask.isValue) return null;
+    if (mask.isNullable) return null;  // e.g. 'true or null'.
+    ValueTypeMask valueMask = mask;
+    var value = valueMask.value;
+    // TODO(sra): Why is ValueTypeMask.value not a ConstantValue?
+    if (value == false) return new FalseConstantValue();
+    if (value == true) return new TrueConstantValue();
+    // TODO(sra): Consider other values. Be careful with large strings.
+    return null;
   }
 
   TypeMask nonNullExact(ClassElement element) {
@@ -294,5 +315,36 @@ class TypeMaskSystem {
   /// that can respond to [selector] without throwing.
   TypeMask receiverTypeFor(Selector selector, TypeMask mask) {
     return classWorld.allFunctions.receiverType(selector, mask);
+  }
+
+  /// The result of an index operation on something of [type], or the dynamic
+  /// type if unknown.
+  TypeMask elementTypeOfIndexable(TypeMask type) {
+    if (type is UnionTypeMask) {
+      return new TypeMask.unionOf(
+          type.disjointMasks.map(elementTypeOfIndexable), classWorld);
+    }
+    if (type is ContainerTypeMask) {
+      return type.elementType;
+    }
+    if (isDefinitelyString(type)) {
+      return stringType;
+    }
+    if (type.satisfies(backend.typedArrayClass, classWorld)) {
+      if (type.satisfies(backend.typedArrayOfIntClass, classWorld)) {
+        return intType;
+      }
+      return numType;
+    }
+    return dynamicType;
+  }
+
+  /// The length of something of [type], or `null` if unknown.
+  int getContainerLength(TypeMask type) {
+    if (type is ContainerTypeMask) {
+      return type.length;
+    } else {
+      return null;
+    }
   }
 }

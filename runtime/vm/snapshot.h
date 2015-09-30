@@ -32,6 +32,7 @@ class Library;
 class Object;
 class PassiveObject;
 class ObjectStore;
+class MegamorphicCache;
 class PageSpace;
 class RawApiError;
 class RawArray;
@@ -195,6 +196,32 @@ class Snapshot {
 };
 
 
+class InstructionsSnapshot : ValueObject {
+ public:
+  explicit InstructionsSnapshot(const void* raw_memory)
+    : raw_memory_(raw_memory) {
+    ASSERT(Utils::IsAligned(raw_memory, OS::kMaxPreferredCodeAlignment));
+  }
+
+  void* instructions_start() {
+    return reinterpret_cast<void*>(
+        reinterpret_cast<uword>(raw_memory_) + kHeaderSize);
+  }
+
+  uword instructions_size() {
+    uword snapshot_size = *reinterpret_cast<const uword*>(raw_memory_);
+    return snapshot_size - kHeaderSize;
+  }
+
+  static const intptr_t kHeaderSize = OS::kMaxPreferredCodeAlignment;
+
+ private:
+  const void* raw_memory_;  // The symbol kInstructionsSnapshot.
+
+  DISALLOW_COPY_AND_ASSIGN(InstructionsSnapshot);
+};
+
+
 class BaseReader {
  public:
   BaseReader(const uint8_t* buffer, intptr_t size) : stream_(buffer, size) {}
@@ -339,6 +366,8 @@ class SnapshotReader : public BaseReader {
   ExternalTypedData* DataHandle() { return &data_; }
   TypedData* TypedDataHandle() { return &typed_data_; }
   Code* CodeHandle() { return &code_; }
+  Function* FunctionHandle() { return &function_; }
+  MegamorphicCache* MegamorphicCacheHandle() { return &megamorphic_cache_; }
   Snapshot::Kind kind() const { return kind_; }
   bool snapshot_code() const { return snapshot_code_; }
 
@@ -442,6 +471,7 @@ class SnapshotReader : public BaseReader {
   RawObject* AllocateUninitialized(intptr_t class_id, intptr_t size);
 
   RawClass* ReadClassId(intptr_t object_id);
+  RawFunction* ReadFunctionId(intptr_t object_id);
   RawObject* ReadStaticImplicitClosure(intptr_t object_id, intptr_t cls_header);
 
   // Implementation to read an object.
@@ -521,6 +551,8 @@ class SnapshotReader : public BaseReader {
   ExternalTypedData& data_;  // Temporary stream data handle.
   TypedData& typed_data_;  // Temporary typed data handle.
   Code& code_;  // Temporary code handle.
+  Function& function_;  // Temporary function handle.
+  MegamorphicCache& megamorphic_cache_;  // Temporary megamorphic cache handle.
   UnhandledException& error_;  // Error handle.
   intptr_t max_vm_isolate_object_id_;
   ZoneGrowableArray<BackRefNode>* backward_references_;
@@ -780,7 +812,7 @@ class InstructionsWriter : public ZoneAllocated {
                      ReAlloc alloc,
                      intptr_t initial_size)
     : stream_(buffer, alloc, initial_size),
-      next_offset_(0),
+      next_offset_(InstructionsSnapshot::kHeaderSize),
       instructions_() {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
@@ -818,6 +850,14 @@ class InstructionsWriter : public ZoneAllocated {
     };
   };
 
+  void WriteWordLiteral(uword value) {
+    // Padding is helpful for comparing the .S with --disassemble.
+#if defined(ARCH_IS_64_BIT)
+    stream_.Print(".quad 0x%0.16" Px "\n", value);
+#else
+    stream_.Print(".long 0x%0.8" Px "\n", value);
+#endif
+  }
 
   WriteStream stream_;
   intptr_t next_offset_;
@@ -875,6 +915,8 @@ class SnapshotWriter : public BaseWriter {
   void SetInstructionsCode(RawInstructions* instructions, RawCode* code) {
     return instructions_writer_->SetInstructionsCode(instructions, code);
   }
+
+  void WriteFunctionId(RawFunction* func, bool owner_is_class);
 
  protected:
   void UnmarkAll() {
@@ -947,6 +989,7 @@ class SnapshotWriter : public BaseWriter {
   friend class RawContextScope;
   friend class RawExceptionHandlers;
   friend class RawField;
+  friend class RawFunction;
   friend class RawGrowableObjectArray;
   friend class RawImmutableArray;
   friend class RawInstructions;
@@ -1073,11 +1116,6 @@ class MessageWriter : public SnapshotWriter {
 // objects to a snap shot.
 class SnapshotWriterVisitor : public ObjectPointerVisitor {
  public:
-  explicit SnapshotWriterVisitor(SnapshotWriter* writer)
-      : ObjectPointerVisitor(Isolate::Current()),
-        writer_(writer),
-        as_references_(true) {}
-
   SnapshotWriterVisitor(SnapshotWriter* writer, bool as_references)
       : ObjectPointerVisitor(Isolate::Current()),
         writer_(writer),

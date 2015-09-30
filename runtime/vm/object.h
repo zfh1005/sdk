@@ -488,12 +488,6 @@ class Object {
     return *vm_isolate_snapshot_object_table_;
   }
   static void InitVmIsolateSnapshotObjectTable(intptr_t len);
-  static const uint8_t* instructions_snapshot_buffer() {
-    return instructions_snapshot_buffer_;
-  }
-  static void set_instructions_snapshot_buffer(const uint8_t* buffer) {
-    instructions_snapshot_buffer_ = buffer;
-  }
 
   static RawClass* class_class() { return class_class_; }
   static RawClass* dynamic_class() { return dynamic_class_; }
@@ -819,7 +813,6 @@ class Object {
   static LanguageError* snapshot_writer_error_;
   static LanguageError* branch_offset_error_;
   static Array* vm_isolate_snapshot_object_table_;
-  static const uint8_t* instructions_snapshot_buffer_;
 
   friend void ClassTable::Register(const Class& cls);
   friend void RawObject::Validate(Isolate* isolate) const;
@@ -1320,7 +1313,8 @@ class Class : public Object {
 
   RawFunction* GetInvocationDispatcher(const String& target_name,
                                        const Array& args_desc,
-                                       RawFunction::Kind kind) const;
+                                       RawFunction::Kind kind,
+                                       bool create_if_absent) const;
 
   void Finalize() const;
 
@@ -1751,6 +1745,10 @@ class PatchClass : public Object {
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawPatchClass));
   }
+  static bool IsInFullSnapshot(RawPatchClass* cls) {
+    NoSafepointScope no_safepoint;
+    return Class::IsInFullSnapshot(cls->ptr()->patched_class_);
+  }
 
   static RawPatchClass* New(const Class& patched_class,
                             const Class& source_class);
@@ -2166,12 +2164,16 @@ class Function : public Object {
   // Return the most recently compiled and installed code for this function.
   // It is not the only Code object that points to this function.
   RawCode* CurrentCode() const {
-    return raw_ptr()->instructions_->ptr()->code_;
+    return raw_ptr()->code_;
   }
 
   RawCode* unoptimized_code() const { return raw_ptr()->unoptimized_code_; }
   void set_unoptimized_code(const Code& value) const;
   bool HasCode() const;
+
+  static intptr_t code_offset() {
+    return OFFSET_OF(RawFunction, code_);
+  }
 
   static intptr_t entry_point_offset() {
     return OFFSET_OF(RawFunction, entry_point_);
@@ -2602,7 +2604,8 @@ class Function : public Object {
 
   // Works with map [deopt-id] -> ICData.
   void SaveICDataMap(
-      const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data) const;
+      const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data,
+      const Array& edge_counters_array) const;
   void RestoreICDataMap(
       ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data) const;
 
@@ -3213,7 +3216,8 @@ class Script : public Object {
   void Tokenize(const String& private_key) const;
 
   RawLibrary* FindLibrary() const;
-  RawString* GetLine(intptr_t line_number) const;
+  RawString* GetLine(intptr_t line_number,
+                     Heap::Space space = Heap::kNew) const;
   RawString* GetSnippet(intptr_t from_line,
                         intptr_t from_column,
                         intptr_t to_line,
@@ -3605,7 +3609,7 @@ class ObjectPool : public Object {
   enum EntryType {
     kTaggedObject,
     kImmediate,
-    kExternalLabel,
+    kNativeEntry,
   };
 
   struct Entry {
@@ -3709,13 +3713,12 @@ class ObjectPool : public Object {
 class Instructions : public Object {
  public:
   intptr_t size() const { return raw_ptr()->size_; }  // Excludes HeaderSize().
-  RawCode* code() const { return raw_ptr()->code_; }
-  static intptr_t code_offset() {
-    return OFFSET_OF(RawInstructions, code_);
-  }
-  RawObjectPool* object_pool() const { return raw_ptr()->object_pool_; }
-  static intptr_t object_pool_offset() {
-    return OFFSET_OF(RawInstructions, object_pool_);
+
+  RawCode* code() const {
+    // This should only be accessed when jitting.
+    // TODO(johnmccutchan): Remove code back pointer.
+    ASSERT(!Dart::IsRunningPrecompiledCode());
+    return raw_ptr()->code_;
   }
 
   uword EntryPoint() const {
@@ -3755,11 +3758,9 @@ class Instructions : public Object {
   void set_size(intptr_t size) const {
     StoreNonPointer(&raw_ptr()->size_, size);
   }
+
   void set_code(RawCode* code) const {
     StorePointer(&raw_ptr()->code_, code);
-  }
-  void set_object_pool(RawObjectPool* object_pool) const {
-    StorePointer(&raw_ptr()->object_pool_, object_pool);
   }
 
   // New is a private method as RawInstruction and RawCode objects should
@@ -3771,6 +3772,7 @@ class Instructions : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Instructions, Object);
   friend class Class;
   friend class Code;
+  friend class InstructionsWriter;
 };
 
 
@@ -3804,7 +3806,7 @@ class LocalVarDescriptors : public Object {
 
   static RawLocalVarDescriptors* New(intptr_t num_variables);
 
-  static const char* KindToStr(intptr_t kind);
+  static const char* KindToCString(RawLocalVarDescriptors::VarInfoKind kind);
 
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(LocalVarDescriptors, Object);
@@ -4092,10 +4094,23 @@ class DeoptInfo : public AllStatic {
 
 class Code : public Object {
  public:
+  RawInstructions* active_instructions() const {
+    return raw_ptr()->active_instructions_;
+  }
+
   RawInstructions* instructions() const { return raw_ptr()->instructions_; }
+
+  static intptr_t saved_instructions_offset() {
+    return OFFSET_OF(RawCode, instructions_);
+  }
 
   static intptr_t entry_point_offset() {
     return OFFSET_OF(RawCode, entry_point_);
+  }
+
+  RawObjectPool* object_pool() const { return raw_ptr()->object_pool_; }
+  static intptr_t object_pool_offset() {
+    return OFFSET_OF(RawCode, object_pool_);
   }
 
   intptr_t pointer_offsets_length() const {
@@ -4112,17 +4127,14 @@ class Code : public Object {
   void set_is_alive(bool value) const;
 
   uword EntryPoint() const {
-    ASSERT(raw_ptr()->entry_point_ ==
-           Instructions::Handle(instructions()).EntryPoint());
-    return raw_ptr()->entry_point_;
+    return Instructions::Handle(instructions()).EntryPoint();
   }
   intptr_t Size() const {
     const Instructions& instr = Instructions::Handle(instructions());
     return instr.size();
   }
   RawObjectPool* GetObjectPool() const {
-    const Instructions& instr = Instructions::Handle(instructions());
-    return instr.object_pool();
+    return object_pool();
   }
   bool ContainsInstructionAt(uword addr) const {
     const Instructions& instr = Instructions::Handle(instructions());
@@ -4317,10 +4329,6 @@ class Code : public Object {
     kInvalidPc = -1
   };
 
-  // Returns 0 if code is not patchable
-  uword GetEntryPatchPc() const;
-  uword GetPatchCodePc() const;
-
   uword GetLazyDeoptPc() const;
 
   // Find pc, return 0 if not found.
@@ -4333,22 +4341,6 @@ class Code : public Object {
   int64_t compile_timestamp() const {
     return raw_ptr()->compile_timestamp_;
   }
-
-  intptr_t entry_patch_pc_offset() const {
-    return raw_ptr()->entry_patch_pc_offset_;
-  }
-  void set_entry_patch_pc_offset(intptr_t pc) const {
-    StoreNonPointer(&raw_ptr()->entry_patch_pc_offset_, pc);
-  }
-
-
-  intptr_t patch_code_pc_offset() const {
-    return raw_ptr()->patch_code_pc_offset_;
-  }
-  void set_patch_code_pc_offset(intptr_t pc) const {
-    StoreNonPointer(&raw_ptr()->patch_code_pc_offset_, pc);
-  }
-
 
   intptr_t lazy_deopt_pc_offset() const {
     return raw_ptr()->lazy_deopt_pc_offset_;
@@ -4363,6 +4355,10 @@ class Code : public Object {
 
  private:
   void set_state_bits(intptr_t bits) const;
+
+  void set_object_pool(RawObjectPool* object_pool) const {
+    StorePointer(&raw_ptr()->object_pool_, object_pool);
+  }
 
   friend class RawObject;  // For RawObject::SizeFromClass().
   friend class RawCode;
@@ -4384,8 +4380,6 @@ class Code : public Object {
         : FindObjectVisitor(Isolate::Current()), pc_(pc) { }
     virtual ~FindRawCodeVisitor() { }
 
-    virtual uword filter_addr() const { return pc_; }
-
     // Check if object matches find condition.
     virtual bool FindObject(RawObject* obj) const;
 
@@ -4405,13 +4399,17 @@ class Code : public Object {
     StoreNonPointer(&raw_ptr()->compile_timestamp_, timestamp);
   }
 
-  void set_instructions(RawInstructions* instructions) {
+  void set_active_instructions(RawInstructions* instructions) const {
     // RawInstructions are never allocated in New space and hence a
     // store buffer update is not needed here.
+    StorePointer(&raw_ptr()->active_instructions_, instructions);
+    StoreNonPointer(&raw_ptr()->entry_point_,
+                    reinterpret_cast<uword>(instructions->ptr()) +
+                    Instructions::HeaderSize());
+  }
+
+  void set_instructions(RawInstructions* instructions) const {
     StorePointer(&raw_ptr()->instructions_, instructions);
-    uword entry_point = reinterpret_cast<uword>(instructions->ptr()) +
-        Instructions::HeaderSize();
-    StoreNonPointer(&raw_ptr()->entry_point_, entry_point);
   }
 
   void set_pointer_offsets_length(intptr_t value) {
@@ -4445,7 +4443,7 @@ class Code : public Object {
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Code, Object);
   friend class Class;
   friend class SnapshotWriter;
-
+  friend class CodePatcher;  // for set_instructions
   // So that the RawFunction pointer visitor can determine whether code the
   // function points to is optimized.
   friend class RawFunction;
@@ -4812,6 +4810,9 @@ class UnhandledException : public Error {
 
 class UnwindError : public Error {
  public:
+  bool is_user_initiated() const { return raw_ptr()->is_user_initiated_; }
+  void set_is_user_initiated(bool value) const;
+
   RawString* message() const { return raw_ptr()->message_; }
 
   static intptr_t InstanceSize() {
@@ -5420,7 +5421,8 @@ class TypeParameter : public AbstractType {
   // bound cannot be checked yet and this is not an error.
   bool CheckBound(const AbstractType& bounded_type,
                   const AbstractType& upper_bound,
-                  Error* bound_error) const;
+                  Error* bound_error,
+                  Heap::Space space = Heap::kNew) const;
   virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated(TrailPtr trail = NULL) const {
     return false;
@@ -6198,7 +6200,10 @@ class String : public Instance {
 
   static RawString* NewFormatted(const char* format, ...)
       PRINTF_ATTRIBUTE(1, 2);
-  static RawString* NewFormattedV(const char* format, va_list args);
+  static RawString* NewFormatted(Heap::Space space, const char* format, ...)
+      PRINTF_ATTRIBUTE(2, 3);
+  static RawString* NewFormattedV(const char* format, va_list args,
+                                  Heap::Space space = Heap::kNew);
 
   static bool ParseDouble(const String& str,
                           intptr_t start,
@@ -8035,6 +8040,7 @@ void Field::SetStaticValue(const Instance& value,
   ASSERT(is_static());  // Valid only for static dart fields.
   StorePointer(&raw_ptr()->value_.static_value_, value.raw());
   if (save_initial_value) {
+    ASSERT(!HasPrecompiledInitializer());
     StorePointer(&raw_ptr()->initializer_.saved_value_, value.raw());
   }
 }

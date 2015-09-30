@@ -16,8 +16,6 @@ import 'common/tasks.dart' show
     CompilerTask,
     DeferredAction,
     DeferredTask;
-import 'common/registry.dart' show
-    Registry;
 import 'common/codegen.dart' show
     CodegenWorkItem;
 import 'common/resolution.dart' show
@@ -55,6 +53,8 @@ import 'tree/tree.dart' show
     Send;
 import 'types/types.dart' show
     TypeMaskStrategy;
+import 'universe/selector.dart' show
+    Selector;
 import 'universe/universe.dart';
 import 'util/util.dart' show
     Link,
@@ -188,15 +188,19 @@ abstract class Enqueuer {
   }
 
   // TODO(johnniwinther): Remove the need for passing the [registry].
-  void registerInstantiatedType(InterfaceType type, Registry registry,
+  void registerInstantiatedType(InterfaceType type,
                                 {bool mirrorUsage: false}) {
     task.measure(() {
       ClassElement cls = type.element;
-      registry.registerDependency(cls);
       cls.ensureResolved(compiler);
-      universe.registerTypeInstantiation(type, byMirrors: mirrorUsage);
+      universe.registerTypeInstantiation(
+          type,
+          byMirrors: mirrorUsage,
+          onImplemented: (ClassElement cls) {
+        compiler.backend.registerImplementedClass(
+                    cls, this, compiler.globalDependencies);
+      });
       processInstantiatedClass(cls);
-      compiler.backend.registerInstantiatedType(type, registry);
     });
   }
 
@@ -263,13 +267,12 @@ abstract class Enqueuer {
       }
       if (function.name == Identifiers.call &&
           !cls.typeVariables.isEmpty) {
-        registerCallMethodWithFreeTypeVariables(
-            function, compiler.globalDependencies);
+        registerCallMethodWithFreeTypeVariables(function);
       }
       // If there is a property access with the same name as a method we
       // need to emit the method.
       if (universe.hasInvokedGetter(function, compiler.world)) {
-        registerClosurizedMember(function, compiler.globalDependencies);
+        registerClosurizedMember(function);
         addToWorkList(function);
         return;
       }
@@ -320,26 +323,26 @@ abstract class Enqueuer {
       // supertypes.
       cls.ensureResolved(compiler);
 
-      void processClass(ClassElement cls) {
-        if (_processedClasses.contains(cls)) return;
+      void processClass(ClassElement superclass) {
+        if (_processedClasses.contains(superclass)) return;
 
-        _processedClasses.add(cls);
-        recentClasses.add(cls);
-        cls.ensureResolved(compiler);
-        cls.implementation.forEachMember(processInstantiatedClassMember);
-        if (isResolutionQueue && !cls.isSynthesized) {
-          compiler.resolver.checkClass(cls);
+        _processedClasses.add(superclass);
+        recentClasses.add(superclass);
+        superclass.ensureResolved(compiler);
+        superclass.implementation.forEachMember(processInstantiatedClassMember);
+        if (isResolutionQueue && !superclass.isSynthesized) {
+          compiler.resolver.checkClass(superclass);
         }
-        // We only tell the backend once that [cls] was instantiated, so
+        // We only tell the backend once that [superclass] was instantiated, so
         // any additional dependencies must be treated as global
         // dependencies.
         compiler.backend.registerInstantiatedClass(
-            cls, this, compiler.globalDependencies);
+            superclass, this, compiler.globalDependencies);
       }
-      processClass(cls);
-      for (Link<DartType> supertypes = cls.allSupertypes;
-           !supertypes.isEmpty; supertypes = supertypes.tail) {
-        processClass(supertypes.head.element);
+
+      while (cls != null) {
+        processClass(cls);
+        cls = cls.superclass;
       }
     });
   }
@@ -394,7 +397,10 @@ abstract class Enqueuer {
         includedEnclosing: enclosingWasIncluded)) {
       logEnqueueReflectiveAction(ctor);
       ClassElement cls = ctor.declaration.enclosingClass;
-      registerInstantiatedType(cls.rawType, compiler.mirrorDependencies,
+      compiler.backend.registerInstantiatedType(
+          cls.rawType,
+          this,
+          compiler.mirrorDependencies,
           mirrorUsage: true);
       registerStaticUse(ctor.declaration);
     }
@@ -445,7 +451,10 @@ abstract class Enqueuer {
       logEnqueueReflectiveAction(cls, "register");
       ClassElement decl = cls.declaration;
       decl.ensureResolved(compiler);
-      registerInstantiatedType(decl.rawType, compiler.mirrorDependencies,
+      compiler.backend.registerInstantiatedType(
+          decl.rawType,
+          this,
+          compiler.mirrorDependencies,
           mirrorUsage: true);
     }
     // If the class is never instantiated, we know nothing of it can possibly
@@ -476,7 +485,10 @@ abstract class Enqueuer {
       if (compiler.backend.referencedFromMirrorSystem(cls)) {
         logEnqueueReflectiveAction(cls);
         cls.ensureResolved(compiler);
-        registerInstantiatedType(cls.rawType, compiler.mirrorDependencies,
+        compiler.backend.registerInstantiatedType(
+            cls.rawType,
+            this,
+            compiler.mirrorDependencies,
             mirrorUsage: true);
       }
     }
@@ -574,7 +586,7 @@ abstract class Enqueuer {
     processInstanceMembers(methodName, (Element member) {
       if (universeSelector.appliesUnnamed(member, compiler.world)) {
         if (member.isFunction && selector.isGetter) {
-          registerClosurizedMember(member, compiler.globalDependencies);
+          registerClosurizedMember(member);
         }
         if (member.isField && member.enclosingClass.isNative) {
           if (selector.isGetter || selector.isCall) {
@@ -602,7 +614,7 @@ abstract class Enqueuer {
     if (selector.isGetter) {
       processInstanceFunctions(methodName, (Element member) {
         if (universeSelector.appliesUnnamed(member, compiler.world)) {
-          registerClosurizedMember(member, compiler.globalDependencies);
+          registerClosurizedMember(member);
           return true;
         }
         return false;
@@ -680,33 +692,24 @@ abstract class Enqueuer {
            !type.element.enclosingElement.isTypedef);
   }
 
-  void registerCallMethodWithFreeTypeVariables(
-      Element element,
-      Registry registry) {
+  void registerCallMethodWithFreeTypeVariables(Element element) {
     compiler.backend.registerCallMethodWithFreeTypeVariables(
-        element, this, registry);
+        element, this, compiler.globalDependencies);
     universe.callMethodsWithFreeTypeVariables.add(element);
   }
 
-  void registerClosurizedMember(TypedElement element, Registry registry) {
+  void registerClosurizedMember(TypedElement element) {
     assert(element.isInstanceMember);
-    registerClosureIfFreeTypeVariables(element, registry);
+    if (element.computeType(compiler).containsTypeVariables) {
+      compiler.backend.registerClosureWithFreeTypeVariables(
+          element, this, compiler.globalDependencies);
+    }
     compiler.backend.registerBoundClosure(this);
     universe.closurizedMembers.add(element);
   }
 
-  void registerClosureIfFreeTypeVariables(TypedElement element,
-                                          Registry registry) {
-    if (element.computeType(compiler).containsTypeVariables) {
-      compiler.backend.registerClosureWithFreeTypeVariables(
-          element, this, registry);
-      universe.closuresWithFreeTypeVariables.add(element);
-    }
-  }
-
-  void registerClosure(LocalFunctionElement element, Registry registry) {
+  void registerClosure(LocalFunctionElement element) {
     universe.allClosures.add(element);
-    registerClosureIfFreeTypeVariables(element, registry);
   }
 
   void forEach(void f(WorkItem work)) {

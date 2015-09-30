@@ -12,6 +12,7 @@
 #include "vm/dart_entry.h"
 #include "vm/deopt_instructions.h"
 #include "vm/il_printer.h"
+#include "vm/instructions.h"
 #include "vm/locations.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -100,7 +101,6 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
 
   Zone* zone = compiler->zone();
 
-  // Current PP, FP, and PC.
   builder->AddPp(current->function(), slot_ix++);
   builder->AddPcMarker(Function::Handle(zone), slot_ix++);
   builder->AddCallerFp(slot_ix++);
@@ -121,7 +121,6 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   Environment* previous = current;
   current = current->outer();
   while (current != NULL) {
-    // PP, FP, and PC.
     builder->AddPp(current->function(), slot_ix++);
     builder->AddPcMarker(previous->function(), slot_ix++);
     builder->AddCallerFp(slot_ix++);
@@ -157,9 +156,8 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   // The previous pointer is now the outermost environment.
   ASSERT(previous != NULL);
 
-  // For the outermost environment, set caller PC, caller PP, and caller FP.
+  // Set slots for the outermost environment.
   builder->AddCallerPp(slot_ix++);
-  // PC marker.
   builder->AddPcMarker(previous->function(), slot_ix++);
   builder->AddCallerFp(slot_ix++);
   builder->AddCallerPc(slot_ix++);
@@ -187,6 +185,7 @@ void CompilerDeoptInfoWithStub::GenerateCode(FlowGraphCompiler* compiler,
 
   ASSERT(deopt_env() != NULL);
 
+  __ pushq(CODE_REG);
   __ Call(*StubCode::Deoptimize_entry());
   set_pc_offset(assem->CodeSize());
   __ int3();
@@ -267,7 +266,8 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
   const Register kInstanceReg = RAX;
   Error& malformed_error = Error::Handle(zone());
   const Type& int_type = Type::Handle(zone(), Type::IntType());
-  const bool smi_is_ok = int_type.IsSubtypeOf(type, &malformed_error);
+  const bool smi_is_ok =
+      int_type.IsSubtypeOf(type, &malformed_error, Heap::kOld);
   // Malformed type should have been handled at graph construction time.
   ASSERT(smi_is_ok || malformed_error.IsNull());
   __ testq(kInstanceReg, Immediate(kSmiTagMask));
@@ -307,7 +307,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
         ASSERT(tp_argument.HasResolvedTypeClass());
         // Check if type argument is dynamic or Object.
         const Type& object_type = Type::Handle(zone(), Type::ObjectType());
-        if (object_type.IsSubtypeOf(tp_argument, NULL)) {
+        if (object_type.IsSubtypeOf(tp_argument, NULL, Heap::kOld)) {
           // Instance class test only necessary.
           return GenerateSubtype1TestCacheLookup(
               token_pos, type_class, is_instance_lbl, is_not_instance_lbl);
@@ -361,7 +361,8 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   if (smi_class.IsSubtypeOf(TypeArguments::Handle(zone()),
                             type_class,
                             TypeArguments::Handle(zone()),
-                            NULL)) {
+                            NULL,
+                            Heap::kOld)) {
     __ j(ZERO, is_instance_lbl);
   } else {
     __ j(ZERO, is_not_instance_lbl);
@@ -389,7 +390,8 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   }
   // Custom checking for numbers (Smi, Mint, Bigint and Double).
   // Note that instance is not Smi (checked above).
-  if (type.IsSubtypeOf(Type::Handle(zone(), Type::Number()), NULL)) {
+  if (type.IsSubtypeOf(
+      Type::Handle(zone(), Type::Number()), NULL, Heap::kOld)) {
     GenerateNumberTypeCheck(
         kClassIdReg, type, is_instance_lbl, is_not_instance_lbl);
     return false;
@@ -925,11 +927,8 @@ void FlowGraphCompiler::CopyParameters() {
 
   __ Bind(&wrong_num_arguments);
   if (function.IsClosureFunction()) {
-    ASSERT(assembler()->constant_pool_allowed());
-    __ LeaveDartFrame();  // The arguments are still on the stack.
-    ASSERT(!assembler()->constant_pool_allowed());
-    __ jmp(*StubCode::CallClosureNoSuchMethod_entry());
-    __ set_constant_pool_allowed(true);
+    __ LeaveDartFrame(kKeepCalleePP);  // The arguments are still on the stack.
+    __ Jmp(*StubCode::CallClosureNoSuchMethod_entry());
     // The noSuchMethod call may return to the caller, but not here.
   } else if (check_correct_named_args) {
     __ Stop("Wrong arguments");
@@ -986,39 +985,25 @@ void FlowGraphCompiler::GenerateInlinedSetter(intptr_t offset) {
 // NOTE: If the entry code shape changes, ReturnAddressLocator in profiler.cc
 // needs to be updated to match.
 void FlowGraphCompiler::EmitFrameEntry() {
-  ASSERT(Assembler::EntryPointToPcMarkerOffset() == 0);
-
   const Function& function = parsed_function().function();
-  const Register new_pp = R13;
-  const Register new_pc = R12;
-
-  // Load PC marker.
-  const intptr_t kRIPRelativeLeaqSize = 7;
-  const intptr_t entry_to_rip_offset = __ CodeSize() + kRIPRelativeLeaqSize;
-  __ leaq(new_pc, Address::AddressRIPRelative(-entry_to_rip_offset));
-  ASSERT(__ CodeSize() == entry_to_rip_offset);
-
   // Load pool pointer.
-  const intptr_t object_pool_pc_dist =
-      Instructions::HeaderSize() - Instructions::object_pool_offset();
-  __ movq(new_pp, Address(new_pc, -object_pool_pc_dist));
 
   if (flow_graph().IsCompiledForOsr()) {
     intptr_t extra_slots = StackSize()
         - flow_graph().num_stack_locals()
         - flow_graph().num_copied_params();
     ASSERT(extra_slots >= 0);
-    __ EnterOsrFrame(extra_slots * kWordSize, new_pp, new_pc);
+    __ EnterOsrFrame(extra_slots * kWordSize);
   } else {
+    const Register new_pp = R13;
+    __ LoadPoolPointer(new_pp);
+
     if (CanOptimizeFunction() &&
         function.IsOptimizable() &&
         (!is_optimizing() || may_reoptimize())) {
       const Register function_reg = RDI;
       // Load function object using the callee's pool pointer.
       __ LoadFunctionFromCalleePool(function_reg, function, new_pp);
-
-      // Patch point is after the eventually inlined function object.
-      entry_patch_pc_offset_ = assembler()->CodeSize();
 
       // Reoptimization of an optimized function is triggered by counting in
       // IC stubs, but not at the entry of the function.
@@ -1032,12 +1017,10 @@ void FlowGraphCompiler::EmitFrameEntry() {
       __ J(GREATER_EQUAL,
            *StubCode::OptimizeFunction_entry(),
            new_pp);
-    } else {
-      entry_patch_pc_offset_ = assembler()->CodeSize();
     }
     ASSERT(StackSize() >= 0);
     __ Comment("Enter frame");
-    __ EnterDartFrame(StackSize() * kWordSize, new_pp, new_pc);
+    __ EnterDartFrame(StackSize() * kWordSize, new_pp);
   }
 }
 
@@ -1082,11 +1065,8 @@ void FlowGraphCompiler::CompileGraph() {
 
       __ Bind(&wrong_num_arguments);
       if (function.IsClosureFunction()) {
-        ASSERT(assembler()->constant_pool_allowed());
-        __ LeaveDartFrame();  // The arguments are still on the stack.
-        ASSERT(!assembler()->constant_pool_allowed());
-        __ jmp(*StubCode::CallClosureNoSuchMethod_entry());
-        __ set_constant_pool_allowed(true);
+        __ LeaveDartFrame(kKeepCalleePP);  // Leave arguments on the stack.
+        __ Jmp(*StubCode::CallClosureNoSuchMethod_entry());
         // The noSuchMethod call may return to the caller, but not here.
       } else {
         __ Stop("Wrong number of arguments");
@@ -1150,12 +1130,11 @@ void FlowGraphCompiler::CompileGraph() {
   GenerateDeferredCode();
   // Emit function patching code. This will be swapped with the first 13 bytes
   // at entry point.
-  patch_code_pc_offset_ = assembler()->CodeSize();
-  // This is patched up to a point in FrameEntry where the PP for the
-  // current function is in R13 instead of PP.
-  __ JmpPatchable(*StubCode::FixCallersTarget_entry(), R13);
 
-  if (is_optimizing()) {
+  if (is_optimizing() && Compiler::allow_recompilation()) {
+    // Leave enough space for patching in case of lazy deoptimization from
+    // deferred code.
+    __ nop(ShortCallPattern::pattern_length_in_bytes());
     lazy_deopt_pc_offset_ = assembler()->CodeSize();
     __ Jmp(*StubCode::DeoptimizeLazy_entry(), PP);
   }
@@ -1234,32 +1213,17 @@ void FlowGraphCompiler::EmitUnoptimizedStaticCall(
 }
 
 
-void FlowGraphCompiler::EmitEdgeCounter() {
+void FlowGraphCompiler::EmitEdgeCounter(intptr_t edge_id) {
   // We do not check for overflow when incrementing the edge counter.  The
   // function should normally be optimized long before the counter can
   // overflow; and though we do not reset the counters when we optimize or
   // deoptimize, there is a bound on the number of
   // optimization/deoptimization cycles we will attempt.
+  ASSERT(!edge_counters_array_.IsNull());
   ASSERT(assembler_->constant_pool_allowed());
-  const Array& counter = Array::ZoneHandle(zone(), Array::New(1, Heap::kOld));
-  counter.SetAt(0, Smi::Handle(zone(), Smi::New(0)));
   __ Comment("Edge counter");
-  __ LoadUniqueObject(RAX, counter);
-  intptr_t increment_start = assembler_->CodeSize();
-  __ IncrementSmiField(FieldAddress(RAX, Array::element_offset(0)), 1);
-  int32_t size = assembler_->CodeSize() - increment_start;
-  if (isolate()->edge_counter_increment_size() == -1) {
-    isolate()->set_edge_counter_increment_size(size);
-  } else {
-    ASSERT(size == isolate()->edge_counter_increment_size());
-  }
-}
-
-
-int32_t FlowGraphCompiler::EdgeCounterIncrementSizeInBytes() {
-  const int32_t size = Isolate::Current()->edge_counter_increment_size();
-  ASSERT(size != -1);
-  return size;
+  __ LoadObject(RAX, edge_counters_array_);
+  __ IncrementSmiField(FieldAddress(RAX, Array::element_offset(edge_id)), 1);
 }
 
 
@@ -1311,13 +1275,12 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     intptr_t deopt_id,
     intptr_t token_pos,
     LocationSummary* locs) {
-  MegamorphicCacheTable* table = isolate()->megamorphic_cache_table();
   const String& name = String::Handle(zone(), ic_data.target_name());
   const Array& arguments_descriptor =
       Array::ZoneHandle(zone(), ic_data.arguments_descriptor());
   ASSERT(!arguments_descriptor.IsNull() && (arguments_descriptor.Length() > 0));
-  const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(
-      zone(), table->Lookup(name, arguments_descriptor));
+  const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(zone(),
+      MegamorphicCacheTable::Lookup(isolate(), name, arguments_descriptor));
   const Register receiverR = RDI;
   const Register cacheR = RBX;
   const Register targetR = RCX;

@@ -6,7 +6,7 @@ library services.src.index.store.codec;
 
 import 'dart:collection';
 
-import 'package:analysis_server/analysis/index/index_core.dart';
+import 'package:analysis_server/analysis/index_core.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/indexable_element.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -84,15 +84,16 @@ class ElementCodec {
     if (kind == null) {
       return null;
     } else if (kind is IndexableNameKind) {
-      return new IndexableElement(new NameElement(_stringCodec.decode(offset)));
+      String name = _stringCodec.decode(offset);
+      return new IndexableName(name);
     }
     return kind.decode(context, filePath, offset);
   }
 
   /**
-   * Returns the first component of the [element] id.
-   * In the most cases it is an encoding of the [element]'s file path.
-   * If the given [element] is not defined in a file, returns `-1`.
+   * Returns the first component of the [indexable] id.
+   * In the most cases it is an encoding of the [indexable]'s file path.
+   * If the given [indexable] is not defined in a file, returns `-1`.
    */
   int encode1(IndexableObject indexable) {
     Source source = indexable.source;
@@ -104,8 +105,8 @@ class ElementCodec {
   }
 
   /**
-   * Returns the second component of the [element] id.
-   * In the most cases it is the [element]'s name offset.
+   * Returns the second component of the [indexable] id.
+   * In the most cases it is the [indexable]'s name offset.
    */
   int encode2(IndexableObject indexable) {
     if (indexable is IndexableName) {
@@ -120,15 +121,15 @@ class ElementCodec {
   }
 
   /**
-   * Returns the third component of the [element] id.
-   * In the most cases it is the [element]'s kind.
+   * Returns the third component of the [indexable] id.
+   * In the most cases it is the [indexable]'s kind.
    */
   int encode3(IndexableObject indexable) {
     return indexable.kind.index;
   }
 
   /**
-   * Returns an integer that corresponds to the name of [element].
+   * Returns an integer that corresponds to the name of [indexable].
    */
   int encodeHash(IndexableObject indexable) {
     // TODO(brianwilkerson) Consider moving this to IndexableObjectKind so that

@@ -142,6 +142,8 @@ class ThreadRegistry {
 
   void PruneThread(Thread* thread);
 
+  void ReclaimTimelineBlocks();
+
   struct Entry {
     // NOTE: |thread| is deleted automatically when the thread exits.
     // In other words, it is not safe to dereference |thread| unless you are on
@@ -181,6 +183,9 @@ class ThreadRegistry {
     }
     return NULL;
   }
+
+  // NOTE: Lock should be taken before this function is called.
+  void ReclaimTimelineBlockLocked(Entry* entry);
 
   // Note: Lock should be taken before this function is called.
   void CheckSafepointLocked();

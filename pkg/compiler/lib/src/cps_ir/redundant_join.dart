@@ -64,20 +64,6 @@ class RedundantJoinEliminator extends RecursiveVisitor implements Pass {
     }
   }
 
-  /// Removes [movedNode] from its current position and inserts it
-  /// before [target].
-  void moveToBefore(Expression target, LetCont movedNode) {
-    if (movedNode.parent != null) {
-      movedNode.parent.body = movedNode.body;
-      movedNode.body.parent = movedNode.parent;
-    }
-    InteriorNode parent = target.parent;
-    parent.body = movedNode;
-    movedNode.body = target;
-    target.parent = movedNode;
-    movedNode.parent = parent;
-  }
-
   void rewriteBranch(Branch branch) {
     InteriorNode parent = getEffectiveParent(branch);
     if (parent is! Continuation) return;
@@ -109,12 +95,12 @@ class RedundantJoinEliminator extends RecursiveVisitor implements Pass {
       Primitive argument = invoke.arguments[parameterIndex].definition;
       if (argument is! Constant) return; // Branching condition is unknown.
       Constant constant = argument;
-      if (isFalsyConstant(constant.value)) {
-        ++falseHits;
-        falseCall = invoke;
-      } else {
+      if (isTruthyConstant(constant.value, strict: branch.isStrictCheck)) {
         ++trueHits;
         trueCall = invoke;
+      } else {
+        ++falseHits;
+        falseCall = invoke;
       }
     }
 
@@ -161,7 +147,8 @@ class RedundantJoinEliminator extends RecursiveVisitor implements Pass {
           }
         }
       }
-      moveToBefore(outerLetCont, innerLetCont);
+      innerLetCont.remove();
+      innerLetCont.insertAbove(outerLetCont);
     }
 
     assert(branchCont.body == branch);
@@ -182,10 +169,10 @@ class RedundantJoinEliminator extends RecursiveVisitor implements Pass {
       Reference reference = branchCont.firstRef;
       InvokeContinuation invoke = branchCont.firstRef.parent;
       Constant condition = invoke.arguments[parameterIndex].definition;
-      if (isFalsyConstant(condition.value)) {
-        invoke.continuation.changeTo(falseCont);
-      } else {
+      if (isTruthyConstant(condition.value, strict: branch.isStrictCheck)) {
         invoke.continuation.changeTo(trueCont);
+      } else {
+        invoke.continuation.changeTo(falseCont);
       }
       assert(branchCont.firstRef != reference);
     }
@@ -196,9 +183,7 @@ class RedundantJoinEliminator extends RecursiveVisitor implements Pass {
     branch.falseContinuation.unlink();
     outerLetCont.continuations.remove(branchCont);
     if (outerLetCont.continuations.isEmpty) {
-      InteriorNode parent = outerLetCont.parent;
-      parent.body = outerLetCont.body;
-      outerLetCont.body.parent = parent;
+      outerLetCont.remove();
     }
 
     // We may have created new redundant join points in the two branches.
@@ -248,6 +233,7 @@ class AlphaRenamer extends RecursiveVisitor {
       // create a new parameter object for this continuation.
       if (param.parent != cont) {
         Parameter newParam = new Parameter(param.hint);
+        newParam.type = param.type;
         renaming[param] = newParam;
         cont.parameters[i] = newParam;
         newParam.parent = cont;

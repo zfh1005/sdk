@@ -15,7 +15,6 @@ export 'shrinking_reductions.dart' show ShrinkingReducer, ParentVisitor;
 export 'mutable_ssa.dart' show MutableVariableEliminator;
 export 'insert_refinements.dart' show InsertRefinements;
 export 'remove_refinements.dart' show RemoveRefinements;
-export 'loop_invariant_code_motion.dart' show LoopInvariantCodeMotion;
 export 'share_interceptors.dart' show ShareInterceptors;
 
 /// An optimization pass over the CPS IR.
@@ -36,4 +35,12 @@ bool isFalsyConstant(ConstantValue value) {
       value.isMinusZero ||
       value.isNaN ||
       value is StringConstantValue && value.primitiveValue.isEmpty;
+}
+
+/// Returns true if [value] satisfies a branching condition with the
+/// given strictness.
+///
+/// For non-strict, this is the opposite of [isFalsyConstant].
+bool isTruthyConstant(ConstantValue value, {bool strict: false}) {
+  return strict ? value.isTrue : !isFalsyConstant(value);
 }

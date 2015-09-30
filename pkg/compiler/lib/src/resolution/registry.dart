@@ -21,10 +21,9 @@ import '../elements/elements.dart';
 import '../tree/tree.dart';
 import '../util/util.dart' show
     Setlet;
+import '../universe/selector.dart' show
+    Selector;
 import '../universe/universe.dart' show
-    CallStructure,
-    Selector,
-    SelectorKind,
     UniverseSelector;
 import '../world.dart' show World;
 
@@ -55,6 +54,11 @@ class EagerRegistry implements Registry {
   Iterable<Element> get otherDependencies => mapping.otherDependencies;
 
   @override
+  void registerAssert(bool hasMessage) {
+    // TODO(johnniwinther): Do something here?
+  }
+
+  @override
   void registerDependency(Element element) {
     mapping.registerDependency(element);
   }
@@ -81,8 +85,7 @@ class EagerRegistry implements Registry {
 
   @override
   void registerInstantiation(InterfaceType type) {
-    // TODO(johnniwinther): Remove the need for passing `this`.
-    world.registerInstantiatedType(type, this);
+    world.registerInstantiatedType(type);
   }
 
   @override
@@ -90,6 +93,8 @@ class EagerRegistry implements Registry {
     registerDependency(element);
     world.registerStaticUse(element);
   }
+
+  String toString() => 'EagerRegistry for ${mapping.analyzedElement}';
 }
 
 class ResolutionWorldImpact implements WorldImpact {
@@ -217,6 +222,8 @@ class ResolutionRegistry implements Registry {
   World get universe => compiler.world;
 
   Backend get backend => compiler.backend;
+
+  String toString() => 'ResolutionRegistry for ${mapping.analyzedElement}';
 
   //////////////////////////////////////////////////////////////////////////////
   //  Node-to-Element mapping functionality.
@@ -440,7 +447,10 @@ class ResolutionRegistry implements Registry {
   }
 
   void registerClosure(LocalFunctionElement element) {
-    world.registerClosure(element, this);
+    if (element.computeType(compiler).containsTypeVariables) {
+      backend.registerClosureWithFreeTypeVariables(element, world, this);
+    }
+    world.registerClosure(element);
   }
 
   void registerSuperUse(Node node) {
@@ -455,18 +465,14 @@ class ResolutionRegistry implements Registry {
     backend.resolutionCallbacks.onSuperNoSuchMethod(this);
   }
 
-  void registerClassUsingVariableExpression(ClassElement element) {
-    backend.registerClassUsingVariableExpression(element);
-  }
-
-  void registerTypeVariableExpression() {
-    backend.resolutionCallbacks.onTypeVariableExpression(this);
+  void registerTypeVariableExpression(TypeVariableElement element) {
+    backend.resolutionCallbacks.onTypeVariableExpression(this, element);
   }
 
   void registerTypeLiteral(Send node, DartType type) {
     mapping.setType(node, type);
     backend.resolutionCallbacks.onTypeLiteral(type, this);
-    world.registerInstantiatedType(compiler.coreTypes.typeType, this);
+    backend.registerInstantiatedType(compiler.coreTypes.typeType, world, this);
   }
 
   void registerMapLiteral(Node node, DartType type, bool isConstant) {
@@ -515,7 +521,7 @@ class ResolutionRegistry implements Registry {
   }
 
   void registerInstantiatedType(InterfaceType type) {
-    world.registerInstantiatedType(type, this);
+    backend.registerInstantiatedType(type, world, this);
     mapping.addRequiredType(type);
   }
 
@@ -580,16 +586,11 @@ class ResolutionRegistry implements Registry {
   }
 
   void registerInstantiation(InterfaceType type) {
-    world.registerInstantiatedType(type, this);
+    backend.registerInstantiatedType(type, world, this);
   }
 
-  void registerAssert(Send node) {
-    mapping.setAssert(node);
-    backend.resolutionCallbacks.onAssert(node, this);
-  }
-
-  bool isAssert(Send node) {
-    return mapping.isAssert(node);
+  void registerAssert(bool hasMessage) {
+    backend.resolutionCallbacks.onAssert(hasMessage, this);
   }
 
   void registerSendStructure(Send node, SendStructure sendStructure) {
@@ -608,6 +609,10 @@ class ResolutionRegistry implements Registry {
 
   void registerAsyncForIn(AsyncForIn node) {
     backend.resolutionCallbacks.onAsyncForIn(node, this);
+  }
+
+  void registerIncDecOperation() {
+    backend.resolutionCallbacks.onIncDecOperation(this);
   }
 
   void registerTryStatement() {

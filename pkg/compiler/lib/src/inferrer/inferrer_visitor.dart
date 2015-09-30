@@ -26,7 +26,10 @@ import '../types/types.dart' show
     TypeMask;
 import '../types/constants.dart' show
     computeTypeMask;
-import '../universe/universe.dart';
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
+    Selector;
 import '../util/util.dart';
 import '../world.dart' show
     ClassWorld;
@@ -55,6 +58,7 @@ abstract class TypeSystem<T> {
   T get typeType;
 
   T stringLiteralType(DartString value);
+  T boolLiteralType(LiteralBool value);
 
   T nonNullSubtype(ClassElement type);
   T nonNullSubclass(ClassElement type);
@@ -755,6 +759,14 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
 
   T handleDynamicInvoke(Send node);
 
+  T visitAssert(Assert node) {
+    // Avoid pollution from assert statement unless enabled.
+    if (compiler.enableUserAssertions) {
+      super.visitAssert(node);
+    }
+    return null;
+  }
+
   T visitAsyncForIn(AsyncForIn node);
 
   T visitSyncForIn(SyncForIn node);
@@ -793,17 +805,6 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
     return types.dynamicType;
   }
 
-  @override
-  T visitAssert(Send node, Node expression, _) {
-    if (!compiler.enableUserAssertions) {
-      return types.nullType;
-    }
-    return handleAssert(node, expression);
-  }
-
-  /// Handle an enabled assertion of [expression].
-  T handleAssert(Send node, Node expression);
-
   T visitNode(Node node) {
     return node.visitChildren(this);
   }
@@ -832,7 +833,7 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
   }
 
   T visitLiteralBool(LiteralBool node) {
-    return types.boolType;
+    return types.boolLiteralType(node);
   }
 
   T visitLiteralDouble(LiteralDouble node) {

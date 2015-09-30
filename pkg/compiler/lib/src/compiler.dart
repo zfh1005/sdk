@@ -34,8 +34,6 @@ import 'compile_time_constants.dart';
 import 'constants/values.dart';
 import 'core_types.dart' show
     CoreTypes;
-import 'cps_ir/cps_ir_builder_task.dart' show
-    IrBuilderTask;
 import 'dart_backend/dart_backend.dart' as dart_backend;
 import 'dart_types.dart' show
     DartType,
@@ -69,8 +67,7 @@ import 'elements/modelx.dart' show
     DeferredLoaderGetterElementX,
     MethodElementX,
     LibraryElementX,
-    PrefixElementX,
-    VoidElementX;
+    PrefixElementX;
 import 'enqueue.dart' show
     CodegenEnqueuer,
     Enqueuer,
@@ -94,7 +91,6 @@ import 'null_compiler_output.dart' show
 import 'parser/diet_parser_task.dart' show
     DietParserTask;
 import 'parser/parser_task.dart' show
-    DietParserTask,
     ParserTask;
 import 'patch_parser.dart' show
     PatchParserTask;
@@ -128,16 +124,19 @@ import 'tree/tree.dart' show
 import 'typechecker.dart' show
     TypeCheckerTask;
 import 'types/types.dart' as ti;
+import 'universe/call_structure.dart' show
+    CallStructure;
+import 'universe/selector.dart' show
+    Selector;
 import 'universe/universe.dart' show
-    CallStructure,
-    Selector,
     Universe;
 import 'util/util.dart' show
-    Link;
+    Link,
+    Setlet;
 import 'world.dart' show
     World;
 
-abstract class Compiler implements DiagnosticListener {
+abstract class Compiler extends DiagnosticListener {
 
   final Stopwatch totalCompileTime = new Stopwatch();
   int nextFreeClassId = 0;
@@ -188,6 +187,7 @@ abstract class Compiler implements DiagnosticListener {
   final bool dumpInfo;
   final bool useContentSecurityPolicy;
   final bool enableExperimentalMirrors;
+  final bool enableAssertMessage;
 
   /**
    * The maximum size of a concrete type before it widens to dynamic during
@@ -274,6 +274,11 @@ abstract class Compiler implements DiagnosticListener {
   bool disableInlining = false;
 
   List<Uri> librariesToAnalyzeWhenRun;
+
+  /// The set of platform libraries reported as unsupported.
+  ///
+  /// For instance when importing 'dart:io' without '--categories=Server'.
+  Set<Uri> disallowedLibraryUris = new Setlet<Uri>();
 
   Tracer tracer;
 
@@ -421,7 +426,6 @@ abstract class Compiler implements DiagnosticListener {
   ResolverTask resolver;
   closureMapping.ClosureTask closureToClassMapper;
   TypeCheckerTask checker;
-  IrBuilderTask irBuilder;
   ti.TypesTask typesTask;
   Backend backend;
 
@@ -516,6 +520,7 @@ abstract class Compiler implements DiagnosticListener {
             this.fatalWarnings: false,
             bool hasIncrementalSupport: false,
             this.enableExperimentalMirrors: false,
+            this.enableAssertMessage: false,
             this.allowNativeExtensions: false,
             this.generateCodeWithCompileTimeErrors: false,
             this.testMode: false,
@@ -576,7 +581,6 @@ abstract class Compiler implements DiagnosticListener {
       resolver = new ResolverTask(this, backend.constantCompilerTask),
       closureToClassMapper = new closureMapping.ClosureTask(this),
       checker = new TypeCheckerTask(this),
-      irBuilder = new IrBuilderTask(this, backend.sourceInformationStrategy),
       typesTask = new ti.TypesTask(this),
       constants = backend.constantCompilerTask,
       deferredLoadTask = new DeferredLoadTask(this),
@@ -608,10 +612,12 @@ abstract class Compiler implements DiagnosticListener {
     internalError(spannable, "$methodName not implemented.");
   }
 
-  void internalError(Spannable node, reason) {
+  internalError(Spannable node, reason) {
     String message = tryToString(reason);
     reportDiagnosticInternal(
-        node, MessageKind.GENERIC, {'text': message}, api.Diagnostic.CRASH);
+        createMessage(node, MessageKind.GENERIC, {'text': message}),
+        const <DiagnosticMessage>[],
+        api.Diagnostic.CRASH);
     throw 'Internal Error: $message';
   }
 
@@ -619,8 +625,8 @@ abstract class Compiler implements DiagnosticListener {
     if (hasCrashed) return;
     hasCrashed = true;
     reportDiagnostic(
-        element,
-        MessageTemplate.TEMPLATES[MessageKind.COMPILER_CRASHED].message(),
+        createMessage(element, MessageKind.COMPILER_CRASHED),
+        const <DiagnosticMessage>[],
         api.Diagnostic.CRASH);
     pleaseReportCrash();
   }
@@ -683,9 +689,11 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   void log(message) {
-    reportDiagnostic(null,
-        MessageTemplate.TEMPLATES[MessageKind.GENERIC]
-            .message({'text': '$message'}),
+    Message msg = MessageTemplate.TEMPLATES[MessageKind.GENERIC]
+        .message({'text': '$message'});
+    reportDiagnostic(
+        new DiagnosticMessage(null, null, msg),
+        const <DiagnosticMessage>[],
         api.Diagnostic.VERBOSE_INFO);
   }
 
@@ -700,9 +708,10 @@ abstract class Compiler implements DiagnosticListener {
             reportAssertionFailure(error);
           } else {
             reportDiagnostic(
-                new SourceSpan(uri, 0, 0),
-                MessageTemplate.TEMPLATES[MessageKind.COMPILER_CRASHED]
-                    .message(),
+                createMessage(
+                    new SourceSpan(uri, 0, 0),
+                    MessageKind.COMPILER_CRASHED),
+                const <DiagnosticMessage>[],
                 api.Diagnostic.CRASH);
           }
           pleaseReportCrash();
@@ -770,6 +779,72 @@ abstract class Compiler implements DiagnosticListener {
     return backend.onLibraryScanned(library, loader);
   }
 
+  /// Compute the set of distinct import chains to the library at [uri] within
+  /// [loadedLibraries].
+  ///
+  /// The chains are strings of the form
+  ///
+  ///       <main-uri> => <intermediate-uri1> => <intermediate-uri2> => <uri>
+  ///
+  Set<String> computeImportChainsFor(LoadedLibraries loadedLibraries, Uri uri) {
+    // TODO(johnniwinther): Move computation of dependencies to the library
+    // loader.
+    Uri rootUri = loadedLibraries.rootUri;
+    Set<String> importChains = new Set<String>();
+    // The maximum number of full imports chains to process.
+    final int chainLimit = 10000;
+    // The maximum number of imports chains to show.
+    final int compactChainLimit = verbose ? 20 : 10;
+    int chainCount = 0;
+    loadedLibraries.forEachImportChain(uri,
+        callback: (Link<Uri> importChainReversed) {
+      Link<CodeLocation> compactImportChain = const Link<CodeLocation>();
+      CodeLocation currentCodeLocation =
+          new UriLocation(importChainReversed.head);
+      compactImportChain = compactImportChain.prepend(currentCodeLocation);
+      for (Link<Uri> link = importChainReversed.tail;
+           !link.isEmpty;
+           link = link.tail) {
+        Uri uri = link.head;
+        if (!currentCodeLocation.inSameLocation(uri)) {
+          currentCodeLocation =
+              verbose ? new UriLocation(uri) : new CodeLocation(uri);
+          compactImportChain =
+              compactImportChain.prepend(currentCodeLocation);
+        }
+      }
+      String importChain =
+          compactImportChain.map((CodeLocation codeLocation) {
+            return codeLocation.relativize(rootUri);
+          }).join(' => ');
+
+      if (!importChains.contains(importChain)) {
+        if (importChains.length > compactChainLimit) {
+          importChains.add('...');
+          return false;
+        } else {
+          importChains.add(importChain);
+        }
+      }
+
+      chainCount++;
+      if (chainCount > chainLimit) {
+        // Assume there are more import chains.
+        importChains.add('...');
+        return false;
+      }
+      return true;
+    });
+    return importChains;
+  }
+
+  /// Register that [uri] was recognized but disallowed as a dependency.
+  ///
+  /// For instance import of 'dart:io' without '--categories=Server'.
+  void registerDisallowedLibraryUse(Uri uri) {
+    disallowedLibraryUris.add(uri);
+  }
+
   /// This method is called when all new libraries loaded through
   /// [LibraryLoader.loadLibrary] has been loaded and their imports/exports
   /// have been computed.
@@ -780,66 +855,34 @@ abstract class Compiler implements DiagnosticListener {
   /// libraries.
   Future onLibrariesLoaded(LoadedLibraries loadedLibraries) {
     return new Future.sync(() {
+      for (Uri uri in disallowedLibraryUris) {
+        if (loadedLibraries.containsLibrary(uri)) {
+          Set<String> importChains =
+              computeImportChainsFor(loadedLibraries, Uri.parse('dart:io'));
+          reportInfo(NO_LOCATION_SPANNABLE,
+             MessageKind.DISALLOWED_LIBRARY_IMPORT,
+              {'uri': uri,
+               'importChain': importChains.join(
+                   MessageTemplate.DISALLOWED_LIBRARY_IMPORT_PADDING)});
+        }
+      }
+
       if (!loadedLibraries.containsLibrary(Uris.dart_core)) {
         return null;
       }
+
       if (!enableExperimentalMirrors &&
           loadedLibraries.containsLibrary(Uris.dart_mirrors)) {
-        // TODO(johnniwinther): Move computation of dependencies to the library
-        // loader.
-        Uri rootUri = loadedLibraries.rootUri;
-        Set<String> importChains = new Set<String>();
-        // The maximum number of full imports chains to process.
-        final int chainLimit = 10000;
-        // The maximum number of imports chains to show.
-        final int compactChainLimit = verbose ? 20 : 10;
-        int chainCount = 0;
-        loadedLibraries.forEachImportChain(Uris.dart_mirrors,
-            callback: (Link<Uri> importChainReversed) {
-          Link<CodeLocation> compactImportChain = const Link<CodeLocation>();
-          CodeLocation currentCodeLocation =
-              new UriLocation(importChainReversed.head);
-          compactImportChain = compactImportChain.prepend(currentCodeLocation);
-          for (Link<Uri> link = importChainReversed.tail;
-               !link.isEmpty;
-               link = link.tail) {
-            Uri uri = link.head;
-            if (!currentCodeLocation.inSameLocation(uri)) {
-              currentCodeLocation =
-                  verbose ? new UriLocation(uri) : new CodeLocation(uri);
-              compactImportChain =
-                  compactImportChain.prepend(currentCodeLocation);
-            }
-          }
-          String importChain =
-              compactImportChain.map((CodeLocation codeLocation) {
-                return codeLocation.relativize(rootUri);
-              }).join(' => ');
-
-          if (!importChains.contains(importChain)) {
-            if (importChains.length > compactChainLimit) {
-              importChains.add('...');
-              return false;
-            } else {
-              importChains.add(importChain);
-            }
-          }
-
-          chainCount++;
-          if (chainCount > chainLimit) {
-            // Assume there are more import chains.
-            importChains.add('...');
-            return false;
-          }
-          return true;
-        });
-
+        Set<String> importChains =
+            computeImportChainsFor(loadedLibraries, Uris.dart_mirrors);
         if (!backend.supportsReflection) {
-          reportError(NO_LOCATION_SPANNABLE,
-                      MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_BY_BACKEND);
+          reportErrorMessage(
+              NO_LOCATION_SPANNABLE,
+              MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_BY_BACKEND);
         } else {
-          reportWarning(NO_LOCATION_SPANNABLE,
-             MessageKind.IMPORT_EXPERIMENTAL_MIRRORS,
+          reportWarningMessage(
+              NO_LOCATION_SPANNABLE,
+              MessageKind.IMPORT_EXPERIMENTAL_MIRRORS,
               {'importChain': importChains.join(
                    MessageTemplate.IMPORT_EXPERIMENTAL_MIRRORS_PADDING)});
         }
@@ -848,11 +891,6 @@ abstract class Compiler implements DiagnosticListener {
       functionClass.ensureResolved(this);
       functionApplyMethod = functionClass.lookupLocalMember('apply');
 
-      proxyConstant =
-          constants.getConstantValue(
-              resolver.constantCompiler.compileConstant(
-                  coreLibrary.find('proxy')));
-
       if (preserveComments) {
         return libraryLoader.loadLibrary(Uris.dart_mirrors)
             .then((LibraryElement libraryElement) {
@@ -860,6 +898,18 @@ abstract class Compiler implements DiagnosticListener {
         });
       }
     }).then((_) => backend.onLibrariesLoaded(loadedLibraries));
+  }
+
+  bool isProxyConstant(ConstantValue value) {
+    FieldElement field = coreLibrary.find('proxy');
+    if (field == null) return false;
+    if (!enqueuer.resolution.hasBeenResolved(field)) return false;
+    if (proxyConstant == null) {
+      proxyConstant =
+          constants.getConstantValue(
+              resolver.constantCompiler.compileConstant(field));
+    }
+    return proxyConstant == value;
   }
 
   Element findRequiredElement(LibraryElement library, String name) {
@@ -1039,7 +1089,7 @@ abstract class Compiler implements DiagnosticListener {
     if (errorElement != null &&
         errorElement.isSynthesized &&
         !mainApp.isSynthesized) {
-      reportWarning(
+      reportWarningMessage(
           errorElement, errorElement.messageKind,
           errorElement.messageArguments);
     }
@@ -1107,12 +1157,14 @@ abstract class Compiler implements DiagnosticListener {
           kind = MessageKind.HIDDEN_WARNINGS;
         }
         MessageTemplate template = MessageTemplate.TEMPLATES[kind];
-        reportDiagnostic(null,
-            template.message(
-                {'warnings': info.warnings,
-                 'hints': info.hints,
-                 'uri': uri},
-                terseDiagnostics),
+        Message message = template.message(
+            {'warnings': info.warnings,
+             'hints': info.hints,
+             'uri': uri},
+            terseDiagnostics);
+        reportDiagnostic(
+            new DiagnosticMessage(null, null, message),
+            const <DiagnosticMessage>[],
             api.Diagnostic.HINT);
       });
     }
@@ -1130,7 +1182,9 @@ abstract class Compiler implements DiagnosticListener {
         // code is artificially used.
         // If compilation failed, it is possible that the error prevents the
         // compiler from analyzing all the code.
-        reportUnusedCode();
+        // TODO(johnniwinther): Reenable this when the reporting is more
+        // precise.
+        //reportUnusedCode();
       }
       return;
     }
@@ -1188,7 +1242,8 @@ abstract class Compiler implements DiagnosticListener {
       ClassElement cls = element;
       cls.ensureResolved(this);
       cls.forEachLocalMember(enqueuer.resolution.addToWorkList);
-      world.registerInstantiatedType(cls.rawType, globalDependencies);
+      backend.registerInstantiatedType(
+          cls.rawType, world, globalDependencies);
     } else {
       world.addToWorkList(element);
     }
@@ -1226,11 +1281,11 @@ abstract class Compiler implements DiagnosticListener {
       if (mainMethod.functionSignature.parameterCount != 0) {
         // The first argument could be a list of strings.
         backend.listImplementation.ensureResolved(this);
-        world.registerInstantiatedType(
-            backend.listImplementation.rawType, globalDependencies);
+        backend.registerInstantiatedType(
+            backend.listImplementation.rawType, world, globalDependencies);
         backend.stringImplementation.ensureResolved(this);
-        world.registerInstantiatedType(
-            backend.stringImplementation.rawType, globalDependencies);
+        backend.registerInstantiatedType(
+            backend.stringImplementation.rawType, world, globalDependencies);
 
         backend.registerMainHasArguments(world);
       }
@@ -1279,7 +1334,7 @@ abstract class Compiler implements DiagnosticListener {
     }
     log('Excess resolution work: ${resolved.length}.');
     for (Element e in resolved) {
-      reportWarning(e,
+      reportWarningMessage(e,
           MessageKind.GENERIC,
           {'text': 'Warning: $e resolved but not compiled.'});
     }
@@ -1346,38 +1401,51 @@ abstract class Compiler implements DiagnosticListener {
     return backend.codegen(work);
   }
 
-  void reportError(Spannable node,
-                   MessageKind messageKind,
-                   [Map arguments = const {}]) {
-    reportDiagnosticInternal(
-        node, messageKind, arguments, api.Diagnostic.ERROR);
+  DiagnosticMessage createMessage(
+      Spannable spannable,
+      MessageKind messageKind,
+      [Map arguments = const {}]) {
+    SourceSpan span = spanFromSpannable(spannable);
+    MessageTemplate template = MessageTemplate.TEMPLATES[messageKind];
+    Message message = template.message(arguments, terseDiagnostics);
+    return new DiagnosticMessage(span, spannable, message);
   }
 
-  void reportWarning(Spannable node, MessageKind messageKind,
-                     [Map arguments = const {}]) {
-    reportDiagnosticInternal(
-        node, messageKind, arguments, api.Diagnostic.WARNING);
+  void reportError(
+      DiagnosticMessage message,
+      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
+    reportDiagnosticInternal(message, infos, api.Diagnostic.ERROR);
   }
 
+  void reportWarning(
+      DiagnosticMessage message,
+      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
+    reportDiagnosticInternal(message, infos, api.Diagnostic.WARNING);
+  }
+
+  void reportHint(
+      DiagnosticMessage message,
+      [List<DiagnosticMessage> infos = const <DiagnosticMessage>[]]) {
+    reportDiagnosticInternal(message, infos, api.Diagnostic.HINT);
+  }
+
+  @deprecated
   void reportInfo(Spannable node, MessageKind messageKind,
                   [Map arguments = const {}]) {
-    reportDiagnosticInternal(node, messageKind, arguments, api.Diagnostic.INFO);
+    reportDiagnosticInternal(
+        createMessage(node, messageKind, arguments),
+        const <DiagnosticMessage>[],
+        api.Diagnostic.INFO);
   }
 
-  void reportHint(Spannable node, MessageKind messageKind,
-                  [Map arguments = const {}]) {
-    reportDiagnosticInternal(node, messageKind, arguments, api.Diagnostic.HINT);
-  }
-
-  void reportDiagnosticInternal(Spannable node,
-                                MessageKind messageKind,
-                                Map arguments,
+  void reportDiagnosticInternal(DiagnosticMessage message,
+                                List<DiagnosticMessage> infos,
                                 api.Diagnostic kind) {
-    if (!showPackageWarnings && node != NO_LOCATION_SPANNABLE) {
+    if (!showPackageWarnings && message.spannable != NO_LOCATION_SPANNABLE) {
       switch (kind) {
       case api.Diagnostic.WARNING:
       case api.Diagnostic.HINT:
-        Element element = elementFromSpannable(node);
+        Element element = elementFromSpannable(message.spannable);
         if (!inUserCode(element, assumeInUserCode: true)) {
           Uri uri = getCanonicalUri(element);
           SuppressionInfo info =
@@ -1399,22 +1467,20 @@ abstract class Compiler implements DiagnosticListener {
       }
     }
     lastDiagnosticWasFiltered = false;
-    MessageTemplate template = MessageTemplate.TEMPLATES[messageKind];
-    reportDiagnostic(
-        node,
-        template.message(arguments, terseDiagnostics),
-        kind);
+    reportDiagnostic(message, infos, kind);
   }
 
-  void reportDiagnostic(Spannable span,
-                        Message message,
+  void reportDiagnostic(DiagnosticMessage message,
+                        List<DiagnosticMessage> infos,
                         api.Diagnostic kind);
 
   void reportAssertionFailure(SpannableAssertionFailure ex) {
     String message = (ex.message != null) ? tryToString(ex.message)
                                           : tryToString(ex);
     reportDiagnosticInternal(
-        ex.node, MessageKind.GENERIC, {'text': message}, api.Diagnostic.CRASH);
+        createMessage(ex.node, MessageKind.GENERIC, {'text': message}),
+        const <DiagnosticMessage>[],
+        api.Diagnostic.CRASH);
   }
 
   SourceSpan spanFromTokens(Token begin, Token end, [Uri uri]) {
@@ -1492,7 +1558,7 @@ abstract class Compiler implements DiagnosticListener {
    * See [LibraryLoader] for terminology on URIs.
    */
   Uri translateResolvedUri(LibraryElement importingLibrary,
-                           Uri resolvedUri, Node node) {
+                           Uri resolvedUri, Spannable spannable) {
     unimplemented(importingLibrary, 'Compiler.translateResolvedUri');
     return null;
   }
@@ -1551,20 +1617,20 @@ abstract class Compiler implements DiagnosticListener {
       if (member.isErroneous) return;
       if (member.isFunction) {
         if (!enqueuer.resolution.hasBeenResolved(member)) {
-          reportHint(member, MessageKind.UNUSED_METHOD,
-                     {'name': member.name});
+          reportHintMessage(
+              member, MessageKind.UNUSED_METHOD, {'name': member.name});
         }
       } else if (member.isClass) {
         if (!member.isResolved) {
-          reportHint(member, MessageKind.UNUSED_CLASS,
-                     {'name': member.name});
+          reportHintMessage(
+              member, MessageKind.UNUSED_CLASS, {'name': member.name});
         } else {
           member.forEachLocalMember(checkLive);
         }
       } else if (member.isTypedef) {
         if (!member.isResolved) {
-          reportHint(member, MessageKind.UNUSED_TYPEDEF,
-                     {'name': member.name});
+          reportHintMessage(
+              member, MessageKind.UNUSED_TYPEDEF, {'name': member.name});
         }
       }
     }
