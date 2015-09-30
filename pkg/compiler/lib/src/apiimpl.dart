@@ -11,8 +11,7 @@ import '../compiler_new.dart' as api;
 import 'dart2jslib.dart' as leg;
 import 'tree/tree.dart' as tree;
 import 'elements/elements.dart' as elements;
-import 'package:sdk_library_metadata/libraries.dart' hide LIBRARIES;
-import 'package:sdk_library_metadata/libraries.dart' as library_info show LIBRARIES;
+import 'package:sdk_library_metadata/libraries.dart' as library_info;
 import 'io/source_file.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart' as pkgs;
@@ -34,7 +33,7 @@ class Compiler extends leg.Compiler {
   List<String> options;
   Map<String, dynamic> environment;
   bool mockableLibraryUsed = false;
-  final Set<String> allowedLibraryCategories;
+  final Set<library_info.Category> allowedLibraryCategories;
 
   leg.GenericTask userHandlerTask;
   leg.GenericTask userProviderTask;
@@ -162,35 +161,24 @@ class Compiler extends leg.Compiler {
     return const <String>[];
   }
 
-  static Set<String> getAllowedLibraryCategories(List<String> options) {
-    var result = extractCsvOption(options, '--categories=');
-    if (result.isEmpty) {
-      result = ['Client'];
+  static Set<library_info.Category> getAllowedLibraryCategories(
+      List<String> options) {
+    Iterable<library_info.Category> categories =
+      extractCsvOption(options, '--categories=')
+          .map(library_info.parseCategory)
+          .where((x) => x != null);
+    if (categories.isEmpty) {
+      return new Set.from([library_info.Category.client]);
     }
-    result.add('Shared');
-    result.add('Internal');
-    return new Set<String>.from(result);
+    return new Set.from(categories);
   }
 
   static bool hasOption(List<String> options, String option) {
     return options.indexOf(option) >= 0;
   }
 
-  // TODO(johnniwinther): Merge better with [translateDartUri] when
-  // [scanBuiltinLibrary] is removed.
-  String lookupLibraryPath(LibraryInfo info) {
-    if (info == null) return null;
-    if (!info.isDart2jsLibrary) return null;
-    if (!allowedLibraryCategories.contains(info.category)) return null;
-    String path = info.dart2jsPath;
-    if (path == null) {
-      path = info.path;
-    }
-    return "lib/$path";
-  }
-
   String lookupPatchPath(String dartLibraryName) {
-    LibraryInfo info = lookupLibraryInfo(dartLibraryName);
+    library_info.LibraryInfo info = lookupLibraryInfo(dartLibraryName);
     if (info == null) return null;
     if (!info.isDart2jsLibrary) return null;
     String path = info.dart2jsPatchPath;
@@ -300,48 +288,70 @@ class Compiler extends leg.Compiler {
     }
   }
 
+  /// Translates "resolvedUri" with scheme "dart" to a [uri] resolved relative
+  /// to [libraryRoot] according to the information in [library_info.libraries].
+  ///
+  /// Returns null and emits an error if the library could not be found or
+  /// imported into [importingLibrary].
+  ///
+  /// If [importingLibrary] is a platform or patch library all dart2js libraries
+  /// can be resolved. Otherwise only libraries with categories in
+  /// [allowedLibraryCategories] can be resolved.
   Uri translateDartUri(elements.LibraryElement importingLibrary,
                        Uri resolvedUri, tree.Node node) {
-    LibraryInfo libraryInfo = lookupLibraryInfo(resolvedUri.path);
-    String path = lookupLibraryPath(libraryInfo);
-    if (libraryInfo != null &&
-        libraryInfo.category == "Internal") {
-      bool allowInternalLibraryAccess = false;
-      if (importingLibrary != null) {
-        if (importingLibrary.isPlatformLibrary || importingLibrary.isPatch) {
-          allowInternalLibraryAccess = true;
-        } else if (importingLibrary.canonicalUri.path.contains(
-                       'sdk/tests/compiler/dart2js_native')) {
-          allowInternalLibraryAccess = true;
-        }
-      }
-      if (!allowInternalLibraryAccess) {
-        if (importingLibrary != null) {
-          reportError(
-              node,
-              leg.MessageKind.INTERNAL_LIBRARY_FROM,
-              {'resolvedUri': resolvedUri,
-               'importingUri': importingLibrary.canonicalUri});
-        } else {
-          reportError(
-              node,
-              leg.MessageKind.INTERNAL_LIBRARY,
-              {'resolvedUri': resolvedUri});
-        }
+    library_info.LibraryInfo info = lookupLibraryInfo(resolvedUri.path);
+
+    if (info == null) return null;
+    if (!info.isDart2jsLibrary) return null;
+
+    bool allowInternalLibraryAccess = false;
+    if (importingLibrary != null) {
+      if (importingLibrary.isPlatformLibrary || importingLibrary.isPatch) {
+        allowInternalLibraryAccess = true;
+      } else if (importingLibrary.canonicalUri.path.contains(
+          'sdk/tests/compiler/dart2js_native')) {
+        allowInternalLibraryAccess = true;
       }
     }
+
+    if (info.categories == library_info.internal &&
+        !allowInternalLibraryAccess) {
+      if (importingLibrary != null) {
+        reportError(
+            node,
+            leg.MessageKind.INTERNAL_LIBRARY_FROM,
+            {'resolvedUri': resolvedUri,
+             'importingUri': importingLibrary.canonicalUri});
+      } else {
+        reportError(
+            node,
+            leg.MessageKind.INTERNAL_LIBRARY,
+            {'resolvedUri': resolvedUri});
+      }
+    }
+
+    String path = info.path;
+    if (path == null) {
+      path = info.dart2jsPath;
+    }
+    if (!allowInternalLibraryAccess &&
+        !allowedLibraryCategories.any(info.categories.contains)) {
+      path = null;
+    }
+
     if (path == null) {
       reportError(node, leg.MessageKind.LIBRARY_NOT_FOUND,
-                  {'resolvedUri': resolvedUri});
+                      {'resolvedUri': resolvedUri});
       return null;
     }
+
     if (resolvedUri.path == 'html' ||
         resolvedUri.path == 'io') {
       // TODO(ahe): Get rid of mockableLibraryUsed when test.dart
       // supports this use case better.
       mockableLibraryUsed = true;
     }
-    return libraryRoot.resolve(path);
+    return libraryRoot.resolve("lib/$path");
   }
 
   Uri resolvePatchUri(String dartLibraryPath) {
@@ -495,7 +505,7 @@ class Compiler extends leg.Compiler {
 
   fromEnvironment(String name) => environment[name];
 
-  LibraryInfo lookupLibraryInfo(String libraryName) {
-    return library_info.LIBRARIES[libraryName];
+  library_info.LibraryInfo lookupLibraryInfo(String libraryName) {
+    return library_info.libraries[libraryName];
   }
 }
