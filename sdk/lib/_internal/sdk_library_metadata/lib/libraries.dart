@@ -33,13 +33,6 @@ Category parseCategory(String name) {
   return null;
 }
 
-/// A shared library is available in all categories.
-const List<Category> shared =
-    const [Category.client, Category.server, Category.embedded];
-
-/// An internal library is not available to user code.
-const List<Category> internal = const [];
-
 /// Mapping of "dart:" library name (e.g. "core") to information about that
 /// library.
 const Map<String, LibraryInfo> libraries = const {
@@ -330,12 +323,17 @@ class LibraryInfo {
 
   /**
    * The categories in which the library can be used.
-   * If no categories are specified the library is internal and can not be
+   *
+   * If no categories are specified, the library is internal and can not be
    * loaded by user code.
    */
   List<Category> get categories {
-      return _categories.split(",").map(parseCategory).toList();
+    // `"".split(,)` returns [""] not [], so we handle that case separately.
+    if (_categories == "") return <Category>[];
+    return _categories.split(",").map(parseCategory).toList();
   }
+
+  bool get isInternal => categories.isEmpty;
 
   /// The original "categories" String that was passed to the constructor.
   ///

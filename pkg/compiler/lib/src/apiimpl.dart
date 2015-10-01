@@ -317,14 +317,14 @@ class Compiler extends leg.Compiler {
       } else if (!info.isDart2jsLibrary) {
         return null;
       } else {
-        if (info.categories == library_info.internal &&
+        if (info.isInternal &&
             !allowInternalLibraryAccess) {
           if (importingLibrary != null) {
             reportError(
                 node,
                 leg.MessageKind.INTERNAL_LIBRARY_FROM,
                 {'resolvedUri': resolvedUri,
-                  'importingUri': importingLibrary.canonicalUri});
+                 'importingUri': importingLibrary.canonicalUri});
           } else {
             reportError(
                 node,
