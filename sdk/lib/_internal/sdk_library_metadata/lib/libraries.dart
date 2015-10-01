@@ -331,10 +331,17 @@ class LibraryInfo {
   /**
    * The categories in which the library can be used.
    * If no categories are specified the library is internal and can not be
-   * loaded by user code..
+   * loaded by user code.
    */
   List<Category> get categories {
-      return _categories.split(",").map(parseCategory);
+      return _categories.split(",").map(parseCategory).toList();
+  }
+
+  /// The original "categories" String that was passed to the constructor.
+  ///
+  /// Can be used to construct a slightly modified copy of this LibraryInfo.
+  String get categoriesString {
+    return _categories;
   }
 }
 

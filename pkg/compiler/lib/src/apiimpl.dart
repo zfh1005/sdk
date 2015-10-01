@@ -301,9 +301,6 @@ class Compiler extends leg.Compiler {
                        Uri resolvedUri, tree.Node node) {
     library_info.LibraryInfo info = lookupLibraryInfo(resolvedUri.path);
 
-    if (info == null) return null;
-    if (!info.isDart2jsLibrary) return null;
-
     bool allowInternalLibraryAccess = false;
     if (importingLibrary != null) {
       if (importingLibrary.isPlatformLibrary || importingLibrary.isPatch) {
@@ -314,34 +311,38 @@ class Compiler extends leg.Compiler {
       }
     }
 
-    if (info.categories == library_info.internal &&
-        !allowInternalLibraryAccess) {
-      if (importingLibrary != null) {
-        reportError(
-            node,
-            leg.MessageKind.INTERNAL_LIBRARY_FROM,
-            {'resolvedUri': resolvedUri,
-             'importingUri': importingLibrary.canonicalUri});
+    String computePath() {
+      if (info == null) {
+        return null;
+      } else if (!info.isDart2jsLibrary) {
+        return null;
       } else {
-        reportError(
-            node,
-            leg.MessageKind.INTERNAL_LIBRARY,
-            {'resolvedUri': resolvedUri});
+        if (info.categories == library_info.internal &&
+            !allowInternalLibraryAccess) {
+          if (importingLibrary != null) {
+            reportError(
+                node,
+                leg.MessageKind.INTERNAL_LIBRARY_FROM,
+                {'resolvedUri': resolvedUri,
+                  'importingUri': importingLibrary.canonicalUri});
+          } else {
+            reportError(
+                node,
+                leg.MessageKind.INTERNAL_LIBRARY,
+                {'resolvedUri': resolvedUri});
+          }
+          return null;
+        } else {
+          return (info.dart2jsPath != null) ? info.dart2jsPath : info.path;
+        }
       }
     }
 
-    String path = info.path;
-    if (info.dart2jsPath != null) {
-      path = info.dart2jsPath;
-    }
-    if (!allowInternalLibraryAccess &&
-        !allowedLibraryCategories.any(info.categories.contains)) {
-      path = null;
-    }
+    String path = computePath();
 
     if (path == null) {
       reportError(node, leg.MessageKind.LIBRARY_NOT_FOUND,
-                      {'resolvedUri': resolvedUri});
+          {'resolvedUri': resolvedUri});
       return null;
     }
 
