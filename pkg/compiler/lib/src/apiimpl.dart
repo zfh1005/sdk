@@ -332,6 +332,11 @@ class Compiler extends leg.Compiler {
                 {'resolvedUri': resolvedUri});
           }
           return null;
+        } else if (!allowInternalLibraryAccess &&
+            !allowedLibraryCategories.any(info.categories.contains)) {
+          // TODO(sigurdm): Currently we allow the sdk libraries to import
+          // libraries from any category. We might want to revisit this.
+          return null;
         } else {
           return (info.dart2jsPath != null) ? info.dart2jsPath : info.path;
         }
