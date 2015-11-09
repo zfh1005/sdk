@@ -457,7 +457,8 @@ abstract class Compiler {
             this.testMode: false,
             DiagnosticOptions diagnosticOptions,
             api.CompilerOutput outputProvider,
-            List<String> strips: const []})
+            List<String> strips: const [],
+            Backend makeBackend(Compiler compiler)})
       : this.disableTypeInferenceFlag =
           disableTypeInferenceFlag || !emitJavaScript,
         this.analyzeOnly =
@@ -491,7 +492,9 @@ abstract class Compiler {
     // for global dependencies.
     globalDependencies = new GlobalDependencyRegistry(this);
 
-    if (emitJavaScript) {
+    if (makeBackend != null) {
+      backend = makeBackend(this);
+    } else if (emitJavaScript) {
       js_backend.JavaScriptBackend jsBackend =
           new js_backend.JavaScriptBackend(
               this, generateSourceMap: generateSourceMap,
@@ -519,7 +522,7 @@ abstract class Compiler {
       constants = backend.constantCompilerTask,
       deferredLoadTask = new DeferredLoadTask(this),
       mirrorUsageAnalyzerTask = new MirrorUsageAnalyzerTask(this),
-      enqueuer = new EnqueueTask(this),
+      enqueuer = backend.makeEnqueuer(),
       dumpInfoTask = new DumpInfoTask(this),
       reuseLibraryTask = new GenericTask('Reuse library', this),
     ];
