@@ -348,7 +348,8 @@ abstract class Compiler {
   }
 
   Compiler({api.CompilerOptions options,
-            api.CompilerOutput outputProvider})
+            api.CompilerOutput outputProvider,
+            Backend makeBackend(Compiler compiler)})
       : this.options = options,
         this.cacheStrategy = new CacheStrategy(options.hasIncrementalSupport),
         this.userOutputProvider = outputProvider == null
@@ -373,7 +374,9 @@ abstract class Compiler {
     // for global dependencies.
     globalDependencies = new GlobalDependencyRegistry(this);
 
-    if (options.emitJavaScript) {
+    if (makeBackend != null) {
+      backend = makeBackend(this);
+    } else if (options.emitJavaScript) {
       js_backend.JavaScriptBackend jsBackend =
           new js_backend.JavaScriptBackend(
               this, generateSourceMap: options.generateSourceMap,
@@ -405,7 +408,7 @@ abstract class Compiler {
       constants = backend.constantCompilerTask,
       deferredLoadTask = new DeferredLoadTask(this),
       mirrorUsageAnalyzerTask = new MirrorUsageAnalyzerTask(this),
-      enqueuer = new EnqueueTask(this),
+      enqueuer = backend.makeEnqueuer(),
       dumpInfoTask = new DumpInfoTask(this),
       reuseLibraryTask = new GenericTask('Reuse library', this),
     ];

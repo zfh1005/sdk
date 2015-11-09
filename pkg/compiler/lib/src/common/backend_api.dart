@@ -35,6 +35,7 @@ import '../elements/elements.dart' show
     MethodElement;
 import '../enqueue.dart' show
     Enqueuer,
+    EnqueueTask,
     CodegenEnqueuer,
     ResolutionEnqueuer;
 import '../io/code_output.dart' show
@@ -77,7 +78,6 @@ import 'tasks.dart' show
     CompilerTask;
 import 'work.dart' show
     ItemCompilationContext;
-
 
 abstract class Backend {
   final Compiler compiler;
@@ -442,6 +442,8 @@ abstract class Backend {
        bool supportSerialization: true}) {
     return const ImpactStrategy();
   }
+
+  EnqueueTask makeEnqueuer() => new EnqueueTask(compiler);
 }
 
 /// Interface for resolving calls to foreign functions.
