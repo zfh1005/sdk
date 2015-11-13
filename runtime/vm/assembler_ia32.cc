@@ -96,8 +96,13 @@ void Assembler::pushl(const Address& address) {
 
 void Assembler::pushl(const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
-  EmitUint8(0x68);
-  EmitImmediate(imm);
+  if (imm.is_int8()) {
+    EmitUint8(0x6A);
+    EmitUint8(imm.value() & 0xFF);
+  } else {
+    EmitUint8(0x68);
+    EmitImmediate(imm);
+  }
 }
 
 
@@ -2565,6 +2570,7 @@ static const intptr_t kNumberOfVolatileXmmRegisters =
 
 
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
+  Comment("EnterCallRuntimeFrame");
   EnterFrame(0);
 
   // Preserve volatile CPU registers.

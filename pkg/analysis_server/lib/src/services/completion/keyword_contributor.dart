@@ -1,4 +1,5 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,7 +7,7 @@ library services.completion.contributor.dart.keyword;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/scanner.dart';
@@ -21,7 +22,9 @@ const AWAIT = 'await';
 class KeywordContributor extends DartCompletionContributor {
   @override
   bool computeFast(DartCompletionRequest request) {
-    request.target.containingNode.accept(new _KeywordVisitor(request));
+    if (!request.target.isCommentText) {
+      request.target.containingNode.accept(new _KeywordVisitor(request));
+    }
     return true;
   }
 
@@ -32,7 +35,7 @@ class KeywordContributor extends DartCompletionContributor {
 }
 
 /**
- * A vistor for generating keyword suggestions.
+ * A visitor for generating keyword suggestions.
  */
 class _KeywordVisitor extends GeneralizingAstVisitor {
   final DartCompletionRequest request;
@@ -70,6 +73,9 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       }
     }
     _addStatementKeywords(node);
+    if (_inCatchClause(node)) {
+      _addSuggestion(Keyword.RETHROW, DART_RELEVANCE_KEYWORD - 1);
+    }
   }
 
   @override
@@ -172,18 +178,22 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   @override
   visitFormalParameterList(FormalParameterList node) {
-    AstNode constructorDecl =
+    AstNode constructorDeclaration =
         node.getAncestor((p) => p is ConstructorDeclaration);
-    if (constructorDecl != null) {
+    if (constructorDeclaration != null) {
       _addSuggestions([Keyword.THIS]);
     }
   }
 
   @override
   visitForStatement(ForStatement node) {
-    if (entity == node.rightSeparator && entity.toString() != ';') {
-      // Handle the degenerate case while typing - for (int x i^)
-      _addSuggestion(Keyword.IN, DART_RELEVANCE_HIGH);
+    // Handle the degenerate case while typing - for (int x i^)
+    if (node.condition == entity && entity is SimpleIdentifier) {
+      Token entityToken = (entity as SimpleIdentifier).beginToken;
+      if (entityToken.previous.isSynthetic &&
+          entityToken.previous.type == TokenType.SEMICOLON) {
+        _addSuggestion(Keyword.IN, DART_RELEVANCE_HIGH);
+      }
     }
   }
 
@@ -446,7 +456,6 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       Keyword.VOID,
       Keyword.WHILE
     ]);
-    _addSuggestion(Keyword.RETHROW, DART_RELEVANCE_KEYWORD - 1);
   }
 
   void _addSuggestion(Keyword keyword,
@@ -480,6 +489,9 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
     FunctionBody body = node.getAncestor((n) => n is FunctionBody);
     return body != null && body.isAsynchronous;
   }
+
+  bool _inCatchClause(Block node) =>
+      node.getAncestor((p) => p is CatchClause) != null;
 
   bool _inClassMemberBody(AstNode node) {
     while (true) {

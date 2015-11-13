@@ -122,6 +122,11 @@ Future<Isolate> spawnDomUri(Uri uri, List<String> args, message) {
   // TODO(17738): Implement this.
   throw new UnimplementedError();
 }
+
+/// Dartium functions that are a NOOP in dart2js.
+unwrap_jso(dartClass_instance) => dartClass_instance;
+wrap_jso(jsObject) => jsObject;
+createCustomUpgrader(Type customElementClass, $this) => $this;
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -2940,12 +2945,11 @@ class CredentialsContainer extends Interceptor {
   @Experimental() // untriaged
   Future _request_2() native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable()
 @DomName('Crypto')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -2953,6 +2957,11 @@ class CredentialsContainer extends Interceptor {
 // http://www.w3.org/TR/WebCryptoAPI/
 @Native("Crypto")
 class Crypto extends Interceptor {
+
+  TypedData getRandomValues(TypedData array) {
+    return _getRandomValues(array);
+  }
+
   // To suppress missing implicit constructor warnings.
   factory Crypto._() { throw new UnsupportedError("Not supported"); }
 
@@ -2964,11 +2973,13 @@ class Crypto extends Interceptor {
   @Experimental() // untriaged
   final _SubtleCrypto subtle;
 
+  @JSName('getRandomValues')
   @DomName('Crypto.getRandomValues')
   @DocsEditable()
   @Creates('TypedData')
   @Returns('TypedData|Null')
-  TypedData getRandomValues(TypedData array) native;
+  TypedData _getRandomValues(TypedData array) native;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17853,7 +17864,32 @@ class History extends Interceptor implements HistoryBase {
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  void pushState(Object data, String title, [String url]) native;
+  void pushState(/*any*/ data, String title, [String url]) {
+    if (url != null) {
+      var data_1 = convertDartToNative_SerializedScriptValue(data);
+      _pushState_1(data_1, title, url);
+      return;
+    }
+    var data_1 = convertDartToNative_SerializedScriptValue(data);
+    _pushState_2(data_1, title);
+    return;
+  }
+  @JSName('pushState')
+  @DomName('History.pushState')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  void _pushState_1(data, title, url) native;
+  @JSName('pushState')
+  @DomName('History.pushState')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  void _pushState_2(data, title) native;
 
   @DomName('History.replaceState')
   @DocsEditable()
@@ -17861,7 +17897,32 @@ class History extends Interceptor implements HistoryBase {
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  void replaceState(Object data, String title, [String url]) native;
+  void replaceState(/*any*/ data, String title, [String url]) {
+    if (url != null) {
+      var data_1 = convertDartToNative_SerializedScriptValue(data);
+      _replaceState_1(data_1, title, url);
+      return;
+    }
+    var data_1 = convertDartToNative_SerializedScriptValue(data);
+    _replaceState_2(data_1, title);
+    return;
+  }
+  @JSName('replaceState')
+  @DomName('History.replaceState')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  void _replaceState_1(data, title, url) native;
+  @JSName('replaceState')
+  @DomName('History.replaceState')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.IE, '10')
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  void _replaceState_2(data, title) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

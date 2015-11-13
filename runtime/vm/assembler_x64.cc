@@ -122,7 +122,11 @@ void Assembler::pushq(const Address& address) {
 
 
 void Assembler::pushq(const Immediate& imm) {
-  if (imm.is_int32()) {
+  if (imm.is_int8()) {
+    AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+    EmitUint8(0x6A);
+    EmitUint8(imm.value() & 0xFF);
+  } else if (imm.is_int32()) {
     AssemblerBuffer::EnsureCapacity ensured(&buffer_);
     EmitUint8(0x68);
     EmitImmediate(imm);
@@ -3279,8 +3283,8 @@ void Assembler::PushRegisters(intptr_t cpu_register_set,
     // Store XMM registers with the lowest register number at the lowest
     // address.
     intptr_t offset = 0;
-    for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
-      XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
+    for (intptr_t i = 0; i < kNumberOfXmmRegisters; ++i) {
+      XmmRegister xmm_reg = static_cast<XmmRegister>(i);
       if (RegisterSet::Contains(xmm_register_set, xmm_reg)) {
         movups(Address(RSP, offset), xmm_reg);
         offset += kFpuRegisterSize;
@@ -3289,11 +3293,10 @@ void Assembler::PushRegisters(intptr_t cpu_register_set,
     ASSERT(offset == (xmm_regs_count * kFpuRegisterSize));
   }
 
-  // Store general purpose registers with the highest register number at the
-  // lowest address. The order in which the registers are pushed must match the
-  // order in which the registers are encoded in the safe point's stack map.
-  for (intptr_t reg_idx = 0; reg_idx < kNumberOfCpuRegisters; ++reg_idx) {
-    Register reg = static_cast<Register>(reg_idx);
+  // The order in which the registers are pushed must match the order
+  // in which the registers are encoded in the safe point's stack map.
+  for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
+    Register reg = static_cast<Register>(i);
     if (RegisterSet::Contains(cpu_register_set, reg)) {
       pushq(reg);
     }
@@ -3303,10 +3306,8 @@ void Assembler::PushRegisters(intptr_t cpu_register_set,
 
 void Assembler::PopRegisters(intptr_t cpu_register_set,
                              intptr_t xmm_register_set) {
-  // General purpose registers have the highest register number at the
-  // lowest address.
-  for (intptr_t reg_idx = kNumberOfCpuRegisters - 1; reg_idx >= 0; --reg_idx) {
-    Register reg = static_cast<Register>(reg_idx);
+  for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+    Register reg = static_cast<Register>(i);
     if (RegisterSet::Contains(cpu_register_set, reg)) {
       popq(reg);
     }
@@ -3316,8 +3317,8 @@ void Assembler::PopRegisters(intptr_t cpu_register_set,
   if (xmm_regs_count > 0) {
     // XMM registers have the lowest register number at the lowest address.
     intptr_t offset = 0;
-    for (intptr_t reg_idx = 0; reg_idx < kNumberOfXmmRegisters; ++reg_idx) {
-      XmmRegister xmm_reg = static_cast<XmmRegister>(reg_idx);
+    for (intptr_t i = 0; i < kNumberOfXmmRegisters; ++i) {
+      XmmRegister xmm_reg = static_cast<XmmRegister>(i);
       if (RegisterSet::Contains(xmm_register_set, xmm_reg)) {
         movups(xmm_reg, Address(RSP, offset));
         offset += kFpuRegisterSize;
@@ -3330,6 +3331,7 @@ void Assembler::PopRegisters(intptr_t cpu_register_set,
 
 
 void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
+  Comment("EnterCallRuntimeFrame");
   EnterStubFrame();
 
   // TODO(vegorov): avoid saving FpuTMP, it is used only as scratch.
@@ -3419,6 +3421,7 @@ void Assembler::LeaveDartFrame(RestorePP restore_pp) {
 
 void Assembler::CheckCodePointer() {
 #ifdef DEBUG
+  Comment("CheckCodePointer");
   Label cid_ok, instructions_ok;
   pushq(RAX);
   LoadClassId(RAX, CODE_REG);

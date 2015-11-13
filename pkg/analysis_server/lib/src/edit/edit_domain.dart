@@ -6,8 +6,8 @@ library edit.domain;
 
 import 'dart:async';
 
-import 'package:analysis_server/edit/assist/assist_core.dart';
-import 'package:analysis_server/edit/fix/fix_core.dart';
+import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
+import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/constants.dart';
@@ -557,7 +557,10 @@ class _RefactoringManager {
       List<CompilationUnit> units = server.getResolvedCompilationUnits(file);
       if (units.isNotEmpty) {
         refactoring = new ExtractLocalRefactoring(units[0], offset, length);
-        feedback = new ExtractLocalVariableFeedback([], [], []);
+        feedback = new ExtractLocalVariableFeedback(
+            <String>[], <int>[], <int>[],
+            coveringExpressionOffsets: <int>[],
+            coveringExpressionLengths: <int>[]);
       }
     }
     if (kind == RefactoringKind.EXTRACT_METHOD) {
@@ -565,8 +568,8 @@ class _RefactoringManager {
       if (units.isNotEmpty) {
         refactoring = new ExtractMethodRefactoring(
             searchEngine, units[0], offset, length);
-        feedback = new ExtractMethodFeedback(
-            offset, length, '', [], false, [], [], []);
+        feedback = new ExtractMethodFeedback(offset, length, '', <String>[],
+            false, <RefactoringMethodParameter>[], <int>[], <int>[]);
       }
     }
     if (kind == RefactoringKind.INLINE_LOCAL_VARIABLE) {
@@ -625,6 +628,10 @@ class _RefactoringManager {
       feedback.names = refactoring.names;
       feedback.offsets = refactoring.offsets;
       feedback.lengths = refactoring.lengths;
+      feedback.coveringExpressionOffsets =
+          refactoring.coveringExpressionOffsets;
+      feedback.coveringExpressionLengths =
+          refactoring.coveringExpressionLengths;
     }
     if (refactoring is ExtractMethodRefactoring) {
       ExtractMethodRefactoring refactoring = this.refactoring;

@@ -25,13 +25,9 @@ import 'dart:js' as js;
 
 
 
-// Need a default constructor for constructing classes with mixins that are
-// also extending NativeFieldWrapperClass2.  Defining JsoNativeFieldWrapper
-// extending NativeFieldWrapperClass2 creates a default constructor.
-class JsoNativeFieldWrapper extends NativeFieldWrapperClass2 {}
-
 
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final web_sqlBlinkMap = {
   'Database': () => SqlDatabase,
   'SQLError': () => SqlError,
@@ -42,6 +38,7 @@ final web_sqlBlinkMap = {
 };
 
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final web_sqlBlinkFunctionMap = {
   'Database': () => SqlDatabase.internalCreateSqlDatabase,
   'SQLError': () => SqlError.internalCreateSqlError,
@@ -108,20 +105,20 @@ typedef void SqlTransactionErrorCallback(SqlError error);
 @Experimental()
 // http://www.w3.org/TR/webdatabase/#asynchronous-database-api
 @Experimental() // deprecated
-class SqlDatabase extends NativeFieldWrapperClass2 {
+class SqlDatabase extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory SqlDatabase._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static SqlDatabase internalCreateSqlDatabase() {
     return new SqlDatabase._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory SqlDatabase._internalWrap() {
     return new SqlDatabase.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SqlDatabase.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -189,20 +186,20 @@ class SqlDatabase extends NativeFieldWrapperClass2 {
 @DomName('SQLError')
 // http://www.w3.org/TR/webdatabase/#sqlerror
 @Experimental() // deprecated
-class SqlError extends NativeFieldWrapperClass2 {
+class SqlError extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory SqlError._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static SqlError internalCreateSqlError() {
     return new SqlError._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory SqlError._internalWrap() {
     return new SqlError.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SqlError.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -260,20 +257,20 @@ class SqlError extends NativeFieldWrapperClass2 {
 @DomName('SQLResultSet')
 // http://www.w3.org/TR/webdatabase/#sqlresultset
 @Experimental() // deprecated
-class SqlResultSet extends NativeFieldWrapperClass2 {
+class SqlResultSet extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory SqlResultSet._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static SqlResultSet internalCreateSqlResultSet() {
     return new SqlResultSet._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory SqlResultSet._internalWrap() {
     return new SqlResultSet.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SqlResultSet.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -303,20 +300,20 @@ class SqlResultSet extends NativeFieldWrapperClass2 {
 @DomName('SQLResultSetRowList')
 // http://www.w3.org/TR/webdatabase/#sqlresultsetrowlist
 @Experimental() // deprecated
-class SqlResultSetRowList extends JsoNativeFieldWrapper with ListMixin<Map>, ImmutableListMixin<Map> implements List<Map> {
+class SqlResultSetRowList extends DartHtmlDomObject with ListMixin<Map>, ImmutableListMixin<Map> implements List<Map> {
   // To suppress missing implicit constructor warnings.
   factory SqlResultSetRowList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static SqlResultSetRowList internalCreateSqlResultSetRowList() {
     return new SqlResultSetRowList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory SqlResultSetRowList._internalWrap() {
     return new SqlResultSetRowList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SqlResultSetRowList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -391,20 +388,20 @@ class SqlResultSetRowList extends JsoNativeFieldWrapper with ListMixin<Map>, Imm
 @Experimental()
 // http://www.w3.org/TR/webdatabase/#sqltransaction
 @deprecated // deprecated
-class SqlTransaction extends NativeFieldWrapperClass2 {
+class SqlTransaction extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory SqlTransaction._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static SqlTransaction internalCreateSqlTransaction() {
     return new SqlTransaction._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory SqlTransaction._internalWrap() {
     return new SqlTransaction.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SqlTransaction.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -412,6 +409,6 @@ class SqlTransaction extends NativeFieldWrapperClass2 {
 
   @DomName('SQLTransaction.executeSql')
   @DocsEditable()
-  void executeSql(String sqlStatement, List<Object> arguments, [SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) => _blink.BlinkSQLTransaction.instance.executeSql_Callback_4_(unwrap_jso(this), sqlStatement, arguments, unwrap_jso((transaction, resultSet) => callback(wrap_jso(transaction), wrap_jso(resultSet))), unwrap_jso((transaction, error) => errorCallback(wrap_jso(transaction), wrap_jso(error))));
+  void executeSql(String sqlStatement, List<Object> arguments, [SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) => _blink.BlinkSQLTransaction.instance.executeSql_Callback_4_(unwrap_jso(this), sqlStatement, unwrap_jso(arguments), unwrap_jso((transaction, resultSet) => callback(wrap_jso(transaction), wrap_jso(resultSet))), unwrap_jso((transaction, error) => errorCallback(wrap_jso(transaction), wrap_jso(error))));
   
 }

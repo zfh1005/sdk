@@ -6,17 +6,12 @@ library dart2js.mirrors;
 
 import 'dart:collection' show UnmodifiableListView, UnmodifiableMapView;
 
+import '../common.dart';
 import '../compiler.dart' show
     Compiler;
 import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../dart_types.dart';
-import '../diagnostics/invariant.dart' show
-    invariant;
-import '../diagnostics/source_span.dart' show
-    SourceSpan;
-import '../diagnostics/spannable.dart' show
-    NO_LOCATION_SPANNABLE;
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show
     LibraryElementX;
@@ -135,7 +130,7 @@ abstract class Dart2JsDeclarationMirror extends Dart2JsMirror
       }
       return members;
     }
-    mirrorSystem.compiler.internalError(element,
+    mirrorSystem.compiler.reporter.internalError(element,
         "Unexpected member type $element ${element.kind}.");
     return null;
   }
@@ -208,8 +203,8 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
       span = new SourceSpan(script.resourceUri, 0, 0);
     } else {
       Token endToken = getEndToken();
-      span = mirrorSystem.compiler.spanFromTokens(
-          beginToken, endToken, script.resourceUri);
+      span = new SourceSpan.fromTokens(
+          script.resourceUri, beginToken, endToken);
     }
     return new Dart2JsSourceLocation(script, span);
   }
@@ -230,7 +225,7 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
       for (MetadataAnnotation metadata in _element.metadata) {
         _appendCommentTokens(
             mirrorSystem.compiler.commentMap[metadata.beginToken]);
-        metadata.ensureResolved(mirrorSystem.compiler);
+        metadata.ensureResolved(mirrorSystem.compiler.resolution);
         _metadata.add(_convertConstantToInstanceMirror(
             mirrorSystem, metadata.constant,
             mirrorSystem.compiler.constants.getConstantValue(
@@ -348,7 +343,7 @@ class Dart2JsMirrorSystem extends MirrorSystem {
         return new Dart2JsTypedefMirror(this, type);
       }
     }
-    compiler.internalError(type.element,
+    compiler.reporter.internalError(type.element,
         "Unexpected type $type of kind ${type.kind}.");
     return null;
   }
@@ -359,7 +354,7 @@ class Dart2JsMirrorSystem extends MirrorSystem {
     } else if (element.isTypedef) {
       return new Dart2JsTypedefDeclarationMirror(this, element.thisType);
     }
-    compiler.internalError(element, "Unexpected element $element.");
+    compiler.reporter.internalError(element, "Unexpected element $element.");
     return null;
   }
 }

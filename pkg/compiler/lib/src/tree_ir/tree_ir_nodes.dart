@@ -119,10 +119,8 @@ class Variable extends Node {
   /// - catch parameter in a [Try]
   int writeCount = 0;
 
-  /// True if a nested function reads or writes this variable.
-  ///
-  /// Always false in JS-mode because closure conversion eliminated nested
-  /// functions.
+  /// True if an inner JS function might access this variable through a
+  /// [ForeignCode] node.
   bool isCaptured = false;
 
   Variable(this.host, this.element) {
@@ -235,6 +233,8 @@ class InvokeMethodDirectly extends Expression implements Invoke {
 
   InvokeMethodDirectly(this.receiver, this.target, this.selector,
       this.arguments, this.sourceInformation);
+
+  bool get isTearOff => selector.isGetter && !target.isGetter;
 
   accept(ExpressionVisitor visitor) => visitor.visitInvokeMethodDirectly(this);
   accept1(ExpressionVisitor1 visitor, arg) {
@@ -404,6 +404,8 @@ class Conditional extends Expression {
 
 /// An && or || expression. The operator is internally represented as a boolean
 /// [isAnd] to simplify rewriting of logical operators.
+/// Note the the result of && and || is one of the arguments, which might not be
+/// boolean. 'ShortCircuitOperator' might have been a better name.
 class LogicalOperator extends Expression {
   Expression left;
   bool isAnd;
@@ -742,6 +744,22 @@ class SetField extends Expression {
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitSetField(this, arg);
 }
 
+
+/// Read the type test property from [object]. The value is truthy/fasly rather
+/// than bool. [object] must not be `null`.
+class GetTypeTestProperty extends Expression {
+  Expression object;
+  DartType dartType;
+
+  GetTypeTestProperty(this.object, this.dartType);
+
+  accept(ExpressionVisitor visitor) =>
+      visitor.visitGetTypeTestProperty(this);
+  accept1(ExpressionVisitor1 visitor, arg) =>
+      visitor.visitGetTypeTestProperty(this, arg);
+}
+
+
 /// Read the value of a field, possibly provoking its initializer to evaluate,
 /// or tear off a static method.
 class GetStatic extends Expression {
@@ -975,6 +993,7 @@ abstract class ExpressionVisitor<E> {
   E visitSetField(SetField node);
   E visitGetStatic(GetStatic node);
   E visitSetStatic(SetStatic node);
+  E visitGetTypeTestProperty(GetTypeTestProperty node);
   E visitCreateBox(CreateBox node);
   E visitCreateInstance(CreateInstance node);
   E visitReifyRuntimeType(ReifyRuntimeType node);
@@ -1012,6 +1031,7 @@ abstract class ExpressionVisitor1<E, A> {
   E visitSetField(SetField node, A arg);
   E visitGetStatic(GetStatic node, A arg);
   E visitSetStatic(SetStatic node, A arg);
+  E visitGetTypeTestProperty(GetTypeTestProperty node, A arg);
   E visitCreateBox(CreateBox node, A arg);
   E visitCreateInstance(CreateInstance node, A arg);
   E visitReifyRuntimeType(ReifyRuntimeType node, A arg);
@@ -1204,6 +1224,10 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
 
   visitSetStatic(SetStatic node) {
     visitExpression(node.value);
+  }
+
+  visitGetTypeTestProperty(GetTypeTestProperty node) {
+    visitExpression(node.object);
   }
 
   visitCreateBox(CreateBox node) {
@@ -1451,6 +1475,11 @@ class RecursiveTransformer extends Transformer {
     return node;
   }
 
+  visitGetTypeTestProperty(GetTypeTestProperty node) {
+    node.object = visitExpression(node.object);
+    return node;
+  }
+
   visitCreateBox(CreateBox node) => node;
 
   visitCreateInstance(CreateInstance node) {
@@ -1534,6 +1563,7 @@ class RecursiveTransformer extends Transformer {
 
   visitYield(Yield node) {
     node.input = visitExpression(node.input);
+    node.next = visitStatement(node.next);
     return node;
   }
 }

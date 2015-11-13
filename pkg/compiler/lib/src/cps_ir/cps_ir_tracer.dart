@@ -81,17 +81,15 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
         });
       });
       tag("HIR", () {
+        String formatParameter(cps_ir.Parameter param) {
+          return '${names.name(param)} ${param.type}';
+        }
         if (entryPointParameters != null) {
-          String formatParameter(cps_ir.Parameter param) {
-            return '${names.name(param)} ${param.type}';
-          }
           String params = entryPointParameters.map(formatParameter).join(', ');
           printStmt('x0', 'Entry ($params)');
         }
-        for (cps_ir.Parameter param in block.parameters) {
-          String name = names.name(param);
-          printStmt(name, "Parameter $name [useCount=${countUses(param)}]");
-        }
+        String params = block.parameters.map(formatParameter).join(', ');
+        printStmt('x0', 'Parameters ($params)');
         visit(block.body);
       });
     });
@@ -238,6 +236,21 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     printStmt(dummy, "Branch $condition ($trueCont, $falseCont) $strict");
   }
 
+  visitAwait(cps_ir.Await node) {
+    String dummy = names.name(node);
+    String value = formatReference(node.input);
+    String continuation = formatReference(node.continuation);
+    printStmt(dummy, 'Await $value $continuation');
+  }
+
+  visitYield(cps_ir.Yield node) {
+    String dummy = names.name(node);
+    String name = node.hasStar ? 'YieldStar' : 'Yield';
+    String value = formatReference(node.input);
+    String continuation = formatReference(node.continuation);
+    printStmt(dummy, '$name $value $continuation');
+  }
+
   visitSetMutable(cps_ir.SetMutable node) {
     String variable = names.name(node.variable.definition);
     String value = formatReference(node.value);
@@ -312,7 +325,8 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   }
 
   visitInterceptor(cps_ir.Interceptor node) {
-    return "Interceptor(${formatReference(node.input)})";
+    return 'Interceptor(${formatReference(node.input)}, '
+           '${node.interceptedClasses})';
   }
 
   visitCreateFunction(cps_ir.CreateFunction node) {
@@ -346,7 +360,15 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   visitTypeTest(cps_ir.TypeTest node) {
     String value = formatReference(node.value);
     String args = node.typeArguments.map(formatReference).join(', ');
-    return "TypeTest ($value ${node.dartType} ($args))";
+    String interceptor = node.interceptor == null
+        ? ''
+        : ' ${formatReference(node.interceptor)}';
+    return "TypeTest ($value ${node.dartType} ($args)$interceptor)";
+  }
+
+  visitTypeTestViaFlag(cps_ir.TypeTestViaFlag node) {
+    String interceptor = formatReference(node.interceptor);
+    return "TypeTestViaFlag ($interceptor ${node.dartType})";
   }
 
   visitApplyBuiltinOperator(cps_ir.ApplyBuiltinOperator node) {
@@ -390,23 +412,9 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   }
 
   @override
-  visitAwait(cps_ir.Await node) {
-    String value = formatReference(node.input);
-    String continuation = formatReference(node.continuation);
-    return 'Await $value $continuation';
-  }
-
-  @override
-  visitYield(cps_ir.Yield node) {
-    String value = formatReference(node.input);
-    String continuation = formatReference(node.continuation);
-    return 'Yield $value $continuation';
-  }
-
-  @override
   visitRefinement(cps_ir.Refinement node) {
     String value = formatReference(node.value);
-    return 'Refinement $value ${node.type}';
+    return 'Refinement $value ${node.refineType}';
   }
 }
 
@@ -640,6 +648,10 @@ class BlockCollector implements cps_ir.Visitor {
   }
 
   visitTypeTest(cps_ir.TypeTest node) {
+    unexpectedNode(node);
+  }
+
+  visitTypeTestViaFlag(cps_ir.TypeTestViaFlag node) {
     unexpectedNode(node);
   }
 

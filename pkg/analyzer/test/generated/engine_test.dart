@@ -31,7 +31,7 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/string_source.dart';
-import 'package:analyzer/task/model.dart' hide AnalysisTask, WorkManager;
+import 'package:analyzer/task/model.dart' as newContext;
 import 'package:html/dom.dart' show Document;
 import 'package:path/path.dart' as pathos;
 import 'package:typed_mock/typed_mock.dart';
@@ -863,6 +863,15 @@ main() {}''');
     }).then((_) => pumpEventQueue()).then((_) {
       expect(completed, isTrue);
     });
+  }
+
+  void test_configurationData() {
+    var key = new newContext.ResultDescriptor('test_key', '');
+    var testData = ['test', 'data'];
+    _context.setConfigurationData(key, testData);
+    expect(_context.getConfigurationData(key), testData);
+    var unusedKey = new newContext.ResultDescriptor('unused_key', '');
+    expect(_context.getConfigurationData(unusedKey), null);
   }
 
   void test_dispose() {
@@ -2342,6 +2351,7 @@ class AnalysisOptionsImplTest extends EngineTestCase {
       options.analyzeFunctionBodies = booleanValue;
       options.cacheSize = i;
       options.dart2jsHint = booleanValue;
+      options.enableGenericMethods = booleanValue;
       options.enableStrictCallChecks = booleanValue;
       options.enableSuperMixins = booleanValue;
       options.generateImplicitErrors = booleanValue;
@@ -2385,6 +2395,13 @@ class AnalysisOptionsImplTest extends EngineTestCase {
     bool value = !options.dart2jsHint;
     options.dart2jsHint = value;
     expect(options.dart2jsHint, value);
+  }
+
+  void test_enableGenericMethods() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    bool value = !options.enableGenericMethods;
+    options.enableGenericMethods = value;
+    expect(options.enableGenericMethods, value);
   }
 
   void test_enableSuperMixins() {
@@ -5695,7 +5712,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
-  List<AnalysisTarget> get explicitTargets {
+  List<newContext.AnalysisTarget> get explicitTargets {
     fail("Unexpected invocation of visitCacheItems");
     return null;
   }
@@ -5766,7 +5783,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
-  List<AnalysisTarget> get priorityTargets {
+  List<newContext.AnalysisTarget> get priorityTargets {
     fail("Unexpected invocation of visitCacheItems");
     return null;
   }
@@ -5818,15 +5835,20 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
+  TypeResolverVisitorFactory get typeResolverVisitorFactory {
+    fail("Unexpected invocation of getTypeResolverVisitorFactory");
+    return null;
+  }
+
+  @override
   TypeSystem get typeSystem {
     fail("Unexpected invocation of getTypeSystem");
     return null;
   }
 
   @override
-  TypeResolverVisitorFactory get typeResolverVisitorFactory {
-    fail("Unexpected invocation of getTypeResolverVisitorFactory");
-    return null;
+  List<newContext.WorkManager> get workManagers {
+    fail("Unexpected invocation of workManagers");
   }
 
   @override
@@ -5907,7 +5929,8 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
-  Object computeResult(AnalysisTarget target, ResultDescriptor result) {
+  Object computeResult(
+      newContext.AnalysisTarget target, newContext.ResultDescriptor result) {
     fail("Unexpected invocation of computeResult");
     return null;
   }
@@ -5930,7 +5953,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
-  CacheEntry getCacheEntry(AnalysisTarget target) {
+  CacheEntry getCacheEntry(newContext.AnalysisTarget target) {
     fail("Unexpected invocation of visitCacheItems");
     return null;
   }
@@ -5940,6 +5963,11 @@ class TestAnalysisContext implements InternalAnalysisContext {
       Source unitSource, Source librarySource) {
     fail("Unexpected invocation of getCompilationUnitElement");
     return null;
+  }
+
+  @override
+  Object getConfigurationData(newContext.ResultDescriptor key) {
+    fail("Unexpected invocation of getConfigurationData");
   }
 
   @override
@@ -6055,7 +6083,8 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
-  Object getResult(AnalysisTarget target, ResultDescriptor result) {
+  Object getResult(
+      newContext.AnalysisTarget target, newContext.ResultDescriptor result) {
     fail("Unexpected invocation of getResult");
     return null;
   }
@@ -6091,7 +6120,8 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
-  Stream<ComputedResult> onResultComputed(ResultDescriptor descriptor) {
+  Stream<ComputedResult> onResultComputed(
+      newContext.ResultDescriptor descriptor) {
     fail("Unexpected invocation of onResultComputed");
     return null;
   }
@@ -6155,6 +6185,11 @@ class TestAnalysisContext implements InternalAnalysisContext {
   void setChangedContents(Source source, String contents, int offset,
       int oldLength, int newLength) {
     fail("Unexpected invocation of setChangedContents");
+  }
+
+  @override
+  void setConfigurationData(newContext.ResultDescriptor key, Object data) {
+    fail("Unexpected invocation of setConfigurationData");
   }
 
   @override

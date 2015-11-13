@@ -425,7 +425,12 @@ class ScriptInsetElement extends ObservatoryElement {
       case ServiceEvent.kBreakpointRemoved:
         var loc = event.breakpoint.location;
         if (loc.script == script) {
-          int line = script.tokenToLine(loc.tokenPos);
+          int line;
+          if (loc.tokenPos != null) {
+            line = script.tokenToLine(loc.tokenPos);
+          } else {
+            line = script.tokenToLine(loc.line);
+          }
           if ((line >= _startLine) && (line <= _endLine)) {
             _updateTask.queue();
           }
@@ -538,6 +543,10 @@ class ScriptInsetElement extends ObservatoryElement {
     _endLine = (endPos != null
                 ? script.tokenToLine(endPos)
                 : script.lines.length + script.lineOffset);
+
+    if (_startLine == null || _endLine == null) {
+      return;
+    }
 
     annotations.clear();
 
@@ -815,6 +824,11 @@ class ScriptInsetElement extends ObservatoryElement {
       return table;
     }
 
+    var endLine = (endPos != null
+                   ? script.tokenToLine(endPos)
+                   : script.lines.length + script.lineOffset);
+    var lineNumPad = endLine.toString().length;
+
     annotationsCursor = 0;
 
     int blankLineCount = 0;
@@ -831,17 +845,17 @@ class ScriptInsetElement extends ObservatoryElement {
           if (blankLineCount < 4) {
             // Too few blank lines for an elipsis.
             for (int j = firstBlank; j  <= lastBlank; j++) {
-              table.append(lineElement(script.getLine(j)));
+              table.append(lineElement(script.getLine(j), lineNumPad));
             }
           } else {
             // Add an elipsis for the skipped region.
-            table.append(lineElement(script.getLine(firstBlank)));
-            table.append(lineElement(null));
-            table.append(lineElement(script.getLine(lastBlank)));
+            table.append(lineElement(script.getLine(firstBlank), lineNumPad));
+            table.append(lineElement(null, lineNumPad));
+            table.append(lineElement(script.getLine(lastBlank), lineNumPad));
           }
           blankLineCount = 0;
         }
-        table.append(lineElement(line));
+        table.append(lineElement(line, lineNumPad));
       }
     }
 
@@ -867,11 +881,11 @@ class ScriptInsetElement extends ObservatoryElement {
     return annotation;
   }
 
-  Element lineElement(ScriptLine line) {
+  Element lineElement(ScriptLine line, int lineNumPad) {
     var e = new DivElement();
     e.classes.add("sourceRow");
     e.append(lineBreakpointElement(line));
-    e.append(lineNumberElement(line));
+    e.append(lineNumberElement(line, lineNumPad));
     e.append(lineSourceElement(line));
     return e;
   }
@@ -943,9 +957,9 @@ class ScriptInsetElement extends ObservatoryElement {
     return e;
   }
 
-  Element lineNumberElement(ScriptLine line) {
+  Element lineNumberElement(ScriptLine line, int lineNumPad) {
     var lineNumber = line == null ? "..." : line.line;
-    var e = span("$nbsp$lineNumber$nbsp");
+    var e = span("$nbsp${lineNumber.toString().padLeft(lineNumPad,nbsp)}$nbsp");
     e.classes.add('noCopy');
 
     if (lineNumber == _currentLine) {

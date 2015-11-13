@@ -57,6 +57,7 @@ bool WeakCodeReferences::IsOptimizedCode(const Array& dependent_code,
 
 
 void WeakCodeReferences::DisableCode() {
+  IncrementInvalidationGen();
   const Array& code_objects = Array::Handle(array_.raw());
   if (code_objects.IsNull()) {
     return;
@@ -115,17 +116,15 @@ void WeakCodeReferences::DisableCode() {
       // function is invoked, it will be compiled again.
       function.ClearCode();
       // Invalidate the old code object so existing references to it
-      // (from optimized code) will fail when invoked.
-      if (!CodePatcher::IsEntryPatched(code)) {
-        CodePatcher::PatchEntry(
-            code, Code::Handle(StubCode::FixCallersTarget_entry()->code()));
+      // (from optimized code) will be patched when invoked.
+      if (!code.IsDisabled()) {
+        code.DisableDartCode();
       }
     } else {
       // Make non-OSR code non-entrant.
-      if (!CodePatcher::IsEntryPatched(code)) {
+      if (!code.IsDisabled()) {
         ReportSwitchingCode(code);
-        CodePatcher::PatchEntry(
-            code, Code::Handle(StubCode::FixCallersTarget_entry()->code()));
+        code.DisableDartCode();
       }
     }
   }

@@ -9,7 +9,8 @@ import 'dart:collection';
 import 'dart:core' hide Resource;
 import 'dart:math' show max;
 
-import 'package:analysis_server/plugin/analyzed_files.dart';
+import 'package:analysis_server/plugin/analysis/resolver_provider.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart' hide Element;
 import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/context_manager.dart';
@@ -17,11 +18,9 @@ import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
-import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analysis_server/uri/resolver_provider.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
@@ -29,10 +28,12 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:glob/glob.dart';
 import 'package:plugin/plugin.dart';
 
 typedef void OptionUpdater(AnalysisOptionsImpl options);
@@ -70,7 +71,7 @@ class AnalysisServer {
    * The version of the analysis server. The value should be replaced
    * automatically during the build.
    */
-  static final String VERSION = '1.9.0';
+  static final String VERSION = '1.12.0';
 
   /**
    * The number of milliseconds to perform operations before inserting
@@ -316,7 +317,7 @@ class AnalysisServer {
         options.enableIncrementalResolutionValidation;
     defaultContextOptions.generateImplicitErrors = false;
     _noErrorNotification = options.noErrorNotification;
-    AnalysisEngine.instance.logger = new AnalysisLogger();
+    AnalysisEngine.instance.logger = new AnalysisLogger(this);
     _onAnalysisStartedController = new StreamController.broadcast();
     _onFileAnalyzedController = new StreamController.broadcast();
     _onPriorityChangeController =
@@ -573,6 +574,9 @@ class AnalysisServer {
       if (node is LibraryIdentifier) {
         node = node.parent;
       }
+      if (node is StringLiteral && node.parent is UriBasedDirective) {
+        continue;
+      }
       Element element = ElementLocator.locate(node);
       if (node is SimpleIdentifier && element is PrefixElement) {
         element = getImportElement(node);
@@ -708,7 +712,11 @@ class AnalysisServer {
         channel.sendResponse(new Response.unknownRequest(request));
       });
     }, onError: (exception, stackTrace) {
-      sendServerErrorNotification(exception, stackTrace, fatal: true);
+      sendServerErrorNotification(
+          'Failed to handle request: ${request.toJson()}',
+          exception,
+          stackTrace,
+          fatal: true);
     });
   }
 
@@ -789,12 +797,13 @@ class AnalysisServer {
     try {
       operation.perform(this);
     } catch (exception, stackTrace) {
-      AnalysisEngine.instance.logger.logError("${exception}\n${stackTrace}");
+      sendServerErrorNotification(
+          'Failed to perform operation: $operation', exception, stackTrace,
+          fatal: true);
       if (rethrowExceptions) {
         throw new AnalysisException('Unexpected exception during analysis',
             new CaughtException(exception, stackTrace));
       }
-      sendServerErrorNotification(exception, stackTrace, fatal: true);
       shutdown();
     } finally {
       if (_test_onOperationPerformedCompleter != null) {
@@ -884,7 +893,8 @@ class AnalysisServer {
   /**
    * Sends a `server.error` notification.
    */
-  void sendServerErrorNotification(exception, stackTrace, {bool fatal: false}) {
+  void sendServerErrorNotification(String msg, exception, stackTrace,
+      {bool fatal: false}) {
     // prepare exception.toString()
     String exceptionString;
     if (exception != null) {
@@ -892,6 +902,8 @@ class AnalysisServer {
     } else {
       exceptionString = 'null exception';
     }
+    // prepare message
+    String message = msg != null ? '$msg\n$exceptionString' : exceptionString;
     // prepare stackTrace.toString()
     String stackTraceString;
     if (stackTrace != null) {
@@ -909,7 +921,7 @@ class AnalysisServer {
     }
     // send the notification
     channel.sendNotification(
-        new ServerErrorParams(fatal, exceptionString, stackTraceString)
+        new ServerErrorParams(fatal, message, stackTraceString)
             .toNotification());
   }
 
@@ -1002,7 +1014,9 @@ class AnalysisServer {
               case AnalysisService.OUTLINE:
                 AnalysisContext context = dartUnit.element.context;
                 LineInfo lineInfo = context.getLineInfo(source);
-                sendAnalysisNotificationOutline(this, file, lineInfo, dartUnit);
+                SourceKind kind = context.getKindOf(source);
+                sendAnalysisNotificationOutline(
+                    this, file, lineInfo, kind, dartUnit);
                 break;
               case AnalysisService.OVERRIDES:
                 sendAnalysisNotificationOverrides(this, file, dartUnit);
@@ -1080,7 +1094,8 @@ class AnalysisServer {
         contextFound = true;
       }
       for (AnalysisContext context in folderMap.values) {
-        if (context.getKindOf(source) != SourceKind.UNKNOWN) {
+        if (context != preferredContext &&
+            context.getKindOf(source) != SourceKind.UNKNOWN) {
           sourceMap.putIfAbsent(context, () => <Source>[]).add(source);
           contextFound = true;
         }
@@ -1221,9 +1236,16 @@ class AnalysisServer {
               if (dartUnits != null) {
                 AnalysisErrorInfo errorInfo = context.getErrors(source);
                 for (var dartUnit in dartUnits) {
-                  scheduleNotificationOperations(this, file, errorInfo.lineInfo,
-                      context, null, dartUnit, errorInfo.errors);
-                  scheduleIndexOperation(this, file, context, dartUnit);
+                  scheduleNotificationOperations(
+                      this,
+                      source,
+                      file,
+                      errorInfo.lineInfo,
+                      context,
+                      null,
+                      dartUnit,
+                      errorInfo.errors);
+                  scheduleIndexOperation(this, file, dartUnit);
                 }
               } else {
                 schedulePerformAnalysisOperation(context);
@@ -1391,7 +1413,34 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
    */
   final ResourceProvider resourceProvider;
 
+  /**
+   * A list of the globs used to determine which files should be analyzed. The
+   * list is lazily created and should be accessed using [analyzedFilesGlobs].
+   */
+  List<Glob> _analyzedFilesGlobs = null;
+
   ServerContextManagerCallbacks(this.analysisServer, this.resourceProvider);
+
+  /**
+   * Return a list of the globs used to determine which files should be analyzed.
+   */
+  List<Glob> get analyzedFilesGlobs {
+    if (_analyzedFilesGlobs == null) {
+      _analyzedFilesGlobs = <Glob>[];
+      List<String> patterns = analysisServer.serverPlugin.analyzedFilePatterns;
+      for (String pattern in patterns) {
+        try {
+          _analyzedFilesGlobs
+              .add(new Glob(pattern, context: JavaFile.pathContext));
+        } catch (exception, stackTrace) {
+          AnalysisEngine.instance.logger.logError(
+              'Invalid glob pattern: "$pattern"',
+              new CaughtException(exception, stackTrace));
+        }
+      }
+    }
+    return _analyzedFilesGlobs;
+  }
 
   @override
   AnalysisContext addContext(Folder folder, FolderDisposition disposition) {
@@ -1450,10 +1499,8 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
 
   @override
   bool shouldFileBeAnalyzed(File file) {
-    List<ShouldAnalyzeFile> functions =
-        analysisServer.serverPlugin.analyzeFileFunctions;
-    for (ShouldAnalyzeFile shouldAnalyzeFile in functions) {
-      if (shouldAnalyzeFile(file)) {
+    for (Glob glob in analyzedFilesGlobs) {
+      if (glob.matches(file.path)) {
         // Emacs creates dummy links to track the fact that a file is open for
         // editing and has unsaved changes (e.g. having unsaved changes to
         // 'foo.dart' causes a link '.#foo.dart' to be created, which points to

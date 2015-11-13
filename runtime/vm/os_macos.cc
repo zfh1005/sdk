@@ -15,6 +15,10 @@
 #include <sys/time.h>  // NOLINT
 #include <sys/resource.h>  // NOLINT
 #include <unistd.h>  // NOLINT
+#if TARGET_OS_IOS
+#include <sys/sysctl.h>  // NOLINT
+#include <syslog.h>  // NOLINT
+#endif
 
 #include "platform/utils.h"
 #include "vm/isolate.h"
@@ -83,7 +87,7 @@ int64_t OS::GetCurrentTimeMicros() {
 
 
 int64_t OS::GetCurrentTraceMicros() {
-#if defined(TARGET_OS_IOS)
+#if TARGET_OS_IOS
   // On iOS mach_absolute_time stops while the device is sleeping. Instead use
   // now - KERN_BOOTTIME to get a time difference that is not impacted by clock
   // changes. KERN_BOOTTIME will be updated by the system whenever the system
@@ -91,7 +95,7 @@ int64_t OS::GetCurrentTraceMicros() {
   struct timeval boottime;
   int mib[2] = {CTL_KERN, KERN_BOOTTIME};
   size_t size = sizeof(boottime);
-  int kr = sysctl(mib, arraysize(mib), &boottime, &size, NULL, 0);
+  int kr = sysctl(mib, sizeof(mib) / sizeof(mib[0]), &boottime, &size, NULL, 0);
   ASSERT(KERN_SUCCESS == kr);
   int64_t now = GetCurrentTimeMicros();
   int64_t origin = boottime.tv_sec * kMicrosecondsPerSecond;
@@ -115,7 +119,7 @@ int64_t OS::GetCurrentTraceMicros() {
   result *= timebase_info.numer;
   result /= timebase_info.denom;
   return result;
-#endif  // defined(TARGET_OS_IOS)
+#endif  // TARGET_OS_IOS
 }
 
 
@@ -138,9 +142,25 @@ void OS::AlignedFree(void* ptr) {
 
 
 intptr_t OS::ActivationFrameAlignment() {
+#if TARGET_OS_IOS
+#if TARGET_ARCH_ARM
+  // Even if we generate code that maintains a stronger alignment, we cannot
+  // assert the stronger stack alignment because C++ code will not maintain it.
+  return 8;
+#elif TARGET_ARCH_ARM64
+  return 16;
+#elif TARGET_ARCH_IA32
+  return 16;  // iOS simulator
+#elif TARGET_ARCH_X64
+  return 16;  // iOS simulator
+#else
+#error Unimplemented
+#endif
+#else  // TARGET_OS_IOS
   // OS X activation frames must be 16 byte-aligned; see "Mac OS X ABI
   // Function Call Guide".
   return 16;
+#endif  // TARGET_OS_IOS
 }
 
 
@@ -221,10 +241,17 @@ char* OS::StrNDup(const char* s, intptr_t n) {
 
 
 void OS::Print(const char* format, ...) {
+#if TARGET_OS_IOS
+  va_list args;
+  va_start(args, format);
+  vsyslog(LOG_INFO, format, args);
+  va_end(args);
+#else
   va_list args;
   va_start(args, format);
   VFPrint(stdout, format, args);
   va_end(args);
+#endif
 }
 
 
@@ -309,10 +336,17 @@ void OS::RegisterCodeObservers() {
 
 
 void OS::PrintErr(const char* format, ...) {
+#if TARGET_OS_IOS
+  va_list args;
+  va_start(args, format);
+  vsyslog(LOG_ERR, format, args);
+  va_end(args);
+#else
   va_list args;
   va_start(args, format);
   VFPrint(stderr, format, args);
   va_end(args);
+#endif
 }
 
 

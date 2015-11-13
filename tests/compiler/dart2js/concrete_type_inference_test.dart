@@ -11,7 +11,7 @@ Future compileAndFind(String code, String name,
                     check(compiler, element)) {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(code, uri);
-  return compiler.runCompiler(uri).then((_) {
+  return compiler.run(uri).then((_) {
     var element = findElement(compiler, name);
     check(compiler, element);
   });
@@ -23,7 +23,7 @@ void checkPrintType(String expression, checkType(compiler, type)) {
       'print',
       (compiler, printElement) {
         var parameter =
-          printElement.computeSignature(compiler).requiredParameters.first;
+          printElement.functionSignature.requiredParameters.first;
         var type = compiler.typesTask.getGuaranteedTypeOfElement(parameter);
         checkType(compiler, type);
       }));
@@ -33,7 +33,7 @@ void checkPrintType(String expression, checkType(compiler, type)) {
       'print',
       (compiler, printElement) {
         var parameter =
-          printElement.computeSignature(compiler).requiredParameters.first;
+          printElement.functionSignature.requiredParameters.first;
         var type = compiler.typesTask.getGuaranteedTypeOfElement(parameter);
         checkType(compiler, type);
       }));
@@ -43,7 +43,7 @@ void checkPrintType(String expression, checkType(compiler, type)) {
       'print',
       (compiler, printElement) {
         var parameter =
-          printElement.computeSignature(compiler).requiredParameters.first;
+          printElement.functionSignature.requiredParameters.first;
         var type = compiler.typesTask.getGuaranteedTypeOfElement(parameter);
         checkType(compiler, type);
       }));
@@ -78,12 +78,12 @@ void testOptionalParameters() {
       'fisk(a, [b, c]) {} main() { fisk(1); }',
       'fisk',
       (compiler, fiskElement) {
-        var firstParameter =
-          fiskElement.computeSignature(compiler).requiredParameters[0];
-        var secondParameter =
-          fiskElement.computeSignature(compiler).optionalParameters[0];
-        var thirdParameter =
-          fiskElement.computeSignature(compiler).optionalParameters[1];
+        var firstParameter = fiskElement.functionSignature
+            .requiredParameters[0];
+        var secondParameter = fiskElement.functionSignature
+          .optionalParameters[0];
+        var thirdParameter = fiskElement.functionSignature
+          .optionalParameters[1];
         var typesTask = compiler.typesTask;
         Expect.identical(
             typesTask.uint31Type,

@@ -5,6 +5,8 @@
 #include "vm/intermediate_language.h"
 
 #include "vm/bit_vector.h"
+#include "vm/bootstrap.h"
+#include "vm/compiler.h"
 #include "vm/constant_propagator.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
@@ -84,7 +86,7 @@ const ICData* Instruction::GetICData(
     const ZoneGrowableArray<const ICData*>& ic_data_array) const {
   // The deopt_id can be outside the range of the IC data array for
   // computations added in the optimizing compiler.
-  ASSERT(deopt_id_ != Isolate::kNoDeoptId);
+  ASSERT(deopt_id_ != Thread::kNoDeoptId);
   if (deopt_id_ < ic_data_array.length()) {
     return ic_data_array[deopt_id_];
   }
@@ -259,14 +261,14 @@ bool CheckClassInstr::IsDenseMask(intptr_t mask) {
 bool LoadFieldInstr::IsUnboxedLoad() const {
   return FLAG_unbox_numeric_fields
       && (field() != NULL)
-      && field()->IsUnboxedField();
+      && FlowGraphCompiler::IsUnboxedField(*field());
 }
 
 
 bool LoadFieldInstr::IsPotentialUnboxedLoad() const {
   return FLAG_unbox_numeric_fields
       && (field() != NULL)
-      && field()->IsPotentialUnboxedField();
+      && FlowGraphCompiler::IsPotentialUnboxedField(*field());
 }
 
 
@@ -291,14 +293,14 @@ Representation LoadFieldInstr::representation() const {
 bool StoreInstanceFieldInstr::IsUnboxedStore() const {
   return FLAG_unbox_numeric_fields
       && !field().IsNull()
-      && field().IsUnboxedField();
+      && FlowGraphCompiler::IsUnboxedField(field());
 }
 
 
 bool StoreInstanceFieldInstr::IsPotentialUnboxedStore() const {
   return FLAG_unbox_numeric_fields
       && !field().IsNull()
-      && field().IsPotentialUnboxedField();
+      && FlowGraphCompiler::IsPotentialUnboxedField(field());
 }
 
 
@@ -534,6 +536,11 @@ CatchBlockEntryInstr* GraphEntryInstr::GetCatchEntry(intptr_t index) {
     if (catch_entries_[i]->catch_try_index() == index) return catch_entries_[i];
   }
   return NULL;
+}
+
+
+bool GraphEntryInstr::IsCompiledForOsr() const {
+  return osr_id_ != Compiler::kNoOSRDeoptId;
 }
 
 
@@ -798,7 +805,7 @@ void Instruction::InheritDeoptTargetAfter(FlowGraph* flow_graph,
                                           Definition* call,
                                           Definition* result) {
   ASSERT(call->env() != NULL);
-  deopt_id_ = Isolate::ToDeoptAfter(call->deopt_id_);
+  deopt_id_ = Thread::ToDeoptAfter(call->deopt_id_);
   call->env()->DeepCopyAfterTo(flow_graph->zone(),
                                this,
                                call->ArgumentCount(),
@@ -2202,7 +2209,7 @@ Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
           representation(),
           box_defn->value()->CopyWithType(),
           (representation() == kUnboxedInt32) ?
-              GetDeoptId() : Isolate::kNoDeoptId);
+              GetDeoptId() : Thread::kNoDeoptId);
       // TODO(vegorov): marking resulting converter as truncating when
       // unboxing can't deoptimize is a workaround for the missing
       // deoptimization environment when we insert converter after
@@ -2265,7 +2272,7 @@ Definition* UnboxedIntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
         box_defn->from(),
         representation(),
         box_defn->value()->CopyWithType(),
-        (to() == kUnboxedInt32) ? GetDeoptId() : Isolate::kNoDeoptId);
+        (to() == kUnboxedInt32) ? GetDeoptId() : Thread::kNoDeoptId);
     if ((representation() == kUnboxedInt32) && is_truncating()) {
       converter->mark_truncating();
     }
@@ -2944,7 +2951,7 @@ StrictCompareInstr::StrictCompareInstr(intptr_t token_pos,
                       kind,
                       left,
                       right,
-                      Isolate::Current()->GetNextDeoptId()),
+                      Thread::Current()->GetNextDeoptId()),
       needs_number_check_(needs_number_check) {
   ASSERT((kind == Token::kEQ_STRICT) || (kind == Token::kNE_STRICT));
 }
@@ -3172,7 +3179,7 @@ Environment* Environment::From(Zone* zone,
   Environment* env =
       new(zone) Environment(definitions.length(),
                                fixed_parameter_count,
-                               Isolate::kNoDeoptId,
+                               Thread::kNoDeoptId,
                                parsed_function,
                                NULL);
   for (intptr_t i = 0; i < definitions.length(); ++i) {
@@ -3649,6 +3656,30 @@ intptr_t MergedMathInstr::OutputIndexOf(Token::Kind token) {
   }
 }
 
+
+void NativeCallInstr::SetupNative() {
+  Zone* Z = Thread::Current()->zone();
+  const Class& cls = Class::Handle(Z, function().Owner());
+  const Library& library = Library::Handle(Z, cls.library());
+  const int num_params =
+      NativeArguments::ParameterCountForResolution(function());
+  bool auto_setup_scope = true;
+  NativeFunction native_function = NativeEntry::ResolveNative(
+      library, native_name(), num_params, &auto_setup_scope);
+  if (native_function == NULL) {
+    Report::MessageF(Report::kError,
+                     Script::Handle(function().script()),
+                     function().token_pos(),
+                     "native function '%s' (%" Pd " arguments) cannot be found",
+                     native_name().ToCString(),
+                     function().NumParameters());
+  }
+  set_native_c_function(native_function);
+  function().SetIsNativeAutoSetupScope(auto_setup_scope);
+  Dart_NativeEntryResolver resolver = library.native_entry_resolver();
+  bool is_bootstrap_native = Bootstrap::IsBootstapResolver(resolver);
+  set_is_bootstrap_native(is_bootstrap_native);
+}
 
 #undef __
 

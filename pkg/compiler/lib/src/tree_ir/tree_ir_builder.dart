@@ -4,14 +4,13 @@
 
 library tree_ir_builder;
 
-import '../diagnostics/invariant.dart' show
-    InternalErrorFunction;
-import '../diagnostics/spannable.dart' show
-    CURRENT_ELEMENT_SPANNABLE;
-import '../elements/elements.dart';
-import '../cps_ir/cps_ir_nodes.dart' as cps_ir;
-import 'tree_ir_nodes.dart';
+import '../common.dart';
 import '../constants/values.dart';
+import '../cps_ir/cps_ir_nodes.dart' as cps_ir;
+import '../elements/elements.dart';
+import 'package:js_ast/js_ast.dart' as js;
+
+import 'tree_ir_nodes.dart';
 
 typedef Statement NodeCallback(Statement next);
 
@@ -408,11 +407,22 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   }
 
   NodeCallback visitForeignCode(cps_ir.ForeignCode node) {
+    List<Expression> arguments =
+        node.arguments.map(getVariableUse).toList(growable: false);
+    if (HasCapturedArguments.check(node.codeTemplate.ast)) {
+      for (Expression arg in arguments) {
+        if (arg is VariableUse) {
+          arg.variable.isCaptured = true;
+        } else {
+          // TODO(asgerf): Avoid capture of 'this'.
+        }
+      }
+    }
     if (node.codeTemplate.isExpression) {
       Expression foreignCode = new ForeignExpression(
           node.codeTemplate,
           node.type,
-          node.arguments.map(getVariableUse).toList(growable: false),
+          arguments,
           node.nativeBehavior,
           node.dependency);
       return makeCallExpression(node, foreignCode);
@@ -422,7 +432,7 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
         return new ForeignStatement(
             node.codeTemplate,
             node.type,
-            node.arguments.map(getVariableUse).toList(growable: false),
+            arguments,
             node.nativeBehavior,
             node.dependency);
       };
@@ -641,6 +651,12 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     return new TypeOperator(value, node.dartType, typeArgs, isTypeTest: true);
   }
 
+  Expression visitTypeTestViaFlag(cps_ir.TypeTestViaFlag node) {
+    Expression value = getVariableUse(node.interceptor);
+    // TODO(sra): Move !! to cps_ir level.
+    return new Not(new Not(new GetTypeTestProperty(value, node.dartType)));
+  }
+
   Expression visitGetStatic(cps_ir.GetStatic node) {
     return new GetStatic(node.element, node.sourceInformation);
   }
@@ -701,3 +717,27 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   visitMutableVariable(cps_ir.MutableVariable node) => unexpectedNode(node);
 }
 
+class HasCapturedArguments extends js.BaseVisitor {
+  static bool check(js.Node node) {
+    HasCapturedArguments visitor = new HasCapturedArguments();
+    node.accept(visitor);
+    return visitor.found;
+  }
+
+  int enclosingFunctions = 0;
+  bool found = false;
+
+  @override
+  visitFun(js.Fun node) {
+    ++enclosingFunctions;
+    node.visitChildren(this);
+    --enclosingFunctions;
+  }
+
+  @override
+  visitInterpolatedNode(js.InterpolatedNode node) {
+    if (enclosingFunctions > 0) {
+      found = true;
+    }
+  }
+}

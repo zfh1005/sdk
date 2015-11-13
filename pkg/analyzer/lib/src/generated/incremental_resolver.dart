@@ -493,6 +493,24 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       _assertCompatibleParameter(node.parameter, element);
     } else if (node is FieldFormalParameter) {
       _assertTrue(element.isInitializingFormal);
+      DartType parameterType = element.type;
+      if (node.type == null && node.parameters == null) {
+        FieldFormalParameterElement parameterElement = element;
+        if (!parameterElement.hasImplicitType) {
+          _assertTrue(parameterType == null || parameterType.isDynamic);
+        }
+        if (parameterElement.field != null) {
+          _assertEquals(node.identifier.name, element.name);
+        }
+      } else {
+        if (node.parameters != null) {
+          _assertTrue(parameterType is FunctionType);
+          FunctionType parameterFunctionType = parameterType;
+          _assertSameType(node.type, parameterFunctionType.returnType);
+        } else {
+          _assertSameType(node.type, parameterType);
+        }
+      }
       _assertCompatibleParameters(node.parameters, element.parameters);
     } else if (node is FunctionTypedFormalParameter) {
       _assertFalse(element.isInitializingFormal);
@@ -883,10 +901,15 @@ class IncrementalBodyDelta extends Delta {
         isByTask(BuildLibraryElementTask.DESCRIPTOR) ||
         isByTask(BuildPublicNamespaceTask.DESCRIPTOR) ||
         isByTask(BuildSourceExportClosureTask.DESCRIPTOR) ||
-        isByTask(BuildSourceImportExportClosureTask.DESCRIPTOR) ||
         isByTask(ComputeConstantDependenciesTask.DESCRIPTOR) ||
         isByTask(ComputeConstantValueTask.DESCRIPTOR) ||
+        isByTask(ComputeLibraryCycleTask.DESCRIPTOR) ||
         isByTask(DartErrorsTask.DESCRIPTOR) ||
+        isByTask(ReadyLibraryElement2Task.DESCRIPTOR) ||
+        isByTask(ReadyLibraryElement5Task.DESCRIPTOR) ||
+        isByTask(ReadyResolvedUnitTask.DESCRIPTOR) ||
+        isByTask(ReadyResolvedUnit9Task.DESCRIPTOR) ||
+        isByTask(ReadyResolvedUnit10Task.DESCRIPTOR) ||
         isByTask(EvaluateUnitConstantsTask.DESCRIPTOR) ||
         isByTask(GenerateHintsTask.DESCRIPTOR) ||
         isByTask(InferInstanceMembersInUnitTask.DESCRIPTOR) ||
@@ -896,11 +919,13 @@ class IncrementalBodyDelta extends Delta {
         isByTask(ParseDartTask.DESCRIPTOR) ||
         isByTask(PartiallyResolveUnitReferencesTask.DESCRIPTOR) ||
         isByTask(ScanDartTask.DESCRIPTOR) ||
-        isByTask(ResolveFunctionBodiesInUnitTask.DESCRIPTOR) ||
+        isByTask(ResolveInstanceFieldsInUnitTask.DESCRIPTOR) ||
         isByTask(ResolveLibraryReferencesTask.DESCRIPTOR) ||
         isByTask(ResolveLibraryTypeNamesTask.DESCRIPTOR) ||
+        isByTask(ResolveUnitTask.DESCRIPTOR) ||
         isByTask(ResolveUnitTypeNamesTask.DESCRIPTOR) ||
         isByTask(ResolveVariableReferencesTask.DESCRIPTOR) ||
+        isByTask(StrongModeVerifyUnitTask.DESCRIPTOR) ||
         isByTask(VerifyUnitTask.DESCRIPTOR)) {
       return DeltaResult.KEEP_CONTINUE;
     }
@@ -1044,8 +1069,6 @@ class IncrementalResolver {
       _context.invalidateLibraryHints(_librarySource);
       // update entry errors
       _updateEntry();
-      // notify unit
-      _definingUnit.afterIncrementalResolution();
       // OK
       return true;
     } finally {
@@ -1223,11 +1246,11 @@ class IncrementalResolver {
 
   void _shiftEntryErrors_NEW() {
     _shiftErrors_NEW(HINTS);
-    _shiftErrors_NEW(INFER_STATIC_VARIABLE_TYPES_ERRORS);
+    _shiftErrors_NEW(LINTS);
     _shiftErrors_NEW(LIBRARY_UNIT_ERRORS);
-    _shiftErrors_NEW(PARTIALLY_RESOLVE_REFERENCES_ERRORS);
-    _shiftErrors_NEW(RESOLVE_FUNCTION_BODIES_ERRORS);
     _shiftErrors_NEW(RESOLVE_TYPE_NAMES_ERRORS);
+    _shiftErrors_NEW(RESOLVE_UNIT_ERRORS);
+    _shiftErrors_NEW(STRONG_MODE_ERRORS);
     _shiftErrors_NEW(VARIABLE_REFERENCE_ERRORS);
     _shiftErrors_NEW(VERIFY_ERRORS);
   }
@@ -1279,6 +1302,7 @@ class IncrementalResolver {
     try {
       _definingUnit
           .accept(new _ElementNameOffsetUpdater(_updateOffset, _updateDelta));
+      _definingUnit.afterIncrementalResolution();
     } finally {
       timer.stop('update element offsets');
     }
@@ -1293,16 +1317,16 @@ class IncrementalResolver {
   }
 
   void _updateEntry_NEW() {
-    _updateErrors_NEW(INFER_STATIC_VARIABLE_TYPES_ERRORS, _resolveErrors);
-    _updateErrors_NEW(PARTIALLY_RESOLVE_REFERENCES_ERRORS, _resolveErrors);
-    _updateErrors_NEW(RESOLVE_FUNCTION_BODIES_ERRORS, _resolveErrors);
     _updateErrors_NEW(RESOLVE_TYPE_NAMES_ERRORS, []);
+    _updateErrors_NEW(RESOLVE_UNIT_ERRORS, _resolveErrors);
     _updateErrors_NEW(VARIABLE_REFERENCE_ERRORS, []);
     _updateErrors_NEW(VERIFY_ERRORS, _verifyErrors);
     // invalidate results we don't update incrementally
+    newUnitEntry.setState(STRONG_MODE_ERRORS, CacheState.INVALID);
     newUnitEntry.setState(USED_IMPORTED_ELEMENTS, CacheState.INVALID);
     newUnitEntry.setState(USED_LOCAL_ELEMENTS, CacheState.INVALID);
     newUnitEntry.setState(HINTS, CacheState.INVALID);
+    newUnitEntry.setState(LINTS, CacheState.INVALID);
   }
 
   void _updateEntry_OLD() {
@@ -1392,7 +1416,6 @@ class PoorMansIncrementalResolver {
   CacheEntry _newUnitEntry;
 
   final CompilationUnit _oldUnit;
-  final AnalysisOptions _options;
   CompilationUnitElement _unitElement;
 
   int _updateOffset;
@@ -1411,8 +1434,7 @@ class PoorMansIncrementalResolver {
       this._newSourceEntry,
       this._newUnitEntry,
       this._oldUnit,
-      bool resolveApiChanges,
-      this._options) {
+      bool resolveApiChanges) {
     _resolveApiChanges = resolveApiChanges;
   }
 

@@ -51,6 +51,7 @@ import 'dart:web_audio' as web_audio;
 import 'dart:web_audio' show web_audioBlinkMap;
 import 'dart:web_audio' show web_audioBlinkFunctionMap;
 import 'dart:_blink' as _blink;
+import 'dart:developer';
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -89,7 +90,7 @@ Window get window {
   if (_window != null) {
     return _window;
   }
-  _window = wrap_jso(js.context['window']);
+  _window = wrap_jso(js.JsNative.getProperty(js.context, 'window'));
   return _window;
 }
 
@@ -118,6 +119,7 @@ Future<Isolate> spawnDomUri(Uri uri, List<String> args, message) {
   return _Utils.spawnDomUri(uri.toString());
 }
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final htmlBlinkMap = {
   '_HistoryCrossFrame': () => _HistoryCrossFrame,
   '_LocationCrossFrame': () => _LocationCrossFrame,
@@ -620,6 +622,7 @@ Type _getSvgType(String key) {
 }
 
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final htmlBlinkFunctionMap = {
   'Animation': () => Animation.internalCreateAnimation,
   'AnimationEffect': () => AnimationEffect.internalCreateAnimationEffect,
@@ -1013,6 +1016,7 @@ final htmlBlinkFunctionMap = {
 
 // TODO(terry): We may want to move this elsewhere if html becomes
 // a package to avoid dartium depending on pkg:html.
+@Deprecated("Internal Use Only")
 getHtmlCreateFunction(String key) {
   var result;
 
@@ -1106,134 +1110,63 @@ Function _getSvgFunction(String key) {
  **********                                                          **********
  ******************************************************************************/
 
-Rectangle make_dart_rectangle(r) =>
-    r == null ? null : new Rectangle(r['left'], r['top'], r['width'], r['height']);
-
-// Need a default constructor for constructing classes with mixins that are
-// also extending NativeFieldWrapperClass2.  Defining JsoNativeFieldWrapper
-// extending NativeFieldWrapperClass2 creates a default constructor.
-class JsoNativeFieldWrapper extends NativeFieldWrapperClass2 {}
-
-// Flag to disable JS interop asserts.  Setting to false will speed up the
-// wrap_jso calls.
-bool __interop_checks = true;
-
-/** Expando for JsObject, used by every Dart class associated with a Javascript
- *  class (e.g., DOM, WebAudio, etc.).
- */
-
-/**
- * Return the JsObject associated with a Dart class [dartClass_instance].
- */
-unwrap_jso(dartClass_instance) {
-  try {
-    if (dartClass_instance != null)
-      return dartClass_instance is NativeFieldWrapperClass2 ?
-          dartClass_instance.blink_jsObject : dartClass_instance;
-    else
-      return null;
-  } catch(NoSuchMethodException) {
-    // No blink_jsObject then return the dartClass_instance is probably an
-    // array that was already converted to a Dart class e.g., Uint8ClampedList.
-    return dartClass_instance;
+String _getCustomElementExtends(object) {
+  var entry = getCustomElementEntry(object);
+  if (entry != null) {
+    return entry['extends'];
   }
-}
-
-/**
- * Create Dart class that maps to the JS Type, add the JsObject as an expando
- * on the Dart class and return the created Dart class.
- */
-wrap_jso(jsObject) {
-  try {
-    if (jsObject is! js.JsObject) {
-      // JS Interop converted the object to a Dart class e.g., Uint8ClampedList.
-      return jsObject;
-    }
-    // Try the most general type conversions on it.
-    // TODO(alanknight): We may be able to do better. This maintains identity,
-    // which is useful, but expensive. And if we nest something that only
-    // this conversion handles, how does that work? e.g. a list of maps of elements.
-    var converted = convertNativeToDart_SerializedScriptValue(jsObject);
-    if (!identical(converted, jsObject)) {
-      return converted;
-    }
-    var constructor = jsObject['constructor'];
-    if (__interop_checks) {
-      debug_or_assert("constructor != null", constructor != null);
-    }
-    var jsTypeName = constructor['name'];
-    if (__interop_checks) {
-      debug_or_assert("constructor != null && jsTypeName.length > 0", constructor != null && jsTypeName.length > 0);
-    }
-
-    var dartClass_instance;
-    if (jsObject.hasProperty('dart_class')) {
-      // Got a dart_class (it's a custom element) use it it's already set up.
-      dartClass_instance = jsObject['dart_class'];
-    } else {
-      var func = getHtmlCreateFunction(jsTypeName);
-      if (func != null) {
-        dartClass_instance = func();
-        dartClass_instance.blink_jsObject = jsObject;
-      }
-    }
-    return dartClass_instance;
-  } catch(e, stacktrace){
-    if (__interop_checks) {
-      if (e is DebugAssertException)
-        window.console.log("${e.message}\n ${stacktrace}");
-      else
-        window.console.log("${stacktrace}");
-    }
-  }
-
   return null;
 }
 
-/**
- * Create Dart class that maps to the JS Type that is the JS type being
- * extended using JS interop createCallback (we need the base type of the
- * custom element) not the Dart created constructor.
- */
-wrap_jso_custom_element(jsObject) {
-  try {
-    if (jsObject is! js.JsObject) {
-      // JS Interop converted the object to a Dart class e.g., Uint8ClampedList.
-      return jsObject;
+// Return the tag name or is attribute of the custom element or data binding.
+String _getCustomElementName(element) {
+  var jsObject;
+  var tag = "";
+  var runtimeType = element.runtimeType;
+  if (runtimeType == HtmlElement) {
+    tag = element.localName;
+  } else if (runtimeType == TemplateElement) {
+    // Data binding with a Dart class.
+    tag = element.attributes['is'];
+  } else if (runtimeType == js.JsObjectImpl) {
+    // It's a Polymer core element (written in JS).
+    // Make sure it's an element anything else we can ignore.
+    if (element.hasProperty('nodeType') && element['nodeType'] == 1) {
+      if (js.JsNative.callMethod(element, 'hasAttribute', ['is'])) {
+        // It's data binding use the is attribute.
+        tag = js.JsNative.callMethod(element, 'getAttribute', ['is']);
+      } else {
+        // It's a custom element we want the local name.
+        tag = element['localName'];
+      }
     }
-
-    // Find out what object we're extending.
-    var objectName = jsObject.toString();
-    // Expect to see something like '[object HTMLElement]'.
-    if (!objectName.startsWith('[object ')) {
-      return jsObject;
-    }
-
-    var extendsClass = objectName.substring(8, objectName.length - 1);
-    var func = getHtmlCreateFunction(extendsClass);
-    if (__interop_checks)
-      debug_or_assert("func != null name = ${extendsClass}", func != null);
-    var dartClass_instance = func();
-    dartClass_instance.blink_jsObject = jsObject;
-    return dartClass_instance;
-  } catch(e, stacktrace){
-    if (__interop_checks) {
-      if (e is DebugAssertException)
-        window.console.log("${e.message}\n ${stacktrace}");
-      else
-        window.console.log("${stacktrace}");
-    }
-
-    // Problem?
-    return null;
+  } else {
+    throw new UnsupportedError('Element is incorrect type. Got ${runtimeType}, expected HtmlElement/HtmlTemplate/JsObjectImpl.');
   }
+
+  return tag;
 }
 
+/// An abstract class for all DOM objects we wrap in dart:html and related
+///  libraries.
+///
+/// ** Internal Use Only **
+@Deprecated("Internal Use Only")
+class DartHtmlDomObject {
+
+  /// The underlying JS DOM object.
+  @Deprecated("Internal Use Only")
+  js.JsObject blink_jsObject;
+
+}
+
+@Deprecated("Internal Use Only")
 class DebugAssertException implements Exception {
   String message;
   DebugAssertException(this.message);
 }
 
+@Deprecated("Internal Use Only")
 debug_or_assert(message, expression) {
   if (!expression) {
     throw new DebugAssertException("$message");
@@ -1246,6 +1179,7 @@ debug_or_assert(message, expression) {
 //              user's this (this is needed for futures) and listener function.
 Map<int, Map<int, js.JsFunction>> _knownListeners = {};
 
+@Deprecated("Internal Use Only")
 js.JsFunction wrap_event_listener(theObject, Function listener) {
   var thisHashCode = theObject.hashCode;
   var listenerHashCode = identityHashCode(listener);
@@ -1257,41 +1191,40 @@ js.JsFunction wrap_event_listener(theObject, Function listener) {
   return _knownListeners[thisHashCode][listenerHashCode];
 }
 
+@Deprecated("Internal Use Only")
 Map<String, dynamic> convertNativeObjectToDartMap(js.JsObject jsObject) {
   var result = new Map();
-  var keys = js.context['Object'].callMethod('keys', [jsObject]);
+  var keys = js.JsNative.callMethod(js.JsNative.getProperty(js.context, 'Object'), 'keys', [jsObject]);
   for (var key in keys) {
-    result[key] = wrap_jso(jsObject[key]);
+    result[key] = wrap_jso(js.JsNative.getProperty(jsObject, key));
   }
   return result;
 }
 
-// Converts a flat Dart map into a JavaScript object with properties this is
-// is the Dartium only version it uses dart:js.
-// TODO(alanknight): This could probably be unified with the dart2js conversions
-// code in html_common and be more general.
-convertDartToNative_Dictionary(Map dict) {
-  if (dict == null) return null;
-  var jsObject = new js.JsObject(js.context['Object']);
-  dict.forEach((String key, value) {
-    if (value is List) {
-      var jsArray = new js.JsArray();
-      value.forEach((elem) {
-        jsArray.add(elem is Map ? convertDartToNative_Dictionary(elem): elem);
-      });
-      jsObject[key] = jsArray;
-    } else {
-      jsObject[key] = value;
+/**
+ * Upgrade the JS HTMLElement to the Dart class.  Used by Dart's Polymer.
+ */
+_createCustomUpgrader(Type customElementClass, $this) {
+  var dartClass;
+  try {
+    dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
+  } catch (e) {
+    // Did the dartClass get allocated but the created failed?  Otherwise, other
+    // components inside of this failed somewhere (could be JS custom element).
+    if (dartClass != null) {
+      // Yes, mark as didn't upgrade.
+      dartClass._badUpgrade();
     }
-  });
-  return jsObject;
+    throw e;
+  } finally {
+    // Need to remember the Dart class that was created for this custom so
+    // return it and setup the blink_jsObject to the $this that we'll be working
+    // with as we talk to blink.
+    js.setDartHtmlWrapperFor($this, dartClass);
+  }
+
+  return dartClass;
 }
-
-// Converts a Dart list into a JsArray. For the Dartium version only.
-convertDartToNative_List(List input) => new js.JsArray()..addAll(input);
-
-// Conversion function place holder (currently not used in dart2js or dartium).
-List convertDartToNative_StringArray(List<String> input) => input;
 
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1300,7 +1233,7 @@ List convertDartToNative_StringArray(List<String> input) => input;
 
 @DocsEditable()
 @DomName('AbstractWorker')
-abstract class AbstractWorker extends NativeFieldWrapperClass2 implements EventTarget {
+abstract class AbstractWorker extends DartHtmlDomObject implements EventTarget {
   // To suppress missing implicit constructor warnings.
   factory AbstractWorker._() { throw new UnsupportedError("Not supported"); }
 
@@ -1341,6 +1274,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   }
 
 
+  @Deprecated("Internal Use Only")
   static AnchorElement internalCreateAnchorElement() {
     return new AnchorElement._internalWrap();
   }
@@ -1349,6 +1283,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
     return new AnchorElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnchorElement.internal_() : super.internal_();
 
   /**
@@ -1534,6 +1469,7 @@ class Animation extends AnimationNode {
   }
 
 
+  @Deprecated("Internal Use Only")
   static Animation internalCreateAnimation() {
     return new Animation._internalWrap();
   }
@@ -1542,6 +1478,7 @@ class Animation extends AnimationNode {
     return new Animation.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Animation.internal_() : super.internal_();
 
 
@@ -1556,20 +1493,20 @@ class Animation extends AnimationNode {
 @DocsEditable()
 @DomName('AnimationEffect')
 @Experimental() // untriaged
-class AnimationEffect extends NativeFieldWrapperClass2 {
+class AnimationEffect extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimationEffect._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static AnimationEffect internalCreateAnimationEffect() {
     return new AnimationEffect._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AnimationEffect._internalWrap() {
     return new AnimationEffect.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimationEffect.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -1593,6 +1530,7 @@ class AnimationEvent extends Event {
   factory AnimationEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static AnimationEvent internalCreateAnimationEvent() {
     return new AnimationEvent._internalWrap();
   }
@@ -1601,6 +1539,7 @@ class AnimationEvent extends Event {
     return new AnimationEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimationEvent.internal_() : super.internal_();
 
 
@@ -1623,20 +1562,20 @@ class AnimationEvent extends Event {
 @DocsEditable()
 @DomName('AnimationNode')
 @Experimental() // untriaged
-class AnimationNode extends NativeFieldWrapperClass2 {
+class AnimationNode extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimationNode._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static AnimationNode internalCreateAnimationNode() {
     return new AnimationNode._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AnimationNode._internalWrap() {
     return new AnimationNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimationNode.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -1698,6 +1637,7 @@ class AnimationPlayer extends EventTarget {
   factory AnimationPlayer._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static AnimationPlayer internalCreateAnimationPlayer() {
     return new AnimationPlayer._internalWrap();
   }
@@ -1706,6 +1646,7 @@ class AnimationPlayer extends EventTarget {
     return new AnimationPlayer.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimationPlayer.internal_() : super.internal_();
 
 
@@ -1798,6 +1739,7 @@ class AnimationPlayerEvent extends Event {
   factory AnimationPlayerEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static AnimationPlayerEvent internalCreateAnimationPlayerEvent() {
     return new AnimationPlayerEvent._internalWrap();
   }
@@ -1806,6 +1748,7 @@ class AnimationPlayerEvent extends Event {
     return new AnimationPlayerEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimationPlayerEvent.internal_() : super.internal_();
 
 
@@ -1830,20 +1773,20 @@ class AnimationPlayerEvent extends Event {
 @DocsEditable()
 @DomName('AnimationTimeline')
 @Experimental() // untriaged
-class AnimationTimeline extends NativeFieldWrapperClass2 {
+class AnimationTimeline extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimationTimeline._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static AnimationTimeline internalCreateAnimationTimeline() {
     return new AnimationTimeline._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AnimationTimeline._internalWrap() {
     return new AnimationTimeline.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimationTimeline.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -1968,6 +1911,7 @@ class ApplicationCache extends EventTarget {
   static const EventStreamProvider<Event> updateReadyEvent = const EventStreamProvider<Event>('updateready');
 
 
+  @Deprecated("Internal Use Only")
   static ApplicationCache internalCreateApplicationCache() {
     return new ApplicationCache._internalWrap();
   }
@@ -1976,6 +1920,7 @@ class ApplicationCache extends EventTarget {
     return new ApplicationCache.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ApplicationCache.internal_() : super.internal_();
 
 
@@ -2078,6 +2023,7 @@ class ApplicationCacheErrorEvent extends Event {
   factory ApplicationCacheErrorEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static ApplicationCacheErrorEvent internalCreateApplicationCacheErrorEvent() {
     return new ApplicationCacheErrorEvent._internalWrap();
   }
@@ -2086,6 +2032,7 @@ class ApplicationCacheErrorEvent extends Event {
     return new ApplicationCacheErrorEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ApplicationCacheErrorEvent.internal_() : super.internal_();
 
 
@@ -2138,6 +2085,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
   factory AreaElement() => document.createElement("area");
 
 
+  @Deprecated("Internal Use Only")
   static AreaElement internalCreateAreaElement() {
     return new AreaElement._internalWrap();
   }
@@ -2146,6 +2094,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
     return new AreaElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AreaElement.internal_() : super.internal_();
 
   /**
@@ -2298,6 +2247,7 @@ class AudioElement extends MediaElement {
   }
 
 
+  @Deprecated("Internal Use Only")
   static AudioElement internalCreateAudioElement() {
     return new AudioElement._internalWrap();
   }
@@ -2306,6 +2256,7 @@ class AudioElement extends MediaElement {
     return new AudioElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AudioElement.internal_() : super.internal_();
 
   /**
@@ -2332,20 +2283,20 @@ class AudioElement extends MediaElement {
 @DocsEditable()
 @DomName('AudioTrack')
 @Experimental() // untriaged
-class AudioTrack extends NativeFieldWrapperClass2 {
+class AudioTrack extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AudioTrack._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static AudioTrack internalCreateAudioTrack() {
     return new AudioTrack._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AudioTrack._internalWrap() {
     return new AudioTrack.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AudioTrack.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -2402,6 +2353,7 @@ class AudioTrackList extends EventTarget {
   static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
 
 
+  @Deprecated("Internal Use Only")
   static AudioTrackList internalCreateAudioTrackList() {
     return new AudioTrackList._internalWrap();
   }
@@ -2410,6 +2362,7 @@ class AudioTrackList extends EventTarget {
     return new AudioTrackList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AudioTrackList.internal_() : super.internal_();
 
 
@@ -2450,6 +2403,7 @@ class AutocompleteErrorEvent extends Event {
   factory AutocompleteErrorEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static AutocompleteErrorEvent internalCreateAutocompleteErrorEvent() {
     return new AutocompleteErrorEvent._internalWrap();
   }
@@ -2458,6 +2412,7 @@ class AutocompleteErrorEvent extends Event {
     return new AutocompleteErrorEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AutocompleteErrorEvent.internal_() : super.internal_();
 
 
@@ -2484,6 +2439,7 @@ class BRElement extends HtmlElement {
   factory BRElement() => document.createElement("br");
 
 
+  @Deprecated("Internal Use Only")
   static BRElement internalCreateBRElement() {
     return new BRElement._internalWrap();
   }
@@ -2492,6 +2448,7 @@ class BRElement extends HtmlElement {
     return new BRElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   BRElement.internal_() : super.internal_();
 
   /**
@@ -2513,20 +2470,20 @@ class BRElement extends HtmlElement {
 @DomName('BarProp')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#barprop
 @deprecated // standard
-class BarProp extends NativeFieldWrapperClass2 {
+class BarProp extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory BarProp._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static BarProp internalCreateBarProp() {
     return new BarProp._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory BarProp._internalWrap() {
     return new BarProp.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   BarProp.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -2555,6 +2512,7 @@ class BaseElement extends HtmlElement {
   factory BaseElement() => document.createElement("base");
 
 
+  @Deprecated("Internal Use Only")
   static BaseElement internalCreateBaseElement() {
     return new BaseElement._internalWrap();
   }
@@ -2563,6 +2521,7 @@ class BaseElement extends HtmlElement {
     return new BaseElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   BaseElement.internal_() : super.internal_();
 
   /**
@@ -2605,6 +2564,7 @@ class BatteryManager extends EventTarget {
   factory BatteryManager._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static BatteryManager internalCreateBatteryManager() {
     return new BatteryManager._internalWrap();
   }
@@ -2613,6 +2573,7 @@ class BatteryManager extends EventTarget {
     return new BatteryManager.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   BatteryManager.internal_() : super.internal_();
 
 
@@ -2647,6 +2608,7 @@ class BeforeUnloadEvent extends Event {
   factory BeforeUnloadEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static BeforeUnloadEvent internalCreateBeforeUnloadEvent() {
     return new BeforeUnloadEvent._internalWrap();
   }
@@ -2655,6 +2617,7 @@ class BeforeUnloadEvent extends Event {
     return new BeforeUnloadEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   BeforeUnloadEvent.internal_() : super.internal_();
 
 
@@ -2673,20 +2636,20 @@ class BeforeUnloadEvent extends Event {
 
 
 @DomName('Blob')
-class Blob extends NativeFieldWrapperClass2 {
+class Blob extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Blob._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Blob internalCreateBlob() {
     return new Blob._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Blob._internalWrap() {
     return new Blob.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Blob.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -2743,20 +2706,20 @@ class Blob extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('Body')
 @Experimental() // untriaged
-class Body extends NativeFieldWrapperClass2 {
+class Body extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Body._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Body internalCreateBody() {
     return new Body._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Body._internalWrap() {
     return new Body.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Body.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -2931,6 +2894,7 @@ class BodyElement extends HtmlElement implements WindowEventHandlers {
   factory BodyElement() => document.createElement("body");
 
 
+  @Deprecated("Internal Use Only")
   static BodyElement internalCreateBodyElement() {
     return new BodyElement._internalWrap();
   }
@@ -2939,6 +2903,7 @@ class BodyElement extends HtmlElement implements WindowEventHandlers {
     return new BodyElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   BodyElement.internal_() : super.internal_();
 
   /**
@@ -3032,6 +2997,7 @@ class ButtonElement extends HtmlElement {
   factory ButtonElement() => document.createElement("button");
 
 
+  @Deprecated("Internal Use Only")
   static ButtonElement internalCreateButtonElement() {
     return new ButtonElement._internalWrap();
   }
@@ -3040,6 +3006,7 @@ class ButtonElement extends HtmlElement {
     return new ButtonElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ButtonElement.internal_() : super.internal_();
 
   /**
@@ -3175,6 +3142,7 @@ class CDataSection extends Text {
   factory CDataSection._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CDataSection internalCreateCDataSection() {
     return new CDataSection._internalWrap();
   }
@@ -3183,6 +3151,7 @@ class CDataSection extends Text {
     return new CDataSection.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CDataSection.internal_() : super.internal_();
 
 
@@ -3197,20 +3166,20 @@ class CDataSection extends Text {
 @DocsEditable()
 @DomName('CacheStorage')
 @Experimental() // untriaged
-class CacheStorage extends NativeFieldWrapperClass2 {
+class CacheStorage extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory CacheStorage._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static CacheStorage internalCreateCacheStorage() {
     return new CacheStorage._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory CacheStorage._internalWrap() {
     return new CacheStorage.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CacheStorage.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -3253,20 +3222,20 @@ class CacheStorage extends NativeFieldWrapperClass2 {
 @DomName('Canvas2DContextAttributes')
 // http://wiki.whatwg.org/wiki/CanvasOpaque#Suggested_IDL
 @Experimental()
-class Canvas2DContextAttributes extends NativeFieldWrapperClass2 {
+class Canvas2DContextAttributes extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Canvas2DContextAttributes._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Canvas2DContextAttributes internalCreateCanvas2DContextAttributes() {
     return new Canvas2DContextAttributes._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Canvas2DContextAttributes._internalWrap() {
     return new Canvas2DContextAttributes.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Canvas2DContextAttributes.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -3331,6 +3300,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   }
 
 
+  @Deprecated("Internal Use Only")
   static CanvasElement internalCreateCanvasElement() {
     return new CanvasElement._internalWrap();
   }
@@ -3339,6 +3309,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
     return new CanvasElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CanvasElement.internal_() : super.internal_();
 
   /**
@@ -3502,20 +3473,20 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
  * * [CanvasGradient](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvasgradient) from W3C.
  */
 @DomName('CanvasGradient')
-class CanvasGradient extends NativeFieldWrapperClass2 {
+class CanvasGradient extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory CanvasGradient._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static CanvasGradient internalCreateCanvasGradient() {
     return new CanvasGradient._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory CanvasGradient._internalWrap() {
     return new CanvasGradient.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CanvasGradient.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -3571,20 +3542,20 @@ class CanvasGradient extends NativeFieldWrapperClass2 {
  * * [CanvasPattern](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvaspattern) from W3C.
  */
 @DomName('CanvasPattern')
-class CanvasPattern extends NativeFieldWrapperClass2 {
+class CanvasPattern extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory CanvasPattern._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static CanvasPattern internalCreateCanvasPattern() {
     return new CanvasPattern._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory CanvasPattern._internalWrap() {
     return new CanvasPattern.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CanvasPattern.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -3606,20 +3577,20 @@ abstract class CanvasRenderingContext {
 }
 
 @DomName('CanvasRenderingContext2D')
-class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements CanvasRenderingContext {
+class CanvasRenderingContext2D extends DartHtmlDomObject implements CanvasRenderingContext {
   // To suppress missing implicit constructor warnings.
   factory CanvasRenderingContext2D._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static CanvasRenderingContext2D internalCreateCanvasRenderingContext2D() {
     return new CanvasRenderingContext2D._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory CanvasRenderingContext2D._internalWrap() {
     return new CanvasRenderingContext2D.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CanvasRenderingContext2D.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -4400,6 +4371,7 @@ class CharacterData extends Node implements ChildNode {
   factory CharacterData._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CharacterData internalCreateCharacterData() {
     return new CharacterData._internalWrap();
   }
@@ -4408,6 +4380,7 @@ class CharacterData extends Node implements ChildNode {
     return new CharacterData.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CharacterData.internal_() : super.internal_();
 
 
@@ -4462,7 +4435,7 @@ class CharacterData extends Node implements ChildNode {
 @DocsEditable()
 @DomName('ChildNode')
 @Experimental() // untriaged
-abstract class ChildNode extends NativeFieldWrapperClass2 {
+abstract class ChildNode extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ChildNode._() { throw new UnsupportedError("Not supported"); }
 
@@ -4504,6 +4477,7 @@ class CircularGeofencingRegion extends GeofencingRegion {
   }
 
 
+  @Deprecated("Internal Use Only")
   static CircularGeofencingRegion internalCreateCircularGeofencingRegion() {
     return new CircularGeofencingRegion._internalWrap();
   }
@@ -4512,6 +4486,7 @@ class CircularGeofencingRegion extends GeofencingRegion {
     return new CircularGeofencingRegion.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CircularGeofencingRegion.internal_() : super.internal_();
 
 
@@ -4555,6 +4530,7 @@ class CloseEvent extends Event {
   factory CloseEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CloseEvent internalCreateCloseEvent() {
     return new CloseEvent._internalWrap();
   }
@@ -4563,6 +4539,7 @@ class CloseEvent extends Event {
     return new CloseEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CloseEvent.internal_() : super.internal_();
 
 
@@ -4600,6 +4577,7 @@ class Comment extends CharacterData {
   }
 
 
+  @Deprecated("Internal Use Only")
   static Comment internalCreateComment() {
     return new Comment._internalWrap();
   }
@@ -4608,6 +4586,7 @@ class Comment extends CharacterData {
     return new Comment.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Comment.internal_() : super.internal_();
 
 }
@@ -4637,6 +4616,7 @@ class CompositionEvent extends UIEvent {
   factory CompositionEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CompositionEvent internalCreateCompositionEvent() {
     return new CompositionEvent._internalWrap();
   }
@@ -4645,6 +4625,7 @@ class CompositionEvent extends UIEvent {
     return new CompositionEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CompositionEvent.internal_() : super.internal_();
 
 
@@ -4686,6 +4667,7 @@ class Console extends ConsoleBase {
   factory Console._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static Console internalCreateConsole() {
     return new Console._internalWrap();
   }
@@ -4694,6 +4676,7 @@ class Console extends ConsoleBase {
     return new Console.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Console.internal_() : super.internal_();
 
 
@@ -4713,20 +4696,20 @@ class Console extends ConsoleBase {
 @DocsEditable()
 @DomName('ConsoleBase')
 @Experimental() // untriaged
-class ConsoleBase extends NativeFieldWrapperClass2 {
+class ConsoleBase extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ConsoleBase._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static ConsoleBase internalCreateConsoleBase() {
     return new ConsoleBase._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory ConsoleBase._internalWrap() {
     return new ConsoleBase.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ConsoleBase.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -4869,6 +4852,7 @@ class ContentElement extends HtmlElement {
   factory ContentElement() => document.createElement("content");
 
 
+  @Deprecated("Internal Use Only")
   static ContentElement internalCreateContentElement() {
     return new ContentElement._internalWrap();
   }
@@ -4877,6 +4861,7 @@ class ContentElement extends HtmlElement {
     return new ContentElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ContentElement.internal_() : super.internal_();
 
   /**
@@ -4911,20 +4896,20 @@ class ContentElement extends HtmlElement {
 
 @DocsEditable()
 @DomName('Coordinates')
-class Coordinates extends NativeFieldWrapperClass2 {
+class Coordinates extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Coordinates._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Coordinates internalCreateCoordinates() {
     return new Coordinates._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Coordinates._internalWrap() {
     return new Coordinates.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Coordinates.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -4969,20 +4954,20 @@ class Coordinates extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('Credential')
 @Experimental() // untriaged
-class Credential extends NativeFieldWrapperClass2 {
+class Credential extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Credential._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Credential internalCreateCredential() {
     return new Credential._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Credential._internalWrap() {
     return new Credential.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Credential.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -5014,20 +4999,20 @@ class Credential extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('CredentialsContainer')
 @Experimental() // untriaged
-class CredentialsContainer extends NativeFieldWrapperClass2 {
+class CredentialsContainer extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory CredentialsContainer._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static CredentialsContainer internalCreateCredentialsContainer() {
     return new CredentialsContainer._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory CredentialsContainer._internalWrap() {
     return new CredentialsContainer.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CredentialsContainer.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -5056,33 +5041,43 @@ class CredentialsContainer extends NativeFieldWrapperClass2 {
   }
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
-
-@DocsEditable()
 @DomName('Crypto')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental()
 // http://www.w3.org/TR/WebCryptoAPI/
-class Crypto extends NativeFieldWrapperClass2 {
+class Crypto extends DartHtmlDomObject {
+
+  TypedData getRandomValues(TypedData array) {
+    var random = _getRandomValues(array);
+    // The semantics of the operation are that it modifies the argument, but we
+    // have no way of making a Dart typed data created initially in Dart reference
+    // externalized storage. So we copy the values back from the returned copy.
+    // TODO(alanknight): Make this less ridiculously slow.
+    for (var i = 0; i < random.length; i++) {
+      array[i] = random[i];
+    }
+    return array;
+  }
+
   // To suppress missing implicit constructor warnings.
   factory Crypto._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Crypto internalCreateCrypto() {
     return new Crypto._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Crypto._internalWrap() {
     return new Crypto.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Crypto.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -5098,7 +5093,7 @@ class Crypto extends NativeFieldWrapperClass2 {
   
   @DomName('Crypto.getRandomValues')
   @DocsEditable()
-  TypedData getRandomValues(TypedData array) => wrap_jso(_blink.BlinkCrypto.instance.getRandomValues_Callback_1_(unwrap_jso(this), unwrap_jso(array)));
+  TypedData _getRandomValues(TypedData array) => wrap_jso(_blink.BlinkCrypto.instance.getRandomValues_Callback_1_(unwrap_jso(this), unwrap_jso(array)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5111,20 +5106,20 @@ class Crypto extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('CryptoKey')
 @Experimental() // untriaged
-class CryptoKey extends NativeFieldWrapperClass2 {
+class CryptoKey extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory CryptoKey._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static CryptoKey internalCreateCryptoKey() {
     return new CryptoKey._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory CryptoKey._internalWrap() {
     return new CryptoKey.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CryptoKey.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -5162,20 +5157,20 @@ class CryptoKey extends NativeFieldWrapperClass2 {
 @DomName('CSS')
 // http://www.w3.org/TR/css3-conditional/#the-css-interface
 @Experimental() // None
-class Css extends NativeFieldWrapperClass2 {
+class Css extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Css._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Css internalCreateCss() {
     return new Css._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Css._internalWrap() {
     return new Css.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Css.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -5206,6 +5201,7 @@ class CssCharsetRule extends CssRule {
   factory CssCharsetRule._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CssCharsetRule internalCreateCssCharsetRule() {
     return new CssCharsetRule._internalWrap();
   }
@@ -5214,6 +5210,7 @@ class CssCharsetRule extends CssRule {
     return new CssCharsetRule.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CssCharsetRule.internal_() : super.internal_();
 
 
@@ -5244,6 +5241,7 @@ class CssFilterRule extends CssRule {
   factory CssFilterRule._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CssFilterRule internalCreateCssFilterRule() {
     return new CssFilterRule._internalWrap();
   }
@@ -5252,6 +5250,7 @@ class CssFilterRule extends CssRule {
     return new CssFilterRule.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CssFilterRule.internal_() : super.internal_();
 
 
@@ -5274,6 +5273,7 @@ class CssFontFaceRule extends CssRule {
   factory CssFontFaceRule._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CssFontFaceRule internalCreateCssFontFaceRule() {
     return new CssFontFaceRule._internalWrap();
   }
@@ -5282,6 +5282,7 @@ class CssFontFaceRule extends CssRule {
     return new CssFontFaceRule.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CssFontFaceRule.internal_() : super.internal_();
 
 
@@ -5304,6 +5305,7 @@ class CssImportRule extends CssRule {
   factory CssImportRule._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CssImportRule internalCreateCssImportRule() {
     return new CssImportRule._internalWrap();
   }
@@ -5312,6 +5314,7 @@ class CssImportRule extends CssRule {
     return new CssImportRule.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CssImportRule.internal_() : super.internal_();
 
 
@@ -5343,6 +5346,7 @@ class CssKeyframeRule extends CssRule {
   factory CssKeyframeRule._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CssKeyframeRule internalCreateCssKeyframeRule() {
     return new CssKeyframeRule._internalWrap();
   }
@@ -5351,6 +5355,7 @@ class CssKeyframeRule extends CssRule {
     return new CssKeyframeRule.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CssKeyframeRule.internal_() : super.internal_();
 
 
@@ -5385,6 +5390,7 @@ class CssKeyframesRule extends CssRule {
   factory CssKeyframesRule._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CssKeyframesRule internalCreateCssKeyframesRule() {
     return new CssKeyframesRule._internalWrap();
   }
@@ -5393,6 +5399,7 @@ class CssKeyframesRule extends CssRule {
     return new CssKeyframesRule.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CssKeyframesRule.internal_() : super.internal_();
 
 
@@ -5446,6 +5453,7 @@ class CssMediaRule extends CssRule {
   factory CssMediaRule._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CssMediaRule internalCreateCssMediaRule() {
     return new CssMediaRule._internalWrap();
   }
@@ -5454,6 +5462,7 @@ class CssMediaRule extends CssRule {
     return new CssMediaRule.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CssMediaRule.internal_() : super.internal_();
 
 
@@ -5488,6 +5497,7 @@ class CssPageRule extends CssRule {
   factory CssPageRule._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CssPageRule internalCreateCssPageRule() {
     return new CssPageRule._internalWrap();
   }
@@ -5496,6 +5506,7 @@ class CssPageRule extends CssRule {
     return new CssPageRule.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CssPageRule.internal_() : super.internal_();
 
 
@@ -5521,20 +5532,20 @@ class CssPageRule extends CssRule {
 
 @DocsEditable()
 @DomName('CSSRule')
-class CssRule extends NativeFieldWrapperClass2 {
+class CssRule extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory CssRule._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static CssRule internalCreateCssRule() {
     return new CssRule._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory CssRule._internalWrap() {
     return new CssRule.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CssRule.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -5635,7 +5646,7 @@ class CssRule extends NativeFieldWrapperClass2 {
 
 
 @DomName('CSSStyleDeclaration')
-class CssStyleDeclaration  extends JsoNativeFieldWrapper with
+class CssStyleDeclaration  extends DartHtmlDomObject with
     CssStyleDeclarationBase  {
   factory CssStyleDeclaration() => new CssStyleDeclaration.css('');
 
@@ -5725,16 +5736,16 @@ class CssStyleDeclaration  extends JsoNativeFieldWrapper with
   // To suppress missing implicit constructor warnings.
   factory CssStyleDeclaration._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static CssStyleDeclaration internalCreateCssStyleDeclaration() {
     return new CssStyleDeclaration._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory CssStyleDeclaration._internalWrap() {
     return new CssStyleDeclaration.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CssStyleDeclaration.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -8923,6 +8934,7 @@ class CssStyleRule extends CssRule {
   factory CssStyleRule._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CssStyleRule internalCreateCssStyleRule() {
     return new CssStyleRule._internalWrap();
   }
@@ -8931,6 +8943,7 @@ class CssStyleRule extends CssRule {
     return new CssStyleRule.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CssStyleRule.internal_() : super.internal_();
 
 
@@ -8961,6 +8974,7 @@ class CssStyleSheet extends StyleSheet {
   factory CssStyleSheet._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CssStyleSheet internalCreateCssStyleSheet() {
     return new CssStyleSheet._internalWrap();
   }
@@ -8969,6 +8983,7 @@ class CssStyleSheet extends StyleSheet {
     return new CssStyleSheet.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CssStyleSheet.internal_() : super.internal_();
 
 
@@ -9023,6 +9038,7 @@ class CssSupportsRule extends CssRule {
   factory CssSupportsRule._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CssSupportsRule internalCreateCssSupportsRule() {
     return new CssSupportsRule._internalWrap();
   }
@@ -9031,6 +9047,7 @@ class CssSupportsRule extends CssRule {
     return new CssSupportsRule.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CssSupportsRule.internal_() : super.internal_();
 
 
@@ -9066,6 +9083,7 @@ class CssViewportRule extends CssRule {
   factory CssViewportRule._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CssViewportRule internalCreateCssViewportRule() {
     return new CssViewportRule._internalWrap();
   }
@@ -9074,6 +9092,7 @@ class CssViewportRule extends CssRule {
     return new CssViewportRule.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CssViewportRule.internal_() : super.internal_();
 
 
@@ -9113,6 +9132,9 @@ class CustomEvent extends Event {
       e._initCustomEvent(type, canBubble, cancelable, null);
     }
 
+    // Need for identity.
+    js.setDartHtmlWrapperFor(e.blink_jsObject, e);
+
     return e;
   }
 
@@ -9127,6 +9149,7 @@ class CustomEvent extends Event {
   factory CustomEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CustomEvent internalCreateCustomEvent() {
     return new CustomEvent._internalWrap();
   }
@@ -9135,6 +9158,7 @@ class CustomEvent extends Event {
     return new CustomEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CustomEvent.internal_() : super.internal_();
 
 
@@ -9165,6 +9189,7 @@ class DListElement extends HtmlElement {
   factory DListElement() => document.createElement("dl");
 
 
+  @Deprecated("Internal Use Only")
   static DListElement internalCreateDListElement() {
     return new DListElement._internalWrap();
   }
@@ -9173,6 +9198,7 @@ class DListElement extends HtmlElement {
     return new DListElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DListElement.internal_() : super.internal_();
 
   /**
@@ -9205,6 +9231,7 @@ class DataListElement extends HtmlElement {
   factory DataListElement() => document.createElement("datalist");
 
 
+  @Deprecated("Internal Use Only")
   static DataListElement internalCreateDataListElement() {
     return new DataListElement._internalWrap();
   }
@@ -9213,6 +9240,7 @@ class DataListElement extends HtmlElement {
     return new DataListElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DataListElement.internal_() : super.internal_();
 
   /**
@@ -9240,20 +9268,20 @@ class DataListElement extends HtmlElement {
 @DocsEditable()
 @DomName('DataTransfer')
 @Experimental() // untriaged
-class DataTransfer extends NativeFieldWrapperClass2 {
+class DataTransfer extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DataTransfer._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DataTransfer internalCreateDataTransfer() {
     return new DataTransfer._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DataTransfer._internalWrap() {
     return new DataTransfer.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DataTransfer.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -9330,20 +9358,20 @@ class DataTransfer extends NativeFieldWrapperClass2 {
 @DomName('DataTransferItem')
 // http://www.w3.org/TR/2011/WD-html5-20110113/dnd.html#the-datatransferitem-interface
 @Experimental()
-class DataTransferItem extends NativeFieldWrapperClass2 {
+class DataTransferItem extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DataTransferItem._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DataTransferItem internalCreateDataTransferItem() {
     return new DataTransferItem._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DataTransferItem._internalWrap() {
     return new DataTransferItem.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DataTransferItem.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -9389,20 +9417,20 @@ class DataTransferItem extends NativeFieldWrapperClass2 {
 @DomName('DataTransferItemList')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#the-datatransferitemlist-interface
 @Experimental()
-class DataTransferItemList extends NativeFieldWrapperClass2 {
+class DataTransferItemList extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DataTransferItemList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DataTransferItemList internalCreateDataTransferItemList() {
     return new DataTransferItemList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DataTransferItemList._internalWrap() {
     return new DataTransferItemList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DataTransferItemList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -9446,7 +9474,10 @@ class DataTransferItemList extends NativeFieldWrapperClass2 {
   
 
   DataTransferItem operator[] (int index) {
-    return __getter__(index);
+    // TODO(alanknight): I think that all the __getter__ generators should just
+    // do property access, but that's major surgery. This one is a problem, so
+    // just hard-code it for now.
+    return _blink.Blink_JsNative_DomException.getProperty(unwrap_jso(this), index);
   }
 
 }
@@ -9487,6 +9518,7 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
 
+  @Deprecated("Internal Use Only")
   static DedicatedWorkerGlobalScope internalCreateDedicatedWorkerGlobalScope() {
     return new DedicatedWorkerGlobalScope._internalWrap();
   }
@@ -9495,6 +9527,7 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
     return new DedicatedWorkerGlobalScope.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DedicatedWorkerGlobalScope.internal_() : super.internal_();
 
 
@@ -9520,20 +9553,20 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
 @DocsEditable()
 @DomName('DeprecatedStorageInfo')
 @Experimental() // untriaged
-class DeprecatedStorageInfo extends NativeFieldWrapperClass2 {
+class DeprecatedStorageInfo extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DeprecatedStorageInfo._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DeprecatedStorageInfo internalCreateDeprecatedStorageInfo() {
     return new DeprecatedStorageInfo._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DeprecatedStorageInfo._internalWrap() {
     return new DeprecatedStorageInfo.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DeprecatedStorageInfo.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -9586,20 +9619,20 @@ class DeprecatedStorageInfo extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('DeprecatedStorageQuota')
 @Experimental() // untriaged
-class DeprecatedStorageQuota extends NativeFieldWrapperClass2 {
+class DeprecatedStorageQuota extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DeprecatedStorageQuota._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DeprecatedStorageQuota internalCreateDeprecatedStorageQuota() {
     return new DeprecatedStorageQuota._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DeprecatedStorageQuota._internalWrap() {
     return new DeprecatedStorageQuota.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DeprecatedStorageQuota.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -9649,6 +9682,7 @@ class DetailsElement extends HtmlElement {
   factory DetailsElement() => document.createElement("details");
 
 
+  @Deprecated("Internal Use Only")
   static DetailsElement internalCreateDetailsElement() {
     return new DetailsElement._internalWrap();
   }
@@ -9657,6 +9691,7 @@ class DetailsElement extends HtmlElement {
     return new DetailsElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DetailsElement.internal_() : super.internal_();
 
   /**
@@ -9689,20 +9724,20 @@ class DetailsElement extends HtmlElement {
 @DomName('DeviceAcceleration')
 // http://dev.w3.org/geo/api/spec-source-orientation.html#devicemotion
 @Experimental()
-class DeviceAcceleration extends NativeFieldWrapperClass2 {
+class DeviceAcceleration extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DeviceAcceleration._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DeviceAcceleration internalCreateDeviceAcceleration() {
     return new DeviceAcceleration._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DeviceAcceleration._internalWrap() {
     return new DeviceAcceleration.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DeviceAcceleration.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -9736,6 +9771,7 @@ class DeviceLightEvent extends Event {
   factory DeviceLightEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static DeviceLightEvent internalCreateDeviceLightEvent() {
     return new DeviceLightEvent._internalWrap();
   }
@@ -9744,6 +9780,7 @@ class DeviceLightEvent extends Event {
     return new DeviceLightEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DeviceLightEvent.internal_() : super.internal_();
 
 
@@ -9769,6 +9806,7 @@ class DeviceMotionEvent extends Event {
   factory DeviceMotionEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static DeviceMotionEvent internalCreateDeviceMotionEvent() {
     return new DeviceMotionEvent._internalWrap();
   }
@@ -9777,6 +9815,7 @@ class DeviceMotionEvent extends Event {
     return new DeviceMotionEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DeviceMotionEvent.internal_() : super.internal_();
 
 
@@ -9824,6 +9863,7 @@ class DeviceOrientationEvent extends Event {
   factory DeviceOrientationEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static DeviceOrientationEvent internalCreateDeviceOrientationEvent() {
     return new DeviceOrientationEvent._internalWrap();
   }
@@ -9832,6 +9872,7 @@ class DeviceOrientationEvent extends Event {
     return new DeviceOrientationEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DeviceOrientationEvent.internal_() : super.internal_();
 
 
@@ -9867,20 +9908,20 @@ class DeviceOrientationEvent extends Event {
 @DomName('DeviceRotationRate')
 // http://dev.w3.org/geo/api/spec-source-orientation.html#devicemotion
 @Experimental()
-class DeviceRotationRate extends NativeFieldWrapperClass2 {
+class DeviceRotationRate extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DeviceRotationRate._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DeviceRotationRate internalCreateDeviceRotationRate() {
     return new DeviceRotationRate._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DeviceRotationRate._internalWrap() {
     return new DeviceRotationRate.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DeviceRotationRate.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -9914,6 +9955,7 @@ class DialogElement extends HtmlElement {
   factory DialogElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static DialogElement internalCreateDialogElement() {
     return new DialogElement._internalWrap();
   }
@@ -9922,6 +9964,7 @@ class DialogElement extends HtmlElement {
     return new DialogElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DialogElement.internal_() : super.internal_();
 
   /**
@@ -10012,6 +10055,7 @@ class DirectoryEntry extends Entry {
   factory DirectoryEntry._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static DirectoryEntry internalCreateDirectoryEntry() {
     return new DirectoryEntry._internalWrap();
   }
@@ -10020,6 +10064,7 @@ class DirectoryEntry extends Entry {
     return new DirectoryEntry.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DirectoryEntry.internal_() : super.internal_();
 
 
@@ -10106,20 +10151,20 @@ class DirectoryEntry extends Entry {
 @DomName('DirectoryReader')
 // http://www.w3.org/TR/file-system-api/#the-directoryreader-interface
 @Experimental()
-class DirectoryReader extends NativeFieldWrapperClass2 {
+class DirectoryReader extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DirectoryReader._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DirectoryReader internalCreateDirectoryReader() {
     return new DirectoryReader._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DirectoryReader._internalWrap() {
     return new DirectoryReader.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DirectoryReader.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -10127,10 +10172,10 @@ class DirectoryReader extends NativeFieldWrapperClass2 {
 
   void _readEntries(_EntriesCallback successCallback, [_ErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkDirectoryReader.instance.readEntries_Callback_2_(unwrap_jso(this), unwrap_jso((entries) => successCallback(entries)), unwrap_jso((error) => errorCallback(wrap_jso(error))));
+      _blink.BlinkDirectoryReader.instance.readEntries_Callback_2_(unwrap_jso(this), unwrap_jso((entries) => successCallback(wrap_jso(entries))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
       return;
     }
-    _blink.BlinkDirectoryReader.instance.readEntries_Callback_1_(unwrap_jso(this), unwrap_jso((entries) => successCallback(entries)));
+    _blink.BlinkDirectoryReader.instance.readEntries_Callback_1_(unwrap_jso(this), unwrap_jso((entries) => successCallback(wrap_jso(entries))));
     return;
   }
 
@@ -10183,6 +10228,7 @@ class DivElement extends HtmlElement {
   factory DivElement() => document.createElement("div");
 
 
+  @Deprecated("Internal Use Only")
   static DivElement internalCreateDivElement() {
     return new DivElement._internalWrap();
   }
@@ -10191,6 +10237,7 @@ class DivElement extends HtmlElement {
     return new DivElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DivElement.internal_() : super.internal_();
 
   /**
@@ -10266,6 +10313,7 @@ class Document extends Node
   static const EventStreamProvider<Event> selectionChangeEvent = const EventStreamProvider<Event>('selectionchange');
 
 
+  @Deprecated("Internal Use Only")
   static Document internalCreateDocument() {
     return new Document._internalWrap();
   }
@@ -10274,6 +10322,7 @@ class Document extends Node
     return new Document.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Document.internal_() : super.internal_();
 
 
@@ -11044,15 +11093,15 @@ class Document extends Node
       _blink.BlinkDocument.instance.createElement_Callback_1_(unwrap_jso(this), tagName) :
       _blink.BlinkDocument.instance.createElement_Callback_2_(unwrap_jso(this), tagName, typeExtension);
 
-    var wrapped;
-
-    if (newElement['dart_class'] != null) {
-      wrapped = newElement['dart_class'];         // Here's our Dart class.
+    var wrapped = js.getDartHtmlWrapperFor(newElement);  // Here's our Dart class.
+    if (wrapped != null) {
       wrapped.blink_jsObject = newElement;
     } else {
       wrapped = wrap_jso(newElement);
       if (wrapped == null) {
         wrapped = wrap_jso_custom_element(newElement);
+      } else {
+        js.setDartHtmlWrapperFor(wrapped.blink_jsObject, wrapped);
       }
     }
 
@@ -11068,13 +11117,15 @@ class Document extends Node
 
     var wrapped;
 
-    if (newElement['dart_class'] != null) {
-      wrapped = newElement['dart_class'];         // Here's our Dart class.
+    wrapped = js.getDartHtmlWrapperFor(newElement);  // Here's our Dart class.
+    if (wrapped != null) {
       wrapped.blink_jsObject = newElement;
     } else {
       wrapped = wrap_jso(newElement);
       if (wrapped == null) {
         wrapped = wrap_jso_custom_element(newElement);
+      } else {
+        js.setDartHtmlWrapperFor(wrapped.blink_jsObject, wrapped);  // Here's our Dart class.
       }
     }
 
@@ -11201,6 +11252,7 @@ class DocumentFragment extends Node implements ParentNode {
   factory DocumentFragment._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static DocumentFragment internalCreateDocumentFragment() {
     return new DocumentFragment._internalWrap();
   }
@@ -11209,6 +11261,7 @@ class DocumentFragment extends Node implements ParentNode {
     return new DocumentFragment.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DocumentFragment.internal_() : super.internal_();
 
 
@@ -11259,7 +11312,7 @@ class DocumentFragment extends Node implements ParentNode {
 
 @DocsEditable()
 @DomName('DOMError')
-class DomError extends NativeFieldWrapperClass2 {
+class DomError extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DomError._() { throw new UnsupportedError("Not supported"); }
 
@@ -11269,16 +11322,16 @@ class DomError extends NativeFieldWrapperClass2 {
     return wrap_jso(_blink.BlinkDOMError.instance.constructorCallback_2_(name, message));
   }
 
+  @Deprecated("Internal Use Only")
   static DomError internalCreateDomError() {
     return new DomError._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DomError._internalWrap() {
     return new DomError.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DomError.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -11301,7 +11354,7 @@ class DomError extends NativeFieldWrapperClass2 {
 
 @DomName('DOMException')
 @Unstable()
-class DomException extends NativeFieldWrapperClass2 {
+class DomException extends DartHtmlDomObject {
 
   static const String INDEX_SIZE = 'IndexSizeError';
   static const String HIERARCHY_REQUEST = 'HierarchyRequestError';
@@ -11331,18 +11384,22 @@ class DomException extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory DomException._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DomException internalCreateDomException() {
     return new DomException._internalWrap();
   }
 
+  @Deprecated("Internal Use Only")
   js.JsObject blink_jsObject;
 
   factory DomException._internalWrap() {
     return new DomException.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DomException.internal_() { }
 
+  @Deprecated("Internal Use Only")
   DomException.jsInterop(String m) {
     var name_index = m.indexOf(': ');
     if (name_index < 0) {
@@ -11376,20 +11433,20 @@ class DomException extends NativeFieldWrapperClass2 {
 
 @DocsEditable()
 @DomName('DOMImplementation')
-class DomImplementation extends NativeFieldWrapperClass2 {
+class DomImplementation extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DomImplementation._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DomImplementation internalCreateDomImplementation() {
     return new DomImplementation._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DomImplementation._internalWrap() {
     return new DomImplementation.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DomImplementation.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -11422,20 +11479,20 @@ class DomImplementation extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('Iterator')
 @Experimental() // untriaged
-class DomIterator extends NativeFieldWrapperClass2 {
+class DomIterator extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DomIterator._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DomIterator internalCreateDomIterator() {
     return new DomIterator._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DomIterator._internalWrap() {
     return new DomIterator.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DomIterator.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -11476,6 +11533,7 @@ class DomMatrix extends DomMatrixReadOnly {
   }
 
 
+  @Deprecated("Internal Use Only")
   static DomMatrix internalCreateDomMatrix() {
     return new DomMatrix._internalWrap();
   }
@@ -11484,6 +11542,7 @@ class DomMatrix extends DomMatrixReadOnly {
     return new DomMatrix.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DomMatrix.internal_() : super.internal_();
 
 
@@ -11777,20 +11836,20 @@ class DomMatrix extends DomMatrixReadOnly {
 @DocsEditable()
 @DomName('DOMMatrixReadOnly')
 @Experimental() // untriaged
-class DomMatrixReadOnly extends NativeFieldWrapperClass2 {
+class DomMatrixReadOnly extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DomMatrixReadOnly._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DomMatrixReadOnly internalCreateDomMatrixReadOnly() {
     return new DomMatrixReadOnly._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DomMatrixReadOnly._internalWrap() {
     return new DomMatrixReadOnly.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DomMatrixReadOnly.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -11990,7 +12049,7 @@ class DomMatrixReadOnly extends NativeFieldWrapperClass2 {
 
 @DocsEditable()
 @DomName('DOMParser')
-class DomParser extends NativeFieldWrapperClass2 {
+class DomParser extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DomParser._() { throw new UnsupportedError("Not supported"); }
 
@@ -12000,16 +12059,16 @@ class DomParser extends NativeFieldWrapperClass2 {
     return wrap_jso(_blink.BlinkDOMParser.instance.constructorCallback_0_());
   }
 
+  @Deprecated("Internal Use Only")
   static DomParser internalCreateDomParser() {
     return new DomParser._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DomParser._internalWrap() {
     return new DomParser.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DomParser.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -12057,6 +12116,7 @@ class DomPoint extends DomPointReadOnly {
   }
 
 
+  @Deprecated("Internal Use Only")
   static DomPoint internalCreateDomPoint() {
     return new DomPoint._internalWrap();
   }
@@ -12065,6 +12125,7 @@ class DomPoint extends DomPointReadOnly {
     return new DomPoint.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DomPoint.internal_() : super.internal_();
 
 
@@ -12122,7 +12183,7 @@ class DomPoint extends DomPointReadOnly {
 @DocsEditable()
 @DomName('DOMPointReadOnly')
 @Experimental() // untriaged
-class DomPointReadOnly extends NativeFieldWrapperClass2 {
+class DomPointReadOnly extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DomPointReadOnly._() { throw new UnsupportedError("Not supported"); }
 
@@ -12132,16 +12193,16 @@ class DomPointReadOnly extends NativeFieldWrapperClass2 {
     return wrap_jso(_blink.BlinkDOMPointReadOnly.instance.constructorCallback_4_(x, y, z, w));
   }
 
+  @Deprecated("Internal Use Only")
   static DomPointReadOnly internalCreateDomPointReadOnly() {
     return new DomPointReadOnly._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DomPointReadOnly._internalWrap() {
     return new DomPointReadOnly.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DomPointReadOnly.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -12176,7 +12237,7 @@ class DomPointReadOnly extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('DOMRectReadOnly')
 @Experimental() // untriaged
-class DomRectReadOnly extends NativeFieldWrapperClass2 implements Rectangle {
+class DomRectReadOnly extends DartHtmlDomObject implements Rectangle {
 
   // NOTE! All code below should be common with RectangleBase.
    String toString() {
@@ -12276,16 +12337,16 @@ class DomRectReadOnly extends NativeFieldWrapperClass2 implements Rectangle {
     return wrap_jso(_blink.BlinkDOMRectReadOnly.instance.constructorCallback_4_(x, y, width, height));
   }
 
+  @Deprecated("Internal Use Only")
   static DomRectReadOnly internalCreateDomRectReadOnly() {
     return new DomRectReadOnly._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DomRectReadOnly._internalWrap() {
     return new DomRectReadOnly.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DomRectReadOnly.internal_() { }
 
 
@@ -12344,6 +12405,7 @@ class DomSettableTokenList extends DomTokenList {
   factory DomSettableTokenList._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static DomSettableTokenList internalCreateDomSettableTokenList() {
     return new DomSettableTokenList._internalWrap();
   }
@@ -12352,6 +12414,7 @@ class DomSettableTokenList extends DomTokenList {
     return new DomSettableTokenList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DomSettableTokenList.internal_() : super.internal_();
 
 
@@ -12377,20 +12440,20 @@ class DomSettableTokenList extends DomTokenList {
 
 @DocsEditable()
 @DomName('DOMStringList')
-class DomStringList extends JsoNativeFieldWrapper with ListMixin<String>, ImmutableListMixin<String> implements List<String> {
+class DomStringList extends DartHtmlDomObject with ListMixin<String>, ImmutableListMixin<String> implements List<String> {
   // To suppress missing implicit constructor warnings.
   factory DomStringList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DomStringList internalCreateDomStringList() {
     return new DomStringList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DomStringList._internalWrap() {
     return new DomStringList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DomStringList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -12464,7 +12527,7 @@ class DomStringList extends JsoNativeFieldWrapper with ListMixin<String>, Immuta
 
 @DocsEditable()
 @DomName('DOMStringMap')
-class DomStringMap extends NativeFieldWrapperClass2 {
+class DomStringMap extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DomStringMap._() { throw new UnsupportedError("Not supported"); }
 
@@ -12510,20 +12573,20 @@ class DomStringMap extends NativeFieldWrapperClass2 {
 
 @DocsEditable()
 @DomName('DOMTokenList')
-class DomTokenList extends NativeFieldWrapperClass2 {
+class DomTokenList extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory DomTokenList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static DomTokenList internalCreateDomTokenList() {
     return new DomTokenList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory DomTokenList._internalWrap() {
     return new DomTokenList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DomTokenList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -15523,6 +15586,7 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
   static const EventStreamProvider<Event> fullscreenErrorEvent = const EventStreamProvider<Event>('webkitfullscreenerror');
 
 
+  @Deprecated("Internal Use Only")
   static Element internalCreateElement() {
     return new Element._internalWrap();
   }
@@ -15531,6 +15595,7 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
     return new Element.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Element.internal_() : super.internal_();
 
 
@@ -16413,6 +16478,7 @@ class EmbedElement extends HtmlElement {
   factory EmbedElement() => document.createElement("embed");
 
 
+  @Deprecated("Internal Use Only")
   static EmbedElement internalCreateEmbedElement() {
     return new EmbedElement._internalWrap();
   }
@@ -16421,6 +16487,7 @@ class EmbedElement extends HtmlElement {
     return new EmbedElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   EmbedElement.internal_() : super.internal_();
 
   /**
@@ -16514,20 +16581,20 @@ typedef void _EntriesCallback(List<Entry> entries);
 @DomName('Entry')
 // http://www.w3.org/TR/file-system-api/#the-entry-interface
 @Experimental()
-class Entry extends NativeFieldWrapperClass2 {
+class Entry extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Entry._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Entry internalCreateEntry() {
     return new Entry._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Entry._internalWrap() {
     return new Entry.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Entry.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -16700,6 +16767,7 @@ class ErrorEvent extends Event {
   factory ErrorEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static ErrorEvent internalCreateErrorEvent() {
     return new ErrorEvent._internalWrap();
   }
@@ -16708,6 +16776,7 @@ class ErrorEvent extends Event {
     return new ErrorEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ErrorEvent.internal_() : super.internal_();
 
 
@@ -16742,7 +16811,7 @@ class ErrorEvent extends Event {
 
 
 @DomName('Event')
-class Event extends NativeFieldWrapperClass2 {
+class Event extends DartHtmlDomObject {
   // In JS, canBubble and cancelable are technically required parameters to
   // init*Event. In practice, though, if they aren't provided they simply
   // default to false (since that's Boolean(undefined)).
@@ -16795,16 +16864,16 @@ class Event extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Event._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Event internalCreateEvent() {
     return new Event._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Event._internalWrap() {
     return new Event.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Event.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -16988,6 +17057,7 @@ class EventSource extends EventTarget {
   }
 
 
+  @Deprecated("Internal Use Only")
   static EventSource internalCreateEventSource() {
     return new EventSource._internalWrap();
   }
@@ -16996,6 +17066,7 @@ class EventSource extends EventTarget {
     return new EventSource.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   EventSource.internal_() : super.internal_();
 
 
@@ -17135,7 +17206,7 @@ class ElementEvents extends Events {
  * for compile-time type checks and a more concise API.
  */
 @DomName('EventTarget')
-class EventTarget extends NativeFieldWrapperClass2 {
+class EventTarget extends DartHtmlDomObject {
 
   // Default constructor to allow other classes e.g. GlobalEventHandlers to be
   // constructed using _internalWrap when mapping Blink object to Dart class.
@@ -17171,16 +17242,16 @@ class EventTarget extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory EventTarget._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static EventTarget internalCreateEventTarget() {
     return new EventTarget._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory EventTarget._internalWrap() {
     return new EventTarget.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   EventTarget.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -17240,6 +17311,7 @@ class ExtendableEvent extends Event {
   factory ExtendableEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static ExtendableEvent internalCreateExtendableEvent() {
     return new ExtendableEvent._internalWrap();
   }
@@ -17248,6 +17320,7 @@ class ExtendableEvent extends Event {
     return new ExtendableEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ExtendableEvent.internal_() : super.internal_();
 
 
@@ -17278,6 +17351,7 @@ class FederatedCredential extends Credential {
   }
 
 
+  @Deprecated("Internal Use Only")
   static FederatedCredential internalCreateFederatedCredential() {
     return new FederatedCredential._internalWrap();
   }
@@ -17286,6 +17360,7 @@ class FederatedCredential extends Credential {
     return new FederatedCredential.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FederatedCredential.internal_() : super.internal_();
 
 
@@ -17310,6 +17385,7 @@ class FetchEvent extends Event {
   factory FetchEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static FetchEvent internalCreateFetchEvent() {
     return new FetchEvent._internalWrap();
   }
@@ -17318,6 +17394,7 @@ class FetchEvent extends Event {
     return new FetchEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FetchEvent.internal_() : super.internal_();
 
 
@@ -17356,6 +17433,7 @@ class FieldSetElement extends HtmlElement {
   factory FieldSetElement() => document.createElement("fieldset");
 
 
+  @Deprecated("Internal Use Only")
   static FieldSetElement internalCreateFieldSetElement() {
     return new FieldSetElement._internalWrap();
   }
@@ -17364,6 +17442,7 @@ class FieldSetElement extends HtmlElement {
     return new FieldSetElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FieldSetElement.internal_() : super.internal_();
 
   /**
@@ -17436,6 +17515,7 @@ class File extends Blob {
   factory File._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static File internalCreateFile() {
     return new File._internalWrap();
   }
@@ -17444,6 +17524,7 @@ class File extends Blob {
     return new File.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   File.internal_() : super.internal_();
 
 
@@ -17496,6 +17577,7 @@ class FileEntry extends Entry {
   factory FileEntry._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static FileEntry internalCreateFileEntry() {
     return new FileEntry._internalWrap();
   }
@@ -17504,6 +17586,7 @@ class FileEntry extends Entry {
     return new FileEntry.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FileEntry.internal_() : super.internal_();
 
 
@@ -17558,6 +17641,7 @@ class FileError extends DomError {
   factory FileError._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static FileError internalCreateFileError() {
     return new FileError._internalWrap();
   }
@@ -17566,6 +17650,7 @@ class FileError extends DomError {
     return new FileError.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FileError.internal_() : super.internal_();
 
 
@@ -17631,20 +17716,20 @@ class FileError extends DomError {
 
 @DocsEditable()
 @DomName('FileList')
-class FileList extends JsoNativeFieldWrapper with ListMixin<File>, ImmutableListMixin<File> implements List<File> {
+class FileList extends DartHtmlDomObject with ListMixin<File>, ImmutableListMixin<File> implements List<File> {
   // To suppress missing implicit constructor warnings.
   factory FileList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static FileList internalCreateFileList() {
     return new FileList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory FileList._internalWrap() {
     return new FileList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FileList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -17794,6 +17879,7 @@ class FileReader extends EventTarget {
   }
 
 
+  @Deprecated("Internal Use Only")
   static FileReader internalCreateFileReader() {
     return new FileReader._internalWrap();
   }
@@ -17802,6 +17888,7 @@ class FileReader extends EventTarget {
     return new FileReader.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FileReader.internal_() : super.internal_();
 
 
@@ -17891,20 +17978,20 @@ class FileReader extends EventTarget {
 @DocsEditable()
 @DomName('Stream')
 @Experimental() // untriaged
-class FileStream extends NativeFieldWrapperClass2 {
+class FileStream extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory FileStream._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static FileStream internalCreateFileStream() {
     return new FileStream._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory FileStream._internalWrap() {
     return new FileStream.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FileStream.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -17928,20 +18015,20 @@ class FileStream extends NativeFieldWrapperClass2 {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental()
 // http://www.w3.org/TR/file-system-api/
-class FileSystem extends NativeFieldWrapperClass2 {
+class FileSystem extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory FileSystem._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static FileSystem internalCreateFileSystem() {
     return new FileSystem._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory FileSystem._internalWrap() {
     return new FileSystem.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FileSystem.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -18046,6 +18133,7 @@ class FileWriter extends EventTarget {
   static const EventStreamProvider<ProgressEvent> writeStartEvent = const EventStreamProvider<ProgressEvent>('writestart');
 
 
+  @Deprecated("Internal Use Only")
   static FileWriter internalCreateFileWriter() {
     return new FileWriter._internalWrap();
   }
@@ -18054,6 +18142,7 @@ class FileWriter extends EventTarget {
     return new FileWriter.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FileWriter.internal_() : super.internal_();
 
 
@@ -18157,6 +18246,7 @@ class FocusEvent extends UIEvent {
   factory FocusEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static FocusEvent internalCreateFocusEvent() {
     return new FocusEvent._internalWrap();
   }
@@ -18165,6 +18255,7 @@ class FocusEvent extends UIEvent {
     return new FocusEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FocusEvent.internal_() : super.internal_();
 
 
@@ -18183,7 +18274,7 @@ class FocusEvent extends UIEvent {
 @DocsEditable()
 @DomName('FontFace')
 @Experimental() // untriaged
-class FontFace extends NativeFieldWrapperClass2 {
+class FontFace extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory FontFace._() { throw new UnsupportedError("Not supported"); }
 
@@ -18214,16 +18305,16 @@ class FontFace extends NativeFieldWrapperClass2 {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
+  @Deprecated("Internal Use Only")
   static FontFace internalCreateFontFace() {
     return new FontFace._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory FontFace._internalWrap() {
     return new FontFace.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FontFace.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -18330,6 +18421,7 @@ class FontFaceSet extends EventTarget {
   factory FontFaceSet._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static FontFaceSet internalCreateFontFaceSet() {
     return new FontFaceSet._internalWrap();
   }
@@ -18338,6 +18430,7 @@ class FontFaceSet extends EventTarget {
     return new FontFaceSet.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FontFaceSet.internal_() : super.internal_();
 
 
@@ -18413,6 +18506,7 @@ class FontFaceSetLoadEvent extends Event {
   factory FontFaceSetLoadEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static FontFaceSetLoadEvent internalCreateFontFaceSetLoadEvent() {
     return new FontFaceSetLoadEvent._internalWrap();
   }
@@ -18421,13 +18515,14 @@ class FontFaceSetLoadEvent extends Event {
     return new FontFaceSetLoadEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FontFaceSetLoadEvent.internal_() : super.internal_();
 
 
   @DomName('FontFaceSetLoadEvent.fontfaces')
   @DocsEditable()
   @Experimental() // untriaged
-  List<FontFace> get fontfaces => _blink.BlinkFontFaceSetLoadEvent.instance.fontfaces_Getter_(unwrap_jso(this));
+  List<FontFace> get fontfaces => wrap_jso(_blink.BlinkFontFaceSetLoadEvent.instance.fontfaces_Getter_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18443,7 +18538,7 @@ class FontFaceSetLoadEvent extends Event {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @SupportedBrowser(SupportedBrowser.SAFARI)
-class FormData extends NativeFieldWrapperClass2 {
+class FormData extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory FormData._() { throw new UnsupportedError("Not supported"); }
 
@@ -18454,16 +18549,16 @@ class FormData extends NativeFieldWrapperClass2 {
   @DocsEditable()
   static FormData _create(form) => wrap_jso(_blink.BlinkFormData.instance.constructorCallback_1_(form));
 
+  @Deprecated("Internal Use Only")
   static FormData internalCreateFormData() {
     return new FormData._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory FormData._internalWrap() {
     return new FormData.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FormData.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -18499,6 +18594,7 @@ class FormElement extends HtmlElement {
   factory FormElement() => document.createElement("form");
 
 
+  @Deprecated("Internal Use Only")
   static FormElement internalCreateFormElement() {
     return new FormElement._internalWrap();
   }
@@ -18507,6 +18603,7 @@ class FormElement extends HtmlElement {
     return new FormElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FormElement.internal_() : super.internal_();
 
   /**
@@ -18636,20 +18733,20 @@ class FormElement extends HtmlElement {
 @DomName('Gamepad')
 // https://dvcs.w3.org/hg/gamepad/raw-file/default/gamepad.html#gamepad-interface
 @Experimental()
-class Gamepad extends NativeFieldWrapperClass2 {
+class Gamepad extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Gamepad._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Gamepad internalCreateGamepad() {
     return new Gamepad._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Gamepad._internalWrap() {
     return new Gamepad.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Gamepad.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -18657,7 +18754,7 @@ class Gamepad extends NativeFieldWrapperClass2 {
 
   @DomName('Gamepad.axes')
   @DocsEditable()
-  List<num> get axes => _blink.BlinkGamepad.instance.axes_Getter_(unwrap_jso(this));
+  List<num> get axes => wrap_jso(_blink.BlinkGamepad.instance.axes_Getter_(unwrap_jso(this)));
   
   @DomName('Gamepad.connected')
   @DocsEditable()
@@ -18692,20 +18789,20 @@ class Gamepad extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('GamepadButton')
 @Experimental() // untriaged
-class GamepadButton extends NativeFieldWrapperClass2 {
+class GamepadButton extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory GamepadButton._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static GamepadButton internalCreateGamepadButton() {
     return new GamepadButton._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory GamepadButton._internalWrap() {
     return new GamepadButton.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   GamepadButton.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -18737,6 +18834,7 @@ class GamepadEvent extends Event {
   factory GamepadEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static GamepadEvent internalCreateGamepadEvent() {
     return new GamepadEvent._internalWrap();
   }
@@ -18745,6 +18843,7 @@ class GamepadEvent extends Event {
     return new GamepadEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   GamepadEvent.internal_() : super.internal_();
 
 
@@ -18764,20 +18863,20 @@ class GamepadEvent extends Event {
 @DocsEditable()
 @DomName('Geofencing')
 @Experimental() // untriaged
-class Geofencing extends NativeFieldWrapperClass2 {
+class Geofencing extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Geofencing._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Geofencing internalCreateGeofencing() {
     return new Geofencing._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Geofencing._internalWrap() {
     return new Geofencing.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Geofencing.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -18809,20 +18908,20 @@ class Geofencing extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('GeofencingRegion')
 @Experimental() // untriaged
-class GeofencingRegion extends NativeFieldWrapperClass2 {
+class GeofencingRegion extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory GeofencingRegion._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static GeofencingRegion internalCreateGeofencingRegion() {
     return new GeofencingRegion._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory GeofencingRegion._internalWrap() {
     return new GeofencingRegion.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   GeofencingRegion.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -18842,7 +18941,7 @@ class GeofencingRegion extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('Geolocation')
 @Unstable()
-class Geolocation extends NativeFieldWrapperClass2 {
+class Geolocation extends DartHtmlDomObject {
 
   @DomName('Geolocation.getCurrentPosition')
   Future<Geoposition> getCurrentPosition({bool enableHighAccuracy,
@@ -18917,16 +19016,16 @@ class Geolocation extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Geolocation._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Geolocation internalCreateGeolocation() {
     return new Geolocation._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Geolocation._internalWrap() {
     return new Geolocation.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Geolocation.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -18970,20 +19069,20 @@ class Geolocation extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('Geoposition')
 @Unstable()
-class Geoposition extends NativeFieldWrapperClass2 {
+class Geoposition extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Geoposition._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Geoposition internalCreateGeoposition() {
     return new Geoposition._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Geoposition._internalWrap() {
     return new Geoposition.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Geoposition.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -19551,6 +19650,7 @@ class HRElement extends HtmlElement {
   factory HRElement() => document.createElement("hr");
 
 
+  @Deprecated("Internal Use Only")
   static HRElement internalCreateHRElement() {
     return new HRElement._internalWrap();
   }
@@ -19559,6 +19659,7 @@ class HRElement extends HtmlElement {
     return new HRElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   HRElement.internal_() : super.internal_();
 
   /**
@@ -19602,6 +19703,7 @@ class HashChangeEvent extends Event {
   factory HashChangeEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static HashChangeEvent internalCreateHashChangeEvent() {
     return new HashChangeEvent._internalWrap();
   }
@@ -19610,6 +19712,7 @@ class HashChangeEvent extends Event {
     return new HashChangeEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   HashChangeEvent.internal_() : super.internal_();
 
 
@@ -19647,6 +19750,7 @@ class HeadElement extends HtmlElement {
   factory HeadElement() => document.createElement("head");
 
 
+  @Deprecated("Internal Use Only")
   static HeadElement internalCreateHeadElement() {
     return new HeadElement._internalWrap();
   }
@@ -19655,6 +19759,7 @@ class HeadElement extends HtmlElement {
     return new HeadElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   HeadElement.internal_() : super.internal_();
 
   /**
@@ -19675,7 +19780,7 @@ class HeadElement extends HtmlElement {
 @DocsEditable()
 @DomName('Headers')
 @Experimental() // untriaged
-class Headers extends NativeFieldWrapperClass2 {
+class Headers extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Headers._() { throw new UnsupportedError("Not supported"); }
 
@@ -19695,16 +19800,16 @@ class Headers extends NativeFieldWrapperClass2 {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
+  @Deprecated("Internal Use Only")
   static Headers internalCreateHeaders() {
     return new Headers._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Headers._internalWrap() {
     return new Headers.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Headers.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -19773,6 +19878,7 @@ class HeadingElement extends HtmlElement {
   factory HeadingElement.h6() => document.createElement("h6");
 
 
+  @Deprecated("Internal Use Only")
   static HeadingElement internalCreateHeadingElement() {
     return new HeadingElement._internalWrap();
   }
@@ -19781,6 +19887,7 @@ class HeadingElement extends HtmlElement {
     return new HeadingElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   HeadingElement.internal_() : super.internal_();
 
   /**
@@ -19797,7 +19904,7 @@ class HeadingElement extends HtmlElement {
 
 
 @DomName('History')
-class History extends NativeFieldWrapperClass2 implements HistoryBase {
+class History extends DartHtmlDomObject implements HistoryBase {
 
   /**
    * Checks if the State APIs are supported on the current platform.
@@ -19812,16 +19919,16 @@ class History extends NativeFieldWrapperClass2 implements HistoryBase {
   // To suppress missing implicit constructor warnings.
   factory History._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static History internalCreateHistory() {
     return new History._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory History._internalWrap() {
     return new History.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   History.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -19833,7 +19940,7 @@ class History extends NativeFieldWrapperClass2 implements HistoryBase {
   
   @DomName('History.state')
   @DocsEditable()
-  dynamic get state => _blink.BlinkHistory.instance.state_Getter_(unwrap_jso(this));
+  dynamic get state => wrap_jso(_blink.BlinkHistory.instance.state_Getter_(unwrap_jso(this)));
   
   @DomName('History.back')
   @DocsEditable()
@@ -19853,7 +19960,7 @@ class History extends NativeFieldWrapperClass2 implements HistoryBase {
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  void pushState(Object data, String title, [String url]) => _blink.BlinkHistory.instance.pushState_Callback_3_(unwrap_jso(this), data, title, url);
+  void pushState(Object data, String title, [String url]) => _blink.BlinkHistory.instance.pushState_Callback_3_(unwrap_jso(this), convertDartToNative_SerializedScriptValue(data), title, url);
   
   @DomName('History.replaceState')
   @DocsEditable()
@@ -19861,7 +19968,7 @@ class History extends NativeFieldWrapperClass2 implements HistoryBase {
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  void replaceState(Object data, String title, [String url]) => _blink.BlinkHistory.instance.replaceState_Callback_3_(unwrap_jso(this), data, title, url);
+  void replaceState(Object data, String title, [String url]) => _blink.BlinkHistory.instance.replaceState_Callback_3_(unwrap_jso(this), convertDartToNative_SerializedScriptValue(data), title, url);
   }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19872,20 +19979,20 @@ class History extends NativeFieldWrapperClass2 implements HistoryBase {
 
 @DocsEditable()
 @DomName('HTMLCollection')
-class HtmlCollection extends JsoNativeFieldWrapper with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
+class HtmlCollection extends DartHtmlDomObject with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
   // To suppress missing implicit constructor warnings.
   factory HtmlCollection._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static HtmlCollection internalCreateHtmlCollection() {
     return new HtmlCollection._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory HtmlCollection._internalWrap() {
     return new HtmlCollection.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   HtmlCollection.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -19963,6 +20070,7 @@ class HtmlDocument extends Document {
   factory HtmlDocument._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static HtmlDocument internalCreateHtmlDocument() {
     return new HtmlDocument._internalWrap();
   }
@@ -19971,6 +20079,7 @@ class HtmlDocument extends Document {
     return new HtmlDocument.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   HtmlDocument.internal_() : super.internal_();
 
 
@@ -20172,12 +20281,28 @@ class HtmlDocument extends Document {
     return isElement ? jsClassName : null;
   }
 
+  // Get the first class that's a super of a dart.dom library.
+  ClassMirror _getDartHtmlClassName(ClassMirror classMirror) {
+    while (classMirror.superclass != null) {
+      var fullName = classMirror.superclass.qualifiedName;
+      var domLibrary = MirrorSystem.getName(fullName).startsWith('dart.dom.');
+      if (domLibrary) {
+        return classMirror.superclass;
+      }
+
+      classMirror = classMirror.superclass;
+    }
+
+    return null;
+  }
+
   /**
    * Get the class that immediately derived from a class in dart:html or
    * dart:svg (has an attribute DomName of either HTML* or SVG*).
    */
   ClassMirror _getDomSuperClass(ClassMirror classMirror) {
     var isElement = false;
+    var foundSuperElement = null;
 
     while (classMirror.superclass != null) {
       var fullName = classMirror.superclass.qualifiedName;
@@ -20185,6 +20310,9 @@ class HtmlDocument extends Document {
 
       var domLibrary = MirrorSystem.getName(fullName).startsWith('dart.dom.');
       if (domLibrary) {
+        if (foundSuperElement == null) {
+          foundSuperElement = classMirror.superclass;
+        }
         // Lookup JS class (if not found).
         var metadatas = classMirror.metadata;
         for (var metadata in metadatas) {
@@ -20192,7 +20320,7 @@ class HtmlDocument extends Document {
           var metaType = reflectClass(metaDataMirror.runtimeType);
           if (MirrorSystem.getName(metaType.simpleName) == 'DomName' &&
               (metaDataMirror.name.startsWith('HTML') || metaDataMirror.name.startsWith('SVG'))) {
-            if (isElement) return classMirror;
+            if (isElement) return foundSuperElement;
           }
         }
       }
@@ -20231,10 +20359,8 @@ class HtmlDocument extends Document {
 
         // Get the created constructor source and look at the initializer;
         // Must call super.created() if not its as an error.
-        var createdSource = methodMirror.source?.replaceAll('\n', ' ');
-        RegExp regExp = new RegExp(r":(.*?)(;|}|\n)");
-        var match = regExp.firstMatch(createdSource);
-        superCreatedCalled = match.input.substring(match.start,match.end).contains("super.created(");
+        var createdSource = methodMirror.source;
+        superCreatedCalled = createdSource.contains("super.created(");
       }
 
       if (!superCreatedCalled) {
@@ -20297,14 +20423,41 @@ class HtmlDocument extends Document {
    */
   void registerElement(String tag, Type customElementClass,
       {String extendsTag}) {
-    // TODO(terry): Need to handle the extendsTag.
-
     // Figure out which DOM class is being extended from the user's Dart class.
     var classMirror = reflectClass(customElementClass);
+
+    var locationUri = classMirror.location.sourceUri.toString();
+    if (locationUri == 'dart:html' || locationUri == 'dart:svg') {
+      throw new DomException.jsInterop("HierarchyRequestError: Cannot register an existing dart:html or dart:svg type.");
+    }
+
+    if (classMirror.isAbstract) {
+      throw new DomException.jsInterop("HierarchyRequestError: Cannot register an abstract class.");
+    }
+
     var jsClassName = _getJSClassName(classMirror);
     if (jsClassName == null) {
       // Only components derived from HTML* can be extended.
       throw new DomException.jsInterop("HierarchyRequestError: Only HTML elements can be customized.");
+    }
+
+    var customClassType = _getDartHtmlClassName(classMirror);
+
+    if (extendsTag != null) {
+      var nativeElement = document.createElement(extendsTag);
+
+      // Trying to extend a native element is it the Dart class consistent with the
+      // extendsTag?
+      if (nativeElement.runtimeType != customClassType.reflectedType) {
+        var nativeElementClassMirror = reflectClass(nativeElement.runtimeType);
+        var customClassNativeElement = MirrorSystem.getName(customClassType.simpleName);
+        var extendsNativeElement = MirrorSystem.getName(nativeElementClassMirror.simpleName);
+        throw new DomException.jsInterop("HierarchyRequestError: Custom class type ($customClassNativeElement) and extendsTag class ($extendsNativeElement) don't match .");
+      }
+    } else if (customClassType.reflectedType != HtmlElement && customClassType.reflectedType != svg.SvgElement) {
+      var customClassName = MirrorSystem.getName(classMirror.simpleName);
+      var customClassElement = MirrorSystem.getName(customClassType.simpleName);
+      throw new DomException.jsInterop("HierarchyRequestError: Custom element $customClassName is a native $customClassElement should be derived from HtmlElement or SvgElement.");
     }
 
     if (_hasCreatedConstructor(classMirror)) {
@@ -20314,12 +20467,15 @@ class HtmlDocument extends Document {
       //
       //     var myProto = Object.create(HTMLElement.prototype);
       //     var myElement = document.registerElement('x-foo', {prototype: myProto});
-      var baseElement = js.context[jsClassName];
+      var baseElement = js.JsNative.getProperty(js.context, jsClassName);
       if (baseElement == null) {
         // Couldn't find the HTML element so use a generic one.
-        baseElement = js.context['HTMLElement'];
+        baseElement = js.JsNative.getProperty(js.context, 'HTMLElement');
       }
-      var elemProto = js.context['Object'].callMethod("create", [baseElement['prototype']]);
+      var elemProto = js.JsNative.callMethod(js.JsNative.getProperty(js.context, 'Object'), "create", [js.JsNative.getProperty(baseElement, 'prototype')]);
+
+      // Remember for any upgrading done in wrap_jso.
+      addCustomElementType(tag, customElementClass, extendsTag);
 
       // TODO(terry): Hack to stop recursion re-creating custom element when the
       //              created() constructor of the custom element does e.g.,
@@ -20333,44 +20489,76 @@ class HtmlDocument extends Document {
       //
       //              See https://github.com/dart-lang/sdk/issues/23666
       int creating = 0;
-      elemProto['createdCallback'] = new js.JsFunction.withThis(($this) {
+
+      // If any JS code is hooked we want to call it too.
+      var oldCreatedCallback = elemProto['createdCallback'];
+      var oldAttributeChangedCallback = elemProto['attributeChangedCallback'];
+      var oldAttachedCallback = elemProto['attachedCallback'];
+      var oldDetachedCallback = elemProto['detachedCallback'];
+
+      // TODO(jacobr): warning:
+      elemProto['createdCallback'] = js.JsNative.withThis(($this) {
         if (_getJSClassName(reflectClass(customElementClass).superclass) != null && creating < 2) {
           creating++;
 
           var dartClass;
           try {
+            if (extendsTag != null) {
+              // If we're extending a native element then create that element.
+              // Then upgrade that element to the customElementClass through
+              // normal flow.
+              dartClass = document.createElement(extendsTag);
+              js.setDartHtmlWrapperFor($this, dartClass);
+              dartClass.blink_jsObject = $this;
+            }
+
+            // Upgrade to the CustomElement Dart class.
             dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
           } catch (e) {
+            // Got a problem make it an HtmlElement and rethrow the error.
             dartClass = HtmlElement.internalCreateHtmlElement();
+            // We need to remember the JS object (because constructElement failed
+            // it normally sets up the blink_jsObject.
+            dartClass.blink_jsObject = $this;
+
+            // Mark to only try this once don't try upgrading from HtmlElement
+            // to the user's Dart class - we had a problem.
+            dartClass._badUpgrade();
             throw e;
           } finally {
             // Need to remember the Dart class that was created for this custom so
             // return it and setup the blink_jsObject to the $this that we'll be working
-            // with as we talk to blink. 
-            $this['dart_class'] = dartClass;
+            // with as we talk to blink.
+            js.setDartHtmlWrapperFor($this, dartClass);
 
             creating--;
           }
         }
+
+        if (oldCreatedCallback != null)
+          oldCreatedCallback.apply([], thisArg: unwrap_jso($this));
       });
       elemProto['attributeChangedCallback'] = new js.JsFunction.withThis(($this, attrName, oldVal, newVal) {
-        if ($this["dart_class"] != null && $this['dart_class'].attributeChanged != null) {
-          $this['dart_class'].attributeChanged(attrName, oldVal, newVal);
-        }
+        $this.attributeChanged(attrName, oldVal, newVal);
+
+        if (oldAttributeChangedCallback != null)
+          oldAttributeChangedCallback.apply([], thisArg: unwrap_jso($this));
       });
       elemProto['attachedCallback'] = new js.JsFunction.withThis(($this) {
-        if ($this["dart_class"] != null && $this['dart_class'].attached != null) {
-          $this['dart_class'].attached();
-        }
+        $this.attached();
+
+        if (oldAttachedCallback != null)
+          oldAttachedCallback.apply([], thisArg: unwrap_jso($this));
       });
       elemProto['detachedCallback'] = new js.JsFunction.withThis(($this) {
-        if ($this["dart_class"] != null && $this['dart_class'].detached != null) {
-          $this['dart_class'].detached();
-        }
+        $this.detached();
+
+        if (oldDetachedCallback != null)
+          oldDetachedCallback.apply([], thisArg: unwrap_jso($this));
       });
       // document.registerElement('x-foo', {prototype: elemProto, extends: extendsTag});
       var jsMap = new js.JsObject.jsify({'prototype': elemProto, 'extends': extendsTag});
-      js.context['document'].callMethod('registerElement', [tag, jsMap]);
+      js.JsNative.callMethod(js.JsNative.getProperty(js.context, 'document'), 'registerElement', [tag, jsMap]);
     }
   }
 
@@ -20423,8 +20611,6 @@ class HtmlDocument extends Document {
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
 
 
 @DocsEditable()
@@ -20694,6 +20880,7 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   static const EventStreamProvider<Event> waitingEvent = const EventStreamProvider<Event>('waiting');
 
 
+  @Deprecated("Internal Use Only")
   static HtmlElement internalCreateHtmlElement() {
     return new HtmlElement._internalWrap();
   }
@@ -20702,6 +20889,7 @@ class HtmlElement extends Element implements GlobalEventHandlers {
     return new HtmlElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   HtmlElement.internal_() : super.internal_();
 
   /**
@@ -21086,6 +21274,18 @@ class HtmlElement extends Element implements GlobalEventHandlers {
   @Experimental() // untriaged
   ElementStream<Event> get onWaiting => waitingEvent.forElement(this);
 
+  // Flags to only try upgrading once. If there's a failure don't try upgrading
+  // anymore.
+  bool _badUpgradeOccurred = false;
+
+  /// Required for SDK Infrastructure. Internal use only.
+  ///
+  /// Did this encounter a failure attempting to upgrade to
+  /// a custom element.
+  @Deprecated("Required for SDK Infrastructure. Internal use only.")
+  bool get isBadUpgrade => _badUpgradeOccurred;
+
+  void _badUpgrade() { _badUpgradeOccurred = true; }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21101,6 +21301,7 @@ class HtmlFormControlsCollection extends HtmlCollection {
   factory HtmlFormControlsCollection._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static HtmlFormControlsCollection internalCreateHtmlFormControlsCollection() {
     return new HtmlFormControlsCollection._internalWrap();
   }
@@ -21109,6 +21310,7 @@ class HtmlFormControlsCollection extends HtmlCollection {
     return new HtmlFormControlsCollection.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   HtmlFormControlsCollection.internal_() : super.internal_();
 
 
@@ -21135,6 +21337,7 @@ class HtmlHtmlElement extends HtmlElement {
   factory HtmlHtmlElement() => document.createElement("html");
 
 
+  @Deprecated("Internal Use Only")
   static HtmlHtmlElement internalCreateHtmlHtmlElement() {
     return new HtmlHtmlElement._internalWrap();
   }
@@ -21143,6 +21346,7 @@ class HtmlHtmlElement extends HtmlElement {
     return new HtmlHtmlElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   HtmlHtmlElement.internal_() : super.internal_();
 
   /**
@@ -21167,6 +21371,7 @@ class HtmlOptionsCollection extends HtmlCollection {
   factory HtmlOptionsCollection._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static HtmlOptionsCollection internalCreateHtmlOptionsCollection() {
     return new HtmlOptionsCollection._internalWrap();
   }
@@ -21175,6 +21380,7 @@ class HtmlOptionsCollection extends HtmlCollection {
     return new HtmlOptionsCollection.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   HtmlOptionsCollection.internal_() : super.internal_();
 
 
@@ -21577,6 +21783,7 @@ class HttpRequest extends HttpRequestEventTarget {
   static HttpRequest _create() => wrap_jso(_blink.BlinkXMLHttpRequest.instance.constructorCallback_0_());
 
 
+  @Deprecated("Internal Use Only")
   static HttpRequest internalCreateHttpRequest() {
     return new HttpRequest._internalWrap();
   }
@@ -21585,6 +21792,7 @@ class HttpRequest extends HttpRequestEventTarget {
     return new HttpRequest.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   HttpRequest.internal_() : super.internal_();
 
 
@@ -21990,6 +22198,7 @@ class HttpRequestEventTarget extends EventTarget {
   static const EventStreamProvider<ProgressEvent> timeoutEvent = const EventStreamProvider<ProgressEvent>('timeout');
 
 
+  @Deprecated("Internal Use Only")
   static HttpRequestEventTarget internalCreateHttpRequestEventTarget() {
     return new HttpRequestEventTarget._internalWrap();
   }
@@ -21998,6 +22207,7 @@ class HttpRequestEventTarget extends EventTarget {
     return new HttpRequestEventTarget.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   HttpRequestEventTarget.internal_() : super.internal_();
 
 
@@ -22068,6 +22278,7 @@ class HttpRequestUpload extends HttpRequestEventTarget {
   factory HttpRequestUpload._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static HttpRequestUpload internalCreateHttpRequestUpload() {
     return new HttpRequestUpload._internalWrap();
   }
@@ -22076,6 +22287,7 @@ class HttpRequestUpload extends HttpRequestEventTarget {
     return new HttpRequestUpload.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   HttpRequestUpload.internal_() : super.internal_();
 
 
@@ -22098,6 +22310,7 @@ class IFrameElement extends HtmlElement {
   factory IFrameElement() => document.createElement("iframe");
 
 
+  @Deprecated("Internal Use Only")
   static IFrameElement internalCreateIFrameElement() {
     return new IFrameElement._internalWrap();
   }
@@ -22106,6 +22319,7 @@ class IFrameElement extends HtmlElement {
     return new IFrameElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   IFrameElement.internal_() : super.internal_();
 
   /**
@@ -22198,20 +22412,20 @@ class IFrameElement extends HtmlElement {
 @DocsEditable()
 @DomName('ImageBitmap')
 @Experimental() // untriaged
-class ImageBitmap extends NativeFieldWrapperClass2 {
+class ImageBitmap extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ImageBitmap._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static ImageBitmap internalCreateImageBitmap() {
     return new ImageBitmap._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory ImageBitmap._internalWrap() {
     return new ImageBitmap.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ImageBitmap.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -22233,7 +22447,7 @@ class ImageBitmap extends NativeFieldWrapperClass2 {
 // BSD-style license that can be found in the LICENSE file.
 
 @DomName('ImageData')
-class ImageData extends NativeFieldWrapperClass2 {
+class ImageData extends DartHtmlDomObject {
   List<int> __data;
 
   List<int> get data {
@@ -22258,16 +22472,16 @@ class ImageData extends NativeFieldWrapperClass2 {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
+  @Deprecated("Internal Use Only")
   static ImageData internalCreateImageData() {
     return new ImageData._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory ImageData._internalWrap() {
     return new ImageData.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ImageData.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -22307,6 +22521,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   }
 
 
+  @Deprecated("Internal Use Only")
   static ImageElement internalCreateImageElement() {
     return new ImageElement._internalWrap();
   }
@@ -22315,6 +22530,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
     return new ImageElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ImageElement.internal_() : super.internal_();
 
   /**
@@ -22438,20 +22654,20 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
 @DocsEditable()
 @DomName('InjectedScriptHost')
 @Experimental() // untriaged
-class InjectedScriptHost extends NativeFieldWrapperClass2 {
+class InjectedScriptHost extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory InjectedScriptHost._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static InjectedScriptHost internalCreateInjectedScriptHost() {
     return new InjectedScriptHost._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory InjectedScriptHost._internalWrap() {
     return new InjectedScriptHost.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   InjectedScriptHost.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -22507,6 +22723,7 @@ class InputElement extends HtmlElement implements
   factory InputElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static InputElement internalCreateInputElement() {
     return new InputElement._internalWrap();
   }
@@ -22515,6 +22732,7 @@ class InputElement extends HtmlElement implements
     return new InputElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   InputElement.internal_() : super.internal_();
 
   /**
@@ -22870,7 +23088,7 @@ class InputElement extends HtmlElement implements
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/states-of-the-type-attribute.html#concept-input-type-file-selected
-  List<Entry> get entries => _blink.BlinkHTMLInputElement.instance.webkitEntries_Getter_(unwrap_jso(this));
+  List<Entry> get entries => wrap_jso(_blink.BlinkHTMLInputElement.instance.webkitEntries_Getter_(unwrap_jso(this)));
   
   @DomName('HTMLInputElement.webkitdirectory')
   @DocsEditable()
@@ -23527,6 +23745,7 @@ class InputMethodContext extends EventTarget {
   factory InputMethodContext._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static InputMethodContext internalCreateInputMethodContext() {
     return new InputMethodContext._internalWrap();
   }
@@ -23535,6 +23754,7 @@ class InputMethodContext extends EventTarget {
     return new InputMethodContext.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   InputMethodContext.internal_() : super.internal_();
 
 
@@ -23577,6 +23797,7 @@ class InstallEvent extends ExtendableEvent {
   factory InstallEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static InstallEvent internalCreateInstallEvent() {
     return new InstallEvent._internalWrap();
   }
@@ -23585,6 +23806,7 @@ class InstallEvent extends ExtendableEvent {
     return new InstallEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   InstallEvent.internal_() : super.internal_();
 
 
@@ -23629,6 +23851,7 @@ class KeyboardEvent extends UIEvent {
   factory KeyboardEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static KeyboardEvent internalCreateKeyboardEvent() {
     return new KeyboardEvent._internalWrap();
   }
@@ -23637,6 +23860,7 @@ class KeyboardEvent extends UIEvent {
     return new KeyboardEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   KeyboardEvent.internal_() : super.internal_();
 
 
@@ -23728,6 +23952,7 @@ class KeygenElement extends HtmlElement {
   factory KeygenElement() => document.createElement("keygen");
 
 
+  @Deprecated("Internal Use Only")
   static KeygenElement internalCreateKeygenElement() {
     return new KeygenElement._internalWrap();
   }
@@ -23736,6 +23961,7 @@ class KeygenElement extends HtmlElement {
     return new KeygenElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   KeygenElement.internal_() : super.internal_();
 
   /**
@@ -23840,6 +24066,7 @@ class LIElement extends HtmlElement {
   factory LIElement() => document.createElement("li");
 
 
+  @Deprecated("Internal Use Only")
   static LIElement internalCreateLIElement() {
     return new LIElement._internalWrap();
   }
@@ -23848,6 +24075,7 @@ class LIElement extends HtmlElement {
     return new LIElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   LIElement.internal_() : super.internal_();
 
   /**
@@ -23884,6 +24112,7 @@ class LabelElement extends HtmlElement {
   factory LabelElement() => document.createElement("label");
 
 
+  @Deprecated("Internal Use Only")
   static LabelElement internalCreateLabelElement() {
     return new LabelElement._internalWrap();
   }
@@ -23892,6 +24121,7 @@ class LabelElement extends HtmlElement {
     return new LabelElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   LabelElement.internal_() : super.internal_();
 
   /**
@@ -23936,6 +24166,7 @@ class LegendElement extends HtmlElement {
   factory LegendElement() => document.createElement("legend");
 
 
+  @Deprecated("Internal Use Only")
   static LegendElement internalCreateLegendElement() {
     return new LegendElement._internalWrap();
   }
@@ -23944,6 +24175,7 @@ class LegendElement extends HtmlElement {
     return new LegendElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   LegendElement.internal_() : super.internal_();
 
   /**
@@ -23974,6 +24206,7 @@ class LinkElement extends HtmlElement {
   factory LinkElement() => document.createElement("link");
 
 
+  @Deprecated("Internal Use Only")
   static LinkElement internalCreateLinkElement() {
     return new LinkElement._internalWrap();
   }
@@ -23982,6 +24215,7 @@ class LinkElement extends HtmlElement {
     return new LinkElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   LinkElement.internal_() : super.internal_();
 
   /**
@@ -24100,6 +24334,7 @@ class LocalCredential extends Credential {
   }
 
 
+  @Deprecated("Internal Use Only")
   static LocalCredential internalCreateLocalCredential() {
     return new LocalCredential._internalWrap();
   }
@@ -24108,6 +24343,7 @@ class LocalCredential extends Credential {
     return new LocalCredential.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   LocalCredential.internal_() : super.internal_();
 
 
@@ -24124,20 +24360,20 @@ class LocalCredential extends Credential {
 
 @DocsEditable()
 @DomName('Location')
-class Location extends NativeFieldWrapperClass2 implements LocationBase {
+class Location extends DartHtmlDomObject implements LocationBase {
   // To suppress missing implicit constructor warnings.
   factory Location._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Location internalCreateLocation() {
     return new Location._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Location._internalWrap() {
     return new Location.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Location.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -24146,7 +24382,7 @@ class Location extends NativeFieldWrapperClass2 implements LocationBase {
   @DomName('Location.ancestorOrigins')
   @DocsEditable()
   @Experimental() // nonstandard
-  List<String> get ancestorOrigins => _blink.BlinkLocation.instance.ancestorOrigins_Getter_(unwrap_jso(this));
+  List<String> get ancestorOrigins => wrap_jso(_blink.BlinkLocation.instance.ancestorOrigins_Getter_(unwrap_jso(this)));
   
   @DomName('Location.hash')
   @DocsEditable()
@@ -24276,6 +24512,7 @@ class MapElement extends HtmlElement {
   factory MapElement() => document.createElement("map");
 
 
+  @Deprecated("Internal Use Only")
   static MapElement internalCreateMapElement() {
     return new MapElement._internalWrap();
   }
@@ -24284,6 +24521,7 @@ class MapElement extends HtmlElement {
     return new MapElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MapElement.internal_() : super.internal_();
 
   /**
@@ -24328,6 +24566,7 @@ class MediaController extends EventTarget {
   }
 
 
+  @Deprecated("Internal Use Only")
   static MediaController internalCreateMediaController() {
     return new MediaController._internalWrap();
   }
@@ -24336,6 +24575,7 @@ class MediaController extends EventTarget {
     return new MediaController.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaController.internal_() : super.internal_();
 
 
@@ -24426,20 +24666,20 @@ class MediaController extends EventTarget {
 @DocsEditable()
 @DomName('MediaDeviceInfo')
 @Experimental() // untriaged
-class MediaDeviceInfo extends NativeFieldWrapperClass2 {
+class MediaDeviceInfo extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MediaDeviceInfo._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static MediaDeviceInfo internalCreateMediaDeviceInfo() {
     return new MediaDeviceInfo._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory MediaDeviceInfo._internalWrap() {
     return new MediaDeviceInfo.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaDeviceInfo.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -24547,6 +24787,7 @@ class MediaElement extends HtmlElement {
   static const EventStreamProvider<MediaKeyEvent> needKeyEvent = const EventStreamProvider<MediaKeyEvent>('webkitneedkey');
 
 
+  @Deprecated("Internal Use Only")
   static MediaElement internalCreateMediaElement() {
     return new MediaElement._internalWrap();
   }
@@ -24555,6 +24796,7 @@ class MediaElement extends HtmlElement {
     return new MediaElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaElement.internal_() : super.internal_();
 
   /**
@@ -24905,20 +25147,20 @@ class MediaElement extends HtmlElement {
 @DocsEditable()
 @DomName('MediaError')
 @Unstable()
-class MediaError extends NativeFieldWrapperClass2 {
+class MediaError extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MediaError._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static MediaError internalCreateMediaError() {
     return new MediaError._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory MediaError._internalWrap() {
     return new MediaError.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaError.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -24962,20 +25204,20 @@ class MediaError extends NativeFieldWrapperClass2 {
 @DomName('MediaKeyError')
 // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#error-codes
 @Experimental()
-class MediaKeyError extends NativeFieldWrapperClass2 {
+class MediaKeyError extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MediaKeyError._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static MediaKeyError internalCreateMediaKeyError() {
     return new MediaKeyError._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory MediaKeyError._internalWrap() {
     return new MediaKeyError.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaKeyError.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -25031,6 +25273,7 @@ class MediaKeyEvent extends Event {
   factory MediaKeyEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static MediaKeyEvent internalCreateMediaKeyEvent() {
     return new MediaKeyEvent._internalWrap();
   }
@@ -25039,6 +25282,7 @@ class MediaKeyEvent extends Event {
     return new MediaKeyEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaKeyEvent.internal_() : super.internal_();
 
 
@@ -25087,6 +25331,7 @@ class MediaKeyMessageEvent extends Event {
   factory MediaKeyMessageEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static MediaKeyMessageEvent internalCreateMediaKeyMessageEvent() {
     return new MediaKeyMessageEvent._internalWrap();
   }
@@ -25095,6 +25340,7 @@ class MediaKeyMessageEvent extends Event {
     return new MediaKeyMessageEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaKeyMessageEvent.internal_() : super.internal_();
 
 
@@ -25123,6 +25369,7 @@ class MediaKeyNeededEvent extends Event {
   factory MediaKeyNeededEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static MediaKeyNeededEvent internalCreateMediaKeyNeededEvent() {
     return new MediaKeyNeededEvent._internalWrap();
   }
@@ -25131,6 +25378,7 @@ class MediaKeyNeededEvent extends Event {
     return new MediaKeyNeededEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaKeyNeededEvent.internal_() : super.internal_();
 
 
@@ -25160,6 +25408,7 @@ class MediaKeySession extends EventTarget {
   factory MediaKeySession._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static MediaKeySession internalCreateMediaKeySession() {
     return new MediaKeySession._internalWrap();
   }
@@ -25168,6 +25417,7 @@ class MediaKeySession extends EventTarget {
     return new MediaKeySession.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaKeySession.internal_() : super.internal_();
 
 
@@ -25225,20 +25475,20 @@ class MediaKeySession extends EventTarget {
 @DomName('MediaKeys')
 // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html
 @Experimental()
-class MediaKeys extends NativeFieldWrapperClass2 {
+class MediaKeys extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MediaKeys._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static MediaKeys internalCreateMediaKeys() {
     return new MediaKeys._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory MediaKeys._internalWrap() {
     return new MediaKeys.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaKeys.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -25276,20 +25526,20 @@ class MediaKeys extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('MediaList')
 @Unstable()
-class MediaList extends NativeFieldWrapperClass2 {
+class MediaList extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MediaList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static MediaList internalCreateMediaList() {
     return new MediaList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory MediaList._internalWrap() {
     return new MediaList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -25340,6 +25590,7 @@ class MediaQueryList extends EventTarget {
   static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
 
 
+  @Deprecated("Internal Use Only")
   static MediaQueryList internalCreateMediaQueryList() {
     return new MediaQueryList._internalWrap();
   }
@@ -25348,6 +25599,7 @@ class MediaQueryList extends EventTarget {
     return new MediaQueryList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaQueryList.internal_() : super.internal_();
 
 
@@ -25388,6 +25640,7 @@ class MediaQueryListEvent extends Event {
   factory MediaQueryListEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static MediaQueryListEvent internalCreateMediaQueryListEvent() {
     return new MediaQueryListEvent._internalWrap();
   }
@@ -25396,6 +25649,7 @@ class MediaQueryListEvent extends Event {
     return new MediaQueryListEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaQueryListEvent.internal_() : super.internal_();
 
 
@@ -25434,6 +25688,7 @@ class MediaSource extends EventTarget {
   }
 
 
+  @Deprecated("Internal Use Only")
   static MediaSource internalCreateMediaSource() {
     return new MediaSource._internalWrap();
   }
@@ -25442,6 +25697,7 @@ class MediaSource extends EventTarget {
     return new MediaSource.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaSource.internal_() : super.internal_();
 
 
@@ -25549,6 +25805,7 @@ class MediaStream extends EventTarget {
   }
 
 
+  @Deprecated("Internal Use Only")
   static MediaStream internalCreateMediaStream() {
     return new MediaStream._internalWrap();
   }
@@ -25557,6 +25814,7 @@ class MediaStream extends EventTarget {
     return new MediaStream.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaStream.internal_() : super.internal_();
 
 
@@ -25649,6 +25907,7 @@ class MediaStreamEvent extends Event {
   factory MediaStreamEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static MediaStreamEvent internalCreateMediaStreamEvent() {
     return new MediaStreamEvent._internalWrap();
   }
@@ -25657,6 +25916,7 @@ class MediaStreamEvent extends Event {
     return new MediaStreamEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaStreamEvent.internal_() : super.internal_();
 
 
@@ -25715,6 +25975,7 @@ class MediaStreamTrack extends EventTarget {
   static const EventStreamProvider<Event> unmuteEvent = const EventStreamProvider<Event>('unmute');
 
 
+  @Deprecated("Internal Use Only")
   static MediaStreamTrack internalCreateMediaStreamTrack() {
     return new MediaStreamTrack._internalWrap();
   }
@@ -25723,6 +25984,7 @@ class MediaStreamTrack extends EventTarget {
     return new MediaStreamTrack.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaStreamTrack.internal_() : super.internal_();
 
 
@@ -25810,6 +26072,7 @@ class MediaStreamTrackEvent extends Event {
   factory MediaStreamTrackEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static MediaStreamTrackEvent internalCreateMediaStreamTrackEvent() {
     return new MediaStreamTrackEvent._internalWrap();
   }
@@ -25818,6 +26081,7 @@ class MediaStreamTrackEvent extends Event {
     return new MediaStreamTrackEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaStreamTrackEvent.internal_() : super.internal_();
 
 
@@ -25849,20 +26113,20 @@ typedef void MediaStreamTrackSourcesCallback(List<SourceInfo> sources);
 @DocsEditable()
 @DomName('MemoryInfo')
 @Experimental() // nonstandard
-class MemoryInfo extends NativeFieldWrapperClass2 {
+class MemoryInfo extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MemoryInfo._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static MemoryInfo internalCreateMemoryInfo() {
     return new MemoryInfo._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory MemoryInfo._internalWrap() {
     return new MemoryInfo.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MemoryInfo.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -25909,6 +26173,7 @@ class MenuElement extends HtmlElement {
   factory MenuElement() => document.createElement("menu");
 
 
+  @Deprecated("Internal Use Only")
   static MenuElement internalCreateMenuElement() {
     return new MenuElement._internalWrap();
   }
@@ -25917,6 +26182,7 @@ class MenuElement extends HtmlElement {
     return new MenuElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MenuElement.internal_() : super.internal_();
 
   /**
@@ -25962,6 +26228,7 @@ class MenuItemElement extends HtmlElement {
   factory MenuItemElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static MenuItemElement internalCreateMenuItemElement() {
     return new MenuItemElement._internalWrap();
   }
@@ -25970,6 +26237,7 @@ class MenuItemElement extends HtmlElement {
     return new MenuItemElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MenuItemElement.internal_() : super.internal_();
 
   /**
@@ -26040,20 +26308,20 @@ class MenuItemElement extends HtmlElement {
 @DocsEditable()
 @DomName('MessageChannel')
 @Unstable()
-class MessageChannel extends NativeFieldWrapperClass2 {
+class MessageChannel extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MessageChannel._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static MessageChannel internalCreateMessageChannel() {
     return new MessageChannel._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory MessageChannel._internalWrap() {
     return new MessageChannel.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MessageChannel.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -26093,6 +26361,7 @@ class MessageEvent extends Event {
   factory MessageEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static MessageEvent internalCreateMessageEvent() {
     return new MessageEvent._internalWrap();
   }
@@ -26101,6 +26370,7 @@ class MessageEvent extends Event {
     return new MessageEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MessageEvent.internal_() : super.internal_();
 
 
@@ -26123,7 +26393,7 @@ class MessageEvent extends Event {
   
   @DomName('MessageEvent.initMessageEvent')
   @DocsEditable()
-  void _initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List<MessagePort> messagePorts) => _blink.BlinkMessageEvent.instance.initMessageEvent_Callback_8_(unwrap_jso(this), typeArg, canBubbleArg, cancelableArg, dataArg, originArg, lastEventIdArg, unwrap_jso(sourceArg), messagePorts);
+  void _initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List<MessagePort> messagePorts) => _blink.BlinkMessageEvent.instance.initMessageEvent_Callback_8_(unwrap_jso(this), typeArg, canBubbleArg, cancelableArg, dataArg, originArg, lastEventIdArg, unwrap_jso(sourceArg), unwrap_jso(messagePorts));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26151,6 +26421,7 @@ class MessagePort extends EventTarget {
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
 
+  @Deprecated("Internal Use Only")
   static MessagePort internalCreateMessagePort() {
     return new MessagePort._internalWrap();
   }
@@ -26159,6 +26430,7 @@ class MessagePort extends EventTarget {
     return new MessagePort.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MessagePort.internal_() : super.internal_();
 
 
@@ -26198,6 +26470,7 @@ class MetaElement extends HtmlElement {
   factory MetaElement() => document.createElement("meta");
 
 
+  @Deprecated("Internal Use Only")
   static MetaElement internalCreateMetaElement() {
     return new MetaElement._internalWrap();
   }
@@ -26206,6 +26479,7 @@ class MetaElement extends HtmlElement {
     return new MetaElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MetaElement.internal_() : super.internal_();
 
   /**
@@ -26251,20 +26525,20 @@ class MetaElement extends HtmlElement {
 @DomName('Metadata')
 // http://www.w3.org/TR/file-system-api/#the-metadata-interface
 @Experimental()
-class Metadata extends NativeFieldWrapperClass2 {
+class Metadata extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Metadata._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Metadata internalCreateMetadata() {
     return new Metadata._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Metadata._internalWrap() {
     return new Metadata.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Metadata.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -26312,6 +26586,7 @@ class MeterElement extends HtmlElement {
   factory MeterElement() => document.createElement("meter");
 
 
+  @Deprecated("Internal Use Only")
   static MeterElement internalCreateMeterElement() {
     return new MeterElement._internalWrap();
   }
@@ -26320,6 +26595,7 @@ class MeterElement extends HtmlElement {
     return new MeterElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MeterElement.internal_() : super.internal_();
 
   /**
@@ -26422,6 +26698,7 @@ class MidiAccess extends EventTarget {
   static const EventStreamProvider<MidiConnectionEvent> disconnectEvent = const EventStreamProvider<MidiConnectionEvent>('disconnect');
 
 
+  @Deprecated("Internal Use Only")
   static MidiAccess internalCreateMidiAccess() {
     return new MidiAccess._internalWrap();
   }
@@ -26430,6 +26707,7 @@ class MidiAccess extends EventTarget {
     return new MidiAccess.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MidiAccess.internal_() : super.internal_();
 
 
@@ -26473,6 +26751,7 @@ class MidiConnectionEvent extends Event {
   factory MidiConnectionEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static MidiConnectionEvent internalCreateMidiConnectionEvent() {
     return new MidiConnectionEvent._internalWrap();
   }
@@ -26481,6 +26760,7 @@ class MidiConnectionEvent extends Event {
     return new MidiConnectionEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MidiConnectionEvent.internal_() : super.internal_();
 
 
@@ -26515,6 +26795,7 @@ class MidiInput extends MidiPort {
   static const EventStreamProvider<MidiMessageEvent> midiMessageEvent = const EventStreamProvider<MidiMessageEvent>('midimessage');
 
 
+  @Deprecated("Internal Use Only")
   static MidiInput internalCreateMidiInput() {
     return new MidiInput._internalWrap();
   }
@@ -26523,6 +26804,7 @@ class MidiInput extends MidiPort {
     return new MidiInput.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MidiInput.internal_() : super.internal_();
 
 
@@ -26542,20 +26824,20 @@ class MidiInput extends MidiPort {
 @DocsEditable()
 @DomName('MIDIInputMap')
 @Experimental() // untriaged
-class MidiInputMap extends NativeFieldWrapperClass2 {
+class MidiInputMap extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MidiInputMap._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static MidiInputMap internalCreateMidiInputMap() {
     return new MidiInputMap._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory MidiInputMap._internalWrap() {
     return new MidiInputMap.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MidiInputMap.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -26608,6 +26890,7 @@ class MidiMessageEvent extends Event {
   factory MidiMessageEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static MidiMessageEvent internalCreateMidiMessageEvent() {
     return new MidiMessageEvent._internalWrap();
   }
@@ -26616,6 +26899,7 @@ class MidiMessageEvent extends Event {
     return new MidiMessageEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MidiMessageEvent.internal_() : super.internal_();
 
 
@@ -26644,6 +26928,7 @@ class MidiOutput extends MidiPort {
   factory MidiOutput._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static MidiOutput internalCreateMidiOutput() {
     return new MidiOutput._internalWrap();
   }
@@ -26652,6 +26937,7 @@ class MidiOutput extends MidiPort {
     return new MidiOutput.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MidiOutput.internal_() : super.internal_();
 
 
@@ -26675,20 +26961,20 @@ class MidiOutput extends MidiPort {
 @DocsEditable()
 @DomName('MIDIOutputMap')
 @Experimental() // untriaged
-class MidiOutputMap extends NativeFieldWrapperClass2 {
+class MidiOutputMap extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MidiOutputMap._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static MidiOutputMap internalCreateMidiOutputMap() {
     return new MidiOutputMap._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory MidiOutputMap._internalWrap() {
     return new MidiOutputMap.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MidiOutputMap.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -26751,6 +27037,7 @@ class MidiPort extends EventTarget {
   static const EventStreamProvider<MidiConnectionEvent> disconnectEvent = const EventStreamProvider<MidiConnectionEvent>('disconnect');
 
 
+  @Deprecated("Internal Use Only")
   static MidiPort internalCreateMidiPort() {
     return new MidiPort._internalWrap();
   }
@@ -26759,6 +27046,7 @@ class MidiPort extends EventTarget {
     return new MidiPort.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MidiPort.internal_() : super.internal_();
 
 
@@ -26798,20 +27086,20 @@ class MidiPort extends EventTarget {
 @DocsEditable()
 @DomName('MimeType')
 @Experimental() // non-standard
-class MimeType extends NativeFieldWrapperClass2 {
+class MimeType extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MimeType._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static MimeType internalCreateMimeType() {
     return new MimeType._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory MimeType._internalWrap() {
     return new MimeType.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MimeType.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -26844,20 +27132,20 @@ class MimeType extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('MimeTypeArray')
 @Experimental() // non-standard
-class MimeTypeArray extends JsoNativeFieldWrapper with ListMixin<MimeType>, ImmutableListMixin<MimeType> implements List<MimeType> {
+class MimeTypeArray extends DartHtmlDomObject with ListMixin<MimeType>, ImmutableListMixin<MimeType> implements List<MimeType> {
   // To suppress missing implicit constructor warnings.
   factory MimeTypeArray._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static MimeTypeArray internalCreateMimeTypeArray() {
     return new MimeTypeArray._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory MimeTypeArray._internalWrap() {
     return new MimeTypeArray.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MimeTypeArray.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -26941,6 +27229,7 @@ class ModElement extends HtmlElement {
   factory ModElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static ModElement internalCreateModElement() {
     return new ModElement._internalWrap();
   }
@@ -26949,6 +27238,7 @@ class ModElement extends HtmlElement {
     return new ModElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ModElement.internal_() : super.internal_();
 
   /**
@@ -27003,6 +27293,7 @@ class MouseEvent extends UIEvent {
   factory MouseEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static MouseEvent internalCreateMouseEvent() {
     return new MouseEvent._internalWrap();
   }
@@ -27011,6 +27302,7 @@ class MouseEvent extends UIEvent {
     return new MouseEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MouseEvent.internal_() : super.internal_();
 
 
@@ -27187,22 +27479,22 @@ typedef void MutationCallback(List<MutationRecord> mutations, MutationObserver o
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @Experimental()
-class MutationObserver extends NativeFieldWrapperClass2 {
+class MutationObserver extends DartHtmlDomObject {
 
   @DomName('MutationObserver.MutationObserver')
   @DocsEditable()
   factory MutationObserver._(MutationCallback callback) => wrap_jso(_create(callback));
 
+  @Deprecated("Internal Use Only")
   static MutationObserver internalCreateMutationObserver() {
     return new MutationObserver._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory MutationObserver._internalWrap() {
     return new MutationObserver.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MutationObserver.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -27229,7 +27521,7 @@ class MutationObserver extends NativeFieldWrapperClass2 {
   }
   @DocsEditable()
   static MutationObserver _create(callback) => wrap_jso(_blink.BlinkMutationObserver.instance.constructorCallback_1_((mutations, observer) {
-    callback(mutations, wrap_jso(observer));
+    callback(wrap_jso(mutations), wrap_jso(observer));
   }));
 
   /**
@@ -27301,20 +27593,20 @@ class MutationObserver extends NativeFieldWrapperClass2 {
 
 @DocsEditable()
 @DomName('MutationRecord')
-class MutationRecord extends NativeFieldWrapperClass2 {
+class MutationRecord extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory MutationRecord._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static MutationRecord internalCreateMutationRecord() {
     return new MutationRecord._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory MutationRecord._internalWrap() {
     return new MutationRecord.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MutationRecord.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -27363,7 +27655,7 @@ class MutationRecord extends NativeFieldWrapperClass2 {
 
 
 @DomName('Navigator')
-class Navigator extends NativeFieldWrapperClass2 implements NavigatorCpu, NavigatorLanguage, NavigatorOnLine, NavigatorID {
+class Navigator extends DartHtmlDomObject implements NavigatorCpu, NavigatorLanguage, NavigatorOnLine, NavigatorID {
 
 
   /**
@@ -27424,16 +27716,16 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorCpu, Naviga
   // To suppress missing implicit constructor warnings.
   factory Navigator._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Navigator internalCreateNavigator() {
     return new Navigator._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Navigator._internalWrap() {
     return new Navigator.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Navigator.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -27635,7 +27927,7 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorCpu, Naviga
 @DocsEditable()
 @DomName('NavigatorCPU')
 @Experimental() // untriaged
-abstract class NavigatorCpu extends NativeFieldWrapperClass2 {
+abstract class NavigatorCpu extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory NavigatorCpu._() { throw new UnsupportedError("Not supported"); }
 
@@ -27655,7 +27947,7 @@ abstract class NavigatorCpu extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('NavigatorID')
 @Experimental() // untriaged
-abstract class NavigatorID extends NativeFieldWrapperClass2 {
+abstract class NavigatorID extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory NavigatorID._() { throw new UnsupportedError("Not supported"); }
 
@@ -27705,7 +27997,7 @@ abstract class NavigatorID extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('NavigatorLanguage')
 @Experimental() // untriaged
-abstract class NavigatorLanguage extends NativeFieldWrapperClass2 {
+abstract class NavigatorLanguage extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory NavigatorLanguage._() { throw new UnsupportedError("Not supported"); }
 
@@ -27730,7 +28022,7 @@ abstract class NavigatorLanguage extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('NavigatorOnLine')
 @Experimental() // untriaged
-abstract class NavigatorOnLine extends NativeFieldWrapperClass2 {
+abstract class NavigatorOnLine extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory NavigatorOnLine._() { throw new UnsupportedError("Not supported"); }
 
@@ -27751,20 +28043,20 @@ abstract class NavigatorOnLine extends NativeFieldWrapperClass2 {
 @DomName('NavigatorUserMediaError')
 // http://dev.w3.org/2011/webrtc/editor/getusermedia.html#idl-def-NavigatorUserMediaError
 @Experimental()
-class NavigatorUserMediaError extends NativeFieldWrapperClass2 {
+class NavigatorUserMediaError extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory NavigatorUserMediaError._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static NavigatorUserMediaError internalCreateNavigatorUserMediaError() {
     return new NavigatorUserMediaError._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory NavigatorUserMediaError._internalWrap() {
     return new NavigatorUserMediaError.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   NavigatorUserMediaError.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -27820,6 +28112,7 @@ class NetworkInformation extends EventTarget {
   factory NetworkInformation._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static NetworkInformation internalCreateNetworkInformation() {
     return new NetworkInformation._internalWrap();
   }
@@ -27828,6 +28121,7 @@ class NetworkInformation extends EventTarget {
     return new NetworkInformation.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   NetworkInformation.internal_() : super.internal_();
 
 
@@ -28121,6 +28415,7 @@ class Node extends EventTarget {
   factory Node._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static Node internalCreateNode() {
     return new Node._internalWrap();
   }
@@ -28129,6 +28424,7 @@ class Node extends EventTarget {
     return new Node.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Node.internal_() : super.internal_();
 
 
@@ -28459,20 +28755,20 @@ class Node extends EventTarget {
 @DocsEditable()
 @DomName('NodeFilter')
 @Unstable()
-class NodeFilter extends NativeFieldWrapperClass2 {
+class NodeFilter extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory NodeFilter._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static NodeFilter internalCreateNodeFilter() {
     return new NodeFilter._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory NodeFilter._internalWrap() {
     return new NodeFilter.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   NodeFilter.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -28530,23 +28826,23 @@ class NodeFilter extends NativeFieldWrapperClass2 {
 
 @DomName('NodeIterator')
 @Unstable()
-class NodeIterator extends NativeFieldWrapperClass2 {
+class NodeIterator extends DartHtmlDomObject {
   factory NodeIterator(Node root, int whatToShow) {
     return document._createNodeIterator(root, whatToShow, null);
   }
   // To suppress missing implicit constructor warnings.
   factory NodeIterator._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static NodeIterator internalCreateNodeIterator() {
     return new NodeIterator._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory NodeIterator._internalWrap() {
     return new NodeIterator.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   NodeIterator.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -28590,20 +28886,20 @@ class NodeIterator extends NativeFieldWrapperClass2 {
 
 @DocsEditable()
 @DomName('NodeList')
-class NodeList extends JsoNativeFieldWrapper with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
+class NodeList extends DartHtmlDomObject with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
   // To suppress missing implicit constructor warnings.
   factory NodeList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static NodeList internalCreateNodeList() {
     return new NodeList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory NodeList._internalWrap() {
     return new NodeList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   NodeList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -28739,6 +29035,7 @@ class Notification extends EventTarget {
   }
 
 
+  @Deprecated("Internal Use Only")
   static Notification internalCreateNotification() {
     return new Notification._internalWrap();
   }
@@ -28747,6 +29044,7 @@ class Notification extends EventTarget {
     return new Notification.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Notification.internal_() : super.internal_();
 
 
@@ -28857,6 +29155,7 @@ class OListElement extends HtmlElement {
   factory OListElement() => document.createElement("ol");
 
 
+  @Deprecated("Internal Use Only")
   static OListElement internalCreateOListElement() {
     return new OListElement._internalWrap();
   }
@@ -28865,6 +29164,7 @@ class OListElement extends HtmlElement {
     return new OListElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   OListElement.internal_() : super.internal_();
 
   /**
@@ -28921,6 +29221,7 @@ class ObjectElement extends HtmlElement {
   factory ObjectElement() => document.createElement("object");
 
 
+  @Deprecated("Internal Use Only")
   static ObjectElement internalCreateObjectElement() {
     return new ObjectElement._internalWrap();
   }
@@ -28929,6 +29230,7 @@ class ObjectElement extends HtmlElement {
     return new ObjectElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ObjectElement.internal_() : super.internal_();
 
   /**
@@ -29050,6 +29352,7 @@ class OptGroupElement extends HtmlElement {
   factory OptGroupElement() => document.createElement("optgroup");
 
 
+  @Deprecated("Internal Use Only")
   static OptGroupElement internalCreateOptGroupElement() {
     return new OptGroupElement._internalWrap();
   }
@@ -29058,6 +29361,7 @@ class OptGroupElement extends HtmlElement {
     return new OptGroupElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   OptGroupElement.internal_() : super.internal_();
 
   /**
@@ -29102,6 +29406,7 @@ class OptionElement extends HtmlElement {
   }
 
 
+  @Deprecated("Internal Use Only")
   static OptionElement internalCreateOptionElement() {
     return new OptionElement._internalWrap();
   }
@@ -29110,6 +29415,7 @@ class OptionElement extends HtmlElement {
     return new OptionElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   OptionElement.internal_() : super.internal_();
 
   /**
@@ -29189,6 +29495,7 @@ class OutputElement extends HtmlElement {
   factory OutputElement() => document.createElement("output");
 
 
+  @Deprecated("Internal Use Only")
   static OutputElement internalCreateOutputElement() {
     return new OutputElement._internalWrap();
   }
@@ -29197,6 +29504,7 @@ class OutputElement extends HtmlElement {
     return new OutputElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   OutputElement.internal_() : super.internal_();
 
   /**
@@ -29286,6 +29594,7 @@ class OverflowEvent extends Event {
   factory OverflowEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static OverflowEvent internalCreateOverflowEvent() {
     return new OverflowEvent._internalWrap();
   }
@@ -29294,6 +29603,7 @@ class OverflowEvent extends Event {
     return new OverflowEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   OverflowEvent.internal_() : super.internal_();
 
 
@@ -29338,6 +29648,7 @@ class PageTransitionEvent extends Event {
   factory PageTransitionEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PageTransitionEvent internalCreatePageTransitionEvent() {
     return new PageTransitionEvent._internalWrap();
   }
@@ -29346,6 +29657,7 @@ class PageTransitionEvent extends Event {
     return new PageTransitionEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PageTransitionEvent.internal_() : super.internal_();
 
 
@@ -29372,6 +29684,7 @@ class ParagraphElement extends HtmlElement {
   factory ParagraphElement() => document.createElement("p");
 
 
+  @Deprecated("Internal Use Only")
   static ParagraphElement internalCreateParagraphElement() {
     return new ParagraphElement._internalWrap();
   }
@@ -29380,6 +29693,7 @@ class ParagraphElement extends HtmlElement {
     return new ParagraphElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ParagraphElement.internal_() : super.internal_();
 
   /**
@@ -29409,6 +29723,7 @@ class ParamElement extends HtmlElement {
   factory ParamElement() => document.createElement("param");
 
 
+  @Deprecated("Internal Use Only")
   static ParamElement internalCreateParamElement() {
     return new ParamElement._internalWrap();
   }
@@ -29417,6 +29732,7 @@ class ParamElement extends HtmlElement {
     return new ParamElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ParamElement.internal_() : super.internal_();
 
   /**
@@ -29453,7 +29769,7 @@ class ParamElement extends HtmlElement {
 @DocsEditable()
 @DomName('ParentNode')
 @Experimental() // untriaged
-abstract class ParentNode extends NativeFieldWrapperClass2 {
+abstract class ParentNode extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ParentNode._() { throw new UnsupportedError("Not supported"); }
 
@@ -29498,7 +29814,7 @@ abstract class ParentNode extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('Path2D')
 @Experimental() // untriaged
-class Path2D extends NativeFieldWrapperClass2 implements _CanvasPathMethods {
+class Path2D extends DartHtmlDomObject implements _CanvasPathMethods {
   // To suppress missing implicit constructor warnings.
   factory Path2D._() { throw new UnsupportedError("Not supported"); }
 
@@ -29517,16 +29833,16 @@ class Path2D extends NativeFieldWrapperClass2 implements _CanvasPathMethods {
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
+  @Deprecated("Internal Use Only")
   static Path2D internalCreatePath2D() {
     return new Path2D._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Path2D._internalWrap() {
     return new Path2D.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Path2D.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -29618,6 +29934,7 @@ class Performance extends EventTarget {
   static const EventStreamProvider<Event> resourceTimingBufferFullEvent = const EventStreamProvider<Event>('webkitresourcetimingbufferfull');
 
 
+  @Deprecated("Internal Use Only")
   static Performance internalCreatePerformance() {
     return new Performance._internalWrap();
   }
@@ -29626,6 +29943,7 @@ class Performance extends EventTarget {
     return new Performance.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Performance.internal_() : super.internal_();
 
 
@@ -29726,20 +30044,20 @@ class Performance extends EventTarget {
 @DomName('PerformanceEntry')
 // http://www.w3.org/TR/performance-timeline/#sec-PerformanceEntry-interface
 @Experimental()
-class PerformanceEntry extends NativeFieldWrapperClass2 {
+class PerformanceEntry extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory PerformanceEntry._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static PerformanceEntry internalCreatePerformanceEntry() {
     return new PerformanceEntry._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory PerformanceEntry._internalWrap() {
     return new PerformanceEntry.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PerformanceEntry.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -29778,6 +30096,7 @@ class PerformanceMark extends PerformanceEntry {
   factory PerformanceMark._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PerformanceMark internalCreatePerformanceMark() {
     return new PerformanceMark._internalWrap();
   }
@@ -29786,6 +30105,7 @@ class PerformanceMark extends PerformanceEntry {
     return new PerformanceMark.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PerformanceMark.internal_() : super.internal_();
 
 
@@ -29806,6 +30126,7 @@ class PerformanceMeasure extends PerformanceEntry {
   factory PerformanceMeasure._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PerformanceMeasure internalCreatePerformanceMeasure() {
     return new PerformanceMeasure._internalWrap();
   }
@@ -29814,6 +30135,7 @@ class PerformanceMeasure extends PerformanceEntry {
     return new PerformanceMeasure.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PerformanceMeasure.internal_() : super.internal_();
 
 
@@ -29828,20 +30150,20 @@ class PerformanceMeasure extends PerformanceEntry {
 @DocsEditable()
 @DomName('PerformanceNavigation')
 @Unstable()
-class PerformanceNavigation extends NativeFieldWrapperClass2 {
+class PerformanceNavigation extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory PerformanceNavigation._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static PerformanceNavigation internalCreatePerformanceNavigation() {
     return new PerformanceNavigation._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory PerformanceNavigation._internalWrap() {
     return new PerformanceNavigation.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PerformanceNavigation.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -29888,6 +30210,7 @@ class PerformanceResourceTiming extends PerformanceEntry {
   factory PerformanceResourceTiming._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PerformanceResourceTiming internalCreatePerformanceResourceTiming() {
     return new PerformanceResourceTiming._internalWrap();
   }
@@ -29896,6 +30219,7 @@ class PerformanceResourceTiming extends PerformanceEntry {
     return new PerformanceResourceTiming.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PerformanceResourceTiming.internal_() : super.internal_();
 
 
@@ -29961,20 +30285,20 @@ class PerformanceResourceTiming extends PerformanceEntry {
 @DocsEditable()
 @DomName('PerformanceTiming')
 @Unstable()
-class PerformanceTiming extends NativeFieldWrapperClass2 {
+class PerformanceTiming extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory PerformanceTiming._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static PerformanceTiming internalCreatePerformanceTiming() {
     return new PerformanceTiming._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory PerformanceTiming._internalWrap() {
     return new PerformanceTiming.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PerformanceTiming.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -30080,6 +30404,7 @@ class PictureElement extends HtmlElement {
   factory PictureElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PictureElement internalCreatePictureElement() {
     return new PictureElement._internalWrap();
   }
@@ -30088,6 +30413,7 @@ class PictureElement extends HtmlElement {
     return new PictureElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PictureElement.internal_() : super.internal_();
 
   /**
@@ -30108,20 +30434,20 @@ class PictureElement extends HtmlElement {
 @DocsEditable()
 @DomName('Plugin')
 @Experimental() // non-standard
-class Plugin extends NativeFieldWrapperClass2 {
+class Plugin extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Plugin._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Plugin internalCreatePlugin() {
     return new Plugin._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Plugin._internalWrap() {
     return new Plugin.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Plugin.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -30166,20 +30492,20 @@ class Plugin extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('PluginArray')
 @Experimental() // non-standard
-class PluginArray extends JsoNativeFieldWrapper with ListMixin<Plugin>, ImmutableListMixin<Plugin> implements List<Plugin> {
+class PluginArray extends DartHtmlDomObject with ListMixin<Plugin>, ImmutableListMixin<Plugin> implements List<Plugin> {
   // To suppress missing implicit constructor warnings.
   factory PluginArray._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static PluginArray internalCreatePluginArray() {
     return new PluginArray._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory PluginArray._internalWrap() {
     return new PluginArray.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PluginArray.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -30267,6 +30593,7 @@ class PluginPlaceholderElement extends DivElement {
   factory PluginPlaceholderElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PluginPlaceholderElement internalCreatePluginPlaceholderElement() {
     return new PluginPlaceholderElement._internalWrap();
   }
@@ -30275,6 +30602,7 @@ class PluginPlaceholderElement extends DivElement {
     return new PluginPlaceholderElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PluginPlaceholderElement.internal_() : super.internal_();
 
   /**
@@ -30318,6 +30646,7 @@ class PopStateEvent extends Event {
   factory PopStateEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PopStateEvent internalCreatePopStateEvent() {
     return new PopStateEvent._internalWrap();
   }
@@ -30326,6 +30655,7 @@ class PopStateEvent extends Event {
     return new PopStateEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PopStateEvent.internal_() : super.internal_();
 
 
@@ -30354,20 +30684,20 @@ typedef void _PositionCallback(Geoposition position);
 @DocsEditable()
 @DomName('PositionError')
 @Unstable()
-class PositionError extends NativeFieldWrapperClass2 {
+class PositionError extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory PositionError._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static PositionError internalCreatePositionError() {
     return new PositionError._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory PositionError._internalWrap() {
     return new PositionError.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PositionError.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -30422,6 +30752,7 @@ class PreElement extends HtmlElement {
   factory PreElement() => document.createElement("pre");
 
 
+  @Deprecated("Internal Use Only")
   static PreElement internalCreatePreElement() {
     return new PreElement._internalWrap();
   }
@@ -30430,6 +30761,7 @@ class PreElement extends HtmlElement {
     return new PreElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PreElement.internal_() : super.internal_();
 
   /**
@@ -30455,6 +30787,7 @@ class Presentation extends EventTarget {
   factory Presentation._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static Presentation internalCreatePresentation() {
     return new Presentation._internalWrap();
   }
@@ -30463,6 +30796,7 @@ class Presentation extends EventTarget {
     return new Presentation.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Presentation.internal_() : super.internal_();
 
 
@@ -30482,6 +30816,7 @@ class ProcessingInstruction extends CharacterData {
   factory ProcessingInstruction._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static ProcessingInstruction internalCreateProcessingInstruction() {
     return new ProcessingInstruction._internalWrap();
   }
@@ -30490,6 +30825,7 @@ class ProcessingInstruction extends CharacterData {
     return new ProcessingInstruction.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ProcessingInstruction.internal_() : super.internal_();
 
 
@@ -30525,6 +30861,7 @@ class ProgressElement extends HtmlElement {
   factory ProgressElement() => document.createElement("progress");
 
 
+  @Deprecated("Internal Use Only")
   static ProgressElement internalCreateProgressElement() {
     return new ProgressElement._internalWrap();
   }
@@ -30533,6 +30870,7 @@ class ProgressElement extends HtmlElement {
     return new ProgressElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ProgressElement.internal_() : super.internal_();
 
   /**
@@ -30585,6 +30923,7 @@ class ProgressEvent extends Event {
   factory ProgressEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static ProgressEvent internalCreateProgressEvent() {
     return new ProgressEvent._internalWrap();
   }
@@ -30593,6 +30932,7 @@ class ProgressEvent extends Event {
     return new ProgressEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ProgressEvent.internal_() : super.internal_();
 
 
@@ -30624,6 +30964,7 @@ class PushEvent extends Event {
   factory PushEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PushEvent internalCreatePushEvent() {
     return new PushEvent._internalWrap();
   }
@@ -30632,6 +30973,7 @@ class PushEvent extends Event {
     return new PushEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PushEvent.internal_() : super.internal_();
 
 
@@ -30651,20 +30993,20 @@ class PushEvent extends Event {
 @DocsEditable()
 @DomName('PushManager')
 @Experimental() // untriaged
-class PushManager extends NativeFieldWrapperClass2 {
+class PushManager extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory PushManager._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static PushManager internalCreatePushManager() {
     return new PushManager._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory PushManager._internalWrap() {
     return new PushManager.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PushManager.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -30686,20 +31028,20 @@ class PushManager extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('PushRegistration')
 @Experimental() // untriaged
-class PushRegistration extends NativeFieldWrapperClass2 {
+class PushRegistration extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory PushRegistration._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static PushRegistration internalCreatePushRegistration() {
     return new PushRegistration._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory PushRegistration._internalWrap() {
     return new PushRegistration.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PushRegistration.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -30734,6 +31076,7 @@ class QuoteElement extends HtmlElement {
   factory QuoteElement() => document.createElement("q");
 
 
+  @Deprecated("Internal Use Only")
   static QuoteElement internalCreateQuoteElement() {
     return new QuoteElement._internalWrap();
   }
@@ -30742,6 +31085,7 @@ class QuoteElement extends HtmlElement {
     return new QuoteElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   QuoteElement.internal_() : super.internal_();
 
   /**
@@ -30802,7 +31146,7 @@ typedef void RtcStatsCallback(RtcStatsResponse response);
 
 @DomName('Range')
 @Unstable()
-class Range extends NativeFieldWrapperClass2 {
+class Range extends DartHtmlDomObject {
   factory Range() => document.createRange();
 
   factory Range.fromPoint(Point point) =>
@@ -30810,16 +31154,16 @@ class Range extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Range._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Range internalCreateRange() {
     return new Range._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Range._internalWrap() {
     return new Range.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Range.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -31004,20 +31348,20 @@ class Range extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('ReadableStream')
 @Experimental() // untriaged
-class ReadableStream extends NativeFieldWrapperClass2 {
+class ReadableStream extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ReadableStream._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static ReadableStream internalCreateReadableStream() {
     return new ReadableStream._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory ReadableStream._internalWrap() {
     return new ReadableStream.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ReadableStream.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -31064,6 +31408,7 @@ class RelatedEvent extends Event {
   factory RelatedEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static RelatedEvent internalCreateRelatedEvent() {
     return new RelatedEvent._internalWrap();
   }
@@ -31072,6 +31417,7 @@ class RelatedEvent extends Event {
     return new RelatedEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   RelatedEvent.internal_() : super.internal_();
 
 
@@ -31106,6 +31452,7 @@ class ResourceProgressEvent extends ProgressEvent {
   factory ResourceProgressEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static ResourceProgressEvent internalCreateResourceProgressEvent() {
     return new ResourceProgressEvent._internalWrap();
   }
@@ -31114,6 +31461,7 @@ class ResourceProgressEvent extends ProgressEvent {
     return new ResourceProgressEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ResourceProgressEvent.internal_() : super.internal_();
 
 
@@ -31178,6 +31526,7 @@ class RtcDataChannel extends EventTarget {
   static const EventStreamProvider<Event> openEvent = const EventStreamProvider<Event>('open');
 
 
+  @Deprecated("Internal Use Only")
   static RtcDataChannel internalCreateRtcDataChannel() {
     return new RtcDataChannel._internalWrap();
   }
@@ -31186,6 +31535,7 @@ class RtcDataChannel extends EventTarget {
     return new RtcDataChannel.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   RtcDataChannel.internal_() : super.internal_();
 
 
@@ -31320,6 +31670,7 @@ class RtcDataChannelEvent extends Event {
   factory RtcDataChannelEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static RtcDataChannelEvent internalCreateRtcDataChannelEvent() {
     return new RtcDataChannelEvent._internalWrap();
   }
@@ -31328,6 +31679,7 @@ class RtcDataChannelEvent extends Event {
     return new RtcDataChannelEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   RtcDataChannelEvent.internal_() : super.internal_();
 
 
@@ -31362,6 +31714,7 @@ class RtcDtmfSender extends EventTarget {
   static const EventStreamProvider<RtcDtmfToneChangeEvent> toneChangeEvent = const EventStreamProvider<RtcDtmfToneChangeEvent>('tonechange');
 
 
+  @Deprecated("Internal Use Only")
   static RtcDtmfSender internalCreateRtcDtmfSender() {
     return new RtcDtmfSender._internalWrap();
   }
@@ -31370,6 +31723,7 @@ class RtcDtmfSender extends EventTarget {
     return new RtcDtmfSender.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   RtcDtmfSender.internal_() : super.internal_();
 
 
@@ -31428,6 +31782,7 @@ class RtcDtmfToneChangeEvent extends Event {
   factory RtcDtmfToneChangeEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static RtcDtmfToneChangeEvent internalCreateRtcDtmfToneChangeEvent() {
     return new RtcDtmfToneChangeEvent._internalWrap();
   }
@@ -31436,6 +31791,7 @@ class RtcDtmfToneChangeEvent extends Event {
     return new RtcDtmfToneChangeEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   RtcDtmfToneChangeEvent.internal_() : super.internal_();
 
 
@@ -31456,7 +31812,7 @@ class RtcDtmfToneChangeEvent extends Event {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental()
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCIceCandidate
-class RtcIceCandidate extends NativeFieldWrapperClass2 {
+class RtcIceCandidate extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory RtcIceCandidate._() { throw new UnsupportedError("Not supported"); }
 
@@ -31467,16 +31823,16 @@ class RtcIceCandidate extends NativeFieldWrapperClass2 {
     return wrap_jso(_blink.BlinkRTCIceCandidate.instance.constructorCallback_1_(dictionary_1));
   }
 
+  @Deprecated("Internal Use Only")
   static RtcIceCandidate internalCreateRtcIceCandidate() {
     return new RtcIceCandidate._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory RtcIceCandidate._internalWrap() {
     return new RtcIceCandidate.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   RtcIceCandidate.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -31523,6 +31879,7 @@ class RtcIceCandidateEvent extends Event {
   factory RtcIceCandidateEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static RtcIceCandidateEvent internalCreateRtcIceCandidateEvent() {
     return new RtcIceCandidateEvent._internalWrap();
   }
@@ -31531,6 +31888,7 @@ class RtcIceCandidateEvent extends Event {
     return new RtcIceCandidateEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   RtcIceCandidateEvent.internal_() : super.internal_();
 
 
@@ -31663,6 +32021,7 @@ class RtcPeerConnection extends EventTarget {
   }
 
 
+  @Deprecated("Internal Use Only")
   static RtcPeerConnection internalCreateRtcPeerConnection() {
     return new RtcPeerConnection._internalWrap();
   }
@@ -31671,6 +32030,7 @@ class RtcPeerConnection extends EventTarget {
     return new RtcPeerConnection.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   RtcPeerConnection.internal_() : super.internal_();
 
 
@@ -31845,7 +32205,7 @@ class RtcPeerConnection extends EventTarget {
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental()
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCSessionDescription
-class RtcSessionDescription extends NativeFieldWrapperClass2 {
+class RtcSessionDescription extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory RtcSessionDescription._() { throw new UnsupportedError("Not supported"); }
 
@@ -31859,16 +32219,16 @@ class RtcSessionDescription extends NativeFieldWrapperClass2 {
     return wrap_jso(_blink.BlinkRTCSessionDescription.instance.constructorCallback_0_());
   }
 
+  @Deprecated("Internal Use Only")
   static RtcSessionDescription internalCreateRtcSessionDescription() {
     return new RtcSessionDescription._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory RtcSessionDescription._internalWrap() {
     return new RtcSessionDescription.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   RtcSessionDescription.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -31902,20 +32262,20 @@ class RtcSessionDescription extends NativeFieldWrapperClass2 {
 @DomName('RTCStatsReport')
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#idl-def-RTCStatsReport
 @Experimental()
-class RtcStatsReport extends NativeFieldWrapperClass2 {
+class RtcStatsReport extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory RtcStatsReport._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static RtcStatsReport internalCreateRtcStatsReport() {
     return new RtcStatsReport._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory RtcStatsReport._internalWrap() {
     return new RtcStatsReport.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   RtcStatsReport.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -31961,20 +32321,20 @@ class RtcStatsReport extends NativeFieldWrapperClass2 {
 @DomName('RTCStatsResponse')
 // http://dev.w3.org/2011/webrtc/editor/webrtc.html#widl-RTCStatsReport-RTCStats-getter-DOMString-id
 @Experimental()
-class RtcStatsResponse extends NativeFieldWrapperClass2 {
+class RtcStatsResponse extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory RtcStatsResponse._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static RtcStatsResponse internalCreateRtcStatsResponse() {
     return new RtcStatsResponse._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory RtcStatsResponse._internalWrap() {
     return new RtcStatsResponse.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   RtcStatsResponse.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -32000,7 +32360,7 @@ class RtcStatsResponse extends NativeFieldWrapperClass2 {
 
 @DocsEditable()
 @DomName('Screen')
-class Screen extends NativeFieldWrapperClass2 {
+class Screen extends DartHtmlDomObject {
 
   @DomName('Screen.availHeight')
   @DomName('Screen.availLeft')
@@ -32011,16 +32371,16 @@ class Screen extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory Screen._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Screen internalCreateScreen() {
     return new Screen._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Screen._internalWrap() {
     return new Screen.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Screen.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -32085,6 +32445,7 @@ class ScreenOrientation extends EventTarget {
   static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
 
 
+  @Deprecated("Internal Use Only")
   static ScreenOrientation internalCreateScreenOrientation() {
     return new ScreenOrientation._internalWrap();
   }
@@ -32093,6 +32454,7 @@ class ScreenOrientation extends EventTarget {
     return new ScreenOrientation.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ScreenOrientation.internal_() : super.internal_();
 
 
@@ -32140,6 +32502,7 @@ class ScriptElement extends HtmlElement {
   factory ScriptElement() => document.createElement("script");
 
 
+  @Deprecated("Internal Use Only")
   static ScriptElement internalCreateScriptElement() {
     return new ScriptElement._internalWrap();
   }
@@ -32148,6 +32511,7 @@ class ScriptElement extends HtmlElement {
     return new ScriptElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ScriptElement.internal_() : super.internal_();
 
   /**
@@ -32248,6 +32612,7 @@ class SecurityPolicyViolationEvent extends Event {
   factory SecurityPolicyViolationEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static SecurityPolicyViolationEvent internalCreateSecurityPolicyViolationEvent() {
     return new SecurityPolicyViolationEvent._internalWrap();
   }
@@ -32256,6 +32621,7 @@ class SecurityPolicyViolationEvent extends Event {
     return new SecurityPolicyViolationEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SecurityPolicyViolationEvent.internal_() : super.internal_();
 
 
@@ -32316,6 +32682,7 @@ class SelectElement extends HtmlElement {
   factory SelectElement() => document.createElement("select");
 
 
+  @Deprecated("Internal Use Only")
   static SelectElement internalCreateSelectElement() {
     return new SelectElement._internalWrap();
   }
@@ -32324,6 +32691,7 @@ class SelectElement extends HtmlElement {
     return new SelectElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SelectElement.internal_() : super.internal_();
 
   /**
@@ -32483,20 +32851,20 @@ class SelectElement extends HtmlElement {
 
 @DocsEditable()
 @DomName('Selection')
-class Selection extends NativeFieldWrapperClass2 {
+class Selection extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Selection._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Selection internalCreateSelection() {
     return new Selection._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Selection._internalWrap() {
     return new Selection.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Selection.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -32637,20 +33005,20 @@ class Selection extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('ServiceWorkerClient')
 @Experimental() // untriaged
-class ServiceWorkerClient extends NativeFieldWrapperClass2 {
+class ServiceWorkerClient extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ServiceWorkerClient._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static ServiceWorkerClient internalCreateServiceWorkerClient() {
     return new ServiceWorkerClient._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory ServiceWorkerClient._internalWrap() {
     return new ServiceWorkerClient.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ServiceWorkerClient.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -32677,20 +33045,20 @@ class ServiceWorkerClient extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('ServiceWorkerClients')
 @Experimental() // untriaged
-class ServiceWorkerClients extends NativeFieldWrapperClass2 {
+class ServiceWorkerClients extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ServiceWorkerClients._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static ServiceWorkerClients internalCreateServiceWorkerClients() {
     return new ServiceWorkerClients._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory ServiceWorkerClients._internalWrap() {
     return new ServiceWorkerClients.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ServiceWorkerClients.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -32714,20 +33082,20 @@ class ServiceWorkerClients extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('ServiceWorkerContainer')
 @Experimental() // untriaged
-class ServiceWorkerContainer extends NativeFieldWrapperClass2 {
+class ServiceWorkerContainer extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ServiceWorkerContainer._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static ServiceWorkerContainer internalCreateServiceWorkerContainer() {
     return new ServiceWorkerContainer._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory ServiceWorkerContainer._internalWrap() {
     return new ServiceWorkerContainer.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ServiceWorkerContainer.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -32778,6 +33146,7 @@ class ServiceWorkerGlobalScope extends WorkerGlobalScope {
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
 
+  @Deprecated("Internal Use Only")
   static ServiceWorkerGlobalScope internalCreateServiceWorkerGlobalScope() {
     return new ServiceWorkerGlobalScope._internalWrap();
   }
@@ -32786,6 +33155,7 @@ class ServiceWorkerGlobalScope extends WorkerGlobalScope {
     return new ServiceWorkerGlobalScope.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ServiceWorkerGlobalScope.internal_() : super.internal_();
 
 
@@ -32846,6 +33216,7 @@ class ServiceWorkerRegistration extends EventTarget {
   factory ServiceWorkerRegistration._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static ServiceWorkerRegistration internalCreateServiceWorkerRegistration() {
     return new ServiceWorkerRegistration._internalWrap();
   }
@@ -32854,6 +33225,7 @@ class ServiceWorkerRegistration extends EventTarget {
     return new ServiceWorkerRegistration.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ServiceWorkerRegistration.internal_() : super.internal_();
 
 
@@ -32904,6 +33276,7 @@ class ShadowElement extends HtmlElement {
   factory ShadowElement() => document.createElement("shadow");
 
 
+  @Deprecated("Internal Use Only")
   static ShadowElement internalCreateShadowElement() {
     return new ShadowElement._internalWrap();
   }
@@ -32912,6 +33285,7 @@ class ShadowElement extends HtmlElement {
     return new ShadowElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ShadowElement.internal_() : super.internal_();
 
   /**
@@ -32946,6 +33320,7 @@ class ShadowRoot extends DocumentFragment {
   factory ShadowRoot._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static ShadowRoot internalCreateShadowRoot() {
     return new ShadowRoot._internalWrap();
   }
@@ -32954,6 +33329,7 @@ class ShadowRoot extends DocumentFragment {
     return new ShadowRoot.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ShadowRoot.internal_() : super.internal_();
 
 
@@ -33072,6 +33448,7 @@ class SharedWorker extends EventTarget implements AbstractWorker {
   }
 
 
+  @Deprecated("Internal Use Only")
   static SharedWorker internalCreateSharedWorker() {
     return new SharedWorker._internalWrap();
   }
@@ -33080,6 +33457,7 @@ class SharedWorker extends EventTarget implements AbstractWorker {
     return new SharedWorker.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SharedWorker.internal_() : super.internal_();
 
 
@@ -33124,6 +33502,7 @@ class SharedWorkerGlobalScope extends WorkerGlobalScope {
   static const EventStreamProvider<Event> connectEvent = const EventStreamProvider<Event>('connect');
 
 
+  @Deprecated("Internal Use Only")
   static SharedWorkerGlobalScope internalCreateSharedWorkerGlobalScope() {
     return new SharedWorkerGlobalScope._internalWrap();
   }
@@ -33132,6 +33511,7 @@ class SharedWorkerGlobalScope extends WorkerGlobalScope {
     return new SharedWorkerGlobalScope.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SharedWorkerGlobalScope.internal_() : super.internal_();
 
 
@@ -33163,6 +33543,7 @@ class SourceBuffer extends EventTarget {
   factory SourceBuffer._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static SourceBuffer internalCreateSourceBuffer() {
     return new SourceBuffer._internalWrap();
   }
@@ -33171,6 +33552,7 @@ class SourceBuffer extends EventTarget {
     return new SourceBuffer.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SourceBuffer.internal_() : super.internal_();
 
 
@@ -33266,6 +33648,7 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
   factory SourceBufferList._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static SourceBufferList internalCreateSourceBufferList() {
     return new SourceBufferList._internalWrap();
   }
@@ -33274,6 +33657,7 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
     return new SourceBufferList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SourceBufferList.internal_() : super.internal_();
 
 
@@ -33350,6 +33734,7 @@ class SourceElement extends HtmlElement {
   factory SourceElement() => document.createElement("source");
 
 
+  @Deprecated("Internal Use Only")
   static SourceElement internalCreateSourceElement() {
     return new SourceElement._internalWrap();
   }
@@ -33358,6 +33743,7 @@ class SourceElement extends HtmlElement {
     return new SourceElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SourceElement.internal_() : super.internal_();
 
   /**
@@ -33432,20 +33818,20 @@ class SourceElement extends HtmlElement {
 @DocsEditable()
 @DomName('SourceInfo')
 @Experimental() // untriaged
-class SourceInfo extends NativeFieldWrapperClass2 {
+class SourceInfo extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory SourceInfo._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static SourceInfo internalCreateSourceInfo() {
     return new SourceInfo._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory SourceInfo._internalWrap() {
     return new SourceInfo.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SourceInfo.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -33490,6 +33876,7 @@ class SpanElement extends HtmlElement {
   factory SpanElement() => document.createElement("span");
 
 
+  @Deprecated("Internal Use Only")
   static SpanElement internalCreateSpanElement() {
     return new SpanElement._internalWrap();
   }
@@ -33498,6 +33885,7 @@ class SpanElement extends HtmlElement {
     return new SpanElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SpanElement.internal_() : super.internal_();
 
   /**
@@ -33519,7 +33907,7 @@ class SpanElement extends HtmlElement {
 @DomName('SpeechGrammar')
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#dfn-speechgrammar
 @Experimental()
-class SpeechGrammar extends NativeFieldWrapperClass2 {
+class SpeechGrammar extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory SpeechGrammar._() { throw new UnsupportedError("Not supported"); }
 
@@ -33529,16 +33917,16 @@ class SpeechGrammar extends NativeFieldWrapperClass2 {
     return wrap_jso(_blink.BlinkSpeechGrammar.instance.constructorCallback_0_());
   }
 
+  @Deprecated("Internal Use Only")
   static SpeechGrammar internalCreateSpeechGrammar() {
     return new SpeechGrammar._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory SpeechGrammar._internalWrap() {
     return new SpeechGrammar.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SpeechGrammar.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -33572,7 +33960,7 @@ class SpeechGrammar extends NativeFieldWrapperClass2 {
 @DomName('SpeechGrammarList')
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#dfn-speechgrammarlist
 @Experimental()
-class SpeechGrammarList extends JsoNativeFieldWrapper with ListMixin<SpeechGrammar>, ImmutableListMixin<SpeechGrammar> implements List<SpeechGrammar> {
+class SpeechGrammarList extends DartHtmlDomObject with ListMixin<SpeechGrammar>, ImmutableListMixin<SpeechGrammar> implements List<SpeechGrammar> {
   // To suppress missing implicit constructor warnings.
   factory SpeechGrammarList._() { throw new UnsupportedError("Not supported"); }
 
@@ -33582,16 +33970,16 @@ class SpeechGrammarList extends JsoNativeFieldWrapper with ListMixin<SpeechGramm
     return wrap_jso(_blink.BlinkSpeechGrammarList.instance.constructorCallback_0_());
   }
 
+  @Deprecated("Internal Use Only")
   static SpeechGrammarList internalCreateSpeechGrammarList() {
     return new SpeechGrammarList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory SpeechGrammarList._internalWrap() {
     return new SpeechGrammarList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SpeechGrammarList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -33803,6 +34191,7 @@ class SpeechRecognition extends EventTarget {
   }
 
 
+  @Deprecated("Internal Use Only")
   static SpeechRecognition internalCreateSpeechRecognition() {
     return new SpeechRecognition._internalWrap();
   }
@@ -33811,6 +34200,7 @@ class SpeechRecognition extends EventTarget {
     return new SpeechRecognition.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SpeechRecognition.internal_() : super.internal_();
 
 
@@ -33937,20 +34327,20 @@ class SpeechRecognition extends EventTarget {
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental()
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#speechrecognitionalternative
-class SpeechRecognitionAlternative extends NativeFieldWrapperClass2 {
+class SpeechRecognitionAlternative extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory SpeechRecognitionAlternative._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static SpeechRecognitionAlternative internalCreateSpeechRecognitionAlternative() {
     return new SpeechRecognitionAlternative._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory SpeechRecognitionAlternative._internalWrap() {
     return new SpeechRecognitionAlternative.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SpeechRecognitionAlternative.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -33982,6 +34372,7 @@ class SpeechRecognitionError extends Event {
   factory SpeechRecognitionError._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static SpeechRecognitionError internalCreateSpeechRecognitionError() {
     return new SpeechRecognitionError._internalWrap();
   }
@@ -33990,6 +34381,7 @@ class SpeechRecognitionError extends Event {
     return new SpeechRecognitionError.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SpeechRecognitionError.internal_() : super.internal_();
 
 
@@ -34019,6 +34411,7 @@ class SpeechRecognitionEvent extends Event {
   factory SpeechRecognitionEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static SpeechRecognitionEvent internalCreateSpeechRecognitionEvent() {
     return new SpeechRecognitionEvent._internalWrap();
   }
@@ -34027,6 +34420,7 @@ class SpeechRecognitionEvent extends Event {
     return new SpeechRecognitionEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SpeechRecognitionEvent.internal_() : super.internal_();
 
 
@@ -34059,20 +34453,20 @@ class SpeechRecognitionEvent extends Event {
 @SupportedBrowser(SupportedBrowser.CHROME, '25')
 @Experimental()
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#speechrecognitionresult
-class SpeechRecognitionResult extends NativeFieldWrapperClass2 {
+class SpeechRecognitionResult extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory SpeechRecognitionResult._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static SpeechRecognitionResult internalCreateSpeechRecognitionResult() {
     return new SpeechRecognitionResult._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory SpeechRecognitionResult._internalWrap() {
     return new SpeechRecognitionResult.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SpeechRecognitionResult.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -34107,6 +34501,7 @@ class SpeechSynthesis extends EventTarget {
   factory SpeechSynthesis._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static SpeechSynthesis internalCreateSpeechSynthesis() {
     return new SpeechSynthesis._internalWrap();
   }
@@ -34115,6 +34510,7 @@ class SpeechSynthesis extends EventTarget {
     return new SpeechSynthesis.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SpeechSynthesis.internal_() : super.internal_();
 
 
@@ -34167,6 +34563,7 @@ class SpeechSynthesisEvent extends Event {
   factory SpeechSynthesisEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static SpeechSynthesisEvent internalCreateSpeechSynthesisEvent() {
     return new SpeechSynthesisEvent._internalWrap();
   }
@@ -34175,6 +34572,7 @@ class SpeechSynthesisEvent extends Event {
     return new SpeechSynthesisEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SpeechSynthesisEvent.internal_() : super.internal_();
 
 
@@ -34283,6 +34681,7 @@ class SpeechSynthesisUtterance extends EventTarget {
   }
 
 
+  @Deprecated("Internal Use Only")
   static SpeechSynthesisUtterance internalCreateSpeechSynthesisUtterance() {
     return new SpeechSynthesisUtterance._internalWrap();
   }
@@ -34291,6 +34690,7 @@ class SpeechSynthesisUtterance extends EventTarget {
     return new SpeechSynthesisUtterance.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SpeechSynthesisUtterance.internal_() : super.internal_();
 
 
@@ -34389,20 +34789,20 @@ class SpeechSynthesisUtterance extends EventTarget {
 @DomName('SpeechSynthesisVoice')
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section
 @Experimental()
-class SpeechSynthesisVoice extends NativeFieldWrapperClass2 {
+class SpeechSynthesisVoice extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory SpeechSynthesisVoice._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static SpeechSynthesisVoice internalCreateSpeechSynthesisVoice() {
     return new SpeechSynthesisVoice._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory SpeechSynthesisVoice._internalWrap() {
     return new SpeechSynthesisVoice.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SpeechSynthesisVoice.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -34461,7 +34861,7 @@ class SpeechSynthesisVoice extends NativeFieldWrapperClass2 {
  */
 @DomName('Storage')
 @Unstable()
-class Storage extends NativeFieldWrapperClass2
+class Storage extends DartHtmlDomObject
     implements Map<String, String> {
 
   void addAll(Map<String, String> other) {
@@ -34519,16 +34919,16 @@ class Storage extends NativeFieldWrapperClass2
   // To suppress missing implicit constructor warnings.
   factory Storage._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Storage internalCreateStorage() {
     return new Storage._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Storage._internalWrap() {
     return new Storage.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Storage.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -34625,6 +35025,7 @@ class StorageEvent extends Event {
   factory StorageEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static StorageEvent internalCreateStorageEvent() {
     return new StorageEvent._internalWrap();
   }
@@ -34633,6 +35034,7 @@ class StorageEvent extends Event {
     return new StorageEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   StorageEvent.internal_() : super.internal_();
 
 
@@ -34672,20 +35074,20 @@ class StorageEvent extends Event {
 @DomName('StorageInfo')
 // http://www.w3.org/TR/file-system-api/
 @Experimental()
-class StorageInfo extends NativeFieldWrapperClass2 {
+class StorageInfo extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory StorageInfo._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static StorageInfo internalCreateStorageInfo() {
     return new StorageInfo._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory StorageInfo._internalWrap() {
     return new StorageInfo.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   StorageInfo.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -34713,20 +35115,20 @@ class StorageInfo extends NativeFieldWrapperClass2 {
 @DomName('StorageQuota')
 // http://www.w3.org/TR/quota-api/#idl-def-StorageQuota
 @Experimental()
-class StorageQuota extends NativeFieldWrapperClass2 {
+class StorageQuota extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory StorageQuota._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static StorageQuota internalCreateStorageQuota() {
     return new StorageQuota._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory StorageQuota._internalWrap() {
     return new StorageQuota.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   StorageQuota.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -34735,7 +35137,7 @@ class StorageQuota extends NativeFieldWrapperClass2 {
   @DomName('StorageQuota.supportedTypes')
   @DocsEditable()
   @Experimental() // untriaged
-  List<String> get supportedTypes => _blink.BlinkStorageQuota.instance.supportedTypes_Getter_(unwrap_jso(this));
+  List<String> get supportedTypes => wrap_jso(_blink.BlinkStorageQuota.instance.supportedTypes_Getter_(unwrap_jso(this)));
   
   @DomName('StorageQuota.queryInfo')
   @DocsEditable()
@@ -34799,6 +35201,7 @@ class StyleElement extends HtmlElement {
   factory StyleElement() => document.createElement("style");
 
 
+  @Deprecated("Internal Use Only")
   static StyleElement internalCreateStyleElement() {
     return new StyleElement._internalWrap();
   }
@@ -34807,6 +35210,7 @@ class StyleElement extends HtmlElement {
     return new StyleElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   StyleElement.internal_() : super.internal_();
 
   /**
@@ -34856,20 +35260,20 @@ class StyleElement extends HtmlElement {
 @DomName('StyleMedia')
 // http://developer.apple.com/library/safari/#documentation/SafariDOMAdditions/Reference/StyleMedia/StyleMedia/StyleMedia.html
 @Experimental() // nonstandard
-class StyleMedia extends NativeFieldWrapperClass2 {
+class StyleMedia extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory StyleMedia._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static StyleMedia internalCreateStyleMedia() {
     return new StyleMedia._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory StyleMedia._internalWrap() {
     return new StyleMedia.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   StyleMedia.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -34893,20 +35297,20 @@ class StyleMedia extends NativeFieldWrapperClass2 {
 
 @DocsEditable()
 @DomName('StyleSheet')
-class StyleSheet extends NativeFieldWrapperClass2 {
+class StyleSheet extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory StyleSheet._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static StyleSheet internalCreateStyleSheet() {
     return new StyleSheet._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory StyleSheet._internalWrap() {
     return new StyleSheet.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   StyleSheet.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -34963,6 +35367,7 @@ class TableCaptionElement extends HtmlElement {
   factory TableCaptionElement() => document.createElement("caption");
 
 
+  @Deprecated("Internal Use Only")
   static TableCaptionElement internalCreateTableCaptionElement() {
     return new TableCaptionElement._internalWrap();
   }
@@ -34971,6 +35376,7 @@ class TableCaptionElement extends HtmlElement {
     return new TableCaptionElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TableCaptionElement.internal_() : super.internal_();
 
   /**
@@ -34999,6 +35405,7 @@ class TableCellElement extends HtmlElement {
   factory TableCellElement() => document.createElement("td");
 
 
+  @Deprecated("Internal Use Only")
   static TableCellElement internalCreateTableCellElement() {
     return new TableCellElement._internalWrap();
   }
@@ -35007,6 +35414,7 @@ class TableCellElement extends HtmlElement {
     return new TableCellElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TableCellElement.internal_() : super.internal_();
 
   /**
@@ -35063,6 +35471,7 @@ class TableColElement extends HtmlElement {
   factory TableColElement() => document.createElement("col");
 
 
+  @Deprecated("Internal Use Only")
   static TableColElement internalCreateTableColElement() {
     return new TableColElement._internalWrap();
   }
@@ -35071,6 +35480,7 @@ class TableColElement extends HtmlElement {
     return new TableColElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TableColElement.internal_() : super.internal_();
 
   /**
@@ -35125,6 +35535,7 @@ class TableElement extends HtmlElement {
   factory TableElement() => document.createElement("table");
 
 
+  @Deprecated("Internal Use Only")
   static TableElement internalCreateTableElement() {
     return new TableElement._internalWrap();
   }
@@ -35133,6 +35544,7 @@ class TableElement extends HtmlElement {
     return new TableElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TableElement.internal_() : super.internal_();
 
   /**
@@ -35241,6 +35653,7 @@ class TableRowElement extends HtmlElement {
   factory TableRowElement() => document.createElement("tr");
 
 
+  @Deprecated("Internal Use Only")
   static TableRowElement internalCreateTableRowElement() {
     return new TableRowElement._internalWrap();
   }
@@ -35249,6 +35662,7 @@ class TableRowElement extends HtmlElement {
     return new TableRowElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TableRowElement.internal_() : super.internal_();
 
   /**
@@ -35305,6 +35719,7 @@ class TableSectionElement extends HtmlElement {
   factory TableSectionElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static TableSectionElement internalCreateTableSectionElement() {
     return new TableSectionElement._internalWrap();
   }
@@ -35313,6 +35728,7 @@ class TableSectionElement extends HtmlElement {
     return new TableSectionElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TableSectionElement.internal_() : super.internal_();
 
   /**
@@ -35358,6 +35774,7 @@ class TemplateElement extends HtmlElement {
   factory TemplateElement() => document.createElement("template");
 
 
+  @Deprecated("Internal Use Only")
   static TemplateElement internalCreateTemplateElement() {
     return new TemplateElement._internalWrap();
   }
@@ -35366,6 +35783,7 @@ class TemplateElement extends HtmlElement {
     return new TemplateElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TemplateElement.internal_() : super.internal_();
 
   /**
@@ -35413,6 +35831,7 @@ class Text extends CharacterData {
   factory Text._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static Text internalCreateText() {
     return new Text._internalWrap();
   }
@@ -35421,6 +35840,7 @@ class Text extends CharacterData {
     return new Text.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Text.internal_() : super.internal_();
 
 
@@ -35456,6 +35876,7 @@ class TextAreaElement extends HtmlElement {
   factory TextAreaElement() => document.createElement("textarea");
 
 
+  @Deprecated("Internal Use Only")
   static TextAreaElement internalCreateTextAreaElement() {
     return new TextAreaElement._internalWrap();
   }
@@ -35464,6 +35885,7 @@ class TextAreaElement extends HtmlElement {
     return new TextAreaElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TextAreaElement.internal_() : super.internal_();
 
   /**
@@ -35701,6 +36123,7 @@ class TextEvent extends UIEvent {
   factory TextEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static TextEvent internalCreateTextEvent() {
     return new TextEvent._internalWrap();
   }
@@ -35709,6 +36132,7 @@ class TextEvent extends UIEvent {
     return new TextEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TextEvent.internal_() : super.internal_();
 
 
@@ -35730,20 +36154,20 @@ class TextEvent extends UIEvent {
 
 @DocsEditable()
 @DomName('TextMetrics')
-class TextMetrics extends NativeFieldWrapperClass2 {
+class TextMetrics extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory TextMetrics._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static TextMetrics internalCreateTextMetrics() {
     return new TextMetrics._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory TextMetrics._internalWrap() {
     return new TextMetrics.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TextMetrics.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -35835,6 +36259,7 @@ class TextTrack extends EventTarget {
   static const EventStreamProvider<Event> cueChangeEvent = const EventStreamProvider<Event>('cuechange');
 
 
+  @Deprecated("Internal Use Only")
   static TextTrack internalCreateTextTrack() {
     return new TextTrack._internalWrap();
   }
@@ -35843,6 +36268,7 @@ class TextTrack extends EventTarget {
     return new TextTrack.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TextTrack.internal_() : super.internal_();
 
 
@@ -35944,6 +36370,7 @@ class TextTrackCue extends EventTarget {
   static const EventStreamProvider<Event> exitEvent = const EventStreamProvider<Event>('exit');
 
 
+  @Deprecated("Internal Use Only")
   static TextTrackCue internalCreateTextTrackCue() {
     return new TextTrackCue._internalWrap();
   }
@@ -35952,6 +36379,7 @@ class TextTrackCue extends EventTarget {
     return new TextTrackCue.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TextTrackCue.internal_() : super.internal_();
 
 
@@ -36013,20 +36441,20 @@ class TextTrackCue extends EventTarget {
 @DomName('TextTrackCueList')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/the-video-element.html#texttrackcuelist
 @Experimental()
-class TextTrackCueList extends JsoNativeFieldWrapper with ListMixin<TextTrackCue>, ImmutableListMixin<TextTrackCue> implements List<TextTrackCue> {
+class TextTrackCueList extends DartHtmlDomObject with ListMixin<TextTrackCue>, ImmutableListMixin<TextTrackCue> implements List<TextTrackCue> {
   // To suppress missing implicit constructor warnings.
   factory TextTrackCueList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static TextTrackCueList internalCreateTextTrackCueList() {
     return new TextTrackCueList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory TextTrackCueList._internalWrap() {
     return new TextTrackCueList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TextTrackCueList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -36122,6 +36550,7 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
   static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
 
 
+  @Deprecated("Internal Use Only")
   static TextTrackList internalCreateTextTrackList() {
     return new TextTrackList._internalWrap();
   }
@@ -36130,6 +36559,7 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
     return new TextTrackList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TextTrackList.internal_() : super.internal_();
 
 
@@ -36213,20 +36643,20 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
 @DocsEditable()
 @DomName('TimeRanges')
 @Unstable()
-class TimeRanges extends NativeFieldWrapperClass2 {
+class TimeRanges extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory TimeRanges._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static TimeRanges internalCreateTimeRanges() {
     return new TimeRanges._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory TimeRanges._internalWrap() {
     return new TimeRanges.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TimeRanges.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -36264,20 +36694,20 @@ typedef void TimeoutHandler();
 @DocsEditable()
 @DomName('Timing')
 @Experimental() // untriaged
-class Timing extends NativeFieldWrapperClass2 {
+class Timing extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Timing._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Timing internalCreateTiming() {
     return new Timing._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Timing._internalWrap() {
     return new Timing.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Timing.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -36392,6 +36822,7 @@ class TitleElement extends HtmlElement {
   factory TitleElement() => document.createElement("title");
 
 
+  @Deprecated("Internal Use Only")
   static TitleElement internalCreateTitleElement() {
     return new TitleElement._internalWrap();
   }
@@ -36400,6 +36831,7 @@ class TitleElement extends HtmlElement {
     return new TitleElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TitleElement.internal_() : super.internal_();
 
   /**
@@ -36419,20 +36851,20 @@ class TitleElement extends HtmlElement {
 @DomName('Touch')
 // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
 @Experimental()
-class Touch extends NativeFieldWrapperClass2 {
+class Touch extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Touch._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Touch internalCreateTouch() {
     return new Touch._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Touch._internalWrap() {
     return new Touch.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Touch.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -36559,6 +36991,7 @@ class TouchEvent extends UIEvent {
   factory TouchEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static TouchEvent internalCreateTouchEvent() {
     return new TouchEvent._internalWrap();
   }
@@ -36567,6 +37000,7 @@ class TouchEvent extends UIEvent {
     return new TouchEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TouchEvent.internal_() : super.internal_();
 
 
@@ -36621,7 +37055,7 @@ class TouchEvent extends UIEvent {
 @DomName('TouchList')
 // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
 @Experimental()
-class TouchList extends JsoNativeFieldWrapper with ListMixin<Touch>, ImmutableListMixin<Touch> implements List<Touch> {
+class TouchList extends DartHtmlDomObject with ListMixin<Touch>, ImmutableListMixin<Touch> implements List<Touch> {
   /// NB: This constructor likely does not work as you might expect it to! This
   /// constructor will simply fail (returning null) if you are not on a device
   /// with touch enabled. See dartbug.com/8314.
@@ -36630,16 +37064,16 @@ class TouchList extends JsoNativeFieldWrapper with ListMixin<Touch>, ImmutableLi
   // To suppress missing implicit constructor warnings.
   factory TouchList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static TouchList internalCreateTouchList() {
     return new TouchList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory TouchList._internalWrap() {
     return new TouchList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TouchList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -36726,6 +37160,7 @@ class TrackElement extends HtmlElement {
   factory TrackElement() => document.createElement("track");
 
 
+  @Deprecated("Internal Use Only")
   static TrackElement internalCreateTrackElement() {
     return new TrackElement._internalWrap();
   }
@@ -36734,6 +37169,7 @@ class TrackElement extends HtmlElement {
     return new TrackElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TrackElement.internal_() : super.internal_();
 
   /**
@@ -36836,6 +37272,7 @@ class TrackEvent extends Event {
   factory TrackEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static TrackEvent internalCreateTrackEvent() {
     return new TrackEvent._internalWrap();
   }
@@ -36844,6 +37281,7 @@ class TrackEvent extends Event {
     return new TrackEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TrackEvent.internal_() : super.internal_();
 
 
@@ -36866,6 +37304,7 @@ class TransitionEvent extends Event {
   factory TransitionEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static TransitionEvent internalCreateTransitionEvent() {
     return new TransitionEvent._internalWrap();
   }
@@ -36874,6 +37313,7 @@ class TransitionEvent extends Event {
     return new TransitionEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TransitionEvent.internal_() : super.internal_();
 
 
@@ -36897,23 +37337,23 @@ class TransitionEvent extends Event {
 
 @DomName('TreeWalker')
 @Unstable()
-class TreeWalker extends NativeFieldWrapperClass2 {
+class TreeWalker extends DartHtmlDomObject {
   factory TreeWalker(Node root, int whatToShow) {
     return document._createTreeWalker(root, whatToShow, null);
   }
   // To suppress missing implicit constructor warnings.
   factory TreeWalker._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static TreeWalker internalCreateTreeWalker() {
     return new TreeWalker._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory TreeWalker._internalWrap() {
     return new TreeWalker.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TreeWalker.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -36997,6 +37437,7 @@ class UIEvent extends Event {
   factory UIEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static UIEvent internalCreateUIEvent() {
     return new UIEvent._internalWrap();
   }
@@ -37005,6 +37446,7 @@ class UIEvent extends Event {
     return new UIEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   UIEvent.internal_() : super.internal_();
 
 
@@ -37086,6 +37528,7 @@ class UListElement extends HtmlElement {
   factory UListElement() => document.createElement("ul");
 
 
+  @Deprecated("Internal Use Only")
   static UListElement internalCreateUListElement() {
     return new UListElement._internalWrap();
   }
@@ -37094,6 +37537,7 @@ class UListElement extends HtmlElement {
     return new UListElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   UListElement.internal_() : super.internal_();
 
   /**
@@ -37118,6 +37562,7 @@ class UnknownElement extends HtmlElement {
   factory UnknownElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static UnknownElement internalCreateUnknownElement() {
     return new UnknownElement._internalWrap();
   }
@@ -37126,6 +37571,7 @@ class UnknownElement extends HtmlElement {
     return new UnknownElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   UnknownElement.internal_() : super.internal_();
 
   /**
@@ -37145,20 +37591,20 @@ class UnknownElement extends HtmlElement {
 
 @DocsEditable()
 @DomName('URL')
-class Url extends NativeFieldWrapperClass2 implements UrlUtils {
+class Url extends DartHtmlDomObject implements UrlUtils {
   // To suppress missing implicit constructor warnings.
   factory Url._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Url internalCreateUrl() {
     return new Url._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Url._internalWrap() {
     return new Url.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Url.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -37314,7 +37760,7 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
 @DocsEditable()
 @DomName('URLUtils')
 @Experimental() // untriaged
-abstract class UrlUtils extends NativeFieldWrapperClass2 {
+abstract class UrlUtils extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory UrlUtils._() { throw new UnsupportedError("Not supported"); }
 
@@ -37439,7 +37885,7 @@ abstract class UrlUtils extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('URLUtilsReadOnly')
 @Experimental() // untriaged
-abstract class UrlUtilsReadOnly extends NativeFieldWrapperClass2 {
+abstract class UrlUtilsReadOnly extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory UrlUtilsReadOnly._() { throw new UnsupportedError("Not supported"); }
 
@@ -37503,20 +37949,20 @@ abstract class UrlUtilsReadOnly extends NativeFieldWrapperClass2 {
 
 @DocsEditable()
 @DomName('ValidityState')
-class ValidityState extends NativeFieldWrapperClass2 {
+class ValidityState extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ValidityState._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static ValidityState internalCreateValidityState() {
     return new ValidityState._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory ValidityState._internalWrap() {
     return new ValidityState.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ValidityState.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -37578,6 +38024,7 @@ class VideoElement extends MediaElement implements CanvasImageSource {
   factory VideoElement() => document.createElement("video");
 
 
+  @Deprecated("Internal Use Only")
   static VideoElement internalCreateVideoElement() {
     return new VideoElement._internalWrap();
   }
@@ -37586,6 +38033,7 @@ class VideoElement extends MediaElement implements CanvasImageSource {
     return new VideoElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   VideoElement.internal_() : super.internal_();
 
   /**
@@ -37673,20 +38121,20 @@ class VideoElement extends MediaElement implements CanvasImageSource {
 @DocsEditable()
 @DomName('VideoPlaybackQuality')
 @Experimental() // untriaged
-class VideoPlaybackQuality extends NativeFieldWrapperClass2 {
+class VideoPlaybackQuality extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory VideoPlaybackQuality._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static VideoPlaybackQuality internalCreateVideoPlaybackQuality() {
     return new VideoPlaybackQuality._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory VideoPlaybackQuality._internalWrap() {
     return new VideoPlaybackQuality.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   VideoPlaybackQuality.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -37723,20 +38171,20 @@ class VideoPlaybackQuality extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('VideoTrack')
 @Experimental() // untriaged
-class VideoTrack extends NativeFieldWrapperClass2 {
+class VideoTrack extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory VideoTrack._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static VideoTrack internalCreateVideoTrack() {
     return new VideoTrack._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory VideoTrack._internalWrap() {
     return new VideoTrack.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   VideoTrack.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -37793,6 +38241,7 @@ class VideoTrackList extends EventTarget {
   static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
 
 
+  @Deprecated("Internal Use Only")
   static VideoTrackList internalCreateVideoTrackList() {
     return new VideoTrackList._internalWrap();
   }
@@ -37801,6 +38250,7 @@ class VideoTrackList extends EventTarget {
     return new VideoTrackList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   VideoTrackList.internal_() : super.internal_();
 
 
@@ -37862,6 +38312,7 @@ class VttCue extends TextTrackCue {
   }
 
 
+  @Deprecated("Internal Use Only")
   static VttCue internalCreateVttCue() {
     return new VttCue._internalWrap();
   }
@@ -37870,6 +38321,7 @@ class VttCue extends TextTrackCue {
     return new VttCue.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   VttCue.internal_() : super.internal_();
 
 
@@ -37969,7 +38421,7 @@ class VttCue extends TextTrackCue {
 @DocsEditable()
 @DomName('VTTRegion')
 @Experimental() // untriaged
-class VttRegion extends NativeFieldWrapperClass2 {
+class VttRegion extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory VttRegion._() { throw new UnsupportedError("Not supported"); }
 
@@ -37979,16 +38431,16 @@ class VttRegion extends NativeFieldWrapperClass2 {
     return wrap_jso(_blink.BlinkVTTRegion.instance.constructorCallback_0_());
   }
 
+  @Deprecated("Internal Use Only")
   static VttRegion internalCreateVttRegion() {
     return new VttRegion._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory VttRegion._internalWrap() {
     return new VttRegion.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   VttRegion.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -38090,20 +38542,20 @@ class VttRegion extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('VTTRegionList')
 @Experimental() // untriaged
-class VttRegionList extends NativeFieldWrapperClass2 {
+class VttRegionList extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory VttRegionList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static VttRegionList internalCreateVttRegionList() {
     return new VttRegionList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory VttRegionList._internalWrap() {
     return new VttRegionList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   VttRegionList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -38234,6 +38686,7 @@ class WebSocket extends EventTarget {
   }
 
 
+  @Deprecated("Internal Use Only")
   static WebSocket internalCreateWebSocket() {
     return new WebSocket._internalWrap();
   }
@@ -38242,6 +38695,7 @@ class WebSocket extends EventTarget {
     return new WebSocket.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   WebSocket.internal_() : super.internal_();
 
 
@@ -38406,6 +38860,7 @@ class WheelEvent extends MouseEvent {
   factory WheelEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static WheelEvent internalCreateWheelEvent() {
     return new WheelEvent._internalWrap();
   }
@@ -38414,6 +38869,7 @@ class WheelEvent extends MouseEvent {
     return new WheelEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   WheelEvent.internal_() : super.internal_();
 
 
@@ -38746,6 +39202,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   static const EventStreamProvider<AnimationEvent> animationStartEvent = const EventStreamProvider<AnimationEvent>('webkitAnimationStart');
 
 
+  @Deprecated("Internal Use Only")
   static Window internalCreateWindow() {
     return new Window._internalWrap();
   }
@@ -38754,6 +39211,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
     return new Window.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Window.internal_() : super.internal_();
 
 
@@ -40079,7 +40537,7 @@ class _BeforeUnloadEventStreamProvider implements
 @DocsEditable()
 @DomName('WindowBase64')
 @Experimental() // untriaged
-abstract class WindowBase64 extends NativeFieldWrapperClass2 {
+abstract class WindowBase64 extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory WindowBase64._() { throw new UnsupportedError("Not supported"); }
 
@@ -40223,6 +40681,7 @@ class Worker extends EventTarget implements AbstractWorker {
   }
 
 
+  @Deprecated("Internal Use Only")
   static Worker internalCreateWorker() {
     return new Worker._internalWrap();
   }
@@ -40231,6 +40690,7 @@ class Worker extends EventTarget implements AbstractWorker {
     return new Worker.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Worker.internal_() : super.internal_();
 
 
@@ -40272,6 +40732,7 @@ class WorkerConsole extends ConsoleBase {
   factory WorkerConsole._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static WorkerConsole internalCreateWorkerConsole() {
     return new WorkerConsole._internalWrap();
   }
@@ -40280,6 +40741,7 @@ class WorkerConsole extends ConsoleBase {
     return new WorkerConsole.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   WorkerConsole.internal_() : super.internal_();
 
 
@@ -40310,6 +40772,7 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
 
+  @Deprecated("Internal Use Only")
   static WorkerGlobalScope internalCreateWorkerGlobalScope() {
     return new WorkerGlobalScope._internalWrap();
   }
@@ -40318,6 +40781,7 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
     return new WorkerGlobalScope.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   WorkerGlobalScope.internal_() : super.internal_();
 
 
@@ -40477,20 +40941,20 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
 @DocsEditable()
 @DomName('WorkerPerformance')
 @Experimental() // untriaged
-class WorkerPerformance extends NativeFieldWrapperClass2 {
+class WorkerPerformance extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory WorkerPerformance._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static WorkerPerformance internalCreateWorkerPerformance() {
     return new WorkerPerformance._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory WorkerPerformance._internalWrap() {
     return new WorkerPerformance.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   WorkerPerformance.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -40518,7 +40982,7 @@ class WorkerPerformance extends NativeFieldWrapperClass2 {
 @DomName('XPathEvaluator')
 // http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathEvaluator
 @deprecated // experimental
-class XPathEvaluator extends NativeFieldWrapperClass2 {
+class XPathEvaluator extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory XPathEvaluator._() { throw new UnsupportedError("Not supported"); }
 
@@ -40528,16 +40992,16 @@ class XPathEvaluator extends NativeFieldWrapperClass2 {
     return wrap_jso(_blink.BlinkXPathEvaluator.instance.constructorCallback_0_());
   }
 
+  @Deprecated("Internal Use Only")
   static XPathEvaluator internalCreateXPathEvaluator() {
     return new XPathEvaluator._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory XPathEvaluator._internalWrap() {
     return new XPathEvaluator.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   XPathEvaluator.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -40567,20 +41031,20 @@ class XPathEvaluator extends NativeFieldWrapperClass2 {
 @DomName('XPathExpression')
 // http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathExpression
 @deprecated // experimental
-class XPathExpression extends NativeFieldWrapperClass2 {
+class XPathExpression extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory XPathExpression._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static XPathExpression internalCreateXPathExpression() {
     return new XPathExpression._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory XPathExpression._internalWrap() {
     return new XPathExpression.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   XPathExpression.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -40602,20 +41066,20 @@ class XPathExpression extends NativeFieldWrapperClass2 {
 @DomName('XPathNSResolver')
 // http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathNSResolver
 @deprecated // experimental
-class XPathNSResolver extends NativeFieldWrapperClass2 {
+class XPathNSResolver extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory XPathNSResolver._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static XPathNSResolver internalCreateXPathNSResolver() {
     return new XPathNSResolver._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory XPathNSResolver._internalWrap() {
     return new XPathNSResolver.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   XPathNSResolver.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -40637,20 +41101,20 @@ class XPathNSResolver extends NativeFieldWrapperClass2 {
 @DomName('XPathResult')
 // http://www.w3.org/TR/DOM-Level-3-XPath/xpath.html#XPathResult
 @deprecated // experimental
-class XPathResult extends NativeFieldWrapperClass2 {
+class XPathResult extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory XPathResult._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static XPathResult internalCreateXPathResult() {
     return new XPathResult._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory XPathResult._internalWrap() {
     return new XPathResult.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   XPathResult.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -40748,6 +41212,7 @@ class XmlDocument extends Document {
   factory XmlDocument._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static XmlDocument internalCreateXmlDocument() {
     return new XmlDocument._internalWrap();
   }
@@ -40756,6 +41221,7 @@ class XmlDocument extends Document {
     return new XmlDocument.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   XmlDocument.internal_() : super.internal_();
 
 
@@ -40771,7 +41237,7 @@ class XmlDocument extends Document {
 @DomName('XMLSerializer')
 // http://domparsing.spec.whatwg.org/#the-xmlserializer-interface
 @deprecated // stable
-class XmlSerializer extends NativeFieldWrapperClass2 {
+class XmlSerializer extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory XmlSerializer._() { throw new UnsupportedError("Not supported"); }
 
@@ -40781,16 +41247,16 @@ class XmlSerializer extends NativeFieldWrapperClass2 {
     return wrap_jso(_blink.BlinkXMLSerializer.instance.constructorCallback_0_());
   }
 
+  @Deprecated("Internal Use Only")
   static XmlSerializer internalCreateXmlSerializer() {
     return new XmlSerializer._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory XmlSerializer._internalWrap() {
     return new XmlSerializer.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   XmlSerializer.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -40814,7 +41280,7 @@ class XmlSerializer extends NativeFieldWrapperClass2 {
 @SupportedBrowser(SupportedBrowser.FIREFOX)
 @SupportedBrowser(SupportedBrowser.SAFARI)
 @deprecated // nonstandard
-class XsltProcessor extends NativeFieldWrapperClass2 {
+class XsltProcessor extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory XsltProcessor._() { throw new UnsupportedError("Not supported"); }
 
@@ -40824,16 +41290,16 @@ class XsltProcessor extends NativeFieldWrapperClass2 {
     return wrap_jso(_blink.BlinkXSLTProcessor.instance.constructorCallback_0_());
   }
 
+  @Deprecated("Internal Use Only")
   static XsltProcessor internalCreateXsltProcessor() {
     return new XsltProcessor._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory XsltProcessor._internalWrap() {
     return new XsltProcessor.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   XsltProcessor.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -40889,6 +41355,7 @@ class _Attr extends Node {
   factory _Attr._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _Attr internalCreate_Attr() {
     return new _Attr._internalWrap();
   }
@@ -40897,6 +41364,7 @@ class _Attr extends Node {
     return new _Attr.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _Attr.internal_() : super.internal_();
 
 
@@ -40954,6 +41422,7 @@ class _CSSPrimitiveValue extends _CSSValue {
   factory _CSSPrimitiveValue._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _CSSPrimitiveValue internalCreate_CSSPrimitiveValue() {
     return new _CSSPrimitiveValue._internalWrap();
   }
@@ -40962,6 +41431,7 @@ class _CSSPrimitiveValue extends _CSSValue {
     return new _CSSPrimitiveValue.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _CSSPrimitiveValue.internal_() : super.internal_();
 
 
@@ -40982,6 +41452,7 @@ class _CSSUnknownRule extends CssRule {
   factory _CSSUnknownRule._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _CSSUnknownRule internalCreate_CSSUnknownRule() {
     return new _CSSUnknownRule._internalWrap();
   }
@@ -40990,6 +41461,7 @@ class _CSSUnknownRule extends CssRule {
     return new _CSSUnknownRule.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _CSSUnknownRule.internal_() : super.internal_();
 
 
@@ -41005,20 +41477,20 @@ class _CSSUnknownRule extends CssRule {
 @DomName('CSSValue')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-class _CSSValue extends NativeFieldWrapperClass2 {
+class _CSSValue extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _CSSValue._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _CSSValue internalCreate_CSSValue() {
     return new _CSSValue._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _CSSValue._internalWrap() {
     return new _CSSValue.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _CSSValue.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -41035,20 +41507,20 @@ class _CSSValue extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('Cache')
 @Experimental() // untriaged
-class _Cache extends NativeFieldWrapperClass2 {
+class _Cache extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _Cache._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _Cache internalCreate_Cache() {
     return new _Cache._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _Cache._internalWrap() {
     return new _Cache.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _Cache.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -41065,7 +41537,7 @@ class _Cache extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('CanvasPathMethods')
 @Experimental() // untriaged
-class _CanvasPathMethods extends NativeFieldWrapperClass2 {
+class _CanvasPathMethods extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _CanvasPathMethods._() { throw new UnsupportedError("Not supported"); }
 
@@ -41077,7 +41549,7 @@ class _CanvasPathMethods extends NativeFieldWrapperClass2 {
 
 @DocsEditable()
 @DomName('ClientRect')
-class _ClientRect extends NativeFieldWrapperClass2 implements Rectangle {
+class _ClientRect extends DartHtmlDomObject implements Rectangle {
 
   // NOTE! All code below should be common with RectangleBase.
    String toString() {
@@ -41171,16 +41643,16 @@ class _ClientRect extends NativeFieldWrapperClass2 implements Rectangle {
     // To suppress missing implicit constructor warnings.
   factory _ClientRect._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _ClientRect internalCreate_ClientRect() {
     return new _ClientRect._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _ClientRect._internalWrap() {
     return new _ClientRect.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _ClientRect.internal_() { }
 
 
@@ -41254,20 +41726,20 @@ class _JenkinsSmiHash {
 
 @DocsEditable()
 @DomName('ClientRectList')
-class _ClientRectList extends JsoNativeFieldWrapper with ListMixin<Rectangle>, ImmutableListMixin<Rectangle> implements List<Rectangle> {
+class _ClientRectList extends DartHtmlDomObject with ListMixin<Rectangle>, ImmutableListMixin<Rectangle> implements List<Rectangle> {
   // To suppress missing implicit constructor warnings.
   factory _ClientRectList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _ClientRectList internalCreate_ClientRectList() {
     return new _ClientRectList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _ClientRectList._internalWrap() {
     return new _ClientRectList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _ClientRectList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -41339,20 +41811,20 @@ class _ClientRectList extends JsoNativeFieldWrapper with ListMixin<Rectangle>, I
 @DomName('Counter')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-class _Counter extends NativeFieldWrapperClass2 {
+class _Counter extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _Counter._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _Counter internalCreate_Counter() {
     return new _Counter._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _Counter._internalWrap() {
     return new _Counter.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _Counter.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -41368,20 +41840,20 @@ class _Counter extends NativeFieldWrapperClass2 {
 
 @DocsEditable()
 @DomName('CSSRuleList')
-class _CssRuleList extends JsoNativeFieldWrapper with ListMixin<CssRule>, ImmutableListMixin<CssRule> implements List<CssRule> {
+class _CssRuleList extends DartHtmlDomObject with ListMixin<CssRule>, ImmutableListMixin<CssRule> implements List<CssRule> {
   // To suppress missing implicit constructor warnings.
   factory _CssRuleList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _CssRuleList internalCreate_CssRuleList() {
     return new _CssRuleList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _CssRuleList._internalWrap() {
     return new _CssRuleList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _CssRuleList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -41458,6 +41930,7 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
   factory _CssValueList._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _CssValueList internalCreate_CssValueList() {
     return new _CssValueList._internalWrap();
   }
@@ -41466,6 +41939,7 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
     return new _CssValueList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _CssValueList.internal_() : super.internal_();
 
 
@@ -41536,20 +42010,20 @@ class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMi
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental()
 // http://www.w3.org/TR/file-system-api/#the-filesystemsync-interface
-class _DOMFileSystemSync extends NativeFieldWrapperClass2 {
+class _DOMFileSystemSync extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _DOMFileSystemSync._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _DOMFileSystemSync internalCreate_DOMFileSystemSync() {
     return new _DOMFileSystemSync._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _DOMFileSystemSync._internalWrap() {
     return new _DOMFileSystemSync.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _DOMFileSystemSync.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -41572,6 +42046,7 @@ class _DirectoryEntrySync extends _EntrySync {
   factory _DirectoryEntrySync._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _DirectoryEntrySync internalCreate_DirectoryEntrySync() {
     return new _DirectoryEntrySync._internalWrap();
   }
@@ -41580,6 +42055,7 @@ class _DirectoryEntrySync extends _EntrySync {
     return new _DirectoryEntrySync.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _DirectoryEntrySync.internal_() : super.internal_();
 
 
@@ -41595,20 +42071,20 @@ class _DirectoryEntrySync extends _EntrySync {
 @DomName('DirectoryReaderSync')
 // http://www.w3.org/TR/file-system-api/#idl-def-DirectoryReaderSync
 @Experimental()
-class _DirectoryReaderSync extends NativeFieldWrapperClass2 {
+class _DirectoryReaderSync extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _DirectoryReaderSync._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _DirectoryReaderSync internalCreate_DirectoryReaderSync() {
     return new _DirectoryReaderSync._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _DirectoryReaderSync._internalWrap() {
     return new _DirectoryReaderSync.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _DirectoryReaderSync.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -41629,6 +42105,7 @@ class _DocumentType extends Node implements ChildNode {
   factory _DocumentType._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _DocumentType internalCreate_DocumentType() {
     return new _DocumentType._internalWrap();
   }
@@ -41637,6 +42114,7 @@ class _DocumentType extends Node implements ChildNode {
     return new _DocumentType.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _DocumentType.internal_() : super.internal_();
 
 
@@ -41678,6 +42156,7 @@ class _DomRect extends DomRectReadOnly {
   }
 
 
+  @Deprecated("Internal Use Only")
   static _DomRect internalCreate_DomRect() {
     return new _DomRect._internalWrap();
   }
@@ -41686,6 +42165,7 @@ class _DomRect extends DomRectReadOnly {
     return new _DomRect.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _DomRect.internal_() : super.internal_();
 
 
@@ -41741,20 +42221,20 @@ class _DomRect extends DomRectReadOnly {
 @DomName('EntrySync')
 // http://www.w3.org/TR/file-system-api/#idl-def-EntrySync
 @Experimental()
-class _EntrySync extends NativeFieldWrapperClass2 {
+class _EntrySync extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _EntrySync._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _EntrySync internalCreate_EntrySync() {
     return new _EntrySync._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _EntrySync._internalWrap() {
     return new _EntrySync.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _EntrySync.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -41777,6 +42257,7 @@ class _FileEntrySync extends _EntrySync {
   factory _FileEntrySync._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _FileEntrySync internalCreate_FileEntrySync() {
     return new _FileEntrySync._internalWrap();
   }
@@ -41785,6 +42266,7 @@ class _FileEntrySync extends _EntrySync {
     return new _FileEntrySync.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _FileEntrySync.internal_() : super.internal_();
 
 
@@ -41800,7 +42282,7 @@ class _FileEntrySync extends _EntrySync {
 @DomName('FileReaderSync')
 // http://www.w3.org/TR/FileAPI/#FileReaderSync
 @Experimental()
-class _FileReaderSync extends NativeFieldWrapperClass2 {
+class _FileReaderSync extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _FileReaderSync._() { throw new UnsupportedError("Not supported"); }
 
@@ -41810,16 +42292,16 @@ class _FileReaderSync extends NativeFieldWrapperClass2 {
     return wrap_jso(_blink.BlinkFileReaderSync.instance.constructorCallback_0_());
   }
 
+  @Deprecated("Internal Use Only")
   static _FileReaderSync internalCreate_FileReaderSync() {
     return new _FileReaderSync._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _FileReaderSync._internalWrap() {
     return new _FileReaderSync.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _FileReaderSync.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -41837,20 +42319,20 @@ class _FileReaderSync extends NativeFieldWrapperClass2 {
 @DomName('FileWriterSync')
 // http://www.w3.org/TR/file-writer-api/#idl-def-FileWriterSync
 @Experimental()
-class _FileWriterSync extends NativeFieldWrapperClass2 {
+class _FileWriterSync extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _FileWriterSync._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _FileWriterSync internalCreate_FileWriterSync() {
     return new _FileWriterSync._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _FileWriterSync._internalWrap() {
     return new _FileWriterSync.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _FileWriterSync.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -41868,20 +42350,20 @@ class _FileWriterSync extends NativeFieldWrapperClass2 {
 @DomName('GamepadList')
 // https://dvcs.w3.org/hg/gamepad/raw-file/default/gamepad.html
 @Experimental()
-class _GamepadList extends JsoNativeFieldWrapper with ListMixin<Gamepad>, ImmutableListMixin<Gamepad> implements List<Gamepad> {
+class _GamepadList extends DartHtmlDomObject with ListMixin<Gamepad>, ImmutableListMixin<Gamepad> implements List<Gamepad> {
   // To suppress missing implicit constructor warnings.
   factory _GamepadList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _GamepadList internalCreate_GamepadList() {
     return new _GamepadList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _GamepadList._internalWrap() {
     return new _GamepadList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _GamepadList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -41953,20 +42435,20 @@ class _GamepadList extends JsoNativeFieldWrapper with ListMixin<Gamepad>, Immuta
 @DomName('HTMLAllCollection')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#dom-document-all
 @deprecated // deprecated
-class _HTMLAllCollection extends NativeFieldWrapperClass2 {
+class _HTMLAllCollection extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _HTMLAllCollection._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _HTMLAllCollection internalCreate_HTMLAllCollection() {
     return new _HTMLAllCollection._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _HTMLAllCollection._internalWrap() {
     return new _HTMLAllCollection.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _HTMLAllCollection.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -41993,6 +42475,7 @@ class _HTMLAppletElement extends HtmlElement {
   factory _HTMLAppletElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _HTMLAppletElement internalCreate_HTMLAppletElement() {
     return new _HTMLAppletElement._internalWrap();
   }
@@ -42001,6 +42484,7 @@ class _HTMLAppletElement extends HtmlElement {
     return new _HTMLAppletElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _HTMLAppletElement.internal_() : super.internal_();
 
   /**
@@ -42027,6 +42511,7 @@ class _HTMLDirectoryElement extends HtmlElement {
   factory _HTMLDirectoryElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _HTMLDirectoryElement internalCreate_HTMLDirectoryElement() {
     return new _HTMLDirectoryElement._internalWrap();
   }
@@ -42035,6 +42520,7 @@ class _HTMLDirectoryElement extends HtmlElement {
     return new _HTMLDirectoryElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _HTMLDirectoryElement.internal_() : super.internal_();
 
   /**
@@ -42061,6 +42547,7 @@ class _HTMLFontElement extends HtmlElement {
   factory _HTMLFontElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _HTMLFontElement internalCreate_HTMLFontElement() {
     return new _HTMLFontElement._internalWrap();
   }
@@ -42069,6 +42556,7 @@ class _HTMLFontElement extends HtmlElement {
     return new _HTMLFontElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _HTMLFontElement.internal_() : super.internal_();
 
   /**
@@ -42095,6 +42583,7 @@ class _HTMLFrameElement extends HtmlElement {
   factory _HTMLFrameElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _HTMLFrameElement internalCreate_HTMLFrameElement() {
     return new _HTMLFrameElement._internalWrap();
   }
@@ -42103,6 +42592,7 @@ class _HTMLFrameElement extends HtmlElement {
     return new _HTMLFrameElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _HTMLFrameElement.internal_() : super.internal_();
 
   /**
@@ -42127,6 +42617,7 @@ class _HTMLFrameSetElement extends HtmlElement implements WindowEventHandlers {
   factory _HTMLFrameSetElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _HTMLFrameSetElement internalCreate_HTMLFrameSetElement() {
     return new _HTMLFrameSetElement._internalWrap();
   }
@@ -42135,6 +42626,7 @@ class _HTMLFrameSetElement extends HtmlElement implements WindowEventHandlers {
     return new _HTMLFrameSetElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _HTMLFrameSetElement.internal_() : super.internal_();
 
   /**
@@ -42170,6 +42662,7 @@ class _HTMLMarqueeElement extends HtmlElement {
   factory _HTMLMarqueeElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _HTMLMarqueeElement internalCreate_HTMLMarqueeElement() {
     return new _HTMLMarqueeElement._internalWrap();
   }
@@ -42178,6 +42671,7 @@ class _HTMLMarqueeElement extends HtmlElement {
     return new _HTMLMarqueeElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _HTMLMarqueeElement.internal_() : super.internal_();
 
   /**
@@ -42210,6 +42704,7 @@ class _MutationEvent extends Event {
   factory _MutationEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _MutationEvent internalCreate_MutationEvent() {
     return new _MutationEvent._internalWrap();
   }
@@ -42218,6 +42713,7 @@ class _MutationEvent extends Event {
     return new _MutationEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _MutationEvent.internal_() : super.internal_();
 
 
@@ -42233,20 +42729,20 @@ class _MutationEvent extends Event {
 @DomName('NamedNodeMap')
 // http://dom.spec.whatwg.org/#namednodemap
 @deprecated // deprecated
-class _NamedNodeMap extends JsoNativeFieldWrapper with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
+class _NamedNodeMap extends DartHtmlDomObject with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
   // To suppress missing implicit constructor warnings.
   factory _NamedNodeMap._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _NamedNodeMap internalCreate_NamedNodeMap() {
     return new _NamedNodeMap._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _NamedNodeMap._internalWrap() {
     return new _NamedNodeMap.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _NamedNodeMap.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -42345,20 +42841,20 @@ class _NamedNodeMap extends JsoNativeFieldWrapper with ListMixin<Node>, Immutabl
 @DocsEditable()
 @DomName('PagePopupController')
 @deprecated // nonstandard
-class _PagePopupController extends NativeFieldWrapperClass2 {
+class _PagePopupController extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _PagePopupController._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _PagePopupController internalCreate_PagePopupController() {
     return new _PagePopupController._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _PagePopupController._internalWrap() {
     return new _PagePopupController.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _PagePopupController.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -42376,20 +42872,20 @@ class _PagePopupController extends NativeFieldWrapperClass2 {
 @DomName('RGBColor')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-class _RGBColor extends NativeFieldWrapperClass2 {
+class _RGBColor extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _RGBColor._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _RGBColor internalCreate_RGBColor() {
     return new _RGBColor._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _RGBColor._internalWrap() {
     return new _RGBColor.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _RGBColor.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -42407,6 +42903,7 @@ class _RadioNodeList extends NodeList {
   factory _RadioNodeList._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _RadioNodeList internalCreate_RadioNodeList() {
     return new _RadioNodeList._internalWrap();
   }
@@ -42415,6 +42912,7 @@ class _RadioNodeList extends NodeList {
     return new _RadioNodeList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _RadioNodeList.internal_() : super.internal_();
 
 
@@ -42430,20 +42928,20 @@ class _RadioNodeList extends NodeList {
 @DomName('Rect')
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-class _Rect extends NativeFieldWrapperClass2 {
+class _Rect extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _Rect._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _Rect internalCreate_Rect() {
     return new _Rect._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _Rect._internalWrap() {
     return new _Rect.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _Rect.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -42485,6 +42983,7 @@ class _Request extends Body {
   }
 
 
+  @Deprecated("Internal Use Only")
   static _Request internalCreate_Request() {
     return new _Request._internalWrap();
   }
@@ -42493,6 +42992,7 @@ class _Request extends Body {
     return new _Request.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _Request.internal_() : super.internal_();
 
 
@@ -42576,6 +43076,7 @@ class _Response extends Body {
   }
 
 
+  @Deprecated("Internal Use Only")
   static _Response internalCreate_Response() {
     return new _Response._internalWrap();
   }
@@ -42584,6 +43085,7 @@ class _Response extends Body {
     return new _Response.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _Response.internal_() : super.internal_();
 
 
@@ -42601,6 +43103,7 @@ class _ServiceWorker extends EventTarget implements AbstractWorker {
   factory _ServiceWorker._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _ServiceWorker internalCreate_ServiceWorker() {
     return new _ServiceWorker._internalWrap();
   }
@@ -42609,6 +43112,7 @@ class _ServiceWorker extends EventTarget implements AbstractWorker {
     return new _ServiceWorker.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _ServiceWorker.internal_() : super.internal_();
 
 
@@ -42627,20 +43131,20 @@ class _ServiceWorker extends EventTarget implements AbstractWorker {
 @DomName('SpeechRecognitionResultList')
 // https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#speechrecognitionresultlist
 @Experimental()
-class _SpeechRecognitionResultList extends JsoNativeFieldWrapper with ListMixin<SpeechRecognitionResult>, ImmutableListMixin<SpeechRecognitionResult> implements List<SpeechRecognitionResult> {
+class _SpeechRecognitionResultList extends DartHtmlDomObject with ListMixin<SpeechRecognitionResult>, ImmutableListMixin<SpeechRecognitionResult> implements List<SpeechRecognitionResult> {
   // To suppress missing implicit constructor warnings.
   factory _SpeechRecognitionResultList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _SpeechRecognitionResultList internalCreate_SpeechRecognitionResultList() {
     return new _SpeechRecognitionResultList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _SpeechRecognitionResultList._internalWrap() {
     return new _SpeechRecognitionResultList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SpeechRecognitionResultList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -42710,20 +43214,20 @@ class _SpeechRecognitionResultList extends JsoNativeFieldWrapper with ListMixin<
 
 @DocsEditable()
 @DomName('StyleSheetList')
-class _StyleSheetList extends JsoNativeFieldWrapper with ListMixin<StyleSheet>, ImmutableListMixin<StyleSheet> implements List<StyleSheet> {
+class _StyleSheetList extends DartHtmlDomObject with ListMixin<StyleSheet>, ImmutableListMixin<StyleSheet> implements List<StyleSheet> {
   // To suppress missing implicit constructor warnings.
   factory _StyleSheetList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _StyleSheetList internalCreate_StyleSheetList() {
     return new _StyleSheetList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _StyleSheetList._internalWrap() {
     return new _StyleSheetList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _StyleSheetList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -42798,20 +43302,20 @@ class _StyleSheetList extends JsoNativeFieldWrapper with ListMixin<StyleSheet>, 
 @DocsEditable()
 @DomName('SubtleCrypto')
 @Experimental() // untriaged
-class _SubtleCrypto extends NativeFieldWrapperClass2 {
+class _SubtleCrypto extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _SubtleCrypto._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _SubtleCrypto internalCreate_SubtleCrypto() {
     return new _SubtleCrypto._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _SubtleCrypto._internalWrap() {
     return new _SubtleCrypto.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SubtleCrypto.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -42834,6 +43338,7 @@ class _WebKitCSSFilterValue extends _CssValueList {
   factory _WebKitCSSFilterValue._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _WebKitCSSFilterValue internalCreate_WebKitCSSFilterValue() {
     return new _WebKitCSSFilterValue._internalWrap();
   }
@@ -42842,6 +43347,7 @@ class _WebKitCSSFilterValue extends _CssValueList {
     return new _WebKitCSSFilterValue.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _WebKitCSSFilterValue.internal_() : super.internal_();
 
 
@@ -42860,7 +43366,7 @@ class _WebKitCSSFilterValue extends _CssValueList {
 @Experimental()
 // http://dev.w3.org/csswg/cssom/
 @deprecated // deprecated
-class _WebKitCSSMatrix extends NativeFieldWrapperClass2 {
+class _WebKitCSSMatrix extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _WebKitCSSMatrix._() { throw new UnsupportedError("Not supported"); }
 
@@ -42870,16 +43376,16 @@ class _WebKitCSSMatrix extends NativeFieldWrapperClass2 {
     return wrap_jso(_blink.BlinkWebKitCSSMatrix.instance.constructorCallback_1_(cssValue));
   }
 
+  @Deprecated("Internal Use Only")
   static _WebKitCSSMatrix internalCreate_WebKitCSSMatrix() {
     return new _WebKitCSSMatrix._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _WebKitCSSMatrix._internalWrap() {
     return new _WebKitCSSMatrix.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _WebKitCSSMatrix.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -42902,6 +43408,7 @@ class _WebKitCSSTransformValue extends _CssValueList {
   factory _WebKitCSSTransformValue._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _WebKitCSSTransformValue internalCreate_WebKitCSSTransformValue() {
     return new _WebKitCSSTransformValue._internalWrap();
   }
@@ -42910,6 +43417,7 @@ class _WebKitCSSTransformValue extends _CssValueList {
     return new _WebKitCSSTransformValue.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _WebKitCSSTransformValue.internal_() : super.internal_();
 
 
@@ -42924,7 +43432,7 @@ class _WebKitCSSTransformValue extends _CssValueList {
 @DocsEditable()
 @DomName('WindowTimers')
 @Experimental() // untriaged
-abstract class _WindowTimers extends NativeFieldWrapperClass2 {
+abstract class _WindowTimers extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _WindowTimers._() { throw new UnsupportedError("Not supported"); }
 
@@ -42958,20 +43466,20 @@ abstract class _WindowTimers extends NativeFieldWrapperClass2 {
 @DomName('WorkerLocation')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#workerlocation
 @Experimental()
-class _WorkerLocation extends NativeFieldWrapperClass2 implements UrlUtilsReadOnly {
+class _WorkerLocation extends DartHtmlDomObject implements UrlUtilsReadOnly {
   // To suppress missing implicit constructor warnings.
   factory _WorkerLocation._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _WorkerLocation internalCreate_WorkerLocation() {
     return new _WorkerLocation._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _WorkerLocation._internalWrap() {
     return new _WorkerLocation.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _WorkerLocation.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -42998,20 +43506,20 @@ class _WorkerLocation extends NativeFieldWrapperClass2 implements UrlUtilsReadOn
 @DomName('WorkerNavigator')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#workernavigator
 @Experimental()
-class _WorkerNavigator extends NativeFieldWrapperClass2 implements NavigatorCpu, NavigatorOnLine, NavigatorID {
+class _WorkerNavigator extends DartHtmlDomObject implements NavigatorCpu, NavigatorOnLine, NavigatorID {
   // To suppress missing implicit constructor warnings.
   factory _WorkerNavigator._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static _WorkerNavigator internalCreate_WorkerNavigator() {
     return new _WorkerNavigator._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory _WorkerNavigator._internalWrap() {
     return new _WorkerNavigator.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _WorkerNavigator.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -43044,6 +43552,7 @@ class _XMLHttpRequestProgressEvent extends ProgressEvent {
   factory _XMLHttpRequestProgressEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _XMLHttpRequestProgressEvent internalCreate_XMLHttpRequestProgressEvent() {
     return new _XMLHttpRequestProgressEvent._internalWrap();
   }
@@ -43052,6 +43561,7 @@ class _XMLHttpRequestProgressEvent extends ProgressEvent {
     return new _XMLHttpRequestProgressEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _XMLHttpRequestProgressEvent.internal_() : super.internal_();
 
 
@@ -47199,9 +47709,11 @@ class _VariableSizeListIterator<T> implements Iterator<T> {
 class _VMElementUpgrader implements ElementUpgrader {
   final Type _type;
   final Type _nativeType;
+  final String _extendsTag;
 
   _VMElementUpgrader(Document document, Type type, String extendsTag) :
       _type = type,
+      _extendsTag = extendsTag,
       _nativeType = _validateCustomType(type).reflectedType {
 
     if (extendsTag == null) {
@@ -47217,11 +47729,41 @@ class _VMElementUpgrader implements ElementUpgrader {
     }
   }
 
-  Element upgrade(Element element) {
-    if (element.runtimeType != _nativeType) {
-      throw new UnsupportedError('Element is incorrect type');
+  Element upgrade(element) {
+    var jsObject;
+    var tag;
+    var isNativeElementExtension = false;
+
+    try {
+      tag = _getCustomElementName(element);
+    } catch (e) {
+      isNativeElementExtension = element.localName == _extendsTag;
     }
-    return _Utils.changeElementWrapper(element, _type);
+
+    if (element.runtimeType == HtmlElement || element.runtimeType == TemplateElement) {
+      if (tag != _extendsTag) {
+        throw new UnsupportedError('$tag is not registered.');
+      }
+      jsObject = unwrap_jso(element);
+    } else if (element.runtimeType == js.JsObjectImpl) {
+      // It's a Polymer core element (written in JS).
+      jsObject = element;
+    } else if (isNativeElementExtension) {
+      // Extending a native element.
+      jsObject = element.blink_jsObject;
+
+      // Element to extend is the real tag.
+      tag = element.localName;
+    } else if (tag != null && element.localName != tag) {
+      throw new UnsupportedError('Element is incorrect type. Got ${element.runtimeType}, expected native Html or Svg element to extend.');
+    } else if (tag == null) {
+      throw new UnsupportedError('Element is incorrect type. Got ${element.runtimeType}, expected HtmlElement/JsObjectImpl.');
+    }
+
+    // Remember Dart class to tagName for any upgrading done in wrap_jso.
+    addCustomElementType(tag, _type, _extendsTag);
+
+    return _createCustomUpgrader(_type, jsObject);
   }
 }
 
@@ -47317,6 +47859,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
    *               all blink_jsObject.  Then needed private wrap/unwrap_jso
    *               functions that delegate to a public wrap/unwrap_jso.
    */
+  @Deprecated("Internal Use Only")
   js.JsObject blink_jsObject;
 
   /** The parent KeyboardEvent that this KeyEvent is wrapping and "fixing". */
@@ -47757,6 +48300,8 @@ class _Utils {
     }
   }
 
+  static maybeUnwrapJso(obj) => unwrap_jso(obj);
+
   static List convertToList(List list) {
     // FIXME: [possible optimization]: do not copy the array if Dart_IsArray is fine w/ it.
     final length = list.length;
@@ -47897,6 +48442,9 @@ class _Utils {
       // 'this' needs to be handled by calling Dart_EvaluateExpr with
       // 'this' as the target rather than by passing it as an argument.
       if (arg == 'this') return;
+      // Avoid being broken by bogus ':async_op' local passed in when within
+      // an async method.
+      if (arg.startsWith(':')) return;
       if (args.isNotEmpty) {
         sb.write(", ");
       }
@@ -48402,7 +48950,7 @@ class _Utils {
     return [
         "inspect",
         (o) {
-          host.inspect(o, null);
+          host.callMethod("inspect", [o]);
           return o;
         },
         "dir",
@@ -48441,7 +48989,7 @@ class _Utils {
     _blink.Blink_Utils.changeElementWrapper(unwrap_jso(element), type);
 }
 
-class _DOMWindowCrossFrame extends NativeFieldWrapperClass2 implements
+class _DOMWindowCrossFrame extends DartHtmlDomObject implements
     WindowBase {
   /** Needed because KeyboardEvent is implements.
    *  TODO(terry): Consider making blink_jsObject private (add underscore) for
@@ -48492,7 +49040,7 @@ class _DOMWindowCrossFrame extends NativeFieldWrapperClass2 implements
     'You can only attach EventListeners to your own window.');
 }
 
-class _HistoryCrossFrame extends NativeFieldWrapperClass2 implements HistoryBase {
+class _HistoryCrossFrame extends DartHtmlDomObject implements HistoryBase {
   _HistoryCrossFrame.internal();
 
   // Methods.
@@ -48504,7 +49052,7 @@ class _HistoryCrossFrame extends NativeFieldWrapperClass2 implements HistoryBase
   String get typeName => "History";
 }
 
-class _LocationCrossFrame extends NativeFieldWrapperClass2 implements LocationBase {
+class _LocationCrossFrame extends DartHtmlDomObject implements LocationBase {
   _LocationCrossFrame.internal();
 
   // Fields.
@@ -48514,7 +49062,7 @@ class _LocationCrossFrame extends NativeFieldWrapperClass2 implements LocationBa
   String get typeName => "Location";
 }
 
-class _DOMStringMap extends NativeFieldWrapperClass2 implements Map<String, String> {
+class _DOMStringMap extends DartHtmlDomObject implements Map<String, String> {
   _DOMStringMap.internal();
 
   bool containsValue(String value) => Maps.containsValue(this, value);
@@ -48745,5 +49293,5 @@ get _pureIsolateScheduleImmediateClosure => ((void callback()) =>
                                "are not supported in the browser"));
 
 // Class for unsupported native browser 'DOM' objects.
-class _UnsupportedBrowserObject extends NativeFieldWrapperClass2 {
+class _UnsupportedBrowserObject extends DartHtmlDomObject {
 }

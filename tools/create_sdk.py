@@ -39,6 +39,10 @@
 # ......dart_native_api.h
 # ......dart_tools_api.h
 # ....lib/
+# ......dart_client.platform
+# ......dart_server.platform
+# ......dart_shared.platform
+# ......dart2dart.platform
 # ......_internal/
 # ......async/
 # ......collection/
@@ -241,6 +245,13 @@ def Main():
              ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh',
                                     '.gitignore'))
 
+  # Copy the platform descriptors.
+  for file_name in ["dart_client.platform",
+                    "dart_server.platform",
+                    "dart_shared.platform",
+                    "dart2dart.platform"]:
+    copyfile(join(HOME, 'sdk', 'lib', file_name), join(LIB, file_name));
+
   # Copy libraries.dart to lib/_internal/libraries.dart for backwards
   # compatibility.
   #
@@ -289,6 +300,7 @@ def Main():
       f.close()
 
   Copy(join(HOME, 'README.dart-sdk'), join(SDK_tmp, 'README'))
+  Copy(join(HOME, 'LICENSE'), join(SDK_tmp, 'LICENSE'))
   Copy(join(HOME, 'sdk', 'api_readme.md'), join(SDK_tmp, 'lib', 'api_readme.md'))
 
   move(SDK_tmp, SDK)

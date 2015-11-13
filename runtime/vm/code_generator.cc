@@ -31,6 +31,8 @@ namespace dart {
 DEFINE_FLAG(bool, deoptimize_alot, false,
     "Deoptimizes all live frames when we are about to return to Dart code from"
     " native entries.");
+DEFINE_FLAG(bool, background_compilation, false,
+    "Run optimizing compilation in background");
 DEFINE_FLAG(int, max_subtype_cache_entries, 100,
     "Maximum number of subtype cache entries (number of checks cached).");
 DEFINE_FLAG(int, optimization_counter_threshold, 30000,
@@ -57,8 +59,10 @@ DEFINE_FLAG(bool, trace_runtime_calls, false, "Trace runtime calls");
 DEFINE_FLAG(bool, trace_type_checks, false, "Trace runtime type checks.");
 
 DECLARE_FLAG(int, deoptimization_counter_threshold);
+DECLARE_FLAG(bool, enable_inlining_annotations);
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
+DECLARE_FLAG(int, max_polymorphic_checks);
 
 DEFINE_FLAG(bool, use_osr, true, "Use on-stack replacement.");
 DEFINE_FLAG(bool, trace_osr, false, "Trace attempts at on-stack replacement.");
@@ -276,7 +280,7 @@ DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
   const Context& ctx = Context::CheckedHandle(arguments.ArgAt(0));
   Context& cloned_ctx = Context::Handle(Context::New(ctx.num_variables()));
   cloned_ctx.set_parent(Context::Handle(ctx.parent()));
-  Object& inst = Object::Handle(isolate);
+  Object& inst = Object::Handle(zone);
   for (int i = 0; i < ctx.num_variables(); i++) {
     inst = ctx.At(i);
     cloned_ctx.SetAt(i, inst);
@@ -777,11 +781,9 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
 // Handle other invocations (implicit closures, noSuchMethod).
 RawFunction* InlineCacheMissHelper(
     const Instance& receiver,
-    const ICData& ic_data) {
-  const Array& args_descriptor = Array::Handle(ic_data.arguments_descriptor());
-
+    const Array& args_descriptor,
+    const String& target_name) {
   const Class& receiver_class = Class::Handle(receiver.clazz());
-  const String& target_name = String::Handle(ic_data.target_name());
 
   Function& result = Function::Handle();
   if (!ResolveCallThroughGetter(receiver,
@@ -826,7 +828,12 @@ static RawFunction* InlineCacheMissHandler(
                    String::Handle(ic_data.target_name()).ToCString(),
                    receiver.ToCString());
     }
-    target_function = InlineCacheMissHelper(receiver, ic_data);
+    const Array& args_descriptor =
+        Array::Handle(ic_data.arguments_descriptor());
+    const String& target_name = String::Handle(ic_data.target_name());
+    target_function = InlineCacheMissHelper(receiver,
+                                            args_descriptor,
+                                            target_name);
   }
   if (target_function.IsNull()) {
     ASSERT(!FLAG_lazy_dispatchers);
@@ -1006,18 +1013,21 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerTwoArgs, 3) {
 
 // Handle a miss of a megamorphic cache.
 //   Arg0: Receiver.
-//   Arg1: ICData object.
+//   Arg1: ICData or MegamorphicCache.
 //   Arg2: Arguments descriptor array.
-
 //   Returns: target function to call.
 DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
-  const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
-  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
-  const Array& descriptor = Array::CheckedHandle(arguments.ArgAt(2));
-  const String& name = String::Handle(ic_data.target_name());
-  const MegamorphicCache& cache = MegamorphicCache::Handle(
-      MegamorphicCacheTable::Lookup(isolate, name, descriptor));
-  Class& cls = Class::Handle(receiver.clazz());
+  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const Object& ic_data_or_cache = Object::Handle(zone, arguments.ArgAt(1));
+  const Array& descriptor = Array::CheckedHandle(zone, arguments.ArgAt(2));
+  String& name = String::Handle(zone);
+  if (ic_data_or_cache.IsICData()) {
+    name = ICData::Cast(ic_data_or_cache).target_name();
+  } else {
+    ASSERT(ic_data_or_cache.IsMegamorphicCache());
+    name = MegamorphicCache::Cast(ic_data_or_cache).target_name();
+  }
+  Class& cls = Class::Handle(zone, receiver.clazz());
   ASSERT(!cls.IsNull());
   if (FLAG_trace_ic || FLAG_trace_ic_miss_in_optimized) {
     OS::PrintErr("Megamorphic IC miss, class=%s, function=%s\n",
@@ -1025,41 +1035,70 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
   }
 
   ArgumentsDescriptor args_desc(descriptor);
-  Function& target_function = Function::Handle(
+  Function& target_function = Function::Handle(zone,
       Resolver::ResolveDynamicForReceiverClass(cls,
                                                name,
                                                args_desc));
   if (target_function.IsNull()) {
-    target_function = InlineCacheMissHelper(receiver, ic_data);
+    target_function = InlineCacheMissHelper(receiver, descriptor, name);
   }
   if (target_function.IsNull()) {
     ASSERT(!FLAG_lazy_dispatchers);
     arguments.SetReturn(target_function);
     return;
   }
-  // Insert function found into cache and return it.
-  cache.EnsureCapacity();
-  const Smi& class_id = Smi::Handle(Smi::New(cls.id()));
-  cache.Insert(class_id, target_function);
+
+  if (ic_data_or_cache.IsICData()) {
+    const ICData& ic_data = ICData::Cast(ic_data_or_cache);
+    ic_data.AddReceiverCheck(receiver.GetClassId(), target_function);
+    if (ic_data.NumberOfChecks() > FLAG_max_polymorphic_checks) {
+      // Switch to megamorphic call.
+      const MegamorphicCache& cache = MegamorphicCache::Handle(zone,
+          MegamorphicCacheTable::Lookup(isolate, name, descriptor));
+      DartFrameIterator iterator;
+      StackFrame* miss_function_frame = iterator.NextFrame();
+      ASSERT(miss_function_frame->IsDartFrame());
+      StackFrame* caller_frame = iterator.NextFrame();
+      ASSERT(caller_frame->IsDartFrame());
+      const Code& code = Code::Handle(zone, caller_frame->LookupDartCode());
+      const Code& stub =
+          Code::Handle(zone, StubCode::MegamorphicLookup_entry()->code());
+      CodePatcher::PatchSwitchableCallAt(caller_frame->pc(),
+                                         code, ic_data, cache, stub);
+    }
+  } else {
+    const MegamorphicCache& cache = MegamorphicCache::Cast(ic_data_or_cache);
+    // Insert function found into cache and return it.
+    cache.EnsureCapacity();
+    const Smi& class_id = Smi::Handle(zone, Smi::New(cls.id()));
+    cache.Insert(class_id, target_function);
+  }
   arguments.SetReturn(target_function);
 }
 
 
 // Invoke appropriate noSuchMethod or closure from getter.
 // Arg0: receiver
-// Arg1: IC data
+// Arg1: ICData or MegamorphicCache
 // Arg2: arguments descriptor array
 // Arg3: arguments array
 DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
   ASSERT(!FLAG_lazy_dispatchers);
-  const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
-  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
-  const Array& orig_arguments_desc = Array::CheckedHandle(arguments.ArgAt(2));
-  const Array& orig_arguments = Array::CheckedHandle(arguments.ArgAt(3));
-  const String& target_name = String::Handle(ic_data.target_name());
+  const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
+  const Object& ic_data_or_cache = Object::Handle(zone, arguments.ArgAt(1));
+  const Array& orig_arguments_desc =
+      Array::CheckedHandle(zone, arguments.ArgAt(2));
+  const Array& orig_arguments = Array::CheckedHandle(zone, arguments.ArgAt(3));
+  String& target_name = String::Handle(zone);
+  if (ic_data_or_cache.IsICData()) {
+    target_name = ICData::Cast(ic_data_or_cache).target_name();
+  } else {
+    ASSERT(ic_data_or_cache.IsMegamorphicCache());
+    target_name = MegamorphicCache::Cast(ic_data_or_cache).target_name();
+  }
 
-  Class& cls = Class::Handle(receiver.clazz());
-  Function& function = Function::Handle();
+  Class& cls = Class::Handle(zone, receiver.clazz());
+  Function& function = Function::Handle(zone);
 
   // Dart distinguishes getters and regular methods and allows their calls
   // to mix with conversions, and its selectors are independent of arity. So do
@@ -1067,7 +1106,7 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
   // need for conversion, or there really is no such method.
 
 #define NO_SUCH_METHOD()                                                       \
-  const Object& result = Object::Handle(                                       \
+  const Object& result = Object::Handle(zone,                                  \
       DartEntry::InvokeNoSuchMethod(receiver,                                  \
                                     target_name,                               \
                                     orig_arguments,                            \
@@ -1077,9 +1116,9 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
 
 #define CLOSURIZE(some_function)                                               \
   const Function& closure_function =                                           \
-      Function::Handle(some_function.ImplicitClosureFunction());               \
+      Function::Handle(zone, some_function.ImplicitClosureFunction());         \
   const Object& result =                                                       \
-      Object::Handle(closure_function.ImplicitInstanceClosure(receiver));      \
+      Object::Handle(zone, closure_function.ImplicitInstanceClosure(receiver));\
   arguments.SetReturn(result);                                                 \
 
   const bool is_getter = Field::IsGetterName(target_name);
@@ -1089,7 +1128,7 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
     // encountered first on the inheritance chain. Or,
     // o#foo= (o.get:#set:foo) failed, closurize o.foo= if it exists.
     String& field_name =
-        String::Handle(Field::NameFromGetter(target_name));
+        String::Handle(zone, Field::NameFromGetter(target_name));
 
     const bool is_extractor = field_name.CharAt(0) == '#';
     if (is_extractor) {
@@ -1141,14 +1180,15 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
       // call method and with lazy dispatchers the field-invocation-dispatcher
       // would perform the closure call.
       const Object& result =
-        Object::Handle(DartEntry::InvokeClosure(orig_arguments,
-                                                orig_arguments_desc));
+        Object::Handle(zone, DartEntry::InvokeClosure(orig_arguments,
+                                                      orig_arguments_desc));
       CheckResultError(result);
       arguments.SetReturn(result);
       return;
     }
 
-    const String& getter_name = String::Handle(Field::GetterName(target_name));
+    const String& getter_name =
+        String::Handle(zone, Field::GetterName(target_name));
     while (!cls.IsNull()) {
       function ^= cls.LookupDynamicFunction(target_name);
       if (!function.IsNull()) {
@@ -1161,15 +1201,15 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
         const Array& getter_arguments = Array::Handle(Array::New(1));
         getter_arguments.SetAt(0, receiver);
         const Object& getter_result =
-          Object::Handle(DartEntry::InvokeFunction(function,
-                                                   getter_arguments));
+          Object::Handle(zone, DartEntry::InvokeFunction(function,
+                                                         getter_arguments));
         CheckResultError(getter_result);
         ASSERT(getter_result.IsNull() || getter_result.IsInstance());
 
         orig_arguments.SetAt(0, getter_result);
         const Object& call_result =
-          Object::Handle(DartEntry::InvokeClosure(orig_arguments,
-                                                  orig_arguments_desc));
+          Object::Handle(zone, DartEntry::InvokeClosure(orig_arguments,
+                                                        orig_arguments_desc));
         CheckResultError(call_result);
         arguments.SetReturn(call_result);
         return;
@@ -1212,10 +1252,11 @@ DEFINE_RUNTIME_ENTRY(InvokeClosureNoSuchMethod, 3) {
 }
 
 
-static bool CanOptimizeFunction(const Function& function, Isolate* isolate) {
+static bool CanOptimizeFunction(const Function& function, Thread* thread) {
   const intptr_t kLowInvocationCount = -100000000;
+  Isolate* isolate = thread->isolate();
   if (isolate->debugger()->IsStepping() ||
-      isolate->debugger()->HasBreakpoint(function)) {
+      isolate->debugger()->HasBreakpoint(function, thread->zone())) {
     // We cannot set breakpoints and single step in optimized code,
     // so do not optimize the function.
     function.set_usage_counter(0);
@@ -1376,7 +1417,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     ASSERT(function.HasCode());
     // Don't do OSR on intrinsified functions: The intrinsic code expects to be
     // called like a regular function and can't be entered via OSR.
-    if (!CanOptimizeFunction(function, isolate) || function.is_intrinsic()) {
+    if (!CanOptimizeFunction(function, thread) || function.is_intrinsic()) {
       return;
     }
 
@@ -1385,7 +1426,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     ASSERT(function.unoptimized_code() != Object::null());
     intptr_t osr_id =
         Code::Handle(function.unoptimized_code()).GetDeoptIdForOsr(frame->pc());
-    ASSERT(osr_id != Isolate::kNoDeoptId);
+    ASSERT(osr_id != Compiler::kNoOSRDeoptId);
     if (FLAG_trace_osr) {
       OS::Print("Attempting OSR for %s at id=%" Pd ", count=%" Pd "\n",
                 function.ToFullyQualifiedCString(),
@@ -1445,7 +1486,26 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   ASSERT(!function.IsNull());
   ASSERT(function.HasCode());
 
-  if (CanOptimizeFunction(function, isolate)) {
+  if (CanOptimizeFunction(function, thread)) {
+    if (FLAG_background_compilation) {
+      if (FLAG_enable_inlining_annotations) {
+        FATAL("Cannot enable inlining annotations and background compilation");
+      }
+      // Reduce the chance of triggering optimization while the function is
+      // being optimized in the background. INT_MIN should ensure that it takes
+      // long time to trigger optimization.
+      // Note that the background compilation queue rejects duplicate entries.
+      function.set_usage_counter(INT_MIN);
+      BackgroundCompiler::EnsureInit(thread);
+      ASSERT(isolate->background_compiler() != NULL);
+      isolate->background_compiler()->CompileOptimized(function);
+      // Install all generated optimized code in the mutator thread (this one).
+      isolate->background_compiler()->InstallGeneratedCode();
+      // Continue in the same code.
+      arguments.SetReturn(Code::Handle(zone, function.CurrentCode()));
+      return;
+    }
+
     // Reset usage counter for reoptimization before calling optimizer to
     // prevent recursive triggering of function optimization.
     function.set_usage_counter(0);
@@ -1456,14 +1516,14 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
       }
     }
     const Error& error = Error::Handle(
-        isolate, Compiler::CompileOptimizedFunction(thread, function));
+        zone, Compiler::CompileOptimizedFunction(thread, function));
     if (!error.IsNull()) {
       Exceptions::PropagateError(error);
     }
-    const Code& optimized_code = Code::Handle(isolate, function.CurrentCode());
+    const Code& optimized_code = Code::Handle(zone, function.CurrentCode());
     ASSERT(!optimized_code.IsNull());
   }
-  arguments.SetReturn(Code::Handle(isolate, function.CurrentCode()));
+  arguments.SetReturn(Code::Handle(zone, function.CurrentCode()));
 }
 
 
@@ -1483,16 +1543,16 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
     UNREACHABLE();
   }
   ASSERT(frame->IsDartFrame());
-  const Code& caller_code = Code::Handle(isolate, frame->LookupDartCode());
+  const Code& caller_code = Code::Handle(zone, frame->LookupDartCode());
   ASSERT(caller_code.is_optimized());
   const Function& target_function = Function::Handle(
-      isolate, caller_code.GetStaticCallTargetFunctionAt(frame->pc()));
+      zone, caller_code.GetStaticCallTargetFunctionAt(frame->pc()));
   const Code& target_code = Code::Handle(
-      isolate, caller_code.GetStaticCallTargetCodeAt(frame->pc()));
+      zone, caller_code.GetStaticCallTargetCodeAt(frame->pc()));
   ASSERT(!target_code.IsNull());
   if (!target_function.HasCode()) {
     const Error& error = Error::Handle(
-        isolate, Compiler::CompileFunction(thread, target_function));
+        zone, Compiler::CompileFunction(thread, target_function));
     if (!error.IsNull()) {
       Exceptions::PropagateError(error);
     }
@@ -1501,7 +1561,7 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
   ASSERT(target_function.raw() == target_code.function());
 
   const Code& current_target_code = Code::Handle(
-      isolate, target_function.CurrentCode());
+      zone, target_function.CurrentCode());
   CodePatcher::PatchStaticCallAt(frame->pc(),
                                  caller_code,
                                  current_target_code);
@@ -1533,16 +1593,16 @@ DEFINE_RUNTIME_ENTRY(FixAllocationStubTarget, 0) {
     UNREACHABLE();
   }
   ASSERT(frame->IsDartFrame());
-  const Code& caller_code = Code::Handle(isolate, frame->LookupDartCode());
+  const Code& caller_code = Code::Handle(zone, frame->LookupDartCode());
   ASSERT(!caller_code.IsNull());
   const Code& stub = Code::Handle(
       CodePatcher::GetStaticCallTargetAt(frame->pc(), caller_code));
   Class& alloc_class = Class::ZoneHandle(zone);
   alloc_class ^= stub.owner();
-  Code& alloc_stub = Code::Handle(isolate, alloc_class.allocation_stub());
+  Code& alloc_stub = Code::Handle(zone, alloc_class.allocation_stub());
   if (alloc_stub.IsNull()) {
     alloc_stub = StubCode::GetAllocationStubForClass(alloc_class);
-    ASSERT(!CodePatcher::IsEntryPatched(alloc_stub));
+    ASSERT(!alloc_stub.IsDisabled());
   }
   CodePatcher::PatchStaticCallAt(frame->pc(),
                                  caller_code,

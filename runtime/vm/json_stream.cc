@@ -10,8 +10,8 @@
 #include "vm/message.h"
 #include "vm/metrics.h"
 #include "vm/object.h"
-#include "vm/service_event.h"
 #include "vm/service.h"
+#include "vm/service_event.h"
 #include "vm/timeline.h"
 #include "vm/unicode.h"
 
@@ -30,7 +30,9 @@ JSONStream::JSONStream(intptr_t buf_size)
       method_(""),
       param_keys_(NULL),
       param_values_(NULL),
-      num_params_(0) {
+      num_params_(0),
+      offset_(0),
+      count_(-1) {
   ObjectIdRing* ring = NULL;
   Isolate* isolate = Isolate::Current();
   if (isolate != NULL) {
@@ -245,6 +247,29 @@ bool JSONStream::ParamIs(const char* key, const char* value) const {
 }
 
 
+void JSONStream::ComputeOffsetAndCount(intptr_t length,
+                                       intptr_t* offset,
+                                       intptr_t* count) {
+  // This function is written to avoid adding (count + offset) in case
+  // that triggers an integer overflow.
+  *offset = offset_;
+  if (*offset > length) {
+    *offset = length;
+  }
+  intptr_t remaining = length - *offset;
+  *count = count_;
+  if (*count < 0 || *count > remaining) {
+    *count = remaining;
+  }
+}
+
+
+void JSONStream::AppendSerializedObject(const char* serialized_object) {
+  PrintCommaIfNeeded();
+  buffer_.AddString(serialized_object);
+}
+
+
 void JSONStream::Clear() {
   buffer_.Clear();
   open_objects_ = 0;
@@ -285,6 +310,11 @@ void JSONStream::CloseArray() {
 }
 
 
+void JSONStream::PrintValueNull() {
+  PrintCommaIfNeeded();
+  buffer_.Printf("null");
+}
+
 void JSONStream::PrintValueBool(bool b) {
   PrintCommaIfNeeded();
   buffer_.Printf("%s", b ? "true" : "false");
@@ -292,23 +322,27 @@ void JSONStream::PrintValueBool(bool b) {
 
 
 void JSONStream::PrintValue(intptr_t i) {
+  EnsureIntegerIsRepresentableInJavaScript(static_cast<int64_t>(i));
   PrintCommaIfNeeded();
   buffer_.Printf("%" Pd "", i);
 }
 
 
 void JSONStream::PrintValue64(int64_t i) {
+  EnsureIntegerIsRepresentableInJavaScript(i);
   PrintCommaIfNeeded();
   buffer_.Printf("%" Pd64 "", i);
 }
 
 
 void JSONStream::PrintValueTimeMillis(int64_t millis) {
-  PrintValue(static_cast<double>(millis));
+  EnsureIntegerIsRepresentableInJavaScript(millis);
+  PrintValue64(millis);
 }
 
 
 void JSONStream::PrintValueTimeMicros(int64_t micros) {
+  EnsureIntegerIsRepresentableInJavaScript(micros);
   PrintValue64(micros);
 }
 
@@ -439,6 +473,12 @@ void JSONStream::PrintValue(TimelineEvent* timeline_event) {
 }
 
 
+void JSONStream::PrintValueVM(bool ref) {
+  PrintCommaIfNeeded();
+  Service::PrintJSONForVM(this, ref);
+}
+
+
 void JSONStream::PrintServiceId(const Object& o) {
   ASSERT(id_zone_ != NULL);
   PrintProperty("id", id_zone_->GetServiceId(o));
@@ -452,21 +492,19 @@ void JSONStream::PrintPropertyBool(const char* name, bool b) {
 
 
 void JSONStream::PrintProperty(const char* name, intptr_t i) {
-  ASSERT(Utils::IsJavascriptInt(i));
   PrintPropertyName(name);
   PrintValue(i);
 }
 
 
 void JSONStream::PrintProperty64(const char* name, int64_t i) {
-  ASSERT(Utils::IsJavascriptInt64(i));
   PrintPropertyName(name);
   PrintValue64(i);
 }
 
 
 void JSONStream::PrintPropertyTimeMillis(const char* name, int64_t millis) {
-  PrintProperty(name, static_cast<double>(millis));
+  PrintProperty64(name, millis);
 }
 
 
@@ -592,6 +630,12 @@ void JSONStream::PrintProperty(const char* name, const Object& o, bool ref) {
 }
 
 
+void JSONStream::PrintPropertyVM(const char* name, bool ref) {
+  PrintPropertyName(name);
+  PrintValueVM(ref);
+}
+
+
 void JSONStream::PrintPropertyName(const char* name) {
   ASSERT(name != NULL);
   PrintCommaIfNeeded();
@@ -617,6 +661,17 @@ bool JSONStream::NeedComma() {
   }
   char ch = buffer[length-1];
   return (ch != '[') && (ch != '{') && (ch != ':') && (ch != ',');
+}
+
+
+void JSONStream::EnsureIntegerIsRepresentableInJavaScript(int64_t i) {
+#ifdef DEBUG
+  if (!Utils::IsJavascriptInt(i)) {
+    OS::Print("JSONStream::EnsureIntegerIsRepresentableInJavaScript failed on "
+              "%" Pd64 "\n", i);
+    UNREACHABLE();
+  }
+#endif
 }
 
 
@@ -710,9 +765,9 @@ void JSONObject::AddLocation(const Script& script,
 void JSONObject::AddLocation(const BreakpointLocation* bpt_loc) const {
   ASSERT(bpt_loc->IsResolved());
 
-  Isolate* isolate = Isolate::Current();
-  Library& library = Library::Handle(isolate);
-  Script& script = Script::Handle(isolate);
+  Zone* zone = Thread::Current()->zone();
+  Library& library = Library::Handle(zone);
+  Script& script = Script::Handle(zone);
   intptr_t token_pos;
   bpt_loc->GetCodeLocation(&library, &script, &token_pos);
   AddLocation(script, token_pos);
@@ -723,9 +778,9 @@ void JSONObject::AddUnresolvedLocation(
     const BreakpointLocation* bpt_loc) const {
   ASSERT(!bpt_loc->IsResolved());
 
-  Isolate* isolate = Isolate::Current();
-  Library& library = Library::Handle(isolate);
-  Script& script = Script::Handle(isolate);
+  Zone* zone = Thread::Current()->zone();
+  Library& library = Library::Handle(zone);
+  Script& script = Script::Handle(zone);
   intptr_t token_pos;
   bpt_loc->GetCodeLocation(&library, &script, &token_pos);
 
@@ -734,7 +789,7 @@ void JSONObject::AddUnresolvedLocation(
   if (!script.IsNull()) {
     location.AddProperty("script", script);
   } else {
-    const String& scriptUri = String::Handle(isolate, bpt_loc->url());
+    const String& scriptUri = String::Handle(zone, bpt_loc->url());
     location.AddPropertyStr("scriptUri", scriptUri);
   }
   if (bpt_loc->requested_line_number() >= 0) {

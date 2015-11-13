@@ -341,6 +341,7 @@ typedef enum {
   kNoPauseOnExceptions = 1,
   kPauseOnUnhandledExceptions,
   kPauseOnAllExceptions,
+  kInvalidExceptionPauseInfo
 } Dart_ExceptionPauseInfo;
 
 /**
@@ -891,19 +892,25 @@ DART_EXPORT int64_t Dart_TimelineGetMicros();
 #define DART_TIMELINE_STREAM_API (1 << 0)
 /** Timeline stream for compiler events */
 #define DART_TIMELINE_STREAM_COMPILER (1 << 1)
+/** Timeline stream for Dart provided events */
+#define DART_TIMELINE_STREAM_DART (1 << 2)
+/** Timeline stream for debugger provided events */
+#define DART_TIMELINE_STREAM_DEBUGGER (1 << 3)
 /** Timeline stream for embedder provided events */
-#define DART_TIMELINE_STREAM_EMBEDDER (1 << 2)
+#define DART_TIMELINE_STREAM_EMBEDDER (1 << 4)
 /** Timeline stream for GC events */
-#define DART_TIMELINE_STREAM_GC (1 << 3)
+#define DART_TIMELINE_STREAM_GC (1 << 5)
 /** Timeline stream for isolate events */
-#define DART_TIMELINE_STREAM_ISOLATE (1 << 4)
+#define DART_TIMELINE_STREAM_ISOLATE (1 << 6)
 
 /** Timeline stream for VM events */
-#define DART_TIMELINE_STREAM_VM (1 << 5)
+#define DART_TIMELINE_STREAM_VM (1 << 7)
 
 /** Enable all timeline stream recording for an isolate */
 #define DART_TIMELINE_STREAM_ALL (DART_TIMELINE_STREAM_API |                   \
                                   DART_TIMELINE_STREAM_COMPILER |              \
+                                  DART_TIMELINE_STREAM_DART |                  \
+                                  DART_TIMELINE_STREAM_DEBUGGER |              \
                                   DART_TIMELINE_STREAM_EMBEDDER |              \
                                   DART_TIMELINE_STREAM_GC |                    \
                                   DART_TIMELINE_STREAM_ISOLATE)
@@ -966,7 +973,7 @@ typedef enum {
 typedef void (*Dart_StreamConsumer)(
     Dart_StreamConsumer_State state,
     const char* stream_name,
-    uint8_t* buffer,
+    const uint8_t* buffer,
     intptr_t buffer_length,
     void* stream_callback_data);
 

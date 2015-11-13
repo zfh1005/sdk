@@ -22,13 +22,9 @@ import 'dart:js' as js;
 
 
 
-// Need a default constructor for constructing classes with mixins that are
-// also extending NativeFieldWrapperClass2.  Defining JsoNativeFieldWrapper
-// extending NativeFieldWrapperClass2 creates a default constructor.
-class JsoNativeFieldWrapper extends NativeFieldWrapperClass2 {}
-
 
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final svgBlinkMap = {
   'SVGAElement': () => AElement,
   'SVGAltGlyphDefElement': () => _SVGAltGlyphDefElement,
@@ -176,6 +172,7 @@ final svgBlinkMap = {
 };
 
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final svgBlinkFunctionMap = {
   'SVGAElement': () => AElement.internalCreateAElement,
   'SVGAltGlyphDefElement': () => _SVGAltGlyphDefElement.internalCreate_SVGAltGlyphDefElement,
@@ -347,6 +344,7 @@ class AElement extends GraphicsElement implements UriReference {
   factory AElement() => _SvgElementFactoryProvider.createSvgElement_tag("a");
 
 
+  @Deprecated("Internal Use Only")
   static AElement internalCreateAElement() {
     return new AElement._internalWrap();
   }
@@ -355,6 +353,7 @@ class AElement extends GraphicsElement implements UriReference {
     return new AElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AElement.internal_() : super.internal_();
 
   /**
@@ -395,6 +394,7 @@ class AltGlyphElement extends TextPositioningElement implements UriReference {
   factory AltGlyphElement() => _SvgElementFactoryProvider.createSvgElement_tag("altGlyph");
 
 
+  @Deprecated("Internal Use Only")
   static AltGlyphElement internalCreateAltGlyphElement() {
     return new AltGlyphElement._internalWrap();
   }
@@ -403,6 +403,7 @@ class AltGlyphElement extends TextPositioningElement implements UriReference {
     return new AltGlyphElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AltGlyphElement.internal_() : super.internal_();
 
   /**
@@ -446,20 +447,20 @@ class AltGlyphElement extends TextPositioningElement implements UriReference {
 @DocsEditable()
 @DomName('SVGAngle')
 @Unstable()
-class Angle extends NativeFieldWrapperClass2 {
+class Angle extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Angle._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Angle internalCreateAngle() {
     return new Angle._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Angle._internalWrap() {
     return new Angle.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Angle.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -544,6 +545,7 @@ class AnimateElement extends AnimationElement {
   factory AnimateElement() => _SvgElementFactoryProvider.createSvgElement_tag("animate");
 
 
+  @Deprecated("Internal Use Only")
   static AnimateElement internalCreateAnimateElement() {
     return new AnimateElement._internalWrap();
   }
@@ -552,6 +554,7 @@ class AnimateElement extends AnimationElement {
     return new AnimateElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimateElement.internal_() : super.internal_();
 
   /**
@@ -587,6 +590,7 @@ class AnimateMotionElement extends AnimationElement {
   factory AnimateMotionElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateMotion");
 
 
+  @Deprecated("Internal Use Only")
   static AnimateMotionElement internalCreateAnimateMotionElement() {
     return new AnimateMotionElement._internalWrap();
   }
@@ -595,6 +599,7 @@ class AnimateMotionElement extends AnimationElement {
     return new AnimateMotionElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimateMotionElement.internal_() : super.internal_();
 
   /**
@@ -630,6 +635,7 @@ class AnimateTransformElement extends AnimationElement {
   factory AnimateTransformElement() => _SvgElementFactoryProvider.createSvgElement_tag("animateTransform");
 
 
+  @Deprecated("Internal Use Only")
   static AnimateTransformElement internalCreateAnimateTransformElement() {
     return new AnimateTransformElement._internalWrap();
   }
@@ -638,6 +644,7 @@ class AnimateTransformElement extends AnimationElement {
     return new AnimateTransformElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimateTransformElement.internal_() : super.internal_();
 
   /**
@@ -661,20 +668,20 @@ class AnimateTransformElement extends AnimationElement {
 @DocsEditable()
 @DomName('SVGAnimatedAngle')
 @Unstable()
-class AnimatedAngle extends NativeFieldWrapperClass2 {
+class AnimatedAngle extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedAngle._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static AnimatedAngle internalCreateAnimatedAngle() {
     return new AnimatedAngle._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AnimatedAngle._internalWrap() {
     return new AnimatedAngle.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimatedAngle.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -699,20 +706,20 @@ class AnimatedAngle extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGAnimatedBoolean')
 @Unstable()
-class AnimatedBoolean extends NativeFieldWrapperClass2 {
+class AnimatedBoolean extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedBoolean._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static AnimatedBoolean internalCreateAnimatedBoolean() {
     return new AnimatedBoolean._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AnimatedBoolean._internalWrap() {
     return new AnimatedBoolean.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimatedBoolean.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -741,20 +748,20 @@ class AnimatedBoolean extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGAnimatedEnumeration')
 @Unstable()
-class AnimatedEnumeration extends NativeFieldWrapperClass2 {
+class AnimatedEnumeration extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedEnumeration._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static AnimatedEnumeration internalCreateAnimatedEnumeration() {
     return new AnimatedEnumeration._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AnimatedEnumeration._internalWrap() {
     return new AnimatedEnumeration.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimatedEnumeration.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -783,20 +790,20 @@ class AnimatedEnumeration extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGAnimatedInteger')
 @Unstable()
-class AnimatedInteger extends NativeFieldWrapperClass2 {
+class AnimatedInteger extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedInteger._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static AnimatedInteger internalCreateAnimatedInteger() {
     return new AnimatedInteger._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AnimatedInteger._internalWrap() {
     return new AnimatedInteger.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimatedInteger.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -825,20 +832,20 @@ class AnimatedInteger extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGAnimatedLength')
 @Unstable()
-class AnimatedLength extends NativeFieldWrapperClass2 {
+class AnimatedLength extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedLength._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static AnimatedLength internalCreateAnimatedLength() {
     return new AnimatedLength._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AnimatedLength._internalWrap() {
     return new AnimatedLength.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimatedLength.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -863,20 +870,20 @@ class AnimatedLength extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGAnimatedLengthList')
 @Unstable()
-class AnimatedLengthList extends NativeFieldWrapperClass2 {
+class AnimatedLengthList extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedLengthList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static AnimatedLengthList internalCreateAnimatedLengthList() {
     return new AnimatedLengthList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AnimatedLengthList._internalWrap() {
     return new AnimatedLengthList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimatedLengthList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -901,20 +908,20 @@ class AnimatedLengthList extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGAnimatedNumber')
 @Unstable()
-class AnimatedNumber extends NativeFieldWrapperClass2 {
+class AnimatedNumber extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedNumber._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static AnimatedNumber internalCreateAnimatedNumber() {
     return new AnimatedNumber._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AnimatedNumber._internalWrap() {
     return new AnimatedNumber.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimatedNumber.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -943,20 +950,20 @@ class AnimatedNumber extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGAnimatedNumberList')
 @Unstable()
-class AnimatedNumberList extends NativeFieldWrapperClass2 {
+class AnimatedNumberList extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedNumberList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static AnimatedNumberList internalCreateAnimatedNumberList() {
     return new AnimatedNumberList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AnimatedNumberList._internalWrap() {
     return new AnimatedNumberList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimatedNumberList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -981,20 +988,20 @@ class AnimatedNumberList extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGAnimatedPreserveAspectRatio')
 @Unstable()
-class AnimatedPreserveAspectRatio extends NativeFieldWrapperClass2 {
+class AnimatedPreserveAspectRatio extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedPreserveAspectRatio._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static AnimatedPreserveAspectRatio internalCreateAnimatedPreserveAspectRatio() {
     return new AnimatedPreserveAspectRatio._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AnimatedPreserveAspectRatio._internalWrap() {
     return new AnimatedPreserveAspectRatio.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimatedPreserveAspectRatio.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -1019,20 +1026,20 @@ class AnimatedPreserveAspectRatio extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGAnimatedRect')
 @Unstable()
-class AnimatedRect extends NativeFieldWrapperClass2 {
+class AnimatedRect extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedRect._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static AnimatedRect internalCreateAnimatedRect() {
     return new AnimatedRect._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AnimatedRect._internalWrap() {
     return new AnimatedRect.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimatedRect.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -1057,20 +1064,20 @@ class AnimatedRect extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGAnimatedString')
 @Unstable()
-class AnimatedString extends NativeFieldWrapperClass2 {
+class AnimatedString extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedString._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static AnimatedString internalCreateAnimatedString() {
     return new AnimatedString._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AnimatedString._internalWrap() {
     return new AnimatedString.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimatedString.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -1099,20 +1106,20 @@ class AnimatedString extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGAnimatedTransformList')
 @Unstable()
-class AnimatedTransformList extends NativeFieldWrapperClass2 {
+class AnimatedTransformList extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedTransformList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static AnimatedTransformList internalCreateAnimatedTransformList() {
     return new AnimatedTransformList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AnimatedTransformList._internalWrap() {
     return new AnimatedTransformList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimatedTransformList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -1146,6 +1153,7 @@ class AnimationElement extends SvgElement implements Tests {
   factory AnimationElement() => _SvgElementFactoryProvider.createSvgElement_tag("animation");
 
 
+  @Deprecated("Internal Use Only")
   static AnimationElement internalCreateAnimationElement() {
     return new AnimationElement._internalWrap();
   }
@@ -1154,6 +1162,7 @@ class AnimationElement extends SvgElement implements Tests {
     return new AnimationElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnimationElement.internal_() : super.internal_();
 
   /**
@@ -1231,6 +1240,7 @@ class CircleElement extends GeometryElement {
   factory CircleElement() => _SvgElementFactoryProvider.createSvgElement_tag("circle");
 
 
+  @Deprecated("Internal Use Only")
   static CircleElement internalCreateCircleElement() {
     return new CircleElement._internalWrap();
   }
@@ -1239,6 +1249,7 @@ class CircleElement extends GeometryElement {
     return new CircleElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CircleElement.internal_() : super.internal_();
 
   /**
@@ -1280,6 +1291,7 @@ class ClipPathElement extends GraphicsElement {
   factory ClipPathElement() => _SvgElementFactoryProvider.createSvgElement_tag("clipPath");
 
 
+  @Deprecated("Internal Use Only")
   static ClipPathElement internalCreateClipPathElement() {
     return new ClipPathElement._internalWrap();
   }
@@ -1288,6 +1300,7 @@ class ClipPathElement extends GraphicsElement {
     return new ClipPathElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ClipPathElement.internal_() : super.internal_();
 
   /**
@@ -1321,6 +1334,7 @@ class DefsElement extends GraphicsElement {
   factory DefsElement() => _SvgElementFactoryProvider.createSvgElement_tag("defs");
 
 
+  @Deprecated("Internal Use Only")
   static DefsElement internalCreateDefsElement() {
     return new DefsElement._internalWrap();
   }
@@ -1329,6 +1343,7 @@ class DefsElement extends GraphicsElement {
     return new DefsElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DefsElement.internal_() : super.internal_();
 
   /**
@@ -1358,6 +1373,7 @@ class DescElement extends SvgElement {
   factory DescElement() => _SvgElementFactoryProvider.createSvgElement_tag("desc");
 
 
+  @Deprecated("Internal Use Only")
   static DescElement internalCreateDescElement() {
     return new DescElement._internalWrap();
   }
@@ -1366,6 +1382,7 @@ class DescElement extends SvgElement {
     return new DescElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DescElement.internal_() : super.internal_();
 
   /**
@@ -1391,6 +1408,7 @@ class DiscardElement extends SvgElement {
   factory DiscardElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static DiscardElement internalCreateDiscardElement() {
     return new DiscardElement._internalWrap();
   }
@@ -1399,6 +1417,7 @@ class DiscardElement extends SvgElement {
     return new DiscardElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DiscardElement.internal_() : super.internal_();
 
   /**
@@ -1428,6 +1447,7 @@ class EllipseElement extends GeometryElement {
   factory EllipseElement() => _SvgElementFactoryProvider.createSvgElement_tag("ellipse");
 
 
+  @Deprecated("Internal Use Only")
   static EllipseElement internalCreateEllipseElement() {
     return new EllipseElement._internalWrap();
   }
@@ -1436,6 +1456,7 @@ class EllipseElement extends GeometryElement {
     return new EllipseElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   EllipseElement.internal_() : super.internal_();
 
   /**
@@ -1485,6 +1506,7 @@ class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttrib
   factory FEBlendElement() => _SvgElementFactoryProvider.createSvgElement_tag("feBlend");
 
 
+  @Deprecated("Internal Use Only")
   static FEBlendElement internalCreateFEBlendElement() {
     return new FEBlendElement._internalWrap();
   }
@@ -1493,6 +1515,7 @@ class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttrib
     return new FEBlendElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEBlendElement.internal_() : super.internal_();
 
   /**
@@ -1585,6 +1608,7 @@ class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandard
   factory FEColorMatrixElement() => _SvgElementFactoryProvider.createSvgElement_tag("feColorMatrix");
 
 
+  @Deprecated("Internal Use Only")
   static FEColorMatrixElement internalCreateFEColorMatrixElement() {
     return new FEColorMatrixElement._internalWrap();
   }
@@ -1593,6 +1617,7 @@ class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandard
     return new FEColorMatrixElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEColorMatrixElement.internal_() : super.internal_();
 
   /**
@@ -1681,6 +1706,7 @@ class FEComponentTransferElement extends SvgElement implements FilterPrimitiveSt
   factory FEComponentTransferElement() => _SvgElementFactoryProvider.createSvgElement_tag("feComponentTransfer");
 
 
+  @Deprecated("Internal Use Only")
   static FEComponentTransferElement internalCreateFEComponentTransferElement() {
     return new FEComponentTransferElement._internalWrap();
   }
@@ -1689,6 +1715,7 @@ class FEComponentTransferElement extends SvgElement implements FilterPrimitiveSt
     return new FEComponentTransferElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEComponentTransferElement.internal_() : super.internal_();
 
   /**
@@ -1741,6 +1768,7 @@ class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAt
   factory FECompositeElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static FECompositeElement internalCreateFECompositeElement() {
     return new FECompositeElement._internalWrap();
   }
@@ -1749,6 +1777,7 @@ class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAt
     return new FECompositeElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FECompositeElement.internal_() : super.internal_();
 
   /**
@@ -1858,6 +1887,7 @@ class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStand
   factory FEConvolveMatrixElement() => _SvgElementFactoryProvider.createSvgElement_tag("feConvolveMatrix");
 
 
+  @Deprecated("Internal Use Only")
   static FEConvolveMatrixElement internalCreateFEConvolveMatrixElement() {
     return new FEConvolveMatrixElement._internalWrap();
   }
@@ -1866,6 +1896,7 @@ class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStand
     return new FEConvolveMatrixElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEConvolveMatrixElement.internal_() : super.internal_();
 
   /**
@@ -1986,6 +2017,7 @@ class FEDiffuseLightingElement extends SvgElement implements FilterPrimitiveStan
   factory FEDiffuseLightingElement() => _SvgElementFactoryProvider.createSvgElement_tag("feDiffuseLighting");
 
 
+  @Deprecated("Internal Use Only")
   static FEDiffuseLightingElement internalCreateFEDiffuseLightingElement() {
     return new FEDiffuseLightingElement._internalWrap();
   }
@@ -1994,6 +2026,7 @@ class FEDiffuseLightingElement extends SvgElement implements FilterPrimitiveStan
     return new FEDiffuseLightingElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEDiffuseLightingElement.internal_() : super.internal_();
 
   /**
@@ -2070,6 +2103,7 @@ class FEDisplacementMapElement extends SvgElement implements FilterPrimitiveStan
   factory FEDisplacementMapElement() => _SvgElementFactoryProvider.createSvgElement_tag("feDisplacementMap");
 
 
+  @Deprecated("Internal Use Only")
   static FEDisplacementMapElement internalCreateFEDisplacementMapElement() {
     return new FEDisplacementMapElement._internalWrap();
   }
@@ -2078,6 +2112,7 @@ class FEDisplacementMapElement extends SvgElement implements FilterPrimitiveStan
     return new FEDisplacementMapElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEDisplacementMapElement.internal_() : super.internal_();
 
   /**
@@ -2174,6 +2209,7 @@ class FEDistantLightElement extends SvgElement {
   factory FEDistantLightElement() => _SvgElementFactoryProvider.createSvgElement_tag("feDistantLight");
 
 
+  @Deprecated("Internal Use Only")
   static FEDistantLightElement internalCreateFEDistantLightElement() {
     return new FEDistantLightElement._internalWrap();
   }
@@ -2182,6 +2218,7 @@ class FEDistantLightElement extends SvgElement {
     return new FEDistantLightElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEDistantLightElement.internal_() : super.internal_();
 
   /**
@@ -2226,6 +2263,7 @@ class FEFloodElement extends SvgElement implements FilterPrimitiveStandardAttrib
   factory FEFloodElement() => _SvgElementFactoryProvider.createSvgElement_tag("feFlood");
 
 
+  @Deprecated("Internal Use Only")
   static FEFloodElement internalCreateFEFloodElement() {
     return new FEFloodElement._internalWrap();
   }
@@ -2234,6 +2272,7 @@ class FEFloodElement extends SvgElement implements FilterPrimitiveStandardAttrib
     return new FEFloodElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEFloodElement.internal_() : super.internal_();
 
   /**
@@ -2290,6 +2329,7 @@ class FEFuncAElement extends _SVGComponentTransferFunctionElement {
   factory FEFuncAElement() => _SvgElementFactoryProvider.createSvgElement_tag("feFuncA");
 
 
+  @Deprecated("Internal Use Only")
   static FEFuncAElement internalCreateFEFuncAElement() {
     return new FEFuncAElement._internalWrap();
   }
@@ -2298,6 +2338,7 @@ class FEFuncAElement extends _SVGComponentTransferFunctionElement {
     return new FEFuncAElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEFuncAElement.internal_() : super.internal_();
 
   /**
@@ -2334,6 +2375,7 @@ class FEFuncBElement extends _SVGComponentTransferFunctionElement {
   factory FEFuncBElement() => _SvgElementFactoryProvider.createSvgElement_tag("feFuncB");
 
 
+  @Deprecated("Internal Use Only")
   static FEFuncBElement internalCreateFEFuncBElement() {
     return new FEFuncBElement._internalWrap();
   }
@@ -2342,6 +2384,7 @@ class FEFuncBElement extends _SVGComponentTransferFunctionElement {
     return new FEFuncBElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEFuncBElement.internal_() : super.internal_();
 
   /**
@@ -2378,6 +2421,7 @@ class FEFuncGElement extends _SVGComponentTransferFunctionElement {
   factory FEFuncGElement() => _SvgElementFactoryProvider.createSvgElement_tag("feFuncG");
 
 
+  @Deprecated("Internal Use Only")
   static FEFuncGElement internalCreateFEFuncGElement() {
     return new FEFuncGElement._internalWrap();
   }
@@ -2386,6 +2430,7 @@ class FEFuncGElement extends _SVGComponentTransferFunctionElement {
     return new FEFuncGElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEFuncGElement.internal_() : super.internal_();
 
   /**
@@ -2422,6 +2467,7 @@ class FEFuncRElement extends _SVGComponentTransferFunctionElement {
   factory FEFuncRElement() => _SvgElementFactoryProvider.createSvgElement_tag("feFuncR");
 
 
+  @Deprecated("Internal Use Only")
   static FEFuncRElement internalCreateFEFuncRElement() {
     return new FEFuncRElement._internalWrap();
   }
@@ -2430,6 +2476,7 @@ class FEFuncRElement extends _SVGComponentTransferFunctionElement {
     return new FEFuncRElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEFuncRElement.internal_() : super.internal_();
 
   /**
@@ -2466,6 +2513,7 @@ class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandar
   factory FEGaussianBlurElement() => _SvgElementFactoryProvider.createSvgElement_tag("feGaussianBlur");
 
 
+  @Deprecated("Internal Use Only")
   static FEGaussianBlurElement internalCreateFEGaussianBlurElement() {
     return new FEGaussianBlurElement._internalWrap();
   }
@@ -2474,6 +2522,7 @@ class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandar
     return new FEGaussianBlurElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEGaussianBlurElement.internal_() : super.internal_();
 
   /**
@@ -2546,6 +2595,7 @@ class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttrib
   factory FEImageElement() => _SvgElementFactoryProvider.createSvgElement_tag("feImage");
 
 
+  @Deprecated("Internal Use Only")
   static FEImageElement internalCreateFEImageElement() {
     return new FEImageElement._internalWrap();
   }
@@ -2554,6 +2604,7 @@ class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttrib
     return new FEImageElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEImageElement.internal_() : super.internal_();
 
   /**
@@ -2618,6 +2669,7 @@ class FEMergeElement extends SvgElement implements FilterPrimitiveStandardAttrib
   factory FEMergeElement() => _SvgElementFactoryProvider.createSvgElement_tag("feMerge");
 
 
+  @Deprecated("Internal Use Only")
   static FEMergeElement internalCreateFEMergeElement() {
     return new FEMergeElement._internalWrap();
   }
@@ -2626,6 +2678,7 @@ class FEMergeElement extends SvgElement implements FilterPrimitiveStandardAttrib
     return new FEMergeElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEMergeElement.internal_() : super.internal_();
 
   /**
@@ -2682,6 +2735,7 @@ class FEMergeNodeElement extends SvgElement {
   factory FEMergeNodeElement() => _SvgElementFactoryProvider.createSvgElement_tag("feMergeNode");
 
 
+  @Deprecated("Internal Use Only")
   static FEMergeNodeElement internalCreateFEMergeNodeElement() {
     return new FEMergeNodeElement._internalWrap();
   }
@@ -2690,6 +2744,7 @@ class FEMergeNodeElement extends SvgElement {
     return new FEMergeNodeElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEMergeNodeElement.internal_() : super.internal_();
 
   /**
@@ -2726,6 +2781,7 @@ class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardA
   factory FEMorphologyElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static FEMorphologyElement internalCreateFEMorphologyElement() {
     return new FEMorphologyElement._internalWrap();
   }
@@ -2734,6 +2790,7 @@ class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardA
     return new FEMorphologyElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEMorphologyElement.internal_() : super.internal_();
 
   /**
@@ -2815,6 +2872,7 @@ class FEOffsetElement extends SvgElement implements FilterPrimitiveStandardAttri
   factory FEOffsetElement() => _SvgElementFactoryProvider.createSvgElement_tag("feOffset");
 
 
+  @Deprecated("Internal Use Only")
   static FEOffsetElement internalCreateFEOffsetElement() {
     return new FEOffsetElement._internalWrap();
   }
@@ -2823,6 +2881,7 @@ class FEOffsetElement extends SvgElement implements FilterPrimitiveStandardAttri
     return new FEOffsetElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEOffsetElement.internal_() : super.internal_();
 
   /**
@@ -2891,6 +2950,7 @@ class FEPointLightElement extends SvgElement {
   factory FEPointLightElement() => _SvgElementFactoryProvider.createSvgElement_tag("fePointLight");
 
 
+  @Deprecated("Internal Use Only")
   static FEPointLightElement internalCreateFEPointLightElement() {
     return new FEPointLightElement._internalWrap();
   }
@@ -2899,6 +2959,7 @@ class FEPointLightElement extends SvgElement {
     return new FEPointLightElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FEPointLightElement.internal_() : super.internal_();
 
   /**
@@ -2947,6 +3008,7 @@ class FESpecularLightingElement extends SvgElement implements FilterPrimitiveSta
   factory FESpecularLightingElement() => _SvgElementFactoryProvider.createSvgElement_tag("feSpecularLighting");
 
 
+  @Deprecated("Internal Use Only")
   static FESpecularLightingElement internalCreateFESpecularLightingElement() {
     return new FESpecularLightingElement._internalWrap();
   }
@@ -2955,6 +3017,7 @@ class FESpecularLightingElement extends SvgElement implements FilterPrimitiveSta
     return new FESpecularLightingElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FESpecularLightingElement.internal_() : super.internal_();
 
   /**
@@ -3027,6 +3090,7 @@ class FESpotLightElement extends SvgElement {
   factory FESpotLightElement() => _SvgElementFactoryProvider.createSvgElement_tag("feSpotLight");
 
 
+  @Deprecated("Internal Use Only")
   static FESpotLightElement internalCreateFESpotLightElement() {
     return new FESpotLightElement._internalWrap();
   }
@@ -3035,6 +3099,7 @@ class FESpotLightElement extends SvgElement {
     return new FESpotLightElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FESpotLightElement.internal_() : super.internal_();
 
   /**
@@ -3103,6 +3168,7 @@ class FETileElement extends SvgElement implements FilterPrimitiveStandardAttribu
   factory FETileElement() => _SvgElementFactoryProvider.createSvgElement_tag("feTile");
 
 
+  @Deprecated("Internal Use Only")
   static FETileElement internalCreateFETileElement() {
     return new FETileElement._internalWrap();
   }
@@ -3111,6 +3177,7 @@ class FETileElement extends SvgElement implements FilterPrimitiveStandardAttribu
     return new FETileElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FETileElement.internal_() : super.internal_();
 
   /**
@@ -3171,6 +3238,7 @@ class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardA
   factory FETurbulenceElement() => _SvgElementFactoryProvider.createSvgElement_tag("feTurbulence");
 
 
+  @Deprecated("Internal Use Only")
   static FETurbulenceElement internalCreateFETurbulenceElement() {
     return new FETurbulenceElement._internalWrap();
   }
@@ -3179,6 +3247,7 @@ class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardA
     return new FETurbulenceElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FETurbulenceElement.internal_() : super.internal_();
 
   /**
@@ -3283,6 +3352,7 @@ class FilterElement extends SvgElement implements UriReference {
   factory FilterElement() => _SvgElementFactoryProvider.createSvgElement_tag("filter");
 
 
+  @Deprecated("Internal Use Only")
   static FilterElement internalCreateFilterElement() {
     return new FilterElement._internalWrap();
   }
@@ -3291,6 +3361,7 @@ class FilterElement extends SvgElement implements UriReference {
     return new FilterElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   FilterElement.internal_() : super.internal_();
 
   /**
@@ -3354,7 +3425,7 @@ class FilterElement extends SvgElement implements UriReference {
 @DocsEditable()
 @DomName('SVGFilterPrimitiveStandardAttributes')
 @Unstable()
-abstract class FilterPrimitiveStandardAttributes extends NativeFieldWrapperClass2 {
+abstract class FilterPrimitiveStandardAttributes extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory FilterPrimitiveStandardAttributes._() { throw new UnsupportedError("Not supported"); }
 
@@ -3389,7 +3460,7 @@ abstract class FilterPrimitiveStandardAttributes extends NativeFieldWrapperClass
 @DocsEditable()
 @DomName('SVGFitToViewBox')
 @Unstable()
-abstract class FitToViewBox extends NativeFieldWrapperClass2 {
+abstract class FitToViewBox extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory FitToViewBox._() { throw new UnsupportedError("Not supported"); }
 
@@ -3424,6 +3495,7 @@ class ForeignObjectElement extends GraphicsElement {
   factory ForeignObjectElement() => _SvgElementFactoryProvider.createSvgElement_tag("foreignObject");
 
 
+  @Deprecated("Internal Use Only")
   static ForeignObjectElement internalCreateForeignObjectElement() {
     return new ForeignObjectElement._internalWrap();
   }
@@ -3432,6 +3504,7 @@ class ForeignObjectElement extends GraphicsElement {
     return new ForeignObjectElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ForeignObjectElement.internal_() : super.internal_();
 
   /**
@@ -3480,6 +3553,7 @@ class GElement extends GraphicsElement {
   factory GElement() => _SvgElementFactoryProvider.createSvgElement_tag("g");
 
 
+  @Deprecated("Internal Use Only")
   static GElement internalCreateGElement() {
     return new GElement._internalWrap();
   }
@@ -3488,6 +3562,7 @@ class GElement extends GraphicsElement {
     return new GElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   GElement.internal_() : super.internal_();
 
   /**
@@ -3513,6 +3588,7 @@ class GeometryElement extends GraphicsElement {
   factory GeometryElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static GeometryElement internalCreateGeometryElement() {
     return new GeometryElement._internalWrap();
   }
@@ -3521,6 +3597,7 @@ class GeometryElement extends GraphicsElement {
     return new GeometryElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   GeometryElement.internal_() : super.internal_();
 
   /**
@@ -3556,6 +3633,7 @@ class GraphicsElement extends SvgElement implements Tests {
   factory GraphicsElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static GraphicsElement internalCreateGraphicsElement() {
     return new GraphicsElement._internalWrap();
   }
@@ -3564,6 +3642,7 @@ class GraphicsElement extends SvgElement implements Tests {
     return new GraphicsElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   GraphicsElement.internal_() : super.internal_();
 
   /**
@@ -3648,6 +3727,7 @@ class ImageElement extends GraphicsElement implements UriReference {
   factory ImageElement() => _SvgElementFactoryProvider.createSvgElement_tag("image");
 
 
+  @Deprecated("Internal Use Only")
   static ImageElement internalCreateImageElement() {
     return new ImageElement._internalWrap();
   }
@@ -3656,6 +3736,7 @@ class ImageElement extends GraphicsElement implements UriReference {
     return new ImageElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ImageElement.internal_() : super.internal_();
 
   /**
@@ -3700,20 +3781,20 @@ class ImageElement extends GraphicsElement implements UriReference {
 @DocsEditable()
 @DomName('SVGLength')
 @Unstable()
-class Length extends NativeFieldWrapperClass2 {
+class Length extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Length._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Length internalCreateLength() {
     return new Length._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Length._internalWrap() {
     return new Length.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Length.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -3810,20 +3891,20 @@ class Length extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGLengthList')
 @Unstable()
-class LengthList extends JsoNativeFieldWrapper with ListMixin<Length>, ImmutableListMixin<Length> implements List<Length> {
+class LengthList extends DartHtmlDomObject with ListMixin<Length>, ImmutableListMixin<Length> implements List<Length> {
   // To suppress missing implicit constructor warnings.
   factory LengthList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static LengthList internalCreateLengthList() {
     return new LengthList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory LengthList._internalWrap() {
     return new LengthList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   LengthList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -3935,6 +4016,7 @@ class LineElement extends GeometryElement {
   factory LineElement() => _SvgElementFactoryProvider.createSvgElement_tag("line");
 
 
+  @Deprecated("Internal Use Only")
   static LineElement internalCreateLineElement() {
     return new LineElement._internalWrap();
   }
@@ -3943,6 +4025,7 @@ class LineElement extends GeometryElement {
     return new LineElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   LineElement.internal_() : super.internal_();
 
   /**
@@ -3988,6 +4071,7 @@ class LinearGradientElement extends _GradientElement {
   factory LinearGradientElement() => _SvgElementFactoryProvider.createSvgElement_tag("linearGradient");
 
 
+  @Deprecated("Internal Use Only")
   static LinearGradientElement internalCreateLinearGradientElement() {
     return new LinearGradientElement._internalWrap();
   }
@@ -3996,6 +4080,7 @@ class LinearGradientElement extends _GradientElement {
     return new LinearGradientElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   LinearGradientElement.internal_() : super.internal_();
 
   /**
@@ -4041,6 +4126,7 @@ class MarkerElement extends SvgElement implements FitToViewBox {
   factory MarkerElement() => _SvgElementFactoryProvider.createSvgElement_tag("marker");
 
 
+  @Deprecated("Internal Use Only")
   static MarkerElement internalCreateMarkerElement() {
     return new MarkerElement._internalWrap();
   }
@@ -4049,6 +4135,7 @@ class MarkerElement extends SvgElement implements FitToViewBox {
     return new MarkerElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MarkerElement.internal_() : super.internal_();
 
   /**
@@ -4146,6 +4233,7 @@ class MaskElement extends SvgElement implements Tests {
   factory MaskElement() => _SvgElementFactoryProvider.createSvgElement_tag("mask");
 
 
+  @Deprecated("Internal Use Only")
   static MaskElement internalCreateMaskElement() {
     return new MaskElement._internalWrap();
   }
@@ -4154,6 +4242,7 @@ class MaskElement extends SvgElement implements Tests {
     return new MaskElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MaskElement.internal_() : super.internal_();
 
   /**
@@ -4214,20 +4303,20 @@ class MaskElement extends SvgElement implements Tests {
 @DocsEditable()
 @DomName('SVGMatrix')
 @Unstable()
-class Matrix extends NativeFieldWrapperClass2 {
+class Matrix extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Matrix._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Matrix internalCreateMatrix() {
     return new Matrix._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Matrix._internalWrap() {
     return new Matrix.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Matrix.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -4341,6 +4430,7 @@ class MetadataElement extends SvgElement {
   factory MetadataElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static MetadataElement internalCreateMetadataElement() {
     return new MetadataElement._internalWrap();
   }
@@ -4349,6 +4439,7 @@ class MetadataElement extends SvgElement {
     return new MetadataElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MetadataElement.internal_() : super.internal_();
 
   /**
@@ -4369,20 +4460,20 @@ class MetadataElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGNumber')
 @Unstable()
-class Number extends NativeFieldWrapperClass2 {
+class Number extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Number._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Number internalCreateNumber() {
     return new Number._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Number._internalWrap() {
     return new Number.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Number.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -4407,20 +4498,20 @@ class Number extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGNumberList')
 @Unstable()
-class NumberList extends JsoNativeFieldWrapper with ListMixin<Number>, ImmutableListMixin<Number> implements List<Number> {
+class NumberList extends DartHtmlDomObject with ListMixin<Number>, ImmutableListMixin<Number> implements List<Number> {
   // To suppress missing implicit constructor warnings.
   factory NumberList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static NumberList internalCreateNumberList() {
     return new NumberList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory NumberList._internalWrap() {
     return new NumberList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   NumberList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -4532,6 +4623,7 @@ class PathElement extends GeometryElement {
   factory PathElement() => _SvgElementFactoryProvider.createSvgElement_tag("path");
 
 
+  @Deprecated("Internal Use Only")
   static PathElement internalCreatePathElement() {
     return new PathElement._internalWrap();
   }
@@ -4540,6 +4632,7 @@ class PathElement extends GeometryElement {
     return new PathElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathElement.internal_() : super.internal_();
 
   /**
@@ -4668,20 +4761,20 @@ class PathElement extends GeometryElement {
 @DocsEditable()
 @DomName('SVGPathSeg')
 @Unstable()
-class PathSeg extends NativeFieldWrapperClass2 {
+class PathSeg extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory PathSeg._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static PathSeg internalCreatePathSeg() {
     return new PathSeg._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory PathSeg._internalWrap() {
     return new PathSeg.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSeg.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -4791,6 +4884,7 @@ class PathSegArcAbs extends PathSeg {
   factory PathSegArcAbs._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PathSegArcAbs internalCreatePathSegArcAbs() {
     return new PathSegArcAbs._internalWrap();
   }
@@ -4799,6 +4893,7 @@ class PathSegArcAbs extends PathSeg {
     return new PathSegArcAbs.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegArcAbs.internal_() : super.internal_();
 
 
@@ -4874,6 +4969,7 @@ class PathSegArcRel extends PathSeg {
   factory PathSegArcRel._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PathSegArcRel internalCreatePathSegArcRel() {
     return new PathSegArcRel._internalWrap();
   }
@@ -4882,6 +4978,7 @@ class PathSegArcRel extends PathSeg {
     return new PathSegArcRel.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegArcRel.internal_() : super.internal_();
 
 
@@ -4957,6 +5054,7 @@ class PathSegClosePath extends PathSeg {
   factory PathSegClosePath._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PathSegClosePath internalCreatePathSegClosePath() {
     return new PathSegClosePath._internalWrap();
   }
@@ -4965,6 +5063,7 @@ class PathSegClosePath extends PathSeg {
     return new PathSegClosePath.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegClosePath.internal_() : super.internal_();
 
 
@@ -4984,6 +5083,7 @@ class PathSegCurvetoCubicAbs extends PathSeg {
   factory PathSegCurvetoCubicAbs._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PathSegCurvetoCubicAbs internalCreatePathSegCurvetoCubicAbs() {
     return new PathSegCurvetoCubicAbs._internalWrap();
   }
@@ -4992,6 +5092,7 @@ class PathSegCurvetoCubicAbs extends PathSeg {
     return new PathSegCurvetoCubicAbs.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegCurvetoCubicAbs.internal_() : super.internal_();
 
 
@@ -5059,6 +5160,7 @@ class PathSegCurvetoCubicRel extends PathSeg {
   factory PathSegCurvetoCubicRel._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PathSegCurvetoCubicRel internalCreatePathSegCurvetoCubicRel() {
     return new PathSegCurvetoCubicRel._internalWrap();
   }
@@ -5067,6 +5169,7 @@ class PathSegCurvetoCubicRel extends PathSeg {
     return new PathSegCurvetoCubicRel.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegCurvetoCubicRel.internal_() : super.internal_();
 
 
@@ -5134,6 +5237,7 @@ class PathSegCurvetoCubicSmoothAbs extends PathSeg {
   factory PathSegCurvetoCubicSmoothAbs._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PathSegCurvetoCubicSmoothAbs internalCreatePathSegCurvetoCubicSmoothAbs() {
     return new PathSegCurvetoCubicSmoothAbs._internalWrap();
   }
@@ -5142,6 +5246,7 @@ class PathSegCurvetoCubicSmoothAbs extends PathSeg {
     return new PathSegCurvetoCubicSmoothAbs.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegCurvetoCubicSmoothAbs.internal_() : super.internal_();
 
 
@@ -5193,6 +5298,7 @@ class PathSegCurvetoCubicSmoothRel extends PathSeg {
   factory PathSegCurvetoCubicSmoothRel._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PathSegCurvetoCubicSmoothRel internalCreatePathSegCurvetoCubicSmoothRel() {
     return new PathSegCurvetoCubicSmoothRel._internalWrap();
   }
@@ -5201,6 +5307,7 @@ class PathSegCurvetoCubicSmoothRel extends PathSeg {
     return new PathSegCurvetoCubicSmoothRel.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegCurvetoCubicSmoothRel.internal_() : super.internal_();
 
 
@@ -5252,6 +5359,7 @@ class PathSegCurvetoQuadraticAbs extends PathSeg {
   factory PathSegCurvetoQuadraticAbs._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PathSegCurvetoQuadraticAbs internalCreatePathSegCurvetoQuadraticAbs() {
     return new PathSegCurvetoQuadraticAbs._internalWrap();
   }
@@ -5260,6 +5368,7 @@ class PathSegCurvetoQuadraticAbs extends PathSeg {
     return new PathSegCurvetoQuadraticAbs.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegCurvetoQuadraticAbs.internal_() : super.internal_();
 
 
@@ -5311,6 +5420,7 @@ class PathSegCurvetoQuadraticRel extends PathSeg {
   factory PathSegCurvetoQuadraticRel._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PathSegCurvetoQuadraticRel internalCreatePathSegCurvetoQuadraticRel() {
     return new PathSegCurvetoQuadraticRel._internalWrap();
   }
@@ -5319,6 +5429,7 @@ class PathSegCurvetoQuadraticRel extends PathSeg {
     return new PathSegCurvetoQuadraticRel.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegCurvetoQuadraticRel.internal_() : super.internal_();
 
 
@@ -5370,6 +5481,7 @@ class PathSegCurvetoQuadraticSmoothAbs extends PathSeg {
   factory PathSegCurvetoQuadraticSmoothAbs._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PathSegCurvetoQuadraticSmoothAbs internalCreatePathSegCurvetoQuadraticSmoothAbs() {
     return new PathSegCurvetoQuadraticSmoothAbs._internalWrap();
   }
@@ -5378,6 +5490,7 @@ class PathSegCurvetoQuadraticSmoothAbs extends PathSeg {
     return new PathSegCurvetoQuadraticSmoothAbs.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegCurvetoQuadraticSmoothAbs.internal_() : super.internal_();
 
 
@@ -5413,6 +5526,7 @@ class PathSegCurvetoQuadraticSmoothRel extends PathSeg {
   factory PathSegCurvetoQuadraticSmoothRel._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PathSegCurvetoQuadraticSmoothRel internalCreatePathSegCurvetoQuadraticSmoothRel() {
     return new PathSegCurvetoQuadraticSmoothRel._internalWrap();
   }
@@ -5421,6 +5535,7 @@ class PathSegCurvetoQuadraticSmoothRel extends PathSeg {
     return new PathSegCurvetoQuadraticSmoothRel.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegCurvetoQuadraticSmoothRel.internal_() : super.internal_();
 
 
@@ -5456,6 +5571,7 @@ class PathSegLinetoAbs extends PathSeg {
   factory PathSegLinetoAbs._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PathSegLinetoAbs internalCreatePathSegLinetoAbs() {
     return new PathSegLinetoAbs._internalWrap();
   }
@@ -5464,6 +5580,7 @@ class PathSegLinetoAbs extends PathSeg {
     return new PathSegLinetoAbs.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegLinetoAbs.internal_() : super.internal_();
 
 
@@ -5499,6 +5616,7 @@ class PathSegLinetoHorizontalAbs extends PathSeg {
   factory PathSegLinetoHorizontalAbs._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PathSegLinetoHorizontalAbs internalCreatePathSegLinetoHorizontalAbs() {
     return new PathSegLinetoHorizontalAbs._internalWrap();
   }
@@ -5507,6 +5625,7 @@ class PathSegLinetoHorizontalAbs extends PathSeg {
     return new PathSegLinetoHorizontalAbs.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegLinetoHorizontalAbs.internal_() : super.internal_();
 
 
@@ -5534,6 +5653,7 @@ class PathSegLinetoHorizontalRel extends PathSeg {
   factory PathSegLinetoHorizontalRel._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PathSegLinetoHorizontalRel internalCreatePathSegLinetoHorizontalRel() {
     return new PathSegLinetoHorizontalRel._internalWrap();
   }
@@ -5542,6 +5662,7 @@ class PathSegLinetoHorizontalRel extends PathSeg {
     return new PathSegLinetoHorizontalRel.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegLinetoHorizontalRel.internal_() : super.internal_();
 
 
@@ -5569,6 +5690,7 @@ class PathSegLinetoRel extends PathSeg {
   factory PathSegLinetoRel._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PathSegLinetoRel internalCreatePathSegLinetoRel() {
     return new PathSegLinetoRel._internalWrap();
   }
@@ -5577,6 +5699,7 @@ class PathSegLinetoRel extends PathSeg {
     return new PathSegLinetoRel.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegLinetoRel.internal_() : super.internal_();
 
 
@@ -5612,6 +5735,7 @@ class PathSegLinetoVerticalAbs extends PathSeg {
   factory PathSegLinetoVerticalAbs._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PathSegLinetoVerticalAbs internalCreatePathSegLinetoVerticalAbs() {
     return new PathSegLinetoVerticalAbs._internalWrap();
   }
@@ -5620,6 +5744,7 @@ class PathSegLinetoVerticalAbs extends PathSeg {
     return new PathSegLinetoVerticalAbs.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegLinetoVerticalAbs.internal_() : super.internal_();
 
 
@@ -5647,6 +5772,7 @@ class PathSegLinetoVerticalRel extends PathSeg {
   factory PathSegLinetoVerticalRel._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PathSegLinetoVerticalRel internalCreatePathSegLinetoVerticalRel() {
     return new PathSegLinetoVerticalRel._internalWrap();
   }
@@ -5655,6 +5781,7 @@ class PathSegLinetoVerticalRel extends PathSeg {
     return new PathSegLinetoVerticalRel.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegLinetoVerticalRel.internal_() : super.internal_();
 
 
@@ -5677,20 +5804,20 @@ class PathSegLinetoVerticalRel extends PathSeg {
 @DocsEditable()
 @DomName('SVGPathSegList')
 @Unstable()
-class PathSegList extends JsoNativeFieldWrapper with ListMixin<PathSeg>, ImmutableListMixin<PathSeg> implements List<PathSeg> {
+class PathSegList extends DartHtmlDomObject with ListMixin<PathSeg>, ImmutableListMixin<PathSeg> implements List<PathSeg> {
   // To suppress missing implicit constructor warnings.
   factory PathSegList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static PathSegList internalCreatePathSegList() {
     return new PathSegList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory PathSegList._internalWrap() {
     return new PathSegList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -5798,6 +5925,7 @@ class PathSegMovetoAbs extends PathSeg {
   factory PathSegMovetoAbs._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PathSegMovetoAbs internalCreatePathSegMovetoAbs() {
     return new PathSegMovetoAbs._internalWrap();
   }
@@ -5806,6 +5934,7 @@ class PathSegMovetoAbs extends PathSeg {
     return new PathSegMovetoAbs.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegMovetoAbs.internal_() : super.internal_();
 
 
@@ -5841,6 +5970,7 @@ class PathSegMovetoRel extends PathSeg {
   factory PathSegMovetoRel._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PathSegMovetoRel internalCreatePathSegMovetoRel() {
     return new PathSegMovetoRel._internalWrap();
   }
@@ -5849,6 +5979,7 @@ class PathSegMovetoRel extends PathSeg {
     return new PathSegMovetoRel.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PathSegMovetoRel.internal_() : super.internal_();
 
 
@@ -5888,6 +6019,7 @@ class PatternElement extends SvgElement implements FitToViewBox, UriReference, T
   factory PatternElement() => _SvgElementFactoryProvider.createSvgElement_tag("pattern");
 
 
+  @Deprecated("Internal Use Only")
   static PatternElement internalCreatePatternElement() {
     return new PatternElement._internalWrap();
   }
@@ -5896,6 +6028,7 @@ class PatternElement extends SvgElement implements FitToViewBox, UriReference, T
     return new PatternElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PatternElement.internal_() : super.internal_();
 
   /**
@@ -5972,20 +6105,20 @@ class PatternElement extends SvgElement implements FitToViewBox, UriReference, T
 @DocsEditable()
 @DomName('SVGPoint')
 @Unstable()
-class Point extends NativeFieldWrapperClass2 {
+class Point extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Point._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Point internalCreatePoint() {
     return new Point._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Point._internalWrap() {
     return new Point.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Point.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -6022,20 +6155,20 @@ class Point extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGPointList')
 @Unstable()
-class PointList extends NativeFieldWrapperClass2 {
+class PointList extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory PointList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static PointList internalCreatePointList() {
     return new PointList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory PointList._internalWrap() {
     return new PointList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PointList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -6103,6 +6236,7 @@ class PolygonElement extends GeometryElement {
   factory PolygonElement() => _SvgElementFactoryProvider.createSvgElement_tag("polygon");
 
 
+  @Deprecated("Internal Use Only")
   static PolygonElement internalCreatePolygonElement() {
     return new PolygonElement._internalWrap();
   }
@@ -6111,6 +6245,7 @@ class PolygonElement extends GeometryElement {
     return new PolygonElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PolygonElement.internal_() : super.internal_();
 
   /**
@@ -6148,6 +6283,7 @@ class PolylineElement extends GeometryElement {
   factory PolylineElement() => _SvgElementFactoryProvider.createSvgElement_tag("polyline");
 
 
+  @Deprecated("Internal Use Only")
   static PolylineElement internalCreatePolylineElement() {
     return new PolylineElement._internalWrap();
   }
@@ -6156,6 +6292,7 @@ class PolylineElement extends GeometryElement {
     return new PolylineElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PolylineElement.internal_() : super.internal_();
 
   /**
@@ -6184,20 +6321,20 @@ class PolylineElement extends GeometryElement {
 @DocsEditable()
 @DomName('SVGPreserveAspectRatio')
 @Unstable()
-class PreserveAspectRatio extends NativeFieldWrapperClass2 {
+class PreserveAspectRatio extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory PreserveAspectRatio._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static PreserveAspectRatio internalCreatePreserveAspectRatio() {
     return new PreserveAspectRatio._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory PreserveAspectRatio._internalWrap() {
     return new PreserveAspectRatio.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PreserveAspectRatio.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -6295,6 +6432,7 @@ class RadialGradientElement extends _GradientElement {
   factory RadialGradientElement() => _SvgElementFactoryProvider.createSvgElement_tag("radialGradient");
 
 
+  @Deprecated("Internal Use Only")
   static RadialGradientElement internalCreateRadialGradientElement() {
     return new RadialGradientElement._internalWrap();
   }
@@ -6303,6 +6441,7 @@ class RadialGradientElement extends _GradientElement {
     return new RadialGradientElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   RadialGradientElement.internal_() : super.internal_();
 
   /**
@@ -6347,20 +6486,20 @@ class RadialGradientElement extends _GradientElement {
 @DocsEditable()
 @DomName('SVGRect')
 @Unstable()
-class Rect extends NativeFieldWrapperClass2 {
+class Rect extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Rect._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Rect internalCreateRect() {
     return new Rect._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Rect._internalWrap() {
     return new Rect.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Rect.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -6418,6 +6557,7 @@ class RectElement extends GeometryElement {
   factory RectElement() => _SvgElementFactoryProvider.createSvgElement_tag("rect");
 
 
+  @Deprecated("Internal Use Only")
   static RectElement internalCreateRectElement() {
     return new RectElement._internalWrap();
   }
@@ -6426,6 +6566,7 @@ class RectElement extends GeometryElement {
     return new RectElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   RectElement.internal_() : super.internal_();
 
   /**
@@ -6470,20 +6611,20 @@ class RectElement extends GeometryElement {
 @DocsEditable()
 @DomName('SVGRenderingIntent')
 @Unstable()
-class RenderingIntent extends NativeFieldWrapperClass2 {
+class RenderingIntent extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory RenderingIntent._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static RenderingIntent internalCreateRenderingIntent() {
     return new RenderingIntent._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory RenderingIntent._internalWrap() {
     return new RenderingIntent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   RenderingIntent.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -6533,6 +6674,7 @@ class ScriptElement extends SvgElement implements UriReference {
   factory ScriptElement() => _SvgElementFactoryProvider.createSvgElement_tag("script");
 
 
+  @Deprecated("Internal Use Only")
   static ScriptElement internalCreateScriptElement() {
     return new ScriptElement._internalWrap();
   }
@@ -6541,6 +6683,7 @@ class ScriptElement extends SvgElement implements UriReference {
     return new ScriptElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ScriptElement.internal_() : super.internal_();
 
   /**
@@ -6585,6 +6728,7 @@ class SetElement extends AnimationElement {
   factory SetElement() => _SvgElementFactoryProvider.createSvgElement_tag("set");
 
 
+  @Deprecated("Internal Use Only")
   static SetElement internalCreateSetElement() {
     return new SetElement._internalWrap();
   }
@@ -6593,6 +6737,7 @@ class SetElement extends AnimationElement {
     return new SetElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SetElement.internal_() : super.internal_();
 
   /**
@@ -6625,6 +6770,7 @@ class StopElement extends SvgElement {
   factory StopElement() => _SvgElementFactoryProvider.createSvgElement_tag("stop");
 
 
+  @Deprecated("Internal Use Only")
   static StopElement internalCreateStopElement() {
     return new StopElement._internalWrap();
   }
@@ -6633,6 +6779,7 @@ class StopElement extends SvgElement {
     return new StopElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   StopElement.internal_() : super.internal_();
 
   /**
@@ -6657,20 +6804,20 @@ class StopElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGStringList')
 @Unstable()
-class StringList extends JsoNativeFieldWrapper with ListMixin<String>, ImmutableListMixin<String> implements List<String> {
+class StringList extends DartHtmlDomObject with ListMixin<String>, ImmutableListMixin<String> implements List<String> {
   // To suppress missing implicit constructor warnings.
   factory StringList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static StringList internalCreateStringList() {
     return new StringList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory StringList._internalWrap() {
     return new StringList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   StringList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -6783,6 +6930,7 @@ class StyleElement extends SvgElement {
   factory StyleElement() => _SvgElementFactoryProvider.createSvgElement_tag("style");
 
 
+  @Deprecated("Internal Use Only")
   static StyleElement internalCreateStyleElement() {
     return new StyleElement._internalWrap();
   }
@@ -6791,6 +6939,7 @@ class StyleElement extends SvgElement {
     return new StyleElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   StyleElement.internal_() : super.internal_();
 
   /**
@@ -7262,6 +7411,7 @@ class SvgElement extends Element implements GlobalEventHandlers {
   static const EventStreamProvider<Event> waitingEvent = const EventStreamProvider<Event>('waiting');
 
 
+  @Deprecated("Internal Use Only")
   static SvgElement internalCreateSvgElement() {
     return new SvgElement._internalWrap();
   }
@@ -7270,6 +7420,7 @@ class SvgElement extends Element implements GlobalEventHandlers {
     return new SvgElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SvgElement.internal_() : super.internal_();
 
   /**
@@ -7615,6 +7766,7 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ZoomAndPan 
   factory SvgSvgElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static SvgSvgElement internalCreateSvgSvgElement() {
     return new SvgSvgElement._internalWrap();
   }
@@ -7623,6 +7775,7 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ZoomAndPan 
     return new SvgSvgElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SvgSvgElement.internal_() : super.internal_();
 
   /**
@@ -7816,6 +7969,7 @@ class SwitchElement extends GraphicsElement {
   factory SwitchElement() => _SvgElementFactoryProvider.createSvgElement_tag("switch");
 
 
+  @Deprecated("Internal Use Only")
   static SwitchElement internalCreateSwitchElement() {
     return new SwitchElement._internalWrap();
   }
@@ -7824,6 +7978,7 @@ class SwitchElement extends GraphicsElement {
     return new SwitchElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SwitchElement.internal_() : super.internal_();
 
   /**
@@ -7853,6 +8008,7 @@ class SymbolElement extends SvgElement implements FitToViewBox {
   factory SymbolElement() => _SvgElementFactoryProvider.createSvgElement_tag("symbol");
 
 
+  @Deprecated("Internal Use Only")
   static SymbolElement internalCreateSymbolElement() {
     return new SymbolElement._internalWrap();
   }
@@ -7861,6 +8017,7 @@ class SymbolElement extends SvgElement implements FitToViewBox {
     return new SymbolElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   SymbolElement.internal_() : super.internal_();
 
   /**
@@ -7898,6 +8055,7 @@ class TSpanElement extends TextPositioningElement {
   factory TSpanElement() => _SvgElementFactoryProvider.createSvgElement_tag("tspan");
 
 
+  @Deprecated("Internal Use Only")
   static TSpanElement internalCreateTSpanElement() {
     return new TSpanElement._internalWrap();
   }
@@ -7906,6 +8064,7 @@ class TSpanElement extends TextPositioningElement {
     return new TSpanElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TSpanElement.internal_() : super.internal_();
 
   /**
@@ -7926,7 +8085,7 @@ class TSpanElement extends TextPositioningElement {
 @DocsEditable()
 @DomName('SVGTests')
 @Unstable()
-abstract class Tests extends NativeFieldWrapperClass2 {
+abstract class Tests extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Tests._() { throw new UnsupportedError("Not supported"); }
 
@@ -7962,6 +8121,7 @@ class TextContentElement extends GraphicsElement {
   factory TextContentElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static TextContentElement internalCreateTextContentElement() {
     return new TextContentElement._internalWrap();
   }
@@ -7970,6 +8130,7 @@ class TextContentElement extends GraphicsElement {
     return new TextContentElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TextContentElement.internal_() : super.internal_();
 
   /**
@@ -8055,6 +8216,7 @@ class TextElement extends TextPositioningElement {
   factory TextElement() => _SvgElementFactoryProvider.createSvgElement_tag("text");
 
 
+  @Deprecated("Internal Use Only")
   static TextElement internalCreateTextElement() {
     return new TextElement._internalWrap();
   }
@@ -8063,6 +8225,7 @@ class TextElement extends TextPositioningElement {
     return new TextElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TextElement.internal_() : super.internal_();
 
   /**
@@ -8088,6 +8251,7 @@ class TextPathElement extends TextContentElement implements UriReference {
   factory TextPathElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static TextPathElement internalCreateTextPathElement() {
     return new TextPathElement._internalWrap();
   }
@@ -8096,6 +8260,7 @@ class TextPathElement extends TextContentElement implements UriReference {
     return new TextPathElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TextPathElement.internal_() : super.internal_();
 
   /**
@@ -8161,6 +8326,7 @@ class TextPositioningElement extends TextContentElement {
   factory TextPositioningElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static TextPositioningElement internalCreateTextPositioningElement() {
     return new TextPositioningElement._internalWrap();
   }
@@ -8169,6 +8335,7 @@ class TextPositioningElement extends TextContentElement {
     return new TextPositioningElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TextPositioningElement.internal_() : super.internal_();
 
   /**
@@ -8218,6 +8385,7 @@ class TitleElement extends SvgElement {
   factory TitleElement() => _SvgElementFactoryProvider.createSvgElement_tag("title");
 
 
+  @Deprecated("Internal Use Only")
   static TitleElement internalCreateTitleElement() {
     return new TitleElement._internalWrap();
   }
@@ -8226,6 +8394,7 @@ class TitleElement extends SvgElement {
     return new TitleElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TitleElement.internal_() : super.internal_();
 
   /**
@@ -8246,20 +8415,20 @@ class TitleElement extends SvgElement {
 @DocsEditable()
 @DomName('SVGTransform')
 @Unstable()
-class Transform extends NativeFieldWrapperClass2 {
+class Transform extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Transform._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Transform internalCreateTransform() {
     return new Transform._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Transform._internalWrap() {
     return new Transform.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Transform.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -8340,20 +8509,20 @@ class Transform extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGTransformList')
 @Unstable()
-class TransformList extends JsoNativeFieldWrapper with ListMixin<Transform>, ImmutableListMixin<Transform> implements List<Transform> {
+class TransformList extends DartHtmlDomObject with ListMixin<Transform>, ImmutableListMixin<Transform> implements List<Transform> {
   // To suppress missing implicit constructor warnings.
   factory TransformList._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static TransformList internalCreateTransformList() {
     return new TransformList._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory TransformList._internalWrap() {
     return new TransformList.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   TransformList.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -8464,20 +8633,20 @@ class TransformList extends JsoNativeFieldWrapper with ListMixin<Transform>, Imm
 @DocsEditable()
 @DomName('SVGUnitTypes')
 @Unstable()
-class UnitTypes extends NativeFieldWrapperClass2 {
+class UnitTypes extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory UnitTypes._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static UnitTypes internalCreateUnitTypes() {
     return new UnitTypes._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory UnitTypes._internalWrap() {
     return new UnitTypes.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   UnitTypes.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -8506,7 +8675,7 @@ class UnitTypes extends NativeFieldWrapperClass2 {
 @DocsEditable()
 @DomName('SVGURIReference')
 @Unstable()
-abstract class UriReference extends NativeFieldWrapperClass2 {
+abstract class UriReference extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory UriReference._() { throw new UnsupportedError("Not supported"); }
 
@@ -8534,6 +8703,7 @@ class UseElement extends GraphicsElement implements UriReference {
   factory UseElement() => _SvgElementFactoryProvider.createSvgElement_tag("use");
 
 
+  @Deprecated("Internal Use Only")
   static UseElement internalCreateUseElement() {
     return new UseElement._internalWrap();
   }
@@ -8542,6 +8712,7 @@ class UseElement extends GraphicsElement implements UriReference {
     return new UseElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   UseElement.internal_() : super.internal_();
 
   /**
@@ -8591,6 +8762,7 @@ class ViewElement extends SvgElement implements FitToViewBox, ZoomAndPan {
   factory ViewElement() => _SvgElementFactoryProvider.createSvgElement_tag("view");
 
 
+  @Deprecated("Internal Use Only")
   static ViewElement internalCreateViewElement() {
     return new ViewElement._internalWrap();
   }
@@ -8599,6 +8771,7 @@ class ViewElement extends SvgElement implements FitToViewBox, ZoomAndPan {
     return new ViewElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ViewElement.internal_() : super.internal_();
 
   /**
@@ -8639,20 +8812,20 @@ class ViewElement extends SvgElement implements FitToViewBox, ZoomAndPan {
 @DocsEditable()
 @DomName('SVGViewSpec')
 @Unstable()
-class ViewSpec extends NativeFieldWrapperClass2 implements FitToViewBox, ZoomAndPan {
+class ViewSpec extends DartHtmlDomObject implements FitToViewBox, ZoomAndPan {
   // To suppress missing implicit constructor warnings.
   factory ViewSpec._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static ViewSpec internalCreateViewSpec() {
     return new ViewSpec._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory ViewSpec._internalWrap() {
     return new ViewSpec.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ViewSpec.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -8713,7 +8886,7 @@ class ViewSpec extends NativeFieldWrapperClass2 implements FitToViewBox, ZoomAnd
 @DocsEditable()
 @DomName('SVGZoomAndPan')
 @Unstable()
-abstract class ZoomAndPan extends NativeFieldWrapperClass2 {
+abstract class ZoomAndPan extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ZoomAndPan._() { throw new UnsupportedError("Not supported"); }
 
@@ -8753,6 +8926,7 @@ class ZoomEvent extends UIEvent {
   factory ZoomEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static ZoomEvent internalCreateZoomEvent() {
     return new ZoomEvent._internalWrap();
   }
@@ -8761,6 +8935,7 @@ class ZoomEvent extends UIEvent {
     return new ZoomEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ZoomEvent.internal_() : super.internal_();
 
 
@@ -8800,6 +8975,7 @@ class _GradientElement extends SvgElement implements UriReference {
   factory _GradientElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _GradientElement internalCreate_GradientElement() {
     return new _GradientElement._internalWrap();
   }
@@ -8808,6 +8984,7 @@ class _GradientElement extends SvgElement implements UriReference {
     return new _GradientElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _GradientElement.internal_() : super.internal_();
 
   /**
@@ -8865,6 +9042,7 @@ class _SVGAltGlyphDefElement extends SvgElement {
   factory _SVGAltGlyphDefElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _SVGAltGlyphDefElement internalCreate_SVGAltGlyphDefElement() {
     return new _SVGAltGlyphDefElement._internalWrap();
   }
@@ -8873,6 +9051,7 @@ class _SVGAltGlyphDefElement extends SvgElement {
     return new _SVGAltGlyphDefElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGAltGlyphDefElement.internal_() : super.internal_();
 
   /**
@@ -8898,6 +9077,7 @@ class _SVGAltGlyphItemElement extends SvgElement {
   factory _SVGAltGlyphItemElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _SVGAltGlyphItemElement internalCreate_SVGAltGlyphItemElement() {
     return new _SVGAltGlyphItemElement._internalWrap();
   }
@@ -8906,6 +9086,7 @@ class _SVGAltGlyphItemElement extends SvgElement {
     return new _SVGAltGlyphItemElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGAltGlyphItemElement.internal_() : super.internal_();
 
   /**
@@ -8931,6 +9112,7 @@ class _SVGComponentTransferFunctionElement extends SvgElement {
   factory _SVGComponentTransferFunctionElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _SVGComponentTransferFunctionElement internalCreate_SVGComponentTransferFunctionElement() {
     return new _SVGComponentTransferFunctionElement._internalWrap();
   }
@@ -8939,6 +9121,7 @@ class _SVGComponentTransferFunctionElement extends SvgElement {
     return new _SVGComponentTransferFunctionElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGComponentTransferFunctionElement.internal_() : super.internal_();
 
   /**
@@ -8966,6 +9149,7 @@ class _SVGCursorElement extends SvgElement implements UriReference, Tests {
   factory _SVGCursorElement() => _SvgElementFactoryProvider.createSvgElement_tag("cursor");
 
 
+  @Deprecated("Internal Use Only")
   static _SVGCursorElement internalCreate_SVGCursorElement() {
     return new _SVGCursorElement._internalWrap();
   }
@@ -8974,6 +9158,7 @@ class _SVGCursorElement extends SvgElement implements UriReference, Tests {
     return new _SVGCursorElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGCursorElement.internal_() : super.internal_();
 
   /**
@@ -9007,6 +9192,7 @@ class _SVGFEDropShadowElement extends SvgElement implements FilterPrimitiveStand
   factory _SVGFEDropShadowElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _SVGFEDropShadowElement internalCreate_SVGFEDropShadowElement() {
     return new _SVGFEDropShadowElement._internalWrap();
   }
@@ -9015,6 +9201,7 @@ class _SVGFEDropShadowElement extends SvgElement implements FilterPrimitiveStand
     return new _SVGFEDropShadowElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGFEDropShadowElement.internal_() : super.internal_();
 
   /**
@@ -9047,6 +9234,7 @@ class _SVGFontElement extends SvgElement {
   factory _SVGFontElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _SVGFontElement internalCreate_SVGFontElement() {
     return new _SVGFontElement._internalWrap();
   }
@@ -9055,6 +9243,7 @@ class _SVGFontElement extends SvgElement {
     return new _SVGFontElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGFontElement.internal_() : super.internal_();
 
   /**
@@ -9080,6 +9269,7 @@ class _SVGFontFaceElement extends SvgElement {
   factory _SVGFontFaceElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _SVGFontFaceElement internalCreate_SVGFontFaceElement() {
     return new _SVGFontFaceElement._internalWrap();
   }
@@ -9088,6 +9278,7 @@ class _SVGFontFaceElement extends SvgElement {
     return new _SVGFontFaceElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGFontFaceElement.internal_() : super.internal_();
 
   /**
@@ -9113,6 +9304,7 @@ class _SVGFontFaceFormatElement extends SvgElement {
   factory _SVGFontFaceFormatElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _SVGFontFaceFormatElement internalCreate_SVGFontFaceFormatElement() {
     return new _SVGFontFaceFormatElement._internalWrap();
   }
@@ -9121,6 +9313,7 @@ class _SVGFontFaceFormatElement extends SvgElement {
     return new _SVGFontFaceFormatElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGFontFaceFormatElement.internal_() : super.internal_();
 
   /**
@@ -9146,6 +9339,7 @@ class _SVGFontFaceNameElement extends SvgElement {
   factory _SVGFontFaceNameElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _SVGFontFaceNameElement internalCreate_SVGFontFaceNameElement() {
     return new _SVGFontFaceNameElement._internalWrap();
   }
@@ -9154,6 +9348,7 @@ class _SVGFontFaceNameElement extends SvgElement {
     return new _SVGFontFaceNameElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGFontFaceNameElement.internal_() : super.internal_();
 
   /**
@@ -9179,6 +9374,7 @@ class _SVGFontFaceSrcElement extends SvgElement {
   factory _SVGFontFaceSrcElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _SVGFontFaceSrcElement internalCreate_SVGFontFaceSrcElement() {
     return new _SVGFontFaceSrcElement._internalWrap();
   }
@@ -9187,6 +9383,7 @@ class _SVGFontFaceSrcElement extends SvgElement {
     return new _SVGFontFaceSrcElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGFontFaceSrcElement.internal_() : super.internal_();
 
   /**
@@ -9212,6 +9409,7 @@ class _SVGFontFaceUriElement extends SvgElement {
   factory _SVGFontFaceUriElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _SVGFontFaceUriElement internalCreate_SVGFontFaceUriElement() {
     return new _SVGFontFaceUriElement._internalWrap();
   }
@@ -9220,6 +9418,7 @@ class _SVGFontFaceUriElement extends SvgElement {
     return new _SVGFontFaceUriElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGFontFaceUriElement.internal_() : super.internal_();
 
   /**
@@ -9249,6 +9448,7 @@ class _SVGGlyphElement extends SvgElement {
   factory _SVGGlyphElement() => _SvgElementFactoryProvider.createSvgElement_tag("glyph");
 
 
+  @Deprecated("Internal Use Only")
   static _SVGGlyphElement internalCreate_SVGGlyphElement() {
     return new _SVGGlyphElement._internalWrap();
   }
@@ -9257,6 +9457,7 @@ class _SVGGlyphElement extends SvgElement {
     return new _SVGGlyphElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGGlyphElement.internal_() : super.internal_();
 
   /**
@@ -9280,6 +9481,7 @@ class _SVGGlyphRefElement extends SvgElement implements UriReference {
   factory _SVGGlyphRefElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _SVGGlyphRefElement internalCreate_SVGGlyphRefElement() {
     return new _SVGGlyphRefElement._internalWrap();
   }
@@ -9288,6 +9490,7 @@ class _SVGGlyphRefElement extends SvgElement implements UriReference {
     return new _SVGGlyphRefElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGGlyphRefElement.internal_() : super.internal_();
 
   /**
@@ -9320,6 +9523,7 @@ class _SVGHKernElement extends SvgElement {
   factory _SVGHKernElement() => _SvgElementFactoryProvider.createSvgElement_tag("hkern");
 
 
+  @Deprecated("Internal Use Only")
   static _SVGHKernElement internalCreate_SVGHKernElement() {
     return new _SVGHKernElement._internalWrap();
   }
@@ -9328,6 +9532,7 @@ class _SVGHKernElement extends SvgElement {
     return new _SVGHKernElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGHKernElement.internal_() : super.internal_();
 
   /**
@@ -9354,6 +9559,7 @@ class _SVGMPathElement extends SvgElement implements UriReference {
   factory _SVGMPathElement() => _SvgElementFactoryProvider.createSvgElement_tag("mpath");
 
 
+  @Deprecated("Internal Use Only")
   static _SVGMPathElement internalCreate_SVGMPathElement() {
     return new _SVGMPathElement._internalWrap();
   }
@@ -9362,6 +9568,7 @@ class _SVGMPathElement extends SvgElement implements UriReference {
     return new _SVGMPathElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGMPathElement.internal_() : super.internal_();
 
   /**
@@ -9390,6 +9597,7 @@ class _SVGMissingGlyphElement extends SvgElement {
   factory _SVGMissingGlyphElement._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static _SVGMissingGlyphElement internalCreate_SVGMissingGlyphElement() {
     return new _SVGMissingGlyphElement._internalWrap();
   }
@@ -9398,6 +9606,7 @@ class _SVGMissingGlyphElement extends SvgElement {
     return new _SVGMissingGlyphElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGMissingGlyphElement.internal_() : super.internal_();
 
   /**
@@ -9427,6 +9636,7 @@ class _SVGVKernElement extends SvgElement {
   factory _SVGVKernElement() => _SvgElementFactoryProvider.createSvgElement_tag("vkern");
 
 
+  @Deprecated("Internal Use Only")
   static _SVGVKernElement internalCreate_SVGVKernElement() {
     return new _SVGVKernElement._internalWrap();
   }
@@ -9435,6 +9645,7 @@ class _SVGVKernElement extends SvgElement {
     return new _SVGVKernElement.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   _SVGVKernElement.internal_() : super.internal_();
 
   /**

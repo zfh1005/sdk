@@ -39,10 +39,8 @@ UNIT_TEST_CASE(Monitor) {
   Dart_CreateIsolate(
       NULL, NULL, bin::isolate_snapshot_buffer, NULL, NULL, NULL);
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
   // Thread interrupter interferes with this test, disable interrupts.
-  thread->SetThreadInterrupter(NULL, NULL);
-  Profiler::EndExecution(isolate);
+  thread->DisableThreadInterrupts();
   Monitor* monitor = new Monitor();
   monitor->Enter();
   monitor->Exit();
@@ -358,7 +356,7 @@ TEST_CASE(SafepointTestDart) {
 #endif  // USING_SIMULATOR
   char buffer[1024];
   OS::SNPrint(buffer, sizeof(buffer),
-      "import 'dart:profiler';\n"
+      "import 'dart:developer';\n"
       "int dummy = 0;\n"
       "main() {\n"
       "  new UserTag('foo').makeCurrent();\n"
@@ -404,6 +402,87 @@ TEST_CASE(SafepointTestVM) {
       break;
     }
   }
+}
+
+
+TEST_CASE(ThreadIterator_Count) {
+  intptr_t thread_count_0 = 0;
+  intptr_t thread_count_1 = 0;
+
+  {
+    ThreadIterator ti;
+    while (ti.HasNext()) {
+      Thread* thread = ti.Next();
+      EXPECT(thread != NULL);
+      thread_count_0++;
+    }
+  }
+
+  {
+    ThreadIterator ti;
+    while (ti.HasNext()) {
+      Thread* thread = ti.Next();
+      EXPECT(thread != NULL);
+      thread_count_1++;
+    }
+  }
+
+  EXPECT(thread_count_0 > 0);
+  EXPECT(thread_count_1 > 0);
+  EXPECT(thread_count_0 >= thread_count_1);
+}
+
+
+TEST_CASE(ThreadIterator_FindSelf) {
+  Thread* current = Thread::Current();
+  EXPECT(Thread::IsThreadInList(current->join_id()));
+}
+
+
+struct ThreadIteratorTestParams {
+  ThreadId spawned_thread_join_id;
+  Monitor* monitor;
+};
+
+
+void ThreadIteratorTestMain(uword parameter) {
+  Thread::EnsureInit();
+  ThreadIteratorTestParams* params =
+      reinterpret_cast<ThreadIteratorTestParams*>(parameter);
+  Thread* thread = Thread::Current();
+  EXPECT(thread != NULL);
+
+  MonitorLocker ml(params->monitor);
+  params->spawned_thread_join_id = thread->join_id();
+  EXPECT(params->spawned_thread_join_id != OSThread::kInvalidThreadJoinId);
+  EXPECT(Thread::IsThreadInList(thread->join_id()));
+  ml.Notify();
+}
+
+
+// NOTE: This test case also verifies that known TLS destructors are called
+// on Windows. See |OnDartThreadExit| in os_thread_win.cc for more details.
+TEST_CASE(ThreadIterator_AddFindRemove) {
+  ThreadIteratorTestParams params;
+  params.spawned_thread_join_id = OSThread::kInvalidThreadJoinId;
+  params.monitor = new Monitor();
+
+  {
+    MonitorLocker ml(params.monitor);
+    EXPECT(params.spawned_thread_join_id == OSThread::kInvalidThreadJoinId);
+    // Spawn thread and wait to receive the thread join id.
+    OSThread::Start(ThreadIteratorTestMain, reinterpret_cast<uword>(&params));
+    while (params.spawned_thread_join_id == OSThread::kInvalidThreadJoinId) {
+      ml.Wait();
+    }
+    EXPECT(params.spawned_thread_join_id != OSThread::kInvalidThreadJoinId);
+    // Join thread.
+    OSThread::Join(params.spawned_thread_join_id);
+  }
+
+  EXPECT(!Thread::IsThreadInList(params.spawned_thread_join_id))
+
+  delete params.monitor;
 }
 
 

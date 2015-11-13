@@ -17,10 +17,6 @@
 namespace dart {
 namespace bin {
 
-// Global flag that is used to indicate that the VM should do a clean
-// shutdown.
-bool do_vm_shutdown = false;
-
 static const int kProcessIdNativeField = 0;
 
 int Process::global_exit_code_ = 0;
@@ -254,18 +250,8 @@ void FUNCTION_NAME(Process_Exit)(Dart_NativeArguments args) {
   int64_t status = 0;
   // Ignore result if passing invalid argument and just exit 0.
   DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 0), &status);
-  Dart_ShutdownIsolate();
-  Process::TerminateExitCodeHandler();
-  char* error = Dart_Cleanup();
-  if (error != NULL) {
-    Log::PrintErr("VM cleanup failed: %s\n", error);
-    free(error);
-  }
-  if (do_vm_shutdown) {
-    DebuggerConnectionHandler::StopHandler();
-    EventHandler::Stop();
-  }
-  exit(static_cast<int>(status));
+  Dart_ExitIsolate();
+  Platform::Exit(static_cast<int>(status));
 }
 
 

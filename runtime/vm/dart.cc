@@ -80,7 +80,8 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
                            Dart_FileReadCallback file_read,
                            Dart_FileWriteCallback file_write,
                            Dart_FileCloseCallback file_close,
-                           Dart_EntropySource entropy_source) {
+                           Dart_EntropySource entropy_source,
+                           Dart_GetVMServiceAssetsArchive get_service_assets) {
   // TODO(iposva): Fix race condition here.
   if (vm_isolate_ != NULL || !Flags::Initialized()) {
     return "VM already initialized or flags not initialized.";
@@ -90,8 +91,10 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   OS::InitOnce();
   VirtualMemory::InitOnce();
   Thread::InitOnceBeforeIsolate();
-  Timeline::InitOnce();
   Thread::EnsureInit();
+  Timeline::InitOnce();
+  Thread* thread = Thread::Current();
+  thread->set_name("Dart_Initialize");
   TimelineDurationScope tds(Timeline::GetVMStream(),
                             "Dart::InitOnce");
   Isolate::InitOnce();
@@ -141,6 +144,7 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     TargetCPUFeatures::InitOnce();
     Object::InitOnce(vm_isolate_);
     ArgumentsDescriptor::InitOnce();
+    ICData::InitOnce();
     // When precompiled the stub code is initialized from the snapshot.
     if (!precompiled) {
       StubCode::InitOnce();
@@ -177,8 +181,6 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
       Symbols::InitOnce(vm_isolate_);
     }
     Thread::InitOnceAfterObjectAndStubCode();
-    // Now that the needed stub has been generated, set the stack limit.
-    vm_isolate_->InitializeStackLimit();
     Scanner::InitOnce();
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
     // Dart VM requires at least SSE2.
@@ -201,6 +203,7 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   Isolate::SetUnhandledExceptionCallback(unhandled);
   Isolate::SetShutdownCallback(shutdown);
 
+  Service::SetGetServiceAssetsCallback(get_service_assets);
   ServiceIsolate::Run();
 
   return NULL;
@@ -233,7 +236,7 @@ const char* Dart::Cleanup() {
     Isolate::DisableIsolateCreation();
 
     // Send the OOB Kill message to all remaining application isolates.
-    Isolate::KillAllIsolates();
+    Isolate::KillAllIsolates(Isolate::kInternalKillMsg);
 
     // Shutdown the service isolate.
     ServiceIsolate::Shutdown();
@@ -256,6 +259,8 @@ const char* Dart::Cleanup() {
 
     TargetCPUFeatures::Cleanup();
     StoreBuffer::ShutDown();
+
+    Thread::Shutdown();
   } else {
     // Shutdown the service isolate.
     ServiceIsolate::Shutdown();
@@ -281,8 +286,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   // Initialize the new isolate.
   Thread* T = Thread::Current();
   Isolate* I = T->isolate();
-  TIMERSCOPE(T, time_isolate_initialization);
-  TimelineDurationScope tds(I, I->GetIsolateStream(), "InitializeIsolate");
+  TimelineDurationScope tds(T, I->GetIsolateStream(), "InitializeIsolate");
   tds.SetNumArguments(1);
   tds.CopyArgument(0, "isolateName", I->name());
 
@@ -290,12 +294,9 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   StackZone zone(T);
   HandleScope handle_scope(T);
   {
-    TimelineDurationScope tds(I, I->GetIsolateStream(), "ObjectStore::Init");
+    TimelineDurationScope tds(T, I->GetIsolateStream(), "ObjectStore::Init");
     ObjectStore::Init(I);
   }
-
-  // Setup for profiling.
-  Profiler::InitProfilingForIsolate(I);
 
   const Error& error = Error::Handle(Object::Init(I));
   if (!error.IsNull()) {
@@ -304,7 +305,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   if (snapshot_buffer != NULL) {
     // Read the snapshot and setup the initial state.
     TimelineDurationScope tds(
-        I, I->GetIsolateStream(), "IsolateSnapshotReader");
+        T, I->GetIsolateStream(), "IsolateSnapshotReader");
     // TODO(turnidge): Remove once length is not part of the snapshot.
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_buffer);
     if (snapshot == NULL) {
@@ -342,7 +343,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
 #endif
 
   {
-    TimelineDurationScope tds(I, I->GetIsolateStream(), "StubCode::Init");
+    TimelineDurationScope tds(T, I->GetIsolateStream(), "StubCode::Init");
     StubCode::Init(I);
   }
 
@@ -351,6 +352,10 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   if (!Dart::IsRunningPrecompiledCode()) {
     MegamorphicCacheTable::InitMissHandler(I);
   }
+  const Code& miss_code =
+      Code::Handle(I->object_store()->megamorphic_miss_code());
+  I->set_ic_miss_code(miss_code);
+
   if (snapshot_buffer == NULL) {
     if (!I->object_store()->PreallocateObjects()) {
       return I->object_store()->sticky_error();
@@ -364,7 +369,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     I->class_table()->Print();
   }
 
-  ServiceIsolate::MaybeInjectVMServiceLibrary(I);
+  ServiceIsolate::MaybeMakeServiceIsolate(I);
 
   ServiceIsolate::SendIsolateStartupMessage();
   I->debugger()->NotifyIsolateCreated();
@@ -391,6 +396,17 @@ void Dart::RunShutdownCallback() {
   if (callback != NULL) {
     (callback)(callback_data);
   }
+}
+
+
+void Dart::ShutdownIsolate(Isolate* isolate) {
+  ASSERT(Isolate::Current() == NULL);
+  // We need to enter the isolate in order to shut it down.
+  Thread::EnterIsolate(isolate);
+  ShutdownIsolate();
+  // Since the isolate is shutdown and deleted, there is no need to
+  // exit the isolate here.
+  ASSERT(Isolate::Current() == NULL);
 }
 
 

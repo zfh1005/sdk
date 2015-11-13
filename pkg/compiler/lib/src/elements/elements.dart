@@ -4,18 +4,14 @@
 
 library elements;
 
+import '../common.dart';
+import '../common/resolution.dart' show
+    Resolution;
 import '../compiler.dart' show
     Compiler;
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
-import '../diagnostics/diagnostic_listener.dart';
-import '../diagnostics/messages.dart' show
-MessageKind;
-import '../diagnostics/source_span.dart' show
-    SourceSpan;
-import '../diagnostics/spannable.dart' show
-    Spannable;
 import '../resolution/scope.dart' show
     Scope;
 import '../resolution/tree_elements.dart' show
@@ -88,10 +84,10 @@ class ElementKind {
       const ElementKind('class', ElementCategory.CLASS);
   static const ElementKind GENERATIVE_CONSTRUCTOR =
       const ElementKind('generative_constructor', ElementCategory.FACTORY);
+  static const ElementKind FACTORY_CONSTRUCTOR =
+      const ElementKind('factory_constructor', ElementCategory.FACTORY);
   static const ElementKind FIELD =
       const ElementKind('field', ElementCategory.VARIABLE);
-  static const ElementKind FIELD_LIST =
-      const ElementKind('field_list', ElementCategory.NONE);
   static const ElementKind GENERATIVE_CONSTRUCTOR_BODY =
       const ElementKind('generative_constructor_body', ElementCategory.NONE);
   static const ElementKind COMPILATION_UNIT =
@@ -216,8 +212,8 @@ abstract class Element implements Entity {
   /// `true` if this element is a top level function, static or instance
   /// method, local function or closure defined by a function expression.
   ///
-  /// This property is `true` for operator methods and factory constructors but
-  /// `false` for getter and setter methods, and generative constructors.
+  /// This property is `true` for operator methods but `false` for getter and
+  /// setter methods, and generative and factory constructors.
   ///
   /// See also [isConstructor], [isGenerativeConstructor], and
   /// [isFactoryConstructor] for constructor properties, and [isAccessor],
@@ -276,7 +272,7 @@ abstract class Element implements Entity {
   bool get isInitializingFormal;
 
   /// `true` if this element represents a resolution error.
-  bool get isErroneous;
+  bool get isError;
 
   /// `true` if this element represents an ambiguous name.
   ///
@@ -284,6 +280,10 @@ abstract class Element implements Entity {
   /// by the same name. If an ambiguous name is resolved an warning or error
   /// is produced.
   bool get isAmbiguous;
+
+  /// True if there has been errors during resolution or parsing of this
+  /// element.
+  bool get isMalformed;
 
   /// `true` if this element represents an entity whose access causes one or
   /// more warnings.
@@ -309,7 +309,7 @@ abstract class Element implements Entity {
   /// as all other classes.
   bool get isTopLevel;
   bool get isAssignable;
-  bool get isNative;
+
   bool get isDeferredLoaderGetter;
 
   /// True if the element is declared in a patch library but has no
@@ -403,9 +403,6 @@ abstract class Element implements Entity {
   bool get isSynthesized;
   bool get isMixinApplication;
 
-  bool get hasFixedBackendName;
-  String get fixedBackendName;
-
   bool get isAbstract;
 
   Scope buildScope();
@@ -419,13 +416,20 @@ abstract class Element implements Entity {
 
 class Elements {
   static bool isUnresolved(Element e) {
-    return e == null || e.isErroneous;
+    return e == null || e.isMalformed;
   }
-  static bool isErroneous(Element e) => e != null && e.isErroneous;
+
+  static bool isError(Element e) {
+    return e != null && e.isError;
+  }
+
+  static bool isMalformed(Element e) {
+    return e != null && e.isMalformed;
+  }
 
   /// Unwraps [element] reporting any warnings attached to it, if any.
   static Element unwrap(Element element,
-                        DiagnosticListener listener,
+                        DiagnosticReporter listener,
                         Spannable spannable) {
     if (element != null && element.isWarnOnUse) {
       WarnOnUseElement wrappedElement = element;
@@ -496,8 +500,7 @@ class Elements {
   }
 
   static bool isStaticOrTopLevelFunction(Element element) {
-    return isStaticOrTopLevel(element)
-           && (identical(element.kind, ElementKind.FUNCTION));
+    return isStaticOrTopLevel(element) && element.isFunction;
   }
 
   static bool isInstanceMethod(Element element) {
@@ -515,13 +518,6 @@ class Elements {
         !element.isAbstract &&
         element.isInstanceMember &&
         (element.isFunction || element.isAccessor);
-  }
-
-  static bool isNativeOrExtendsNative(ClassElement element) {
-    if (element == null) return false;
-    if (element.isNative) return true;
-    assert(element.isResolved);
-    return isNativeOrExtendsNative(element.superclass);
   }
 
   static bool isInstanceSend(Send send, TreeElements elements) {
@@ -743,9 +739,9 @@ class Elements {
     constructor = constructor.effectiveTarget;
     ClassElement cls = constructor.enclosingClass;
     return cls.library == compiler.typedDataLibrary
-        && cls.isNative
+        && compiler.backend.isNative(cls)
         && compiler.world.isSubtypeOf(cls, compiler.typedDataClass)
-        && compiler.world.isSubtypeOf(cls, compiler.listClass)
+        && compiler.world.isSubtypeOf(cls, compiler.coreClasses.listClass)
         && constructor.name == '';
   }
 
@@ -783,7 +779,7 @@ class Elements {
 /// or otherwise invalid.
 ///
 /// Accessing any field or calling any method defined on [ErroneousElement]
-/// except [isErroneous] will currently throw an exception. (This might
+/// except [isError] will currently throw an exception. (This might
 /// change when we actually want more information on the erroneous element,
 /// e.g., the name of the element we were trying to resolve.)
 ///
@@ -804,7 +800,7 @@ abstract class WarnOnUseElement extends Element {
   /// Reports the attached warning and returns the wrapped element.
   /// [usageSpannable] is used to report messages on the reference of
   /// [wrappedElement].
-  Element unwrap(DiagnosticListener listener, Spannable usageSpannable);
+  Element unwrap(DiagnosticReporter listener, Spannable usageSpannable);
 }
 
 /// An ambiguous element represents multiple elements accessible by the same
@@ -821,7 +817,7 @@ abstract class AmbiguousElement extends Element {
 
   /// Compute the info messages associated with an error/warning on [context].
   List<DiagnosticMessage> computeInfos(
-      Element context, DiagnosticListener listener);
+      Element context, DiagnosticReporter listener);
 }
 
 // TODO(kasperl): This probably shouldn't be called an element. It's
@@ -901,7 +897,6 @@ abstract class LibraryElement extends Element
    */
   bool get isInternalLibrary;
 
-  bool get canUseNative;
   bool get exportsHandled;
 
   LibraryElement get implementation;
@@ -967,7 +962,7 @@ abstract class TypedefElement extends Element
   /// For instance `(int)->void` for `typedef void F(int)`.
   DartType get alias;
 
-  void checkCyclicReference(Compiler compiler);
+  void checkCyclicReference(Resolution resolution);
 }
 
 /// An executable element is an element that can hold code.
@@ -1254,8 +1249,6 @@ abstract class ConstructorElement extends FunctionElement
   /// constructor so its immediate redirection target is `null`.
   ConstructorElement get immediateRedirectionTarget;
 
-  bool get isCyclicRedirection;
-
   /// The prefix of the immediateRedirectionTarget, if it is deferred.
   /// [null] if it is not deferred.
   PrefixElement get redirectionDeferredPrefix;
@@ -1265,6 +1258,25 @@ abstract class ConstructorElement extends FunctionElement
 
   /// Is `true` if this constructor is a redirecting factory constructor.
   bool get isRedirectingFactory;
+
+  /// Is `true` if this constructor is a redirecting factory constructor that is
+  /// part of a redirection cycle.
+  bool get isCyclicRedirection;
+
+  /// Is `true` if the effective target of this constructor is malformed.
+  ///
+  /// A constructor is considered malformed if any of the following applies:
+  ///
+  ///     * the constructor is undefined,
+  ///     * the type of the constructor is undefined,
+  ///     * the constructor is a redirecting factory and either
+  ///       - it is part of a redirection cycle,
+  ///       - the effective target is a generative constructor on an abstract
+  ///         class, or
+  ///       - this constructor is constant but the effective target is not,
+  ///       - the arguments to this constructor are incompatible with the
+  ///         parameters of the effective target.
+  bool get isEffectiveTargetMalformed;
 
   /// Compute the type of the effective target of this constructor for an
   /// instantiation site with type [:newType:].
@@ -1288,7 +1300,8 @@ abstract class ConstructorElement extends FunctionElement
   /// `null` otherwise.
   ConstantConstructor get constantConstructor;
 
-  /// `true` if this constructor is either `bool.fromEnviroment`
+  /// `true` if this constructor is one of `bool.fromEnvironment`,
+  /// `int.fromEnvironment`, or `String.fromEnvironment`.
   bool get isFromEnvironmentConstructor;
 
   /// Use [enclosingClass] instead.
@@ -1315,7 +1328,7 @@ abstract class TypeDeclarationElement extends Element implements AstElement {
   /// error and calling [computeType] covers that error.
   /// This method will go away!
   @deprecated
-  GenericType computeType(Compiler compiler);
+  GenericType computeType(Resolution resolution);
 
   /**
    * The `this type` for this type declaration.
@@ -1355,7 +1368,7 @@ abstract class TypeDeclarationElement extends Element implements AstElement {
 
   bool get isResolved;
 
-  void ensureResolved(Compiler compiler);
+  void ensureResolved(Resolution resolution);
 }
 
 abstract class ClassElement extends TypeDeclarationElement
@@ -1389,8 +1402,6 @@ abstract class ClassElement extends TypeDeclarationElement
   ClassElement get origin;
   ClassElement get declaration;
   ClassElement get implementation;
-
-  String get nativeTagInfo;
 
   /// `true` if this class is an enum declaration.
   bool get isEnumClass;
@@ -1570,7 +1581,7 @@ abstract class MetadataAnnotation implements Spannable {
   bool get hasNode;
   Node get node;
 
-  MetadataAnnotation ensureResolved(Compiler compiler);
+  MetadataAnnotation ensureResolved(Resolution resolution);
 }
 
 /// An [Element] that has a type.
@@ -1582,7 +1593,7 @@ abstract class TypedElement extends Element {
   /// error and calling [computeType] covers that error.
   /// This method will go away!
   @deprecated
-  DartType computeType(Compiler compiler);
+  DartType computeType(Resolution resolution);
 
   DartType get type;
 }

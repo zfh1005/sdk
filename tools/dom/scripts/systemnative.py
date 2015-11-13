@@ -516,7 +516,7 @@ class DartiumBackend(HtmlDartGenerator):
     return template
 
   def RootClassName(self):
-    return 'NativeFieldWrapperClass2'
+    return 'DartHtmlDomObject'
 
   # This code matches up with the _generate_native_entry code in
   # dart_utilities.py in the dartium repository.  Any changes to this
@@ -1753,9 +1753,7 @@ class DartiumBackend(HtmlDartGenerator):
                 elif wrap_unwrap_list[0]:
                     jso_util_method = 'wrap_jso'
 
-                # Always return List<String> unwrapped.
-                if return_type != 'List<String>':
-                  emit_template = emit_jso_template % jso_util_method
+                emit_template = emit_jso_template % jso_util_method
 
             if caller_emitter:
               caller_emitter.Emit(emit_template,

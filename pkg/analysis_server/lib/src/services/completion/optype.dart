@@ -4,7 +4,7 @@
 
 library services.completion.dart.optype;
 
-import 'package:analysis_server/completion/dart/completion_target.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 
@@ -295,6 +295,16 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    if (entity == node.identifier) {
+      optype.isPrefixed = true;
+    } else {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
   void visitForEachStatement(ForEachStatement node) {
     if (identical(entity, node.identifier)) {
       optype.includeTypeNameSuggestions = true;
@@ -315,7 +325,36 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
-    optype.includeTypeNameSuggestions = true;
+    dynamic entity = this.entity;
+    if (entity is Token && entity.previous != null) {
+      TokenType type = entity.previous.type;
+      if (type == TokenType.OPEN_PAREN || type == TokenType.COMMA) {
+        optype.includeTypeNameSuggestions = true;
+      }
+    }
+    // Handle default normal parameter just as a normal parameter.
+    if (entity is DefaultFormalParameter) {
+      entity = entity.parameter;
+    }
+    // "(^ this.field)"
+    if (entity is FieldFormalParameter) {
+      if (offset < entity.thisKeyword.offset) {
+        optype.includeTypeNameSuggestions = true;
+      }
+    }
+    // "(Type name)"
+    if (entity is SimpleFormalParameter) {
+      // "(Type^)" is parsed as a parameter with the _name_ "Type".
+      if (entity.type == null) {
+        optype.includeTypeNameSuggestions = true;
+      }
+      // If inside of "Type" in "(Type^ name)", then include types.
+      if (entity.type != null &&
+          entity.type.offset <= offset &&
+          offset <= entity.type.end) {
+        optype.includeTypeNameSuggestions = true;
+      }
+    }
   }
 
   @override
@@ -449,19 +488,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitFieldFormalParameter(FieldFormalParameter node) {
-    if (entity == node.identifier) {
-      optype.isPrefixed = true;
-    } else {
+  void visitNormalFormalParameter(NormalFormalParameter node) {
+    if (node.identifier != entity) {
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
-  }
-
-  @override
-  void visitNormalFormalParameter(NormalFormalParameter node) {
-    optype.includeReturnValueSuggestions = true;
-    optype.includeTypeNameSuggestions = true;
   }
 
   void visitParenthesizedExpression(ParenthesizedExpression node) {

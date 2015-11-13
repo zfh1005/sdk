@@ -515,7 +515,7 @@ class OperationInfo(object):
     return ', '.join(map(param_name, self.param_infos[:parameter_count]))
 
   def isCallback(self, type_registry, type_id):
-    if type_id:
+    if type_id and not type_id.endswith('[]'):
       callback_type = type_registry._database._all_interfaces[type_id]
       return callback_type.operations[0].id == 'handleEvent' if len(callback_type.operations) > 0 else False
     else:
@@ -731,6 +731,12 @@ dart2js_conversions = monitored.Dict('generator.dart2js_conversions', {
     '* get MessageEvent.data':
       Conversion('convertNativeToDart_SerializedScriptValue',
                  'dynamic', 'dynamic'),
+
+    # TODO(alanknight): This generates two variations for dart2js, because of
+    # the optional argument, but not in Dartium. Should do the same for both.
+    'any set History.pushState': _serialize_SSV,
+
+    'any set History.replaceState': _serialize_SSV,
 
     '* get History.state':
       Conversion('convertNativeToDart_SerializedScriptValue',
@@ -1443,10 +1449,12 @@ def wrap_unwrap_type_blink(return_type, type_registry):
         return_type = return_type.replace('Html', 'HTML', 1)
     return (type_registry.HasInterface(return_type) or not(return_type) or
             return_type == 'Object' or
+            return_type == 'dynamic' or
             return_type == 'Future' or
             return_type == 'SqlDatabase' or # renamed to Database
             return_type == 'HTMLElement' or
-            return_type == 'MutationObserver')
+            return_type == 'MutationObserver' or
+            (return_type.endswith('[]') and return_type != 'DOMString[]'))
 
 def wrap_type_blink(return_type, type_registry):
     """Returns True if the type is a blink type that requires wrap_jso but

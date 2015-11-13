@@ -1082,7 +1082,7 @@ class BoundsCheckGeneralizer {
       CheckArrayBoundInstr* precondition = new CheckArrayBoundInstr(
           new Value(max_smi),
           new Value(non_positive_symbols[i]),
-          Isolate::kNoDeoptId);
+          Thread::kNoDeoptId);
       precondition->mark_generalized();
       precondition = scheduler_.Emit(precondition, check);
       if (precondition == NULL) {
@@ -1097,7 +1097,7 @@ class BoundsCheckGeneralizer {
     CheckArrayBoundInstr* new_check = new CheckArrayBoundInstr(
           new Value(UnwrapConstraint(check->length()->definition())),
           new Value(upper_bound),
-          Isolate::kNoDeoptId);
+          Thread::kNoDeoptId);
     new_check->mark_generalized();
     if (new_check->IsRedundant(array_length)) {
       if (FLAG_trace_range_analysis) {
@@ -1138,7 +1138,7 @@ class BoundsCheckGeneralizer {
     return new BinarySmiOpInstr(op_kind,
                                 new Value(left),
                                 new Value(right),
-                                Isolate::kNoDeoptId);
+                                Thread::kNoDeoptId);
   }
 
 
@@ -3126,14 +3126,7 @@ bool CheckArrayBoundInstr::IsRedundant(const RangeBoundary& length) {
     return false;
   }
 
-  RangeBoundary max = CanonicalizeBoundary(
-      RangeBoundary::FromDefinition(index()->definition()),
-      RangeBoundary::PositiveInfinity());
-
-  if (max.OverflowedSmi()) {
-    return false;
-  }
-
+  RangeBoundary max = RangeBoundary::FromDefinition(index()->definition());
 
   RangeBoundary max_upper = max.UpperBound();
   RangeBoundary length_lower = length.LowerBound();

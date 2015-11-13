@@ -1,3 +1,29 @@
+## 0.26.2
+* Add code generation utilities for use in both analyzer and analysis server.
+
+## 0.26.1+17
+* (Internal) Introduced context configuration logic (`configureContext()` extracted from server).
+
+## 0.26.1+16
+* (Internal) Options validation plugin API update.
+
+## 0.26.1+15
+* (Internal) Provisional options validation plugin API.
+
+## 0.26.1+13
+* (Internal) Plugin processing fixes.
+
+## 0.26.1+11
+* Fixes to address lint registry memory leaking.
+
+## 0.26.1+10
+* New `AnalysisContext` API for associating configuration data with contexts
+  (`setConfigurationData()` and `getConfigurationData()`).
+
+## 0.26.1+9
+* `OptionsProcessor` extension point API changed to pass associated
+  `AnalysisContext` instance into the `optionsProcessed` call-back.
+
 ## 0.26.1+6
 * Provisional (internal) plugin manifest parsing.
 

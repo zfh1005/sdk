@@ -131,12 +131,13 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
   }
 }
 
-typedef bool CheckResults(Compiler compiler,
+typedef bool CheckResults(CompilerImpl compiler,
                           CollectingDiagnosticHandler handler);
 
 Future analyze(List<Uri> uriList,
                Map<String, List<String>> whiteList,
                {bool analyzeAll: true,
+                bool analyzeMain: false,
                 CheckResults checkResults}) {
   String testFileName =
       relativize(Uri.base, Platform.script, Platform.isWindows);
@@ -159,7 +160,8 @@ Future analyze(List<Uri> uriList,
   var options = <String>[Flags.analyzeOnly, '--categories=Client,Server',
       Flags.showPackageWarnings];
   if (analyzeAll) options.add(Flags.analyzeAll);
-  var compiler = new Compiler(
+  if (analyzeMain) options.add(Flags.analyzeMain);
+  var compiler = new CompilerImpl(
       provider,
       null,
       handler,
@@ -189,7 +191,7 @@ Future analyze(List<Uri> uriList,
       exit(1);
     }
   }
-  if (analyzeAll) {
+  if (analyzeAll || analyzeMain) {
     compiler.librariesToAnalyzeWhenRun = uriList;
     return compiler.run(null).then(onCompletion);
   } else {

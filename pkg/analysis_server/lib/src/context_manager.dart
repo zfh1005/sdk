@@ -9,9 +9,8 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:core' hide Resource;
 
+import 'package:analysis_server/plugin/analysis/resolver_provider.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/server_options.dart';
-import 'package:analysis_server/uri/resolver_provider.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/options.dart';
@@ -21,10 +20,13 @@ import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/source/path_filter.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/source/sdk_ext.dart';
+import 'package:analyzer/src/context/context.dart' as context;
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/task/options.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
 import 'package:package_config/src/packages_impl.dart' show MapPackages;
@@ -310,11 +312,9 @@ abstract class ContextManagerCallbacks {
  */
 class ContextManagerImpl implements ContextManager {
   /**
-   * Temporary flag to hide WIP .packages support (DEP 5).
+   * The name of the `doc` directory.
    */
-  static bool ENABLE_PACKAGESPEC_SUPPORT = serverOptions.isSet(
-      'ContextManagerImpl.ENABLE_PACKAGESPEC_SUPPORT',
-      defaultValue: true);
+  static const String DOC_DIR_NAME = 'doc';
 
   /**
    * The name of the `lib` directory.
@@ -463,24 +463,58 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /**
-   * Process [options] for the context having info [info].
+   * Process [options] for the given context [info].
    */
-  void processOptionsForContext(
-      ContextInfo info, Map<String, YamlNode> options) {
-    //TODO(pquitslund): push handling into an options processor plugin contributed to engine.
-    //AnalysisEngine.instance.optionsPlugin.optionsProcessors
-    //    .forEach((OptionsProcessor p) => p.optionsProcessed(options));
-    if (options == null) {
+  void processOptionsForContext(ContextInfo info, Folder folder,
+      {bool optionsRemoved: false}) {
+    Map<String, YamlNode> options;
+    try {
+      options = analysisOptionsProvider.getOptions(folder);
+    } catch (e, stacktrace) {
+      AnalysisEngine.instance.logger.logError(
+          'Error processing .analysis_options',
+          new CaughtException(e, stacktrace));
+      // TODO(pquitslund): contribute plugin that sends error notification on
+      // options file.
+      // Related test:
+      //   context_manager_test.test_analysis_options_parse_failure()
+      // AnalysisEngine.instance.optionsPlugin.optionsProcessors
+      //      .forEach((OptionsProcessor p) => p.onError(e));
+    }
+
+    if (options == null && !optionsRemoved) {
       return;
     }
-    YamlMap analyzer = options['analyzer'];
-    if (analyzer == null) {
+
+    // Notify options processors.
+    AnalysisEngine.instance.optionsPlugin.optionsProcessors
+        .forEach((OptionsProcessor p) {
+      try {
+        p.optionsProcessed(info.context, options);
+      } catch (e, stacktrace) {
+        AnalysisEngine.instance.logger.logError(
+            'Error processing .analysis_options',
+            new CaughtException(e, stacktrace));
+      }
+    });
+
+    // In case options files are removed, revert to default options.
+    if (optionsRemoved) {
+      info.context.analysisOptions = new AnalysisOptionsImpl();
+      return;
+    }
+
+    // Analysis options are processed 'in-line'.
+    var analyzer = options[AnalyzerOptions.analyzer];
+    if (analyzer is! YamlMap) {
       // No options for analyzer.
       return;
     }
 
+    configureContextOptions(info.context, options);
+
     // Set ignore patterns.
-    YamlList exclude = analyzer['exclude'];
+    YamlList exclude = analyzer[AnalyzerOptions.exclude];
     if (exclude != null) {
       setIgnorePatternsForContext(info, exclude);
     }
@@ -608,7 +642,7 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /**
-   * Resursively adds all Dart and HTML files to the [changeSet].
+   * Recursively adds all Dart and HTML files to the [changeSet].
    */
   void _addPreviouslyExcludedSources(ContextInfo info, ChangeSet changeSet,
       Folder folder, List<String> oldExcludedPaths) {
@@ -655,10 +689,12 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /**
-   * Resursively adds all Dart and HTML files to the [changeSet].
+   * Recursively adds all Dart and HTML files to the [changeSet].
    */
   void _addSourceFiles(ChangeSet changeSet, Folder folder, ContextInfo info) {
-    if (info.excludesResource(folder) || folder.shortName.startsWith('.')) {
+    if (info.excludesResource(folder) ||
+        folder.shortName.startsWith('.') ||
+        _isInTopLevelDocDir(info.folder.path, folder.path)) {
       return;
     }
     List<Resource> children = null;
@@ -688,6 +724,19 @@ class ContextManagerImpl implements ContextManager {
           continue;
         }
         _addSourceFiles(changeSet, child, info);
+      }
+    }
+  }
+
+  void _checkForAnalysisOptionsUpdate(
+      String path, ContextInfo info, ChangeType changeType) {
+    if (AnalysisEngine.isAnalysisOptionsFileName(path, pathContext)) {
+      var analysisContext = info.context;
+      if (analysisContext is context.AnalysisContextImpl) {
+        processOptionsForContext(info, info.folder,
+            optionsRemoved: changeType == ChangeType.REMOVE);
+        analysisContext.invalidateCachedResults();
+        callbacks.applyChangesToContext(info.folder, new ChangeSet());
       }
     }
   }
@@ -778,12 +827,10 @@ class ContextManagerImpl implements ContextManager {
       PackageMapInfo packageMapInfo;
       callbacks.beginComputePackageMap();
       try {
-        if (ENABLE_PACKAGESPEC_SUPPORT) {
-          // Try .packages first.
-          if (pathContext.basename(packagespecFile.path) == PACKAGE_SPEC_NAME) {
-            Packages packages = _readPackagespec(packagespecFile);
-            return new PackagesFileDisposition(packages);
-          }
+        // Try .packages first.
+        if (pathContext.basename(packagespecFile.path) == PACKAGE_SPEC_NAME) {
+          Packages packages = _readPackagespec(packagespecFile);
+          return new PackagesFileDisposition(packages);
         }
         if (packageResolverProvider != null) {
           UriResolver resolver = packageResolverProvider(folder);
@@ -791,6 +838,7 @@ class ContextManagerImpl implements ContextManager {
             return new CustomPackageResolverDisposition(resolver);
           }
         }
+        
         ServerPerformanceStatistics.pub.makeCurrentWhile(() {
           packageMapInfo = _packageMapProvider.computePackageMap(folder);
         });
@@ -816,17 +864,6 @@ class ContextManagerImpl implements ContextManager {
     ContextInfo info = new ContextInfo(this, parent, folder, packagespecFile,
         normalizedPackageRoots[folder.path]);
 
-    try {
-      Map<String, YamlNode> options =
-          analysisOptionsProvider.getOptions(folder);
-      processOptionsForContext(info, options);
-    } on Exception catch (e) {
-      // TODO(pquitslund): contribute plugin that sends error notification on options file.
-      // Related test: context_manager_test.test_analysis_options_parse_failure()
-      // AnalysisEngine.instance.optionsPlugin.optionsProcessors
-      //      .forEach((OptionsProcessor p) => p.onError(e));
-    }
-
     FolderDisposition disposition;
     List<String> dependencies = <String>[];
 
@@ -839,6 +876,9 @@ class ContextManagerImpl implements ContextManager {
     info.setDependencies(dependencies);
     info.context = callbacks.addContext(folder, disposition);
     info.context.name = folder.path;
+
+    processOptionsForContext(info, folder);
+
     return info;
   }
 
@@ -856,13 +896,18 @@ class ContextManagerImpl implements ContextManager {
    */
   void _createContexts(
       ContextInfo parent, Folder folder, bool withPackageSpecOnly) {
+    if (_isExcluded(folder.path) ||
+        folder.shortName.startsWith('.') ||
+        folder.shortName == 'packages') {
+      return;
+    }
     // Decide whether a context needs to be created for [folder] here, and if
     // so, create it.
     File packageSpec = _findPackageSpecFile(folder);
     bool createContext = packageSpec.exists || !withPackageSpecOnly;
     if (withPackageSpecOnly &&
         packageSpec.exists &&
-        (parent != null) &&
+        parent != null &&
         parent.ignored(packageSpec.path)) {
       // Don't create a context if the package spec is required and ignored.
       createContext = false;
@@ -952,10 +997,8 @@ class ContextManagerImpl implements ContextManager {
     // so, create it.
     File packageSpec;
 
-    if (ENABLE_PACKAGESPEC_SUPPORT) {
-      // Start by looking for .packages.
-      packageSpec = folder.getChild(PACKAGE_SPEC_NAME);
-    }
+    // Start by looking for .packages.
+    packageSpec = folder.getChild(PACKAGE_SPEC_NAME);
 
     // Fall back to looking for a pubspec.
     if (packageSpec == null || !packageSpec.exists) {
@@ -1010,7 +1053,10 @@ class ContextManagerImpl implements ContextManager {
       _recomputeFolderDisposition(info);
     }
     // maybe excluded globally
-    if (_isExcluded(path) || _isContainedInDotFolder(info.folder.path, path)) {
+    if (_isExcluded(path) ||
+        _isContainedInDotFolder(info.folder.path, path) ||
+        _isInPackagesDir(info.folder.path, path) ||
+        _isInTopLevelDocDir(info.folder.path, path)) {
       return;
     }
     // maybe excluded from the context, so other context will handle it
@@ -1023,47 +1069,33 @@ class ContextManagerImpl implements ContextManager {
     // handle the change
     switch (event.type) {
       case ChangeType.ADD:
-        if (_isInPackagesDir(path, info.folder)) {
-          return;
-        }
-
         Resource resource = resourceProvider.getResource(path);
 
-        if (ENABLE_PACKAGESPEC_SUPPORT) {
-          String directoryPath = pathContext.dirname(path);
+        String directoryPath = pathContext.dirname(path);
 
-          // Check to see if we need to create a new context.
-          if (info.isTopLevel) {
-            // Only create a new context if this is not the same directory
-            // described by our info object.
-            if (info.folder.path != directoryPath) {
-              if (_isPubspec(path)) {
-                // Check for a sibling .packages file.
-                if (!resourceProvider
-                    .getFile(pathContext.join(directoryPath, PACKAGE_SPEC_NAME))
-                    .exists) {
-                  _extractContext(info, resource);
-                  return;
-                }
-              }
-              if (_isPackagespec(path)) {
-                // Check for a sibling pubspec.yaml file.
-                if (!resourceProvider
-                    .getFile(pathContext.join(directoryPath, PUBSPEC_NAME))
-                    .exists) {
-                  _extractContext(info, resource);
-                  return;
-                }
+        // Check to see if we need to create a new context.
+        if (info.isTopLevel) {
+          // Only create a new context if this is not the same directory
+          // described by our info object.
+          if (info.folder.path != directoryPath) {
+            if (_isPubspec(path)) {
+              // Check for a sibling .packages file.
+              if (!resourceProvider
+                  .getFile(pathContext.join(directoryPath, PACKAGE_SPEC_NAME))
+                  .exists) {
+                _extractContext(info, resource);
+                return;
               }
             }
-          }
-        } else {
-          // pubspec was added in a sub-folder, extract a new context
-          if (_isPubspec(path) &&
-              info.isTopLevel &&
-              !info.isPathToPackageDescription(path)) {
-            _extractContext(info, resource);
-            return;
+            if (_isPackagespec(path)) {
+              // Check for a sibling pubspec.yaml file.
+              if (!resourceProvider
+                  .getFile(pathContext.join(directoryPath, PUBSPEC_NAME))
+                  .exists) {
+                _extractContext(info, resource);
+                return;
+              }
+            }
           }
         }
 
@@ -1087,34 +1119,27 @@ class ContextManagerImpl implements ContextManager {
         // Note that it's important to verify that there is NEITHER a .packages nor a
         // lingering pubspec.yaml before merging.
         if (!info.isTopLevel) {
-          if (ENABLE_PACKAGESPEC_SUPPORT) {
-            String directoryPath = pathContext.dirname(path);
+          String directoryPath = pathContext.dirname(path);
 
-            // Only merge if this is the same directory described by our info object.
-            if (info.folder.path == directoryPath) {
-              if (_isPubspec(path)) {
-                // Check for a sibling .packages file.
-                if (!resourceProvider
-                    .getFile(pathContext.join(directoryPath, PACKAGE_SPEC_NAME))
-                    .exists) {
-                  _mergeContext(info);
-                  return;
-                }
-              }
-              if (_isPackagespec(path)) {
-                // Check for a sibling pubspec.yaml file.
-                if (!resourceProvider
-                    .getFile(pathContext.join(directoryPath, PUBSPEC_NAME))
-                    .exists) {
-                  _mergeContext(info);
-                  return;
-                }
+          // Only merge if this is the same directory described by our info object.
+          if (info.folder.path == directoryPath) {
+            if (_isPubspec(path)) {
+              // Check for a sibling .packages file.
+              if (!resourceProvider
+                  .getFile(pathContext.join(directoryPath, PACKAGE_SPEC_NAME))
+                  .exists) {
+                _mergeContext(info);
+                return;
               }
             }
-          } else {
-            if (info.isPathToPackageDescription(path)) {
-              _mergeContext(info);
-              return;
+            if (_isPackagespec(path)) {
+              // Check for a sibling pubspec.yaml file.
+              if (!resourceProvider
+                  .getFile(pathContext.join(directoryPath, PUBSPEC_NAME))
+                  .exists) {
+                _mergeContext(info);
+                return;
+              }
             }
           }
         }
@@ -1140,9 +1165,8 @@ class ContextManagerImpl implements ContextManager {
         }
         break;
     }
-
-    //TODO(pquitslund): find the right place for this
     _checkForPackagespecUpdate(path, info, info.folder);
+    _checkForAnalysisOptionsUpdate(path, info, event.type);
   }
 
   /**
@@ -1180,13 +1204,23 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /**
-   * Determine if the path from [folder] to [path] contains a 'packages'
-   * directory.
+   * Determine whether the given [path], when interpreted relative to the
+   * context root [root], contains a 'packages' folder.
    */
-  bool _isInPackagesDir(String path, Folder folder) {
-    String relativePath = pathContext.relative(path, from: folder.path);
+  bool _isInPackagesDir(String root, String path) {
+    String relativePath = pathContext.relative(path, from: root);
     List<String> pathParts = pathContext.split(relativePath);
     return pathParts.contains(PACKAGES_NAME);
+  }
+
+  /**
+   * Determine whether the given [path] is in the direct 'doc' folder of the
+   * context root [root].
+   */
+  bool _isInTopLevelDocDir(String root, String path) {
+    String relativePath = pathContext.relative(path, from: root);
+    return relativePath == DOC_DIR_NAME ||
+        relativePath.startsWith(DOC_DIR_NAME + pathContext.separator);
   }
 
   bool _isPackagespec(String path) =>

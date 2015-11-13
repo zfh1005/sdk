@@ -56,14 +56,14 @@ const uint8_t* NativeEntry::ResolveSymbolInLibrary(const Library& library,
 
 
 const uint8_t* NativeEntry::ResolveSymbol(uword pc) {
-  Isolate* isolate = Isolate::Current();
-  REUSABLE_GROWABLE_OBJECT_ARRAY_HANDLESCOPE(isolate);
+  Thread* thread = Thread::Current();
+  REUSABLE_GROWABLE_OBJECT_ARRAY_HANDLESCOPE(thread);
   GrowableObjectArray& libs = reused_growable_object_array_handle.Handle();
-  libs ^= isolate->object_store()->libraries();
+  libs ^= thread->isolate()->object_store()->libraries();
   ASSERT(!libs.IsNull());
   intptr_t num_libs = libs.Length();
   for (intptr_t i = 0; i < num_libs; i++) {
-    REUSABLE_LIBRARY_HANDLESCOPE(isolate);
+    REUSABLE_LIBRARY_HANDLESCOPE(thread);
     Library& lib = reused_library_handle.Handle();
     lib ^= libs.At(i);
     ASSERT(!lib.IsNull());
@@ -129,33 +129,17 @@ void NativeEntry::NativeCallWrapper(Dart_NativeArguments args,
 }
 
 
-static bool IsNativeKeyword(const TokenStream::Iterator& it) {
-  return Token::IsIdentifier(it.CurrentTokenKind()) &&
-      (it.CurrentLiteral() == Symbols::Native().raw());
-}
-
-
-static NativeFunction ResolveNativeFunction(Isolate *isolate,
+static NativeFunction ResolveNativeFunction(Zone* zone,
                                             const Function& func,
                                             bool* is_bootstrap_native) {
-  const Script& script = Script::Handle(isolate, func.script());
-  const Class& cls = Class::Handle(isolate, func.Owner());
-  const Library& library = Library::Handle(isolate, cls.library());
+  const Class& cls = Class::Handle(zone, func.Owner());
+  const Library& library = Library::Handle(zone, cls.library());
 
   *is_bootstrap_native =
       Bootstrap::IsBootstapResolver(library.native_entry_resolver());
 
-  TokenStream::Iterator it(TokenStream::Handle(isolate, script.tokens()),
-                           func.token_pos());
-
-  const intptr_t end_pos = func.end_token_pos();
-  while (!IsNativeKeyword(it) && it.CurrentPosition() <= end_pos) {
-    it.Advance();
-  }
-  ASSERT(IsNativeKeyword(it));
-  it.Advance();
-  ASSERT(it.CurrentTokenKind() == Token::kSTRING);
-  const String& native_name = String::Handle(it.CurrentLiteral());
+  const String& native_name = String::Handle(zone, func.native_name());
+  ASSERT(!native_name.IsNull());
 
   const int num_params = NativeArguments::ParameterCountForResolution(func);
   bool auto_setup_scope = true;
@@ -206,7 +190,7 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
 
     bool is_bootstrap_native = false;
     target_function = ResolveNativeFunction(
-        arguments->thread()->isolate(), func, &is_bootstrap_native);
+        arguments->thread()->zone(), func, &is_bootstrap_native);
     ASSERT(target_function != NULL);
 
 #if defined(DEBUG)
@@ -234,7 +218,7 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
 
     const intptr_t argc_tag = NativeArguments::ComputeArgcTag(func);
     const bool is_leaf_call =
-      (argc_tag & NativeArguments::AutoSetupScopeMask()) == 0;
+        (argc_tag & NativeArguments::AutoSetupScopeMask()) == 0;
 
     call_through_wrapper = !is_bootstrap_native && !is_leaf_call;
 

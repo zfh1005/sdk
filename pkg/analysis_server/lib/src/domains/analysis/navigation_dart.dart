@@ -4,7 +4,7 @@
 
 library domains.analysis.navigation_dart;
 
-import 'package:analysis_server/analysis/navigation_core.dart';
+import 'package:analysis_server/plugin/analysis/navigation/navigation_core.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -31,12 +31,22 @@ class DartNavigationComputer implements NavigationContributor {
         if (offset == null || length == null) {
           unit.accept(visitor);
         } else {
-          _DartRangeAstVisitor partVisitor =
-              new _DartRangeAstVisitor(offset, offset + length, visitor);
-          unit.accept(partVisitor);
+          AstNode node = _getNodeForRange(unit, offset, length);
+          node?.accept(visitor);
         }
       }
     }
+  }
+
+  static AstNode _getNodeForRange(
+      CompilationUnit unit, int offset, int length) {
+    AstNode node = new NodeLocator(offset, offset + length).searchWithin(unit);
+    for (AstNode n = node; n != null; n = n.parent) {
+      if (n is Directive) {
+        return n;
+      }
+    }
+    return node;
   }
 }
 
@@ -58,8 +68,7 @@ class _DartNavigationCollector {
     if (element.location == null) {
       return;
     }
-    protocol.ElementKind kind =
-        protocol.newElementKind_fromEngine(element.kind);
+    protocol.ElementKind kind = protocol.convertElementKind(element.kind);
     protocol.Location location = protocol.newLocation_fromElement(element);
     if (location == null) {
       return;
@@ -74,6 +83,9 @@ class _DartNavigationCollector {
   }
 
   void _addRegionForNode(AstNode node, Element element) {
+    if (node == null) {
+      return;
+    }
     int offset = node.offset;
     int length = node.length;
     _addRegion(offset, length, element);
@@ -90,6 +102,30 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
   final _DartNavigationCollector computer;
 
   _DartNavigationComputerVisitor(this.computer);
+
+  @override
+  visitAnnotation(Annotation node) {
+    Element element = node.element;
+    if (element is ConstructorElement && element.isSynthetic) {
+      element = element.enclosingElement;
+    }
+    Identifier name = node.name;
+    if (name is PrefixedIdentifier) {
+      // use constructor in: @PrefixClass.constructorName
+      Element prefixElement = name.prefix.staticElement;
+      if (prefixElement is ClassElement) {
+        prefixElement = element;
+      }
+      computer._addRegionForNode(name.prefix, prefixElement);
+      // always constructor
+      computer._addRegionForNode(name.identifier, element);
+    } else {
+      computer._addRegionForNode(name, element);
+    }
+    computer._addRegionForNode(node.constructorName, element);
+    // arguments
+    _safelyVisit(node.arguments);
+  }
 
   @override
   visitAssignmentExpression(AssignmentExpression node) {
@@ -172,7 +208,9 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
   @override
   visitIndexExpression(IndexExpression node) {
     super.visitIndexExpression(node);
-    computer._addRegionForToken(node.rightBracket, node.bestElement);
+    MethodElement element = node.bestElement;
+    computer._addRegionForToken(node.leftBracket, element);
+    computer._addRegionForToken(node.rightBracket, element);
   }
 
   @override
@@ -270,40 +308,5 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
     if (node != null) {
       node.accept(this);
     }
-  }
-}
-
-/**
- * An AST visitor that forwards nodes intersecting with the range from
- * [start] to [end] to the given [visitor].
- */
-class _DartRangeAstVisitor extends UnifyingAstVisitor {
-  final int start;
-  final int end;
-  final AstVisitor visitor;
-
-  _DartRangeAstVisitor(this.start, this.end, this.visitor);
-
-  bool isInRange(int offset) {
-    return start <= offset && offset <= end;
-  }
-
-  @override
-  visitNode(AstNode node) {
-    // The node ends before the range starts.
-    if (node.end < start) {
-      return;
-    }
-    // The node starts after the range ends.
-    if (node.offset > end) {
-      return;
-    }
-    // The node starts or ends in the range.
-    if (isInRange(node.offset) || isInRange(node.end)) {
-      node.accept(visitor);
-      return;
-    }
-    // Go deeper.
-    super.visitNode(node);
   }
 }

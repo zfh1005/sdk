@@ -222,6 +222,46 @@ class N {}''');
     verify([source]);
   }
 
+  void test_annotationWithNotClass() {
+    Source source = addSource('''
+class Property {
+  final int value;
+  const Property(this.value);
+}
+
+const Property property = const Property(42);
+
+@property(123)
+main() {
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.ANNOTATION_WITH_NON_CLASS]);
+    verify([source]);
+  }
+
+  void test_annotationWithNotClass_prefixed() {
+    addNamedSource(
+        "/annotations.dart",
+        r'''
+class Property {
+  final int value;
+  const Property(this.value);
+}
+
+const Property property = const Property(42);
+''');
+    Source source = addSource('''
+import 'annotations.dart' as pref;
+@pref.property(123)
+main() {
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.ANNOTATION_WITH_NON_CLASS]);
+    verify([source]);
+  }
+
   void test_async_used_as_identifier_in_annotation() {
     Source source = addSource('''
 const int async = 0;
@@ -1006,6 +1046,20 @@ class A {
 const x = const A();''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_constEval_nonStaticField_inGenericClass() {
+    Source source = addSource('''
+class C<T> {
+  const C();
+  T get t => null;
+}
+
+const x = const C().t;''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source,
+        [CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE]);
     verify([source]);
   }
 

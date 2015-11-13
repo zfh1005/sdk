@@ -6,7 +6,7 @@ library test.services.src.index.store.split_store;
 
 import 'dart:async';
 
-import 'package:analysis_server/analysis/index_core.dart';
+import 'package:analysis_server/plugin/index/index_core.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/indexable_element.dart';
 import 'package:analysis_server/src/services/index/store/codec.dart';
@@ -635,6 +635,10 @@ class _SplitIndexStoreTest {
         assertLocations(locations, [locationB]);
       });
     });
+  }
+
+  void test_aboutToIndexDart_nullContext() {
+    expect(store.aboutToIndex(null, unitElementA), isFalse);
   }
 
   void test_aboutToIndexDart_nullLibraryElement() {

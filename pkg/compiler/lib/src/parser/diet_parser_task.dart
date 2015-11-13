@@ -4,21 +4,21 @@
 
 library dart2js.parser.diet.task;
 
+import '../common.dart';
 import '../common/tasks.dart' show
     CompilerTask;
 import '../compiler.dart' show
     Compiler;
 import '../elements/elements.dart' show
     CompilationUnitElement;
-import '../diagnostics/invariant.dart' show
-    invariant;
 import '../tokens/token.dart' show
     Token;
 
 import 'listener.dart' show
     ParserError;
 import 'element_listener.dart' show
-    ElementListener;
+    ElementListener,
+    ScannerOptions;
 import 'partial_parser.dart' show
     PartialParser;
 
@@ -29,8 +29,11 @@ class DietParserTask extends CompilerTask {
   dietParse(CompilationUnitElement compilationUnit, Token tokens) {
     measure(() {
       Function idGenerator = compiler.getNextFreeClassId;
-      ElementListener listener =
-          new ElementListener(compiler, compilationUnit, idGenerator);
+      ScannerOptions scannerOptions = new ScannerOptions(
+          canUseNative: compiler.backend.canLibraryUseNative(
+              compilationUnit.library));
+      ElementListener listener = new ElementListener(
+          scannerOptions, compiler.reporter, compilationUnit, idGenerator);
       PartialParser parser = new PartialParser(listener);
       try {
         parser.parseUnit(tokens);

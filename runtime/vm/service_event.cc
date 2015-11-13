@@ -91,6 +91,8 @@ ServiceEvent::ServiceEvent(const DebuggerEvent* debugger_event)
 
 const char* ServiceEvent::KindAsCString() const {
   switch (kind()) {
+    case kVMUpdate:
+      return "VMUpdate";
     case kIsolateStart:
       return "IsolateStart";
     case kIsolateRunnable:
@@ -138,6 +140,9 @@ const char* ServiceEvent::KindAsCString() const {
 
 const char* ServiceEvent::stream_id() const {
   switch (kind()) {
+    case kVMUpdate:
+      return Service::vm_stream.id();
+
     case kIsolateStart:
     case kIsolateRunnable:
     case kIsolateExit:
@@ -192,7 +197,7 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
     JSONObject jssettings(&jsobj, "_debuggerSettings");
     isolate()->debugger()->PrintSettingsToJSONObject(&jssettings);
   }
-  if (top_frame() != NULL) {
+  if ((top_frame() != NULL) && Isolate::Current()->compilation_allowed()) {
     JSONObject jsFrame(&jsobj, "topFrame");
     top_frame()->PrintToJSONObject(&jsFrame);
     intptr_t index = 0;  // Avoid ambiguity in call to AddProperty.
@@ -234,7 +239,11 @@ void ServiceEvent::PrintJSONHeader(JSONObject* jsobj) const {
   ASSERT(jsobj != NULL);
   jsobj->AddProperty("type", "Event");
   jsobj->AddProperty("kind", KindAsCString());
-  jsobj->AddProperty("isolate", isolate());
+  if (kind() == kVMUpdate) {
+    jsobj->AddPropertyVM("vm");
+  } else {
+    jsobj->AddProperty("isolate", isolate());
+  }
   ASSERT(timestamp_ != -1);
   jsobj->AddPropertyTimeMillis("timestamp", timestamp_);
 }

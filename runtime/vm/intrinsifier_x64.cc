@@ -20,12 +20,12 @@ namespace dart {
 DECLARE_FLAG(bool, interpret_irregexp);
 
 // When entering intrinsics code:
-// RBX: IC Data
 // R10: Arguments descriptor
 // TOS: Return address
-// The RBX, R10 registers can be destroyed only if there is no slow-path, i.e.
+// The R10 registers can be destroyed only if there is no slow-path, i.e.
 // if the intrinsified method always executes a return.
 // The RBP register should not be modified, because it is used by the profiler.
+// The PP and THR registers (see constants_x64.h) must be preserved.
 
 #define __ assembler->
 
@@ -37,10 +37,11 @@ void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
   if (Isolate::Current()->flags().type_checks()) {
     return;
   }
+
+  Label fall_through;
   __ movq(RDX, Address(RSP, + 1 * kWordSize));  // Value.
   __ movq(RCX, Address(RSP, + 2 * kWordSize));  // Index.
   __ movq(RAX, Address(RSP, + 3 * kWordSize));  // Array.
-  Label fall_through;
   __ testq(RCX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &fall_through);
   // Range check.

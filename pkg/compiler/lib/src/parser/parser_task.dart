@@ -4,12 +4,11 @@
 
 library dart2js.parser.task;
 
+import '../common.dart';
 import '../common/tasks.dart' show
     CompilerTask;
 import '../compiler.dart' show
     Compiler;
-import '../diagnostics/invariant.dart' show
-    invariant;
 import '../elements/modelx.dart' show
     ElementX;
 import '../tokens/token.dart' show
@@ -17,6 +16,8 @@ import '../tokens/token.dart' show
 import '../tree/tree.dart' show
     Node;
 
+import 'element_listener.dart' show
+    ScannerOptions;
 import 'listener.dart' show
     ParserError;
 import 'node_listener.dart' show
@@ -29,12 +30,13 @@ class ParserTask extends CompilerTask {
   String get name => 'Parser';
 
   Node parse(ElementX element) {
-    return measure(() => element.parseNode(compiler));
+    return measure(() => element.parseNode(compiler.parsing));
   }
 
   Node parseCompilationUnit(Token token) {
     return measure(() {
-      NodeListener listener = new NodeListener(compiler, null);
+      NodeListener listener = new NodeListener(
+          const ScannerOptions(), reporter, null);
       Parser parser = new Parser(listener);
       try {
         parser.parseUnit(token);

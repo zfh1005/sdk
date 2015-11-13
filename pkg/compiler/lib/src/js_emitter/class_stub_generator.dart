@@ -167,7 +167,7 @@ class ClassStubGenerator {
             'noSuchMethodName': namer.noSuchMethodName,
             'createInvocationMirror':
                 backend.emitter.staticFunctionAccess(
-                    backend.getCreateInvocationMirror()),
+                    backend.helpers.createInvocationMirror),
             'methodName':
                 js.quoteName(compiler.enableMinification
                     ? internalName : methodName),
@@ -206,7 +206,7 @@ List<jsAst.Statement> buildTearOffCode(JavaScriptBackend backend) {
   Namer namer = backend.namer;
   Compiler compiler = backend.compiler;
 
-  Element closureFromTearOff = backend.findHelper('closureFromTearOff');
+  Element closureFromTearOff = backend.helpers.closureFromTearOff;
   jsAst.Expression tearOffAccessExpression;
   jsAst.Expression tearOffGlobalObjectString;
   jsAst.Expression tearOffGlobalObject;

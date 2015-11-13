@@ -6,9 +6,7 @@ library test.domain.completion;
 
 import 'dart:async';
 
-import 'package:analysis_server/completion/completion_core.dart'
-    show CompletionRequest, CompletionResult;
-import 'package:analysis_server/completion/completion_dart.dart' as newApi;
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/constants.dart';
@@ -16,7 +14,10 @@ import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/domain_completion.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/src/provisional/completion/completion_core.dart'
+    show CompletionRequest, CompletionResult;
+import 'package:analysis_server/src/provisional/completion/completion_dart.dart'
+    as newApi;
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/contribution_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
@@ -53,6 +54,9 @@ class CompletionManagerTest extends AbstractAnalysisTest {
   int requestCount = 0;
   String testFile2 = '/project/bin/test2.dart';
 
+  /// Cached model state in case tests need to set task model to on/off.
+  bool wasTaskModelEnabled;
+
   AnalysisServer createAnalysisServer(Index index) {
     ExtensionManager manager = new ExtensionManager();
     ServerPlugin serverPlugin = new ServerPlugin();
@@ -83,6 +87,8 @@ class CompletionManagerTest extends AbstractAnalysisTest {
   @override
   void setUp() {
     super.setUp();
+    wasTaskModelEnabled = AnalysisEngine.instance.useTaskModel;
+    AnalysisEngine.instance.useTaskModel = true;
     createProject();
     analysisDomain = handler;
     completionDomain = new Test_CompletionDomainHandler(server);
@@ -95,6 +101,7 @@ class CompletionManagerTest extends AbstractAnalysisTest {
     super.tearDown();
     analysisDomain = null;
     completionDomain = null;
+    AnalysisEngine.instance.useTaskModel = wasTaskModelEnabled;
   }
 
   /**

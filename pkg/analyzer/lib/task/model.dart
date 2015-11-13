@@ -5,6 +5,7 @@
 library analyzer.task.model;
 
 import 'dart:collection';
+import 'dart:developer';
 
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisTask;
 import 'package:analyzer/src/generated/error.dart' show AnalysisError;
@@ -58,7 +59,7 @@ class AnalysisContextTarget implements AnalysisTarget {
 /**
  * An object with which an analysis result can be associated.
  *
- * Clients are allowed to subtype this class when creating new kinds of targets.
+ * Clients may implement this class when creating new kinds of targets.
  * Instances of this type are used in hashed data structures, so subtypes are
  * required to correctly implement [==] and [hashCode].
  */
@@ -74,14 +75,25 @@ abstract class AnalysisTarget {
  * An object used to compute one or more analysis results associated with a
  * single target.
  *
- * Clients are expected to extend this class when creating new tasks.
+ * Clients must extend this class when creating new tasks.
  */
 abstract class AnalysisTask {
+  /**
+   * A queue storing the last 10 task descriptions for diagnostic purposes.
+   */
+  static final LimitedQueue<String> LAST_TASKS = new LimitedQueue<String>(10);
+
   /**
    * A table mapping the types of analysis tasks to the number of times each
    * kind of task has been performed.
    */
   static final Map<Type, int> countMap = new HashMap<Type, int>();
+
+  /**
+   * A table mapping the types of analysis tasks to user tags used to collect
+   * timing data for the Observatory.
+   */
+  static Map<Type, UserTag> tagMap = new HashMap<Type, UserTag>();
 
   /**
    * A table mapping the types of analysis tasks to stopwatches used to compute
@@ -191,7 +203,7 @@ abstract class AnalysisTask {
    * map should be fully populated (have a key/value pair for each result that
    * this task is expected to produce) or the [caughtException] should be set.
    *
-   * Clients should not override this method.
+   * Clients may not override this method.
    */
   void perform() {
     try {
@@ -199,7 +211,7 @@ abstract class AnalysisTask {
     } on AnalysisException catch (exception, stackTrace) {
       caughtException = new CaughtException(exception, stackTrace);
       AnalysisEngine.instance.logger
-          .logInformation("Task failed: ${description}", caughtException);
+          .logError("Task failed: ${description}", caughtException);
     }
   }
 
@@ -207,13 +219,62 @@ abstract class AnalysisTask {
   String toString() => description;
 
   /**
+   * Given a strongly connected component, find and return a list of
+   * [TargetedResult]s that describes a cyclic path within the cycle.  Returns
+   * null if no cyclic path is found.
+   */
+  List<TargetedResult> _findCyclicPath(List<WorkItem> cycle) {
+    WorkItem findInCycle(AnalysisTarget target, ResultDescriptor descriptor) {
+      for (WorkItem item in cycle) {
+        if (target == item.target && descriptor == item.spawningResult) {
+          return item;
+        }
+      }
+      return null;
+    }
+
+    HashSet<WorkItem> active = new HashSet<WorkItem>();
+    List<TargetedResult> path = null;
+    bool traverse(WorkItem item) {
+      if (!active.add(item)) {
+        // We've found a cycle
+        path = <TargetedResult>[];
+        return true;
+      }
+      for (TargetedResult result in item.inputTargetedResults) {
+        WorkItem item = findInCycle(result.target, result.result);
+        // Ignore edges that leave the cycle.
+        if (item != null) {
+          if (traverse(item)) {
+            // This edge is in a cycle (or leads to a cycle) so add it to the
+            // path
+            path.add(result);
+            return true;
+          }
+        }
+      }
+      // There was no cycle.
+      return false;
+    }
+    if (cycle.length > 0) {
+      traverse(cycle[0]);
+    }
+    return path;
+  }
+
+  /**
    * Perform this analysis task, ensuring that all exceptions are wrapped in an
    * [AnalysisException].
    *
-   * Clients should not override this method.
+   * Clients may not override this method.
    */
   void _safelyPerform() {
     try {
+      //
+      // Store task description for diagnostics.
+      //
+      LAST_TASKS.add(description);
+
       //
       // Report that this task is being performed.
       //
@@ -228,23 +289,31 @@ abstract class AnalysisTask {
       //
       int count = countMap[runtimeType];
       countMap[runtimeType] = count == null ? 1 : count + 1;
+//      UserTag tag = tagMap.putIfAbsent(
+//          runtimeType, () => new UserTag(runtimeType.toString()));
       Stopwatch stopwatch = stopwatchMap[runtimeType];
       if (stopwatch == null) {
         stopwatch = new Stopwatch();
         stopwatchMap[runtimeType] = stopwatch;
       }
+//      UserTag previousTag = tag.makeCurrent();
+//      try {
       stopwatch.start();
       //
       // Actually perform the task.
       //
       try {
         if (dependencyCycle != null && !handlesDependencyCycles) {
-          throw new InfiniteTaskLoopException(this, dependencyCycle);
+          throw new InfiniteTaskLoopException(
+              this, dependencyCycle, _findCyclicPath(dependencyCycle));
         }
         internalPerform();
       } finally {
         stopwatch.stop();
       }
+//      } finally {
+//        previousTag.makeCurrent();
+//      }
     } on AnalysisException {
       rethrow;
     } catch (exception, stackTrace) {
@@ -259,7 +328,7 @@ abstract class AnalysisTask {
  * A description of a [List]-based analysis result that can be computed by an
  * [AnalysisTask].
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class ListResultDescriptor<E> implements ResultDescriptor<List<E>> {
   /**
@@ -272,16 +341,23 @@ abstract class ListResultDescriptor<E> implements ResultDescriptor<List<E>> {
       E>;
 
   @override
-  ListTaskInput<E> of(AnalysisTarget target);
+  ListTaskInput<E> of(AnalysisTarget target, {bool flushOnAccess: false});
 }
 
 /**
  * A description of an input to an [AnalysisTask] that can be used to compute
  * that input.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class ListTaskInput<E> extends TaskInput<List<E>> {
+  /**
+   * Return a task input that can be used to compute a flatten list whose
+   * elements are combined [subListResult]'s associated with those elements.
+   */
+  ListTaskInput /*<V>*/ toFlattenListOf(
+      ListResultDescriptor /*<V>*/ subListResult);
+
   /**
    * Return a task input that can be used to compute a list whose elements are
    * the result of passing the elements of this input to the [mapper] function.
@@ -314,7 +390,7 @@ abstract class ListTaskInput<E> extends TaskInput<List<E>> {
 /**
  * A description of an input with a [Map] based values.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class MapTaskInput<K, V> extends TaskInput<Map<K, V>> {
   /**
@@ -333,6 +409,8 @@ abstract class MapTaskInput<K, V> extends TaskInput<Map<K, V>> {
  *
  * All the [ResultDescriptor]s with the same [ResultCachingPolicy] instance
  * share the same total size in a cache.
+ *
+ * Clients may implement this class when implementing plugins.
  */
 abstract class ResultCachingPolicy<T> {
   /**
@@ -356,7 +434,7 @@ abstract class ResultCachingPolicy<T> {
 /**
  * A description of an analysis result that can be computed by an [AnalysisTask].
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class ResultDescriptor<V> {
   /**
@@ -387,15 +465,16 @@ abstract class ResultDescriptor<V> {
 
   /**
    * Return a task input that can be used to compute this result for the given
-   * [target].
+   * [target]. If [flushOnAccess] is `true` then the value of this result that
+   * is associated with the [target] will be flushed when it is accessed.
    */
-  TaskInput<V> of(AnalysisTarget target);
+  TaskInput<V> of(AnalysisTarget target, {bool flushOnAccess: false});
 }
 
 /**
  * A specification of the given [result] for the given [target].
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 class TargetedResult {
   /**
@@ -436,6 +515,8 @@ class TargetedResult {
 
 /**
  * A description of an [AnalysisTask].
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class TaskDescriptor {
   /**
@@ -477,7 +558,7 @@ abstract class TaskDescriptor {
  * A description of an input to an [AnalysisTask] that can be used to compute
  * that input.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class TaskInput<V> {
   /**
@@ -505,7 +586,7 @@ abstract class TaskInput<V> {
  * indicating that there are no more requests, the method [inputValue] can be
  * used to access the value of the input that was built.
  *
- * Clients are not expected to subtype this class.
+ * Clients may not extend, implement or mix-in this class.
  */
 abstract class TaskInputBuilder<V> {
   /**
@@ -528,6 +609,12 @@ abstract class TaskInputBuilder<V> {
    * invocation of [moveNext] returned `false`.
    */
   void set currentValue(Object value);
+
+  /**
+   * Return `true` if the value accessed by this input builder should be flushed
+   * from the cache at the time it is retrieved.
+   */
+  bool get flushOnAccess;
 
   /**
    * Return the [value] that was computed by this builder.
@@ -567,6 +654,8 @@ abstract class TaskInputBuilder<V> {
  *
  * They know specific of the targets and results they care about,
  * so they can request analysis results in optimal order.
+ *
+ * Clients may implement this class when implementing plugins.
  */
 abstract class WorkManager {
   /**

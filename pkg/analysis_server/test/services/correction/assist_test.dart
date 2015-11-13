@@ -4,9 +4,9 @@
 
 library test.services.correction.assist;
 
-import 'package:analysis_server/edit/assist/assist_core.dart';
+import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
-import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:plugin/manager.dart';
@@ -792,6 +792,26 @@ main() {
 }
 ''');
     assertNoAssistAt('vvv =', DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE);
+  }
+
+  void test_assignToLocalVariable_inClosure() {
+    resolveTestUnit(r'''
+main() {
+  print(() {
+    12345;
+  });
+}
+''');
+    assertHasAssistAt(
+        '345',
+        DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE,
+        '''
+main() {
+  print(() {
+    var i = 12345;
+  });
+}
+''');
   }
 
   void test_assignToLocalVariable_invocationArgument() {

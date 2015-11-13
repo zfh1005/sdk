@@ -119,6 +119,7 @@ class DartUtils {
   static void CloseFile(void* stream);
   static bool EntropySource(uint8_t* buffer, intptr_t length);
   static Dart_Handle ReadStringFromFile(const char* filename);
+  static Dart_Handle MakeUint8Array(const uint8_t* buffer, intptr_t length);
   static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                                        Dart_Handle library,
                                        Dart_Handle url);
@@ -129,6 +130,7 @@ class DartUtils {
                                            bool is_service_isolate,
                                            bool trace_loading,
                                            const char* package_root,
+                                           const char** package_map,
                                            const char* packages_file);
   static Dart_Handle PrepareCoreLibrary(Dart_Handle core_lib,
                                  Dart_Handle builtin_lib,
@@ -138,6 +140,7 @@ class DartUtils {
   static Dart_Handle PrepareIOLibrary(Dart_Handle io_lib);
   static Dart_Handle PrepareIsolateLibrary(Dart_Handle isolate_lib);
   static Dart_Handle PrepareForScriptLoading(const char* package_root,
+                                             const char** package_map,
                                              const char* packages_file,
                                              bool is_service_isolate,
                                              bool trace_loading,
@@ -578,11 +581,11 @@ class CObjectExternalUint8Array : public CObject {
 class ScopedBlockingCall {
  public:
   ScopedBlockingCall() {
-    Dart_IsolateBlocked();
+    Dart_ThreadDisableProfiling();
   }
 
   ~ScopedBlockingCall() {
-    Dart_IsolateUnblocked();
+    Dart_ThreadEnableProfiling();
   }
 };
 

@@ -173,7 +173,7 @@ TEST_CASE(TokenStream) {
   EXPECT_EQ(6, ts.length());
   EXPECT_EQ(Token::kLPAREN, ts[1].kind);
   const TokenStream& token_stream = TokenStream::Handle(
-      TokenStream::New(ts, private_key));
+      TokenStream::New(ts, private_key, false));
   TokenStream::Iterator iterator(token_stream, 0);
   // EXPECT_EQ(6, token_stream.Length());
   iterator.Advance();  // Advance to '(' token.
@@ -281,7 +281,8 @@ TEST_CASE(InstanceClass) {
   const Array& one_fields = Array::Handle(Array::New(1));
   const String& field_name = String::Handle(Symbols::New("the_field"));
   const Field& field = Field::Handle(
-      Field::New(field_name, false, false, false, true, one_field_class, 0));
+      Field::New(field_name, false, false, false, true, one_field_class,
+                 Object::dynamic_type(), 0));
   one_fields.SetAt(0, field);
   one_field_class.SetFields(one_fields);
   one_field_class.Finalize();
@@ -2783,7 +2784,7 @@ TEST_CASE(EmbedSmiInCode) {
 // Test for Embedded Smi object in the instructions.
 TEST_CASE(EmbedSmiIn64BitCode) {
   extern void GenerateEmbedSmiInCode(Assembler* assembler, intptr_t value);
-  const intptr_t kSmiTestValue = 5L << 32;
+  const intptr_t kSmiTestValue = DART_INT64_C(5) << 32;
   Assembler _assembler_;
   GenerateEmbedSmiInCode(&_assembler_, kSmiTestValue);
   const Function& function =
@@ -2961,7 +2962,8 @@ static RawField* CreateTestField(const char* name) {
   const Class& cls = Class::Handle(CreateTestClass("global:"));
   const String& field_name = String::Handle(Symbols::New(name));
   const Field& field =
-      Field::Handle(Field::New(field_name, true, false, false, true, cls, 0));
+      Field::Handle(Field::New(field_name, true, false, false, true, cls,
+          Object::dynamic_type(), 0));
   return field.raw();
 }
 
@@ -4259,7 +4261,8 @@ TEST_CASE(PrintJSONPrimitives) {
         "\"owner\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"bool\"},"
         "\"_kind\":\"RegularFunction\","
-        "\"static\":false,\"const\":false}",
+        "\"static\":false,\"const\":false,"
+        "\"_intrinsic\":false,\"_native\":false}",
         buffer);
   }
   // Library reference

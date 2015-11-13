@@ -568,7 +568,7 @@ class HtmlDartInterfaceGenerator(object):
       elif (base_class == 'NativeFieldWrapperClass2' and
             self._options.dart_js_interop and
             not(isinstance(self._backend, Dart2JSBackend))):
-        base_class = 'JsoNativeFieldWrapper'
+        base_class = 'DartHtmlDomObject'
 
     annotations = self._metadata.GetFormattedMetadata(
         self._library_name, self._interface, None, '')
@@ -609,6 +609,7 @@ class HtmlDartInterfaceGenerator(object):
 
     js_interop_wrapper = '''
 
+  @Deprecated("Internal Use Only")
   static {0} internalCreate{0}() {{
     return new {0}._internalWrap();
   }}
@@ -617,21 +618,22 @@ class HtmlDartInterfaceGenerator(object):
     return new {0}.internal_();
   }}
 
+  @Deprecated("Internal Use Only")
   {0}.internal_() : super.internal_();
 
 '''.format(class_name)
-    if base_class == 'NativeFieldWrapperClass2' or base_class == 'JsoNativeFieldWrapper':
+    if base_class == 'NativeFieldWrapperClass2' or base_class == 'DartHtmlDomObject':
         js_interop_wrapper = '''
+  @Deprecated("Internal Use Only")
   static {0} internalCreate{0}() {{
     return new {0}._internalWrap();
   }}
-
-  js.JsObject blink_jsObject;
 
   factory {0}._internalWrap() {{
     return new {0}.internal_();
   }}
 
+  @Deprecated("Internal Use Only")
   {0}.internal_() {{ }}
 
 {1}'''.format(class_name, js_interop_equivalence_op)
@@ -642,7 +644,7 @@ class HtmlDartInterfaceGenerator(object):
             self._options.dart_js_interop and
             (self._interface.id == 'NamedNodeMap' or
              self._interface.id == 'CSSStyleDeclaration')):
-            base_class = 'JsoNativeFieldWrapper'
+            base_class = 'DartHtmlDomObject'
 
     implementation_members_emitter = implementation_emitter.Emit(
         self._backend.ImplementationTemplate(),

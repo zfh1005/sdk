@@ -1017,13 +1017,15 @@ class Primitives {
   static String stringFromCharCode(charCode) {
     if (0 <= charCode) {
       if (charCode <= 0xffff) {
-        return JS('String', 'String.fromCharCode(#)', charCode);
+        return JS('returns:String;effects:none;depends:none',
+                  'String.fromCharCode(#)', charCode);
       }
       if (charCode <= 0x10ffff) {
         var bits = charCode - 0x10000;
         var low = 0xDC00 | (bits & 0x3ff);
         var high = 0xD800 | (bits >> 10);
-        return  JS('String', 'String.fromCharCode(#, #)', high, low);
+        return JS('returns:String;effects:none;depends:none',
+                  'String.fromCharCode(#, #)', high, low);
       }
     }
     throw new RangeError.range(charCode, 0, 0x10ffff);
@@ -2568,9 +2570,9 @@ abstract class Closure implements Function {
       // captured variable `functionType` isn't reused.
       signatureFunction =
           JS('',
-             '''(function(t) {
-                    return function(){ return #(t); };
-                })(#)''',
+             '''(function(getType, t) {
+                    return function(){ return getType(t); };
+                })(#, #)''',
              RAW_DART_FUNCTION_REF(getType),
              functionType);
     } else if (!isStatic
@@ -3179,8 +3181,9 @@ propertyTypeCast(value, property) {
  */
 interceptedTypeCheck(value, property) {
   if (value == null) return value;
-  if ((identical(JS('String', 'typeof #', value), 'object'))
-      && JS('bool', '#[#]', getInterceptor(value), property)) {
+  if ((JS('bool', 'typeof # === "object"', value) ||
+              JS('bool', 'typeof # === "function"', value)) &&
+      JS('bool', '#[#]', getInterceptor(value), property)) {
     return value;
   }
   propertyTypeError(value, property);
@@ -3192,9 +3195,10 @@ interceptedTypeCheck(value, property) {
  * prototype at load time.
  */
 interceptedTypeCast(value, property) {
-  if (value == null
-      || ((JS('bool', 'typeof # === "object"', value))
-          && JS('bool', '#[#]', getInterceptor(value), property))) {
+  if (value == null ||
+      ((JS('bool', 'typeof # === "object"', value) ||
+              JS('bool', 'typeof # === "function"', value)) &&
+          JS('bool', '#[#]', getInterceptor(value), property))) {
     return value;
   }
   propertyTypeCastError(value, property);
@@ -3749,7 +3753,7 @@ class FunctionTypeInfoDecoderRing {
   bool get _hasReturnType => JS('bool', '"ret" in #', _typeData);
   get _returnType => JS('', '#.ret', _typeData);
 
-  bool get _isVoid => JS('bool', '!!#.void', _typeData);
+  bool get _isVoid => JS('bool', '!!#.v', _typeData);
 
   bool get _hasArguments => JS('bool', '"args" in #', _typeData);
   List get _arguments => JS('JSExtendableArray', '#.args', _typeData);

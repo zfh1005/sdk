@@ -254,6 +254,12 @@ class AnalysisContextFactory {
     // TODO(brianwilkerson) This is missing the optional parameters.
     MethodElementImpl listenMethod =
         ElementFactory.methodElement('listen', returnType, parameterTypes);
+    (listenMethod.type as FunctionTypeImpl).typeArguments =
+        streamElement.type.typeArguments;
+    (parameterTypes[0] as FunctionTypeImpl).typeArguments =
+        streamElement.type.typeArguments;
+    (parameterTypes[0].element as FunctionElementImpl).enclosingElement =
+        listenMethod;
     streamElement.methods = <MethodElement>[listenMethod];
 
     asyncUnit.types = <ClassElement>[
@@ -995,13 +1001,13 @@ class C<T> {
   final T x = y;
   const C();
 }
-const y = 1;
+const int y = 1;
 var v = const C<String>();
 ''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [
       CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
-      HintCode.INVALID_ASSIGNMENT
+      StaticTypeWarningCode.INVALID_ASSIGNMENT
     ]);
     verify([source]);
   }
@@ -1027,11 +1033,11 @@ class C<T> {
   final T x = y;
   const C();
 }
-const y = 1;
+const int y = 1;
 var v = const C<int>();
 ''');
     computeLibrarySourceErrors(source);
-    assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
+    assertErrors(source, [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
     verify([source]);
   }
 
@@ -2358,6 +2364,61 @@ n(int i) {}''');
     verify([source]);
   }
 
+  void test_canBeNullAfterNullAware_false_methodInvocation() {
+    Source source = addSource(r'''
+m(x) {
+  x?.a()?.b();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_canBeNullAfterNullAware_false_propertyAccess() {
+    Source source = addSource(r'''
+m(x) {
+  x?.a?.b;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_canBeNullAfterNullAware_methodInvocation() {
+    Source source = addSource(r'''
+m(x) {
+  x?.a.b();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+    verify([source]);
+  }
+
+  void test_canBeNullAfterNullAware_parenthesized() {
+    Source source = addSource(r'''
+m(x) {
+  (x?.a).b;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+    verify([source]);
+  }
+
+  void test_canBeNullAfterNullAware_propertyAccess() {
+    Source source = addSource(r'''
+m(x) {
+  x?.a.b;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.CAN_BE_NULL_AFTER_NULL_AWARE]);
+    verify([source]);
+  }
+
   void test_deadCode_deadBlock_conditionalElse() {
     Source source = addSource(r'''
 f() {
@@ -2762,10 +2823,10 @@ f(A a) {
     verify([source]);
   }
 
-  void test_deprecatedAnnotationUse_Deprecated() {
+  void test_deprecatedAnnotationUse_deprecated() {
     Source source = addSource(r'''
 class A {
-  @Deprecated('0.9')
+  @deprecated
   m() {}
   n() {m();}
 }''');
@@ -2774,10 +2835,10 @@ class A {
     verify([source]);
   }
 
-  void test_deprecatedAnnotationUse_deprecated() {
+  void test_deprecatedAnnotationUse_Deprecated() {
     Source source = addSource(r'''
 class A {
-  @deprecated
+  @Deprecated('0.9')
   m() {}
   n() {m();}
 }''');
@@ -3150,6 +3211,160 @@ class A {
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.MISSING_RETURN]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_assert() {
+    Source source = addSource(r'''
+m(x) {
+  assert (x?.a);
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_conditionalExpression() {
+    Source source = addSource(r'''
+m(x) {
+  return x?.a ? 0 : 1;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_do() {
+    Source source = addSource(r'''
+m(x) {
+  do {} while (x?.a);
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_for() {
+    Source source = addSource(r'''
+m(x) {
+  for (var v = x; v?.a; v = v.next) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_if() {
+    Source source = addSource(r'''
+m(x) {
+  if (x?.a) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_if_conditionalAnd_first() {
+    Source source = addSource(r'''
+m(x) {
+  if (x?.a && x.b) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_if_conditionalAnd_second() {
+    Source source = addSource(r'''
+m(x) {
+  if (x.a && x?.b) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_if_conditionalAnd_third() {
+    Source source = addSource(r'''
+m(x) {
+  if (x.a && x.b && x?.c) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_if_conditionalOr_first() {
+    Source source = addSource(r'''
+m(x) {
+  if (x?.a || x.b) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_if_conditionalOr_second() {
+    Source source = addSource(r'''
+m(x) {
+  if (x.a || x?.b) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_if_conditionalOr_third() {
+    Source source = addSource(r'''
+m(x) {
+  if (x.a || x.b || x?.c) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_if_not() {
+    Source source = addSource(r'''
+m(x) {
+  if (!x?.a) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_if_parenthesized() {
+    Source source = addSource(r'''
+m(x) {
+  if ((x?.a)) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_while() {
+    Source source = addSource(r'''
+m(x) {
+  while (x?.a) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.NULL_AWARE_IN_CONDITION]);
     verify([source]);
   }
 
@@ -5931,6 +6146,21 @@ void set V(int v) {}''');
     expect(unit.topLevelVariables, hasLength(0));
   }
 
+  void test_libraryElement_docRange() {
+    String code = r'''
+/// My dart doc.
+library lib;
+
+class A {}''';
+    Source librarySource = addSource("/lib.dart", code);
+    LibraryElement element = _buildLibrary(librarySource);
+    expect(element, isNotNull);
+    SourceRange docRange = element.docRange;
+    expect(docRange, isNotNull);
+    expect(docRange.offset, code.indexOf('/// My dart doc.'));
+    expect(docRange.length, '/// My dart doc.'.length);
+  }
+
   void test_missingLibraryDirectiveWithPart() {
     addSource("/a.dart", "part of lib;");
     Source librarySource = addSource("/lib.dart", "part 'a.dart';");
@@ -5989,6 +6219,7 @@ class C {}''');
     Source librarySource = addSource(
         "/lib.dart",
         r'''
+/// My dart doc.
 library lib;
 
 class A {}''');
@@ -6879,6 +7110,28 @@ abstract class A {
 
   void test_missingReturn_voidReturnType() {
     Source source = addSource("void f() {}");
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_for_noCondition() {
+    Source source = addSource(r'''
+m(x) {
+  for (var v = x; ; v++) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_nullAwareInCondition_if_notTopLevel() {
+    Source source = addSource(r'''
+m(x) {
+  if (x?.y == null) {}
+}
+''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
@@ -9974,31 +10227,6 @@ class SourceContainer_ChangeSetTest_test_toString implements SourceContainer {
 }
 
 /**
- * Shared infrastructure for [StaticTypeAnalyzer2Test] and
- * [StrongModeStaticTypeAnalyzer2Test].
- */
-class _StaticTypeAnalyzer2TestShared extends ResolverTestCase {
-  String testCode;
-  Source testSource;
-  CompilationUnit testUnit;
-
-  SimpleIdentifier _findIdentifier(String search) {
-    SimpleIdentifier identifier = EngineTestCase.findNode(
-        testUnit, testCode, search, (node) => node is SimpleIdentifier);
-    return identifier;
-  }
-
-  void _resolveTestUnit(String code) {
-    testCode = code;
-    testSource = addSource(testCode);
-    LibraryElement library = resolve2(testSource);
-    assertNoErrors(testSource);
-    verify([testSource]);
-    testUnit = resolveCompilationUnit(testSource, library);
-  }
-}
-
-/**
  * Like [StaticTypeAnalyzerTest], but as end-to-end tests.
  */
 @reflectiveTest
@@ -11915,25 +12143,11 @@ class StrongModeStaticTypeAnalyzer2Test extends _StaticTypeAnalyzer2TestShared {
     resetWithOptions(options);
   }
 
-  void test_ternaryOperator_null_right() {
+  void test_dynamicObjectGetter_hashCode() {
     String code = r'''
 main() {
-  var foo = (true) ? 3 : null;
-}
-''';
-    _resolveTestUnit(code);
-
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'int');
-    expect(declaration.initializer.propagatedType, isNull);
-  }
-
-  void test_ternaryOperator_null_left() {
-    String code = r'''
-main() {
-  var foo = (true) ? null : 3;
+  dynamic a = null;
+  var foo = a.hashCode;
 }
 ''';
     _resolveTestUnit(code);
@@ -11961,38 +12175,6 @@ main() {
     expect(declaration.initializer.propagatedType, isNull);
   }
 
-  void test_dynamicObjectGetter_hashCode() {
-    String code = r'''
-main() {
-  dynamic a = null;
-  var foo = a.hashCode;
-}
-''';
-    _resolveTestUnit(code);
-
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'int');
-    expect(declaration.initializer.propagatedType, isNull);
-  }
-
-  void test_pseudoGeneric_max_intInt() {
-    String code = r'''
-import 'dart:math';
-main() {
-  var foo = max(1, 2);
-}
-''';
-    _resolveTestUnit(code);
-
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'int');
-    expect(declaration.initializer.propagatedType, isNull);
-  }
-
   void test_pseudoGeneric_max_doubleDouble() {
     String code = r'''
 import 'dart:math';
@@ -12006,22 +12188,6 @@ main() {
     VariableDeclaration declaration =
         identifier.getAncestor((node) => node is VariableDeclaration);
     expect(declaration.initializer.staticType.name, 'double');
-    expect(declaration.initializer.propagatedType, isNull);
-  }
-
-  void test_pseudoGeneric_max_intDouble() {
-    String code = r'''
-import 'dart:math';
-main() {
-  var foo = max(1, 2.0);
-}
-''';
-    _resolveTestUnit(code);
-
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'num');
     expect(declaration.initializer.propagatedType, isNull);
   }
 
@@ -12041,6 +12207,38 @@ main() {
     expect(declaration.initializer.propagatedType, isNull);
   }
 
+  void test_pseudoGeneric_max_intDouble() {
+    String code = r'''
+import 'dart:math';
+main() {
+  var foo = max(1, 2.0);
+}
+''';
+    _resolveTestUnit(code);
+
+    SimpleIdentifier identifier = _findIdentifier('foo');
+    VariableDeclaration declaration =
+        identifier.getAncestor((node) => node is VariableDeclaration);
+    expect(declaration.initializer.staticType.name, 'num');
+    expect(declaration.initializer.propagatedType, isNull);
+  }
+
+  void test_pseudoGeneric_max_intInt() {
+    String code = r'''
+import 'dart:math';
+main() {
+  var foo = max(1, 2);
+}
+''';
+    _resolveTestUnit(code);
+
+    SimpleIdentifier identifier = _findIdentifier('foo');
+    VariableDeclaration declaration =
+        identifier.getAncestor((node) => node is VariableDeclaration);
+    expect(declaration.initializer.staticType.name, 'int');
+    expect(declaration.initializer.propagatedType, isNull);
+  }
+
   void test_pseudoGeneric_then() {
     String code = r'''
 import 'dart:async';
@@ -12055,12 +12253,38 @@ main() {
     SimpleIdentifier identifier = _findIdentifier('foo');
     VariableDeclaration declaration =
         identifier.getAncestor((node) => node is VariableDeclaration);
-    InterfaceType stringType = typeProvider.stringType;
-    InterfaceType futureType = typeProvider.futureType;
-    InterfaceType futureOfStringType =
-        futureType.substitute4(<DartType>[stringType]);
 
     expect(declaration.initializer.staticType.toString(), "Future<String>");
+    expect(declaration.initializer.propagatedType, isNull);
+  }
+
+  void test_ternaryOperator_null_left() {
+    String code = r'''
+main() {
+  var foo = (true) ? null : 3;
+}
+''';
+    _resolveTestUnit(code);
+
+    SimpleIdentifier identifier = _findIdentifier('foo');
+    VariableDeclaration declaration =
+        identifier.getAncestor((node) => node is VariableDeclaration);
+    expect(declaration.initializer.staticType.name, 'int');
+    expect(declaration.initializer.propagatedType, isNull);
+  }
+
+  void test_ternaryOperator_null_right() {
+    String code = r'''
+main() {
+  var foo = (true) ? 3 : null;
+}
+''';
+    _resolveTestUnit(code);
+
+    SimpleIdentifier identifier = _findIdentifier('foo');
+    VariableDeclaration declaration =
+        identifier.getAncestor((node) => node is VariableDeclaration);
+    expect(declaration.initializer.staticType.name, 'int');
     expect(declaration.initializer.propagatedType, isNull);
   }
 }
@@ -12559,6 +12783,18 @@ f(p) {
         code, typeProvider.dynamicType, typeProvider.intType);
   }
 
+  void fail_finalPropertyInducingVariable_classMember_instance_unprefixed() {
+    String code = r'''
+class A {
+  final v = 0;
+  m() {
+    v; // marker
+  }
+}''';
+    _assertTypeOfMarkedExpression(
+        code, typeProvider.dynamicType, typeProvider.intType);
+  }
+
   void fail_finalPropertyInducingVariable_classMember_static() {
     addNamedSource(
         "/lib.dart",
@@ -12934,6 +13170,39 @@ f(Stream<String> stream) async {
       SimpleIdentifier identifier = EngineTestCase.findNode(
           unit, code, "e;", (node) => node is SimpleIdentifier);
       expect(identifier.propagatedType, same(stringType));
+    }
+  }
+
+  void test_forEach_async_inheritedStream() {
+    // From https://github.com/dart-lang/sdk/issues/24191, this ensures that
+    // `await for` works for types where the generic parameter doesn't
+    // correspond to the type of the Stream's data.
+    String code = r'''
+import 'dart:async';
+abstract class MyCustomStream<T> implements Stream<List<T>> {}
+f(MyCustomStream<String> stream) async {
+  await for (var e in stream) {
+    e;
+  }
+}''';
+    Source source = addSource(code);
+    LibraryElement library = resolve2(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = resolveCompilationUnit(source, library);
+    InterfaceType listOfStringType =
+        typeProvider.listType.substitute4([typeProvider.stringType]);
+    // in the declaration
+    {
+      SimpleIdentifier identifier = EngineTestCase.findNode(
+          unit, code, "e in", (node) => node is SimpleIdentifier);
+      expect(identifier.propagatedType, equals(listOfStringType));
+    }
+    // in the loop body
+    {
+      SimpleIdentifier identifier = EngineTestCase.findNode(
+          unit, code, "e;", (node) => node is SimpleIdentifier);
+      expect(identifier.propagatedType, equals(listOfStringType));
     }
   }
 
@@ -13853,6 +14122,99 @@ void g() {
     assertNoErrors(source);
   }
 
+  void test_objectAccessInference_disabled_for_library_prefix() {
+    String name = 'hashCode';
+    addNamedSource(
+        '/helper.dart',
+        '''
+library helper;
+dynamic get $name => 42;
+''');
+    String code = '''
+import 'helper.dart' as helper;
+main() {
+  helper.$name; // marker
+}''';
+
+    SimpleIdentifier id = _findMarkedIdentifier(code, "; // marker");
+    PrefixedIdentifier prefixedId = id.parent;
+    expect(id.staticType, typeProvider.dynamicType);
+    expect(prefixedId.staticType, typeProvider.dynamicType);
+  }
+
+  void test_objectAccessInference_disabled_for_local_getter() {
+    String name = 'hashCode';
+    String code = '''
+dynamic get $name => null;
+main() {
+  $name; // marker
+}''';
+
+    SimpleIdentifier getter = _findMarkedIdentifier(code, "; // marker");
+    expect(getter.staticType, typeProvider.dynamicType);
+  }
+
+  void test_objectAccessInference_enabled_for_cascades() {
+    String name = 'hashCode';
+    String code = '''
+main() {
+  dynamic obj;
+  obj..$name..$name; // marker
+}''';
+    PropertyAccess access = _findMarkedIdentifier(code, "; // marker").parent;
+    expect(access.staticType, typeProvider.dynamicType);
+    expect(access.realTarget.staticType, typeProvider.dynamicType);
+  }
+
+  void test_objectMethodInference_disabled_for_library_prefix() {
+    String name = 'toString';
+    addNamedSource(
+        '/helper.dart',
+        '''
+library helper;
+dynamic $name = (int x) => x + 42');
+''');
+    String code = '''
+import 'helper.dart' as helper;
+main() {
+  helper.$name(); // marker
+}''';
+    SimpleIdentifier methodName = _findMarkedIdentifier(code, "(); // marker");
+    MethodInvocation methodInvoke = methodName.parent;
+    expect(methodName.staticType, null, reason: 'library prefix has no type');
+    expect(methodInvoke.staticType, typeProvider.dynamicType);
+  }
+
+  void test_objectMethodInference_disabled_for_local_function() {
+    String name = 'toString';
+    String code = '''
+main() {
+  dynamic $name = () => null;
+  $name(); // marker
+}''';
+    SimpleIdentifier identifier = _findMarkedIdentifier(code, "$name = ");
+    expect(identifier.staticType, typeProvider.dynamicType);
+
+    SimpleIdentifier methodName = _findMarkedIdentifier(code, "(); // marker");
+    MethodInvocation methodInvoke = methodName.parent;
+    expect(methodName.staticType, typeProvider.dynamicType);
+    expect(methodInvoke.staticType, typeProvider.dynamicType);
+  }
+
+  void test_objectMethodInference_enabled_for_cascades() {
+    String name = 'toString';
+    String code = '''
+main() {
+  dynamic obj;
+  obj..$name()..$name(); // marker
+}''';
+    SimpleIdentifier methodName = _findMarkedIdentifier(code, "(); // marker");
+    MethodInvocation methodInvoke = methodName.parent;
+
+    expect(methodInvoke.staticType, typeProvider.dynamicType);
+    expect(methodInvoke.realTarget.staticType, typeProvider.dynamicType);
+  }
+
   void test_objectMethodOnDynamicExpression_doubleEquals() {
     // https://code.google.com/p/dart/issues/detail?id=20342
     //
@@ -13904,96 +14266,6 @@ f1(x) {
 }''',
         null,
         typeProvider.stringType);
-  }
-
-  void test_objectMethodInference_disabled_for_local_function() {
-    String name = 'toString';
-    String code = '''
-main() {
-  dynamic $name = () => null;
-  $name(); // marker
-}''';
-    SimpleIdentifier identifier = _findMarkedIdentifier(code, "$name = ");
-    expect(identifier.staticType, typeProvider.dynamicType);
-
-    SimpleIdentifier methodName = _findMarkedIdentifier(code, "(); // marker");
-    MethodInvocation methodInvoke = methodName.parent;
-    expect(methodName.staticType, typeProvider.dynamicType);
-    expect(methodInvoke.staticType, typeProvider.dynamicType);
-  }
-
-  void test_objectMethodInference_disabled_for_library_prefix() {
-    String name = 'toString';
-    addNamedSource('/helper.dart', '''
-library helper;
-dynamic $name = (int x) => x + 42');
-''');
-    String code = '''
-import 'helper.dart' as helper;
-main() {
-  helper.$name(); // marker
-}''';
-    SimpleIdentifier methodName = _findMarkedIdentifier(code, "(); // marker");
-    MethodInvocation methodInvoke = methodName.parent;
-    expect(methodName.staticType, null, reason: 'library prefix has no type');
-    expect(methodInvoke.staticType, typeProvider.dynamicType);
-  }
-
-  void test_objectMethodInference_enabled_for_cascades() {
-    String name = 'toString';
-    String code = '''
-main() {
-  dynamic obj;
-  obj..$name()..$name(); // marker
-}''';
-    SimpleIdentifier methodName = _findMarkedIdentifier(code, "(); // marker");
-    MethodInvocation methodInvoke = methodName.parent;
-
-    expect(methodInvoke.staticType, typeProvider.dynamicType);
-    expect(methodInvoke.realTarget.staticType, typeProvider.dynamicType);
-  }
-
-
-  void test_objectAccessInference_disabled_for_local_getter() {
-    String name = 'hashCode';
-    String code = '''
-dynamic get $name => null;
-main() {
-  $name; // marker
-}''';
-
-    SimpleIdentifier getter = _findMarkedIdentifier(code, "; // marker");
-    expect(getter.staticType, typeProvider.dynamicType);
-  }
-
-  void test_objectAccessInference_disabled_for_library_prefix() {
-    String name = 'hashCode';
-    addNamedSource('/helper.dart', '''
-library helper;
-dynamic get $name => 42;
-''');
-    String code = '''
-import 'helper.dart' as helper;
-main() {
-  helper.$name; // marker
-}''';
-
-    SimpleIdentifier id = _findMarkedIdentifier(code, "; // marker");
-    PrefixedIdentifier prefixedId = id.parent;
-    expect(id.staticType, typeProvider.dynamicType);
-    expect(prefixedId.staticType, typeProvider.dynamicType);
-  }
-
-  void test_objectAccessInference_enabled_for_cascades() {
-    String name = 'hashCode';
-    String code = '''
-main() {
-  dynamic obj;
-  obj..$name..$name; // marker
-}''';
-    PropertyAccess access = _findMarkedIdentifier(code, "; // marker").parent;
-    expect(access.staticType, typeProvider.dynamicType);
-    expect(access.realTarget.staticType, typeProvider.dynamicType);
   }
 
   void test_propagatedReturnType_localFunction() {
@@ -14831,5 +15103,30 @@ class _SimpleResolverTest_localVariable_types_invoked
       }
     }
     return null;
+  }
+}
+
+/**
+ * Shared infrastructure for [StaticTypeAnalyzer2Test] and
+ * [StrongModeStaticTypeAnalyzer2Test].
+ */
+class _StaticTypeAnalyzer2TestShared extends ResolverTestCase {
+  String testCode;
+  Source testSource;
+  CompilationUnit testUnit;
+
+  SimpleIdentifier _findIdentifier(String search) {
+    SimpleIdentifier identifier = EngineTestCase.findNode(
+        testUnit, testCode, search, (node) => node is SimpleIdentifier);
+    return identifier;
+  }
+
+  void _resolveTestUnit(String code) {
+    testCode = code;
+    testSource = addSource(testCode);
+    LibraryElement library = resolve2(testSource);
+    assertNoErrors(testSource);
+    verify([testSource]);
+    testUnit = resolveCompilationUnit(testSource, library);
   }
 }

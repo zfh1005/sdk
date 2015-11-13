@@ -20,12 +20,12 @@ namespace dart {
 DECLARE_FLAG(bool, interpret_irregexp);
 
 // When entering intrinsics code:
-// R5: IC Data
 // R4: Arguments descriptor
 // LR: Return address
-// The R5, R4 registers can be destroyed only if there is no slow-path, i.e.
+// The R4 register can be destroyed only if there is no slow-path, i.e.
 // if the intrinsified method always executes a return.
 // The FP register should not be modified, because it is used by the profiler.
+// The PP and THR registers (see constants_arm64.h) must be preserved.
 
 #define __ assembler->
 
@@ -33,56 +33,14 @@ DECLARE_FLAG(bool, interpret_irregexp);
 intptr_t Intrinsifier::ParameterSlotFromSp() { return -1; }
 
 
-static intptr_t ComputeObjectArrayTypeArgumentsOffset() {
-  const Library& core_lib = Library::Handle(Library::CoreLibrary());
-  const Class& cls = Class::Handle(
-      core_lib.LookupClassAllowPrivate(Symbols::_List()));
-  ASSERT(!cls.IsNull());
-  ASSERT(cls.NumTypeArguments() == 1);
-  const intptr_t field_offset = cls.type_arguments_field_offset();
-  ASSERT(field_offset != Class::kNoTypeArguments);
-  return field_offset;
-}
-
-
 // Intrinsify only for Smi value and index. Non-smi values need a store buffer
 // update. Array length is always a Smi.
 void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
-  Label fall_through;
-
   if (Isolate::Current()->flags().type_checks()) {
-    const intptr_t type_args_field_offset =
-        ComputeObjectArrayTypeArgumentsOffset();
-    // Inline simple tests (Smi, null), fallthrough if not positive.
-    Label checked_ok;
-    __ ldr(R2, Address(SP, 0 * kWordSize));  // Value.
-
-    // Null value is valid for any type.
-    __ CompareObject(R2, Object::null_object());
-    __ b(&checked_ok, EQ);
-
-    __ ldr(R1, Address(SP, 2 * kWordSize));  // Array.
-    __ ldr(R1, FieldAddress(R1, type_args_field_offset));
-
-    // R1: Type arguments of array.
-    __ CompareObject(R1, Object::null_object());
-    __ b(&checked_ok, EQ);
-
-    // Check if it's dynamic.
-    // Get type at index 0.
-    __ ldr(R0, FieldAddress(R1, TypeArguments::type_at_offset(0)));
-    __ CompareObject(R0, Type::ZoneHandle(Type::DynamicType()));
-    __ b(&checked_ok, EQ);
-
-    // Check for int and num.
-    __ tsti(R2, Immediate(Immediate(kSmiTagMask)));  // Value is Smi?
-    __ b(&fall_through, NE);  // Non-smi value.
-    __ CompareObject(R0, Type::ZoneHandle(Type::IntType()));
-    __ b(&checked_ok, EQ);
-    __ CompareObject(R0, Type::ZoneHandle(Type::Number()));
-    __ b(&fall_through, NE);
-    __ Bind(&checked_ok);
+    return;
   }
+
+  Label fall_through;
   __ ldr(R1, Address(SP, 1 * kWordSize));  // Index.
   __ tsti(R1, Immediate(kSmiTagMask));
   // Index not Smi.

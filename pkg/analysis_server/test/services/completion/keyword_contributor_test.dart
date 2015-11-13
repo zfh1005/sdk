@@ -4,7 +4,7 @@
 
 library test.services.completion.dart.keyword;
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/keyword_contributor.dart';
 import 'package:analyzer/src/generated/scanner.dart';
@@ -85,7 +85,6 @@ class KeywordContributorTest extends AbstractCompletionTest {
     Keyword.FOR,
     Keyword.IF,
     Keyword.NEW,
-    Keyword.RETHROW,
     Keyword.RETURN,
     Keyword.SUPER,
     Keyword.SWITCH,
@@ -107,7 +106,6 @@ class KeywordContributorTest extends AbstractCompletionTest {
     Keyword.FOR,
     Keyword.IF,
     Keyword.NEW,
-    Keyword.RETHROW,
     Keyword.RETURN,
     Keyword.SUPER,
     Keyword.SWITCH,
@@ -130,7 +128,6 @@ class KeywordContributorTest extends AbstractCompletionTest {
     Keyword.FOR,
     Keyword.IF,
     Keyword.NEW,
-    Keyword.RETHROW,
     Keyword.RETURN,
     Keyword.SUPER,
     Keyword.SWITCH,
@@ -153,7 +150,6 @@ class KeywordContributorTest extends AbstractCompletionTest {
     Keyword.FOR,
     Keyword.IF,
     Keyword.NEW,
-    Keyword.RETHROW,
     Keyword.RETURN,
     Keyword.SWITCH,
     Keyword.THROW,
@@ -171,7 +167,6 @@ class KeywordContributorTest extends AbstractCompletionTest {
     Keyword.FOR,
     Keyword.IF,
     Keyword.NEW,
-    Keyword.RETHROW,
     Keyword.RETURN,
     Keyword.SWITCH,
     Keyword.THROW,
@@ -191,7 +186,6 @@ class KeywordContributorTest extends AbstractCompletionTest {
     Keyword.FOR,
     Keyword.IF,
     Keyword.NEW,
-    Keyword.RETHROW,
     Keyword.RETURN,
     Keyword.SWITCH,
     Keyword.THROW,
@@ -434,6 +428,15 @@ class KeywordContributorTest extends AbstractCompletionTest {
     assertSuggestKeywords(
         [Keyword.EXPORT, Keyword.IMPORT, Keyword.LIBRARY, Keyword.PART],
         relevance: DART_RELEVANCE_HIGH);
+  }
+
+  test_catch() {
+    addTestSource('main() {try {} catch (e) {^}}}');
+    expect(computeFast(), isTrue);
+    var keywords = <Keyword>[];
+    keywords.addAll(STMT_START_OUTSIDE_CLASS);
+    keywords.add(Keyword.RETHROW);
+    assertSuggestKeywords(keywords, relevance: DART_RELEVANCE_KEYWORD);
   }
 
   test_class() {
@@ -1030,6 +1033,27 @@ class A {
         relevance: DART_RELEVANCE_HIGH);
     expect(request.replacementOffset, 32);
     expect(request.replacementLength, 3);
+  }
+
+  test_inComment_block() {
+    addTestSource('''
+main() {
+  /* text ^ */
+  print(42);
+}
+''');
+    expect(computeFast(), isTrue);
+    assertNoSuggestions();
+  }
+
+  test_inComment_endOfLine() {
+    addTestSource('''
+main() {
+  // text ^
+}
+''');
+    expect(computeFast(), isTrue);
+    assertNoSuggestions();
   }
 
   test_is_expression() {

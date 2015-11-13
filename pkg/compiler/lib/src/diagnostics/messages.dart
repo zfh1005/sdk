@@ -107,6 +107,7 @@ enum MessageKind {
   CANNOT_EXTEND_ENUM,
   CANNOT_EXTEND_MALFORMED,
   CANNOT_FIND_CONSTRUCTOR,
+  CANNOT_FIND_UNNAMED_CONSTRUCTOR,
   CANNOT_IMPLEMENT,
   CANNOT_IMPLEMENT_ENUM,
   CANNOT_IMPLEMENT_MALFORMED,
@@ -237,6 +238,7 @@ enum MessageKind {
   INHERITED_EXPLICIT_GETTER,
   INHERITED_IMPLICIT_GETTER,
   INHERITED_METHOD,
+  INJECTED_PUBLIC_MEMBER,
   INIT_STATIC_FIELD,
   INITIALIZING_FORMAL_NOT_ALLOWED,
   INSTANCE_STATIC_SAME_NAME,
@@ -275,6 +277,11 @@ enum MessageKind {
   INVALID_UNNAMED_CONSTRUCTOR_NAME,
   INVALID_URI,
   INVALID_USE_OF_SUPER,
+  JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS,
+  JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
+  JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
+  JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS,
+  JS_PLACEHOLDER_CAPTURE,
   LIBRARY_NAME_MISMATCH,
   LIBRARY_NOT_FOUND,
   LIBRARY_NOT_SUPPORTED,
@@ -398,12 +405,14 @@ enum MessageKind {
   SETTER_NOT_FOUND_IN_SUPER,
   STATIC_FUNCTION_BLOAT,
   STRING_EXPECTED,
+  SUPER_CALL_TO_FACTORY,
   SUPER_INITIALIZER_IN_OBJECT,
   SWITCH_CASE_FORBIDDEN,
   SWITCH_CASE_TYPES_NOT_EQUAL,
   SWITCH_CASE_TYPES_NOT_EQUAL_CASE,
   SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
   TERNARY_OPERATOR_BAD_ARITY,
+  THIS_CALL_TO_FACTORY,
   THIS_IS_THE_DECLARATION,
   THIS_IS_THE_METHOD,
   THIS_IS_THE_PART_OF_TAG,
@@ -891,7 +900,13 @@ main() {}"""},
 
       MessageKind.CANNOT_FIND_CONSTRUCTOR:
         const MessageTemplate(MessageKind.CANNOT_FIND_CONSTRUCTOR,
-          "Cannot find constructor '#{constructorName}'."),
+          "Cannot find constructor '#{constructorName}' in class "
+          "'#{className}'."),
+
+      MessageKind.CANNOT_FIND_UNNAMED_CONSTRUCTOR:
+        const MessageTemplate(MessageKind.CANNOT_FIND_UNNAMED_CONSTRUCTOR,
+          "Cannot find unnamed constructor in class "
+          "'#{className}'."),
 
       MessageKind.CYCLIC_CLASS_HIERARCHY:
         const MessageTemplate(MessageKind.CYCLIC_CLASS_HIERARCHY,
@@ -972,6 +987,62 @@ main() => new C();"""]),
       MessageKind.DUPLICATE_SUPER_INITIALIZER:
         const MessageTemplate(MessageKind.DUPLICATE_SUPER_INITIALIZER,
           "Cannot have more than one super initializer."),
+
+      MessageKind.SUPER_CALL_TO_FACTORY:
+        const MessageTemplate(MessageKind.SUPER_CALL_TO_FACTORY,
+          "The target of the superinitializer must be a generative "
+          "constructor.",
+          howToFix: "Try calling another constructor on the superclass.",
+          examples: const ["""
+class Super {
+  factory Super() => null;
+}
+class Class extends Super {}
+main() => new Class();
+""", """
+class Super {
+  factory Super() => null;
+}
+class Class extends Super {
+  Class();
+}
+main() => new Class();
+""", """
+class Super {
+  factory Super() => null;
+}
+class Class extends Super {
+  Class() : super();
+}
+main() => new Class();
+""", """
+class Super {
+  factory Super.foo() => null;
+}
+class Class extends Super {
+  Class() : super.foo();
+}
+main() => new Class();
+"""]),
+
+      MessageKind.THIS_CALL_TO_FACTORY:
+        const MessageTemplate(MessageKind.THIS_CALL_TO_FACTORY,
+          "The target of the redirection clause must be a generative "
+          "constructor",
+        howToFix: "Try redirecting to another constructor.",
+        examples: const ["""
+class Class {
+  factory Class() => null;
+  Class.foo() : this();
+}
+main() => new Class.foo();
+""", """
+class Class {
+  factory Class.foo() => null;
+  Class() : this.foo();
+}
+main() => new Class();
+"""]),
 
       MessageKind.INVALID_CONSTRUCTOR_ARGUMENTS:
         const MessageTemplate(MessageKind.INVALID_CONSTRUCTOR_ARGUMENTS,
@@ -2130,6 +2201,90 @@ main() => A.A = 1;
         const MessageTemplate(MessageKind.INTERNAL_LIBRARY,
           "Internal library '#{resolvedUri}' is not accessible."),
 
+      MessageKind.JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS:
+        const MessageTemplate(
+          MessageKind.JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS,
+          "Js-interop class '#{cls}' cannot extend from the non js-interop "
+          "class '#{superclass}'.",
+          howToFix: "Annotate the superclass with @JS.",
+          examples: const [
+              """
+              import 'package:js/js.dart';
+
+              class Foo { }
+
+              @JS()
+              class Bar extends Foo { }
+
+              main() {
+                new Bar();
+              }
+              """]),
+
+      MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER:
+        const MessageTemplate(
+          MessageKind.JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
+          "Member '#{member}' in js-interop class '#{cls}' is not external.",
+          howToFix: "Mark all interop methods external",
+          examples: const [
+              """
+              import 'package:js/js.dart';
+
+              @JS()
+              class Foo {
+                bar() {}
+              }
+
+              main() {
+                new Foo().bar();
+              }
+              """]),
+
+      MessageKind.JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS:
+        const MessageTemplate(
+          MessageKind.JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS,
+          "Js-interop method '#{method}' has named arguments but is not "
+          "a factory constructor of an @anonymous @JS class.",
+          howToFix: "Remove all named arguments from js-interop method or "
+                    "in the case of a factory constructor annotate the class "
+                    "as @anonymous.",
+          examples: const [
+              """
+              import 'package:js/js.dart';
+
+              @JS()
+              class Foo {
+                external bar(foo, {baz});
+              }
+
+              main() {
+                new Foo().bar(4, baz: 5);
+              }
+              """]),
+
+      MessageKind.JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS:
+        const MessageTemplate(
+          MessageKind.JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
+          "Parameter '#{parameter}' in anonymous js-interop class '#{cls}' "
+          "object literal constructor is positional instead of named."
+          ".",
+          howToFix: "Make all arguments in external factory object literal "
+                    "constructors named.",
+          examples: const [
+              """
+              import 'package:js/js.dart';
+
+              @anonymous
+              @JS()
+              class Foo {
+                external factory Foo(foo, {baz});
+              }
+
+              main() {
+                new Foo(5, baz: 5);
+              }
+              """]),
+
       MessageKind.LIBRARY_NOT_FOUND:
         const MessageTemplate(MessageKind.LIBRARY_NOT_FOUND,
           "Library not found '#{resolvedUri}'."),
@@ -2413,6 +2568,14 @@ main() {}
           howToFix:
               "Try adding '@MirrorsUsed(...)' as described at "
               "https://goo.gl/Akrrog."),
+
+      MessageKind.JS_PLACEHOLDER_CAPTURE:
+        const MessageTemplate(
+            MessageKind.JS_PLACEHOLDER_CAPTURE,
+            "JS code must not use '#' placeholders inside functions.",
+            howToFix:
+            "Use an immediately called JavaScript function to capture the"
+            " the placeholder values as JavaScript function parameters."),
 
       MessageKind.WRONG_ARGUMENT_FOR_JS_INTERCEPTOR_CONSTANT:
         const MessageTemplate(
@@ -3288,6 +3451,10 @@ part of test.main;
           "Cannot patch non-function with function patch "
           "'#{functionName}'."),
 
+      MessageKind.INJECTED_PUBLIC_MEMBER:
+        const MessageTemplate(MessageKind.INJECTED_PUBLIC_MEMBER,
+            "Non-patch members in patch libraries must be private."),
+
       MessageKind.EXTERNAL_WITH_BODY:
         const MessageTemplate(MessageKind.EXTERNAL_WITH_BODY,
           "External function '#{functionName}' cannot have a function body.",
@@ -3352,7 +3519,11 @@ Use the --categories option to support import of '#{uri}'.
       MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_BY_BACKEND:
         const MessageTemplate(
           MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_BY_BACKEND,
-          "dart:mirrors library is not supported when using this backend."),
+          """
+dart:mirrors library is not supported when using this backend.
+
+Your app imports dart:mirrors via:""""""
+$MIRRORS_NOT_SUPPORTED_BY_BACKEND_PADDING#{importChain}"""),
 
       MessageKind.CALL_NOT_SUPPORTED_ON_NATIVE_CLASS:
         const MessageTemplate(MessageKind.CALL_NOT_SUPPORTED_ON_NATIVE_CLASS,
@@ -3391,6 +3562,10 @@ Use the --categories option to support import of '#{uri}'.
   /// Padding used before and between import chains in the message for
   /// [MessageKind.IMPORT_EXPERIMENTAL_MIRRORS].
   static const String IMPORT_EXPERIMENTAL_MIRRORS_PADDING = '\n*   ';
+
+  /// Padding used before and between import chains in the message for
+  /// [MessageKind.MIRRORS_LIBRARY_NOT_SUPPORT_BY_BACKEND].
+  static const String MIRRORS_NOT_SUPPORTED_BY_BACKEND_PADDING = '\n   ';
 
   /// Padding used before and between import chains in the message for
   /// [MessageKind.DISALLOWED_LIBRARY_IMPORT].

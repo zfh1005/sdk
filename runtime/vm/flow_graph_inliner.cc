@@ -618,13 +618,20 @@ class CallSiteInliner : public ValueObject {
                              function.ToCString(),
                              function.deoptimization_counter()));
 
-    // Make a handle for the unoptimized code so that it is not disconnected
-    // from the function while we are trying to inline it.
-    const Code& unoptimized_code = Code::Handle(function.unoptimized_code());
     // Abort if the inlinable bit on the function is low.
     if (!function.CanBeInlined()) {
       TRACE_INLINING(THR_Print("     Bailout: not inlinable\n"));
       PRINT_INLINING_TREE("Not inlinable",
+          &call_data->caller, &function, call_data->call);
+      return false;
+    }
+
+    // Function has no type feedback. With precompilation we don't rely on
+    // type feedback.
+    if (!Compiler::always_optimize() &&
+        function.ic_data_array() == Object::null()) {
+      TRACE_INLINING(THR_Print("     Bailout: not compiled yet\n"));
+      PRINT_INLINING_TREE("Not compiled",
           &call_data->caller, &function, call_data->call);
       return false;
     }
@@ -677,8 +684,8 @@ class CallSiteInliner : public ValueObject {
     }
 
     // Save and clear deopt id.
-    const intptr_t prev_deopt_id = isolate()->deopt_id();
-    isolate()->set_deopt_id(0);
+    const intptr_t prev_deopt_id = thread()->deopt_id();
+    thread()->set_deopt_id(0);
     // Install bailout jump.
     LongJumpScope jump;
     if (setjmp(*jump.Set()) == 0) {
@@ -693,7 +700,8 @@ class CallSiteInliner : public ValueObject {
       // Load IC data for the callee.
       ZoneGrowableArray<const ICData*>* ic_data_array =
             new(Z) ZoneGrowableArray<const ICData*>();
-      function.RestoreICDataMap(ic_data_array);
+      const bool clone_descriptors = Compiler::IsBackgroundCompilation();
+      function.RestoreICDataMap(ic_data_array, clone_descriptors);
 
       // Build the callee graph.
       InlineExitCollector* exit_collector =
@@ -701,7 +709,7 @@ class CallSiteInliner : public ValueObject {
       FlowGraphBuilder builder(*parsed_function,
                                *ic_data_array,
                                exit_collector,
-                               Isolate::kNoDeoptId);
+                               Compiler::kNoOSRDeoptId);
       builder.SetInitialBlockId(caller_graph_->max_block_id());
       FlowGraph* callee_graph;
       {
@@ -813,7 +821,7 @@ class CallSiteInliner : public ValueObject {
             (size > FLAG_inlining_constant_arguments_max_size_threshold)) {
           function.set_is_inlinable(false);
         }
-        isolate()->set_deopt_id(prev_deopt_id);
+        thread()->set_deopt_id(prev_deopt_id);
         TRACE_INLINING(THR_Print("     Bailout: heuristics with "
                                  "code size:  %" Pd ", "
                                  "call sites: %" Pd ", "
@@ -843,7 +851,7 @@ class CallSiteInliner : public ValueObject {
       if (is_recursive_call) {
         inlined_recursive_call_ = true;
       }
-      isolate()->set_deopt_id(prev_deopt_id);
+      thread()->set_deopt_id(prev_deopt_id);
 
       call_data->callee_graph = callee_graph;
       call_data->parameter_stubs = param_stubs;
@@ -862,9 +870,6 @@ class CallSiteInliner : public ValueObject {
       FlowGraphInliner::SetInliningId(callee_graph,
           inliner_->NextInlineId(callee_graph->function(),
                                  call_data->caller_inlining_id_));
-      // We allocate a ZoneHandle for the unoptimized code so that it cannot be
-      // disconnected from its function during the rest of compilation.
-      Code::ZoneHandle(unoptimized_code.raw());
       TRACE_INLINING(THR_Print("     Success\n"));
       PRINT_INLINING_TREE(NULL,
           &call_data->caller, &function, call);
@@ -873,7 +878,7 @@ class CallSiteInliner : public ValueObject {
       Error& error = Error::Handle();
       error = isolate()->object_store()->sticky_error();
       isolate()->object_store()->clear_sticky_error();
-      isolate()->set_deopt_id(prev_deopt_id);
+      thread()->set_deopt_id(prev_deopt_id);
       TRACE_INLINING(THR_Print("     Bailout: %s\n", error.ToErrorCString()));
       PRINT_INLINING_TREE("Bailout",
           &call_data->caller, &function, call);
@@ -1128,7 +1133,12 @@ class CallSiteInliner : public ValueObject {
       PolymorphicInstanceCallInstr* call = call_info[call_idx].call;
       if (call->with_checks()) {
         // PolymorphicInliner introduces deoptimization paths.
-        if (!FLAG_polymorphic_with_deopt) return;
+        if (!FLAG_polymorphic_with_deopt) {
+          TRACE_INLINING(THR_Print(
+              "  => %s\n     Bailout: call with checks\n",
+              call->instance_call()->function_name().ToCString()));
+          continue;
+        }
         const Function& cl = call_info[call_idx].caller();
         intptr_t caller_inlining_id =
             call_info[call_idx].caller_graph->inlining_id();
@@ -1220,7 +1230,7 @@ class CallSiteInliner : public ValueObject {
     // Otherwise, build a collection of name/argument pairs.
     GrowableArray<NamedArgument> named_args(argument_names_count);
     for (intptr_t i = 0; i < argument_names.Length(); ++i) {
-      String& arg_name = String::Handle(Isolate::Current());
+      String& arg_name = String::Handle(caller_graph_->zone());
       arg_name ^= argument_names.At(i);
       named_args.Add(
           NamedArgument(&arg_name, (*arguments)[i + fixed_param_count]));
@@ -1497,7 +1507,7 @@ bool PolymorphicInliner::TryInlineRecognizedMethod(intptr_t receiver_cid,
     GraphEntryInstr* graph_entry =
         new(Z) GraphEntryInstr(*temp_parsed_function,
                                entry,
-                               Isolate::kNoDeoptId);  // No OSR id.
+                               Compiler::kNoOSRDeoptId);
     // Update polymorphic inliner state.
     inlined_entries_.Add(graph_entry);
     exit_collector_->Union(exit_collector);

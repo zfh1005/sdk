@@ -27,7 +27,6 @@ import 'package:analyzer/src/generated/incremental_resolver.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
@@ -114,6 +113,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * are stored.
    */
   AnalysisCache _cache;
+
+  /**
+   * Configuration data associated with this context.
+   */
+  final HashMap<ResultDescriptor, Object> _configurationData =
+      new HashMap<ResultDescriptor, Object>();
 
   /**
    * The task manager used to manage the tasks used to analyze code.
@@ -260,6 +265,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         this._options.strongMode != options.strongMode ||
         this._options.enableStrictCallChecks !=
             options.enableStrictCallChecks ||
+        this._options.enableGenericMethods != options.enableGenericMethods ||
         this._options.enableSuperMixins != options.enableSuperMixins;
     int cacheSize = options.cacheSize;
     if (this._options.cacheSize != cacheSize) {
@@ -270,6 +276,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.generateImplicitErrors = options.generateImplicitErrors;
     this._options.generateSdkErrors = options.generateSdkErrors;
     this._options.dart2jsHint = options.dart2jsHint;
+    this._options.enableGenericMethods = options.enableGenericMethods;
     this._options.enableStrictCallChecks = options.enableStrictCallChecks;
     this._options.enableSuperMixins = options.enableSuperMixins;
     this._options.hint = options.hint;
@@ -572,42 +579,22 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (source == null) {
       return null;
     }
-    CompilationUnit unit = parseCompilationUnit(source);
-    if (unit == null) {
+    SourceRange docRange = element.docRange;
+    if (docRange == null) {
       return null;
     }
-    NodeLocator locator = new NodeLocator(element.nameOffset);
-    AstNode nameNode = locator.searchWithin(unit);
-    while (nameNode != null) {
-      if (nameNode is AnnotatedNode) {
-        Comment comment = nameNode.documentationComment;
-        if (comment == null) {
-          return null;
-        }
-        StringBuffer buffer = new StringBuffer();
-        List<Token> tokens = comment.tokens;
-        for (int i = 0; i < tokens.length; i++) {
-          if (i > 0) {
-            buffer.write("\n");
-          }
-          buffer.write(tokens[i].lexeme);
-        }
-        return buffer.toString();
-      }
-      nameNode = nameNode.parent;
-    }
-    return null;
+    String code = getContents(source).data;
+    String comment = code.substring(docRange.offset, docRange.end);
+    return comment.replaceAll('\r\n', '\n');
   }
 
   @override
   List<AnalysisError> computeErrors(Source source) {
     String name = source.shortName;
-    if (AnalysisEngine.isDartFileName(name)) {
-      return computeResult(source, DART_ERRORS);
-    } else if (AnalysisEngine.isHtmlFileName(name)) {
+    if (AnalysisEngine.isHtmlFileName(name)) {
       return computeResult(source, HTML_ERRORS);
     }
-    return AnalysisError.NO_ERRORS;
+    return computeResult(source, DART_ERRORS);
   }
 
   @override
@@ -659,24 +646,18 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         !AnalysisEngine.isDartFileName(librarySource.shortName)) {
       return new CancelableFuture.error(new AnalysisNotScheduledError());
     }
-    var unitTarget = new LibrarySpecificUnit(librarySource, unitSource);
-    return new _AnalysisFutureHelper<CompilationUnit>(this)
-        .computeAsync(unitTarget, (CacheEntry entry) {
-      CacheState state = entry.getState(RESOLVED_UNIT);
-      if (state == CacheState.ERROR) {
-        throw entry.exception;
-      } else if (state == CacheState.INVALID) {
-        return null;
-      }
-      return entry.getValue(RESOLVED_UNIT);
-    }, () {
-      dartWorkManager.addPriorityResult(unitTarget, RESOLVED_UNIT);
-    });
+    return new AnalysisFutureHelper<CompilationUnit>(
+        this,
+        new LibrarySpecificUnit(librarySource, unitSource),
+        RESOLVED_UNIT).computeAsync();
   }
 
   @override
   Object /*V*/ computeResult(
       AnalysisTarget target, ResultDescriptor /*<V>*/ descriptor) {
+    // Make sure we are not trying to invoke the task model in a reentrant
+    // fashion.
+    assert(!driver.isTaskRunning);
     CacheEntry entry = getCacheEntry(target);
     CacheState state = entry.getState(descriptor);
     if (state == CacheState.FLUSHED || state == CacheState.INVALID) {
@@ -717,6 +698,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     _pendingFutureTargets.clear();
     _privatePartition.dispose();
+    _cache.dispose();
   }
 
   @override
@@ -783,6 +765,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     AnalysisTarget target = new LibrarySpecificUnit(librarySource, unitSource);
     return getResult(target, COMPILATION_UNIT_ELEMENT);
   }
+
+  @override
+  Object getConfigurationData(ResultDescriptor key) =>
+      _configurationData[key] ?? key?.defaultValue;
 
   @override
   TimestampedData<String> getContents(Source source) {
@@ -1040,6 +1026,17 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return changed;
   }
 
+  /**
+   * Invalidate analysis cache and notify work managers that they have work
+   * to do.
+   */
+  void invalidateCachedResults() {
+    _cache = createCacheFromSourceFactory(_sourceFactory);
+    for (WorkManager workManager in workManagers) {
+      workManager.onAnalysisOptionsChanged();
+    }
+  }
+
   @override
   void invalidateLibraryHints(Source librarySource) {
     List<Source> sources = getResult(librarySource, UNITS);
@@ -1053,13 +1050,17 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   bool isClientLibrary(Source librarySource) {
     CacheEntry entry = _cache.get(librarySource);
-    return entry.getValue(IS_CLIENT) && entry.getValue(IS_LAUNCHABLE);
+    return entry != null &&
+        _referencesDartHtml(librarySource) &&
+        entry.getValue(IS_LAUNCHABLE);
   }
 
   @override
   bool isServerLibrary(Source librarySource) {
     CacheEntry entry = _cache.get(librarySource);
-    return !entry.getValue(IS_CLIENT) && entry.getValue(IS_LAUNCHABLE);
+    return entry != null &&
+        !_referencesDartHtml(librarySource) &&
+        entry.getValue(IS_LAUNCHABLE);
   }
 
   @override
@@ -1136,7 +1137,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       setValue(IMPORTED_LIBRARIES, Source.EMPTY_LIST);
       // IMPORT_SOURCE_CLOSURE
       setValue(INCLUDED_PARTS, Source.EMPTY_LIST);
-      setValue(IS_CLIENT, true);
       setValue(IS_LAUNCHABLE, false);
       setValue(LIBRARY_ELEMENT, library);
       setValue(LIBRARY_ELEMENT1, library);
@@ -1157,12 +1157,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           new LibrarySpecificUnit(librarySource, librarySource);
       entry = getCacheEntry(unit);
       setValue(HINTS, AnalysisError.NO_ERRORS);
-      // dartEntry.setValue(LINTS, AnalysisError.NO_ERRORS);
-      setValue(INFER_STATIC_VARIABLE_TYPES_ERRORS, AnalysisError.NO_ERRORS);
+      setValue(LINTS, AnalysisError.NO_ERRORS);
       setValue(LIBRARY_UNIT_ERRORS, AnalysisError.NO_ERRORS);
-      setValue(PARTIALLY_RESOLVE_REFERENCES_ERRORS, AnalysisError.NO_ERRORS);
-      setValue(RESOLVE_FUNCTION_BODIES_ERRORS, AnalysisError.NO_ERRORS);
       setValue(RESOLVE_TYPE_NAMES_ERRORS, AnalysisError.NO_ERRORS);
+      setValue(RESOLVE_UNIT_ERRORS, AnalysisError.NO_ERRORS);
       entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);
       entry.setState(RESOLVED_UNIT1, CacheState.FLUSHED);
       entry.setState(RESOLVED_UNIT2, CacheState.FLUSHED);
@@ -1172,8 +1170,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       entry.setState(RESOLVED_UNIT6, CacheState.FLUSHED);
       entry.setState(RESOLVED_UNIT7, CacheState.FLUSHED);
       entry.setState(RESOLVED_UNIT8, CacheState.FLUSHED);
+      entry.setState(RESOLVED_UNIT9, CacheState.FLUSHED);
+      entry.setState(RESOLVED_UNIT10, CacheState.FLUSHED);
       // USED_IMPORTED_ELEMENTS
       // USED_LOCAL_ELEMENTS
+      setValue(STRONG_MODE_ERRORS, AnalysisError.NO_ERRORS);
       setValue(VARIABLE_REFERENCE_ERRORS, AnalysisError.NO_ERRORS);
       setValue(VERIFY_ERRORS, AnalysisError.NO_ERRORS);
     });
@@ -1221,6 +1222,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  void setConfigurationData(ResultDescriptor key, Object data) {
+    _configurationData[key] = data;
+  }
+
+  @override
   void setContents(Source source, String contents) {
     _contentsChanged(source, contents, true);
   }
@@ -1247,8 +1253,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     entry.setState(RESOLVED_UNIT4, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT5, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT6, CacheState.FLUSHED);
-    entry.setState(RESOLVED_UNIT5, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT7, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT8, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT9, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT10, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);
   }
 
@@ -1511,7 +1519,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       CacheEntry cacheEntry = _cache.get(target);
       List<PendingFuture> pendingFutures = _pendingFutureTargets[target];
       for (int i = 0; i < pendingFutures.length;) {
-        if (pendingFutures[i].evaluate(cacheEntry)) {
+        if (cacheEntry == null) {
+          pendingFutures[i].forciblyComplete();
+          pendingFutures.removeAt(i);
+        } else if (pendingFutures[i].evaluate(cacheEntry)) {
           pendingFutures.removeAt(i);
         } else {
           i++;
@@ -1654,16 +1665,16 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               return;
             }
           }
-//          if (lintsEnabled) {
-//            state = unitEntry.getState(LINTS);
-//            if (state == CacheState.INVALID ||
-//                (isPriority && state == CacheState.FLUSHED)) {
-//              sources.add(source);
-//              return;
-//            } else if (state == CacheState.ERROR) {
-//              return;
-//            }
-//          }
+          if (lintsEnabled) {
+            state = unitEntry.getState(LINTS);
+            if (state == CacheState.INVALID ||
+                (isPriority && state == CacheState.FLUSHED)) {
+              sources.add(source);
+              return;
+            } else if (state == CacheState.ERROR) {
+              return;
+            }
+          }
         }
       }
 //    } else if (kind == SourceKind.HTML) {
@@ -1702,6 +1713,26 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
   }
 
+  bool _referencesDartHtml(Source librarySource) {
+    Source htmlSource = sourceFactory.forUri(DartSdk.DART_HTML);
+    Set<Source> checkedSources = new Set<Source>();
+    bool _refHtml(Source source) {
+      if (!checkedSources.add(source)) {
+        return false;
+      }
+      if (source == htmlSource) {
+        return true;
+      }
+      LibraryElement library = _cache.getValue(source, LIBRARY_ELEMENT);
+      if (library != null) {
+        return library.importedLibraries.any((x) => _refHtml(x.source)) ||
+            library.exportedLibraries.any((x) => _refHtml(x.source));
+      }
+      return false;
+    }
+    return _refHtml(librarySource);
+  }
+
   void _removeFromCache(Source source) {
     CacheEntry entry = _cache.remove(source);
     if (entry != null && !entry.explicitlyAdded) {
@@ -1731,6 +1762,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * that referenced the source before it existed.
    */
   void _sourceAvailable(Source source) {
+    driver.reset();
     // TODO(brianwilkerson) This method needs to check whether the source was
     // previously being implicitly analyzed. If so, the cache entry needs to be
     // update to reflect the new status and an event needs to be generated to
@@ -1739,6 +1771,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (entry == null) {
       _createCacheEntry(source, true);
     } else {
+      entry.explicitlyAdded = true;
       entry.modificationTime = getModificationStamp(source);
       entry.setState(CONTENT, CacheState.INVALID);
     }
@@ -1807,6 +1840,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
       entry.setState(CONTENT, CacheState.INVALID);
     }
+    driver.reset();
     for (WorkManager workManager in workManagers) {
       workManager.applyChange(
           Source.EMPTY_LIST, <Source>[source], Source.EMPTY_LIST);
@@ -1848,6 +1882,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * Record that the given [source] has been removed.
    */
   void _sourceRemoved(Source source) {
+    driver.reset();
     _removeFromCache(source);
     _removeFromPriorityOrder(source);
   }
@@ -1896,8 +1931,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           sourceEntry,
           unitEntry,
           oldUnit,
-          analysisOptions.incrementalApi,
-          analysisOptions);
+          analysisOptions.incrementalApi);
       bool success = resolver.resolve(newCode);
       AnalysisEngine.instance.instrumentationService.logPerformance(
           AnalysisPerformanceKind.INCREMENTAL,
@@ -1926,6 +1960,52 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       // OK
       return true;
     });
+  }
+}
+
+/**
+ * A helper class used to create futures for [AnalysisContextImpl].
+ * Using a helper class allows us to preserve the generic parameter T.
+ */
+class AnalysisFutureHelper<T> {
+  final AnalysisContextImpl _context;
+  final AnalysisTarget _target;
+  final ResultDescriptor<T> _descriptor;
+
+  AnalysisFutureHelper(this._context, this._target, this._descriptor);
+
+  /**
+   * Return a future that will be completed with the result specified
+   * in the constructor. If the result is cached, the future will be
+   * completed immediately with the resulting value. If not, then
+   * analysis is scheduled that will produce the required result.
+   * If the result cannot be generated, then the future will be completed with
+   * the error AnalysisNotScheduledError.
+   */
+  CancelableFuture<T> computeAsync() {
+    if (_context.isDisposed) {
+      // No further analysis is expected, so return a future that completes
+      // immediately with AnalysisNotScheduledError.
+      return new CancelableFuture.error(new AnalysisNotScheduledError());
+    }
+    CacheEntry entry = _context.getCacheEntry(_target);
+    PendingFuture pendingFuture =
+        new PendingFuture<T>(_context, _target, (CacheEntry entry) {
+      CacheState state = entry.getState(_descriptor);
+      if (state == CacheState.ERROR) {
+        throw entry.exception;
+      } else if (state == CacheState.INVALID) {
+        return null;
+      }
+      return entry.getValue(_descriptor);
+    });
+    if (!pendingFuture.evaluate(entry)) {
+      _context._pendingFutureTargets
+          .putIfAbsent(_target, () => <PendingFuture>[])
+          .add(pendingFuture);
+      _context.dartWorkManager.addPriorityResult(_target, _descriptor);
+    }
+    return pendingFuture.future;
   }
 }
 
@@ -2066,52 +2146,5 @@ class SdkAnalysisContext extends AnalysisContextImpl {
     return new AnalysisCache(<CachePartition>[
       AnalysisEngine.instance.partitionManager_new.forSdk(sdk)
     ]);
-  }
-}
-
-/**
- * A helper class used to create futures for [AnalysisContextImpl].
- * Using a helper class allows us to preserve the generic parameter T.
- */
-class _AnalysisFutureHelper<T> {
-  final AnalysisContextImpl _context;
-
-  _AnalysisFutureHelper(this._context);
-
-  /**
-   * Return a future that will be completed with the result of calling
-   * [computeValue]. If [computeValue] returns non-`null`, the future will be
-   * completed immediately with the resulting value. If it returns `null`, then
-   * [scheduleComputation] is invoked to schedule analysis that will produce
-   * the required result, and [computeValue] will be re-executed in the future,
-   * after the next time the cached information for [target] has changed. If
-   * [computeValue] throws an exception, the future will fail with that
-   * exception.
-   *
-   * If the [computeValue] still returns `null` after there is no further
-   * analysis to be done for [target], then the future will be completed with
-   * the error AnalysisNotScheduledError.
-   *
-   * Since [computeValue] will be called while the state of analysis is being
-   * updated, it should be free of side effects so that it doesn't cause
-   * reentrant changes to the analysis state.
-   */
-  CancelableFuture<T> computeAsync(AnalysisTarget target,
-      T computeValue(CacheEntry entry), void scheduleComputation()) {
-    if (_context.isDisposed) {
-      // No further analysis is expected, so return a future that completes
-      // immediately with AnalysisNotScheduledError.
-      return new CancelableFuture.error(new AnalysisNotScheduledError());
-    }
-    CacheEntry entry = _context.getCacheEntry(target);
-    PendingFuture pendingFuture =
-        new PendingFuture<T>(_context, target, computeValue);
-    if (!pendingFuture.evaluate(entry)) {
-      _context._pendingFutureTargets
-          .putIfAbsent(target, () => <PendingFuture>[])
-          .add(pendingFuture);
-      scheduleComputation();
-    }
-    return pendingFuture.future;
   }
 }

@@ -5,8 +5,9 @@
 library server.performance;
 
 import 'dart:async';
+import 'dart:io';
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../test/integration/integration_tests.dart';
@@ -25,19 +26,8 @@ abstract class AbstractAnalysisServerPerformanceTest
    * Send the server an 'analysis.setAnalysisRoots' command directing it to
    * analyze [sourceDirectory].
    */
-  Future setAnalysisRoot() {
-    return sendAnalysisSetAnalysisRoots([sourceDirectory.path], []);
-  }
-
-  /**
-   * Enable [SERVER_STATUS] notifications so that [analysisFinished]
-   * can be used.
-   */
-  Future subscribeToStatusNotifications() {
-    List<Future> futures = <Future>[];
-    futures.add(sendServerSetSubscriptions([ServerService.STATUS]));
-    return Future.wait(futures);
-  }
+  Future setAnalysisRoot() =>
+      sendAnalysisSetAnalysisRoots([sourceDirectory.path], []);
 
   /**
    * The server is automatically started before every test.
@@ -66,10 +56,25 @@ abstract class AbstractAnalysisServerPerformanceTest
   }
 
   /**
+   * Enable [SERVER_STATUS] notifications so that [analysisFinished]
+   * can be used.
+   */
+  Future subscribeToStatusNotifications() {
+    List<Future> futures = <Future>[];
+    futures.add(sendServerSetSubscriptions([ServerService.STATUS]));
+    return Future.wait(futures);
+  }
+
+  /**
    * After every test, the server is stopped.
    */
-  @override
-  Future tearDown() {
-    return shutdownIfNeeded();
+  Future shutdown() async => await shutdownIfNeeded();
+}
+
+class AbstractTimingTest extends AbstractAnalysisServerPerformanceTest {
+  Future init(String source) async {
+    await super.setUp();
+    sourceDirectory = new Directory(source);
+    return subscribeToStatusNotifications();
   }
 }

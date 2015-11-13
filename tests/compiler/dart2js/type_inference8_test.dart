@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:async_helper/async_helper.dart";
+import "package:compiler/src/constants/values.dart";
 import "package:compiler/src/types/types.dart";
 import "package:expect/expect.dart";
 import 'compiler_helper.dart';
@@ -32,12 +33,13 @@ main() {
 Future runTest1() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST1, uri);
-  return compiler.runCompiler(uri).then((_) {
+  return compiler.run(uri).then((_) {
     var typesTask = compiler.typesTask;
     var typesInferrer = typesTask.typesInferrer;
     var element = findElement(compiler, "foo");
     var mask = typesInferrer.getReturnTypeOfElement(element);
-    var falseType = new ValueTypeMask(typesTask.boolType, false);
+    var falseType =
+        new ValueTypeMask(typesTask.boolType, new FalseConstantValue());
     // 'foo' should always return false
     Expect.equals(falseType, mask);
     // the argument to 'bar' is always false
@@ -74,7 +76,7 @@ main() {
 Future runTest2() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST2, uri);
-  return compiler.runCompiler(uri).then((_) {
+  return compiler.run(uri).then((_) {
     var typesTask = compiler.typesTask;
     var typesInferrer = typesTask.typesInferrer;
     var element = findElement(compiler, "foo");

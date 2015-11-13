@@ -46,6 +46,7 @@ DEFINE_FLAG(bool, trace_inlining_intervals, false,
     "Inlining interval diagnostics");
 DEFINE_FLAG(bool, use_megamorphic_stub, true, "Out of line megamorphic lookup");
 
+DECLARE_FLAG(bool, background_compilation);
 DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(bool, deoptimize_alot);
 DECLARE_FLAG(int, deoptimize_every);
@@ -69,12 +70,20 @@ DECLARE_FLAG(bool, use_field_guards);
 DECLARE_FLAG(bool, use_cha_deopt);
 DECLARE_FLAG(bool, use_osr);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
-DECLARE_FLAG(bool, precompile_collect_closures);
 DECLARE_FLAG(bool, print_stop_message);
+DECLARE_FLAG(bool, lazy_dispatchers);
+DECLARE_FLAG(bool, interpret_irregexp);
+DECLARE_FLAG(bool, enable_mirrors);
+DECLARE_FLAG(bool, link_natives_lazily);
 
-
-static void NooptModeHandler(bool value) {
+bool FLAG_precompilation = false;
+static void PrecompilationModeHandler(bool value) {
   if (value) {
+#if defined(TARGET_ARCH_IA32)
+    FATAL("Precompilation not supported on IA32");
+#endif
+    FLAG_precompilation = true;
+
     FLAG_always_megamorphic_calls = true;
     FLAG_polymorphic_with_deopt = false;
     FLAG_optimization_counter_threshold = -1;
@@ -99,42 +108,23 @@ static void NooptModeHandler(bool value) {
     // Calling the PrintStopMessage stub is not supported in precompiled code
     // since it is done at places where no pool pointer is loaded.
     FLAG_print_stop_message = false;
-  }
-}
 
-
-// --noopt disables optimizer and tunes unoptimized code to run as fast
-// as possible.
-DEFINE_FLAG_HANDLER(NooptModeHandler,
-                    noopt,
-                    "Run fast unoptimized code only.");
-
-
-DECLARE_FLAG(bool, lazy_dispatchers);
-DECLARE_FLAG(bool, interpret_irregexp);
-DECLARE_FLAG(bool, enable_mirrors);
-DECLARE_FLAG(bool, link_natives_lazily);
-
-static void PrecompileModeHandler(bool value) {
-  if (value) {
-#if defined(TARGET_ARCH_IA32)
-    FATAL("Precompilation not supported on IA32");
-#endif
-
-    NooptModeHandler(true);
     FLAG_lazy_dispatchers = false;
     FLAG_interpret_irregexp = true;
     FLAG_enable_mirrors = false;
-    FLAG_precompile_collect_closures = true;
     FLAG_link_natives_lazily = true;
     FLAG_fields_may_be_reset = true;
     FLAG_allow_absolute_addresses = false;
+
+    // Background compilation relies on two-stage compilation pipeline,
+    // while precompilation has only one.
+    FLAG_background_compilation = false;
   }
 }
 
 
-DEFINE_FLAG_HANDLER(PrecompileModeHandler,
-                    precompile,
+DEFINE_FLAG_HANDLER(PrecompilationModeHandler,
+                    precompilation,
                     "Precompilation mode");
 
 
@@ -175,7 +165,7 @@ FlowGraphCompiler::FlowGraphCompiler(
     bool is_optimizing,
     const GrowableArray<const Function*>& inline_id_to_function,
     const GrowableArray<intptr_t>& caller_inline_id)
-      : isolate_(Isolate::Current()),
+      : thread_(Thread::Current()),
         zone_(Thread::Current()->zone()),
         assembler_(assembler),
         parsed_function_(parsed_function),
@@ -192,15 +182,15 @@ FlowGraphCompiler::FlowGraphCompiler(
         may_reoptimize_(false),
         intrinsic_mode_(false),
         double_class_(Class::ZoneHandle(
-            isolate_->object_store()->double_class())),
+            isolate()->object_store()->double_class())),
         mint_class_(Class::ZoneHandle(
-            isolate_->object_store()->mint_class())),
+            isolate()->object_store()->mint_class())),
         float32x4_class_(Class::ZoneHandle(
-            isolate_->object_store()->float32x4_class())),
+            isolate()->object_store()->float32x4_class())),
         float64x2_class_(Class::ZoneHandle(
-            isolate_->object_store()->float64x2_class())),
+            isolate()->object_store()->float64x2_class())),
         int32x4_class_(Class::ZoneHandle(
-            isolate_->object_store()->int32x4_class())),
+            isolate()->object_store()->int32x4_class())),
         list_class_(Class::ZoneHandle(
             Library::Handle(Library::CoreLibrary()).
                 LookupClass(Symbols::List()))),
@@ -215,7 +205,7 @@ FlowGraphCompiler::FlowGraphCompiler(
   ASSERT(flow_graph->parsed_function().function().raw() ==
          parsed_function.function().raw());
   if (!is_optimizing) {
-    const intptr_t len = isolate()->deopt_id();
+    const intptr_t len = thread()->deopt_id();
     deopt_id_to_ic_data_ = new(zone()) ZoneGrowableArray<const ICData*>(len);
     deopt_id_to_ic_data_->SetLength(len);
     for (intptr_t i = 0; i < len; i++) {
@@ -234,6 +224,27 @@ FlowGraphCompiler::FlowGraphCompiler(
   }
   ASSERT(assembler != NULL);
   ASSERT(!list_class_.IsNull());
+}
+
+
+bool FlowGraphCompiler::IsUnboxedField(const Field& field) {
+  bool valid_class = (SupportsUnboxedDoubles() &&
+                      (field.guarded_cid() == kDoubleCid)) ||
+                     (SupportsUnboxedSimd128() &&
+                      (field.guarded_cid() == kFloat32x4Cid)) ||
+                     (SupportsUnboxedSimd128() &&
+                      (field.guarded_cid() == kFloat64x2Cid));
+  return field.is_unboxing_candidate()
+      && !field.is_final()
+      && !field.is_nullable()
+      && valid_class;
+}
+
+
+bool FlowGraphCompiler::IsPotentialUnboxedField(const Field& field) {
+  return field.is_unboxing_candidate() &&
+         (FlowGraphCompiler::IsUnboxedField(field) ||
+          (!field.is_final() && (field.guarded_cid() == kIllegalCid)));
 }
 
 
@@ -822,9 +833,9 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs) {
           }
         }
       }
-      // General purpose registers have the lowest register number at the
+      // General purpose registers have the highest register number at the
       // highest address (i.e., first in the stackmap).
-      for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+      for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
         Register reg = static_cast<Register>(i);
         if (locs->live_registers()->ContainsRegister(reg)) {
           bitmap->Set(bitmap->Length(), locs->live_registers()->IsTagged(reg));
@@ -873,9 +884,9 @@ Environment* FlowGraphCompiler::SlowPathEnvironmentFor(
       fpu_reg_slots[i] = -1;
     }
   }
-  // General purpose registers are spilled from lowest to highest register
+  // General purpose registers are spilled from highest to lowest register
   // number.
-  for (intptr_t i = 0; i < kNumberOfCpuRegisters; ++i) {
+  for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; --i) {
     Register reg = static_cast<Register>(i);
     if (regs->ContainsRegister(reg)) {
       cpu_reg_slots[i] = next_slot++;
@@ -1039,9 +1050,8 @@ void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
 }
 
 
-// Returns 'true' if code generation for this function is complete, i.e.,
-// no fall-through to regular code is needed.
-void FlowGraphCompiler::TryIntrinsify() {
+// Returns 'true' if regular code generation should be skipped.
+bool FlowGraphCompiler::TryIntrinsify() {
   // Intrinsification skips arguments checks, therefore disable if in checked
   // mode.
   if (FLAG_intrinsify && !isolate()->flags().type_checks()) {
@@ -1058,8 +1068,9 @@ void FlowGraphCompiler::TryIntrinsify() {
       // Reading from a mutable double box requires allocating a fresh double.
       if (load_node.field().guarded_cid() == kDynamicCid) {
         GenerateInlinedGetter(load_node.field().Offset());
+        return true;
       }
-      return;
+      return false;
     }
     if (parsed_function().function().kind() == RawFunction::kImplicitSetter) {
       // An implicit setter must have a specific AST structure.
@@ -1072,7 +1083,7 @@ void FlowGraphCompiler::TryIntrinsify() {
           *sequence_node.NodeAt(0)->AsStoreInstanceFieldNode();
       if (store_node.field().guarded_cid() == kDynamicCid) {
         GenerateInlinedSetter(store_node.field().Offset());
-        return;
+        return true;
       }
     }
   }
@@ -1089,6 +1100,7 @@ void FlowGraphCompiler::TryIntrinsify() {
   // before any deoptimization point.
   ASSERT(!intrinsic_slow_path_label_.IsBound());
   assembler()->Bind(&intrinsic_slow_path_label_);
+  return false;
 }
 
 
@@ -1098,6 +1110,11 @@ void FlowGraphCompiler::GenerateInstanceCall(
     intptr_t argument_count,
     LocationSummary* locs,
     const ICData& ic_data) {
+  if (Compiler::always_optimize()) {
+    EmitSwitchableInstanceCall(ic_data, argument_count,
+                               deopt_id, token_pos, locs);
+    return;
+  }
   if (FLAG_always_megamorphic_calls) {
     EmitMegamorphicInstanceCall(ic_data, argument_count,
                                 deopt_id, token_pos, locs);
@@ -1107,9 +1124,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
   if (is_optimizing() && (ic_data.NumberOfUsedChecks() == 0)) {
     // Emit IC call that will count and thus may need reoptimization at
     // function entry.
-    ASSERT(!is_optimizing()
-           || may_reoptimize()
-           || flow_graph().IsCompiledForOsr());
+    ASSERT(may_reoptimize() || flow_graph().IsCompiledForOsr());
     switch (ic_data.NumArgsTested()) {
       case 1:
         EmitOptimizedInstanceCall(
@@ -1270,16 +1285,6 @@ static uword RegMaskBit(Register reg) {
 }
 
 
-// Mask of globally reserved registers. Some other registers are only reserved
-// in particular code (e.g., ARGS_DESC_REG in intrinsics).
-static const uword kReservedCpuRegisters = RegMaskBit(SPREG)
-                                         | RegMaskBit(FPREG)
-                                         | RegMaskBit(TMP)
-                                         | RegMaskBit(TMP2)
-                                         | RegMaskBit(PP)
-                                         | RegMaskBit(THR);
-
-
 void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   ASSERT(!is_optimizing());
 
@@ -1289,16 +1294,10 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
 
   bool blocked_registers[kNumberOfCpuRegisters];
 
-  // Mark all available registers free.
+  // Block all registers globally reserved by the assembler, etc and mark
+  // the rest as free.
   for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
-    blocked_registers[i] = false;
-  }
-
-  // Block all registers globally reserved by the assembler, etc.
-  for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
-    if ((kReservedCpuRegisters & (1 << i)) != 0) {
-      blocked_registers[i] = true;
-    }
+    blocked_registers[i] = (kDartAvailableCpuRegs & (1 << i)) == 0;
   }
 
   // Mark all fixed input, temp and output registers as used.
@@ -1324,14 +1323,6 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
     // Fixed output registers are allowed to overlap with
     // temps and inputs.
     blocked_registers[locs->out(0).reg()] = true;
-  }
-
-  // Block all non-free registers.
-  for (intptr_t i = 0; i < kFirstFreeCpuRegister; i++) {
-    blocked_registers[i] = true;
-  }
-  for (intptr_t i = kLastFreeCpuRegister + 1; i < kNumberOfCpuRegisters; i++) {
-    blocked_registers[i] = true;
   }
 
   // Allocate all unallocated input locations.
@@ -1588,12 +1579,17 @@ ParallelMoveResolver::ScratchRegisterScope::ScratchRegisterScope(
   if (resolver->compiler_->intrinsic_mode()) {
     // Block additional registers that must be preserved for intrinsics.
     blocked_mask |= RegMaskBit(ARGS_DESC_REG);
+#if !defined(TARGET_ARCH_IA32)
+    // Need to preserve CODE_REG to be able to store the PC marker
+    // and load the pool pointer.
+    blocked_mask |= RegMaskBit(CODE_REG);
+#endif
   }
   reg_ = static_cast<Register>(
       resolver_->AllocateScratchRegister(Location::kRegister,
                                          blocked_mask,
-                                         kFirstFreeCpuRegister,
-                                         kLastFreeCpuRegister,
+                                         0,
+                                         kNumberOfCpuRegisters - 1,
                                          &spilled_));
 
   if (spilled_) {

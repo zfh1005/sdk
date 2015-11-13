@@ -22,19 +22,16 @@ import 'dart:js' as js;
 
 part '$AUXILIARY_DIR/shared_SVGFactoryProviders.dart';
 
-// Need a default constructor for constructing classes with mixins that are
-// also extending NativeFieldWrapperClass2.  Defining JsoNativeFieldWrapper
-// extending NativeFieldWrapperClass2 creates a default constructor.
-class JsoNativeFieldWrapper extends NativeFieldWrapperClass2 {}
-
 $!GENERATED_DART_FILES
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final svgBlinkMap = {
 $!TYPE_MAP
 };
 
 $if JSINTEROP
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final svgBlinkFunctionMap = {
 $!TYPE_FUNCTION_MAP
 };

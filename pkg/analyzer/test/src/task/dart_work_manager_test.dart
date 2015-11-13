@@ -16,6 +16,7 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/error.dart' show AnalysisError;
 import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
 import 'package:analyzer/src/generated/scanner.dart' show ScannerErrorCode;
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/task/dart.dart';
@@ -63,10 +64,10 @@ class DartWorkManagerTest {
   void setUp() {
     cache = context.analysisCache;
     manager = new DartWorkManager(context);
-    entry1 = context.getCacheEntry(source1);
-    entry2 = context.getCacheEntry(source2);
-    entry3 = context.getCacheEntry(source3);
-    entry4 = context.getCacheEntry(source4);
+    entry1 = _getOrCreateEntry(source1);
+    entry2 = _getOrCreateEntry(source2);
+    entry3 = _getOrCreateEntry(source3);
+    entry4 = _getOrCreateEntry(source4);
   }
 
   void test_applyChange_add() {
@@ -331,6 +332,32 @@ class DartWorkManagerTest {
     expect(manager.getLibrariesContainingPart(part3), isEmpty);
   }
 
+  void test_getLibrariesContainingPart_inSDK() {
+    Source part = new _SourceMock('part.dart');
+    when(part.isInSystemLibrary).thenReturn(true);
+    // SDK work manager
+    DartWorkManager sdkDartWorkManagerMock = new _DartWorkManagerMock();
+    when(sdkDartWorkManagerMock.getLibrariesContainingPart(part))
+        .thenReturn([source2, source3]);
+    // SDK context mock
+    InternalAnalysisContext sdkContextMock = new _InternalAnalysisContextMock();
+    when(sdkContextMock.workManagers).thenReturn([sdkDartWorkManagerMock]);
+    // SDK mock
+    DartSdk sdkMock = new _DartSdkMock();
+    when(sdkMock.context).thenReturn(sdkContextMock);
+    // SourceFactory mock
+    SourceFactory sourceFactory = new _SourceFactoryMock();
+    when(sourceFactory.dartSdk).thenReturn(sdkMock);
+    when(context.sourceFactory).thenReturn(sourceFactory);
+    // SDK source mock
+    Source source = new _SourceMock('test.dart');
+    when(source.source).thenReturn(source);
+    when(source.isInSystemLibrary).thenReturn(true);
+    // validate
+    expect(manager.getLibrariesContainingPart(part),
+        unorderedEquals([source2, source3]));
+  }
+
   void test_getNextResult_hasLibraries_firstIsError() {
     entry1.setErrorState(caughtException, [LIBRARY_ERRORS_READY]);
     manager.librarySourceQueue.addAll([source1, source2]);
@@ -482,6 +509,8 @@ class DartWorkManagerTest {
   }
 
   void test_onResultInvalidated_scheduleInvalidatedLibraries() {
+    // make source3 implicit
+    entry3.explicitlyAdded = false;
     // set SOURCE_KIND
     entry1.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
     entry2.setValue(SOURCE_KIND, SourceKind.PART, []);
@@ -492,9 +521,9 @@ class DartWorkManagerTest {
     // invalidate LIBRARY_ERRORS_READY for source1, schedule it
     entry1.setState(LIBRARY_ERRORS_READY, CacheState.INVALID);
     expect_librarySourceQueue([source1]);
-    // invalidate LIBRARY_ERRORS_READY for source3, schedule it
+    // invalidate LIBRARY_ERRORS_READY for source3, implicit, not scheduled
     entry3.setState(LIBRARY_ERRORS_READY, CacheState.INVALID);
-    expect_librarySourceQueue([source1, source3]);
+    expect_librarySourceQueue([source1]);
   }
 
   void test_onSourceFactoryChanged() {
@@ -505,6 +534,8 @@ class DartWorkManagerTest {
     entry1.setValue(EXPLICITLY_IMPORTED_LIBRARIES, <Source>[], []);
     entry1.setValue(EXPORTED_LIBRARIES, <Source>[], []);
     entry1.setValue(INCLUDED_PARTS, <Source>[], []);
+    entry1.setValue(LIBRARY_SPECIFIC_UNITS, <LibrarySpecificUnit>[], []);
+    entry1.setValue(UNITS, <Source>[], []);
     // configure LibrarySpecificUnit
     LibrarySpecificUnit unitTarget = new LibrarySpecificUnit(source2, source3);
     CacheEntry unitEntry = new CacheEntry(unitTarget);
@@ -521,6 +552,8 @@ class DartWorkManagerTest {
     expect(entry1.getState(EXPLICITLY_IMPORTED_LIBRARIES), CacheState.INVALID);
     expect(entry1.getState(EXPORTED_LIBRARIES), CacheState.INVALID);
     expect(entry1.getState(INCLUDED_PARTS), CacheState.INVALID);
+    expect(entry1.getState(LIBRARY_SPECIFIC_UNITS), CacheState.INVALID);
+    expect(entry1.getState(UNITS), CacheState.INVALID);
   }
 
   void test_resultsComputed_errors_forLibrarySpecificUnit() {
@@ -602,6 +635,28 @@ class DartWorkManagerTest {
     expect(manager.libraryPartsMap[library2], [part2, part3]);
     // part1 CONTAINING_LIBRARIES
     expect(cache.getState(part1, CONTAINING_LIBRARIES), CacheState.INVALID);
+  }
+
+  void test_resultsComputed_inSDK() {
+    DartWorkManager sdkDartWorkManagerMock = new _DartWorkManagerMock();
+    // SDK context mock
+    InternalAnalysisContext sdkContextMock = new _InternalAnalysisContextMock();
+    when(sdkContextMock.workManagers).thenReturn([sdkDartWorkManagerMock]);
+    // SDK mock
+    DartSdk sdkMock = new _DartSdkMock();
+    when(sdkMock.context).thenReturn(sdkContextMock);
+    // SourceFactory mock
+    SourceFactory sourceFactory = new _SourceFactoryMock();
+    when(sourceFactory.dartSdk).thenReturn(sdkMock);
+    when(context.sourceFactory).thenReturn(sourceFactory);
+    // SDK source mock
+    Source source = new _SourceMock('test.dart');
+    when(source.source).thenReturn(source);
+    when(source.isInSystemLibrary).thenReturn(true);
+    // notify and validate
+    Map<ResultDescriptor, dynamic> outputs = <ResultDescriptor, dynamic>{};
+    manager.resultsComputed(source, outputs);
+    verify(sdkDartWorkManagerMock.resultsComputed(source, outputs)).once();
   }
 
   void test_resultsComputed_noSourceKind() {
@@ -696,14 +751,23 @@ class DartWorkManagerTest {
     expect(manager.libraryPartsMap, isEmpty);
   }
 
-  CacheEntry _getOrCreateEntry(Source source) {
+  CacheEntry _getOrCreateEntry(Source source, [bool explicit = true]) {
     CacheEntry entry = cache.get(source);
     if (entry == null) {
       entry = new CacheEntry(source);
+      entry.explicitlyAdded = explicit;
       cache.put(entry);
     }
     return entry;
   }
+}
+
+class _DartSdkMock extends TypedMock implements DartSdk {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _DartWorkManagerMock extends TypedMock implements DartWorkManager {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _InternalAnalysisContextMock extends TypedMock
@@ -738,4 +802,18 @@ class _InternalAnalysisContextMock extends TypedMock
   }
 
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _SourceFactoryMock extends TypedMock implements SourceFactory {
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _SourceMock extends TypedMock implements Source {
+  final String shortName;
+  _SourceMock(this.shortName);
+  @override
+  String get fullName => '/' + shortName;
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+  @override
+  String toString() => fullName;
 }

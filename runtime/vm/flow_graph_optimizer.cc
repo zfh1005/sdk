@@ -177,9 +177,6 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
     // Do not make the instance call megamorphic if the callee needs to decode
     // the calling code sequence to lookup the ic data and verify if a warning
     // has already been issued or not.
-    // TryCreateICData is only invoked if the ic_data target has not been called
-    // yet, so no warning can possibly have been issued.
-    ASSERT(!call->ic_data()->IssuedJSWarning());
     if (call->ic_data()->MayCheckForJSWarning()) {
       return false;
     }
@@ -187,8 +184,7 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
   GrowableArray<intptr_t> class_ids(call->ic_data()->NumArgsTested());
   ASSERT(call->ic_data()->NumArgsTested() <= call->ArgumentCount());
   for (intptr_t i = 0; i < call->ic_data()->NumArgsTested(); i++) {
-    const intptr_t cid = call->PushArgumentAt(i)->value()->Type()->ToCid();
-    class_ids.Add(cid);
+    class_ids.Add(call->PushArgumentAt(i)->value()->Type()->ToCid());
   }
 
   const Token::Kind op_kind = call->token_kind();
@@ -218,10 +214,6 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
   }
 
   if (all_cids_known) {
-    const Array& args_desc_array = Array::Handle(Z,
-        ArgumentsDescriptor::New(call->ArgumentCount(),
-                                 call->argument_names()));
-    ArgumentsDescriptor args_desc(args_desc_array);
     const Class& receiver_class = Class::Handle(Z,
         isolate()->class_table()->At(class_ids[0]));
     if (!receiver_class.is_finalized()) {
@@ -230,6 +222,10 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
       // finalized yet.
       return false;
     }
+    const Array& args_desc_array = Array::Handle(Z,
+        ArgumentsDescriptor::New(call->ArgumentCount(),
+                                 call->argument_names()));
+    ArgumentsDescriptor args_desc(args_desc_array);
     const Function& function = Function::Handle(Z,
         Resolver::ResolveDynamicForReceiverClass(
             receiver_class,
@@ -394,7 +390,7 @@ void FlowGraphOptimizer::OptimizeLeftShiftBitAndSmiOp(
         Token::kBIT_AND,
         new(Z) Value(left_instr),
         new(Z) Value(right_instr),
-        Isolate::kNoDeoptId);  // BIT_AND cannot deoptimize.
+        Thread::kNoDeoptId);  // BIT_AND cannot deoptimize.
     bit_and_instr->ReplaceWith(smi_op, current_iterator());
   }
 }
@@ -415,7 +411,7 @@ void FlowGraphOptimizer::AppendLoadIndexedForMerged(Definition* instr,
                                       new(Z) Value(index_instr),
                                       index_scale,
                                       cid,
-                                      Isolate::kNoDeoptId,
+                                      Thread::kNoDeoptId,
                                       instr->token_pos());
   instr->ReplaceUsesWith(load);
   flow_graph()->InsertAfter(instr, load, NULL, FlowGraph::kValue);
@@ -626,7 +622,7 @@ static void EnsureSSATempIndex(FlowGraph* graph,
                                Definition* replacement) {
   if ((replacement->ssa_temp_index() == -1) &&
       (defn->ssa_temp_index() != -1)) {
-    replacement->set_ssa_temp_index(graph->alloc_ssa_temp_index());
+    graph->AllocateSSAIndexes(replacement);
   }
 }
 
@@ -713,7 +709,7 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
   Definition* converted = NULL;
   if (IsUnboxedInteger(from) && IsUnboxedInteger(to)) {
     const intptr_t deopt_id = (to == kUnboxedInt32) && (deopt_target != NULL) ?
-      deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
+      deopt_target->DeoptimizationTarget() : Thread::kNoDeoptId;
     converted = new(Z) UnboxedIntConverterInstr(from,
                                                 to,
                                                 use->CopyWithType(),
@@ -724,12 +720,12 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
              (to == kUnboxedDouble) &&
              CanConvertUnboxedMintToDouble()) {
     const intptr_t deopt_id = (deopt_target != NULL) ?
-      deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
+        deopt_target->DeoptimizationTarget() : Thread::kNoDeoptId;
     ASSERT(CanUnboxDouble());
     converted = new MintToDoubleInstr(use->CopyWithType(), deopt_id);
   } else if ((from == kTagged) && Boxing::Supports(to)) {
     const intptr_t deopt_id = (deopt_target != NULL) ?
-      deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
+        deopt_target->DeoptimizationTarget() : Thread::kNoDeoptId;
     converted = UnboxInstr::Create(to, use->CopyWithType(), deopt_id);
   } else if ((to == kTagged) && Boxing::Supports(from)) {
     converted = BoxInstr::Create(from, use->CopyWithType());
@@ -739,7 +735,7 @@ void FlowGraphOptimizer::InsertConversion(Representation from,
     // "from" and "to" representation. The inserted instructions will
     // trigger a deoptimization if executed. See #12417 for a discussion.
     const intptr_t deopt_id = (deopt_target != NULL) ?
-      deopt_target->DeoptimizationTarget() : Isolate::kNoDeoptId;
+        deopt_target->DeoptimizationTarget() : Thread::kNoDeoptId;
     ASSERT(Boxing::Supports(from));
     ASSERT(Boxing::Supports(to));
     Definition* boxed = BoxInstr::Create(from, use->CopyWithType());
@@ -838,10 +834,10 @@ static void UnboxPhi(PhiInstr* phi) {
   if ((kSmiBits < 32) &&
       (unboxed == kTagged) &&
       phi->Type()->IsInt() &&
-      RangeUtils::Fits(phi->range(), RangeBoundary::kRangeBoundaryInt32)) {
+      RangeUtils::Fits(phi->range(), RangeBoundary::kRangeBoundaryInt64)) {
     // On 32-bit platforms conservatively unbox phis that:
     //   - are proven to be of type Int;
-    //   - fit into 32bits range;
+    //   - fit into 64bits range;
     //   - have either constants or Box() operations as inputs;
     //   - have at least one Box() operation as an input;
     //   - are used in at least 1 Unbox() operation.
@@ -850,7 +846,7 @@ static void UnboxPhi(PhiInstr* phi) {
       Definition* input = phi->InputAt(i)->definition();
       if (input->IsBox() &&
           RangeUtils::Fits(input->range(),
-                           RangeBoundary::kRangeBoundaryInt32)) {
+                           RangeBoundary::kRangeBoundaryInt64)) {
         should_unbox = true;
       } else if (!input->IsConstant()) {
         should_unbox = false;
@@ -882,7 +878,9 @@ static void UnboxPhi(PhiInstr* phi) {
     }
 
     if (should_unbox) {
-      unboxed = kUnboxedInt32;
+      unboxed =
+          RangeUtils::Fits(phi->range(), RangeBoundary::kRangeBoundaryInt32)
+          ? kUnboxedInt32 : kUnboxedMint;
     }
   }
 
@@ -1752,11 +1750,11 @@ bool FlowGraphOptimizer::InlineGetIndexed(MethodRecognizer::Kind kind,
                                      index,
                                      &cursor);
 
-  intptr_t deopt_id = Isolate::kNoDeoptId;
+  intptr_t deopt_id = Thread::kNoDeoptId;
   if ((array_cid == kTypedDataInt32ArrayCid) ||
       (array_cid == kTypedDataUint32ArrayCid)) {
     // Deoptimization may be needed if result does not always fit in a Smi.
-    deopt_id = (kSmiBits >= 32) ? Isolate::kNoDeoptId : call->deopt_id();
+    deopt_id = (kSmiBits >= 32) ? Thread::kNoDeoptId : call->deopt_id();
   }
 
   // Array load and return.
@@ -1770,14 +1768,14 @@ bool FlowGraphOptimizer::InlineGetIndexed(MethodRecognizer::Kind kind,
   cursor = flow_graph()->AppendTo(
       cursor,
       *last,
-      deopt_id != Isolate::kNoDeoptId ? call->env() : NULL,
+      deopt_id != Thread::kNoDeoptId ? call->env() : NULL,
       FlowGraph::kValue);
 
   if (array_cid == kTypedDataFloat32ArrayCid) {
     *last = new(Z) FloatToDoubleInstr(new(Z) Value(*last), deopt_id);
     flow_graph()->AppendTo(cursor,
                            *last,
-                           deopt_id != Isolate::kNoDeoptId ? call->env() : NULL,
+                           deopt_id != Thread::kNoDeoptId ? call->env() : NULL,
                            FlowGraph::kValue);
   }
   return true;
@@ -2306,10 +2304,10 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
 
 
 // Using field class
-static RawField* GetField(intptr_t class_id, const String& field_name) {
-  Isolate* isolate = Isolate::Current();
-  Class& cls = Class::Handle(isolate, isolate->class_table()->At(class_id));
-  Field& field = Field::Handle(isolate);
+RawField* FlowGraphOptimizer::GetField(intptr_t class_id,
+                                       const String& field_name) {
+  Class& cls = Class::Handle(Z, isolate()->class_table()->At(class_id));
+  Field& field = Field::Handle(Z);
   while (!cls.IsNull()) {
     field = cls.LookupInstanceField(field_name);
     if (!field.IsNull()) {
@@ -2326,7 +2324,7 @@ static RawField* GetField(intptr_t class_id, const String& field_name) {
 // callee functions, then no class check is needed.
 bool FlowGraphOptimizer::InstanceCallNeedsClassCheck(
     InstanceCallInstr* call, RawFunction::Kind kind) const {
-  if (!FLAG_use_cha_deopt) {
+  if (!FLAG_use_cha_deopt && !isolate()->all_classes_finalized()) {
     // Even if class or function are private, lazy class finalization
     // may later add overriding methods.
     return true;
@@ -2793,7 +2791,7 @@ Definition* FlowGraphOptimizer::PrepareInlineStringIndexOp(
       new(Z) Value(index),
       Instance::ElementSizeFor(cid),
       cid,
-      Isolate::kNoDeoptId,
+      Thread::kNoDeoptId,
       call->token_pos());
 
   cursor = flow_graph()->AppendTo(cursor,
@@ -3070,74 +3068,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 
   if (IsSupportedByteArrayViewCid(class_ids[0]) &&
       (ic_data.NumberOfChecks() == 1)) {
-    // For elements that may not fit into a smi on all platforms, check if
-    // elements fit into a smi or the platform supports unboxed mints.
-    if ((recognized_kind == MethodRecognizer::kByteArrayBaseGetInt32) ||
-        (recognized_kind == MethodRecognizer::kByteArrayBaseGetUint32) ||
-        (recognized_kind == MethodRecognizer::kByteArrayBaseSetInt32) ||
-        (recognized_kind == MethodRecognizer::kByteArrayBaseSetUint32)) {
-      if (!CanUnboxInt32()) {
-        return false;
-      }
-    }
-
-    if ((recognized_kind == MethodRecognizer::kByteArrayBaseGetFloat32) ||
-        (recognized_kind == MethodRecognizer::kByteArrayBaseGetFloat64) ||
-        (recognized_kind == MethodRecognizer::kByteArrayBaseSetFloat32) ||
-        (recognized_kind == MethodRecognizer::kByteArrayBaseSetFloat64)) {
-      if (!CanUnboxDouble()) {
-        return false;
-      }
-    }
-
-    switch (recognized_kind) {
-      // ByteArray getters.
-      case MethodRecognizer::kByteArrayBaseGetInt8:
-        return BuildByteArrayBaseLoad(call, kTypedDataInt8ArrayCid);
-      case MethodRecognizer::kByteArrayBaseGetUint8:
-        return BuildByteArrayBaseLoad(call, kTypedDataUint8ArrayCid);
-      case MethodRecognizer::kByteArrayBaseGetInt16:
-        return BuildByteArrayBaseLoad(call, kTypedDataInt16ArrayCid);
-      case MethodRecognizer::kByteArrayBaseGetUint16:
-        return BuildByteArrayBaseLoad(call, kTypedDataUint16ArrayCid);
-      case MethodRecognizer::kByteArrayBaseGetInt32:
-        return BuildByteArrayBaseLoad(call, kTypedDataInt32ArrayCid);
-      case MethodRecognizer::kByteArrayBaseGetUint32:
-        return BuildByteArrayBaseLoad(call, kTypedDataUint32ArrayCid);
-      case MethodRecognizer::kByteArrayBaseGetFloat32:
-        return BuildByteArrayBaseLoad(call, kTypedDataFloat32ArrayCid);
-      case MethodRecognizer::kByteArrayBaseGetFloat64:
-        return BuildByteArrayBaseLoad(call, kTypedDataFloat64ArrayCid);
-      case MethodRecognizer::kByteArrayBaseGetFloat32x4:
-        return BuildByteArrayBaseLoad(call, kTypedDataFloat32x4ArrayCid);
-      case MethodRecognizer::kByteArrayBaseGetInt32x4:
-        return BuildByteArrayBaseLoad(call, kTypedDataInt32x4ArrayCid);
-
-      // ByteArray setters.
-      case MethodRecognizer::kByteArrayBaseSetInt8:
-        return BuildByteArrayBaseStore(call, kTypedDataInt8ArrayCid);
-      case MethodRecognizer::kByteArrayBaseSetUint8:
-        return BuildByteArrayBaseStore(call, kTypedDataUint8ArrayCid);
-      case MethodRecognizer::kByteArrayBaseSetInt16:
-        return BuildByteArrayBaseStore(call, kTypedDataInt16ArrayCid);
-      case MethodRecognizer::kByteArrayBaseSetUint16:
-        return BuildByteArrayBaseStore(call, kTypedDataUint16ArrayCid);
-      case MethodRecognizer::kByteArrayBaseSetInt32:
-        return BuildByteArrayBaseStore(call, kTypedDataInt32ArrayCid);
-      case MethodRecognizer::kByteArrayBaseSetUint32:
-        return BuildByteArrayBaseStore(call, kTypedDataUint32ArrayCid);
-      case MethodRecognizer::kByteArrayBaseSetFloat32:
-        return BuildByteArrayBaseStore(call, kTypedDataFloat32ArrayCid);
-      case MethodRecognizer::kByteArrayBaseSetFloat64:
-        return BuildByteArrayBaseStore(call, kTypedDataFloat64ArrayCid);
-      case MethodRecognizer::kByteArrayBaseSetFloat32x4:
-        return BuildByteArrayBaseStore(call, kTypedDataFloat32x4ArrayCid);
-      case MethodRecognizer::kByteArrayBaseSetInt32x4:
-        return BuildByteArrayBaseStore(call, kTypedDataInt32x4ArrayCid);
-      default:
-        // Unsupported method.
-        return false;
-    }
+    return TryReplaceInstanceCallWithInline(call);
   }
 
   if ((class_ids[0] == kFloat32x4Cid) && (ic_data.NumberOfChecks() == 1)) {
@@ -3658,11 +3589,11 @@ bool FlowGraphOptimizer::InlineByteArrayBaseLoad(Instruction* call,
                                            index,
                                            &cursor);
 
-  intptr_t deopt_id = Isolate::kNoDeoptId;
+  intptr_t deopt_id = Thread::kNoDeoptId;
   if ((array_cid == kTypedDataInt32ArrayCid) ||
       (array_cid == kTypedDataUint32ArrayCid)) {
     // Deoptimization may be needed if result does not always fit in a Smi.
-    deopt_id = (kSmiBits >= 32) ? Isolate::kNoDeoptId : call->deopt_id();
+    deopt_id = (kSmiBits >= 32) ? Thread::kNoDeoptId : call->deopt_id();
   }
 
   *last = new(Z) LoadIndexedInstr(new(Z) Value(array),
@@ -3674,14 +3605,14 @@ bool FlowGraphOptimizer::InlineByteArrayBaseLoad(Instruction* call,
   cursor = flow_graph()->AppendTo(
       cursor,
       *last,
-      deopt_id != Isolate::kNoDeoptId ? call->env() : NULL,
+      deopt_id != Thread::kNoDeoptId ? call->env() : NULL,
       FlowGraph::kValue);
 
   if (view_cid == kTypedDataFloat32ArrayCid) {
     *last = new(Z) FloatToDoubleInstr(new(Z) Value(*last), deopt_id);
     flow_graph()->AppendTo(cursor,
                            *last,
-                           deopt_id != Isolate::kNoDeoptId ? call->env() : NULL,
+                           deopt_id != Thread::kNoDeoptId ? call->env() : NULL,
                            FlowGraph::kValue);
   }
   return true;
@@ -3734,7 +3665,7 @@ bool FlowGraphOptimizer::InlineByteArrayBaseStore(const Function& target,
       value_check = ICData::New(flow_graph_->function(),
                                 i_call->function_name(),
                                 Object::empty_array(),  // Dummy args. descr.
-                                Isolate::kNoDeoptId,
+                                Thread::kNoDeoptId,
                                 1);
       value_check.AddReceiverCheck(kSmiCid, target);
       break;
@@ -3746,7 +3677,7 @@ bool FlowGraphOptimizer::InlineByteArrayBaseStore(const Function& target,
         value_check = ICData::New(flow_graph_->function(),
                                   i_call->function_name(),
                                   Object::empty_array(),  // Dummy args. descr.
-                                  Isolate::kNoDeoptId,
+                                  Thread::kNoDeoptId,
                                   1);
         value_check.AddReceiverCheck(kSmiCid, target);
       }
@@ -3757,7 +3688,7 @@ bool FlowGraphOptimizer::InlineByteArrayBaseStore(const Function& target,
       value_check = ICData::New(flow_graph_->function(),
                                 i_call->function_name(),
                                 Object::empty_array(),  // Dummy args. descr.
-                                Isolate::kNoDeoptId,
+                                Thread::kNoDeoptId,
                                 1);
       value_check.AddReceiverCheck(kDoubleCid, target);
       break;
@@ -3767,7 +3698,7 @@ bool FlowGraphOptimizer::InlineByteArrayBaseStore(const Function& target,
       value_check = ICData::New(flow_graph_->function(),
                                 i_call->function_name(),
                                 Object::empty_array(),  // Dummy args. descr.
-                                Isolate::kNoDeoptId,
+                                Thread::kNoDeoptId,
                                 1);
       value_check.AddReceiverCheck(kInt32x4Cid, target);
       break;
@@ -3777,7 +3708,7 @@ bool FlowGraphOptimizer::InlineByteArrayBaseStore(const Function& target,
       value_check = ICData::New(flow_graph_->function(),
                                 i_call->function_name(),
                                 Object::empty_array(),  // Dummy args. descr.
-                                Isolate::kNoDeoptId,
+                                Thread::kNoDeoptId,
                                 1);
       value_check.AddReceiverCheck(kFloat32x4Cid, target);
       break;
@@ -3832,7 +3763,7 @@ bool FlowGraphOptimizer::InlineByteArrayBaseStore(const Function& target,
 
   flow_graph()->AppendTo(cursor,
                          *last,
-                         call->deopt_id() != Isolate::kNoDeoptId ?
+                         call->deopt_id() != Thread::kNoDeoptId ?
                             call->env() : NULL,
                          FlowGraph::kEffect);
   return true;
@@ -3930,38 +3861,6 @@ intptr_t FlowGraphOptimizer::PrepareInlineByteArrayBaseOp(
 }
 
 
-bool FlowGraphOptimizer::BuildByteArrayBaseLoad(InstanceCallInstr* call,
-                                                intptr_t view_cid) {
-  const bool simd_view = (view_cid == kTypedDataFloat32x4ArrayCid) ||
-                         (view_cid == kTypedDataInt32x4ArrayCid);
-  const bool float_view = (view_cid == kTypedDataFloat32ArrayCid) ||
-                          (view_cid == kTypedDataFloat64ArrayCid);
-  if (float_view && !CanUnboxDouble()) {
-    return false;
-  }
-  if (simd_view && !ShouldInlineSimd()) {
-    return false;
-  }
-  return TryReplaceInstanceCallWithInline(call);
-}
-
-
-bool FlowGraphOptimizer::BuildByteArrayBaseStore(InstanceCallInstr* call,
-                                                 intptr_t view_cid) {
-  const bool simd_view = (view_cid == kTypedDataFloat32x4ArrayCid) ||
-                         (view_cid == kTypedDataInt32x4ArrayCid);
-  const bool float_view = (view_cid == kTypedDataFloat32ArrayCid) ||
-                          (view_cid == kTypedDataFloat64ArrayCid);
-  if (float_view && !CanUnboxDouble()) {
-    return false;
-  }
-  if (simd_view && !ShouldInlineSimd()) {
-    return false;
-  }
-  return TryReplaceInstanceCallWithInline(call);
-}
-
-
 // If type tests specified by 'ic_data' do not depend on type arguments,
 // return mapping cid->result in 'results' (i : cid; i + 1: result).
 // If all tests yield the same result, return it otherwise return Bool::null.
@@ -4041,13 +3940,15 @@ bool FlowGraphOptimizer::TypeCheckAsClassEquality(const AbstractType& type) {
 
   // Private classes cannot be subclassed by later loaded libs.
   if (!type_class.IsPrivate()) {
-    if (FLAG_use_cha_deopt) {
+    if (FLAG_use_cha_deopt || isolate()->all_classes_finalized()) {
       if (FLAG_trace_cha) {
         THR_Print("  **(CHA) Typecheck as class equality since no "
             "subclasses: %s\n",
             type_class.ToCString());
       }
-      thread()->cha()->AddToLeafClasses(type_class);
+      if (FLAG_use_cha_deopt) {
+        thread()->cha()->AddToLeafClasses(type_class);
+      }
     } else {
       return false;
     }
@@ -4188,7 +4089,7 @@ void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
             negate ? Token::kISNOT : Token::kIS,
             new(Z) Value(left),
             *results,
-            can_deopt ? call->deopt_id() : Isolate::kNoDeoptId);
+            can_deopt ? call->deopt_id() : Thread::kNoDeoptId);
         // Remove type.
         ReplaceCall(call, test_cids);
         return;
@@ -4305,25 +4206,107 @@ void FlowGraphOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
 void FlowGraphOptimizer::InstanceCallNoopt(InstanceCallInstr* instr) {
   // TODO(srdjan): Investigate other attempts, as they are not allowed to
   // deoptimize.
-  const Token::Kind op_kind = instr->token_kind();
-  if (instr->HasICData() && (instr->ic_data()->NumberOfUsedChecks() > 0)) {
-    const ICData& unary_checks =
-        ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
-
-    PolymorphicInstanceCallInstr* call =
-        new(Z) PolymorphicInstanceCallInstr(instr, unary_checks,
-                                            true /* call_with_checks*/);
-    instr->ReplaceWith(call, current_iterator());
-    return;
-  }
 
   // Type test is special as it always gets converted into inlined code.
+  const Token::Kind op_kind = instr->token_kind();
   if (Token::IsTypeTestOperator(op_kind)) {
     ReplaceWithInstanceOf(instr);
     return;
   }
   if (Token::IsTypeCastOperator(op_kind)) {
     ReplaceWithTypeCast(instr);
+    return;
+  }
+
+  if ((op_kind == Token::kGET) &&
+      TryInlineInstanceGetter(instr, false /* no checks allowed */)) {
+    return;
+  }
+  const ICData& unary_checks =
+      ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
+  if ((unary_checks.NumberOfChecks() > 0) &&
+      (op_kind == Token::kSET) &&
+      TryInlineInstanceSetter(instr, unary_checks, false /* no checks */)) {
+    return;
+  }
+
+  bool has_one_target =
+      (unary_checks.NumberOfChecks() > 0) && unary_checks.HasOneTarget();
+  if (has_one_target) {
+    // Check if the single target is a polymorphic target, if it is,
+    // we don't have one target.
+    const Function& target =
+        Function::Handle(Z, unary_checks.GetTargetAt(0));
+    const bool polymorphic_target = MethodRecognizer::PolymorphicTarget(target);
+    has_one_target = !polymorphic_target;
+  }
+
+  if (has_one_target) {
+    RawFunction::Kind function_kind =
+        Function::Handle(Z, unary_checks.GetTargetAt(0)).kind();
+    if (!InstanceCallNeedsClassCheck(instr, function_kind)) {
+      PolymorphicInstanceCallInstr* call =
+          new(Z) PolymorphicInstanceCallInstr(instr, unary_checks,
+                                              /* with_checks = */ false);
+      instr->ReplaceWith(call, current_iterator());
+      return;
+    }
+  }
+
+  // More than one targets. Generate generic polymorphic call without
+  // deoptimization.
+  if (instr->ic_data()->NumberOfUsedChecks() > 0) {
+    ASSERT(!FLAG_polymorphic_with_deopt);
+    // OK to use checks with PolymorphicInstanceCallInstr since no
+    // deoptimization is allowed.
+    PolymorphicInstanceCallInstr* call =
+        new(Z) PolymorphicInstanceCallInstr(instr, unary_checks,
+                                            /* with_checks = */ true);
+    instr->ReplaceWith(call, current_iterator());
+    return;
+  }
+
+  // No IC data checks. Try resolve target using the propagated type.
+  // If the propagated type has a method with the target name and there are
+  // no overrides with that name according to CHA, call the method directly.
+  const intptr_t receiver_cid =
+      instr->PushArgumentAt(0)->value()->Type()->ToCid();
+  if (receiver_cid == kDynamicCid) return;
+  const Class& receiver_class = Class::Handle(Z,
+      isolate()->class_table()->At(receiver_cid));
+
+  const Array& args_desc_array = Array::Handle(Z,
+      ArgumentsDescriptor::New(instr->ArgumentCount(),
+                               instr->argument_names()));
+  ArgumentsDescriptor args_desc(args_desc_array);
+  const Function& function = Function::Handle(Z,
+      Resolver::ResolveDynamicForReceiverClass(
+          receiver_class,
+          instr->function_name(),
+          args_desc));
+  if (function.IsNull()) {
+    return;
+  }
+  if (!thread()->cha()->HasOverride(receiver_class, instr->function_name())) {
+    if (FLAG_trace_cha) {
+      THR_Print("  **(CHA) Instance call needs no check, "
+          "no overrides of '%s' '%s'\n",
+          instr->function_name().ToCString(), receiver_class.ToCString());
+    }
+    thread()->cha()->AddToLeafClasses(receiver_class);
+
+    // Create fake IC data with the resolved target.
+    const ICData& ic_data = ICData::Handle(
+        ICData::New(flow_graph_->function(),
+                    instr->function_name(),
+                    args_desc_array,
+                    Thread::kNoDeoptId,
+                    /* args_tested = */ 1));
+    ic_data.AddReceiverCheck(receiver_class.id(), function);
+    PolymorphicInstanceCallInstr* call =
+        new(Z) PolymorphicInstanceCallInstr(instr, ic_data,
+                                            /* with_checks = */ false);
+    instr->ReplaceWith(call, current_iterator());
     return;
   }
 }
@@ -4416,10 +4399,9 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     RawFunction::Kind function_kind =
         Function::Handle(Z, unary_checks.GetTargetAt(0)).kind();
     if (!InstanceCallNeedsClassCheck(instr, function_kind)) {
-      const bool call_with_checks = false;
       PolymorphicInstanceCallInstr* call =
           new(Z) PolymorphicInstanceCallInstr(instr, unary_checks,
-                                              call_with_checks);
+                                              /* call_with_checks = */ false);
       instr->ReplaceWith(call, current_iterator());
       return;
     }
@@ -4637,7 +4619,12 @@ void FlowGraphOptimizer::VisitStoreInstanceField(
         }
       }
       field.set_is_unboxing_candidate(false);
-      field.DeoptimizeDependentCode();
+      if (Compiler::IsBackgroundCompilation()) {
+        // Delay deoptimization of dependent code to the code installation time.
+        flow_graph()->deoptimize_dependent_code().Add(&field);
+      } else {
+        field.DeoptimizeDependentCode();
+      }
     } else {
       FlowGraph::AddToGuardedFields(flow_graph_->guarded_fields(), &field);
     }
@@ -4690,7 +4677,8 @@ void FlowGraphOptimizer::VisitLoadCodeUnits(LoadCodeUnitsInstr* instr) {
 
 
 bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
-                                                 const ICData& unary_ic_data) {
+                                                 const ICData& unary_ic_data,
+                                                 bool allow_checks) {
   ASSERT((unary_ic_data.NumberOfChecks() > 0) &&
       (unary_ic_data.NumArgsTested() == 1));
   if (I->flags().type_checks()) {
@@ -4724,9 +4712,15 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   ASSERT(!field.IsNull());
 
   if (InstanceCallNeedsClassCheck(instr, RawFunction::kImplicitSetter)) {
+    if (!allow_checks) {
+      return false;
+    }
     AddReceiverCheck(instr);
   }
   if (field.guarded_cid() != kDynamicCid) {
+    if (!allow_checks) {
+      return false;
+    }
     InsertBefore(instr,
                  new(Z) GuardFieldClassInstr(
                      new(Z) Value(instr->ArgumentAt(1)),
@@ -4737,6 +4731,9 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   }
 
   if (field.needs_length_check()) {
+    if (!allow_checks) {
+      return false;
+    }
     InsertBefore(instr,
                  new(Z) GuardFieldLengthInstr(
                      new(Z) Value(instr->ArgumentAt(1)),
@@ -7073,7 +7070,7 @@ class LoadOptimizer : public ValueObject {
       replacement->AddInputUse(input);
     }
 
-    phi->set_ssa_temp_index(graph_->alloc_ssa_temp_index());
+    graph_->AllocateSSAIndexes(phi);
     phis_.Add(phi);  // Postpone phi insertion until after load forwarding.
 
     if (FLAG_trace_load_optimization) {

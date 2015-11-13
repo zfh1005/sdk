@@ -4,10 +4,9 @@
 
 library dart2js.parser.element_listener;
 
-import '../diagnostics/diagnostic_listener.dart';
-import '../diagnostics/messages.dart';
-import '../diagnostics/spannable.dart' show
-    Spannable;
+import '../common.dart';
+import '../diagnostics/messages.dart' show
+    MessageTemplate;
 import '../elements/elements.dart' show
     Element,
     LibraryElement,
@@ -55,6 +54,16 @@ import 'listener.dart' show
 
 typedef int IdGenerator();
 
+/// Options used for scanning.
+///
+/// Use this to conditionally support special tokens.
+class ScannerOptions {
+  /// If `true` the pseudo keyword `native` is supported.
+  final bool canUseNative;
+
+  const ScannerOptions({this.canUseNative: false});
+}
+
 /**
  * A parser event listener designed to work with [PartialParser]. It
  * builds elements representing the top-level declarations found in
@@ -63,7 +72,8 @@ typedef int IdGenerator();
  */
 class ElementListener extends Listener {
   final IdGenerator idGenerator;
-  final DiagnosticListener listener;
+  final DiagnosticReporter reporter;
+  final ScannerOptions scannerOptions;
   final CompilationUnitElementX compilationUnitElement;
   final StringValidator stringValidator;
   Link<StringQuoting> interpolationScope;
@@ -85,11 +95,12 @@ class ElementListener extends Listener {
   bool suppressParseErrors = false;
 
   ElementListener(
-      DiagnosticListener listener,
+      this.scannerOptions,
+      DiagnosticReporter reporter,
       this.compilationUnitElement,
       this.idGenerator)
-      : this.listener = listener,
-        stringValidator = new StringValidator(listener),
+      : this.reporter = reporter,
+        stringValidator = new StringValidator(reporter),
         interpolationScope = const Link<StringQuoting>();
 
   bool get currentMemberHasParseError {
@@ -110,7 +121,7 @@ class ElementListener extends Listener {
     StringNode node = popNode();
     // TODO(lrn): Handle interpolations in script tags.
     if (node.isInterpolation) {
-      listener.internalError(node,
+      reporter.internalError(node,
           "String interpolation not supported in library tags.");
       return null;
     }
@@ -201,7 +212,7 @@ class ElementListener extends Listener {
   }
 
   void addPartOfTag(PartOf tag) {
-    compilationUnitElement.setPartOf(tag, listener);
+    compilationUnitElement.setPartOf(tag, reporter);
   }
 
   void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
@@ -594,7 +605,7 @@ class ElementListener extends Listener {
 
   void pushElement(Element element) {
     popMetadata(element);
-    compilationUnitElement.addMember(element, listener);
+    compilationUnitElement.addMember(element, reporter);
   }
 
   List<MetadataAnnotation> popMetadata(ElementX element) {
@@ -614,7 +625,7 @@ class ElementListener extends Listener {
     }
     LibraryElementX implementationLibrary =
         compilationUnitElement.implementationLibrary;
-    implementationLibrary.addTag(tag, listener);
+    implementationLibrary.addTag(tag, reporter);
   }
 
   void pushNode(Node node) {
@@ -748,6 +759,6 @@ class ElementListener extends Listener {
     if (!memberErrors.isEmpty) {
       memberErrors = memberErrors.tail.prepend(true);
     }
-    listener.reportErrorMessage(spannable, errorCode, arguments);
+    reporter.reportErrorMessage(spannable, errorCode, arguments);
   }
 }

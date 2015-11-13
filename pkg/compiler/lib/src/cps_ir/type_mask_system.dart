@@ -4,18 +4,17 @@
 
 library dart2js.type_mask_system;
 
-import '../closure.dart' show ClosureClassElement;
 import '../common/names.dart' show Selectors, Identifiers;
 import '../compiler.dart' as dart2js show Compiler;
-import '../constants/constant_system.dart';
 import '../constants/values.dart';
 import '../dart_types.dart' as types;
 import '../elements/elements.dart';
-import '../io/source_information.dart' show SourceInformation;
+import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
 import '../types/types.dart';
 import '../types/constants.dart' show computeTypeMask;
 import '../universe/selector.dart' show Selector;
+import '../universe/call_structure.dart' show CallStructure;
 import '../world.dart' show World;
 
 enum AbstractBool {
@@ -26,6 +25,13 @@ class TypeMaskSystem {
   final TypesTask inferrer;
   final World classWorld;
   final JavaScriptBackend backend;
+
+  TypeMask _numStringBoolType;
+  TypeMask _fixedLengthType;
+  TypeMask _interceptorType;
+  TypeMask _interceptedTypes; // Does not include null.
+
+  TypeMask __indexableTypeTest;
 
   TypeMask get dynamicType => inferrer.dynamicType;
   TypeMask get typeType => inferrer.typeType;
@@ -39,36 +45,95 @@ class TypeMaskSystem {
   TypeMask get mapType => inferrer.mapType;
   TypeMask get nonNullType => inferrer.nonNullType;
   TypeMask get nullType => inferrer.nullType;
-  TypeMask get extendableNativeListType => backend.extendableArrayType;
+  TypeMask get extendableArrayType => backend.extendableArrayType;
+  TypeMask get fixedArrayType => backend.fixedArrayType;
+  TypeMask get arrayType =>
+      new TypeMask.nonNullSubclass(helpers.jsArrayClass, classWorld);
 
-  TypeMask numStringBoolType;
+  TypeMask get uint31Type => inferrer.uint31Type;
+  TypeMask get uint32Type => inferrer.uint32Type;
+  TypeMask get uintType => inferrer.positiveIntType;
 
-  ClassElement get jsNullClass => backend.jsNullClass;
+  TypeMask get numStringBoolType {
+    if (_numStringBoolType == null) {
+      // Build the number+string+bool type. To make containment tests more
+      // inclusive, we use the num, String, bool types for this, not
+      // the JSNumber, JSString, JSBool subclasses.
+      TypeMask anyNum =
+          new TypeMask.nonNullSubtype(classWorld.numClass, classWorld);
+      TypeMask anyString =
+          new TypeMask.nonNullSubtype(classWorld.stringClass, classWorld);
+      TypeMask anyBool =
+          new TypeMask.nonNullSubtype(classWorld.boolClass, classWorld);
+      _numStringBoolType =
+          new TypeMask.unionOf(<TypeMask>[anyNum, anyString, anyBool],
+              classWorld);
+    }
+    return _numStringBoolType;
+  }
+
+  TypeMask get fixedLengthType {
+    if (_fixedLengthType == null) {
+      List<TypeMask> fixedLengthTypes =
+          <TypeMask>[stringType, backend.fixedArrayType];
+      if (classWorld.isInstantiated(helpers.typedArrayClass)) {
+        fixedLengthTypes.add(nonNullSubclass(helpers.typedArrayClass));
+      }
+      _fixedLengthType = new TypeMask.unionOf(fixedLengthTypes, classWorld);
+    }
+    return _fixedLengthType;
+  }
+
+  TypeMask get interceptorType {
+    if (_interceptorType == null) {
+      _interceptorType =
+        new TypeMask.nonNullSubtype(helpers.jsInterceptorClass, classWorld);
+    }
+    return _interceptorType;
+  }
+
+  TypeMask get interceptedTypes { // Does not include null.
+    if (_interceptedTypes == null) {
+      // We redundantly include subtypes of num/string/bool as intercepted
+      // types, because the type system does not infer that their
+      // implementations are all subclasses of Interceptor.
+      _interceptedTypes = new TypeMask.unionOf(
+          <TypeMask>[interceptorType, numStringBoolType], classWorld);
+    }
+    return _interceptedTypes;
+  }
+
+  TypeMask get _indexableTypeTest {
+    if (__indexableTypeTest == null) {
+      // Make a TypeMask containing Indexable and (redundantly) subtypes of
+      // string because the type inference does not infer that all strings are
+      // indexables.
+      TypeMask indexable =
+          new TypeMask.nonNullSubtype(helpers.jsIndexableClass, classWorld);
+      TypeMask anyString =
+          new TypeMask.nonNullSubtype(classWorld.stringClass, classWorld);
+      __indexableTypeTest = new TypeMask.unionOf(
+          <TypeMask>[indexable, anyString],
+          classWorld);
+    }
+    return __indexableTypeTest;
+  }
+
+  ClassElement get jsNullClass => helpers.jsNullClass;
+
+  BackendHelpers get helpers => backend.helpers;
 
   // TODO(karlklose): remove compiler here.
   TypeMaskSystem(dart2js.Compiler compiler)
       : inferrer = compiler.typesTask,
         classWorld = compiler.world,
         backend = compiler.backend {
-
-    // Build the number+string+bool type. To make containment tests more
-    // inclusive, we use the num, String, bool types for this, not
-    // the JSNumber, JSString, JSBool subclasses.
-    TypeMask anyNum =
-        new TypeMask.nonNullSubtype(classWorld.numClass, classWorld);
-    TypeMask anyString =
-        new TypeMask.nonNullSubtype(classWorld.stringClass, classWorld);
-    TypeMask anyBool =
-        new TypeMask.nonNullSubtype(classWorld.boolClass, classWorld);
-    numStringBoolType =
-        new TypeMask.unionOf(<TypeMask>[anyNum, anyString, anyBool],
-            classWorld);
   }
 
   bool methodUsesReceiverArgument(FunctionElement function) {
     assert(backend.isInterceptedMethod(function));
     ClassElement clazz = function.enclosingClass.declaration;
-    return clazz.isSubclassOf(backend.jsInterceptorClass) ||
+    return clazz.isSubclassOf(helpers.jsInterceptorClass) ||
            classWorld.isUsedAsMixin(clazz);
   }
 
@@ -123,6 +188,12 @@ class TypeMaskSystem {
     return a.union(b, classWorld);
   }
 
+  TypeMask intersection(TypeMask a, TypeMask b) {
+    if (a == null) return b;
+    if (b == null) return a;
+    return a.intersection(b, classWorld);
+  }
+
   TypeMask getTypeOf(ConstantValue constant) {
     return computeTypeMask(inferrer.compiler, constant);
   }
@@ -133,10 +204,7 @@ class TypeMaskSystem {
     if (!mask.isValue) return null;
     if (mask.isNullable) return null;  // e.g. 'true or null'.
     ValueTypeMask valueMask = mask;
-    var value = valueMask.value;
-    // TODO(sra): Why is ValueTypeMask.value not a ConstantValue?
-    if (value == false) return new FalseConstantValue();
-    if (value == true) return new TrueConstantValue();
+    if (valueMask.value.isBool) return valueMask.value;
     // TODO(sra): Consider other values. Be careful with large strings.
     return null;
   }
@@ -197,35 +265,85 @@ class TypeMaskSystem {
     return areDisjoint(t, doubleType);
   }
 
+  bool isDefinitelyNonNegativeInt(TypeMask t, {bool allowNull: false}) {
+    if (!allowNull && t.isNullable) return false;
+    // The JSPositiveInt class includes zero, despite the name.
+    return t.satisfies(helpers.jsPositiveIntClass, classWorld);
+  }
+
   bool isDefinitelyInt(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
-    return t.satisfies(backend.jsIntClass, classWorld);
+    return t.nonNullable().containsOnlyInt(classWorld);
   }
 
-  bool isDefinitelyNativeList(TypeMask t, {bool allowNull: false}) {
+  bool isDefinitelyUint31(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
-    return t.nonNullable().satisfies(backend.jsArrayClass, classWorld);
+    return t.satisfies(helpers.jsUInt31Class, classWorld);
   }
 
-  bool isDefinitelyMutableNativeList(TypeMask t, {bool allowNull: false}) {
+  bool isDefinitelyUint32(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
-    return t.nonNullable().satisfies(backend.jsMutableArrayClass, classWorld);
+    return t.satisfies(helpers.jsUInt32Class, classWorld);
   }
 
-  bool isDefinitelyFixedNativeList(TypeMask t, {bool allowNull: false}) {
+  bool isDefinitelyUint(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
-    return t.nonNullable().satisfies(backend.jsFixedArrayClass, classWorld);
+    return t.satisfies(helpers.jsPositiveIntClass, classWorld);
   }
 
-  bool isDefinitelyExtendableNativeList(TypeMask t, {bool allowNull: false}) {
+  bool isDefinitelyArray(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
-    return t.nonNullable().satisfies(backend.jsExtendableArrayClass,
+    return t.nonNullable().satisfies(helpers.jsArrayClass, classWorld);
+  }
+
+  bool isDefinitelyMutableArray(TypeMask t, {bool allowNull: false}) {
+    if (!allowNull && t.isNullable) return false;
+    return t.nonNullable().satisfies(helpers.jsMutableArrayClass, classWorld);
+  }
+
+  bool isDefinitelyFixedArray(TypeMask t, {bool allowNull: false}) {
+    if (!allowNull && t.isNullable) return false;
+    return t.nonNullable().satisfies(helpers.jsFixedArrayClass, classWorld);
+  }
+
+  bool isDefinitelyExtendableArray(TypeMask t, {bool allowNull: false}) {
+    if (!allowNull && t.isNullable) return false;
+    return t.nonNullable().satisfies(helpers.jsExtendableArrayClass,
                                      classWorld);
   }
 
   bool isDefinitelyIndexable(TypeMask t, {bool allowNull: false}) {
     if (!allowNull && t.isNullable) return false;
-    return t.nonNullable().satisfies(backend.jsIndexableClass, classWorld);
+    return _indexableTypeTest.containsMask(t.nonNullable(), classWorld);
+  }
+
+  bool isDefinitelyMutableIndexable(TypeMask t, {bool allowNull: false}) {
+    if (!allowNull && t.isNullable) return false;
+    return t.nonNullable().satisfies(helpers.jsMutableIndexableClass,
+        classWorld);
+  }
+
+  bool isDefinitelyFixedLengthIndexable(TypeMask t, {bool allowNull: false}) {
+    if (!allowNull && t.isNullable) return false;
+    return fixedLengthType.containsMask(t.nonNullable(), classWorld);
+  }
+
+  bool isDefinitelyIntercepted(TypeMask t, {bool allowNull}) {
+    assert(allowNull != null);
+    if (!allowNull && t.isNullable) return false;
+    return interceptedTypes.containsMask(t.nonNullable(), classWorld);
+  }
+
+  /// Given a class from the interceptor hierarchy, returns a [TypeMask]
+  /// matching all values with that interceptor (or a subtype thereof).
+  TypeMask getInterceptorSubtypes(ClassElement class_) {
+    if (class_ == helpers.jsInterceptorClass) {
+      return interceptorType.nullable();
+    } else if (class_ == helpers.jsNullClass) {
+      return nullType;
+    } else {
+      return nonNullSubclass(class_);
+    }
   }
 
   bool areDisjoint(TypeMask leftType, TypeMask rightType) {
@@ -330,8 +448,8 @@ class TypeMaskSystem {
     if (isDefinitelyString(type)) {
       return stringType;
     }
-    if (type.satisfies(backend.typedArrayClass, classWorld)) {
-      if (type.satisfies(backend.typedArrayOfIntClass, classWorld)) {
+    if (type.satisfies(helpers.typedArrayClass, classWorld)) {
+      if (type.satisfies(helpers.typedArrayOfIntClass, classWorld)) {
         return intType;
       }
       return numType;

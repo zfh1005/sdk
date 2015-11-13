@@ -13,7 +13,8 @@ library test.integration.methods;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/protocol.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:unittest/unittest.dart';
 
 import 'integration_tests.dart';
@@ -829,6 +830,18 @@ abstract class IntegrationTestMixin {
    *
    *   The file with which the outline is associated.
    *
+   * kind ( FileKind )
+   *
+   *   The kind of the file.
+   *
+   * libraryName ( optional String )
+   *
+   *   The name of the library defined by the file using a "library" directive,
+   *   or referenced by a "part of" directive. If both "library" and "part of"
+   *   directives are present, then the "library" directive takes precedence.
+   *   This field will be omitted if the file has neither "library" nor "part
+   *   of" directives.
+   *
    * outline ( Outline )
    *
    *   The outline associated with the file.
@@ -841,7 +854,7 @@ abstract class IntegrationTestMixin {
   StreamController<AnalysisOutlineParams> _onAnalysisOutline;
 
   /**
-   * Reports the overridding members in a file.
+   * Reports the overriding members in a file.
    *
    * This notification is not subscribed to by default. Clients can subscribe
    * by including the value "OVERRIDES" in the list of services passed in an
@@ -1432,7 +1445,7 @@ abstract class IntegrationTestMixin {
    *
    * If directives of the Dart file cannot be organized, for example because it
    * has scan or parse errors, or by other reasons, ORGANIZE_DIRECTIVES_ERROR
-   * will be generated. The message will provide datails about the reason.
+   * will be generated. The message will provide details about the reason.
    *
    * Parameters
    *
@@ -1614,6 +1627,23 @@ abstract class IntegrationTestMixin {
    * Stream controller for [onExecutionLaunchData].
    */
   StreamController<ExecutionLaunchDataParams> _onExecutionLaunchData;
+
+  /**
+   * Return server diagnostics.
+   *
+   * Returns
+   *
+   * contexts ( List<ContextData> )
+   *
+   *   The list of analysis contexts.
+   */
+  Future<ExperimentalGetDiagnosticsResult> sendExperimentalGetDiagnostics() {
+    return server.send("experimental.getDiagnostics", null)
+        .then((result) {
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new ExperimentalGetDiagnosticsResult.fromJson(decoder, 'result', result);
+    });
+  }
 
   /**
    * Initialize the fields in InttestMixin, and ensure that notifications will

@@ -46,9 +46,6 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ Comment("CallToRuntimeStub");
   __ EnterStubFrame();
 
-  COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << R28)) != 0);
-  __ LoadIsolate(R28);
-
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
   __ StoreToOffset(FP, THR, Thread::top_exit_frame_info_offset());
@@ -56,7 +53,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 #if defined(DEBUG)
   { Label ok;
     // Check that we are always entering from Dart code.
-    __ LoadFromOffset(R8, R28, Isolate::vm_tag_offset());
+    __ LoadFromOffset(R8, THR, Thread::vm_tag_offset());
     __ CompareImmediate(R8, VMTag::kDartTagId);
     __ b(&ok, EQ);
     __ Stop("Not coming from Dart code.");
@@ -64,8 +61,8 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   }
 #endif
 
-  // Mark that the isolate is executing VM code.
-  __ StoreToOffset(R5, R28, Isolate::vm_tag_offset());
+  // Mark that the thread is executing VM code.
+  __ StoreToOffset(R5, THR, Thread::vm_tag_offset());
 
   // Reserve space for arguments and align frame before entering C++ world.
   // NativeArguments are passed in registers.
@@ -115,9 +112,9 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ mov(CSP, R26);
 
   // Retval is next to 1st argument.
-  // Mark that the isolate is executing Dart code.
+  // Mark that the thread is executing Dart code.
   __ LoadImmediate(R2, VMTag::kDartTagId);
-  __ StoreToOffset(R2, R28, Isolate::vm_tag_offset());
+  __ StoreToOffset(R2, THR, Thread::vm_tag_offset());
 
   // Reset exit frame information in Isolate structure.
   __ StoreToOffset(ZR, THR, Thread::top_exit_frame_info_offset());
@@ -153,9 +150,6 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   __ EnterStubFrame();
 
-  COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << R28)) != 0);
-  __ LoadIsolate(R28);
-
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
   __ StoreToOffset(FP, THR, Thread::top_exit_frame_info_offset());
@@ -163,7 +157,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 #if defined(DEBUG)
   { Label ok;
     // Check that we are always entering from Dart code.
-    __ LoadFromOffset(R6, R28, Isolate::vm_tag_offset());
+    __ LoadFromOffset(R6, THR, Thread::vm_tag_offset());
     __ CompareImmediate(R6, VMTag::kDartTagId);
     __ b(&ok, EQ);
     __ Stop("Not coming from Dart code.");
@@ -171,8 +165,8 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   }
 #endif
 
-  // Mark that the isolate is executing Native code.
-  __ StoreToOffset(R5, R28, Isolate::vm_tag_offset());
+  // Mark that the thread is executing native code.
+  __ StoreToOffset(R5, THR, Thread::vm_tag_offset());
 
   // Reserve space for the native arguments structure passed on the stack (the
   // outgoing pointer parameter to the native arguments structure is passed in
@@ -223,9 +217,9 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ mov(SP, CSP);
   __ mov(CSP, R26);
 
-  // Mark that the isolate is executing Dart code.
+  // Mark that the thread is executing Dart code.
   __ LoadImmediate(R2, VMTag::kDartTagId);
-  __ StoreToOffset(R2, R28, Isolate::vm_tag_offset());
+  __ StoreToOffset(R2, THR, Thread::vm_tag_offset());
 
   // Reset exit frame information in Isolate structure.
   __ StoreToOffset(ZR, THR, Thread::top_exit_frame_info_offset());
@@ -249,9 +243,6 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   __ EnterStubFrame();
 
-  COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << R28)) != 0);
-  __ LoadIsolate(R28);
-
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
   __ StoreToOffset(FP, THR, Thread::top_exit_frame_info_offset());
@@ -259,7 +250,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 #if defined(DEBUG)
   { Label ok;
     // Check that we are always entering from Dart code.
-    __ LoadFromOffset(R6, R28, Isolate::vm_tag_offset());
+    __ LoadFromOffset(R6, THR, Thread::vm_tag_offset());
     __ CompareImmediate(R6, VMTag::kDartTagId);
     __ b(&ok, EQ);
     __ Stop("Not coming from Dart code.");
@@ -267,8 +258,8 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   }
 #endif
 
-  // Mark that the isolate is executing Native code.
-  __ StoreToOffset(R5, R28, Isolate::vm_tag_offset());
+  // Mark that the thread is executing native code.
+  __ StoreToOffset(R5, THR, Thread::vm_tag_offset());
 
   // Reserve space for the native arguments structure passed on the stack (the
   // outgoing pointer parameter to the native arguments structure is passed in
@@ -316,9 +307,9 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   __ mov(SP, CSP);
   __ mov(CSP, R26);
 
-  // Mark that the isolate is executing Dart code.
+  // Mark that the thread is executing Dart code.
   __ LoadImmediate(R2, VMTag::kDartTagId);
-  __ StoreToOffset(R2, R28, Isolate::vm_tag_offset());
+  __ StoreToOffset(R2, THR, Thread::vm_tag_offset());
 
   // Reset exit frame information in Isolate structure.
   __ StoreToOffset(ZR, THR, Thread::top_exit_frame_info_offset());
@@ -576,9 +567,9 @@ static void GenerateDispatcherCode(Assembler* assembler,
   __ add(TMP, FP, Operand(R2, LSL, 2));  // R2 is Smi.
   __ LoadFromOffset(R6, TMP, kParamEndSlotFromFp * kWordSize);
   __ PushObject(Object::null_object());
-  __ Push(R6);
-  __ Push(R5);
-  __ Push(R4);
+  __ Push(R6);  // Receiver.
+  __ Push(R5);  // ICData/MegamorphicCache.
+  __ Push(R4);  // Arguments descriptor.
   // R2: Smi-tagged arguments array length.
   PushArgumentsArray(assembler);
   const intptr_t kNumArgs = 4;
@@ -821,16 +812,14 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   if (THR != R3) {
     __ mov(THR, R3);
   }
-  // Load Isolate pointer into temporary register R5.
-  __ LoadIsolate(R5);
 
   // Save the current VMTag on the stack.
-  __ LoadFromOffset(R4, R5, Isolate::vm_tag_offset());
+  __ LoadFromOffset(R4, THR, Thread::vm_tag_offset());
   __ Push(R4);
 
-  // Mark that the isolate is executing Dart code.
+  // Mark that the thread is executing Dart code.
   __ LoadImmediate(R6, VMTag::kDartTagId);
-  __ StoreToOffset(R6, R5, Isolate::vm_tag_offset());
+  __ StoreToOffset(R6, THR, Thread::vm_tag_offset());
 
   // Save top resource and top exit frame info. Use R6 as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
@@ -840,7 +829,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ LoadFromOffset(R6, THR, Thread::top_exit_frame_info_offset());
   __ StoreToOffset(ZR, THR, Thread::top_exit_frame_info_offset());
   // kExitLinkSlotFromEntryFp must be kept in sync with the code below.
-  ASSERT(kExitLinkSlotFromEntryFp == -22);
+  ASSERT(kExitLinkSlotFromEntryFp == -21);
   __ Push(R6);
 
   // Load arguments descriptor array into R4, which is passed to Dart code.
@@ -883,8 +872,6 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Get rid of arguments pushed on the stack.
   __ AddImmediate(SP, FP, kExitLinkSlotFromEntryFp * kWordSize);
 
-  __ LoadIsolate(R28);
-
   // Restore the saved top exit frame info and top resource back into the
   // Isolate structure. Uses R6 as a temporary register for this.
   __ Pop(R6);
@@ -894,7 +881,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Restore the current VMTag from the stack.
   __ Pop(R4);
-  __ StoreToOffset(R4, R28, Isolate::vm_tag_offset());
+  __ StoreToOffset(R4, THR, Thread::vm_tag_offset());
 
   // Restore the bottom 64-bits of callee-saved V registers.
   for (int i = kAbiLastPreservedFpuReg; i >= kAbiFirstPreservedFpuReg; i--) {
@@ -1973,10 +1960,9 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   __ mov(R0, R3);  // Exception object.
   __ mov(R1, R4);  // StackTrace object.
   __ mov(THR, R5);
-  __ LoadIsolate(R5);
   // Set the tag.
   __ LoadImmediate(R2, VMTag::kDartTagId);
-  __ StoreToOffset(R2, R5, Isolate::vm_tag_offset());
+  __ StoreToOffset(R2, THR, Thread::vm_tag_offset());
   // Clear top exit frame.
   __ StoreToOffset(ZR, THR, Thread::top_exit_frame_info_offset());
   __ ret();  // Jump to the exception handler code.
@@ -2112,18 +2098,18 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
 }
 
 
-void StubCode::EmitMegamorphicLookup(
-    Assembler* assembler, Register receiver, Register cache, Register target) {
-  ASSERT((cache != R0) && (cache != R2));
-  __ LoadTaggedClassIdMayBeSmi(R0, receiver);
+void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
+  __ LoadTaggedClassIdMayBeSmi(R0, R0);
   // R0: class ID of the receiver (smi).
-  __ LoadFieldFromOffset(R2, cache, MegamorphicCache::buckets_offset());
-  __ LoadFieldFromOffset(R1, cache, MegamorphicCache::mask_offset());
+  __ ldr(R4, FieldAddress(R5, MegamorphicCache::arguments_descriptor_offset()));
+  __ ldr(R2, FieldAddress(R5, MegamorphicCache::buckets_offset()));
+  __ ldr(R1, FieldAddress(R5, MegamorphicCache::mask_offset()));
   // R2: cache buckets array.
   // R1: mask.
   __ mov(R3, R0);
+  // R3: probe.
 
-  Label loop, update, call_target_function;
+  Label loop, update, load_target_function;
   __ b(&loop);
 
   __ Bind(&update);
@@ -2133,33 +2119,77 @@ void StubCode::EmitMegamorphicLookup(
   const intptr_t base = Array::data_offset();
   // R3 is smi tagged, but table entries are 16 bytes, so LSL 3.
   __ add(TMP, R2, Operand(R3, LSL, 3));
-  __ LoadFieldFromOffset(R4, TMP, base);
+  __ ldr(R6, FieldAddress(TMP, base));
 
   ASSERT(kIllegalCid == 0);
-  __ tst(R4, Operand(R4));
-  __ b(&call_target_function, EQ);
-  __ CompareRegisters(R4, R0);
+  __ tst(R6, Operand(R6));
+  __ b(&load_target_function, EQ);
+  __ CompareRegisters(R6, R0);
   __ b(&update, NE);
 
-  __ Bind(&call_target_function);
+  __ Bind(&load_target_function);
   // Call the target found in the cache.  For a class id match, this is a
   // proper target for the given name and arguments descriptor.  If the
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
   __ add(TMP, R2, Operand(R3, LSL, 3));
-  __ LoadFieldFromOffset(R0, TMP, base + kWordSize);
-  __ LoadFieldFromOffset(CODE_REG, R0, Function::code_offset());
-  __ LoadFieldFromOffset(R1, R0, Function::entry_point_offset());
+  __ ldr(R0, FieldAddress(TMP, base + kWordSize));
+  __ ldr(R1, FieldAddress(R0, Function::entry_point_offset()));
+  __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
 }
 
 
 // Called from megamorphic calls.
-//  R0: receiver.
-//  R1: lookup cache.
+//  R0: receiver
+//  R5: MegamorphicCache (preserved)
 // Result:
-//  R1: entry point.
+//  R1: target entry point
+//  CODE_REG: target Code
+//  R4: arguments descriptor
 void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
-  EmitMegamorphicLookup(assembler, R0, R1, R1);
+  EmitMegamorphicLookup(assembler);
+  __ ret();
+}
+
+
+// Called from switchable IC calls.
+//  R0: receiver
+//  R5: ICData (preserved)
+// Result:
+//  R1: target entry point
+//  CODE_REG: target Code object
+//  R4: arguments descriptor
+void StubCode::GenerateICLookupStub(Assembler* assembler) {
+  Label loop, found, miss;
+  __ ldr(R4, FieldAddress(R5, ICData::arguments_descriptor_offset()));
+  __ ldr(R8, FieldAddress(R5, ICData::ic_data_offset()));
+  __ AddImmediate(R8, R8, Array::data_offset() - kHeapObjectTag);
+  // R8: first IC entry
+  __ LoadTaggedClassIdMayBeSmi(R1, R0);
+  // R1: receiver cid as Smi
+
+  __ Bind(&loop);
+  __ ldr(R2, Address(R8, 0));
+  __ cmp(R1, Operand(R2));
+  __ b(&found, EQ);
+  __ CompareImmediate(R2, Smi::RawValue(kIllegalCid));
+  __ b(&miss, EQ);
+
+  const intptr_t entry_length = ICData::TestEntryLengthFor(1) * kWordSize;
+  __ AddImmediate(R8, R8, entry_length);  // Next entry.
+  __ b(&loop);
+
+  __ Bind(&found);
+  const intptr_t target_offset = ICData::TargetIndexFor(1) * kWordSize;
+  __ ldr(R0, Address(R8, target_offset));
+  __ ldr(R1, FieldAddress(R0, Function::entry_point_offset()));
+  __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
+  __ ret();
+
+  __ Bind(&miss);
+  __ LoadIsolate(R2);
+  __ ldr(CODE_REG, Address(R2, Isolate::ic_miss_code_offset()));
+  __ ldr(R1, FieldAddress(CODE_REG, Code::entry_point_offset()));
   __ ret();
 }
 

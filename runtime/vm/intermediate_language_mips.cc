@@ -279,7 +279,7 @@ void ClosureCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->RecordSafepoint(locs());
   // Marks either the continuation point in unoptimized code or the
   // deoptimization point in optimized code, after call.
-  const intptr_t deopt_id_after = Isolate::ToDeoptAfter(deopt_id());
+  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id());
   if (compiler->is_optimizing()) {
     compiler->AddDeoptIndexAtCall(deopt_id_after, token_pos());
   }
@@ -975,6 +975,7 @@ LocationSummary* NativeCallInstr::MakeLocationSummary(Zone* zone,
 
 
 void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  SetupNative();
   __ Comment("NativeCallInstr");
   Register result = locs()->out(0).reg();
 
@@ -993,7 +994,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   uword entry;
   const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
   const bool is_leaf_call =
-    (argc_tag & NativeArguments::AutoSetupScopeMask()) == 0;
+      (argc_tag & NativeArguments::AutoSetupScopeMask()) == 0;
   const StubEntry* stub_entry;
   if (link_lazily()) {
     stub_entry = StubCode::CallBootstrapCFunction_entry();
@@ -2300,7 +2301,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (IsUnboxedLoad() && compiler->is_optimizing()) {
     DRegister result = locs()->out(0).fpu_reg();
     Register temp = locs()->temp(0).reg();
-    __ lw(temp, FieldAddress(instance_reg, offset_in_bytes()));
+    __ LoadFieldFromOffset(temp, instance_reg, offset_in_bytes());
     intptr_t cid = field()->UnboxedFieldCid();
     switch (cid) {
       case kDoubleCid:
@@ -4118,25 +4119,19 @@ void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* UnaryDoubleOpInstr::MakeLocationSummary(Zone* zone,
                                                          bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 1;
+  const intptr_t kNumTemps = 0;
   LocationSummary* summary = new(zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresFpuRegister());
   summary->set_out(0, Location::RequiresFpuRegister());
-  summary->set_temp(0, Location::RequiresFpuRegister());
   return summary;
 }
 
 
 void UnaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // TODO(zra): Implement vneg.
-  const Double& minus_one = Double::ZoneHandle(Double::NewCanonical(-1));
-  __ LoadObject(TMP, minus_one);
   FpuRegister result = locs()->out(0).fpu_reg();
   FpuRegister value = locs()->in(0).fpu_reg();
-  FpuRegister temp_fp = locs()->temp(0).fpu_reg();
-  __ LoadDFromOffset(temp_fp, TMP, Double::value_offset() - kHeapObjectTag);
-  __ muld(result, value, temp_fp);
+  __ negd(result, value);
 }
 
 
@@ -4931,12 +4926,19 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           __ or_(out_lo, out_lo, TMP);
           __ sra(out_hi, left_hi, shift);
         } else {
-          __ sra(out_lo, left_hi, shift - 32);
+          if (shift == 32) {
+            __ mov(out_lo, left_hi);
+          } else if (shift < 64) {
+            __ sra(out_lo, left_hi, shift - 32);
+          } else {
+            __ sra(out_lo, left_hi, 31);
+          }
           __ sra(out_hi, left_hi, 31);
         }
         break;
       }
       case Token::kSHL: {
+        ASSERT(shift < 64);
         if (shift < 32) {
           __ srl(out_hi, left_lo, 32 - shift);
           __ sll(TMP, left_hi, shift);

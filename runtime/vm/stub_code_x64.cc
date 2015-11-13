@@ -46,10 +46,6 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   __ EnterStubFrame();
 
-  COMPILE_ASSERT(
-      (CallingConventions::kCalleeSaveCpuRegisters & (1 << R12)) != 0);
-  __ LoadIsolate(R12);
-
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
   __ movq(Address(THR, Thread::top_exit_frame_info_offset()), RBP);
@@ -58,15 +54,15 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   { Label ok;
     // Check that we are always entering from Dart code.
     __ movq(RAX, Immediate(VMTag::kDartTagId));
-    __ cmpq(RAX, Address(R12, Isolate::vm_tag_offset()));
+    __ cmpq(RAX, Assembler::VMTagAddress());
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
   }
 #endif
 
-  // Mark that the isolate is executing VM code.
-  __ movq(Address(R12, Isolate::vm_tag_offset()), RBX);
+  // Mark that the thread is executing VM code.
+  __ movq(Assembler::VMTagAddress(), RBX);
 
   // Reserve space for arguments and align frame before entering C++ world.
   __ subq(RSP, Immediate(sizeof(NativeArguments)));
@@ -90,9 +86,8 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 #endif
   __ CallCFunction(RBX);
 
-  // Mark that the isolate is executing Dart code.
-  __ movq(Address(R12, Isolate::vm_tag_offset()),
-          Immediate(VMTag::kDartTagId));
+  // Mark that the thread is executing Dart code.
+  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
@@ -144,10 +139,6 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   __ EnterStubFrame();
 
-  COMPILE_ASSERT(
-      (CallingConventions::kCalleeSaveCpuRegisters & (1 << R12)) != 0);
-  __ LoadIsolate(R12);
-
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
   __ movq(Address(THR, Thread::top_exit_frame_info_offset()), RBP);
@@ -156,15 +147,15 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   { Label ok;
     // Check that we are always entering from Dart code.
     __ movq(R8, Immediate(VMTag::kDartTagId));
-    __ cmpq(R8, Address(R12, Isolate::vm_tag_offset()));
+    __ cmpq(R8, Assembler::VMTagAddress());
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
   }
 #endif
 
-  // Mark that the isolate is executing Native code.
-  __ movq(Address(R12, Isolate::vm_tag_offset()), RBX);
+  // Mark that the thread is executing native code.
+  __ movq(Assembler::VMTagAddress(), RBX);
 
   // Reserve space for the native arguments structure passed on the stack (the
   // outgoing pointer parameter to the native arguments structure is passed in
@@ -189,9 +180,8 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ movq(RAX, Address(THR, Thread::native_call_wrapper_entry_point_offset()));
   __ CallCFunction(RAX);
 
-  // Mark that the isolate is executing Dart code.
-  __ movq(Address(R12, Isolate::vm_tag_offset()),
-          Immediate(VMTag::kDartTagId));
+  // Mark that the thread is executing Dart code.
+  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
@@ -220,10 +210,6 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   __ EnterStubFrame();
 
-  COMPILE_ASSERT(
-      (CallingConventions::kCalleeSaveCpuRegisters & (1 << R12)) != 0);
-  __ LoadIsolate(R12);
-
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
   __ movq(Address(THR, Thread::top_exit_frame_info_offset()), RBP);
@@ -232,15 +218,15 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   { Label ok;
     // Check that we are always entering from Dart code.
     __ movq(R8, Immediate(VMTag::kDartTagId));
-    __ cmpq(R8, Address(R12, Isolate::vm_tag_offset()));
+    __ cmpq(R8, Assembler::VMTagAddress());
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
     __ Bind(&ok);
   }
 #endif
 
-  // Mark that the isolate is executing Native code.
-  __ movq(Address(R12, Isolate::vm_tag_offset()), RBX);
+  // Mark that the thread is executing native code.
+  __ movq(Assembler::VMTagAddress(), RBX);
 
   // Reserve space for the native arguments structure passed on the stack (the
   // outgoing pointer parameter to the native arguments structure is passed in
@@ -261,9 +247,8 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   __ movq(CallingConventions::kArg1Reg, RSP);
   __ CallCFunction(RBX);
 
-  // Mark that the isolate is executing Dart code.
-  __ movq(Address(R12, Isolate::vm_tag_offset()),
-          Immediate(VMTag::kDartTagId));
+  // Mark that the thread is executing Dart code.
+  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
 
   // Reset exit frame information in Isolate structure.
   __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
@@ -525,7 +510,7 @@ static void GenerateDispatcherCode(Assembler* assembler,
       RBP, RDI, TIMES_HALF_WORD_SIZE, kParamEndSlotFromFp * kWordSize));
   __ PushObject(Object::null_object());  // Setup space on stack for result.
   __ pushq(RAX);  // Receiver.
-  __ pushq(RBX);
+  __ pushq(RBX);  // ICData/MegamorphicCache.
   __ pushq(R10);  // Arguments descriptor array.
   __ movq(R10, RDI);
   // EDX: Smi-tagged arguments array length.
@@ -753,17 +738,13 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   if (THR != kThreadReg) {
     __ movq(THR, kThreadReg);
   }
-  // Load Isolate pointer into kIsolateReg.
-  const Register kIsolateReg = RBX;
-  __ LoadIsolate(kIsolateReg);
 
   // Save the current VMTag on the stack.
-  __ movq(RAX, Address(kIsolateReg, Isolate::vm_tag_offset()));
+  __ movq(RAX, Assembler::VMTagAddress());
   __ pushq(RAX);
 
-  // Mark that the isolate is executing Dart code.
-  __ movq(Address(kIsolateReg, Isolate::vm_tag_offset()),
-          Immediate(VMTag::kDartTagId));
+  // Mark that the thread is executing Dart code.
+  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
 
   // Save top resource and top exit frame info. Use RAX as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
@@ -833,12 +814,11 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Restore the saved top exit frame info and top resource back into the
   // Isolate structure.
-  __ LoadIsolate(kIsolateReg);
   __ popq(Address(THR, Thread::top_exit_frame_info_offset()));
   __ popq(Address(THR, Thread::top_resource_offset()));
 
   // Restore the current VMTag from the stack.
-  __ popq(Address(kIsolateReg, Isolate::vm_tag_offset()));
+  __ popq(Assembler::VMTagAddress());
 
   // Restore C++ ABI callee-saved registers.
   __ PopRegisters(CallingConventions::kCalleeSaveCpuRegisters,
@@ -1961,20 +1941,16 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   Register stacktrace_reg = RBX;
   __ movq(stacktrace_reg, Address(RSP, 5 * kWordSize));
   __ movq(THR, Address(RSP, 6 * kWordSize));
-  Register isolate_reg = RDI;
 #else
   Register stacktrace_reg = CallingConventions::kArg5Reg;
   __ movq(THR, CallingConventions::kArg6Reg);
-  Register isolate_reg = CallingConventions::kArg6Reg;
 #endif
-  __ LoadIsolate(isolate_reg);
   __ movq(RBP, CallingConventions::kArg3Reg);
   __ movq(RSP, CallingConventions::kArg2Reg);
   __ movq(kStackTraceObjectReg, stacktrace_reg);
   __ movq(kExceptionObjectReg, CallingConventions::kArg4Reg);
   // Set the tag.
-  __ movq(Address(isolate_reg, Isolate::vm_tag_offset()),
-          Immediate(VMTag::kDartTagId));
+  __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
   // Clear top exit frame.
   __ movq(Address(THR, Thread::top_exit_frame_info_offset()),
           Immediate(0));
@@ -2112,52 +2088,99 @@ void StubCode::GenerateOptimizedIdenticalWithNumberCheckStub(
 }
 
 
-void StubCode::EmitMegamorphicLookup(
-    Assembler* assembler, Register receiver, Register cache, Register target) {
-  ASSERT((cache != RAX) && (cache != RDI));
-  __ LoadTaggedClassIdMayBeSmi(RAX, receiver);
+void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
+  __ LoadTaggedClassIdMayBeSmi(RAX, RDI);
   // RAX: class ID of the receiver (smi).
-  __ movq(RDI, FieldAddress(cache, MegamorphicCache::buckets_offset()));
-  __ movq(RBX, FieldAddress(cache, MegamorphicCache::mask_offset()));
+  __ movq(R10,
+          FieldAddress(RBX, MegamorphicCache::arguments_descriptor_offset()));
+  __ movq(RDI, FieldAddress(RBX, MegamorphicCache::buckets_offset()));
+  __ movq(R9, FieldAddress(RBX, MegamorphicCache::mask_offset()));
   // RDI: cache buckets array.
   // RBX: mask.
   __ movq(RCX, RAX);
 
-  Label loop, update, call_target_function;
+  Label loop, update, load_target_function;
   __ jmp(&loop);
 
   __ Bind(&update);
   __ AddImmediate(RCX, Immediate(Smi::RawValue(1)));
   __ Bind(&loop);
-  __ andq(RCX, RBX);
+  __ andq(RCX, R9);
   const intptr_t base = Array::data_offset();
   // RCX is smi tagged, but table entries are two words, so TIMES_8.
   __ movq(RDX, FieldAddress(RDI, RCX, TIMES_8, base));
 
   ASSERT(kIllegalCid == 0);
   __ testq(RDX, RDX);
-  __ j(ZERO, &call_target_function, Assembler::kNearJump);
+  __ j(ZERO, &load_target_function, Assembler::kNearJump);
   __ cmpq(RDX, RAX);
   __ j(NOT_EQUAL, &update, Assembler::kNearJump);
 
-  __ Bind(&call_target_function);
+  __ Bind(&load_target_function);
   // Call the target found in the cache.  For a class id match, this is a
   // proper target for the given name and arguments descriptor.  If the
   // illegal class id was found, the target is a cache miss handler that can
   // be invoked as a normal Dart function.
   __ movq(RAX, FieldAddress(RDI, RCX, TIMES_8, base + kWordSize));
+  __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
   __ movq(CODE_REG, FieldAddress(RAX, Function::code_offset()));
-  __ movq(target, FieldAddress(RAX, Function::entry_point_offset()));
 }
 
 
 // Called from megamorphic calls.
-//  RDI: receiver.
-//  RBX: lookup cache.
+//  RDI: receiver
+//  RBX: MegamorphicCache (preserved)
 // Result:
-//  RCX: entry point.
+//  RCX: target entry point
+//  CODE_REG: target Code
+//  R10: arguments descriptor
 void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
-  EmitMegamorphicLookup(assembler, RDI, RBX, RCX);
+  EmitMegamorphicLookup(assembler);
+  __ ret();
+}
+
+
+// Called from switchable IC calls.
+//  RDI: receiver
+//  RBX: ICData (preserved)
+// Result:
+//  RCX: target entry point
+//  CODE_REG: target Code object
+//  R10: arguments descriptor
+void StubCode::GenerateICLookupStub(Assembler* assembler) {
+  Label loop, found, miss;
+
+  __ movq(R13, FieldAddress(RBX, ICData::ic_data_offset()));
+  __ movq(R10, FieldAddress(RBX, ICData::arguments_descriptor_offset()));
+  __ leaq(R13, FieldAddress(R13, Array::data_offset()));
+  // R13: first IC entry
+  __ LoadTaggedClassIdMayBeSmi(RAX, RDI);
+  // RAX: receiver cid as Smi
+
+  __ Bind(&loop);
+  __ movq(R9, Address(R13, 0));
+  __ cmpq(RAX, R9);
+  __ j(EQUAL, &found, Assembler::kNearJump);
+
+  ASSERT(Smi::RawValue(kIllegalCid) == 0);
+  __ testq(R9, R9);
+  __ j(ZERO, &miss, Assembler::kNearJump);
+
+  const intptr_t entry_length = ICData::TestEntryLengthFor(1) * kWordSize;
+  __ addq(R13, Immediate(entry_length));  // Next entry.
+  __ jmp(&loop);
+
+  __ Bind(&found);
+  const intptr_t target_offset = ICData::TargetIndexFor(1) * kWordSize;
+  __ movq(RAX, Address(R13, target_offset));
+  __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
+  __ movq(CODE_REG, FieldAddress(RAX, Function::code_offset()));
+  __ ret();
+
+  __ Bind(&miss);
+  __ LoadIsolate(RAX);
+  __ movq(CODE_REG, Address(RAX, Isolate::ic_miss_code_offset()));
+  __ movq(RCX, FieldAddress(CODE_REG, Code::entry_point_offset()));
   __ ret();
 }
 

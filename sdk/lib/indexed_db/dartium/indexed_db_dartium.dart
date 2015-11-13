@@ -108,6 +108,7 @@ class _KeyRangeFactoryProvider {
       KeyRange.bound_(lower, upper, lowerOpen, upperOpen);
 }
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final indexed_dbBlinkMap = {
   'IDBCursor': () => Cursor,
   'IDBCursorWithValue': () => CursorWithValue,
@@ -124,6 +125,7 @@ final indexed_dbBlinkMap = {
 };
 
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final indexed_dbBlinkFunctionMap = {
   'IDBCursor': () => Cursor.internalCreateCursor,
   'IDBCursorWithValue': () => CursorWithValue.internalCreateCursorWithValue,
@@ -145,7 +147,7 @@ final indexed_dbBlinkFunctionMap = {
 
 @DomName('IDBCursor')
 @Unstable()
-class Cursor extends NativeFieldWrapperClass2 {
+class Cursor extends DartHtmlDomObject {
   @DomName('IDBCursor.delete')
   Future delete() {
    try {
@@ -167,16 +169,16 @@ class Cursor extends NativeFieldWrapperClass2 {
     // To suppress missing implicit constructor warnings.
   factory Cursor._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Cursor internalCreateCursor() {
     return new Cursor._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Cursor._internalWrap() {
     return new Cursor.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Cursor.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -240,6 +242,7 @@ class CursorWithValue extends Cursor {
   factory CursorWithValue._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static CursorWithValue internalCreateCursorWithValue() {
     return new CursorWithValue._internalWrap();
   }
@@ -248,6 +251,7 @@ class CursorWithValue extends Cursor {
     return new CursorWithValue.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   CursorWithValue.internal_() : super.internal_();
 
 
@@ -335,6 +339,7 @@ class Database extends EventTarget {
   static const EventStreamProvider<VersionChangeEvent> versionChangeEvent = const EventStreamProvider<VersionChangeEvent>('versionchange');
 
 
+  @Deprecated("Internal Use Only")
   static Database internalCreateDatabase() {
     return new Database._internalWrap();
   }
@@ -343,6 +348,7 @@ class Database extends EventTarget {
     return new Database.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Database.internal_() : super.internal_();
 
 
@@ -352,7 +358,7 @@ class Database extends EventTarget {
   
   @DomName('IDBDatabase.objectStoreNames')
   @DocsEditable()
-  List<String> get objectStoreNames => _blink.BlinkIDBDatabase.instance.objectStoreNames_Getter_(unwrap_jso(this));
+  List<String> get objectStoreNames => wrap_jso(_blink.BlinkIDBDatabase.instance.objectStoreNames_Getter_(unwrap_jso(this)));
   
   @DomName('IDBDatabase.version')
   @DocsEditable()
@@ -449,7 +455,7 @@ class Database extends EventTarget {
 @SupportedBrowser(SupportedBrowser.IE, '10')
 @Experimental()
 @Unstable()
-class IdbFactory extends NativeFieldWrapperClass2 {
+class IdbFactory extends DartHtmlDomObject {
   /**
    * Checks to see if Indexed DB is supported on the current platform.
    */
@@ -528,16 +534,16 @@ class IdbFactory extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory IdbFactory._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static IdbFactory internalCreateIdbFactory() {
     return new IdbFactory._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory IdbFactory._internalWrap() {
     return new IdbFactory.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   IdbFactory.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -589,7 +595,7 @@ Future _completeRequest(Request request) {
 
 @DomName('IDBIndex')
 @Unstable()
-class Index extends NativeFieldWrapperClass2 {
+class Index extends DartHtmlDomObject {
   @DomName('IDBIndex.count')
   Future<int> count([key_OR_range]) {
    try {
@@ -681,16 +687,16 @@ class Index extends NativeFieldWrapperClass2 {
     // To suppress missing implicit constructor warnings.
   factory Index._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static Index internalCreateIndex() {
     return new Index._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory Index._internalWrap() {
     return new Index.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Index.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -750,7 +756,7 @@ class Index extends NativeFieldWrapperClass2 {
 
 @DomName('IDBKeyRange')
 @Unstable()
-class KeyRange extends NativeFieldWrapperClass2 {
+class KeyRange extends DartHtmlDomObject {
   @DomName('IDBKeyRange.only')
   factory KeyRange.only(/*Key*/ value) =>
       _KeyRangeFactoryProvider.createKeyRange_only(value);
@@ -772,16 +778,16 @@ class KeyRange extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory KeyRange._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static KeyRange internalCreateKeyRange() {
     return new KeyRange._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory KeyRange._internalWrap() {
     return new KeyRange.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   KeyRange.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -840,7 +846,7 @@ class KeyRange extends NativeFieldWrapperClass2 {
 
 @DomName('IDBObjectStore')
 @Unstable()
-class ObjectStore extends NativeFieldWrapperClass2 {
+class ObjectStore extends DartHtmlDomObject {
 
   @DomName('IDBObjectStore.add')
   Future add(value, [key]) {
@@ -971,16 +977,16 @@ class ObjectStore extends NativeFieldWrapperClass2 {
   // To suppress missing implicit constructor warnings.
   factory ObjectStore._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static ObjectStore internalCreateObjectStore() {
     return new ObjectStore._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory ObjectStore._internalWrap() {
     return new ObjectStore.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ObjectStore.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -992,7 +998,7 @@ class ObjectStore extends NativeFieldWrapperClass2 {
   
   @DomName('IDBObjectStore.indexNames')
   @DocsEditable()
-  List<String> get indexNames => _blink.BlinkIDBObjectStore.instance.indexNames_Getter_(unwrap_jso(this));
+  List<String> get indexNames => wrap_jso(_blink.BlinkIDBObjectStore.instance.indexNames_Getter_(unwrap_jso(this)));
   
   @DomName('IDBObjectStore.keyPath')
   @DocsEditable()
@@ -1137,6 +1143,7 @@ class OpenDBRequest extends Request {
   static const EventStreamProvider<VersionChangeEvent> upgradeNeededEvent = const EventStreamProvider<VersionChangeEvent>('upgradeneeded');
 
 
+  @Deprecated("Internal Use Only")
   static OpenDBRequest internalCreateOpenDBRequest() {
     return new OpenDBRequest._internalWrap();
   }
@@ -1145,6 +1152,7 @@ class OpenDBRequest extends Request {
     return new OpenDBRequest.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   OpenDBRequest.internal_() : super.internal_();
 
 
@@ -1194,6 +1202,7 @@ class Request extends EventTarget {
   static const EventStreamProvider<Event> successEvent = const EventStreamProvider<Event>('success');
 
 
+  @Deprecated("Internal Use Only")
   static Request internalCreateRequest() {
     return new Request._internalWrap();
   }
@@ -1202,6 +1211,7 @@ class Request extends EventTarget {
     return new Request.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Request.internal_() : super.internal_();
 
 
@@ -1307,6 +1317,7 @@ class Transaction extends EventTarget {
   static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
 
+  @Deprecated("Internal Use Only")
   static Transaction internalCreateTransaction() {
     return new Transaction._internalWrap();
   }
@@ -1315,6 +1326,7 @@ class Transaction extends EventTarget {
     return new Transaction.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   Transaction.internal_() : super.internal_();
 
 
@@ -1369,6 +1381,7 @@ class VersionChangeEvent extends Event {
   factory VersionChangeEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static VersionChangeEvent internalCreateVersionChangeEvent() {
     return new VersionChangeEvent._internalWrap();
   }
@@ -1377,6 +1390,7 @@ class VersionChangeEvent extends Event {
     return new VersionChangeEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   VersionChangeEvent.internal_() : super.internal_();
 
 

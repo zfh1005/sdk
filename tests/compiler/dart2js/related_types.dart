@@ -8,6 +8,7 @@ import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/core_types.dart';
 import 'package:compiler/src/dart_types.dart';
+import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/messages.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/filenames.dart';
@@ -55,13 +56,13 @@ void checkLibraryElement(Compiler compiler, LibraryElement library) {
 
 /// Check [member] for unrelated types.
 void checkMemberElement(Compiler compiler, MemberElement member) {
-  if (!compiler.enqueuer.resolution.hasBeenResolved(member)) return;
+  if (!compiler.resolution.hasBeenResolved(member)) return;
 
   ResolvedAst resolvedAst = member.resolvedAst;
   RelatedTypesChecker relatedTypesChecker =
       new RelatedTypesChecker(compiler, resolvedAst);
   if (resolvedAst.node != null) {
-    compiler.withCurrentElement(member.implementation, () {
+    compiler.reporter.withCurrentElement(member.implementation, () {
       relatedTypesChecker.apply(resolvedAst.node);
     });
   }
@@ -77,7 +78,11 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
 
   ClassWorld get world => compiler.world;
 
+  CoreClasses get coreClasses => compiler.coreClasses;
+
   CoreTypes get coreTypes => compiler.coreTypes;
+
+  DiagnosticReporter get reporter => compiler.reporter;
 
   InterfaceType get thisType => resolvedAst.element.enclosingClass.thisType;
 
@@ -97,10 +102,10 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
   /// a hint otherwise.
   void checkRelated(Node node, DartType left, DartType right) {
     if (hasEmptyIntersection(left, right)) {
-      compiler.reportHint(compiler.createMessage(
+      reporter.reportHintMessage(
           node,
           MessageKind.NO_COMMON_SUBTYPES,
-          {'left': left, 'right': right}));
+          {'left': left, 'right': right});
     }
   }
 
@@ -150,7 +155,7 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
   /// Return the interface type implemented by [type] or `null` if no interface
   /// type is implied by [type].
   InterfaceType findInterfaceType(DartType type) {
-    return Types.computeInterfaceType(compiler, type);
+    return Types.computeInterfaceType(compiler.resolution, type);
   }
 
   /// Returns the supertype of [receiver] that implements [cls], if any.
@@ -164,7 +169,7 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
 
   /// Returns the supertype of [receiver] that implements `Iterable`, if any.
   InterfaceType findIterableType(DartType receiver) {
-    return findClassType(receiver, compiler.iterableClass);
+    return findClassType(receiver, coreClasses.iterableClass);
   }
 
   /// Returns the element type of the supertype of [receiver] that implements
@@ -176,7 +181,7 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
 
   /// Returns the supertype of [receiver] that implements `Map`, if any.
   InterfaceType findMapType(DartType receiver) {
-    return findClassType(receiver, compiler.mapClass);
+    return findClassType(receiver, coreClasses.mapClass);
   }
 
   /// Returns the key type of the supertype of [receiver] that implements
@@ -195,7 +200,7 @@ class RelatedTypesChecker extends TraversalVisitor<DartType, dynamic> {
 
   /// Returns the supertype of [receiver] that implements `List`, if any.
   InterfaceType findListType(DartType receiver) {
-    return findClassType(receiver, compiler.listClass);
+    return findClassType(receiver, coreClasses.listClass);
   }
 
   /// Returns the element type of the supertype of [receiver] that implements

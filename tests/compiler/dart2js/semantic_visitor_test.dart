@@ -313,14 +313,14 @@ Future test(Set<VisitKind> unvisitedKinds,
     }
     var expectedVisits = test.expectedVisits;
     if (expectedVisits == null) {
-      Expect.isTrue(element.isErroneous,
+      Expect.isTrue(element.isMalformed,
           "Element '$method' expected to be have parse errors in:\n"
           "${library.compilationUnit.script.text}");
       return;
     } else if (expectedVisits is! List) {
       expectedVisits = [expectedVisits];
     }
-    Expect.isFalse(element.isErroneous,
+    Expect.isFalse(element.isMalformed,
         "Element '$method' is not expected to be have parse errors in:\n"
         "${library.compilationUnit.script.text}");
 
@@ -330,7 +330,7 @@ Future test(Set<VisitKind> unvisitedKinds,
       ResolvedAst resolvedAst = astElement.resolvedAst;
       SemanticTestVisitor visitor = createVisitor(resolvedAst.elements);
       try {
-        compiler.withCurrentElement(resolvedAst.element, () {
+        compiler.reporter.withCurrentElement(resolvedAst.element, () {
           //print(resolvedAst.node.toDebugString());
           resolvedAst.node.accept(visitor);
         });

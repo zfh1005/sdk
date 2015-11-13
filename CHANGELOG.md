@@ -1,27 +1,137 @@
+## 1.14.0
+
+### Core library changes
+* `dart:math`
+  * `Random` added a `secure` constructor returning a cryptographically secure
+    random generator which reads from the entropy source provided by the
+    embedder for every generated random value.
+
+* `dart:core`
+  * Added `Uri.data` getter for `data:` URIs, and `UriData` class for the
+    return type.
+
+* `dart:convert`
+  * `Base64Decoder.convert` now takes optional `start` and `end` parameters.
+
 ## 1.13.0
+
+### Core library changes
+* `dart:async`
+  * `StreamController` added getters for `onListen`, `onPause`, and `onResume`
+    with the corresponding new `typedef void ControllerCallback()`.
+  * `StreamController` added a getter for `onCancel` with the corresponding
+    new `typedef ControllerCancelCallback()`;
+  * `StreamTransformer` instances created with `fromHandlers` with no
+    `handleError` callback now forward stack traces along with errors to the
+    resulting streams.
+
+* `dart:convert`
+  * Added support for Base-64 encoding and decoding.
+    * Added new classes `Base64Codec`, `Base64Encoder`, and `Base64Decoder`.
+    * Added new top-level `const Base64Codec BASE64`.
 
 * `dart:core`
   * `Uri` added `removeFragment` method.
   * `String.allMatches` (implementing `Pattern.allMatches`) is now lazy,
     as all `allMatches` implementations are intended to be.
+  * `Resource` is deprecated, and will be removed in a future release.
+
+* `dart:developer`
+  * Added `Timeline` class for interacting with Observatory's timeline feature.
+  * Added `ServiceExtensionHandler`, `ServiceExtensionResponse`, and `registerExtension` which enable developers to provide their own VM service protocol extensions.
+
+* `dart:html`, `dart:indexed_db`, `dart:svg`, `dart:web_audio`, `dart:web_gl`, `dart:web_sql`
+  * The return type of some APIs changed from `double` to `num`. Dartium is now
+    using
+    JS interop for most operations. JS does not distinguish between numeric
+    types, and will return a number as an int if it fits in an int. This will
+    mostly cause an error if you assign to something typed `double` in
+    checked mode. You may
+    need to insert a `toDouble()` call or accept `num`. Examples of APIs that
+    are affected include `Element.getBoundingClientRect` and
+    `TextMetrics.width`.
 
 * `dart:io`
+  * **Breaking:** Secure networking has changed, replacing the NSS library
+    with the BoringSSL library. `SecureSocket`, `SecureServerSocket`,
+    `RawSecureSocket`,`RawSecureServerSocket`, `HttpClient`, and `HttpServer`
+    now all use a `SecurityContext` object which contains the certificates
+    and keys used for secure TLS (SSL) networking.
+
+    This is a breaking change for server applications and for some client
+    applications. Certificates and keys are loaded into the `SecurityContext`
+    from PEM files, instead of from an NSS certificate database. Information
+    about how to change applications that use secure networking is at
+    https://www.dartlang.org/server/tls-ssl.html
+
   * `HttpClient` no longer sends URI fragments in the request. This is not
     allowed by the HTTP protocol.
     The `HttpServer` still gracefully receives fragments, but discards them
     before delivering the request.
+  * To allow connections to be accepted on the same port across different
+    isolates, set the `shared` argument to `true` when creating server socket
+    and `HttpServer` instances.
+    * The deprecated `ServerSocketReference` and `RawServerSocketReference`
+      classes have been removed.
+    * The corresponding `reference` properties on `ServerSocket` and
+      `RawServerSocket` have been removed.
 
-* `dart:async`
-  * `StreamTransformer`s created with `fromHandlers` with no `handleError`
-    callback now forward stack traces along with errors to the resulting
-    streams.
+* `dart:isolate`
+  * `spawnUri` added an `environment` named argument.
 
 ### Tool changes
 
-* `docgen` and 'dartdocgen' no longer ship in the sdk. The `docgen` sources have
+* `dart2js` and Dartium now support improved Javascript Interoperability via the
+  [js package](https://pub.dartlang.org/packages/js).
+
+* `docgen` and `dartdocgen` no longer ship in the SDK. The `docgen` sources have
    been removed from the repository.
 
-## 1.12.0
+* This is the last release to ship the VM's "legacy debug protocol".
+  We intend to remove the legacy debug protocol in Dart VM 1.14.
+
+* The VM's Service Protocol has been updated to version 3.0 to take care
+  of a number of issues uncovered by the first few non-observatory
+  clients.  This is a potentially breaking change for clients.
+
+* Dartium has been substantially changed. Rather than using C++ calls into
+  Chromium internals for DOM operations it now uses JS interop.
+  The DOM objects in `dart:html` and related libraries now wrap
+  a JavaScript object and delegate operations to it. This should be
+  mostly transparent to users. However, performance and memory characteristics
+  may be different from previous versions. There may be some changes in which
+  DOM objects are wrapped as Dart objects. For example, if you get a reference
+  to a Window object, even through JS interop, you will always see it as a
+  Dart Window, even when used cross-frame. We expect the change to using
+  JS interop will make it much simpler to update to new Chrome versions.
+
+## 1.12.2 - 2015-10-21
+
+### Core library changes
+
+* `dart:io`
+
+  * A memory leak in creation of Process objects is fixed.
+
+## 1.12.1 - 2015-09-08
+
+### Tool changes
+
+* Pub
+
+  * Pub will now respect `.gitignore` when validating a package before it's
+    published. For example, if a `LICENSE` file exists but is ignored, that is
+    now an error.
+
+  * If the package is in a subdirectory of a Git repository and the entire
+    subdirectory is ignored with `.gitignore`, pub will act as though nothing
+    was ignored instead of uploading an empty package.
+
+  * The heuristics for determining when `pub get` needs to be run before various
+    commands have been improved. There should no longer be false positives when
+    non-dependency sections of the pubspec have been modified.
+
+## 1.12.0 - 2015-08-31
 
 ### Language changes
 
@@ -194,14 +304,14 @@
 * Some RPCs that didn't include a `"jsonrpc"` property in their responses now
   include one.
 
-## 1.11.2
+## 1.11.2 - 2015-08-03
 
 ### Core library changes
 
 * Fix a bug where `WebSocket.close()` would crash if called after
   `WebSocket.cancel()`.
 
-## 1.11.1
+## 1.11.1 - 2015-07-02
 
 ### Tool changes
 

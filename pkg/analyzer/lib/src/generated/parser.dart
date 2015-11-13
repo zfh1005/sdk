@@ -2123,6 +2123,12 @@ class Parser {
   bool parseGenericMethods = false;
 
   /**
+   * A flag indicating whether to parse generic method comments, of the form
+   * `/*=T*/` and `/*<T>*/`.
+   */
+  bool parseGenericMethodComments = false;
+
+  /**
    * Initialize a newly created parser to parse the content of the given
    * [_source] and to report any errors that are found to the given
    * [_errorListener].
@@ -2514,7 +2520,9 @@ class Parser {
           parseSimpleIdentifier(),
           parseFormalParameterList());
     } else if (_tokenMatches(_peek(), TokenType.OPEN_PAREN)) {
+      TypeName returnType = _parseOptionalTypeNameComment();
       SimpleIdentifier methodName = parseSimpleIdentifier();
+      TypeParameterList typeParameters = _parseGenericCommentTypeParameters();
       FormalParameterList parameters = parseFormalParameterList();
       if (_matches(TokenType.COLON) ||
           modifiers.factoryKeyword != null ||
@@ -2535,9 +2543,9 @@ class Parser {
           commentAndMetadata,
           modifiers.externalKeyword,
           modifiers.staticKeyword,
-          null,
+          returnType,
           methodName,
-          null,
+          typeParameters,
           parameters);
     } else if (_peek()
         .matchesAny([TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
@@ -2617,6 +2625,7 @@ class Parser {
       }
     } else if (_tokenMatches(_peek(), TokenType.OPEN_PAREN)) {
       SimpleIdentifier methodName = parseSimpleIdentifier();
+      TypeParameterList typeParameters = _parseGenericCommentTypeParameters();
       FormalParameterList parameters = parseFormalParameterList();
       if (methodName.name == className) {
         _reportErrorForNode(ParserErrorCode.CONSTRUCTOR_WITH_RETURN_TYPE, type);
@@ -2638,7 +2647,7 @@ class Parser {
           modifiers.staticKeyword,
           type,
           methodName,
-          null,
+          typeParameters,
           parameters);
     } else if (parseGenericMethods && _tokenMatches(_peek(), TokenType.LT)) {
       return _parseMethodDeclarationAfterReturnType(commentAndMetadata,
@@ -3135,10 +3144,7 @@ class Parser {
    *         typeParameters? formalParameterList functionExpressionBody
    */
   FunctionExpression parseFunctionExpression() {
-    TypeParameterList typeParameters = null;
-    if (parseGenericMethods && _matches(TokenType.LT)) {
-      typeParameters = parseTypeParameterList();
-    }
+    TypeParameterList typeParameters = _parseGenericMethodTypeParameters();
     FormalParameterList parameters = parseFormalParameterList();
     _validateFormalParameterList(parameters);
     FunctionBody body =
@@ -3265,10 +3271,7 @@ class Parser {
       period = _expect(TokenType.PERIOD);
     }
     SimpleIdentifier identifier = parseSimpleIdentifier();
-    TypeParameterList typeParameters = null;
-    if (parseGenericMethods && _matches(TokenType.LT)) {
-      typeParameters = parseTypeParameterList();
-    }
+    TypeParameterList typeParameters = _parseGenericMethodTypeParameters();
     if (_matches(TokenType.OPEN_PAREN)) {
       FormalParameterList parameters = parseFormalParameterList();
       if (thisKeyword == null) {
@@ -3476,21 +3479,13 @@ class Parser {
    *         qualified typeArguments?
    */
   TypeName parseTypeName() {
-    Identifier typeName;
-    if (_matchesKeyword(Keyword.VAR)) {
-      _reportErrorForCurrentToken(ParserErrorCode.VAR_AS_TYPE_NAME);
-      typeName = new SimpleIdentifier(getAndAdvance());
-    } else if (_matchesIdentifier()) {
-      typeName = parsePrefixedIdentifier();
-    } else {
-      typeName = _createSyntheticIdentifier();
-      _reportErrorForCurrentToken(ParserErrorCode.EXPECTED_TYPE_NAME);
-    }
-    TypeArgumentList typeArguments = null;
-    if (_matches(TokenType.LT)) {
-      typeArguments = parseTypeArgumentList();
-    }
-    return new TypeName(typeName, typeArguments);
+    TypeName realType = _parseTypeName();
+    // If this is followed by a generic method type comment, allow the comment
+    // type to replace the real type name.
+    // TODO(jmesserly): this feels like a big hammer. Can we restrict it to
+    // only work inside generic methods?
+    TypeName typeComment = _parseOptionalTypeNameComment();
+    return typeComment ?? realType;
   }
 
   /**
@@ -3909,6 +3904,46 @@ class Parser {
     return null;
   }
 
+  bool _injectGenericComment(TokenType type, int prefixLen) {
+    if (parseGenericMethodComments) {
+      CommentToken t = _currentToken.precedingComments;
+      for (; t != null; t = t.next) {
+        if (t.type == type) {
+          String comment = t.lexeme.substring(prefixLen, t.lexeme.length - 2);
+          Token list = _scanGenericMethodComment(comment, t.offset + prefixLen);
+          if (list != null) {
+            // Insert the tokens into the stream.
+            _injectTokenList(list);
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Matches a generic comment type substitution and injects it into the token
+   * stream. Returns true if a match was injected, otherwise false.
+   *
+   * These comments are of the form `/*=T*/`, in other words, a [TypeName]
+   * inside a slash-star comment, preceded by equals sign.
+   */
+  bool _injectGenericCommentTypeAssign() {
+    return _injectGenericComment(TokenType.GENERIC_METHOD_TYPE_ASSIGN, 3);
+  }
+
+  /**
+   * Matches a generic comment type parameters and injects them into the token
+   * stream. Returns true if a match was injected, otherwise false.
+   *
+   * These comments are of the form `/*<K, V>*/`, in other words, a
+   * [TypeParameterList] or [TypeArgumentList] inside a slash-star comment.
+   */
+  bool _injectGenericCommentTypeList() {
+    return _injectGenericComment(TokenType.GENERIC_METHOD_TYPE_LIST, 2);
+  }
+
   /**
    * Inject the given [token] into the token stream immediately before the
    * current token.
@@ -3918,6 +3953,19 @@ class Parser {
     token.setNext(_currentToken);
     previous.setNext(token);
     return token;
+  }
+
+  void _injectTokenList(Token firstToken) {
+    // Scanner creates a cyclic EOF token.
+    Token lastToken = firstToken;
+    while (lastToken.next.type != TokenType.EOF) {
+      lastToken = lastToken.next;
+    }
+    // Inject these new tokens into the stream.
+    Token previous = _currentToken.previous;
+    lastToken.setNext(_currentToken);
+    previous.setNext(firstToken);
+    _currentToken = firstToken;
   }
 
   /**
@@ -4038,22 +4086,52 @@ class Parser {
         TokenType.INDEX
       ]);
     }
+    bool allowAdditionalTokens = true;
     // We know that we have an identifier, and need to see whether it might be
     // a type name.
+    if (_currentToken.type != TokenType.IDENTIFIER) {
+      allowAdditionalTokens = false;
+    }
     Token token = _skipTypeName(_currentToken);
     if (token == null) {
       // There was no type name, so this can't be a declaration.
       return false;
+    }
+    if (token.type != TokenType.IDENTIFIER) {
+      allowAdditionalTokens = false;
     }
     token = _skipSimpleIdentifier(token);
     if (token == null) {
       return false;
     }
     TokenType type = token.type;
-    return type == TokenType.EQ ||
+    // Usual cases in valid code:
+    //     String v = '';
+    //     String v, v2;
+    //     String v;
+    //     for (String item in items) {}
+    if (type == TokenType.EQ ||
         type == TokenType.COMMA ||
         type == TokenType.SEMICOLON ||
-        _tokenMatchesKeyword(token, Keyword.IN);
+        _tokenMatchesKeyword(token, Keyword.IN)) {
+      return true;
+    }
+    // It is OK to parse as a variable declaration in these cases:
+    //     String v }
+    //     String v if (true) print('OK');
+    //     String v { print(42); }
+    // ...but not in these cases:
+    //     get getterName {
+    //     String get getterName
+    if (allowAdditionalTokens) {
+      if (type == TokenType.CLOSE_CURLY_BRACKET ||
+          type == TokenType.KEYWORD ||
+          type == TokenType.IDENTIFIER ||
+          type == TokenType.OPEN_CURLY_BRACKET) {
+        return true;
+      }
+    }
+    return false;
   }
 
   bool _isLikelyParameterList() {
@@ -4331,10 +4409,7 @@ class Parser {
     bool isOptional = primaryAllowed || expression is SimpleIdentifier;
     while (true) {
       while (_isLikelyParameterList()) {
-        TypeArgumentList typeArguments = null;
-        if (_matches(TokenType.LT)) {
-          typeArguments = parseTypeArgumentList();
-        }
+        TypeArgumentList typeArguments = _parseOptionalTypeArguments();
         ArgumentList argumentList = parseArgumentList();
         if (expression is SimpleIdentifier) {
           expression = new MethodInvocation(null, null,
@@ -4543,10 +4618,7 @@ class Parser {
         (expression != null && functionName == null));
     if (_isLikelyParameterList()) {
       while (_isLikelyParameterList()) {
-        TypeArgumentList typeArguments = null;
-        if (_matches(TokenType.LT)) {
-          typeArguments = parseTypeArgumentList();
-        }
+        TypeArgumentList typeArguments = _parseOptionalTypeArguments();
         if (functionName != null) {
           expression = new MethodInvocation(expression, period, functionName,
               typeArguments, parseArgumentList());
@@ -4574,10 +4646,7 @@ class Parser {
         expression = selector;
         progress = true;
         while (_isLikelyParameterList()) {
-          TypeArgumentList typeArguments = null;
-          if (_matches(TokenType.LT)) {
-            typeArguments = parseTypeArgumentList();
-          }
+          TypeArgumentList typeArguments = _parseOptionalTypeArguments();
           if (expression is PropertyAccess) {
             PropertyAccess propertyAccess = expression as PropertyAccess;
             expression = new MethodInvocation(
@@ -5661,16 +5730,27 @@ class Parser {
       keyword = getAndAdvance();
       if (_isTypedIdentifier(_currentToken)) {
         type = parseTypeName();
+      } else {
+        // Support `final/*=T*/ x;`
+        type = _parseOptionalTypeNameComment();
       }
     } else if (_matchesKeyword(Keyword.VAR)) {
       keyword = getAndAdvance();
-    } else {
-      if (_isTypedIdentifier(_currentToken)) {
-        type = parseReturnType();
-      } else if (!optional) {
-        _reportErrorForCurrentToken(
-            ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE);
+      // Support `var/*=T*/ x;`
+      type = _parseOptionalTypeNameComment();
+      if (type != null) {
+        // Clear the keyword to prevent an error.
+        keyword = null;
       }
+    } else if (_isTypedIdentifier(_currentToken)) {
+      type = parseReturnType();
+    } else if (!optional) {
+      _reportErrorForCurrentToken(
+          ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE);
+    } else {
+      // Support parameters such as `(/*=K*/ key, /*=V*/ value)`
+      // This is not supported if the type is required.
+      type = _parseOptionalTypeNameComment();
     }
     return new FinalConstVarOrType(keyword, type);
   }
@@ -5829,12 +5909,12 @@ class Parser {
         _reportErrorForToken(
             ParserErrorCode.INVALID_AWAIT_IN_FOR, awaitKeyword);
       }
-      Token leftSeparator = _expect(TokenType.SEMICOLON);
+      Token leftSeparator = _expectSemicolon();
       Expression condition = null;
       if (!_matches(TokenType.SEMICOLON)) {
         condition = parseExpression2();
       }
-      Token rightSeparator = _expect(TokenType.SEMICOLON);
+      Token rightSeparator = _expectSemicolon();
       List<Expression> updaters = null;
       if (!_matches(TokenType.CLOSE_PAREN)) {
         updaters = _parseExpressionList();
@@ -5995,10 +6075,7 @@ class Parser {
       keyword = getAndAdvance();
     }
     SimpleIdentifier name = parseSimpleIdentifier();
-    TypeParameterList typeParameters = null;
-    if (parseGenericMethods && _matches(TokenType.LT)) {
-      typeParameters = parseTypeParameterList();
-    }
+    TypeParameterList typeParameters = _parseGenericMethodTypeParameters();
     FormalParameterList parameters = null;
     if (!isGetter) {
       if (_matches(TokenType.OPEN_PAREN)) {
@@ -6149,6 +6226,36 @@ class Parser {
         typeParameters,
         parameters,
         semicolon);
+  }
+
+  /**
+   * Parses generic type parameters from a comment.
+   *
+   * Normally this is handled by [_parseGenericMethodTypeParameters], but if the
+   * code already handles the normal generic type parameters, the comment
+   * matcher can be called directly. For example, we may have already tried
+   * matching `<` (less than sign) in a method declaration, and be currently
+   * on the `(` (open paren) because we didn't find it. In that case, this
+   * function will parse the preceding comment such as `/*<T, R>*/`.
+   */
+  TypeParameterList _parseGenericCommentTypeParameters() {
+    if (_injectGenericCommentTypeList()) {
+      return parseTypeParameterList();
+    }
+    return null;
+  }
+
+  /**
+   * Parse the generic method or function's type parameters.
+   *
+   * For backwards compatibility this can optionally use comments.
+   * See [parseGenericMethodComments].
+   */
+  TypeParameterList _parseGenericMethodTypeParameters() {
+    if (parseGenericMethods && _matches(TokenType.LT) ||
+        _injectGenericCommentTypeList()) {
+      return parseTypeParameterList();
+    }
   }
 
   /**
@@ -6443,10 +6550,7 @@ class Parser {
    *       | mapLiteral
    */
   TypedLiteral _parseListOrMapLiteral(Token modifier) {
-    TypeArgumentList typeArguments = null;
-    if (_matches(TokenType.LT)) {
-      typeArguments = parseTypeArgumentList();
-    }
+    TypeArgumentList typeArguments = _parseOptionalTypeArguments();
     if (_matches(TokenType.OPEN_CURLY_BRACKET)) {
       return _parseMapLiteral(modifier, typeArguments);
     } else if (_matches(TokenType.OPEN_SQUARE_BRACKET) ||
@@ -6580,10 +6684,7 @@ class Parser {
       Token staticKeyword,
       TypeName returnType) {
     SimpleIdentifier methodName = parseSimpleIdentifier();
-    TypeParameterList typeParameters = null;
-    if (parseGenericMethods && _matches(TokenType.LT)) {
-      typeParameters = parseTypeParameterList();
-    }
+    TypeParameterList typeParameters = _parseGenericMethodTypeParameters();
     FormalParameterList parameters;
     if (!_matches(TokenType.OPEN_PAREN) &&
         (_matches(TokenType.OPEN_CURLY_BRACKET) ||
@@ -6980,7 +7081,10 @@ class Parser {
    * advancing. Return the return type that was parsed.
    */
   TypeName _parseOptionalReturnType() {
-    if (_matchesKeyword(Keyword.VOID)) {
+    TypeName typeComment = _parseOptionalTypeNameComment();
+    if (typeComment != null) {
+      return typeComment;
+    } else if (_matchesKeyword(Keyword.VOID)) {
       return parseReturnType();
     } else if (_matchesIdentifier() &&
         !_matchesKeyword(Keyword.GET) &&
@@ -6995,6 +7099,24 @@ class Parser {
         (_tokenMatchesIdentifier(_peekAt(3)) ||
             _tokenMatches(_peekAt(3), TokenType.LT))) {
       return parseReturnType();
+    }
+    return null;
+  }
+
+  /**
+   * Parse a [TypeArgumentList] if present, otherwise return null.
+   * This also supports the comment form, if enabled: `/*<T>*/`
+   */
+  TypeArgumentList _parseOptionalTypeArguments() {
+    if (_matches(TokenType.LT) || _injectGenericCommentTypeList()) {
+      return parseTypeArgumentList();
+    }
+    return null;
+  }
+
+  TypeName _parseOptionalTypeNameComment() {
+    if (_injectGenericCommentTypeAssign()) {
+      return _parseTypeName();
     }
     return null;
   }
@@ -7051,10 +7173,7 @@ class Parser {
         (parseGenericMethods && _matches(TokenType.LT))) {
       do {
         if (_isLikelyParameterList()) {
-          TypeArgumentList typeArguments = null;
-          if (_matches(TokenType.LT)) {
-            typeArguments = parseTypeArgumentList();
-          }
+          TypeArgumentList typeArguments = _parseOptionalTypeArguments();
           ArgumentList argumentList = parseArgumentList();
           if (operand is PropertyAccess) {
             PropertyAccess access = operand as PropertyAccess;
@@ -7711,6 +7830,21 @@ class Parser {
     return _parseFunctionTypeAlias(commentAndMetadata, keyword);
   }
 
+  TypeName _parseTypeName() {
+    Identifier typeName;
+    if (_matchesKeyword(Keyword.VAR)) {
+      _reportErrorForCurrentToken(ParserErrorCode.VAR_AS_TYPE_NAME);
+      typeName = new SimpleIdentifier(getAndAdvance());
+    } else if (_matchesIdentifier()) {
+      typeName = parsePrefixedIdentifier();
+    } else {
+      typeName = _createSyntheticIdentifier();
+      _reportErrorForCurrentToken(ParserErrorCode.EXPECTED_TYPE_NAME);
+    }
+    TypeArgumentList typeArguments = _parseOptionalTypeArguments();
+    return new TypeName(typeName, typeArguments);
+  }
+
   /**
    * Parse a unary expression. Return the unary expression that was parsed.
    *
@@ -8054,6 +8188,22 @@ class Parser {
   }
 
   /**
+   * Scans the generic method comment, and returns the tokens, otherwise
+   * returns null.
+   */
+  Token _scanGenericMethodComment(String code, int offset) {
+    BooleanErrorListener listener = new BooleanErrorListener();
+    Scanner scanner =
+        new Scanner(null, new SubSequenceReader(code, offset), listener);
+    scanner.setSourceStart(1, 1);
+    Token firstToken = scanner.tokenize();
+    if (listener.errorReported) {
+      return null;
+    }
+    return firstToken;
+  }
+
+  /**
    * Skips a block with all containing blocks.
    */
   void _skipBlock() {
@@ -8281,8 +8431,7 @@ class Parser {
    */
   Token _skipSimpleIdentifier(Token startToken) {
     if (_tokenMatches(startToken, TokenType.IDENTIFIER) ||
-        (_tokenMatches(startToken, TokenType.KEYWORD) &&
-            (startToken as KeywordToken).keyword.isPseudoKeyword)) {
+        _tokenMatchesPseudoKeyword(startToken)) {
       return startToken.next;
     }
     return null;
@@ -8391,7 +8540,8 @@ class Parser {
    */
   Token _skipTypeArgumentList(Token startToken) {
     Token token = startToken;
-    if (!_tokenMatches(token, TokenType.LT)) {
+    if (!_tokenMatches(token, TokenType.LT) &&
+        !_injectGenericCommentTypeList()) {
       return null;
     }
     token = _skipTypeName(token.next);
@@ -8506,8 +8656,7 @@ class Parser {
    */
   bool _tokenMatchesIdentifier(Token token) =>
       _tokenMatches(token, TokenType.IDENTIFIER) ||
-          (_tokenMatches(token, TokenType.KEYWORD) &&
-              (token as KeywordToken).keyword.isPseudoKeyword);
+          _tokenMatchesPseudoKeyword(token);
 
   /**
    * Return `true` if the given [token] matches the given [keyword].
@@ -8515,6 +8664,13 @@ class Parser {
   bool _tokenMatchesKeyword(Token token, Keyword keyword) =>
       token.type == TokenType.KEYWORD &&
           (token as KeywordToken).keyword == keyword;
+
+  /**
+   * Return `true` if the given [token] matches a pseudo keyword.
+   */
+  bool _tokenMatchesPseudoKeyword(Token token) =>
+      _tokenMatches(token, TokenType.KEYWORD) &&
+          (token as KeywordToken).keyword.isPseudoKeyword;
 
   /**
    * Return `true` if the given [token] matches the given [identifier].

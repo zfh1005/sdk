@@ -212,8 +212,8 @@ class Isolate {
    *
    * WARNING: The [checked] parameter is not implemented on all platforms yet.
    *
-   * If either the [packageRoot] or the [packages] parameter is provided,
-   * it is used to find the location of package sources in the spawned isolate.
+   * If the [packageRoot] parameter is provided, it is used to find the location
+   * of package sources in the spawned isolate.
    *
    * The `packageRoot` URI must be a "file" or "http"/"https" URI that specifies
    * a directory. If it doesn't end in a slash, one will be added before
@@ -221,21 +221,6 @@ class Isolate {
    * Package imports (like `"package:foo/bar.dart"`) in the new isolate are
    * resolved against this location, as by
    * `packageRoot.resolve("foo/bar.dart")`.
-   *
-   * The `packages` map maps package names to URIs with the same requirements
-   * as `packageRoot`. Package imports (like `"package:foo/bar/baz.dart"`) in
-   * the new isolate are resolved against the URI for that package (if any),
-   * as by `packages["foo"].resolve("bar/baz.dart")
-   *
-   * This resolution also applies to the main entry [uri]
-   * if that happens to be a package-URI.
-   *
-   * If both [packageRoot] and [packages] are omitted, the new isolate uses
-   * the same package resolution as the current isolate.
-   * It's not allowed to provide both a `packageRoot` and a `package` parameter.
-   *
-   * WARNING: The [packageRoot] and [packages] parameters are not implemented
-   * on all platforms yet.
    *
    * The [environment] is a mapping from strings to strings which the
    * spawned isolate uses when looking up [String.fromEnvironment] values.
@@ -259,8 +244,7 @@ class Isolate {
        bool errorsAreFatal,
        bool checked,
        Map<String, String> environment,
-       Uri packageRoot,
-       Map<String, Uri> packages});
+       Uri packageRoot});
 
   /**
    * Requests the isolate to pause.
@@ -621,33 +605,6 @@ abstract class RawReceivePort {
    * Returns a [SendPort] that sends to this raw receive port.
    */
   SendPort get sendPort;
-}
-
-/**
- * Wraps unhandled exceptions thrown during isolate execution. It is
- * used to show both the error message and the stack trace for unhandled
- * exceptions.
- */
-// TODO(floitsch): probably going to remove and replace with something else.
-class _IsolateUnhandledException implements Exception {
-  /** Message being handled when exception occurred. */
-  final message;
-
-  /** Wrapped exception. */
-  final source;
-
-  /** Trace for the wrapped exception. */
-  final StackTrace stackTrace;
-
-  const _IsolateUnhandledException(this.message, this.source, this.stackTrace);
-
-  String toString() {
-    return 'IsolateUnhandledException: exception while handling message: '
-        '${message} \n  '
-        '${source.toString().replaceAll("\n", "\n  ")}\n'
-        'original stack trace:\n  '
-        '${stackTrace.toString().replaceAll("\n","\n  ")}';
-  }
 }
 
 /**

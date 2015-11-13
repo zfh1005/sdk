@@ -762,6 +762,12 @@ class Assembler : public ValueObject {
     EmitRType(SPECIAL, rs, rt, R0, 0, MULTU);
   }
 
+  void negd(DRegister dd, DRegister ds) {
+    FRegister fd = static_cast<FRegister>(dd * 2);
+    FRegister fs = static_cast<FRegister>(ds * 2);
+    EmitFpuRType(COP1, FMT_D, F0, fs, fd, COP1_NEG);
+  }
+
   void nop() {
     Emit(Instr::kNopInstruction);
   }
@@ -1592,6 +1598,10 @@ class Assembler : public ValueObject {
                                     intptr_t index_scale,
                                     Register array,
                                     Register index);
+
+  static Address VMTagAddress() {
+    return Address(THR, Thread::vm_tag_offset());
+  }
 
   // On some other platforms, we draw a distinction between safe and unsafe
   // smis.

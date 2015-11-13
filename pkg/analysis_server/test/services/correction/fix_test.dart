@@ -4,8 +4,9 @@
 
 library test.services.correction.fix;
 
-import 'package:analysis_server/edit/fix/fix_core.dart';
-import 'package:analysis_server/src/protocol.dart' hide AnalysisError;
+import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
+import 'package:analysis_server/plugin/protocol/protocol.dart'
+    hide AnalysisError;
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -334,35 +335,34 @@ main() {
 ''');
     List<AnalysisError> errors = context.computeErrors(testSource);
     expect(errors, hasLength(2));
-    // ParserError: Expected to find ';'
-    {
-      AnalysisError error = errors[0];
-      expect(error.message, "Expected to find ';'");
-      List<Fix> fixes = _computeFixes(error);
-      expect(fixes, isEmpty);
-    }
-    // Undefined name 'await'
-    {
-      AnalysisError error = errors[1];
-      expect(error.message, "Undefined name 'await'");
-      List<Fix> fixes = _computeFixes(error);
-      // has exactly one fix
-      expect(fixes, hasLength(1));
-      Fix fix = fixes[0];
-      expect(fix.kind, DartFixKind.ADD_ASYNC);
-      // apply to "file"
-      List<SourceFileEdit> fileEdits = fix.change.edits;
-      expect(fileEdits, hasLength(1));
-      resultCode = SourceEdit.applySequence(testCode, fileEdits[0].edits);
-      // verify
-      expect(
-          resultCode,
-          '''
+    String message1 = "Expected to find ';'";
+    String message2 = "Undefined name 'await'";
+    expect(errors.map((e) => e.message), unorderedEquals([message1, message2]));
+    for (AnalysisError error in errors) {
+      if (error.message == message1) {
+        List<Fix> fixes = _computeFixes(error);
+        expect(fixes, isEmpty);
+      }
+      if (error.message == message2) {
+        List<Fix> fixes = _computeFixes(error);
+        // has exactly one fix
+        expect(fixes, hasLength(1));
+        Fix fix = fixes[0];
+        expect(fix.kind, DartFixKind.ADD_ASYNC);
+        // apply to "file"
+        List<SourceFileEdit> fileEdits = fix.change.edits;
+        expect(fileEdits, hasLength(1));
+        resultCode = SourceEdit.applySequence(testCode, fileEdits[0].edits);
+        // verify
+        expect(
+            resultCode,
+            '''
 foo() {}
 main() async {
   await foo();
 }
 ''');
+      }
     }
   }
 
@@ -393,6 +393,51 @@ main() {
         '''
 main() {
   bool v;
+}
+''');
+  }
+
+  void test_canBeNullAfterNullAware_chain() {
+    resolveTestUnit('''
+main(x) {
+  x?.a.b.c;
+}
+''');
+    assertHasFix(
+        DartFixKind.REPLACE_WITH_NULL_AWARE,
+        '''
+main(x) {
+  x?.a?.b?.c;
+}
+''');
+  }
+
+  void test_canBeNullAfterNullAware_methodInvocation() {
+    resolveTestUnit('''
+main(x) {
+  x?.a.b();
+}
+''');
+    assertHasFix(
+        DartFixKind.REPLACE_WITH_NULL_AWARE,
+        '''
+main(x) {
+  x?.a?.b();
+}
+''');
+  }
+
+  void test_canBeNullAfterNullAware_propertyAccess() {
+    resolveTestUnit('''
+main(x) {
+  x?.a().b;
+}
+''');
+    assertHasFix(
+        DartFixKind.REPLACE_WITH_NULL_AWARE,
+        '''
+main(x) {
+  x?.a()?.b;
 }
 ''');
   }
@@ -1543,6 +1588,37 @@ main(A a) {
 ''');
   }
 
+  void test_createGetter_location_afterLastGetter() {
+    resolveTestUnit('''
+class A {
+  int existingField;
+
+  int get existingGetter => null;
+
+  existingMethod() {}
+}
+main(A a) {
+  int v = a.test;
+}
+''');
+    assertHasFix(
+        DartFixKind.CREATE_GETTER,
+        '''
+class A {
+  int existingField;
+
+  int get existingGetter => null;
+
+  int get test => null;
+
+  existingMethod() {}
+}
+main(A a) {
+  int v = a.test;
+}
+''');
+  }
+
   void test_createGetter_multiLevel() {
     resolveTestUnit('''
 class A {
@@ -2212,37 +2288,6 @@ class B extends A {
 ''');
   }
 
-  void test_creatGetter_location_afterLastGetter() {
-    resolveTestUnit('''
-class A {
-  int existingField;
-
-  int get existingGetter => null;
-
-  existingMethod() {}
-}
-main(A a) {
-  int v = a.test;
-}
-''');
-    assertHasFix(
-        DartFixKind.CREATE_GETTER,
-        '''
-class A {
-  int existingField;
-
-  int get existingGetter => null;
-
-  int get test => null;
-
-  existingMethod() {}
-}
-main(A a) {
-  int v = a.test;
-}
-''');
-  }
-
   void test_creationFunction_forFunctionType_cascadeSecond() {
     resolveTestUnit('''
 class A {
@@ -2643,6 +2688,41 @@ import 'lib.dart';
 
 @Test(0)
 main() {
+}
+''');
+  }
+
+  void test_importLibraryProject_withClass_hasOtherLibraryWithPrefix() {
+    testFile = '/project/bin/test.dart';
+    addSource(
+        '/project/bin/a.dart',
+        '''
+library a;
+class One {}
+''');
+    addSource(
+        '/project/bin/b.dart',
+        '''
+library b;
+class One {}
+class Two {}
+''');
+    resolveTestUnit('''
+import 'b.dart' show Two;
+main () {
+  new Two();
+  new One();
+}
+''');
+    performAllAnalysisTasks();
+    assertHasFix(
+        DartFixKind.IMPORT_LIBRARY_PROJECT,
+        '''
+import 'b.dart' show Two;
+import 'a.dart';
+main () {
+  new Two();
+  new One();
 }
 ''');
   }
@@ -3097,6 +3177,25 @@ main(p) {
     }
   }
 
+  void test_nonBoolCondition_addNotNull() {
+    resolveTestUnit('''
+main(String p) {
+  if (p) {
+    print(p);
+  }
+}
+''');
+    assertHasFix(
+        DartFixKind.ADD_NE_NULL,
+        '''
+main(String p) {
+  if (p != null) {
+    print(p);
+  }
+}
+''');
+  }
+
   void test_removeDeadCode_condition() {
     resolveTestUnit('''
 main(int p) {
@@ -3198,7 +3297,7 @@ main(Object p) {
 }
 ''');
     assertHasFix(
-        DartFixKind.REMOVE_UNNECASSARY_CAST,
+        DartFixKind.REMOVE_UNNECESSARY_CAST,
         '''
 main(Object p) {
   if (p is String) {

@@ -79,7 +79,16 @@ void StubCode::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 
+bool StubCode::HasBeenInitialized() {
+  // Use JumpToExceptionHandler and InvokeDart as canaries.
+  const StubEntry* entry_1 = StubCode::JumpToExceptionHandler_entry();
+  const StubEntry* entry_2 = StubCode::InvokeDartCode_entry();
+  return (entry_1 != NULL) && (entry_2 != NULL);
+}
+
+
 bool StubCode::InInvocationStub(uword pc) {
+  ASSERT(HasBeenInitialized());
   uword entry = StubCode::InvokeDartCode_entry()->EntryPoint();
   uword size = StubCode::InvokeDartCodeSize();
   return (pc >= entry) && (pc < (entry + size));
@@ -87,6 +96,7 @@ bool StubCode::InInvocationStub(uword pc) {
 
 
 bool StubCode::InJumpToExceptionHandlerStub(uword pc) {
+  ASSERT(HasBeenInitialized());
   uword entry = StubCode::JumpToExceptionHandler_entry()->EntryPoint();
   uword size = StubCode::JumpToExceptionHandlerSize();
   return (pc >= entry) && (pc < (entry + size));
@@ -94,13 +104,14 @@ bool StubCode::InJumpToExceptionHandlerStub(uword pc) {
 
 
 RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
-  Isolate* isolate = Isolate::Current();
-  const Error& error = Error::Handle(isolate, cls.EnsureIsFinalized(isolate));
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const Error& error = Error::Handle(zone, cls.EnsureIsFinalized(thread));
   ASSERT(error.IsNull());
   if (cls.id() == kArrayCid) {
     return AllocateArray_entry()->code();
   }
-  Code& stub = Code::Handle(isolate, cls.allocation_stub());
+  Code& stub = Code::Handle(zone, cls.allocation_stub());
   if (stub.IsNull()) {
     Assembler assembler;
     const char* name = cls.ToCString();

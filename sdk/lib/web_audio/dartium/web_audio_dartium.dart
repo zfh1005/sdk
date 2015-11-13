@@ -19,6 +19,7 @@ import 'dart:js' as js;
 
 
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final web_audioBlinkMap = {
   'AnalyserNode': () => AnalyserNode,
   'AudioBuffer': () => AudioBuffer,
@@ -51,6 +52,7 @@ final web_audioBlinkMap = {
 };
 
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final web_audioBlinkFunctionMap = {
   'AnalyserNode': () => AnalyserNode.internalCreateAnalyserNode,
   'AudioBuffer': () => AudioBuffer.internalCreateAudioBuffer,
@@ -97,6 +99,7 @@ class AnalyserNode extends AudioNode {
   factory AnalyserNode._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static AnalyserNode internalCreateAnalyserNode() {
     return new AnalyserNode._internalWrap();
   }
@@ -105,6 +108,7 @@ class AnalyserNode extends AudioNode {
     return new AnalyserNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AnalyserNode.internal_() : super.internal_();
 
 
@@ -173,20 +177,20 @@ class AnalyserNode extends AudioNode {
 @DomName('AudioBuffer')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioBuffer-section
 @Experimental()
-class AudioBuffer extends NativeFieldWrapperClass2 {
+class AudioBuffer extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AudioBuffer._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static AudioBuffer internalCreateAudioBuffer() {
     return new AudioBuffer._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AudioBuffer._internalWrap() {
     return new AudioBuffer.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AudioBuffer.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -253,6 +257,7 @@ class AudioBufferSourceNode extends AudioSourceNode {
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
 
+  @Deprecated("Internal Use Only")
   static AudioBufferSourceNode internalCreateAudioBufferSourceNode() {
     return new AudioBufferSourceNode._internalWrap();
   }
@@ -261,6 +266,7 @@ class AudioBufferSourceNode extends AudioSourceNode {
     return new AudioBufferSourceNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AudioBufferSourceNode.internal_() : super.internal_();
 
 
@@ -364,6 +370,7 @@ class AudioContext extends EventTarget {
   }
 
 
+  @Deprecated("Internal Use Only")
   static AudioContext internalCreateAudioContext() {
     return new AudioContext._internalWrap();
   }
@@ -372,6 +379,7 @@ class AudioContext extends EventTarget {
     return new AudioContext.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AudioContext.internal_() : super.internal_();
 
 
@@ -529,6 +537,7 @@ class AudioDestinationNode extends AudioNode {
   factory AudioDestinationNode._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static AudioDestinationNode internalCreateAudioDestinationNode() {
     return new AudioDestinationNode._internalWrap();
   }
@@ -537,6 +546,7 @@ class AudioDestinationNode extends AudioNode {
     return new AudioDestinationNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AudioDestinationNode.internal_() : super.internal_();
 
 
@@ -556,20 +566,20 @@ class AudioDestinationNode extends AudioNode {
 @DomName('AudioListener')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioListener-section
 @Experimental()
-class AudioListener extends NativeFieldWrapperClass2 {
+class AudioListener extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AudioListener._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static AudioListener internalCreateAudioListener() {
     return new AudioListener._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AudioListener._internalWrap() {
     return new AudioListener.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AudioListener.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -617,6 +627,7 @@ class AudioNode extends EventTarget {
   factory AudioNode._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static AudioNode internalCreateAudioNode() {
     return new AudioNode._internalWrap();
   }
@@ -625,6 +636,7 @@ class AudioNode extends EventTarget {
     return new AudioNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AudioNode.internal_() : super.internal_();
 
 
@@ -699,20 +711,20 @@ class AudioNode extends EventTarget {
 @DomName('AudioParam')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#AudioParam
 @Experimental()
-class AudioParam extends NativeFieldWrapperClass2 {
+class AudioParam extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AudioParam._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static AudioParam internalCreateAudioParam() {
     return new AudioParam._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory AudioParam._internalWrap() {
     return new AudioParam.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AudioParam.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -771,6 +783,7 @@ class AudioProcessingEvent extends Event {
   factory AudioProcessingEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static AudioProcessingEvent internalCreateAudioProcessingEvent() {
     return new AudioProcessingEvent._internalWrap();
   }
@@ -779,6 +792,7 @@ class AudioProcessingEvent extends Event {
     return new AudioProcessingEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AudioProcessingEvent.internal_() : super.internal_();
 
 
@@ -812,6 +826,7 @@ class AudioSourceNode extends AudioNode {
   factory AudioSourceNode._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static AudioSourceNode internalCreateAudioSourceNode() {
     return new AudioSourceNode._internalWrap();
   }
@@ -820,6 +835,7 @@ class AudioSourceNode extends AudioNode {
     return new AudioSourceNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   AudioSourceNode.internal_() : super.internal_();
 
 
@@ -840,6 +856,7 @@ class BiquadFilterNode extends AudioNode {
   factory BiquadFilterNode._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static BiquadFilterNode internalCreateBiquadFilterNode() {
     return new BiquadFilterNode._internalWrap();
   }
@@ -848,6 +865,7 @@ class BiquadFilterNode extends AudioNode {
     return new BiquadFilterNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   BiquadFilterNode.internal_() : super.internal_();
 
 
@@ -896,6 +914,7 @@ class ChannelMergerNode extends AudioNode {
   factory ChannelMergerNode._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static ChannelMergerNode internalCreateChannelMergerNode() {
     return new ChannelMergerNode._internalWrap();
   }
@@ -904,6 +923,7 @@ class ChannelMergerNode extends AudioNode {
     return new ChannelMergerNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ChannelMergerNode.internal_() : super.internal_();
 
 
@@ -924,6 +944,7 @@ class ChannelSplitterNode extends AudioNode {
   factory ChannelSplitterNode._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static ChannelSplitterNode internalCreateChannelSplitterNode() {
     return new ChannelSplitterNode._internalWrap();
   }
@@ -932,6 +953,7 @@ class ChannelSplitterNode extends AudioNode {
     return new ChannelSplitterNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ChannelSplitterNode.internal_() : super.internal_();
 
 
@@ -952,6 +974,7 @@ class ConvolverNode extends AudioNode {
   factory ConvolverNode._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static ConvolverNode internalCreateConvolverNode() {
     return new ConvolverNode._internalWrap();
   }
@@ -960,6 +983,7 @@ class ConvolverNode extends AudioNode {
     return new ConvolverNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ConvolverNode.internal_() : super.internal_();
 
 
@@ -996,6 +1020,7 @@ class DelayNode extends AudioNode {
   factory DelayNode._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static DelayNode internalCreateDelayNode() {
     return new DelayNode._internalWrap();
   }
@@ -1004,6 +1029,7 @@ class DelayNode extends AudioNode {
     return new DelayNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DelayNode.internal_() : super.internal_();
 
 
@@ -1028,6 +1054,7 @@ class DynamicsCompressorNode extends AudioNode {
   factory DynamicsCompressorNode._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static DynamicsCompressorNode internalCreateDynamicsCompressorNode() {
     return new DynamicsCompressorNode._internalWrap();
   }
@@ -1036,6 +1063,7 @@ class DynamicsCompressorNode extends AudioNode {
     return new DynamicsCompressorNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   DynamicsCompressorNode.internal_() : super.internal_();
 
 
@@ -1080,6 +1108,7 @@ class GainNode extends AudioNode {
   factory GainNode._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static GainNode internalCreateGainNode() {
     return new GainNode._internalWrap();
   }
@@ -1088,6 +1117,7 @@ class GainNode extends AudioNode {
     return new GainNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   GainNode.internal_() : super.internal_();
 
 
@@ -1112,6 +1142,7 @@ class MediaElementAudioSourceNode extends AudioSourceNode {
   factory MediaElementAudioSourceNode._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static MediaElementAudioSourceNode internalCreateMediaElementAudioSourceNode() {
     return new MediaElementAudioSourceNode._internalWrap();
   }
@@ -1120,6 +1151,7 @@ class MediaElementAudioSourceNode extends AudioSourceNode {
     return new MediaElementAudioSourceNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaElementAudioSourceNode.internal_() : super.internal_();
 
 
@@ -1145,6 +1177,7 @@ class MediaStreamAudioDestinationNode extends AudioNode {
   factory MediaStreamAudioDestinationNode._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static MediaStreamAudioDestinationNode internalCreateMediaStreamAudioDestinationNode() {
     return new MediaStreamAudioDestinationNode._internalWrap();
   }
@@ -1153,6 +1186,7 @@ class MediaStreamAudioDestinationNode extends AudioNode {
     return new MediaStreamAudioDestinationNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaStreamAudioDestinationNode.internal_() : super.internal_();
 
 
@@ -1177,6 +1211,7 @@ class MediaStreamAudioSourceNode extends AudioSourceNode {
   factory MediaStreamAudioSourceNode._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static MediaStreamAudioSourceNode internalCreateMediaStreamAudioSourceNode() {
     return new MediaStreamAudioSourceNode._internalWrap();
   }
@@ -1185,6 +1220,7 @@ class MediaStreamAudioSourceNode extends AudioSourceNode {
     return new MediaStreamAudioSourceNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   MediaStreamAudioSourceNode.internal_() : super.internal_();
 
 
@@ -1209,6 +1245,7 @@ class OfflineAudioCompletionEvent extends Event {
   factory OfflineAudioCompletionEvent._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static OfflineAudioCompletionEvent internalCreateOfflineAudioCompletionEvent() {
     return new OfflineAudioCompletionEvent._internalWrap();
   }
@@ -1217,6 +1254,7 @@ class OfflineAudioCompletionEvent extends Event {
     return new OfflineAudioCompletionEvent.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   OfflineAudioCompletionEvent.internal_() : super.internal_();
 
 
@@ -1247,6 +1285,7 @@ class OfflineAudioContext extends AudioContext {
   }
 
 
+  @Deprecated("Internal Use Only")
   static OfflineAudioContext internalCreateOfflineAudioContext() {
     return new OfflineAudioContext._internalWrap();
   }
@@ -1255,6 +1294,7 @@ class OfflineAudioContext extends AudioContext {
     return new OfflineAudioContext.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   OfflineAudioContext.internal_() : super.internal_();
 
 
@@ -1286,6 +1326,7 @@ class OscillatorNode extends AudioSourceNode {
   static const EventStreamProvider<Event> endedEvent = const EventStreamProvider<Event>('ended');
 
 
+  @Deprecated("Internal Use Only")
   static OscillatorNode internalCreateOscillatorNode() {
     return new OscillatorNode._internalWrap();
   }
@@ -1294,6 +1335,7 @@ class OscillatorNode extends AudioSourceNode {
     return new OscillatorNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   OscillatorNode.internal_() : super.internal_();
 
 
@@ -1367,6 +1409,7 @@ class PannerNode extends AudioNode {
   factory PannerNode._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static PannerNode internalCreatePannerNode() {
     return new PannerNode._internalWrap();
   }
@@ -1375,6 +1418,7 @@ class PannerNode extends AudioNode {
     return new PannerNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PannerNode.internal_() : super.internal_();
 
 
@@ -1465,20 +1509,20 @@ class PannerNode extends AudioNode {
 @DocsEditable()
 @DomName('PeriodicWave')
 @Experimental() // untriaged
-class PeriodicWave extends NativeFieldWrapperClass2 {
+class PeriodicWave extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory PeriodicWave._() { throw new UnsupportedError("Not supported"); }
 
+  @Deprecated("Internal Use Only")
   static PeriodicWave internalCreatePeriodicWave() {
     return new PeriodicWave._internalWrap();
   }
-
-  js.JsObject blink_jsObject;
 
   factory PeriodicWave._internalWrap() {
     return new PeriodicWave.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   PeriodicWave.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
@@ -1512,6 +1556,7 @@ class ScriptProcessorNode extends AudioNode {
   static const EventStreamProvider<AudioProcessingEvent> audioProcessEvent = const EventStreamProvider<AudioProcessingEvent>('audioprocess');
 
 
+  @Deprecated("Internal Use Only")
   static ScriptProcessorNode internalCreateScriptProcessorNode() {
     return new ScriptProcessorNode._internalWrap();
   }
@@ -1520,6 +1565,7 @@ class ScriptProcessorNode extends AudioNode {
     return new ScriptProcessorNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   ScriptProcessorNode.internal_() : super.internal_();
 
 
@@ -1562,6 +1608,7 @@ class WaveShaperNode extends AudioNode {
   factory WaveShaperNode._() { throw new UnsupportedError("Not supported"); }
 
 
+  @Deprecated("Internal Use Only")
   static WaveShaperNode internalCreateWaveShaperNode() {
     return new WaveShaperNode._internalWrap();
   }
@@ -1570,6 +1617,7 @@ class WaveShaperNode extends AudioNode {
     return new WaveShaperNode.internal_();
   }
 
+  @Deprecated("Internal Use Only")
   WaveShaperNode.internal_() : super.internal_();
 
 

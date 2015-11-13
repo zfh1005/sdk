@@ -281,6 +281,9 @@ class FlowGraphCompiler : public ValueObject {
   static bool SupportsUnboxedSimd128();
   static bool SupportsHardwareDivision();
 
+  static bool IsUnboxedField(const Field& field);
+  static bool IsPotentialUnboxedField(const Field& field);
+
   // Accessors.
   Assembler* assembler() const { return assembler_; }
   const ParsedFunction& parsed_function() const { return parsed_function_; }
@@ -328,7 +331,8 @@ class FlowGraphCompiler : public ValueObject {
   // Bail out of the flow graph compiler. Does not return to the caller.
   void Bailout(const char* reason);
 
-  void TryIntrinsify();
+  // Returns 'true' if regular code generation should be skipped.
+  bool TryIntrinsify();
 
   void GenerateRuntimeCall(intptr_t token_pos,
                            intptr_t deopt_id,
@@ -415,6 +419,12 @@ class FlowGraphCompiler : public ValueObject {
                                    intptr_t deopt_id,
                                    intptr_t token_pos,
                                    LocationSummary* locs);
+
+  void EmitSwitchableInstanceCall(const ICData& ic_data,
+                                  intptr_t argument_count,
+                                  intptr_t deopt_id,
+                                  intptr_t token_pos,
+                                  LocationSummary* locs);
 
   void EmitTestAndCall(const ICData& ic_data,
                        intptr_t arg_count,
@@ -524,7 +534,8 @@ class FlowGraphCompiler : public ValueObject {
     return *deopt_id_to_ic_data_;
   }
 
-  Isolate* isolate() const { return isolate_; }
+  Thread* thread() const { return thread_; }
+  Isolate* isolate() const { return thread_->isolate(); }
   Zone* zone() const { return zone_; }
 
   void AddStubCallTarget(const Code& code);
@@ -680,7 +691,7 @@ class FlowGraphCompiler : public ValueObject {
     DISALLOW_COPY_AND_ASSIGN(StaticCallsStruct);
   };
 
-  Isolate* isolate_;
+  Thread* thread_;
   Zone* zone_;
   Assembler* assembler_;
   const ParsedFunction& parsed_function_;

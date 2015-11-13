@@ -8,19 +8,19 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:typed_data';
 
-import 'package:analysis_server/analysis/index_core.dart';
+import 'package:analysis_server/plugin/index/index_core.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/index_store.dart';
 import 'package:analysis_server/src/services/index/indexable_element.dart';
 import 'package:analysis_server/src/services/index/store/codec.dart';
 import 'package:analysis_server/src/services/index/store/collection.dart';
+import 'package:analyzer/src/generated/ast.dart' show CompilationUnit;
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
-import 'package:analyzer/src/generated/ast.dart' show CompilationUnit;
 
 /**
  * The implementation of [IndexObjectManager] for indexing
@@ -813,7 +813,7 @@ class SplitIndexStore implements InternalIndexStore {
 
   @override
   bool aboutToIndex(AnalysisContext context, Object object) {
-    if (context.isDisposed) {
+    if (context == null || context.isDisposed) {
       return false;
     }
     // try to find a node name
@@ -1005,8 +1005,8 @@ class SplitIndexStore implements InternalIndexStore {
       nodeDeclarations[_currentNodeNameId] = declarations;
     }
     // record LocationData
-    declarations
-        .add(new _TopElementData(_elementCodec, new IndexableElement(element)));
+    declarations.add(new _TopElementData(
+        _elementCodec, element.displayName, new IndexableElement(element)));
   }
 
   @override
@@ -1154,12 +1154,9 @@ class _TopElementData {
   final int elementId3;
 
   factory _TopElementData(
-      ElementCodec elementCodec, IndexableObject indexable) {
-    return new _TopElementData._(
-        indexable.name,
-        elementCodec.encode1(indexable),
-        elementCodec.encode2(indexable),
-        elementCodec.encode3(indexable));
+      ElementCodec elementCodec, String name, IndexableObject indexable) {
+    return new _TopElementData._(name, elementCodec.encode1(indexable),
+        elementCodec.encode2(indexable), elementCodec.encode3(indexable));
   }
 
   _TopElementData._(

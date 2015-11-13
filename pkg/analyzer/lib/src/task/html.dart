@@ -319,13 +319,17 @@ class ParseHtmlTask extends SourceBasedAnalysisTask {
       //
       // Convert errors.
       //
-      List<ParseError> parseErrors = parser.errors;
       List<AnalysisError> errors = <AnalysisError>[];
-      for (ParseError parseError in parseErrors) {
-        SourceSpan span = parseError.span;
-        errors.add(new AnalysisError(target.source, span.start.offset,
-            span.length, HtmlErrorCode.PARSE_ERROR, [parseError.message]));
-      }
+      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/24643
+//      List<ParseError> parseErrors = parser.errors;
+//      for (ParseError parseError in parseErrors) {
+//        if (parseError.errorCode == 'expected-doctype-but-got-start-tag') {
+//          continue;
+//        }
+//        SourceSpan span = parseError.span;
+//        errors.add(new AnalysisError(target.source, span.start.offset,
+//            span.length, HtmlErrorCode.PARSE_ERROR, [parseError.message]));
+//      }
       //
       // Record outputs.
       //
@@ -356,12 +360,7 @@ class ParseHtmlTask extends SourceBasedAnalysisTask {
    * Compute [LineInfo] for the given [content].
    */
   static LineInfo _computeLineInfo(String content) {
-    List<int> lineStarts = <int>[0];
-    for (int index = 0; index < content.length; index++) {
-      if (content.codeUnitAt(index) == 0x0A) {
-        lineStarts.add(index + 1);
-      }
-    }
+    List<int> lineStarts = StringUtilities.computeLineStarts(content);
     return new LineInfo(lineStarts);
   }
 }

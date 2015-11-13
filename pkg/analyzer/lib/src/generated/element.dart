@@ -5,6 +5,7 @@
 library engine.element;
 
 import 'dart:collection';
+import 'dart:math' show min;
 
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/dart.dart';
@@ -12,7 +13,7 @@ import 'package:analyzer/task/model.dart'
     show AnalysisTarget, ConstantEvaluationTarget;
 
 import 'ast.dart';
-import 'constant.dart' show EvaluationResultImpl;
+import 'constant.dart' show DartObject, EvaluationResultImpl;
 import 'engine.dart' show AnalysisContext, AnalysisEngine, AnalysisException;
 import 'html.dart' show XmlAttributeNode, XmlTagNode;
 import 'java_core.dart';
@@ -1759,6 +1760,9 @@ class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
   ConstFieldElementImpl.forNode(Identifier name) : super.forNode(name);
 
   @override
+  DartObject get constantValue => _result.value;
+
+  @override
   EvaluationResultImpl get evaluationResult => _result;
 
   @override
@@ -1788,6 +1792,9 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl
    * Initialize a newly created local variable element to have the given [name].
    */
   ConstLocalVariableElementImpl.forNode(Identifier name) : super.forNode(name);
+
+  @override
+  DartObject get constantValue => _result.value;
 
   @override
   EvaluationResultImpl get evaluationResult => _result;
@@ -2108,6 +2115,9 @@ class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl
   ConstTopLevelVariableElementImpl(Identifier name) : super.forNode(name);
 
   @override
+  DartObject get constantValue => _result.value;
+
+  @override
   EvaluationResultImpl get evaluationResult => _result;
 
   @override
@@ -2127,7 +2137,7 @@ class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl
  *
  * This class is not intended to be part of the public API for analyzer.
  */
-abstract class ConstVariableElement implements PotentiallyConstVariableElement {
+abstract class ConstVariableElement {
   /**
    * If this element represents a constant variable, and it has an initializer,
    * a copy of the initializer for the constant.  Otherwise `null`.
@@ -2272,6 +2282,9 @@ class DefaultFieldFormalParameterElementImpl
   DefaultFieldFormalParameterElementImpl(Identifier name) : super(name);
 
   @override
+  DartObject get constantValue => _result.value;
+
+  @override
   EvaluationResultImpl get evaluationResult => _result;
 
   @override
@@ -2294,6 +2307,9 @@ class DefaultParameterElementImpl extends ParameterElementImpl
    * Initialize a newly created parameter element to have the given [name].
    */
   DefaultParameterElementImpl(Identifier name) : super.forNode(name);
+
+  @override
+  DartObject get constantValue => _result.value;
 
   @override
   EvaluationResultImpl get evaluationResult => _result;
@@ -2460,6 +2476,12 @@ abstract class Element implements AnalysisTarget {
    * is `f=`, instead of `f`.
    */
   String get displayName;
+
+  /**
+   * Return the source range of the documentation comment for this element,
+   * or `null` if this element does not or cannot have a documentation.
+   */
+  SourceRange get docRange;
 
   /**
    * Return the element that either physically or logically encloses this
@@ -2652,6 +2674,14 @@ abstract class ElementAnnotation {
   static const List<ElementAnnotation> EMPTY_LIST = const <ElementAnnotation>[];
 
   /**
+   * Return a representation of the value of this annotation.
+   *
+   * Return `null` if the value of this annotation could not be computed because
+   * of errors.
+   */
+  DartObject get constantValue;
+
+  /**
    * Return the element representing the field, variable, or const constructor
    * being used as an annotation.
    */
@@ -2729,6 +2759,9 @@ class ElementAnnotationImpl implements ElementAnnotation {
    * annotation.
    */
   ElementAnnotationImpl(this.element);
+
+  @override
+  DartObject get constantValue => evaluationResult.value;
 
   @override
   bool get isDeprecated {
@@ -2828,6 +2861,17 @@ abstract class ElementImpl implements Element {
   ElementLocation _cachedLocation;
 
   /**
+   * The offset to the beginning of the documentation comment,
+   * or `null` if this element does not have a documentation comment.
+   */
+  int _docRangeOffset;
+
+  /**
+   * The length of the documentation comment range for this element.
+   */
+  int _docRangeLength;
+
+  /**
    * Initialize a newly created element to have the given [name] at the given
    * [_nameOffset].
    */
@@ -2851,6 +2895,14 @@ abstract class ElementImpl implements Element {
 
   @override
   String get displayName => _name;
+
+  @override
+  SourceRange get docRange {
+    if (_docRangeOffset != null && _docRangeLength != null) {
+      return new SourceRange(_docRangeOffset, _docRangeLength);
+    }
+    return null;
+  }
 
   @override
   Element get enclosingElement => _enclosingElement;
@@ -3099,6 +3151,14 @@ abstract class ElementImpl implements Element {
         child.accept(visitor);
       }
     }
+  }
+
+  /**
+   * Set the documentation comment source range for this element.
+   */
+  void setDocRange(int offset, int length) {
+    _docRangeOffset = offset;
+    _docRangeLength = length;
   }
 
   /**
@@ -4123,7 +4183,6 @@ abstract class FieldElement
  * A concrete implementation of a [FieldElement].
  */
 class FieldElementImpl extends PropertyInducingElementImpl
-    with PotentiallyConstVariableElement
     implements FieldElement {
   /**
    * An empty list of field elements.
@@ -4832,9 +4891,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * [element].
    */
   @deprecated // Use new FunctionTypeImpl(element)
-  FunctionTypeImpl.con1(ExecutableElement element)
-      : prunedTypedefs = null,
-        super(element, null);
+  FunctionTypeImpl.con1(ExecutableElement element) : this(element);
 
   /**
    * Initialize a newly created function type to be declared by the given
@@ -4842,8 +4899,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    */
   @deprecated // Use new FunctionTypeImpl.forTypedef(element)
   FunctionTypeImpl.con2(FunctionTypeAliasElement element)
-      : prunedTypedefs = null,
-        super(element, element == null ? null : element.name);
+      : this.forTypedef(element);
 
   /**
    * Initialize a newly created function type to be declared by the given
@@ -6176,6 +6232,62 @@ abstract class InterfaceType implements ParameterizedType {
       String name, LibraryElement library);
 
   /**
+   * Look up the member with the given [name] in this type and all extended
+   * and mixed in classes, and by default including [thisType]. If the search
+   * fails, this will then search interfaces.
+   *
+   * Return the element representing the member that was found, or `null` if
+   * there is no getter with the given name.
+   *
+   * The [library] determines if a private member name is visible, and does not
+   * need to be supplied for public names.
+   */
+  PropertyAccessorElement lookUpInheritedGetter(String name,
+      {LibraryElement library, bool thisType: true});
+
+  /**
+   * Look up the member with the given [name] in this type and all extended
+   * and mixed in classes, starting from this type. If the search fails,
+   * search interfaces.
+   *
+   * Return the element representing the member that was found, or `null` if
+   * there is no getter with the given name.
+   *
+   * The [library] determines if a private member name is visible, and does not
+   * need to be supplied for public names.
+   */
+  ExecutableElement lookUpInheritedGetterOrMethod(String name,
+      {LibraryElement library});
+
+  /**
+   * Look up the member with the given [name] in this type and all extended
+   * and mixed in classes, and by default including [thisType]. If the search
+   * fails, this will then search interfaces.
+   *
+   * Return the element representing the member that was found, or `null` if
+   * there is no getter with the given name.
+   *
+   * The [library] determines if a private member name is visible, and does not
+   * need to be supplied for public names.
+   */
+  MethodElement lookUpInheritedMethod(String name,
+      {LibraryElement library, bool thisType: true});
+
+  /**
+   * Look up the member with the given [name] in this type and all extended
+   * and mixed in classes, and by default including [thisType]. If the search
+   * fails, this will then search interfaces.
+   *
+   * Return the element representing the member that was found, or `null` if
+   * there is no getter with the given name.
+   *
+   * The [library] determines if a private member name is visible, and does not
+   * need to be supplied for public names.
+   */
+  PropertyAccessorElement lookUpInheritedSetter(String name,
+      {LibraryElement library, bool thisType: true});
+
+  /**
    * Return the element representing the method that results from looking up the
    * method with the given [name] in this class with respect to the given
    * [library], or `null` if the look up fails. The behavior of this method is
@@ -6783,6 +6895,71 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  PropertyAccessorElement lookUpInheritedGetter(String name,
+      {LibraryElement library, bool thisType: true}) {
+    PropertyAccessorElement result;
+    if (thisType) {
+      result = lookUpGetter(name, library);
+    } else {
+      result = lookUpGetterInSuperclass(name, library);
+    }
+    if (result != null) {
+      return result;
+    }
+    return _lookUpMemberInInterfaces(this, false, library,
+        new HashSet<ClassElement>(), (InterfaceType t) => t.getGetter(name));
+  }
+
+  @override
+  ExecutableElement lookUpInheritedGetterOrMethod(String name,
+      {LibraryElement library}) {
+    ExecutableElement result =
+        lookUpGetter(name, library) ?? lookUpMethod(name, library);
+
+    if (result != null) {
+      return result;
+    }
+    return _lookUpMemberInInterfaces(
+        this,
+        false,
+        library,
+        new HashSet<ClassElement>(),
+        (InterfaceType t) => t.getGetter(name) ?? t.getMethod(name));
+  }
+
+  @override
+  MethodElement lookUpInheritedMethod(String name,
+      {LibraryElement library, bool thisType: true}) {
+    MethodElement result;
+    if (thisType) {
+      result = lookUpMethod(name, library);
+    } else {
+      result = lookUpMethodInSuperclass(name, library);
+    }
+    if (result != null) {
+      return result;
+    }
+    return _lookUpMemberInInterfaces(this, false, library,
+        new HashSet<ClassElement>(), (InterfaceType t) => t.getMethod(name));
+  }
+
+  @override
+  PropertyAccessorElement lookUpInheritedSetter(String name,
+      {LibraryElement library, bool thisType: true}) {
+    PropertyAccessorElement result;
+    if (thisType) {
+      result = lookUpSetter(name, library);
+    } else {
+      result = lookUpSetterInSuperclass(name, library);
+    }
+    if (result != null) {
+      return result;
+    }
+    return _lookUpMemberInInterfaces(this, false, library,
+        new HashSet<ClassElement>(), (t) => t.getSetter(name));
+  }
+
+  @override
   MethodElement lookUpMethod(String methodName, LibraryElement library) {
     MethodElement element = getMethod(methodName);
     if (element != null && element.isAccessibleIn(library)) {
@@ -7056,6 +7233,58 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     result.retainAll(second);
     return new List.from(result);
   }
+
+  /**
+   * Look up the getter with the given [name] in the interfaces
+   * implemented by the given [targetType], either directly or indirectly.
+   * Return the element representing the getter that was found, or `null` if
+   * there is no getter with the given name. The flag [includeTargetType] should
+   * be `true` if the search should include the target type. The
+   * [visitedInterfaces] is a set containing all of the interfaces that have
+   * been examined, used to prevent infinite recursion and to optimize the
+   * search.
+   */
+  static ExecutableElement _lookUpMemberInInterfaces(
+      InterfaceType targetType,
+      bool includeTargetType,
+      LibraryElement library,
+      HashSet<ClassElement> visitedInterfaces,
+      ExecutableElement getMember(InterfaceType type)) {
+    // TODO(brianwilkerson) This isn't correct. Section 8.1.1 of the
+    // specification (titled "Inheritance and Overriding" under "Interfaces")
+    // describes a much more complex scheme for finding the inherited member.
+    // We need to follow that scheme. The code below should cover the 80% case.
+    ClassElement targetClass = targetType.element;
+    if (!visitedInterfaces.add(targetClass)) {
+      return null;
+    }
+    if (includeTargetType) {
+      ExecutableElement member = getMember(targetType);
+      if (member != null && member.isAccessibleIn(library)) {
+        return member;
+      }
+    }
+    for (InterfaceType interfaceType in targetType.interfaces) {
+      ExecutableElement member = _lookUpMemberInInterfaces(
+          interfaceType, true, library, visitedInterfaces, getMember);
+      if (member != null) {
+        return member;
+      }
+    }
+    for (InterfaceType mixinType in targetType.mixins.reversed) {
+      ExecutableElement member = _lookUpMemberInInterfaces(
+          mixinType, true, library, visitedInterfaces, getMember);
+      if (member != null) {
+        return member;
+      }
+    }
+    InterfaceType superclass = targetType.superclass;
+    if (superclass == null) {
+      return null;
+    }
+    return _lookUpMemberInInterfaces(
+        superclass, true, library, visitedInterfaces, getMember);
+  }
 }
 
 /**
@@ -7307,6 +7536,15 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   List<ExportElement> _exports = ExportElement.EMPTY_LIST;
 
   /**
+   * A list containing the strongly connected component in the import/export
+   * graph in which the current library resides.  Computed on demand, null
+   * if not present.  If _libraryCycle is set, then the _libraryCycle field
+   * for all libraries reachable from this library in the import/export graph
+   * is also set.
+   */
+  List<LibraryElement> _libraryCycle = null;
+
+  /**
    * A list containing all of the compilation units that are included in this
    * library using a `part` directive.
    */
@@ -7494,52 +7732,73 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @override
   LibraryElement get library => this;
 
-  @override
-  FunctionElement get loadLibraryFunction {
-    if (_loadLibraryFunction == null) {
-      FunctionElementImpl function =
-          new FunctionElementImpl(FunctionElement.LOAD_LIBRARY_NAME, -1);
-      function.synthetic = true;
-      function.enclosingElement = this;
-      function.returnType = loadLibraryReturnType;
-      function.type = new FunctionTypeImpl(function);
-      _loadLibraryFunction = function;
+  List<LibraryElement> get libraryCycle {
+    if (_libraryCycle != null) {
+      return _libraryCycle;
     }
-    return _loadLibraryFunction;
+
+    // Global counter for this run of the algorithm
+    int counter = 0;
+    // The discovery times of each library
+    Map<LibraryElementImpl, int> indices = {};
+    // The set of scc candidates
+    Set<LibraryElementImpl> active = new Set();
+    // The stack of discovered elements
+    List<LibraryElementImpl> stack = [];
+    // For a given library that has not yet been processed by this run of the
+    // algorithm, compute the strongly connected components.
+    int scc(LibraryElementImpl library) {
+      int index = counter++;
+      int root = index;
+      indices[library] = index;
+      active.add(library);
+      stack.add(library);
+      void recurse(LibraryElementImpl child) {
+        if (!indices.containsKey(child)) {
+          // We haven't visited this child yet, so recurse on the child,
+          // returning the lowest numbered node reachable from the child.  If
+          // the child can reach a root which is lower numbered than anything
+          // we've reached so far, update the root.
+          root = min(root, scc(child));
+        } else if (active.contains(child)) {
+          // The child has been visited, but has not yet been placed into a
+          // component.  If the child is higher than anything we've seen so far
+          // update the root appropriately.
+          root = min(root, indices[child]);
+        }
+      }
+      // Recurse on all of the children in the import/export graph, filtering
+      // out those for which library cycles have already been computed.
+      library.exportedLibraries
+          .where((l) => l._libraryCycle == null)
+          .forEach(recurse);
+      library.importedLibraries
+          .where((l) => l._libraryCycle == null)
+          .forEach(recurse);
+
+      if (root == index) {
+        // This is the root of a strongly connected component.
+        // Pop the elements, and share the component across all
+        // of the elements.
+        List<LibraryElement> component = <LibraryElement>[];
+        LibraryElementImpl cur = null;
+        do {
+          cur = stack.removeLast();
+          active.remove(cur);
+          component.add(cur);
+          cur._libraryCycle = component;
+        } while (cur != library);
+      }
+      return root;
+    }
+    scc(library);
+    return _libraryCycle;
   }
 
-  /**
-   * Return the object representing the type 'Future' from the 'dart:async'
-   * library, or the type 'void' if the type 'Future' cannot be accessed.
-   */
-  DartType get loadLibraryReturnType {
-    try {
-      Source asyncSource = context.sourceFactory.forUri(DartSdk.DART_ASYNC);
-      if (asyncSource == null) {
-        AnalysisEngine.instance.logger
-            .logError("Could not create a source for dart:async");
-        return VoidTypeImpl.instance;
-      }
-      LibraryElement asyncElement = context.computeLibraryElement(asyncSource);
-      if (asyncElement == null) {
-        AnalysisEngine.instance.logger
-            .logError("Could not build the element model for dart:async");
-        return VoidTypeImpl.instance;
-      }
-      ClassElement futureElement = asyncElement.getType("Future");
-      if (futureElement == null) {
-        AnalysisEngine.instance.logger
-            .logError("Could not find type Future in dart:async");
-        return VoidTypeImpl.instance;
-      }
-      InterfaceType futureType = futureElement.type;
-      return futureType.substitute4(<DartType>[DynamicTypeImpl.instance]);
-    } on AnalysisException catch (exception, stackTrace) {
-      AnalysisEngine.instance.logger.logError(
-          "Could not build the element model for dart:async",
-          new CaughtException(exception, stackTrace));
-      return VoidTypeImpl.instance;
-    }
+  @override
+  FunctionElement get loadLibraryFunction {
+    assert(_loadLibraryFunction != null);
+    return _loadLibraryFunction;
   }
 
   @override
@@ -7600,6 +7859,20 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @override
   accept(ElementVisitor visitor) => visitor.visitLibraryElement(this);
 
+  /**
+   * Create the [FunctionElement] to be returned by [loadLibraryFunction],
+   * using types provided by [typeProvider].
+   */
+  void createLoadLibraryFunction(TypeProvider typeProvider) {
+    FunctionElementImpl function =
+        new FunctionElementImpl(FunctionElement.LOAD_LIBRARY_NAME, -1);
+    function.synthetic = true;
+    function.enclosingElement = this;
+    function.returnType = typeProvider.futureDynamicType;
+    function.type = new FunctionTypeImpl(function);
+    _loadLibraryFunction = function;
+  }
+
   @override
   ElementImpl getChild(String identifier) {
     if ((_definingCompilationUnit as CompilationUnitElementImpl).identifier ==
@@ -7649,6 +7922,57 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       }
     }
     return null;
+  }
+
+  /** Given an update to this library which may have added or deleted edges
+   * in the import/export graph originating from this node only, remove any
+   * cached library cycles in the element model which may have been invalidated.
+   */
+  void invalidateLibraryCycles() {
+    if (_libraryCycle == null) {
+      // We have already invalidated this node, or we have never computed
+      // library cycle information for it.  In the former case, we're done. In
+      // the latter case, this node cannot be reachable from any node for which
+      // we have computed library cycle information.  Therefore, any edges added
+      // or deleted in the update causing this invalidation can only be edges to
+      // nodes which either have no library cycle information (and hence do not
+      // need invalidation), or which do not reach this node by any path.
+      // In either case, no further invalidation is needed.
+      return;
+    }
+    // If we have pre-computed library cycle information, then we must
+    // invalidate the information both on this element, and on certain
+    // other elements.  Edges originating at this node may have been
+    // added or deleted.  A deleted edge that points outside of this cycle
+    // cannot change the cycle information for anything outside of this cycle,
+    // and so it is sufficient to delete the cached library information on this
+    // cycle.  An added edge which points to another node within the cycle
+    // only invalidates the cycle.  An added edge which points to a node earlier
+    // in the topological sort of cycles induces no invalidation (since there
+    // are by definition no back edges from earlier cycles in the topological
+    // order, and hence no possible cycle can have been introduced.  The only
+    // remaining case is that we have added an edge to a node which is later
+    // in the topological sort of cycles.  This can induce cycles, since it
+    // represents a new back edge.  It would be sufficient to invalidate the
+    // cycle information for all nodes that are between the target and the
+    // node in the topological order.  For simplicity, we simply invalidate
+    // all nodes which are reachable from the the source node.
+    // Note that in the invalidation phase, we do not cut off when we encounter
+    // a node with no library cycle information, since we do not know whether
+    // we are in the case where invalidation has already been performed, or we
+    // are in the case where library cycles have simply never been computed from
+    // a newly reachable node.
+    Set<LibraryElementImpl> active = new HashSet();
+    void invalidate(LibraryElementImpl library) {
+      if (!active.add(library)) return;
+      if (library._libraryCycle != null) {
+        library._libraryCycle.forEach(invalidate);
+        library._libraryCycle = null;
+      }
+      library.exportedLibraries.forEach(invalidate);
+      library.importedLibraries.forEach(invalidate);
+    }
+    invalidate(this);
   }
 
   @override
@@ -7784,7 +8108,6 @@ abstract class LocalVariableElement implements LocalElement, VariableElement {
  * A concrete implementation of a [LocalVariableElement].
  */
 class LocalVariableElementImpl extends VariableElementImpl
-    with PotentiallyConstVariableElement
     implements LocalVariableElement {
   /**
    * An empty list of field elements.
@@ -7916,6 +8239,9 @@ abstract class Member implements Element {
 
   @override
   String get displayName => _baseElement.displayName;
+
+  @override
+  SourceRange get docRange => _baseElement.docRange;
 
   int get id => _baseElement.id;
 
@@ -8427,6 +8753,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   String get displayName => _name;
 
   @override
+  SourceRange get docRange => null;
+
+  @override
   Element get enclosingElement => null;
 
   @override
@@ -8715,7 +9044,7 @@ abstract class ParameterElement
  * A concrete implementation of a [ParameterElement].
  */
 class ParameterElementImpl extends VariableElementImpl
-    with ParameterElementMixin, PotentiallyConstVariableElement
+    with ParameterElementMixin
     implements ParameterElement {
   /**
    * An empty list of parameter elements.
@@ -9071,28 +9400,6 @@ class ParameterMember extends VariableMember
     }
     return new ParameterMember(parameter, definingType);
   }
-}
-
-/**
- * Interface used by elements that might represent constant variables.
- *
- * This class may be used as a mixin in the case where [constInitializer] is
- * known to return null.
- *
- * This class is not intended to be part of the public API for analyzer.
- */
-abstract class PotentiallyConstVariableElement
-    implements VariableElementImpl, ConstantEvaluationTarget {
-  /**
-   * If this element represents a constant variable, and it has an initializer,
-   * a copy of the initializer for the constant.  Otherwise `null`.
-   *
-   * Note that in correct Dart code, all constant variables must have
-   * initializers.  However, analyzer also needs to handle incorrect Dart code,
-   * in which case there might be some constant variables that lack
-   * initializers.
-   */
-  Expression get constantInitializer => null;
 }
 
 /**
@@ -9904,7 +10211,6 @@ abstract class TopLevelVariableElement implements PropertyInducingElement {
  * A concrete implementation of a [TopLevelVariableElement].
  */
 class TopLevelVariableElementImpl extends PropertyInducingElementImpl
-    with PotentiallyConstVariableElement
     implements TopLevelVariableElement {
   /**
    * An empty list of top-level variable elements.
@@ -10498,6 +10804,15 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
   static const List<VariableElement> EMPTY_LIST = const <VariableElement>[];
 
   /**
+   * Return a representation of the value of this variable.
+   *
+   * Return `null` if either this variable was not declared with the 'const'
+   * modifier or if the value of this variable could not be computed because of
+   * errors.
+   */
+  DartObject get constantValue;
+
+  /**
    * Return `true` if this variable element did not have an explicit type
    * specified for it.
    */
@@ -10601,6 +10916,20 @@ abstract class VariableElementImpl extends ElementImpl
   }
 
   /**
+   * If this element represents a constant variable, and it has an initializer,
+   * a copy of the initializer for the constant.  Otherwise `null`.
+   *
+   * Note that in correct Dart code, all constant variables must have
+   * initializers.  However, analyzer also needs to handle incorrect Dart code,
+   * in which case there might be some constant variables that lack
+   * initializers.
+   */
+  Expression get constantInitializer => null;
+
+  @override
+  DartObject get constantValue => null;
+
+  /**
    * Return the result of evaluating this variable's initializer as a
    * compile-time constant expression, or `null` if this variable is not a
    * 'const' variable, if it does not have an initializer, or if the compilation
@@ -10691,6 +11020,9 @@ abstract class VariableMember extends Member implements VariableElement {
 
   @override
   VariableElement get baseElement => super.baseElement as VariableElement;
+
+  @override
+  DartObject get constantValue => baseElement.constantValue;
 
   @override
   bool get hasImplicitType => baseElement.hasImplicitType;

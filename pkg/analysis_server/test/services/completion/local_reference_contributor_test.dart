@@ -4,9 +4,10 @@
 
 library test.services.completion.dart.local;
 
-import 'package:analysis_server/src/protocol.dart' as protocol
+import 'package:analysis_server/plugin/protocol/protocol.dart' as protocol
     show Element, ElementKind;
-import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
+import 'package:analysis_server/plugin/protocol/protocol.dart'
+    hide Element, ElementKind;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/local_reference_contributor.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -602,6 +603,38 @@ class B extends A {
     assertNotSuggested('MC');
   }
 
+  test_inComment_block_beforeNode() {
+    addTestSource('''
+main(aaa, bbb) {
+  /* text ^ */
+  print(42);
+}
+''');
+    expect(computeFast(), isTrue);
+    assertNoSuggestions();
+  }
+
+  test_inComment_endOfLine_beforeNode() {
+    addTestSource('''
+main(aaa, bbb) {
+  // text ^
+  print(42);
+}
+''');
+    expect(computeFast(), isTrue);
+    assertNoSuggestions();
+  }
+
+  test_inComment_endOfLine_beforeToken() {
+    addTestSource('''
+main(aaa, bbb) {
+  // text ^
+}
+''');
+    expect(computeFast(), isTrue);
+    assertNoSuggestions();
+  }
+
   test_InstanceCreationExpression() {
     addTestSource('''
 class A {foo(){var f; {var x;}}}
@@ -791,6 +824,20 @@ class B extends A {m() {^}}
 ''');
     expect(computeFast(), isTrue);
     assertSuggestMethod('m', 'B', null, relevance: DART_RELEVANCE_LOCAL_METHOD);
+  }
+
+  test_prioritization_private() {
+    addTestSource('main() {var ab; var _ab; _^}');
+    expect(computeFast(), isTrue);
+    assertSuggestLocalVariable('ab', null);
+    assertSuggestLocalVariable('_ab', null);
+  }
+
+  test_prioritization_public() {
+    addTestSource('main() {var ab; var _ab; a^}');
+    expect(computeFast(), isTrue);
+    assertSuggestLocalVariable('ab', null);
+    assertSuggestLocalVariable('_ab', null, relevance: DART_RELEVANCE_DEFAULT);
   }
 
   test_shadowed_name() {

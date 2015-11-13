@@ -6,11 +6,10 @@ library services.index;
 
 import 'dart:async';
 
-import 'package:analysis_server/analysis/index_core.dart';
+import 'package:analysis_server/plugin/index/index_core.dart';
 import 'package:analysis_server/src/services/index/indexable_element.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart';
 
 /**
  * A filter for [Element] names.
@@ -79,18 +78,15 @@ class IndexableName implements IndexableObject {
   IndexableName(this.name);
 
   @override
-  IndexableObjectKind get kind => IndexableNameKind.INSTANCE;
+  String get filePath => null;
 
   @override
-  int get length => 0;
+  IndexableNameKind get kind => IndexableNameKind.INSTANCE;
 
   @override
   int get offset {
     return -1;
   }
-
-  @override
-  Source get source => null;
 
   @override
   bool operator ==(Object object) =>
@@ -103,7 +99,7 @@ class IndexableName implements IndexableObject {
 /**
  * The kind of an indexable name.
  */
-class IndexableNameKind implements IndexableObjectKind {
+class IndexableNameKind implements IndexableObjectKind<IndexableName> {
   /**
    * The unique instance of this class.
    */
@@ -123,9 +119,15 @@ class IndexableNameKind implements IndexableObjectKind {
   }
 
   @override
-  IndexableObject decode(AnalysisContext context, String filePath, int offset) {
+  IndexableName decode(AnalysisContext context, String filePath, int offset) {
     throw new UnsupportedError(
         'Indexable names cannot be decoded through their kind');
+  }
+
+  @override
+  int encodeHash(StringToInt stringToInt, IndexableName indexable) {
+    String name = indexable.name;
+    return stringToInt(name);
   }
 }
 
@@ -335,7 +337,7 @@ class RelationshipImpl implements Relationship {
   static int _NEXT_HASH_CODE = 0;
 
   /**
-   * The artifitial hash code for this object.
+   * The artificial hash code for this object.
    */
   final int _hashCode = _NEXT_HASH_CODE++;
 

@@ -61,6 +61,7 @@ import 'dart:web_audio' as web_audio;
 import 'dart:web_audio' show web_audioBlinkMap;
 import 'dart:web_audio' show web_audioBlinkFunctionMap;
 import 'dart:_blink' as _blink;
+import 'dart:developer';
 
 export 'dart:math' show Rectangle, Point;
 
@@ -117,7 +118,7 @@ Window get window {
   }
 $if DARTIUM
 $if JSINTEROP
-  _window = wrap_jso(js.context['window']);
+  _window = wrap_jso(js.JsNative.getProperty(js.context, 'window'));
 $else
   _window = _Utils.window();
 $endif
@@ -150,6 +151,7 @@ Future<Isolate> spawnDomUri(Uri uri, List<String> args, message) {
   return _Utils.spawnDomUri(uri.toString());
 }
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final htmlBlinkMap = {
   '_HistoryCrossFrame': () => _HistoryCrossFrame,
   '_LocationCrossFrame': () => _LocationCrossFrame,
@@ -252,12 +254,14 @@ Type _getSvgType(String key) {
 
 $if JSINTEROP
 // FIXME: Can we make this private?
+@Deprecated("Internal Use Only")
 final htmlBlinkFunctionMap = {
 $!TYPE_FUNCTION_MAP
 };
 
 // TODO(terry): We may want to move this elsewhere if html becomes
 // a package to avoid dartium depending on pkg:html.
+@Deprecated("Internal Use Only")
 getHtmlCreateFunction(String key) {
   var result;
 
@@ -351,134 +355,63 @@ Function _getSvgFunction(String key) {
  **********                                                          **********
  ******************************************************************************/
 
-Rectangle make_dart_rectangle(r) =>
-    r == null ? null : new Rectangle(r['left'], r['top'], r['width'], r['height']);
-
-// Need a default constructor for constructing classes with mixins that are
-// also extending NativeFieldWrapperClass2.  Defining JsoNativeFieldWrapper
-// extending NativeFieldWrapperClass2 creates a default constructor.
-class JsoNativeFieldWrapper extends NativeFieldWrapperClass2 {}
-
-// Flag to disable JS interop asserts.  Setting to false will speed up the
-// wrap_jso calls.
-bool __interop_checks = true;
-
-/** Expando for JsObject, used by every Dart class associated with a Javascript
- *  class (e.g., DOM, WebAudio, etc.).
- */
-
-/**
- * Return the JsObject associated with a Dart class [dartClass_instance].
- */
-unwrap_jso(dartClass_instance) {
-  try {
-    if (dartClass_instance != null)
-      return dartClass_instance is NativeFieldWrapperClass2 ?
-          dartClass_instance.blink_jsObject : dartClass_instance;
-    else
-      return null;
-  } catch(NoSuchMethodException) {
-    // No blink_jsObject then return the dartClass_instance is probably an
-    // array that was already converted to a Dart class e.g., Uint8ClampedList.
-    return dartClass_instance;
+String _getCustomElementExtends(object) {
+  var entry = getCustomElementEntry(object);
+  if (entry != null) {
+    return entry['extends'];
   }
-}
-
-/**
- * Create Dart class that maps to the JS Type, add the JsObject as an expando
- * on the Dart class and return the created Dart class.
- */
-wrap_jso(jsObject) {
-  try {
-    if (jsObject is! js.JsObject) {
-      // JS Interop converted the object to a Dart class e.g., Uint8ClampedList.
-      return jsObject;
-    }
-    // Try the most general type conversions on it.
-    // TODO(alanknight): We may be able to do better. This maintains identity,
-    // which is useful, but expensive. And if we nest something that only
-    // this conversion handles, how does that work? e.g. a list of maps of elements.
-    var converted = convertNativeToDart_SerializedScriptValue(jsObject);
-    if (!identical(converted, jsObject)) {
-      return converted;
-    }
-    var constructor = jsObject['constructor'];
-    if (__interop_checks) {
-      debug_or_assert("constructor != null", constructor != null);
-    }
-    var jsTypeName = constructor['name'];
-    if (__interop_checks) {
-      debug_or_assert("constructor != null && jsTypeName.length > 0", constructor != null && jsTypeName.length > 0);
-    }
-
-    var dartClass_instance;
-    if (jsObject.hasProperty('dart_class')) {
-      // Got a dart_class (it's a custom element) use it it's already set up.
-      dartClass_instance = jsObject['dart_class'];
-    } else {
-      var func = getHtmlCreateFunction(jsTypeName);
-      if (func != null) {
-        dartClass_instance = func();
-        dartClass_instance.blink_jsObject = jsObject;
-      }
-    }
-    return dartClass_instance;
-  } catch(e, stacktrace){
-    if (__interop_checks) {
-      if (e is DebugAssertException)
-        window.console.log("${e.message}\n ${stacktrace}");
-      else
-        window.console.log("${stacktrace}");
-    }
-  }
-
   return null;
 }
 
-/**
- * Create Dart class that maps to the JS Type that is the JS type being
- * extended using JS interop createCallback (we need the base type of the
- * custom element) not the Dart created constructor.
- */
-wrap_jso_custom_element(jsObject) {
-  try {
-    if (jsObject is! js.JsObject) {
-      // JS Interop converted the object to a Dart class e.g., Uint8ClampedList.
-      return jsObject;
+// Return the tag name or is attribute of the custom element or data binding.
+String _getCustomElementName(element) {
+  var jsObject;
+  var tag = "";
+  var runtimeType = element.runtimeType;
+  if (runtimeType == HtmlElement) {
+    tag = element.localName;
+  } else if (runtimeType == TemplateElement) {
+    // Data binding with a Dart class.
+    tag = element.attributes['is'];
+  } else if (runtimeType == js.JsObjectImpl) {
+    // It's a Polymer core element (written in JS).
+    // Make sure it's an element anything else we can ignore.
+    if (element.hasProperty('nodeType') && element['nodeType'] == 1) {
+      if (js.JsNative.callMethod(element, 'hasAttribute', ['is'])) {
+        // It's data binding use the is attribute.
+        tag = js.JsNative.callMethod(element, 'getAttribute', ['is']);
+      } else {
+        // It's a custom element we want the local name.
+        tag = element['localName'];
+      }
     }
-
-    // Find out what object we're extending.
-    var objectName = jsObject.toString();
-    // Expect to see something like '[object HTMLElement]'.
-    if (!objectName.startsWith('[object ')) {
-      return jsObject;
-    }
-
-    var extendsClass = objectName.substring(8, objectName.length - 1);
-    var func = getHtmlCreateFunction(extendsClass);
-    if (__interop_checks)
-      debug_or_assert("func != null name = ${extendsClass}", func != null);
-    var dartClass_instance = func();
-    dartClass_instance.blink_jsObject = jsObject;
-    return dartClass_instance;
-  } catch(e, stacktrace){
-    if (__interop_checks) {
-      if (e is DebugAssertException)
-        window.console.log("${e.message}\n ${stacktrace}");
-      else
-        window.console.log("${stacktrace}");
-    }
-
-    // Problem?
-    return null;
+  } else {
+    throw new UnsupportedError('Element is incorrect type. Got ${runtimeType}, expected HtmlElement/HtmlTemplate/JsObjectImpl.');
   }
+
+  return tag;
 }
 
+/// An abstract class for all DOM objects we wrap in dart:html and related
+///  libraries.
+///
+/// ** Internal Use Only **
+@Deprecated("Internal Use Only")
+class DartHtmlDomObject {
+
+  /// The underlying JS DOM object.
+  @Deprecated("Internal Use Only")
+  js.JsObject blink_jsObject;
+
+}
+
+@Deprecated("Internal Use Only")
 class DebugAssertException implements Exception {
   String message;
   DebugAssertException(this.message);
 }
 
+@Deprecated("Internal Use Only")
 debug_or_assert(message, expression) {
   if (!expression) {
     throw new DebugAssertException("$message");
@@ -491,6 +424,7 @@ debug_or_assert(message, expression) {
 //              user's this (this is needed for futures) and listener function.
 Map<int, Map<int, js.JsFunction>> _knownListeners = {};
 
+@Deprecated("Internal Use Only")
 js.JsFunction wrap_event_listener(theObject, Function listener) {
   var thisHashCode = theObject.hashCode;
   var listenerHashCode = identityHashCode(listener);
@@ -502,50 +436,44 @@ js.JsFunction wrap_event_listener(theObject, Function listener) {
   return _knownListeners[thisHashCode][listenerHashCode];
 }
 
+@Deprecated("Internal Use Only")
 Map<String, dynamic> convertNativeObjectToDartMap(js.JsObject jsObject) {
   var result = new Map();
-  var keys = js.context['Object'].callMethod('keys', [jsObject]);
+  var keys = js.JsNative.callMethod(js.JsNative.getProperty(js.context, 'Object'), 'keys', [jsObject]);
   for (var key in keys) {
-    result[key] = wrap_jso(jsObject[key]);
+    result[key] = wrap_jso(js.JsNative.getProperty(jsObject, key));
   }
   return result;
 }
 
-// Converts a flat Dart map into a JavaScript object with properties this is
-// is the Dartium only version it uses dart:js.
-// TODO(alanknight): This could probably be unified with the dart2js conversions
-// code in html_common and be more general.
-convertDartToNative_Dictionary(Map dict) {
-  if (dict == null) return null;
-  var jsObject = new js.JsObject(js.context['Object']);
-  dict.forEach((String key, value) {
-    if (value is List) {
-      var jsArray = new js.JsArray();
-      value.forEach((elem) {
-        jsArray.add(elem is Map ? convertDartToNative_Dictionary(elem): elem);
-      });
-      jsObject[key] = jsArray;
-    } else {
-      jsObject[key] = value;
+/**
+ * Upgrade the JS HTMLElement to the Dart class.  Used by Dart's Polymer.
+ */
+_createCustomUpgrader(Type customElementClass, $this) {
+  var dartClass;
+  try {
+    dartClass = _blink.Blink_Utils.constructElement(customElementClass, $this);
+  } catch (e) {
+    // Did the dartClass get allocated but the created failed?  Otherwise, other
+    // components inside of this failed somewhere (could be JS custom element).
+    if (dartClass != null) {
+      // Yes, mark as didn't upgrade.
+      dartClass._badUpgrade();
     }
-  });
-  return jsObject;
+    throw e;
+  } finally {
+    // Need to remember the Dart class that was created for this custom so
+    // return it and setup the blink_jsObject to the $this that we'll be working
+    // with as we talk to blink.
+    js.setDartHtmlWrapperFor($this, dartClass);
+  }
+
+  return dartClass;
 }
 
-// Converts a Dart list into a JsArray. For the Dartium version only.
-convertDartToNative_List(List input) => new js.JsArray()..addAll(input);
-
-// Conversion function place holder (currently not used in dart2js or dartium).
-List convertDartToNative_StringArray(List<String> input) => input;
-
 $else
-class JsoNativeFieldWrapper extends NativeFieldWrapperClass2 {}
+class DartHtmlDomObject extends NativeFieldWrapperClass2 {}
 
-unwrap_jso(dartClass_instance) => dartClass_instance;
-wrap_jso(jsObject) => jsObject;
-make_dart_rectangle(r) => r;
-convertDartToNative_Dictionary(Map dict) => dict;
-List convertDartToNative_StringArray(List<String> input) => input;
-convertDartToNative_List(List input) => input;
+_createCustomUpgrader(Type customElementClass, $this) => $this;
 
 $endif

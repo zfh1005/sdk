@@ -691,6 +691,32 @@ class A {
     verify([source]);
   }
 
+  void test_bug_24539_getter() {
+    Source source = addSource('''
+class C<T> {
+  List<Foo> get x => null;
+}
+
+typedef Foo(param);
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_bug_24539_setter() {
+    Source source = addSource('''
+class C<T> {
+  void set x(List<Foo> value) {}
+}
+
+typedef Foo(param);
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_builtInIdentifierAsType_dynamic() {
     Source source = addSource(r'''
 f() {
@@ -1824,6 +1850,30 @@ class A implements Function {
   noSuchMethod(inv) {
     return 42;
   }
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_functionWithoutCall_withNoSuchMethod_mixin() {
+    Source source = addSource(r'''
+class A {
+  noSuchMethod(inv) {}
+}
+class B extends Object with A implements Function {
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_functionWithoutCall_withNoSuchMethod_superclass() {
+    Source source = addSource(r'''
+class A {
+  noSuchMethod(inv) {}
+}
+class B extends A implements Function {
 }''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
@@ -3597,6 +3647,32 @@ class B extends A {
     verify([source]);
   }
 
+  void test_nonAbstractClassInheritsAbstractMemberOne_noSuchMethod_mixin() {
+    Source source = addSource(r'''
+class A {
+  noSuchMethod(v) => '';
+}
+class B extends Object with A {
+  m(p);
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_nonAbstractClassInheritsAbstractMemberOne_noSuchMethod_superclass() {
+    Source source = addSource(r'''
+class A {
+  noSuchMethod(v) => '';
+}
+class B extends A {
+  m(p);
+}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_nonAbstractClassInheritsAbstractMemberOne_overridesMethodInObject() {
     Source source = addSource(r'''
 class A {
@@ -3638,6 +3714,21 @@ f(bool pb, pd) {
   !pb;
   !pd;
 }''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_nonBoolNegationExpression_dynamic() {
+    Source source = addSource(r'''
+f1(bool dynamic) {
+  !dynamic;
+}
+f2() {
+  bool dynamic = true;
+  !dynamic;
+}
+''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);

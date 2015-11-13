@@ -6,6 +6,7 @@ library dart2js.ir_builder_task;
 
 import '../closure.dart' as closurelib;
 import '../closure.dart' hide ClosureScope;
+import '../common.dart';
 import '../common/names.dart' show
     Names,
     Selectors;
@@ -15,22 +16,20 @@ import '../compiler.dart' show
     Compiler;
 import '../constants/expressions.dart';
 import '../dart_types.dart';
-import '../diagnostics/invariant.dart' show
-    invariant;
 import '../elements/elements.dart';
 import '../elements/modelx.dart' show
     SynthesizedConstructorElementX,
     ConstructorBodyElementX,
     FunctionSignatureX;
 import '../io/source_information.dart';
+import '../js_backend/backend_helpers.dart' show
+    BackendHelpers;
 import '../js_backend/js_backend.dart' show
     JavaScriptBackend,
     SyntheticConstantKind;
 import '../resolution/tree_elements.dart' show
     TreeElements;
 import '../resolution/semantic_visitor.dart';
-import '../resolution/send_resolver.dart' show
-    SendResolverMixin;
 import '../resolution/operators.dart' as op;
 import '../tree/tree.dart' as ast;
 import '../types/types.dart' show
@@ -54,6 +53,8 @@ import '../util/util.dart';
 import 'package:js_runtime/shared/embedded_names.dart'
     show JsBuiltin, JsGetName;
 import '../constants/values.dart';
+import 'type_mask_system.dart' show
+    TypeMaskSystem;
 
 typedef void IrBuilderCallback(Element element, ir.FunctionDefinition irNode);
 
@@ -77,19 +78,21 @@ class IrBuilderTask extends CompilerTask {
 
   String get name => 'CPS builder';
 
-  ir.FunctionDefinition buildNode(AstElement element) {
+  ir.FunctionDefinition buildNode(AstElement element,
+                                  TypeMaskSystem typeMaskSystem) {
     return measure(() {
       bailoutMessage = null;
 
       TreeElements elementsMapping = element.resolvedAst.elements;
       element = element.implementation;
-      return compiler.withCurrentElement(element, () {
+      return reporter.withCurrentElement(element, () {
         SourceInformationBuilder sourceInformationBuilder =
             sourceInformationStrategy.createBuilderForContext(element);
 
         IrBuilderVisitor builder =
             new JsIrBuilderVisitor(
-                elementsMapping, compiler, sourceInformationBuilder);
+                elementsMapping, compiler, sourceInformationBuilder,
+                typeMaskSystem);
         ir.FunctionDefinition irNode = builder.buildExecutable(element);
         if (irNode == null) {
           bailoutMessage = builder.bailoutMessage;
@@ -114,7 +117,6 @@ class IrBuilderTask extends CompilerTask {
 abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     with IrBuilderMixin<ast.Node>,
          SemanticSendResolvedMixin<ir.Primitive, dynamic>,
-         SendResolverMixin,
          ErrorBulkMixin<ir.Primitive, dynamic>,
          BaseImplementationOfStaticsMixin<ir.Primitive, dynamic>,
          BaseImplementationOfLocalsMixin<ir.Primitive, dynamic>,
@@ -128,6 +130,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   final TreeElements elements;
   final Compiler compiler;
   final SourceInformationBuilder sourceInformationBuilder;
+  final TypeMaskSystem typeMaskSystem;
 
   /// A map from try statements in the source to analysis information about
   /// them.
@@ -158,7 +161,10 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   /// Construct a top-level visitor.
   IrBuilderVisitor(this.elements,
                    this.compiler,
-                   this.sourceInformationBuilder);
+                   this.sourceInformationBuilder,
+                   this.typeMaskSystem);
+
+  DiagnosticReporter get reporter => compiler.reporter;
 
   String bailoutMessage = null;
 
@@ -226,6 +232,16 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return irBuilder.makeFunctionDefinition();
   }
 
+  /// Returns the allocation site-specific type for a given allocation.
+  ///
+  /// Currently, it is an error to call this with anything that is not the
+  /// allocation site for a List object (a literal list or a call to one
+  /// of the List constructors).
+  TypeMask getAllocationSiteType(ast.Node node) {
+    return compiler.typesTask.getGuaranteedTypeOfNode(
+        elements.analyzedElement, node);
+  }
+
   ir.Primitive visit(ast.Node node) => node.accept(this);
 
   // ## Statements ##
@@ -235,14 +251,14 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
 
   ir.Primitive visitBreakStatement(ast.BreakStatement node) {
     if (!irBuilder.buildBreak(elements.getTargetOf(node))) {
-      compiler.internalError(node, "'break' target not found");
+      reporter.internalError(node, "'break' target not found");
     }
     return null;
   }
 
   ir.Primitive visitContinueStatement(ast.ContinueStatement node) {
     if (!irBuilder.buildContinue(elements.getTargetOf(node))) {
-      compiler.internalError(node, "'continue' target not found");
+      reporter.internalError(node, "'continue' target not found");
     }
     return null;
   }
@@ -408,6 +424,21 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         closureScope: getClosureScopeForNode(node));
   }
 
+  /// If compiling with trusted type annotations, assumes that [value] is
+  /// now known to be `null` or an instance of [type].
+  ///
+  /// This is also where we should add type checks in checked mode, but this
+  /// is not supported yet.
+  ir.Primitive checkType(ir.Primitive value, DartType dartType) {
+    if (!compiler.trustTypeAnnotations) return value;
+    TypeMask type = typeMaskSystem.subtypesOf(dartType).nullable();
+    return irBuilder.buildRefinement(value, type);
+  }
+
+  ir.Primitive checkTypeVsElement(ir.Primitive value, TypedElement element) {
+    return checkType(value, element.type);
+  }
+
   ir.Primitive visitVariableDefinitions(ast.VariableDefinitions node) {
     assert(irBuilder.isOpen);
     for (ast.Node definition in node.definitions.nodes) {
@@ -419,6 +450,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         assert(!definition.arguments.isEmpty);
         assert(definition.arguments.tail.isEmpty);
         initialValue = visit(definition.arguments.head);
+        initialValue = checkTypeVsElement(initialValue, element);
       } else {
         assert(definition is ast.Identifier);
       }
@@ -439,7 +471,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     SourceInformation source = sourceInformationBuilder.buildReturn(node);
     if (node.beginToken.value == 'native') {
       FunctionElement function = irBuilder.state.currentElement;
-      assert(function.isNative);
+      assert(compiler.backend.isNative(function));
       ast.Node nativeBody = node.expression;
       if (nativeBody != null) {
         ast.LiteralString jsCode = nativeBody.asLiteralString();
@@ -453,7 +485,9 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
               'functions with zero parameters.'));
         irBuilder.buildNativeFunctionBody(function, javaScriptCode);
       } else {
-        irBuilder.buildRedirectingNativeFunctionBody(function, source);
+        JavaScriptBackend backend = compiler.backend;
+        String name = backend.getFixedBackendName(function);
+        irBuilder.buildRedirectingNativeFunctionBody(function, name, source);
       }
     } else {
       irBuilder.buildReturn(
@@ -499,7 +533,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     ir.Primitive value = visit(node.expression);
     JumpTarget target = elements.getTargetDefinition(node);
     Element error =
-        (compiler.backend as JavaScriptBackend).getFallThroughError();
+        (compiler.backend as JavaScriptBackend).helpers.fallThroughError;
     irBuilder.buildSimpleSwitch(target, value, cases, defaultCase, error,
         sourceInformationBuilder.buildGeneric(node));
   }
@@ -607,7 +641,8 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     }
     List<ir.Primitive> values = node.elements.nodes.mapToList(visit);
     InterfaceType type = elements.getType(node);
-    return irBuilder.buildListLiteral(type, values);
+    return irBuilder.buildListLiteral(type, values,
+        allocationSiteType: getAllocationSiteType(node));
   }
 
   ir.Primitive visitLiteralMap(ast.LiteralMap node) {
@@ -1401,7 +1436,9 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       LocalElement element,
       ast.Node rhs,
       _) {
-    return irBuilder.buildLocalVariableSet(element, visit(rhs));
+    ir.Primitive value = visit(rhs);
+    value = checkTypeVsElement(value, element);
+    return irBuilder.buildLocalVariableSet(element, value);
   }
 
   @override
@@ -2065,8 +2102,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive bulkHandleError(ast.Send node, ErroneousElement error, _) {
-    assert(compiler.compilationFailed);
+  ir.Primitive bulkHandleError(ast.Node node, ErroneousElement error, _) {
     return irBuilder.buildNullConstant();
   }
 
@@ -2259,7 +2295,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   internalError(ast.Node node, String message) {
-    compiler.internalError(node, message);
+    reporter.internalError(node, message);
   }
 
   @override
@@ -2275,16 +2311,11 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
 
 final String ABORT_IRNODE_BUILDER = "IrNode builder aborted";
 
-/// Classifies local variables and local functions as captured, if they
-/// are accessed from within a nested function.
-///
-/// This class is specific to the [DartIrBuilder], in that it gives up if it
-/// sees a feature that is currently unsupport by that builder. In particular,
-/// loop variables captured in a for-loop initializer, condition, or update
-/// expression are unsupported.
-class DartCapturedVariables extends ast.Visitor {
+/// Determines which local variables should be boxed in a mutable variable
+/// inside a given try block.
+class TryBoxedVariables extends ast.Visitor {
   final TreeElements elements;
-  DartCapturedVariables(this.elements);
+  TryBoxedVariables(this.elements);
 
   FunctionElement currentFunction;
   bool insideInitializer = false;
@@ -2328,25 +2359,6 @@ class DartCapturedVariables extends ast.Visitor {
 
   visitNode(ast.Node node) {
     node.visitChildren(this);
-  }
-
-  visitFor(ast.For node) {
-    if (node.initializer != null) visit(node.initializer);
-    if (node.condition != null) visit(node.condition);
-    if (node.update != null) visit(node.update);
-
-    // Give up if a variable was captured outside of the loop body.
-    if (node.initializer is ast.VariableDefinitions) {
-      ast.VariableDefinitions definitions = node.initializer;
-      for (ast.Node node in definitions.definitions.nodes) {
-        LocalElement loopVariable = elements[node];
-        if (capturedVariables.contains(loopVariable)) {
-          return giveup(node, 'For-loop variable captured in loop header');
-        }
-      }
-    }
-
-    if (node.body != null) visit(node.body);
   }
 
   void handleSend(ast.Send node) {
@@ -2406,18 +2418,14 @@ class DartCapturedVariables extends ast.Visitor {
     if (currentFunction.asyncMarker != AsyncMarker.SYNC &&
         currentFunction.asyncMarker != AsyncMarker.SYNC_STAR &&
         currentFunction.asyncMarker != AsyncMarker.ASYNC) {
-      giveup(node, "cannot handle sync*/async* functions");
+      giveup(node, "cannot handle async* functions");
     }
 
-    bool savedInsideInitializer = insideInitializer;
     if (node.initializers != null) {
-      insideInitializer = true;
       visit(node.initializers);
     }
-    insideInitializer = false;
     visit(node.body);
     currentFunction = savedFunction;
-    insideInitializer = savedInsideInitializer;
   }
 
   visitTryStatement(ast.TryStatement node) {
@@ -2489,14 +2497,14 @@ class GlobalProgramInformation {
   }
 
   FunctionElement get stringifyFunction {
-    return _backend.getStringInterpolationHelper();
+    return _backend.helpers.stringInterpolationHelper;
   }
 
-  FunctionElement get throwTypeErrorHelper => _backend.getThrowTypeError();
+  FunctionElement get throwTypeErrorHelper => _backend.helpers.throwTypeError;
 
-  ClassElement get nullClass => _compiler.nullClass;
+  ClassElement get nullClass => _compiler.coreClasses.nullClass;
 
-  DartType unaliasType(DartType type) => type.unalias(_compiler);
+  DartType unaliasType(DartType type) => type.unaliased;
 
   TypeMask getTypeMaskForForeign(NativeBehavior behavior) {
     if (behavior == null) {
@@ -2510,7 +2518,7 @@ class GlobalProgramInformation {
   }
 
   Element get closureConverter {
-    return _backend.getClosureConverter();
+    return _backend.helpers.closureConverter;
   }
 
   void addNativeMethod(FunctionElement function) {
@@ -2530,9 +2538,11 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
 
   JsIrBuilderVisitor(TreeElements elements,
                      Compiler compiler,
-                     SourceInformationBuilder sourceInformationBuilder)
-      : super(elements, compiler, sourceInformationBuilder);
+                     SourceInformationBuilder sourceInformationBuilder,
+                     TypeMaskSystem typeMaskSystem)
+      : super(elements, compiler, sourceInformationBuilder, typeMaskSystem);
 
+  BackendHelpers get helpers => backend.helpers;
 
   /// Builds the IR for creating an instance of the closure class corresponding
   /// to the given nested function.
@@ -2629,6 +2639,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
           root = buildConstructorBody(element);
           break;
 
+        case ElementKind.FACTORY_CONSTRUCTOR:
         case ElementKind.FUNCTION:
         case ElementKind.GETTER:
         case ElementKind.SETTER:
@@ -2647,7 +2658,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
           break;
 
         default:
-          compiler.internalError(element, "Unexpected element type $element");
+          reporter.internalError(element, "Unexpected element type $element");
       }
       return root;
     });
@@ -2684,7 +2695,8 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     return new JsIrBuilderVisitor(
         context.resolvedAst.elements,
         compiler,
-        sourceInformationBuilder.forContext(context));
+        sourceInformationBuilder.forContext(context),
+        typeMaskSystem);
   }
 
   /// Builds the IR for an [expression] taken from a different [context].
@@ -2792,7 +2804,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         if (value != null) {
           instanceArguments.add(value);
         } else {
-          assert(Elements.isNativeOrExtendsNative(c));
+          assert(backend.isNativeOrExtendsNative(c));
           // Native fields are initialized elsewhere.
         }
       }, includeSuperAndInjectedMembers: true);
@@ -2857,7 +2869,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         if (field.initializer != null) {
           fieldValues[field] = inlineExpression(field, field.initializer);
         } else {
-          if (Elements.isNativeOrExtendsNative(c)) {
+          if (backend.isNativeOrExtendsNative(c)) {
             // Native field is initialized elsewhere.
           } else {
             // Fields without an initializer default to null.
@@ -2906,7 +2918,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
               fieldValues);
           hasConstructorCall = true;
         } else {
-          compiler.internalError(initializer,
+          reporter.internalError(initializer,
                                  "Unexpected initializer type $initializer");
         }
       }
@@ -2916,7 +2928,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
       ClassElement superClass = enclosingClass.superclass;
       FunctionElement target = superClass.lookupDefaultConstructor();
       if (target == null) {
-        compiler.internalError(superClass, "No default constructor available.");
+        reporter.internalError(superClass, "No default constructor available.");
       }
       target = target.implementation;
       evaluateConstructorCallFromInitializer(
@@ -3124,8 +3136,8 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     return parameters;
   }
 
-  DartCapturedVariables _analyzeCapturedVariables(ast.Node node) {
-    DartCapturedVariables variables = new DartCapturedVariables(elements);
+  TryBoxedVariables _analyzeTryBoxedVariables(ast.Node node) {
+    TryBoxedVariables variables = new TryBoxedVariables(elements);
     try {
       variables.analyze(node);
     } catch (e) {
@@ -3155,7 +3167,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     // error-prone.
     // TODO(kmillikin): We should combine closure conversion and try/catch
     // variable analysis in some way.
-    DartCapturedVariables variables = _analyzeCapturedVariables(node);
+    TryBoxedVariables variables = _analyzeTryBoxedVariables(node);
     tryStatements = variables.tryStatements;
     IrBuilder builder = getBuilderFor(body);
 
@@ -3180,7 +3192,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
             element,
             node,
             elements);
-    DartCapturedVariables variables = _analyzeCapturedVariables(node);
+    TryBoxedVariables variables = _analyzeTryBoxedVariables(node);
     tryStatements = variables.tryStatements;
     IrBuilder builder = getBuilderFor(element);
     return withBuilder(builder, () => _makeFunctionBody(element, node));
@@ -3274,18 +3286,27 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     // Use default values from the effective target, not the immediate target.
     ConstructorElement target = constructor.effectiveTarget;
     arguments = normalizeStaticArguments(callStructure, target, arguments);
+    TypeMask allocationSiteType;
+    ast.Node send = node.send;
+    if (Elements.isFixedListConstructorCall(constructor, send, compiler) ||
+        Elements.isGrowableListConstructorCall(constructor, send, compiler) ||
+        Elements.isFilledListConstructorCall(constructor, send, compiler) ||
+        Elements.isConstructorOfTypedArraySubclass(constructor, compiler)) {
+      allocationSiteType = getAllocationSiteType(send);
+    }
     return irBuilder.buildConstructorInvocation(
         target,
         callStructure,
         constructor.computeEffectiveTargetType(type),
         arguments,
-        sourceInformationBuilder.buildNew(node));
+        sourceInformationBuilder.buildNew(node),
+        allocationSiteType: allocationSiteType);
   }
 
   @override
   ir.Primitive buildStaticNoSuchMethod(Selector selector,
                                        List<ir.Primitive> arguments) {
-    Element thrower = backend.getThrowNoSuchMethod();
+    Element thrower = backend.helpers.throwNoSuchMethod;
     ir.Primitive receiver = irBuilder.buildStringConstant('');
     ir.Primitive name = irBuilder.buildStringConstant(selector.name);
     ir.Primitive argumentList = irBuilder.buildListLiteral(null, arguments);
@@ -3310,7 +3331,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   @override
   ir.Primitive buildRuntimeError(String message) {
     return irBuilder.buildStaticFunctionInvocation(
-        backend.getThrowRuntimeError(),
+        backend.helpers.throwRuntimeError,
         new CallStructure.unnamed(1),
         [irBuilder.buildStringConstant(message)]);
   }
@@ -3318,7 +3339,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   @override
   ir.Primitive buildAbstractClassInstantiationError(ClassElement element) {
     return irBuilder.buildStaticFunctionInvocation(
-        backend.getThrowAbstractClassInstantiationError(),
+        backend.helpers.throwAbstractClassInstantiationError,
         new CallStructure.unnamed(1),
         [irBuilder.buildStringConstant(element.name)]);
   }
@@ -3368,11 +3389,10 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
 
     /// Call a helper method from the isolate library. The isolate library uses
     /// its own isolate structure, that encapsulates dart2js's isolate.
-    ir.Primitive buildIsolateHelperInvocation(String helperName,
+    ir.Primitive buildIsolateHelperInvocation(Element element,
                                               CallStructure callStructure) {
-      Element element = backend.isolateHelperLibrary.find(helperName);
       if (element == null) {
-        compiler.internalError(node,
+        reporter.internalError(node,
             'Isolate library and compiler mismatch.');
       }
       List<ir.Primitive> arguments = translateStaticArguments(argumentList,
@@ -3452,7 +3472,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         validateArgumentCount(minimum: 2);
 
         ast.Node builtin = argumentNodes.tail.head;
-        JsBuiltin value = getEnumValue(builtin, backend.jsBuiltinEnum,
+        JsBuiltin value = getEnumValue(builtin, helpers.jsBuiltinEnum,
                                        JsBuiltin.values);
         js.Template template = backend.emitter.builtinTemplateFor(value);
         List<ir.Primitive> arguments =
@@ -3490,7 +3510,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         validateArgumentCount(exactly: 1);
 
         ast.Node argument = argumentNodes.head;
-        JsGetName id = getEnumValue(argument, backend.jsGetNameEnum,
+        JsGetName id = getEnumValue(argument, helpers.jsGetNameEnum,
             JsGetName.values);
         js.Name name = backend.namer.getNameForJsGetName(argument, id);
         ConstantValue nameConstant =
@@ -3529,7 +3549,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
           // to fetch the current isolate.
           continue getStaticState;
         }
-        return buildIsolateHelperInvocation('_currentIsolate',
+        return buildIsolateHelperInvocation(backend.helpers.currentIsolate,
             CallStructure.NO_ARGS);
 
       getStaticState: case 'JS_GET_STATIC_STATE':
@@ -3558,7 +3578,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
           return irBuilder.buildCallInvocation(closure, CallStructure.NO_ARGS,
               const <ir.Primitive>[]);
         }
-        return buildIsolateHelperInvocation('_callInIsolate',
+        return buildIsolateHelperInvocation(backend.helpers.callInIsolate,
             CallStructure.TWO_ARGS);
 
       default:
