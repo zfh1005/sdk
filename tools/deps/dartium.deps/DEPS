@@ -74,25 +74,25 @@ vars.update({
   "fake_async_rev": "@38614",
 })
 
-def massage_deps(deps):
-  for key, value in deps.items():
-    if value is None: continue
-
-    if value.startswith('/trunk'):
-      deps[key] = Var("chromium_url") + value
-      continue
-
-    if value.startswith(Var("webkit_trunk")):
-      path, revision = value.split('@') # and svn revision.
-      path = path[len(Var("webkit_trunk")):]  # Strip WebKit repo.
-      value = (Var("dartium_base") + Var("dartium_webkit_branch") + path +
-               '@' + Var("dartium_webkit_revision"))
-      deps[key] = value
-      continue
-
-massage_deps(deps)
-for os_deps in deps_os.values():
-  massage_deps(os_deps)
+# def massage_deps(deps):
+#   for key, value in deps.items():
+#     if value is None: continue
+# 
+#     if value.startswith('/trunk'):
+#       deps[key] = Var("chromium_url") + value
+#       continue
+# 
+#     if value.startswith(Var("webkit_trunk")):
+#       path, revision = value.split('@') # and svn revision.
+#       path = path[len(Var("webkit_trunk")):]  # Strip WebKit repo.
+#       value = (Var("dartium_base") + Var("dartium_webkit_branch") + path +
+#                '@' + Var("dartium_webkit_revision"))
+#       deps[key] = value
+#       continue
+# 
+# massage_deps(deps)
+# for os_deps in deps_os.values():
+#   massage_deps(os_deps)
 
 deps.update({
   "src":
