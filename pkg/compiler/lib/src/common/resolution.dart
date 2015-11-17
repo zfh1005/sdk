@@ -204,6 +204,8 @@ abstract class Resolution {
   /// Later calls to [getWorldImpact] or [computeWorldImpact] returns an empty
   /// impact.
   void emptyCache();
+
+  void forgetElement(Element element);
 }
 
 // TODO(johnniwinther): Rename to `Parser` or `ParsingContext`.
