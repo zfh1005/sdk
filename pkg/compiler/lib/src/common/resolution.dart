@@ -188,6 +188,7 @@ abstract class Resolution {
   bool hasBeenResolved(Element element);
   WorldImpact getWorldImpact(Element element);
   WorldImpact computeWorldImpact(Element element);
+  void forgetElement(Element element);
 }
 
 // TODO(johnniwinther): Rename to `Parser` or `ParsingContext`.

@@ -1412,6 +1412,7 @@ abstract class Compiler {
   }
 
   void forgetElement(Element element) {
+    resolution.forgetElement(element);
     enqueuer.forgetElement(element);
     if (element is MemberElement) {
       for (Element closure in element.nestedClosures) {
@@ -2024,6 +2025,11 @@ class _CompilerResolution implements Resolution {
   @override
   bool hasBeenResolved(Element element) {
     return _worldImpactCache.containsKey(element);
+  }
+
+  @override
+  void forgetElement(Element element) {
+    _worldImpactCache.remove(element);
   }
 }
 
