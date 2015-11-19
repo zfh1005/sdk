@@ -16,7 +16,9 @@
           'action_name': 'make_pkg_files_stamp',
           'inputs': [
             '../tools/create_timestamp_file.py',
-            '<!@(["python", "../tools/list_files.py", "\\.dart$", "."])',
+            '<!@(["python", "../tools/list_files.py",'
+                '"^(?!.*/test/).*(?<!_test)[.]dart$",'
+                '"."])',
             '<(SHARED_INTERMEDIATE_DIR)/third_party_pkg_files.stamp',
           ],
           'outputs': [
@@ -32,7 +34,7 @@
           'inputs': [
             '../tools/create_timestamp_file.py',
             '<!@(["python", "../tools/list_files.py",'
-                '"^(?!.*_test.dart).*dart$",'
+                '"^(?!.*/test/).*(?<!_test)[.]dart$",'
                 '"../third_party/pkg"])',
           ],
           'outputs': [
