@@ -6,58 +6,11 @@
 #if defined(TARGET_ARCH_X64)
 
 #include "vm/cpu.h"
+#include "vm/constants_x64.h"
 #include "vm/instructions.h"
 #include "vm/object.h"
 
 namespace dart {
-
-intptr_t InstructionPattern::IndexFromPPLoad(uword start) {
-  int32_t offset = *reinterpret_cast<int32_t*>(start);
-  return ObjectPool::IndexFromOffset(offset);
-}
-
-
-intptr_t InstructionPattern::OffsetFromPPIndex(intptr_t index) {
-  intptr_t offset = ObjectPool::element_offset(index);
-  return offset - kHeapObjectTag;
-}
-
-
-bool InstructionPattern::TestBytesWith(const int* data, int num_bytes) const {
-  ASSERT(data != NULL);
-  const uint8_t* byte_array = reinterpret_cast<const uint8_t*>(start_);
-  for (int i = 0; i < num_bytes; i++) {
-    // Skip comparison for data[i] < 0.
-    if ((data[i] >= 0) && (byte_array[i] != (0xFF & data[i]))) {
-      return false;
-    }
-  }
-  return true;
-}
-
-
-uword JumpPattern::TargetAddress() const {
-  ASSERT(IsValid());
-  int index = InstructionPattern::IndexFromPPLoad(start() + 3);
-  return object_pool_.RawValueAt(index);
-}
-
-
-void JumpPattern::SetTargetAddress(uword target) const {
-  ASSERT(IsValid());
-  int index = InstructionPattern::IndexFromPPLoad(start() + 3);
-  object_pool_.SetRawValueAt(index, target);
-  // No need to flush the instruction cache, since the code is not modified.
-}
-
-
-const int* JumpPattern::pattern() const {
-  //  07: 41 ff a7 imm32  jmpq [reg + off]
-  static const int kJumpPattern[kLengthInBytes] =
-      {0x41, 0xFF, -1, -1, -1, -1, -1};
-  return kJumpPattern;
-}
-
 
 void ShortCallPattern::SetTargetAddress(uword target) const {
   ASSERT(IsValid());
@@ -66,28 +19,42 @@ void ShortCallPattern::SetTargetAddress(uword target) const {
 }
 
 
-const int* ShortCallPattern::pattern() const {
-  static const int kCallPattern[kLengthInBytes] = {0xE8, -1, -1, -1, -1};
-  return kCallPattern;
-}
+bool DecodeLoadObjectFromPoolOrThread(uword pc,
+                                      const Code& code,
+                                      Object* obj) {
+  ASSERT(code.ContainsInstructionAt(pc));
 
+  uint8_t* bytes = reinterpret_cast<uint8_t*>(pc);
+  COMPILE_ASSERT(PP == R15);
+  if (((bytes[0] == 0x49) && (bytes[1] == 0x8b) && (bytes[2] == 0x9f)) ||
+      ((bytes[0] == 0x49) && (bytes[1] == 0x8b) && (bytes[2] == 0x87)) ||
+      ((bytes[0] == 0x4d) && (bytes[1] == 0x8b) && (bytes[2] == 0xa7)) ||
+      ((bytes[0] == 0x4d) && (bytes[1] == 0x8b) && (bytes[2] == 0x9f)) ||
+      ((bytes[0] == 0x4d) && (bytes[1] == 0x8b) && (bytes[2] == 0x97))) {
+    intptr_t index = IndexFromPPLoad(pc + 3);
+    const ObjectPool& pool = ObjectPool::Handle(code.object_pool());
+    if (pool.InfoAt(index) == ObjectPool::kTaggedObject) {
+      *obj = pool.ObjectAt(index);
+      return true;
+    }
+  }
+  COMPILE_ASSERT(THR == R14);
+  if (((bytes[0] == 0x49) && (bytes[1] == 0x8b) && (bytes[2] == 0x86)) ||
+      ((bytes[0] == 0x49) && (bytes[1] == 0x8b) && (bytes[2] == 0xb6)) ||
+      ((bytes[0] == 0x49) && (bytes[1] == 0x8b) && (bytes[2] == 0x96)) ||
+      ((bytes[0] == 0x49) && (bytes[1] == 0x8b) && (bytes[2] == 0x9e)) ||
+      ((bytes[0] == 0x4d) && (bytes[1] == 0x8b) && (bytes[2] == 0x9e)) ||
+      ((bytes[0] == 0x4d) && (bytes[1] == 0x8b) && (bytes[2] == 0xa6))) {
+    int32_t offset = *reinterpret_cast<int32_t*>(pc + 3);
+    return Thread::ObjectAtOffset(offset, obj);
+  }
+  if (((bytes[0] == 0x4d) && (bytes[1] == 0x8b) && (bytes[2] == 0x5e)) ||
+      ((bytes[0] == 0x4d) && (bytes[1] == 0x8b) && (bytes[2] == 0x6e))) {
+    uint8_t offset = *reinterpret_cast<uint8_t*>(pc + 3);
+    return Thread::ObjectAtOffset(offset, obj);
+  }
 
-const int* ReturnPattern::pattern() const {
-  static const int kReturnPattern[kLengthInBytes] = { 0xC3 };
-  return kReturnPattern;
-}
-
-
-const int* ProloguePattern::pattern() const {
-  static const int kProloguePattern[kLengthInBytes] =
-      { 0x55, 0x48, 0x89, 0xe5 };
-  return kProloguePattern;
-}
-
-
-const int* SetFramePointerPattern::pattern() const {
-  static const int kFramePointerPattern[kLengthInBytes] = { 0x48, 0x89, 0xe5 };
-  return kFramePointerPattern;
+  return false;
 }
 
 }  // namespace dart

@@ -12,6 +12,15 @@
 
 namespace dart {
 
+struct InterruptedThreadState {
+  uintptr_t pc;
+  uintptr_t csp;
+  uintptr_t dsp;
+  uintptr_t fp;
+  uintptr_t lr;
+};
+
+
 class ThreadInterrupter : public AllStatic {
  public:
   static void InitOnce();
@@ -25,13 +34,6 @@ class ThreadInterrupter : public AllStatic {
   // Wake up the thread interrupter thread.
   static void WakeUp();
 
-  // Register the currently running thread for interrupts. If the current thread
-  // is already registered, callback and data will be updated.
-  static void Register(ThreadInterruptCallback callback, void* data);
-
-  // Unregister the currently running thread for interrupts.
-  static void Unregister();
-
   // Interrupt a thread.
   static void InterruptThread(Thread* thread);
 
@@ -40,17 +42,15 @@ class ThreadInterrupter : public AllStatic {
   static bool initialized_;
   static bool shutdown_;
   static bool thread_running_;
-  static ThreadId interrupter_thread_id_;
+  static bool woken_up_;
+  static ThreadJoinId interrupter_thread_id_;
   static Monitor* monitor_;
   static intptr_t interrupt_period_;
   static intptr_t current_wait_time_;
-  static ThreadLocalKey thread_state_key_;
 
   static bool InDeepSleep() {
     return current_wait_time_ == Monitor::kNoTimeout;
   }
-
-  static void UpdateStateObject(ThreadInterruptCallback callback, void* data);
 
   static void ThreadMain(uword parameters);
 
@@ -60,8 +60,6 @@ class ThreadInterrupter : public AllStatic {
 
   friend class ThreadInterrupterVisitIsolates;
 };
-
-void ThreadInterruptNoOp(const InterruptedThreadState& state, void* data);
 
 }  // namespace dart
 

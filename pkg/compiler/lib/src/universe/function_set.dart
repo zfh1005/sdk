@@ -2,7 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of universe;
+library universe.function_set;
+
+import '../common/names.dart' show
+    Identifiers,
+    Selectors;
+import '../compiler.dart' show
+    Compiler;
+import '../elements/elements.dart';
+import '../types/types.dart';
+import '../util/util.dart' show
+    Hashing,
+    Setlet;
+import '../world.dart' show
+    ClassWorld;
+
+import 'selector.dart' show
+    Selector;
+import 'universe.dart' show
+    ReceiverConstraint;
 
 // TODO(kasperl): This actually holds getters and setters just fine
 // too and stricly they aren't functions. Maybe this needs a better
@@ -12,6 +30,8 @@ class FunctionSet {
   final Map<String, FunctionSetNode> nodes =
       new Map<String, FunctionSetNode>();
   FunctionSet(this.compiler);
+
+  ClassWorld get classWorld => compiler.world;
 
   FunctionSetNode newNode(String name)
       => new FunctionSetNode(name);
@@ -44,30 +64,51 @@ class FunctionSet {
         : false;
   }
 
-  /**
-   * Returns an object that allows iterating over all the functions
-   * that may be invoked with the given [selector].
-   */
-  Iterable<Element> filter(Selector selector, TypeMask mask) {
-    return query(selector, mask).functions;
+  /// Returns an object that allows iterating over all the functions
+  /// that may be invoked with the given [selector].
+  Iterable<Element> filter(Selector selector, ReceiverConstraint constraint) {
+    return query(selector, constraint).functions;
   }
 
-  TypeMask receiverType(Selector selector, TypeMask mask) {
-    return query(selector, mask).computeMask(compiler.world);
+  /// Returns the mask for the potential receivers of a dynamic call to
+  /// [selector] on [constraint].
+  ///
+  /// This will narrow the constraints of [constraint] to a [TypeMask] of the
+  /// set of classes that actually implement the selected member or implement
+  /// the handling 'noSuchMethod' where the selected member is unimplemented.
+  TypeMask receiverType(Selector selector, ReceiverConstraint constraint) {
+    return query(selector, constraint).computeMask(classWorld);
   }
 
-  FunctionSetQuery query(Selector selector, TypeMask mask) {
+  SelectorMask _createSelectorMask(
+      Selector selector, ReceiverConstraint constraint, ClassWorld classWorld) {
+    return constraint != null
+        ? new SelectorMask(selector, constraint)
+        : new SelectorMask(selector,
+            new TypeMask.subclass(classWorld.objectClass, classWorld));
+  }
+
+  /// Returns the set of functions that can be the target of a call to
+  /// [selector] on a receiver constrained by [constraint] including
+  /// 'noSuchMethod' methods where applicable.
+  FunctionSetQuery query(Selector selector, ReceiverConstraint constraint) {
     String name = selector.name;
+    SelectorMask selectorMask =
+        _createSelectorMask(selector, constraint, classWorld);
+    SelectorMask noSuchMethodMask =
+        new SelectorMask(Selectors.noSuchMethod_, selectorMask.constraint);
     FunctionSetNode node = nodes[name];
-    FunctionSetNode noSuchMethods = nodes[Compiler.NO_SUCH_METHOD];
+    FunctionSetNode noSuchMethods = nodes[Identifiers.noSuchMethod_];
     if (node != null) {
-      return node.query(selector, mask, compiler, noSuchMethods);
+      return node.query(
+          selectorMask, classWorld, noSuchMethods, noSuchMethodMask);
     }
     // If there is no method that matches [selector] we know we can
     // only hit [:noSuchMethod:].
-    if (noSuchMethods == null) return const FunctionSetQuery(const <Element>[]);
-    return noSuchMethods.query(
-        compiler.noSuchMethodSelector, mask, compiler, null);
+    if (noSuchMethods == null) {
+      return const EmptyFunctionSetQuery();
+    }
+    return noSuchMethods.query(noSuchMethodMask, classWorld);
   }
 
   void forEach(Function action) {
@@ -77,33 +118,42 @@ class FunctionSet {
   }
 }
 
+/// A selector/constraint pair representing the dynamic invocation of [selector]
+/// on a receiver constrained by [constraint].
 class SelectorMask {
   final Selector selector;
-  final TypeMask mask;
+  final ReceiverConstraint constraint;
   final int hashCode;
 
-  SelectorMask(Selector selector, TypeMask mask)
+  SelectorMask(Selector selector, ReceiverConstraint constraint)
       : this.selector = selector,
-        this.mask = mask,
+        this.constraint = constraint,
         this.hashCode =
-            Hashing.mixHashCodeBits(selector.hashCode, mask.hashCode);
+            Hashing.mixHashCodeBits(selector.hashCode, constraint.hashCode) {
+    assert(constraint != null);
+  }
 
   String get name => selector.name;
 
   bool applies(Element element, ClassWorld classWorld) {
     if (!selector.appliesUnnamed(element, classWorld)) return false;
-    if (mask == null) return true;
-    return mask.canHit(element, selector, classWorld);
+    return constraint.canHit(element, selector, classWorld);
+  }
+
+  bool needsNoSuchMethodHandling(ClassWorld classWorld) {
+    return constraint.needsNoSuchMethodHandling(selector, classWorld);
   }
 
   bool operator ==(other) {
     if (identical(this, other)) return true;
-    return selector == other.selector && mask == other.mask;
+    return selector == other.selector && constraint == other.constraint;
   }
 
-  String toString() => '($selector,$mask)';
+  String toString() => '($selector,$constraint)';
 }
 
+/// A node in the [FunctionSet] caching all [FunctionSetQuery] object for
+/// selectors with the same [name].
 class FunctionSetNode {
   final String name;
   final Map<SelectorMask, FunctionSetQuery> cache =
@@ -164,24 +214,13 @@ class FunctionSetNode {
     elements.forEach(action);
   }
 
-  TypeMask getNonNullTypeMaskOfSelector(TypeMask mask, ClassWorld classWorld) {
-    // TODO(ngeoffray): We should probably change untyped selector
-    // to always be a subclass of Object.
-    return mask != null
-        ? mask
-        : new TypeMask.subclass(classWorld.objectClass, classWorld);
-    }
-
-  // TODO(johnniwinther): Use [SelectorMask] instead of [Selector] and
-  // [TypeMask].
-  FunctionSetQuery query(Selector selector,
-                         TypeMask mask,
-                         Compiler compiler,
-                         FunctionSetNode noSuchMethods) {
-    mask = getNonNullTypeMaskOfSelector(mask, compiler.world);
-    SelectorMask selectorMask = new SelectorMask(selector, mask);
-    ClassWorld classWorld = compiler.world;
-    assert(selector.name == name);
+  /// Returns the set of functions that can be the target of [selectorMask]
+  /// including no such method handling where applicable.
+  FunctionSetQuery query(SelectorMask selectorMask,
+                         ClassWorld classWorld,
+                         [FunctionSetNode noSuchMethods,
+                          SelectorMask noSuchMethodMask]) {
+    assert(selectorMask.name == name);
     FunctionSetQuery result = cache[selectorMask];
     if (result != null) return result;
 
@@ -201,13 +240,10 @@ class FunctionSetNode {
     // If we cannot ensure a method will be found at runtime, we also
     // add [noSuchMethod] implementations that apply to [mask] as
     // potential targets.
-    if (noSuchMethods != null
-        && mask.needsNoSuchMethodHandling(selector, classWorld)) {
-      FunctionSetQuery noSuchMethodQuery = noSuchMethods.query(
-          compiler.noSuchMethodSelector,
-          mask,
-          compiler,
-          null);
+    if (noSuchMethods != null &&
+        selectorMask.needsNoSuchMethodHandling(classWorld)) {
+      FunctionSetQuery noSuchMethodQuery =
+          noSuchMethods.query(noSuchMethodMask, classWorld);
       if (!noSuchMethodQuery.functions.isEmpty) {
         if (functions == null) {
           functions = new Setlet<Element>.from(noSuchMethodQuery.functions);
@@ -217,31 +253,43 @@ class FunctionSetNode {
       }
     }
     cache[selectorMask] = result = (functions != null)
-        ? newQuery(functions, selector, mask, compiler)
-        : const FunctionSetQuery(const <Element>[]);
+        ? new FullFunctionSetQuery(functions)
+        : const EmptyFunctionSetQuery();
     return result;
   }
-
-  FunctionSetQuery newQuery(Iterable<Element> functions,
-                            Selector selector,
-                            TypeMask mask,
-                            Compiler compiler) {
-    return new FullFunctionSetQuery(functions);
-  }
 }
 
-class FunctionSetQuery {
-  final Iterable<Element> functions;
+/// A set of functions that are the potential targets of all call sites sharing
+/// the same receiver mask and selector.
+abstract class FunctionSetQuery {
+  const FunctionSetQuery();
+
+  /// Compute the type of all potential receivers of this function set.
+  TypeMask computeMask(ClassWorld classWorld);
+
+  /// Returns all potential targets of this function set.
+  Iterable<Element> get functions;
+}
+
+class EmptyFunctionSetQuery implements FunctionSetQuery {
+  const EmptyFunctionSetQuery();
+
+  @override
   TypeMask computeMask(ClassWorld classWorld) => const TypeMask.nonNullEmpty();
-  const FunctionSetQuery(this.functions);
+
+  @override
+  Iterable<Element> get functions => const <Element>[];
 }
 
-class FullFunctionSetQuery extends FunctionSetQuery {
+class FullFunctionSetQuery implements FunctionSetQuery {
+  @override
+  final Iterable<Element> functions;
+
   TypeMask _mask;
 
-  /**
-   * Compute the type of all potential receivers of this function set.
-   */
+  FullFunctionSetQuery(this.functions);
+
+  @override
   TypeMask computeMask(ClassWorld classWorld) {
     assert(classWorld.hasAnyStrictSubclass(classWorld.objectClass));
     if (_mask != null) return _mask;
@@ -253,12 +301,13 @@ class FullFunctionSetQuery extends FunctionSetQuery {
         .map((cls) {
           if (classWorld.backend.isNullImplementation(cls)) {
             return const TypeMask.empty();
-          } else {
+          } else if (classWorld.isInstantiated(cls.declaration)) {
             return new TypeMask.nonNullSubclass(cls.declaration, classWorld);
+          } else {
+            // TODO(johnniwinther): Avoid the need for this case.
+            return const TypeMask.empty();
           }
         }),
         classWorld);
   }
-
-  FullFunctionSetQuery(functions) : super(functions);
 }

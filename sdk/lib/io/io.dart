@@ -186,13 +186,11 @@
  *
  * ## Other resources
  *
- * For an introduction to I/O in Dart, see the
- * [dart:io section of the library tour]
- * (https://www.dartlang.org/docs/dart-up-and-running/contents/ch03.html#ch03-dartio---file-and-socket-io-for-command-line-apps).
+ * For an introduction to I/O in Dart, see the [dart:io section of the library
+ * tour](https://www.dartlang.org/docs/dart-up-and-running/ch03.html#dartio---io-for-command-line-apps).
  *
- * To learn more about I/O in Dart, refer to the
- * [tutorial about writing command-line apps]
- * (https://www.dartlang.org/docs/tutorials/io/).
+ * To learn more about I/O in Dart, refer to the [tutorial about writing
+ * command-line apps](https://www.dartlang.org/docs/tutorials/io/).
  */
 library dart.io;
 
@@ -206,6 +204,7 @@ import 'dart:collection' show HashMap,
                               LinkedListEntry,
                               UnmodifiableMapView;
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:isolate';
 import 'dart:math';
 import 'dart:typed_data';
@@ -226,17 +225,19 @@ part 'http_headers.dart';
 part 'http_impl.dart';
 part 'http_parser.dart';
 part 'http_session.dart';
+part 'io_resource_info.dart';
 part 'io_sink.dart';
 part 'io_service.dart';
 part 'link.dart';
 part 'platform.dart';
 part 'platform_impl.dart';
 part 'process.dart';
+part 'secure_server_socket.dart';
+part 'secure_socket.dart';
+part 'security_context.dart';
 part 'service_object.dart';
 part 'socket.dart';
 part 'stdio.dart';
 part 'string_transformer.dart';
-part 'secure_socket.dart';
-part 'secure_server_socket.dart';
 part 'websocket.dart';
 part 'websocket_impl.dart';

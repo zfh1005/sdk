@@ -7,6 +7,7 @@
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'memory_compiler.dart';
 
 /// Error code that creates 1 warning, 1 hint, and 1 info.
@@ -47,9 +48,9 @@ Future test(Uri entryPoint,
              int warnings: 0,
              int hints: 0,
              int infos: 0}) async {
-  var options = ['--analyze-only', '--analyze-all'];
+  var options = [Flags.analyzeOnly, Flags.analyzeAll];
   if (showPackageWarnings) {
-    options.add('--show-package-warnings');
+    options.add(Flags.showPackageWarnings);
   }
   var collector = new DiagnosticCollector();
   await runCompiler(
@@ -74,8 +75,8 @@ Future test(Uri entryPoint,
   print('==================================================================');
 }
 
-void checkUriSchemes(Iterable<DiagnosticMessage> messages) {
-  for (DiagnosticMessage message in messages) {
+void checkUriSchemes(Iterable<CollectedMessage> messages) {
+  for (CollectedMessage message in messages) {
     if (message.uri != null) {
       Expect.notEquals('package', message.uri.scheme,
           "Unexpected package uri `${message.uri}` in message: $message");

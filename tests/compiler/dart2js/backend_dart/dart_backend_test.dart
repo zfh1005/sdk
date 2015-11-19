@@ -4,12 +4,13 @@
 
 import "package:expect/expect.dart";
 import 'dart:async';
+import 'dart:io' as io;
 import "package:async_helper/async_helper.dart";
 import '../mock_compiler.dart';
 import '../mock_libraries.dart';
 import '../output_collector.dart';
 import 'package:compiler/compiler.dart';
-import 'package:compiler/src/dart2jslib.dart' as leg;
+import 'package:compiler/src/common/names.dart' show Identifiers;
 import 'package:compiler/src/dart_backend/dart_backend.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/tree/tree.dart';
@@ -58,7 +59,9 @@ testDart2Dart(String mainSrc, {String librarySrc,
     if (uri.toString() == libUri.toString()) {
       return new Future.value(librarySrc);
     }
-    if (uri.path.endsWith('/core.dart')) {
+    if (uri.path.endsWith('/dart2dart.platform')) {
+      return new io.File.fromUri(uri).readAsBytes();
+    } else if (uri.path.endsWith('/core.dart')) {
       return new Future.value(buildLibrarySource(DEFAULT_CORE_LIBRARY));
     } else if (uri.path.endsWith('/core_patch.dart')) {
       return new Future.value(DEFAULT_PATCH_CORE_SOURCE);
@@ -87,7 +90,6 @@ testDart2Dart(String mainSrc, {String librarySrc,
 
   final options = <String>['--output-type=dart'];
   // Some tests below are using dart:io.
-  options.add('--categories=Client,Server');
   if (minify) options.add('--minify');
   if (stripTypes) options.add('--force-strip=types');
 
@@ -95,7 +97,7 @@ testDart2Dart(String mainSrc, {String librarySrc,
     OutputCollector outputCollector = new OutputCollector();
     return compile(
         scriptUri,
-        fileUri('libraryRoot/'),
+        Uri.base.resolve('sdk/'),
         fileUri('packageRoot/'),
         provider,
         handler,
@@ -614,7 +616,8 @@ class DynoMap implements Map<Element, ElementAst> {
 
 PlaceholderCollector collectPlaceholders(compiler, element) {
   DartBackend backend = compiler.backend;
-  return new PlaceholderCollector(compiler,
+  return new PlaceholderCollector(
+      compiler.reporter,
       backend.mirrorRenamer,
       new Set<String>(),
       new DynoMap(compiler),
@@ -633,7 +636,7 @@ main() {
   asyncTest(() => compiler.init().then((_) {
     assert(compiler.backend is DartBackend);
     compiler.parseScript(src);
-    FunctionElement mainElement = compiler.mainApp.find(leg.Compiler.MAIN);
+    FunctionElement mainElement = compiler.mainApp.find(Identifiers.main);
     compiler.processQueue(compiler.enqueuer.resolution, mainElement);
     PlaceholderCollector collector = collectPlaceholders(compiler, mainElement);
     FunctionExpression mainNode = mainElement.node;

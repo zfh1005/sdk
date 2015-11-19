@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import "package:expect/expect.dart";
-import "package:async_helper/async_helper.dart";
-import 'mock_compiler.dart';
 
+import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/diagnostics/messages.dart' show MessageKind;
 import 'package:compiler/src/io/source_file.dart';
-import 'package:compiler/src/dart2jslib.dart';
+
+import 'mock_compiler.dart';
 
 const String PRIVATE_SOURCE_URI = 'src:private';
 const String PRIVATE_SOURCE = '''
@@ -71,8 +71,9 @@ analyze(String text, [expectedWarnings]) {
                     ''';
     Uri uri = Uri.parse('src:public');
     compiler.registerSource(uri, source);
-    return compiler.runCompiler(uri).then((_) {
-      compareWarningKinds(text, expectedWarnings, compiler.warnings);
+    return compiler.run(uri).then((_) {
+      DiagnosticCollector collector = compiler.diagnosticCollector;
+      compareWarningKinds(text, expectedWarnings, collector.warnings);
     });
   };
 }

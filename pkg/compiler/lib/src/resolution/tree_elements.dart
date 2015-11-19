@@ -2,29 +2,38 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of resolution;
+library dart2js.resolution.tree_elements;
+
+import '../common.dart';
+import '../constants/expressions.dart';
+import '../dart_types.dart';
+import '../elements/elements.dart';
+import '../types/types.dart' show
+    TypeMask;
+import '../tree/tree.dart';
+import '../util/util.dart';
+import '../universe/selector.dart' show
+    Selector;
+
+import 'secret_tree_element.dart' show
+    getTreeElement,
+    setTreeElement;
+import 'send_structure.dart';
 
 abstract class TreeElements {
   AnalyzableElement get analyzedElement;
   Iterable<Node> get superUses;
 
-  /// Iterables of the dependencies that this [TreeElement] records of
-  /// [analyzedElement].
-  Iterable<Element> get allElements;
-
-  /// The set of types that this TreeElement depends on.
-  /// This includes instantiated types, types in is-checks and as-expressions
-  /// and in checked mode the types of all type-annotations.
-  Iterable<DartType> get requiredTypes;
-
   void forEachConstantNode(f(Node n, ConstantExpression c));
 
-  /// A set of additional dependencies.  See [registerDependency] below.
-  Iterable<Element> get otherDependencies;
-
   Element operator[](Node node);
+  Map<Node, DartType> get typesCache;
 
-  SendStructure getSendStructure(Send send);
+  /// Returns the [SendStructure] that describes the semantics of [node].
+  SendStructure getSendStructure(Send node);
+
+  /// Returns the [NewStructure] that describes the semantics of [node].
+  NewStructure getNewStructure(NewExpression node);
 
   // TODO(johnniwinther): Investigate whether [Node] could be a [Send].
   Selector getSelector(Node node);
@@ -40,9 +49,6 @@ abstract class TreeElements {
 
   /// Returns the for-in loop variable for [node].
   Element getForInVariable(ForIn node);
-  Selector getIteratorSelector(ForIn node);
-  Selector getMoveNextSelector(ForIn node);
-  Selector getCurrentSelector(ForIn node);
   TypeMask getIteratorTypeMask(ForIn node);
   TypeMask getMoveNextTypeMask(ForIn node);
   TypeMask getCurrentTypeMask(ForIn node);
@@ -51,7 +57,6 @@ abstract class TreeElements {
   void setCurrentTypeMask(ForIn node, TypeMask mask);
   void setConstant(Node node, ConstantExpression constant);
   ConstantExpression getConstant(Node node);
-  bool isAssert(Send send);
 
   /// Returns the [FunctionElement] defined by [node].
   FunctionElement getFunctionDefinition(FunctionExpression node);
@@ -70,13 +75,6 @@ abstract class TreeElements {
 
   /// Returns the type that the type literal [node] refers to.
   DartType getTypeLiteralType(Send node);
-
-  /// Register additional dependencies required by [analyzedElement].
-  /// For example, elements that are used by a backend.
-  void registerDependency(Element element);
-
-  /// Register a dependency on [type].
-  void addRequiredType(DartType type);
 
   /// Returns a list of nodes that potentially mutate [element] anywhere in its
   /// scope.
@@ -102,6 +100,9 @@ abstract class TreeElements {
 
   /// Returns the label that [node] targets.
   LabelDefinition getTargetLabel(GotoStatement node);
+
+  /// `true` if the [analyzedElement]'s source code contains a [TryStatement].
+  bool get containsTryStatement;
 }
 
 class TreeElementMapping extends TreeElements {
@@ -109,17 +110,16 @@ class TreeElementMapping extends TreeElements {
   Map<Spannable, Selector> _selectors;
   Map<Spannable, TypeMask> _typeMasks;
   Map<Node, DartType> _types;
+  Map<Node, DartType> typesCache = <Node, DartType>{};
   Setlet<Node> _superUses;
-  Setlet<Element> _otherDependencies;
   Map<Node, ConstantExpression> _constants;
   Map<VariableElement, List<Node>> _potentiallyMutated;
   Map<Node, Map<VariableElement, List<Node>>> _potentiallyMutatedIn;
   Map<VariableElement, List<Node>> _potentiallyMutatedInClosure;
   Map<Node, Map<VariableElement, List<Node>>> _accessedByClosureIn;
-  Setlet<Element> _elements;
-  Setlet<Send> _asserts;
   Maplet<Send, SendStructure> _sendStructureMap;
-  Setlet<DartType> _requiredTypes;
+  Maplet<NewExpression, NewStructure> _newStructureMap;
+  bool containsTryStatement = false;
 
   /// Map from nodes to the targets they define.
   Map<Node, JumpTarget> _definedTargets;
@@ -142,7 +142,7 @@ class TreeElementMapping extends TreeElements {
     // TODO(johnniwinther): Simplify this invariant to use only declarations in
     // [TreeElements].
     assert(invariant(node, () {
-      if (!element.isErroneous && analyzedElement != null && element.isPatch) {
+      if (!element.isMalformed && analyzedElement != null && element.isPatch) {
         return analyzedElement.implementationLibrary.isPatch;
       }
       return true;
@@ -153,25 +153,33 @@ class TreeElementMapping extends TreeElements {
     //                  getTreeElement(node) == null,
     //                  message: '${getTreeElement(node)}; $element'));
 
-    if (_elements == null) {
-      _elements = new Setlet<Element>();
-    }
-    _elements.add(element);
     setTreeElement(node, element);
   }
 
   operator [](Node node) => getTreeElement(node);
 
-  SendStructure getSendStructure(Send send) {
+  SendStructure getSendStructure(Send node) {
     if (_sendStructureMap == null) return null;
-    return _sendStructureMap[send];
+    return _sendStructureMap[node];
   }
 
-  void setSendStructure(Send send, SendStructure sendStructure) {
+  void setSendStructure(Send node, SendStructure sendStructure) {
     if (_sendStructureMap == null) {
       _sendStructureMap = new Maplet<Send, SendStructure>();
     }
-    _sendStructureMap[send] = sendStructure;
+    _sendStructureMap[node] = sendStructure;
+  }
+
+  NewStructure getNewStructure(NewExpression node) {
+    if (_newStructureMap == null) return null;
+    return _newStructureMap[node];
+  }
+
+  void setNewStructure(NewExpression node, NewStructure newStructure) {
+    if (_newStructureMap == null) {
+      _newStructureMap = new Maplet<NewExpression, NewStructure>();
+    }
+    _newStructureMap[node] = newStructure;
   }
 
   void setType(Node node, DartType type) {
@@ -182,19 +190,6 @@ class TreeElementMapping extends TreeElements {
   }
 
   DartType getType(Node node) => _types != null ? _types[node] : null;
-
-  void addRequiredType(DartType type) {
-    if (_requiredTypes == null) _requiredTypes = new Setlet<DartType>();
-    _requiredTypes.add(type);
-  }
-
-  Iterable<DartType> get requiredTypes {
-    if (_requiredTypes == null) {
-      return const <DartType>[];
-    } else {
-      return _requiredTypes;
-    }
-  }
 
   Iterable<Node> get superUses {
     return _superUses != null ? _superUses : const <Node>[];
@@ -242,34 +237,6 @@ class TreeElementMapping extends TreeElements {
     return _getSelector(node.assignmentOperator);
   }
 
-  // The following methods set selectors on the "for in" node. Since
-  // we're using three selectors, we need to use children of the node,
-  // and we arbitrarily choose which ones.
-
-  void setIteratorSelector(ForIn node, Selector selector) {
-    _setSelector(node, selector);
-  }
-
-  Selector getIteratorSelector(ForIn node) {
-    return _getSelector(node);
-  }
-
-  void setMoveNextSelector(ForIn node, Selector selector) {
-    _setSelector(node.forToken, selector);
-  }
-
-  Selector getMoveNextSelector(ForIn node) {
-    return _getSelector(node.forToken);
-  }
-
-  void setCurrentSelector(ForIn node, Selector selector) {
-    _setSelector(node.inToken, selector);
-  }
-
-  Selector getCurrentSelector(ForIn node) {
-    return _getSelector(node.inToken);
-  }
-
   Element getForInVariable(ForIn node) {
     return this[node];
   }
@@ -291,18 +258,6 @@ class TreeElementMapping extends TreeElements {
 
   DartType getTypeLiteralType(Send node) {
     return getType(node);
-  }
-
-  void registerDependency(Element element) {
-    if (element == null) return;
-    if (_otherDependencies == null) {
-      _otherDependencies = new Setlet<Element>();
-    }
-    _otherDependencies.add(element.implementation);
-  }
-
-  Iterable<Element> get otherDependencies {
-    return _otherDependencies != null ? _otherDependencies : const <Element>[];
   }
 
   List<Node> getPotentialMutations(VariableElement element) {
@@ -378,25 +333,10 @@ class TreeElementMapping extends TreeElements {
 
   String toString() => 'TreeElementMapping($analyzedElement)';
 
-  Iterable<Element> get allElements {
-    return _elements != null ? _elements : const <Element>[];
-  }
-
   void forEachConstantNode(f(Node n, ConstantExpression c)) {
     if (_constants != null) {
       _constants.forEach(f);
     }
-  }
-
-  void setAssert(Send node) {
-    if (_asserts == null) {
-      _asserts = new Setlet<Send>();
-    }
-    _asserts.add(node);
-  }
-
-  bool isAssert(Send node) {
-    return _asserts != null && _asserts.contains(node);
   }
 
   FunctionElement getFunctionDefinition(FunctionExpression node) {
@@ -531,28 +471,5 @@ class TreeElementMapping extends TreeElements {
 
   TypeMask getCurrentTypeMask(ForIn node) {
     return _getTypeMask(node.inToken);
-  }
-}
-
-TreeElements _ensureTreeElements(AnalyzableElementX element) {
-  if (element._treeElements == null) {
-    element._treeElements = new TreeElementMapping(element);
-  }
-  return element._treeElements;
-}
-
-abstract class AnalyzableElementX implements AnalyzableElement {
-  TreeElements _treeElements;
-
-  bool get hasTreeElements => _treeElements != null;
-
-  TreeElements get treeElements {
-    assert(invariant(this, _treeElements !=null,
-        message: "TreeElements have not been computed for $this."));
-    return _treeElements;
-  }
-
-  void reuseElement() {
-    _treeElements = null;
   }
 }

@@ -4,12 +4,78 @@
 
 part of types;
 
+/// An implementation of a [UniverseSelectorConstraints] that is consists if an only
+/// increasing set of [TypeMask]s, that is, once a mask is added it cannot be
+/// removed.
+class IncreasingTypeMaskSet extends UniverseSelectorConstraints {
+  bool isAll = false;
+  Set<TypeMask> _masks;
+
+  @override
+  bool applies(Element element, Selector selector, ClassWorld world) {
+    if (isAll) return true;
+    if (_masks == null) return false;
+    for (TypeMask mask in _masks) {
+      if (mask.canHit(element, selector, world)) return true;
+    }
+    return false;
+  }
+
+  @override
+  bool needsNoSuchMethodHandling(Selector selector, ClassWorld world) {
+    if (isAll) {
+      TypeMask mask =
+          new TypeMask.subclass(world.objectClass, world);
+      return mask.needsNoSuchMethodHandling(selector, world);
+    }
+    for (TypeMask mask in _masks) {
+      if (mask.needsNoSuchMethodHandling(selector, world)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool addReceiverConstraint(TypeMask mask) {
+    if (isAll) return false;
+    if (mask == null) {
+      isAll = true;
+      _masks = null;
+      return true;
+    }
+    if (_masks == null) {
+      _masks = new Setlet<TypeMask>();
+    }
+    return _masks.add(mask);
+  }
+
+  String toString() {
+    if (isAll) {
+      return '<all>';
+    } else if (_masks != null) {
+      return '$_masks';
+    } else {
+      return '<none>';
+    }
+  }
+}
+
+class TypeMaskStrategy implements SelectorConstraintsStrategy {
+  const TypeMaskStrategy();
+
+  @override
+  UniverseSelectorConstraints createSelectorConstraints(Selector selector) {
+    return new IncreasingTypeMaskSet();
+  }
+}
+
 /**
  * A type mask represents a set of contained classes, but the
  * operations on it are not guaranteed to be precise and they may
  * yield conservative answers that contain too many classes.
  */
-abstract class TypeMask {
+abstract class TypeMask implements ReceiverConstraint {
   factory TypeMask(ClassElement base,
                    int kind,
                    bool isNullable,
@@ -22,8 +88,8 @@ abstract class TypeMask {
 
   factory TypeMask.exact(ClassElement base, ClassWorld classWorld) {
     assert(invariant(base, classWorld.isInstantiated(base),
-        message: "Cannot create extact type mask for uninstantiated class "
-          "${base.name}"));
+        message: () => "Cannot create exact type mask for uninstantiated "
+                       "class $base.\n${classWorld.dump(base)}"));
     return new FlatTypeMask.exact(base);
   }
 
@@ -33,21 +99,31 @@ abstract class TypeMask {
   }
 
   factory TypeMask.subclass(ClassElement base, ClassWorld classWorld) {
-    if (classWorld.hasAnyStrictSubclass(base)) {
-      return new FlatTypeMask.subclass(base);
+    assert(invariant(base, classWorld.isInstantiated(base),
+        message: () => "Cannot create subclass type mask for uninstantiated "
+                       "class $base.\n${classWorld.dump(base)}"));
+    ClassElement topmost = classWorld.getLubOfInstantiatedSubclasses(base);
+    if (topmost == null) {
+      return new TypeMask.empty();
+    } else if (classWorld.hasAnyStrictSubclass(topmost)) {
+      return new FlatTypeMask.subclass(topmost);
     } else {
-      return new TypeMask.exactOrEmpty(base, classWorld);
+      return new TypeMask.exact(topmost, classWorld);
     }
   }
 
   factory TypeMask.subtype(ClassElement base, ClassWorld classWorld) {
-    if (classWorld.hasOnlySubclasses(base)) {
-      return new TypeMask.subclass(base, classWorld);
+    ClassElement topmost = classWorld.getLubOfInstantiatedSubtypes(base);
+    if (topmost == null) {
+      return new TypeMask.empty();
     }
-    if (classWorld.hasAnyStrictSubtype(base)) {
-      return new FlatTypeMask.subtype(base);
+    if (classWorld.hasOnlySubclasses(topmost)) {
+      return new TypeMask.subclass(topmost, classWorld);
+    }
+    if (classWorld.hasAnyStrictSubtype(topmost)) {
+      return new FlatTypeMask.subtype(topmost);
     } else {
-      return new TypeMask.exactOrEmpty(base, classWorld);
+      return new TypeMask.exact(topmost, classWorld);
     }
   }
 
@@ -55,8 +131,8 @@ abstract class TypeMask {
 
   factory TypeMask.nonNullExact(ClassElement base, ClassWorld classWorld) {
     assert(invariant(base, classWorld.isInstantiated(base),
-        message: "Cannot create extact type mask for "
-                 "uninstantiated class $base."));
+        message: () => "Cannot create exact type mask for uninstantiated "
+                       "class $base.\n${classWorld.dump(base)}"));
     return new FlatTypeMask.nonNullExact(base);
   }
 
@@ -69,21 +145,31 @@ abstract class TypeMask {
   }
 
   factory TypeMask.nonNullSubclass(ClassElement base, ClassWorld classWorld) {
-    if (classWorld.hasAnyStrictSubclass(base)) {
-      return new FlatTypeMask.nonNullSubclass(base);
+    assert(invariant(base, classWorld.isInstantiated(base),
+        message: () => "Cannot create subclass type mask for uninstantiated "
+                       "class $base.\n${classWorld.dump(base)}"));
+    ClassElement topmost = classWorld.getLubOfInstantiatedSubclasses(base);
+    if (topmost == null) {
+      return new TypeMask.nonNullEmpty();
+    } else if (classWorld.hasAnyStrictSubclass(topmost)) {
+      return new FlatTypeMask.nonNullSubclass(topmost);
     } else {
-      return new TypeMask.nonNullExactOrEmpty(base, classWorld);
+      return new TypeMask.nonNullExact(topmost, classWorld);
     }
   }
 
   factory TypeMask.nonNullSubtype(ClassElement base, ClassWorld classWorld) {
-    if (classWorld.hasOnlySubclasses(base)) {
-      return new TypeMask.nonNullSubclass(base, classWorld);
+    ClassElement topmost = classWorld.getLubOfInstantiatedSubtypes(base);
+    if (topmost == null) {
+      return new TypeMask.nonNullEmpty();
     }
-    if (classWorld.hasAnyStrictSubtype(base)) {
-      return new FlatTypeMask.nonNullSubtype(base);
+    if (classWorld.hasOnlySubclasses(topmost)) {
+      return new TypeMask.nonNullSubclass(topmost, classWorld);
+    }
+    if (classWorld.hasAnyStrictSubtype(topmost)) {
+      return new FlatTypeMask.nonNullSubtype(topmost);
     } else {
-      return new TypeMask.nonNullExactOrEmpty(base, classWorld);
+      return new TypeMask.nonNullExact(topmost, classWorld);
     }
   }
 
@@ -247,12 +333,6 @@ abstract class TypeMask {
    * Returns a type mask representing the intersection of [this] and [other].
    */
   TypeMask intersection(TypeMask other, ClassWorld classWorld);
-
-  /**
-   * Returns whether this [TypeMask] applied to [selector] can hit a
-   * [noSuchMethod].
-   */
-  bool needsNoSuchMethodHandling(Selector selector, ClassWorld classWorld);
 
   /**
    * Returns whether [element] is a potential target when being

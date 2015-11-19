@@ -7,25 +7,44 @@ library leg_apiimpl;
 import 'dart:async';
 import 'dart:convert';
 
-import '../compiler_new.dart' as api;
-import 'dart2jslib.dart' as leg;
-import 'tree/tree.dart' as tree;
-import 'elements/elements.dart' as elements;
-import 'package:sdk_library_metadata/libraries.dart' as library_info;
-import 'io/source_file.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart' as pkgs;
-import 'package:package_config/src/packages_impl.dart'
-    show NonFilePackagesDirectoryPackages, MapPackages;
-import 'package:package_config/src/util.dart' show checkValidPackageUri;
+import 'package:package_config/src/packages_impl.dart' show
+    MapPackages,
+    NonFilePackagesDirectoryPackages;
+import 'package:package_config/src/util.dart' show
+    checkValidPackageUri;
+
+import '../compiler_new.dart' as api;
+import 'commandline_options.dart';
+import 'common.dart';
+import 'common/tasks.dart' show
+    GenericTask;
+import 'compiler.dart';
+import 'diagnostics/diagnostic_listener.dart' show
+    DiagnosticOptions;
+import 'diagnostics/messages.dart' show
+    Message;
+import 'elements/elements.dart' as elements;
+import 'io/source_file.dart';
+import 'platform_configuration.dart' as platform_configuration;
+import 'script.dart';
 
 const bool forceIncrementalSupport =
     const bool.fromEnvironment('DART2JS_EXPERIMENTAL_INCREMENTAL_SUPPORT');
 
-class Compiler extends leg.Compiler {
+/// Locations of the platform descriptor files relative to the library root.
+const String _clientPlatform = "lib/dart_client.platform";
+const String _serverPlatform = "lib/dart_server.platform";
+const String _sharedPlatform = "lib/dart_shared.platform";
+const String _dart2dartPlatform = "lib/dart2dart.platform";
+
+/// Implements the [Compiler] using a [api.CompilerInput] for supplying the
+/// sources.
+class CompilerImpl extends Compiler {
   api.CompilerInput provider;
   api.CompilerDiagnostics handler;
-  final Uri libraryRoot;
+  final Uri platformConfigUri;
   final Uri packageConfig;
   final Uri packageRoot;
   final api.PackagesDiscoveryProvider packagesDiscoveryProvider;
@@ -33,85 +52,92 @@ class Compiler extends leg.Compiler {
   List<String> options;
   Map<String, dynamic> environment;
   bool mockableLibraryUsed = false;
-  final Set<library_info.Category> allowedLibraryCategories;
 
-  leg.GenericTask userHandlerTask;
-  leg.GenericTask userProviderTask;
-  leg.GenericTask userPackagesDiscoveryTask;
+  /// A mapping of the dart: library-names to their location.
+  ///
+  /// Initialized in [setupSdk].
+  Map<String, Uri> sdkLibraries;
 
-  Compiler(this.provider,
+  GenericTask userHandlerTask;
+  GenericTask userProviderTask;
+  GenericTask userPackagesDiscoveryTask;
+
+  Uri get libraryRoot => platformConfigUri.resolve(".");
+
+  CompilerImpl(this.provider,
            api.CompilerOutput outputProvider,
            this.handler,
-           this.libraryRoot,
+           Uri libraryRoot,
            this.packageRoot,
            List<String> options,
            this.environment,
            [this.packageConfig,
-            this.packagesDiscoveryProvider,
-            leg.Backend makeBackend(Compiler compiler)])
+            this.packagesDiscoveryProvider])
       : this.options = options,
-        this.allowedLibraryCategories = getAllowedLibraryCategories(options),
+        this.platformConfigUri = resolvePlatformConfig(libraryRoot, options),
         super(
             outputProvider: outputProvider,
-            enableTypeAssertions: hasOption(options, '--enable-checked-mode'),
-            enableUserAssertions: hasOption(options, '--enable-checked-mode'),
+            enableTypeAssertions: hasOption(options, Flags.enableCheckedMode),
+            enableUserAssertions: hasOption(options, Flags.enableCheckedMode),
             trustTypeAnnotations:
-                hasOption(options, '--trust-type-annotations'),
+                hasOption(options, Flags.trustTypeAnnotations),
             trustPrimitives:
-                hasOption(options, '--trust-primitives'),
-            enableMinification: hasOption(options, '--minify'),
+                hasOption(options, Flags.trustPrimitives),
+            enableMinification: hasOption(options, Flags.minify),
             useFrequencyNamer:
-                !hasOption(options, "--no-frequency-based-minification"),
-            preserveUris: hasOption(options, '--preserve-uris'),
+                !hasOption(options, Flags.noFrequencyBasedMinification),
+            preserveUris: hasOption(options, Flags.preserveUris),
             enableNativeLiveTypeAnalysis:
-                !hasOption(options, '--disable-native-live-type-analysis'),
+                !hasOption(options, Flags.disableNativeLiveTypeAnalysis),
             emitJavaScript: !(hasOption(options, '--output-type=dart') ||
                               hasOption(options, '--output-type=dart-multi')),
             dart2dartMultiFile: hasOption(options, '--output-type=dart-multi'),
-            generateSourceMap: !hasOption(options, '--no-source-maps'),
-            analyzeAllFlag: hasOption(options, '--analyze-all'),
-            analyzeOnly: hasOption(options, '--analyze-only'),
-            analyzeMain: hasOption(options, '--analyze-main'),
+            generateSourceMap: !hasOption(options, Flags.noSourceMaps),
+            analyzeAllFlag: hasOption(options, Flags.analyzeAll),
+            analyzeOnly: hasOption(options, Flags.analyzeOnly),
+            analyzeMain: hasOption(options, Flags.analyzeMain),
             analyzeSignaturesOnly:
-                hasOption(options, '--analyze-signatures-only'),
+                hasOption(options, Flags.analyzeSignaturesOnly),
             strips: extractCsvOption(options, '--force-strip='),
-            enableConcreteTypeInference:
-                hasOption(options, '--enable-concrete-type-inference'),
             disableTypeInferenceFlag:
-                hasOption(options, '--disable-type-inference'),
-            preserveComments: hasOption(options, '--preserve-comments'),
-            useCpsIr: hasOption(options, '--use-cps-ir'),
-            verbose: hasOption(options, '--verbose'),
+                hasOption(options, Flags.disableTypeInference),
+            preserveComments: hasOption(options, Flags.preserveComments),
+            useCpsIr: hasOption(options, Flags.useCpsIr),
+            verbose: hasOption(options, Flags.verbose),
             sourceMapUri: extractUriOption(options, '--source-map='),
             outputUri: extractUriOption(options, '--out='),
-            terseDiagnostics: hasOption(options, '--terse'),
             deferredMapUri: extractUriOption(options, '--deferred-map='),
-            dumpInfo: hasOption(options, '--dump-info'),
+            dumpInfo: hasOption(options, Flags.dumpInfo),
             buildId: extractStringOption(
                 options, '--build-id=',
                 "build number could not be determined"),
-            showPackageWarnings:
-                hasOption(options, '--show-package-warnings'),
-            useContentSecurityPolicy: hasOption(options, '--csp'),
-            useStartupEmitter: hasOption(options, '--fast-startup'),
+            useContentSecurityPolicy:
+              hasOption(options, Flags.useContentSecurityPolicy),
+            useStartupEmitter: hasOption(options, Flags.fastStartup),
             hasIncrementalSupport:
                 forceIncrementalSupport ||
-                hasOption(options, '--incremental-support'),
-            suppressWarnings: hasOption(options, '--suppress-warnings'),
-            fatalWarnings: hasOption(options, '--fatal-warnings'),
+                hasOption(options, Flags.incrementalSupport),
+            diagnosticOptions: new DiagnosticOptions(
+                suppressWarnings: hasOption(options, Flags.suppressWarnings),
+                fatalWarnings: hasOption(options, Flags.fatalWarnings),
+                suppressHints: hasOption(options, Flags.suppressHints),
+                terseDiagnostics: hasOption(options, Flags.terse),
+                showPackageWarnings:
+                    hasOption(options, Flags.showPackageWarnings)),
             enableExperimentalMirrors:
-                hasOption(options, '--enable-experimental-mirrors'),
+                hasOption(options, Flags.enableExperimentalMirrors),
+            enableAssertMessage:
+                hasOption(options, Flags.enableAssertMessage),
             generateCodeWithCompileTimeErrors:
-                hasOption(options, '--generate-code-with-compile-time-errors'),
-            testMode: hasOption(options, '--test-mode'),
+                hasOption(options, Flags.generateCodeWithCompileTimeErrors),
+            testMode: hasOption(options, Flags.testMode),
             allowNativeExtensions:
-                hasOption(options, '--allow-native-extensions'),
-            makeBackend: makeBackend) {
+                hasOption(options, Flags.allowNativeExtensions)) {
     tasks.addAll([
-        userHandlerTask = new leg.GenericTask('Diagnostic handler', this),
-        userProviderTask = new leg.GenericTask('Input provider', this),
+        userHandlerTask = new GenericTask('Diagnostic handler', this),
+        userProviderTask = new GenericTask('Input provider', this),
         userPackagesDiscoveryTask =
-            new leg.GenericTask('Package discovery', this),
+            new GenericTask('Package discovery', this),
     ]);
     if (libraryRoot == null) {
       throw new ArgumentError("[libraryRoot] is null.");
@@ -129,8 +155,8 @@ class Compiler extends leg.Compiler {
     if (!analyzeOnly) {
       if (allowNativeExtensions) {
         throw new ArgumentError(
-            "--allow-native-extensions is only supported in combination with "
-            "--analyze-only");
+            "${Flags.allowNativeExtensions} is only supported in combination "
+            "with ${Flags.analyzeOnly}");
       }
     }
   }
@@ -161,29 +187,33 @@ class Compiler extends leg.Compiler {
     return const <String>[];
   }
 
-  static Set<library_info.Category> getAllowedLibraryCategories(
-      List<String> options) {
-    Iterable<library_info.Category> categories =
-      extractCsvOption(options, '--categories=')
-          .map(library_info.parseCategory)
-          .where((x) => x != null);
-    if (categories.isEmpty) {
-      return new Set.from([library_info.Category.client]);
+  static Uri resolvePlatformConfig(Uri libraryRoot,
+                                   List<String> options) {
+    String platformConfigPath =
+        extractStringOption(options, "--platform-config=", null);
+    if (platformConfigPath != null) {
+      return libraryRoot.resolve(platformConfigPath);
+    } else if (hasOption(options, '--output-type=dart')) {
+      return libraryRoot.resolve(_dart2dartPlatform);
+    } else {
+      Iterable<String> categories = extractCsvOption(options, '--categories=');
+      if (categories.length == 0) {
+        return libraryRoot.resolve(_clientPlatform);
+      }
+      assert(categories.length <= 2);
+      if (categories.contains("Client")) {
+        if (categories.contains("Server")) {
+          return libraryRoot.resolve(_sharedPlatform);
+        }
+        return libraryRoot.resolve(_clientPlatform);
+      }
+      assert(categories.contains("Server"));
+      return libraryRoot.resolve(_serverPlatform);
     }
-    return new Set.from(categories);
   }
 
   static bool hasOption(List<String> options, String option) {
     return options.indexOf(option) >= 0;
-  }
-
-  String lookupPatchPath(String dartLibraryName) {
-    library_info.LibraryInfo info = lookupLibraryInfo(dartLibraryName);
-    if (info == null) return null;
-    if (!info.isDart2jsLibrary) return null;
-    String path = info.dart2jsPatchPath;
-    if (path == null) return null;
-    return "lib/$path";
   }
 
   void log(message) {
@@ -191,11 +221,11 @@ class Compiler extends leg.Compiler {
         null, null, null, null, message, api.Diagnostic.VERBOSE_INFO);
   }
 
-  /// See [leg.Compiler.translateResolvedUri].
+  /// See [Compiler.translateResolvedUri].
   Uri translateResolvedUri(elements.LibraryElement importingLibrary,
-                           Uri resolvedUri, tree.Node node) {
+                           Uri resolvedUri, Spannable spannable) {
     if (resolvedUri.scheme == 'dart') {
-      return translateDartUri(importingLibrary, resolvedUri, node);
+      return translateDartUri(importingLibrary, resolvedUri, spannable);
     }
     return resolvedUri;
   }
@@ -203,10 +233,10 @@ class Compiler extends leg.Compiler {
   /**
    * Reads the script designated by [readableUri].
    */
-  Future<leg.Script> readScript(leg.Spannable node, Uri readableUri) {
+  Future<Script> readScript(Spannable node, Uri readableUri) {
     if (!readableUri.isAbsolute) {
-      if (node == null) node = leg.NO_LOCATION_SPANNABLE;
-      internalError(node,
+      if (node == null) node = NO_LOCATION_SPANNABLE;
+      reporter.internalError(node,
           'Relative uri $readableUri provided to readScript(Uri).');
     }
 
@@ -216,15 +246,15 @@ class Compiler extends leg.Compiler {
     elements.Element element = currentElement;
     void reportReadError(exception) {
       if (element == null || node == null) {
-        reportError(
-            new leg.SourceSpan(readableUri, 0, 0),
-            leg.MessageKind.READ_SELF_ERROR,
+        reporter.reportErrorMessage(
+            new SourceSpan(readableUri, 0, 0),
+            MessageKind.READ_SELF_ERROR,
             {'uri': readableUri, 'exception': exception});
       } else {
-        withCurrentElement(element, () {
-          reportError(
+        reporter.withCurrentElement(element, () {
+          reporter.reportErrorMessage(
               node,
-              leg.MessageKind.READ_SCRIPT_ERROR,
+              MessageKind.READ_SCRIPT_ERROR,
               {'uri': readableUri, 'exception': exception});
         });
       }
@@ -234,8 +264,9 @@ class Compiler extends leg.Compiler {
     if (resourceUri == null) return synthesizeScript(node, readableUri);
     if (resourceUri.scheme == 'dart-ext') {
       if (!allowNativeExtensions) {
-        withCurrentElement(element, () {
-          reportError(node, leg.MessageKind.DART_EXT_NOT_SUPPORTED);
+        reporter.withCurrentElement(element, () {
+          reporter.reportErrorMessage(
+              node, MessageKind.DART_EXT_NOT_SUPPORTED);
         });
       }
       return synthesizeScript(node, readableUri);
@@ -259,16 +290,16 @@ class Compiler extends leg.Compiler {
       // the scheme in the script because [Script.uri] is used for resolving
       // relative URIs mentioned in the script. See the comment on
       // [LibraryLoader] for more details.
-      return new leg.Script(readableUri, resourceUri, sourceFile);
+      return new Script(readableUri, resourceUri, sourceFile);
     }).catchError((error) {
       reportReadError(error);
       return synthesizeScript(node, readableUri);
     });
   }
 
-  Future<leg.Script> synthesizeScript(leg.Spannable node, Uri readableUri) {
+  Future<Script> synthesizeScript(Spannable node, Uri readableUri) {
     return new Future.value(
-        new leg.Script(
+        new Script(
             readableUri, readableUri,
             new StringSourceFile.fromUri(
                 readableUri,
@@ -281,7 +312,7 @@ class Compiler extends leg.Compiler {
    *
    * See [LibraryLoader] for terminology on URIs.
    */
-  Uri translateUri(leg.Spannable node, Uri readableUri) {
+  Uri translateUri(Spannable node, Uri readableUri) {
     switch (readableUri.scheme) {
       case 'package': return translatePackageUri(node, readableUri);
       default: return readableUri;
@@ -289,65 +320,58 @@ class Compiler extends leg.Compiler {
   }
 
   /// Translates "resolvedUri" with scheme "dart" to a [uri] resolved relative
-  /// to [libraryRoot] according to the information in [library_info.libraries].
+  /// to [platformConfigUri] according to the information in the file at
+  /// [platformConfigUri].
   ///
   /// Returns null and emits an error if the library could not be found or
   /// imported into [importingLibrary].
   ///
-  /// If [importingLibrary] is a platform or patch library all dart2js libraries
-  /// can be resolved. Otherwise only libraries with categories in
-  /// [allowedLibraryCategories] can be resolved.
+  /// Internal libraries (whose name starts with '_') can be only resolved if
+  /// [importingLibrary] is a platform or patch library.
   Uri translateDartUri(elements.LibraryElement importingLibrary,
-                       Uri resolvedUri, tree.Node node) {
-    library_info.LibraryInfo info = lookupLibraryInfo(resolvedUri.path);
+                       Uri resolvedUri, Spannable spannable) {
 
-    bool allowInternalLibraryAccess = false;
-    if (importingLibrary != null) {
-      if (importingLibrary.isPlatformLibrary || importingLibrary.isPatch) {
-        allowInternalLibraryAccess = true;
-      } else if (importingLibrary.canonicalUri.path.contains(
-          'sdk/tests/compiler/dart2js_native')) {
-        allowInternalLibraryAccess = true;
-      }
-    }
+    Uri location = lookupLibraryUri(resolvedUri.path);
 
-    String computePath() {
-      if (info == null) {
-        return null;
-      } else if (!info.isDart2jsLibrary) {
-        return null;
-      } else {
-        if (info.isInternal &&
-            !allowInternalLibraryAccess) {
-          if (importingLibrary != null) {
-            reportError(
-                node,
-                leg.MessageKind.INTERNAL_LIBRARY_FROM,
-                {'resolvedUri': resolvedUri,
-                 'importingUri': importingLibrary.canonicalUri});
-          } else {
-            reportError(
-                node,
-                leg.MessageKind.INTERNAL_LIBRARY,
-                {'resolvedUri': resolvedUri});
-          }
-          return null;
-        } else if (!allowInternalLibraryAccess &&
-            !allowedLibraryCategories.any(info.categories.contains)) {
-          // TODO(sigurdm): Currently we allow the sdk libraries to import
-          // libraries from any category. We might want to revisit this.
-          return null;
-        } else {
-          return (info.dart2jsPath != null) ? info.dart2jsPath : info.path;
-        }
-      }
-    }
-
-    String path = computePath();
-
-    if (path == null) {
-      reportError(node, leg.MessageKind.LIBRARY_NOT_FOUND,
+    if (location == null) {
+      reporter.reportErrorMessage(
+          spannable,
+          MessageKind.LIBRARY_NOT_FOUND,
           {'resolvedUri': resolvedUri});
+      return null;
+    }
+
+    if (resolvedUri.path.startsWith('_')  ) {
+      bool allowInternalLibraryAccess = importingLibrary != null &&
+          (importingLibrary.isPlatformLibrary ||
+              importingLibrary.isPatch ||
+              importingLibrary.canonicalUri.path
+                  .contains('sdk/tests/compiler/dart2js_native'));
+
+      if (!allowInternalLibraryAccess) {
+        if (importingLibrary != null) {
+          reporter.reportErrorMessage(
+              spannable,
+              MessageKind.INTERNAL_LIBRARY_FROM,
+              {'resolvedUri': resolvedUri,
+                'importingUri': importingLibrary.canonicalUri});
+        } else {
+          reporter.reportErrorMessage(
+              spannable,
+              MessageKind.INTERNAL_LIBRARY,
+              {'resolvedUri': resolvedUri});
+          registerDisallowedLibraryUse(resolvedUri);
+        }
+        return null;
+      }
+    }
+
+    if (location.scheme == "unsupported") {
+      reporter.reportErrorMessage(
+          spannable,
+          MessageKind.LIBRARY_NOT_SUPPORTED,
+          {'resolvedUri': resolvedUri});
+      registerDisallowedLibraryUse(resolvedUri);
       return null;
     }
 
@@ -357,34 +381,40 @@ class Compiler extends leg.Compiler {
       // supports this use case better.
       mockableLibraryUsed = true;
     }
-    return libraryRoot.resolve("lib/$path");
+    return location;
   }
 
-  Uri resolvePatchUri(String dartLibraryPath) {
-    String patchPath = lookupPatchPath(dartLibraryPath);
-    if (patchPath == null) return null;
-    return libraryRoot.resolve(patchPath);
-  }
-
-  Uri translatePackageUri(leg.Spannable node, Uri uri) {
+  Uri translatePackageUri(Spannable node, Uri uri) {
     try {
       checkValidPackageUri(uri);
     } on ArgumentError catch (e) {
-      reportError(
+      reporter.reportErrorMessage(
           node,
-          leg.MessageKind.INVALID_PACKAGE_URI,
+          MessageKind.INVALID_PACKAGE_URI,
           {'uri': uri, 'exception': e.message});
       return null;
     }
     return packages.resolve(uri,
         notFound: (Uri notFound) {
-          reportError(
+          reporter.reportErrorMessage(
               node,
-              leg.MessageKind.LIBRARY_NOT_FOUND,
-              {'resolvedUri': uri}
-          );
+              MessageKind.LIBRARY_NOT_FOUND,
+              {'resolvedUri': uri});
           return null;
         });
+  }
+
+  Future<elements.LibraryElement> analyzeUri(
+      Uri uri,
+      {bool skipLibraryWithPartOfTag: true}) {
+    List<Future> setupFutures = new List<Future>();
+    if (sdkLibraries == null) {
+      setupFutures.add(setupSdk());
+    }
+    if (packages == null) {
+      setupFutures.add(setupPackages(uri));
+    }
+    return Future.wait(setupFutures).then((_) => super.analyzeUri(uri));
   }
 
   Future setupPackages(Uri uri) {
@@ -407,8 +437,9 @@ class Compiler extends leg.Compiler {
         packages =
             new MapPackages(pkgs.parse(packageConfigContents, packageConfig));
       }).catchError((error) {
-        reportError(leg.NO_LOCATION_SPANNABLE,
-            leg.MessageKind.INVALID_PACKAGE_CONFIG,
+        reporter.reportErrorMessage(
+            NO_LOCATION_SPANNABLE,
+            MessageKind.INVALID_PACKAGE_CONFIG,
             {'uri': packageConfig, 'exception': error});
         packages = Packages.noPackages;
       });
@@ -424,10 +455,24 @@ class Compiler extends leg.Compiler {
     return new Future.value();
   }
 
-  Future<bool> run(Uri uri) {
-    log('Allowed library categories: $allowedLibraryCategories');
+  Future<Null> setupSdk() {
+    if (sdkLibraries == null) {
+      return platform_configuration.load(platformConfigUri, provider)
+          .then((Map<String, Uri> mapping) {
+        sdkLibraries = mapping;
+      });
+    } else {
+      // The incremental compiler sets up the sdk before run.
+      // Therefore this will be called a second time.
+      return new Future.value(null);
+    }
+  }
 
-    return setupPackages(uri).then((_) {
+  Future<bool> run(Uri uri) {
+    log('Using platform configuration at ${platformConfigUri}');
+
+    return Future.wait([setupSdk(), setupPackages(uri)]).then((_) {
+      assert(sdkLibraries != null);
       assert(packages != null);
 
       return super.run(uri).then((bool success) {
@@ -437,6 +482,10 @@ class Compiler extends leg.Compiler {
           if (elapsed != 0) {
             cumulated += elapsed;
             log('${task.name} took ${elapsed}msec');
+            for (String subtask in task.subtasks) {
+              int subtime = task.getSubtaskTime(subtask);
+              log('${task.name} > $subtask took ${subtime}msec');
+            }
           }
         }
         int total = totalCompileTime.elapsedMilliseconds;
@@ -447,17 +496,21 @@ class Compiler extends leg.Compiler {
     });
   }
 
-  void reportDiagnostic(leg.Spannable node,
-                        leg.Message message,
+  void reportDiagnostic(DiagnosticMessage message,
+                        List<DiagnosticMessage> infos,
                         api.Diagnostic kind) {
-    leg.SourceSpan span = spanFromSpannable(node);
-    if (identical(kind, api.Diagnostic.ERROR)
-        || identical(kind, api.Diagnostic.CRASH)
-        || (fatalWarnings && identical(kind, api.Diagnostic.WARNING))) {
-      compilationFailed = true;
+    _reportDiagnosticMessage(message, kind);
+    for (DiagnosticMessage info in infos) {
+      _reportDiagnosticMessage(info, api.Diagnostic.INFO);
     }
+  }
+
+  void _reportDiagnosticMessage(DiagnosticMessage diagnosticMessage,
+                                api.Diagnostic kind) {
     // [:span.uri:] might be [:null:] in case of a [Script] with no [uri]. For
     // instance in the [Types] constructor in typechecker.dart.
+    SourceSpan span = diagnosticMessage.sourceSpan;
+    Message message = diagnosticMessage.message;
     if (span == null || span.uri == null) {
       callUserHandler(message, null, null, null, '$message', kind);
     } else {
@@ -468,10 +521,10 @@ class Compiler extends leg.Compiler {
 
   bool get isMockCompilation {
     return mockableLibraryUsed
-      && (options.indexOf('--allow-mock-compilation') != -1);
+      && (options.indexOf(Flags.allowMockCompilation) != -1);
   }
 
-  void callUserHandler(leg.Message message, Uri uri, int begin, int end,
+  void callUserHandler(Message message, Uri uri, int begin, int end,
                        String text, api.Diagnostic kind) {
     try {
       userHandlerTask.measure(() {
@@ -503,15 +556,15 @@ class Compiler extends leg.Compiler {
     }
   }
 
-  void diagnoseCrashInUserCode(String message, exception, stackTrace) {
-    hasCrashed = true;
-    print('$message: ${tryToString(exception)}');
-    print(tryToString(stackTrace));
-  }
-
   fromEnvironment(String name) => environment[name];
 
-  library_info.LibraryInfo lookupLibraryInfo(String libraryName) {
-    return library_info.libraries[libraryName];
+  Uri lookupLibraryUri(String libraryName) {
+    assert(invariant(NO_LOCATION_SPANNABLE,
+        sdkLibraries != null, message: "setupSdk() has not been run"));
+    return sdkLibraries[libraryName];
+  }
+
+  Uri resolvePatchUri(String libraryName) {
+    return backend.resolvePatchUri(libraryName, platformConfigUri);
   }
 }

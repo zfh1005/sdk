@@ -10,6 +10,7 @@
 #include "vm/code_observers.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
+#include "vm/object.h"
 #include "vm/tags.h"
 #include "vm/thread_interrupter.h"
 
@@ -33,55 +34,30 @@ class Profiler : public AllStatic {
   static void SetSampleDepth(intptr_t depth);
   static void SetSamplePeriod(intptr_t period);
 
-  static void InitProfilingForIsolate(Isolate* isolate,
-                                      bool shared_buffer = true);
-  static void ShutdownProfilingForIsolate(Isolate* isolate);
-
-  static void BeginExecution(Isolate* isolate);
-  static void EndExecution(Isolate* isolate);
-
   static SampleBuffer* sample_buffer() {
     return sample_buffer_;
   }
 
-  static void RecordAllocation(Isolate* isolate, intptr_t cid);
+  static void SampleAllocation(Thread* thread, intptr_t cid);
+
+  // SampleThread is called from inside the signal handler and hence it is very
+  // critical that the implementation of SampleThread does not do any of the
+  // following:
+  //   * Accessing TLS -- Because on Windows the callback will be running in a
+  //                      different thread.
+  //   * Allocating memory -- Because this takes locks which may already be
+  //                          held, resulting in a dead lock.
+  //   * Taking a lock -- See above.
+  static void SampleThread(Thread* thread,
+                           const InterruptedThreadState& state);
 
  private:
   static bool initialized_;
   static Monitor* monitor_;
 
-  static void RecordSampleInterruptCallback(const InterruptedThreadState& state,
-                                            void* data);
-
   static SampleBuffer* sample_buffer_;
-};
 
-
-class IsolateProfilerData {
- public:
-  IsolateProfilerData(SampleBuffer* sample_buffer, bool own_sample_buffer);
-  ~IsolateProfilerData();
-
-  SampleBuffer* sample_buffer() const { return sample_buffer_; }
-
-  void set_sample_buffer(SampleBuffer* sample_buffer) {
-    sample_buffer_ = sample_buffer;
-  }
-
-  bool blocked() const {
-    return block_count_ > 0;
-  }
-
-  void Block();
-
-  void Unblock();
-
- private:
-  SampleBuffer* sample_buffer_;
-  bool own_sample_buffer_;
-  intptr_t block_count_;
-
-  DISALLOW_COPY_AND_ASSIGN(IsolateProfilerData);
+  friend class Thread;
 };
 
 
@@ -155,6 +131,11 @@ class Sample {
     return isolate_;
   }
 
+  // Thread sample was taken on.
+  ThreadId tid() const {
+    return tid_;
+  }
+
   void Clear() {
     isolate_ = NULL;
     pc_marker_ = 0;
@@ -166,10 +147,12 @@ class Sample {
     lr_ = 0;
     metadata_ = 0;
     state_ = 0;
+    continuation_index_ = -1;
     uword* pcs = GetPCArray();
     for (intptr_t i = 0; i < pcs_length_; i++) {
       pcs[i] = 0;
     }
+    set_head_sample(true);
   }
 
   // Timestamp sample was taken at.
@@ -229,30 +212,6 @@ class Sample {
     lr_ = link_register;
   }
 
-  void InsertCallerForTopFrame(uword pc) {
-    if (pcs_length_ == 1) {
-      // Only sampling top frame.
-      return;
-    }
-    uword* pcs = GetPCArray();
-    // The caller for the top frame is store at index 1.
-    // Shift all entries down by one.
-    for (intptr_t i = pcs_length_ - 1; i >= 2; i--) {
-      pcs[i] = pcs[i - 1];
-    }
-    // Insert caller for top frame.
-    pcs[1] = pc;
-    set_missing_frame_inserted(true);
-  }
-
-  bool processed() const {
-    return ProcessedBit::decode(state_);
-  }
-
-  void set_processed(bool processed) {
-    state_ = ProcessedBit::update(processed, state_);
-  }
-
   bool leaf_frame_is_dart() const {
     return LeafFrameIsDart::decode(state_);
   }
@@ -301,9 +260,34 @@ class Sample {
     state_ = ClassAllocationSampleBit::update(allocation_sample, state_);
   }
 
+  bool is_continuation_sample() const {
+    return ContinuationSampleBit::decode(state_);
+  }
+
+  void SetContinuationIndex(intptr_t index) {
+    ASSERT(!is_continuation_sample());
+    ASSERT(continuation_index_ == -1);
+    state_ = ContinuationSampleBit::update(true, state_);
+    continuation_index_ = index;
+    ASSERT(is_continuation_sample());
+  }
+
+  intptr_t continuation_index() const {
+    ASSERT(is_continuation_sample());
+    return continuation_index_;
+  }
+
   intptr_t allocation_cid() const {
     ASSERT(is_allocation_sample());
     return metadata_;
+  }
+
+  void set_head_sample(bool head_sample) {
+    state_ = HeadSampleBit::update(head_sample, state_);
+  }
+
+  bool head_sample() const {
+    return HeadSampleBit::decode(state_);
   }
 
   void set_metadata(intptr_t metadata) {
@@ -332,23 +316,26 @@ class Sample {
   static intptr_t instance_size_;
   static intptr_t pcs_length_;
   enum StateBits {
-    kProcessedBit = 0,
+    kHeadSampleBit = 0,
     kLeafFrameIsDartBit = 1,
     kIgnoreBit = 2,
     kExitFrameBit = 3,
     kMissingFrameInsertedBit = 4,
-    kTruncatedTrace = 5,
-    kClassAllocationSample = 6,
+    kTruncatedTraceBit = 5,
+    kClassAllocationSampleBit = 6,
+    kContinuationSampleBit = 7,
   };
-  class ProcessedBit : public BitField<bool, kProcessedBit, 1> {};
+  class HeadSampleBit : public BitField<bool, kHeadSampleBit, 1> {};
   class LeafFrameIsDart : public BitField<bool, kLeafFrameIsDartBit, 1> {};
   class IgnoreBit : public BitField<bool, kIgnoreBit, 1> {};
   class ExitFrameBit : public BitField<bool, kExitFrameBit, 1> {};
   class MissingFrameInsertedBit
-    : public BitField<bool, kMissingFrameInsertedBit, 1> {};
-  class TruncatedTraceBit : public BitField<bool, kTruncatedTrace, 1> {};
+      : public BitField<bool, kMissingFrameInsertedBit, 1> {};
+  class TruncatedTraceBit : public BitField<bool, kTruncatedTraceBit, 1> {};
   class ClassAllocationSampleBit
-      : public BitField<bool, kClassAllocationSample, 1> {};
+      : public BitField<bool, kClassAllocationSampleBit, 1> {};
+  class ContinuationSampleBit
+      : public BitField<bool, kContinuationSampleBit, 1> {};
 
   int64_t timestamp_;
   ThreadId tid_;
@@ -360,11 +347,90 @@ class Sample {
   uword metadata_;
   uword lr_;
   uword state_;
+  intptr_t continuation_index_;
 
   /* There are a variable number of words that follow, the words hold the
    * sampled pc values. Access via GetPCArray() */
 
   DISALLOW_COPY_AND_ASSIGN(Sample);
+};
+
+
+// A Code object descriptor.
+class CodeDescriptor : public ZoneAllocated {
+ public:
+  explicit CodeDescriptor(const Code& code);
+
+  uword Entry() const;
+
+  uword Size() const;
+
+  int64_t CompileTimestamp() const;
+
+  RawCode* code() const {
+    return code_.raw();
+  }
+
+  const char* Name() const {
+    const String& name = String::Handle(code_.Name());
+    return name.ToCString();
+  }
+
+  bool Contains(uword pc) const {
+    uword end = Entry() + Size();
+    return (pc >= Entry()) && (pc < end);
+  }
+
+  static int Compare(CodeDescriptor* const* a,
+                     CodeDescriptor* const* b) {
+    ASSERT(a != NULL);
+    ASSERT(b != NULL);
+
+    uword a_entry = (*a)->Entry();
+    uword b_entry = (*b)->Entry();
+
+    if (a_entry < b_entry) {
+      return -1;
+    } else if (a_entry > b_entry) {
+      return 1;
+    } else {
+      return 0;
+    }
+  }
+
+ private:
+  const Code& code_;
+
+  DISALLOW_COPY_AND_ASSIGN(CodeDescriptor);
+};
+
+
+// Fast lookup of Dart code objects.
+class CodeLookupTable : public ZoneAllocated {
+ public:
+  explicit CodeLookupTable(Thread* thread);
+
+  intptr_t length() const {
+    return code_objects_.length();
+  }
+
+  const CodeDescriptor* At(intptr_t index) const {
+    return code_objects_.At(index);
+  }
+
+  const CodeDescriptor* FindCode(uword pc) const;
+
+ private:
+  void Build(Thread* thread);
+
+  void Add(const Code& code);
+
+  // Code objects sorted by entry.
+  ZoneGrowableArray<CodeDescriptor*> code_objects_;
+
+  friend class CodeLookupTableBuilder;
+
+  DISALLOW_COPY_AND_ASSIGN(CodeLookupTable);
 };
 
 
@@ -387,13 +453,19 @@ class SampleBuffer {
   intptr_t capacity() const { return capacity_; }
 
   Sample* At(intptr_t idx) const;
+  intptr_t ReserveSampleSlot();
   Sample* ReserveSample();
+  Sample* ReserveSampleAndLink(Sample* previous);
 
   void VisitSamples(SampleVisitor* visitor) {
     ASSERT(visitor != NULL);
     const intptr_t length = capacity();
     for (intptr_t i = 0; i < length; i++) {
       Sample* sample = At(i);
+      if (!sample->head_sample()) {
+        // An inner sample in a chain of samples.
+        continue;
+      }
       if (sample->ignore_sample()) {
         // Bad sample.
         continue;
@@ -418,7 +490,8 @@ class SampleBuffer {
   ProcessedSampleBuffer* BuildProcessedSampleBuffer(SampleFilter* filter);
 
  private:
-  ProcessedSample* BuildProcessedSample(Sample* sample);
+  ProcessedSample* BuildProcessedSample(Sample* sample,
+                                        const CodeLookupTable& clt);
   Sample* Next(Sample* sample);
 
   Sample* samples_;
@@ -487,24 +560,14 @@ class ProcessedSample : public ZoneAllocated {
   }
 
  private:
-  void FixupCaller(Isolate* isolate,
-                   Isolate* vm_isolate,
+  void FixupCaller(const CodeLookupTable& clt,
                    uword pc_marker,
                    uword* stack_buffer);
 
-  void CheckForMissingDartFrame(Isolate* isolate,
-                                Isolate* vm_isolate,
-                                const Code& code,
+  void CheckForMissingDartFrame(const CodeLookupTable& clt,
+                                const CodeDescriptor* code,
                                 uword pc_marker,
                                 uword* stack_buffer);
-
-  static RawCode* FindCodeForPC(Isolate* isolate,
-                                Isolate* vm_isolate,
-                                uword pc);
-
-  static bool ContainedInDartCodeHeaps(Isolate* isolate,
-                                       Isolate* vm_isolate,
-                                       uword pc);
 
   ZoneGrowableArray<uword> pcs_;
   int64_t timestamp_;
@@ -536,8 +599,13 @@ class ProcessedSampleBuffer : public ZoneAllocated {
     return samples_.At(index);
   }
 
+  const CodeLookupTable& code_lookup_table() const {
+    return *code_lookup_table_;
+  }
+
  private:
   ZoneGrowableArray<ProcessedSample*> samples_;
+  CodeLookupTable* code_lookup_table_;
 
   DISALLOW_COPY_AND_ASSIGN(ProcessedSampleBuffer);
 };

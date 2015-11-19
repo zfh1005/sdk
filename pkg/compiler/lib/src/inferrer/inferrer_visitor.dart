@@ -4,18 +4,32 @@
 
 library inferrer_visitor;
 
+import 'dart:collection' show
+    IterableMixin;
+
+import '../common.dart';
+import '../compiler.dart' show
+    Compiler;
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
-import '../dart2jslib.dart' hide Selector, TypedSelector;
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../resolution/operators.dart';
+import '../resolution/semantic_visitor.dart';
+import '../resolution/tree_elements.dart' show
+    TreeElements;
 import '../tree/tree.dart';
-import '../universe/universe.dart';
+import '../types/types.dart' show
+    TypeMask;
+import '../types/constants.dart' show
+    computeTypeMask;
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
+    Selector;
 import '../util/util.dart';
-import '../types/types.dart' show TypeMask;
-import '../types/constants.dart' show computeTypeMask;
-import 'dart:collection' show IterableMixin;
+import '../world.dart' show
+    ClassWorld;
 
 /**
  * The interface [InferrerVisitor] will use when working on types.
@@ -39,8 +53,12 @@ abstract class TypeSystem<T> {
   T get constMapType;
   T get stringType;
   T get typeType;
+  T get syncStarIterableType;
+  T get asyncFutureType; // Subtype of Future returned by async methods.
+  T get asyncStarStreamType;
 
   T stringLiteralType(DartString value);
+  T boolLiteralType(LiteralBool value);
 
   T nonNullSubtype(ClassElement type);
   T nonNullSubclass(ClassElement type);
@@ -586,25 +604,33 @@ class LocalsHandler<T> {
   void mergeAfterBreaks(List<LocalsHandler<T>> handlers,
                         {bool keepOwnLocals: true}) {
     Node level = locals.block;
+    // Use a separate locals handler to perform the merge in, so that Phi
+    // creation does not invalidate previous type knowledge while we might
+    // still look it up.
+    LocalsHandler merged = new LocalsHandler.from(this, level);
     Set<Local> seenLocals = new Setlet<Local>();
-    // If we want to keep the locals, we first merge [this] into itself to
-    // create the required Phi nodes.
-    if (keepOwnLocals && !seenReturnOrThrow) {
-      mergeHandler(this, seenLocals);
-    }
     bool allBranchesAbort = true;
     // Merge all other handlers.
     for (LocalsHandler handler in handlers) {
       allBranchesAbort = allBranchesAbort && handler.seenReturnOrThrow;
-      mergeHandler(handler, seenLocals);
+      merged.mergeHandler(handler, seenLocals);
     }
-    // Clean up Phi nodes with single input.
-    locals.forEachLocal((Local variable, T type) {
-      if (!seenLocals.contains(variable)) return;
-      T newType = types.simplifyPhi(level, variable, type);
-      if (newType != type) {
-        locals[variable] = newType;
+    // If we want to keep own locals, we merge [seenLocals] from [this] into
+    // [merged] to update the Phi nodes with original values.
+    if (keepOwnLocals && !seenReturnOrThrow) {
+      for (Local variable in seenLocals) {
+        T originalType = locals[variable];
+        if (originalType != null) {
+          merged.locals[variable] = types.addPhiInput(variable,
+                                                      merged.locals[variable],
+                                                      originalType);
+        }
       }
+    }
+    // Clean up Phi nodes with single input and store back result into
+    // actual locals handler.
+    merged.locals.forEachOwnLocal((Local variable, T type) {
+      locals[variable] = types.simplifyPhi(level, variable, type);
     });
     seenReturnOrThrow = allBranchesAbort &&
                         (!keepOwnLocals || seenReturnOrThrow);
@@ -673,8 +699,17 @@ class LocalsHandler<T> {
   }
 }
 
-abstract class InferrerVisitor
-    <T, E extends MinimalInferrerEngine<T>> extends NewResolvedVisitor<T> {
+abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
+    extends Visitor<T>
+    with SemanticSendResolvedMixin<T, dynamic>,
+         CompoundBulkMixin<T, dynamic>,
+         SetIfNullBulkMixin<T, dynamic>,
+         PrefixBulkMixin<T, dynamic>,
+         PostfixBulkMixin<T, dynamic>,
+         ErrorBulkMixin<T, dynamic>,
+         NewBulkMixin<T, dynamic>,
+         SetBulkMixin<T, dynamic>
+    implements SemanticSendVisitor<T, dynamic> {
   final Compiler compiler;
   final AstElement analyzedElement;
   final TypeSystem<T> types;
@@ -685,6 +720,7 @@ abstract class InferrerVisitor
       new Map<JumpTarget, List<LocalsHandler<T>>>();
   LocalsHandler<T> locals;
   final List<T> cascadeReceiverStack = new List<T>();
+  final TreeElements elements;
 
   bool accumulateIsChecks = false;
   bool conditionIsSimple = false;
@@ -710,7 +746,7 @@ abstract class InferrerVisitor
                   [LocalsHandler<T> handler])
     : this.analyzedElement = analyzedElement,
       this.locals = handler,
-      super(analyzedElement.resolvedAst.elements) {
+      this.elements = analyzedElement.resolvedAst.elements {
     if (handler != null) return;
     Node node = analyzedElement.node;
     FieldInitializationScope<T> fieldScope =
@@ -720,9 +756,25 @@ abstract class InferrerVisitor
     locals = new LocalsHandler<T>(inferrer, types, compiler, node, fieldScope);
   }
 
+  DiagnosticReporter get reporter => compiler.reporter;
+
+  @override
+  SemanticSendVisitor get sendVisitor => this;
+
+  @override
+  T apply(Node node, _) => visit(node);
+
   T handleSendSet(SendSet node);
 
   T handleDynamicInvoke(Send node);
+
+  T visitAssert(Assert node) {
+    // Avoid pollution from assert statement unless enabled.
+    if (compiler.enableUserAssertions) {
+      super.visitAssert(node);
+    }
+    return null;
+  }
 
   T visitAsyncForIn(AsyncForIn node);
 
@@ -733,15 +785,34 @@ abstract class InferrerVisitor
   T visitFunctionExpression(FunctionExpression node);
 
   @override
-  T visitAssert(Send node, Node expression, _) {
-    if (!compiler.enableUserAssertions) {
-      return types.nullType;
-    }
-    return handleAssert(node, expression);
+  T bulkHandleSet(SendSet node, _) {
+    return handleSendSet(node);
   }
 
-  /// Handle an enabled assertion of [expression].
-  T handleAssert(Send node, Node expression);
+  @override
+  T bulkHandleCompound(SendSet node, _) {
+    return handleSendSet(node);
+  }
+
+  @override
+  T bulkHandleSetIfNull(SendSet node, _) {
+    return handleSendSet(node);
+  }
+
+  @override
+  T bulkHandlePrefix(SendSet node, _) {
+    return handleSendSet(node);
+  }
+
+  @override
+  T bulkHandlePostfix(SendSet node, _) {
+    return handleSendSet(node);
+  }
+
+  @override
+  T bulkHandleError(Node node, ErroneousElement error, _) {
+    return types.dynamicType;
+  }
 
   T visitNode(Node node) {
     return node.visitChildren(this);
@@ -771,7 +842,7 @@ abstract class InferrerVisitor
   }
 
   T visitLiteralBool(LiteralBool node) {
-    return types.boolType;
+    return types.boolLiteralType(node);
   }
 
   T visitLiteralDouble(LiteralDouble node) {
@@ -808,12 +879,7 @@ abstract class InferrerVisitor
     // TODO(kasperl): We should be able to tell that the type of a literal
     // symbol is always a non-null exact symbol implementation -- not just
     // any non-null subtype of the symbol interface.
-    return types.nonNullSubtype(compiler.symbolClass);
-  }
-
-  T visitTypePrefixSend(Send node) {
-    // TODO(johnniwinther): Remove the need for handling this node.
-    return types.dynamicType;
+    return types.nonNullSubtype(compiler.coreClasses.symbolClass);
   }
 
   @override
@@ -827,6 +893,30 @@ abstract class InferrerVisitor
 
   T handleTypeLiteralInvoke(NodeList arguments) {
     return types.dynamicType;
+  }
+
+
+  @override
+  T bulkHandleNode(Node node, String message, _) {
+    return internalError(node, message.replaceAll('#', '$node'));
+  }
+
+  @override
+  T visitConstantGet(
+      Send node,
+      ConstantExpression constant,
+      _) {
+    return bulkHandleNode(node, "Constant read `#` unhandled.", _);
+  }
+
+  @override
+  T visitConstantInvoke(
+      Send node,
+      ConstantExpression constant,
+      NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    return bulkHandleNode(node, "Constant invoke `#` unhandled.", _);
   }
 
   T visitClassTypeLiteralGet(
@@ -918,6 +1008,11 @@ abstract class InferrerVisitor
         outermostElement.enclosingClass.superclass);
   }
 
+  @override
+  T visitThisGet(Identifier node, _) {
+    return thisType;
+  }
+
   T visitIdentifier(Identifier node) {
     if (node.isThis()) {
       return thisType;
@@ -979,7 +1074,7 @@ abstract class InferrerVisitor
           }
         } else {
           // Narrow the elements to a non-null type.
-          DartType objectType = compiler.objectClass.rawType;
+          DartType objectType = compiler.coreTypes.objectType;
           if (Elements.isLocal(receiverElement)) {
             narrow(receiverElement, objectType, node);
           }
@@ -1169,7 +1264,7 @@ abstract class InferrerVisitor
         locals.update(elements[definition], types.nullType, node);
       } else {
         assert(definition.asSendSet() != null);
-        visit(definition);
+        handleSendSet(definition);
       }
     }
     return null;
@@ -1377,7 +1472,7 @@ abstract class InferrerVisitor
   }
 
   internalError(Spannable node, String reason) {
-    compiler.internalError(node, reason);
+    reporter.internalError(node, reason);
   }
 
   T visitSwitchStatement(SwitchStatement node) {

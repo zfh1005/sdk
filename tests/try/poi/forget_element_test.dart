@@ -20,7 +20,7 @@ import 'package:compiler/src/js_backend/js_backend.dart' show
 
 import 'package:compiler/src/tree/tree.dart' as tree;
 
-import 'package:compiler/src/scanner/scannerlib.dart' show
+import 'package:compiler/src/parser/partial_elements.dart' show
     PartialMetadataAnnotation;
 
 import 'package:compiler/src/elements/visitor.dart' show
@@ -260,12 +260,12 @@ class ForgetElementTestCase extends CompilerTestCase {
   }
 
   Iterable codegenSeenClassesIn(LibraryElement library) {
-    return compiler.codegenWorld.allInstantiatedClasses.where(
+    return compiler.enqueuer.codegen.processedClasses.where(
         (e) => e.library == library);
   }
 
   Iterable resolutionSeenClassesIn(LibraryElement library) {
-    return compiler.resolverWorld.allInstantiatedClasses.where(
+    return compiler.enqueuer.resolution.processedClasses.where(
         (e) => e.library == library);
   }
 }

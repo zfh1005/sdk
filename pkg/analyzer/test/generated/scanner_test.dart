@@ -10,10 +10,11 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
+import '../utils.dart';
 import 'test_support.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   runReflectiveTests(CharSequenceReaderTest);
   runReflectiveTests(KeywordStateTest);
   runReflectiveTests(ScannerTest);
@@ -172,8 +173,8 @@ class KeywordStateTest {
 class ScannerTest {
   void fail_incomplete_string_interpolation() {
     // https://code.google.com/p/dart/issues/detail?id=18073
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 9,
-        "\"foo \${bar", [
+    _assertErrorAndTokens(
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 9, "\"foo \${bar", [
       new StringToken(TokenType.STRING, "\"foo ", 0),
       new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 5),
       new StringToken(TokenType.IDENTIFIER, "bar", 7)
@@ -253,13 +254,26 @@ class ScannerTest {
   }
 
   void test_comment_disabled_multi() {
-    Scanner scanner = new Scanner(null,
+    Scanner scanner = new Scanner(
+        null,
         new CharSequenceReader("/* comment */ "),
         AnalysisErrorListener.NULL_LISTENER);
     scanner.preserveComments = false;
     Token token = scanner.tokenize();
     expect(token, isNotNull);
     expect(token.precedingComments, isNull);
+  }
+
+  void test_comment_generic_method_type_assign() {
+    _assertComment(TokenType.MULTI_LINE_COMMENT, "/*=comment*/");
+    _assertComment(TokenType.GENERIC_METHOD_TYPE_ASSIGN, "/*=comment*/",
+        genericMethodComments: true);
+  }
+
+  void test_comment_generic_method_type_list() {
+    _assertComment(TokenType.MULTI_LINE_COMMENT, "/*<comment>*/");
+    _assertComment(TokenType.GENERIC_METHOD_TYPE_LIST, "/*<comment>*/",
+        genericMethodComments: true);
   }
 
   void test_comment_multi() {
@@ -276,13 +290,15 @@ class ScannerTest {
     GatheringErrorListener listener = new GatheringErrorListener();
     Scanner scanner = new Scanner(null, new CharSequenceReader(code), listener);
     scanner.tokenize();
-    expect(scanner.lineStarts, equals(<int>[
-      code.indexOf('/**'),
-      code.indexOf(' * aa'),
-      code.indexOf(' * bbb'),
-      code.indexOf(' * c'),
-      code.indexOf(' */')
-    ]));
+    expect(
+        scanner.lineStarts,
+        equals(<int>[
+          code.indexOf('/**'),
+          code.indexOf(' * aa'),
+          code.indexOf(' * bbb'),
+          code.indexOf(' * c'),
+          code.indexOf(' */')
+        ]));
   }
 
   void test_comment_multi_unterminated() {
@@ -851,8 +867,8 @@ class ScannerTest {
   }
 
   void test_string_multi_unterminated_interpolation_block() {
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 8,
-        "'''\${name", [
+    _assertErrorAndTokens(
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 8, "'''\${name", [
       new StringToken(TokenType.STRING, "'''", 0),
       new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 3),
       new StringToken(TokenType.IDENTIFIER, "name", 5),
@@ -861,8 +877,8 @@ class ScannerTest {
   }
 
   void test_string_multi_unterminated_interpolation_identifier() {
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7,
-        "'''\$name", [
+    _assertErrorAndTokens(
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 7, "'''\$name", [
       new StringToken(TokenType.STRING, "'''", 0),
       new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 3),
       new StringToken(TokenType.IDENTIFIER, "name", 4),
@@ -1008,8 +1024,8 @@ class ScannerTest {
   }
 
   void test_string_simple_unterminated_interpolation_block() {
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 6,
-        "'\${name", [
+    _assertErrorAndTokens(
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 6, "'\${name", [
       new StringToken(TokenType.STRING, "'", 0),
       new StringToken(TokenType.STRING_INTERPOLATION_EXPRESSION, "\${", 1),
       new StringToken(TokenType.IDENTIFIER, "name", 3),
@@ -1018,8 +1034,8 @@ class ScannerTest {
   }
 
   void test_string_simple_unterminated_interpolation_identifier() {
-    _assertErrorAndTokens(ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 5,
-        "'\$name", [
+    _assertErrorAndTokens(
+        ScannerErrorCode.UNTERMINATED_STRING_LITERAL, 5, "'\$name", [
       new StringToken(TokenType.STRING, "'", 0),
       new StringToken(TokenType.STRING_INTERPOLATION_IDENTIFIER, "\$", 1),
       new StringToken(TokenType.IDENTIFIER, "name", 2),
@@ -1044,11 +1060,12 @@ class ScannerTest {
     _scanWithListener("'\${(}'", listener);
   }
 
-  void _assertComment(TokenType commentType, String source) {
+  void _assertComment(TokenType commentType, String source,
+      {bool genericMethodComments: false}) {
     //
     // Test without a trailing end-of-line marker
     //
-    Token token = _scan(source);
+    Token token = _scan(source, genericMethodComments: genericMethodComments);
     expect(token, isNotNull);
     expect(token.type, TokenType.EOF);
     Token comment = token.precedingComments;
@@ -1060,7 +1077,7 @@ class ScannerTest {
     //
     // Test with a trailing end-of-line marker
     //
-    token = _scan("$source\n");
+    token = _scan("$source\n", genericMethodComments: genericMethodComments);
     expect(token, isNotNull);
     expect(token.type, TokenType.EOF);
     comment = token.precedingComments;
@@ -1229,16 +1246,21 @@ class ScannerTest {
     expect(token.type, TokenType.EOF);
   }
 
-  Token _scan(String source) {
+  Token _scan(String source, {bool genericMethodComments: false}) {
     GatheringErrorListener listener = new GatheringErrorListener();
-    Token token = _scanWithListener(source, listener);
+    Token token = _scanWithListener(source, listener,
+        genericMethodComments: genericMethodComments);
     listener.assertNoErrors();
     return token;
   }
 
-  Token _scanWithListener(String source, GatheringErrorListener listener) {
+  Token _scanWithListener(String source, GatheringErrorListener listener,
+      {bool genericMethodComments: false}) {
     Scanner scanner =
         new Scanner(null, new CharSequenceReader(source), listener);
+    if (genericMethodComments) {
+      scanner.scanGenericMethodComments = true;
+    }
     Token result = scanner.tokenize();
     listener.setLineInfo(new TestSource(), scanner.lineStarts);
     return result;

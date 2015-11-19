@@ -1,7 +1,7 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--compile_all --error_on_bad_type --error_on_bad_override
+// VMOptions=--error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
@@ -11,7 +11,7 @@ import 'dart:developer';
 int globalVar = 100;
 
 class MyClass {
-  static void myFunction(int value) {
+       static       void myFunction(int value) {
     if (value < 0) {
       print("negative");
     } else {
@@ -22,9 +22,9 @@ class MyClass {
 
   static void otherFunction(int value) {
     if (value < 0) {
-      print("otherFunction <");
+               print("otherFunction <");
     } else {
-      print("otherFunction >=");
+         print("otherFunction >=");
     }
   }
 }
@@ -75,24 +75,24 @@ hasStoppedAtBreakpoint,
   coverage = await isolate.invokeRpcNoUpgrade('_getCoverage',
                                               { 'targetId': lib.id });
   expect(coverage['type'], equals('CodeCoverage'));
-  expect(coverage['coverage'].length, equals(3));
+  expect(coverage['coverage'].length, equals(4));
   expect(coverage['coverage'][0]['hits'],
          equals([15, 1, 16, 0, 18, 1, 20, 1,
                  24, 1, 25, 1, 27, 0]));
-  expect(coverage['coverage'][1]['hits'].take(12),
-         equals([33, 1, 34, 1, 32, 1, 105, 2, 105, 1]));
+  expect(coverage['coverage'][1]['hits'],
+         equals([33, 1, 34, 1, 105, 2]));
 
   // Script
   await cls.load();
   coverage = await isolate.invokeRpcNoUpgrade('_getCoverage',
                                        { 'targetId': cls.location.script.id });
   expect(coverage['type'], equals('CodeCoverage'));
-  expect(coverage['coverage'].length, equals(3));
+  expect(coverage['coverage'].length, equals(4));
   expect(coverage['coverage'][0]['hits'],
          equals([15, 1, 16, 0, 18, 1, 20, 1,
                  24, 1, 25, 1, 27, 0]));
-  expect(coverage['coverage'][1]['hits'].take(12),
-         equals([33, 1, 34, 1, 32, 1, 105, 2, 105, 1]));
+  expect(coverage['coverage'][1]['hits'],
+         equals([33, 1, 34, 1, 105, 2]));
 
   // Isolate
   coverage = await isolate.invokeRpcNoUpgrade('_getCoverage', {});

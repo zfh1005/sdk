@@ -6,13 +6,13 @@ library test.analysis_server;
 
 import 'dart:async';
 
+import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
-import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -27,9 +27,10 @@ import 'package:unittest/unittest.dart';
 
 import 'mock_sdk.dart';
 import 'mocks.dart';
+import 'utils.dart';
 
 main() {
-  groupSep = ' | ';
+  initializeTestEnvironment();
   defineReflectiveTests(AnalysisServerTest);
 }
 
@@ -53,12 +54,16 @@ class AnalysisServerTest {
     // bar.dart.
     resourceProvider.newFolder('/foo');
     resourceProvider.newFolder('/bar');
-    File foo = resourceProvider.newFile('/foo/foo.dart', '''
+    File foo = resourceProvider.newFile(
+        '/foo/foo.dart',
+        '''
 libary foo;
 import "../bar/bar.dart";
 ''');
     Source fooSource = foo.createSource();
-    File bar = resourceProvider.newFile('/bar/bar.dart', '''
+    File bar = resourceProvider.newFile(
+        '/bar/bar.dart',
+        '''
 library bar;
 import "../foo/foo.dart";
 ''');
@@ -121,9 +126,16 @@ import "../foo/foo.dart";
     ExtensionManager manager = new ExtensionManager();
     ServerPlugin serverPlugin = new ServerPlugin();
     manager.processPlugins([serverPlugin]);
-    server = new AnalysisServer(channel, resourceProvider, packageMapProvider,
-        null, serverPlugin, new AnalysisServerOptions(), new MockSdk(),
-        InstrumentationService.NULL_SERVICE, rethrowExceptions: true);
+    server = new AnalysisServer(
+        channel,
+        resourceProvider,
+        packageMapProvider,
+        null,
+        serverPlugin,
+        new AnalysisServerOptions(),
+        new MockSdk(),
+        InstrumentationService.NULL_SERVICE,
+        rethrowExceptions: true);
   }
 
   Future test_contextDisposed() {
@@ -209,7 +221,7 @@ import "../foo/foo.dart";
     File bar = resourceProvider.newFile('/bar/bar.dart', 'library lib;');
     Source barSource = bar.createSource();
     server.setAnalysisRoots('0', ['/foo', '/bar'], [], {});
-    return pumpEventQueue(200).then((_) {
+    return pumpEventQueue(500).then((_) {
       expect(server.statusAnalyzing, isFalse);
       // Make sure getAnalysisContext returns the proper context for each.
       AnalysisContext fooContext =
@@ -405,8 +417,8 @@ import "../foo/foo.dart";
 
   void test_rethrowExceptions() {
     Exception exceptionToThrow = new Exception('test exception');
-    MockServerOperation operation = new MockServerOperation(
-        ServerOperationPriority.ANALYSIS, (_) {
+    MockServerOperation operation =
+        new MockServerOperation(ServerOperationPriority.ANALYSIS, (_) {
       throw exceptionToThrow;
     });
     server.operationQueue.add(operation);
@@ -470,6 +482,28 @@ import "../foo/foo.dart";
       expect(response.id, equals('my22'));
       expect(response.error, isNotNull);
     });
+  }
+
+  test_watch_modifyFile_hasOverlay() async {
+    server.serverServices.add(ServerService.STATUS);
+    // configure the project
+    String projectPath = '/root';
+    String filePath = '/root/test.dart';
+    resourceProvider.newFolder(projectPath);
+    resourceProvider.newFile(filePath, '// 111');
+    server.setAnalysisRoots('0', ['/root'], [], {});
+    await pumpEventQueue();
+    // add overlay
+    server.updateContent('1', {filePath: new AddContentOverlay('// 222')});
+    await pumpEventQueue();
+    // update the file
+    channel.notificationsReceived.clear();
+    resourceProvider.modifyFile(filePath, '// 333');
+    await pumpEventQueue();
+    // the file has an overlay, so the file-system change was ignored
+    expect(channel.notificationsReceived.any((notification) {
+      return notification.event == SERVER_STATUS;
+    }), isFalse);
   }
 
   void _configureSourceFactory(AnalysisContext context) {
