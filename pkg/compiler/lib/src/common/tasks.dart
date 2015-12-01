@@ -4,9 +4,6 @@
 
 library dart2js.common.tasks;
 
-import 'dart:developer' show
-    UserTag;
-
 import '../common.dart';
 import '../compiler.dart' show
     Compiler;
@@ -25,7 +22,6 @@ class DeferredTask {
 class CompilerTask {
   final Compiler compiler;
   final Stopwatch watch;
-  UserTag profilerTag;
   final Map<String, GenericTask> _subtasks = <String, GenericTask>{};
 
   CompilerTask(Compiler compiler)
@@ -45,11 +41,6 @@ class CompilerTask {
     return total;
   }
 
-  UserTag getProfilerTag() {
-    if (profilerTag == null) profilerTag = new UserTag(name);
-    return profilerTag;
-  }
-
   measure(action()) {
     // In verbose mode when watch != null.
     if (watch == null) return action();
@@ -58,12 +49,10 @@ class CompilerTask {
     compiler.measuredTask = this;
     if (previous != null) previous.watch.stop();
     watch.start();
-    UserTag oldTag = getProfilerTag().makeCurrent();
     try {
       return action();
     } finally {
       watch.stop();
-      oldTag.makeCurrent();
       if (previous != null) previous.watch.start();
       compiler.measuredTask = previous;
     }
