@@ -3693,13 +3693,18 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitYield(Yield node) {
-    if (!currentAsyncMarker.isYielding) {
-      reporter.reportErrorMessage(node, MessageKind.INVALID_YIELD);
-    }
-    if (currentAsyncMarker.isAsync) {
-      coreClasses.streamClass.ensureResolved(resolution);
+    if (!compiler.backend.supportsAsyncAwait) {
+      compiler.reporter.reportErrorMessage(node.yieldToken,
+          MessageKind.ASYNC_AWAIT_NOT_SUPPORTED);
     } else {
-      coreClasses.iterableClass.ensureResolved(resolution);
+      if (!currentAsyncMarker.isYielding) {
+        reporter.reportErrorMessage(node, MessageKind.INVALID_YIELD);
+      }
+      if (currentAsyncMarker.isAsync) {
+        coreClasses.streamClass.ensureResolved(resolution);
+      } else {
+        coreClasses.iterableClass.ensureResolved(resolution);
+      }
     }
     visit(node.expression);
     return const NoneResult();
@@ -3837,10 +3842,15 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitAwait(Await node) {
-    if (!currentAsyncMarker.isAsync) {
-      reporter.reportErrorMessage(node, MessageKind.INVALID_AWAIT);
+    if (!compiler.backend.supportsAsyncAwait) {
+      compiler.reporter.reportErrorMessage(node.awaitToken,
+          MessageKind.ASYNC_AWAIT_NOT_SUPPORTED);
+    } else {
+      if (!currentAsyncMarker.isAsync) {
+        reporter.reportErrorMessage(node, MessageKind.INVALID_AWAIT);
+      }
+      coreClasses.futureClass.ensureResolved(resolution);
     }
-    coreClasses.futureClass.ensureResolved(resolution);
     visit(node.expression);
     return const NoneResult();
   }
@@ -4365,16 +4375,20 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitAsyncForIn(AsyncForIn node) {
-    if (!currentAsyncMarker.isAsync) {
-      reporter.reportErrorMessage(
-          node.awaitToken, MessageKind.INVALID_AWAIT_FOR_IN);
+    if (!compiler.backend.supportsAsyncAwait) {
+      compiler.reporter.reportErrorMessage(node.awaitToken,
+          MessageKind.ASYNC_AWAIT_NOT_SUPPORTED);
+    } else {
+      if (!currentAsyncMarker.isAsync) {
+        reporter.reportErrorMessage(
+            node.awaitToken, MessageKind.INVALID_AWAIT_FOR_IN);
+      }
+      registry.registerFeature(Feature.ASYNC_FOR_IN);
+      registry.registerDynamicUse(
+          new DynamicUse(Selectors.current, null));
+      registry.registerDynamicUse(
+          new DynamicUse(Selectors.moveNext, null));
     }
-    registry.registerFeature(Feature.ASYNC_FOR_IN);
-    registry.registerDynamicUse(
-        new DynamicUse(Selectors.current, null));
-    registry.registerDynamicUse(
-        new DynamicUse(Selectors.moveNext, null));
-
     visit(node.expression);
 
     Scope blockScope = new BlockScope(scope);

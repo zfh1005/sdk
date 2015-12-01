@@ -644,6 +644,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
         if (script == null) return null;
         LibraryElement element =
             createLibrarySync(handler, script, resolvedUri);
+        if (script.isSynthesized) return null;
         CompilationUnitElementX compilationUnit = element.entryCompilationUnit;
         if (compilationUnit.partTag != null) {
           if (skipFileWithPartOfTag) {
