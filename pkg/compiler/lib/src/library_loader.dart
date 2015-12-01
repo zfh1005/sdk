@@ -610,6 +610,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
         if (script == null) return null;
         LibraryElement element =
             createLibrarySync(handler, script, resolvedUri);
+        if (script.isSynthesized) return null;
         return processLibraryTags(handler, element).then((_) {
           reporter.withCurrentElement(element, () {
             handler.registerLibraryExports(element);

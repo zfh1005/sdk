@@ -3678,8 +3678,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitYield(Yield node) {
-    coreClasses.streamClass.ensureResolved(resolution);
-    coreClasses.iterableClass.ensureResolved(resolution);
+    if (!compiler.backend.supportsAsyncAwait) {
+      compiler.reporter.reportErrorMessage(node.yieldToken,
+          MessageKind.ASYNC_AWAIT_NOT_SUPPORTED);
+    } else {
+      coreClasses.streamClass.ensureResolved(resolution);
+      coreClasses.iterableClass.ensureResolved(resolution);
+    }
     visit(node.expression);
     return const NoneResult();
   }
@@ -3816,7 +3821,12 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitAwait(Await node) {
-    coreClasses.futureClass.ensureResolved(resolution);
+    if (!compiler.backend.supportsAsyncAwait) {
+      compiler.reporter.reportErrorMessage(node.awaitToken,
+          MessageKind.ASYNC_AWAIT_NOT_SUPPORTED);
+    } else {
+      coreClasses.futureClass.ensureResolved(resolution);
+    }
     visit(node.expression);
     return const NoneResult();
   }
@@ -4341,12 +4351,16 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitAsyncForIn(AsyncForIn node) {
-    registry.registerFeature(Feature.ASYNC_FOR_IN);
-    registry.registerDynamicUse(
-        new DynamicUse(Selectors.current, null));
-    registry.registerDynamicUse(
-        new DynamicUse(Selectors.moveNext, null));
-
+    if (!compiler.backend.supportsAsyncAwait) {
+      compiler.reporter.reportErrorMessage(node.awaitToken,
+          MessageKind.ASYNC_AWAIT_NOT_SUPPORTED);
+    } else {
+      registry.registerFeature(Feature.ASYNC_FOR_IN);
+      registry.registerDynamicUse(
+          new DynamicUse(Selectors.current, null));
+      registry.registerDynamicUse(
+          new DynamicUse(Selectors.moveNext, null));
+    }
     visit(node.expression);
 
     Scope blockScope = new BlockScope(scope);
