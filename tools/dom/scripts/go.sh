@@ -15,7 +15,7 @@
 #
 # To generate a subset of systems:
 #
-#   ./go.sh dart2js,htmldart2js
+#   ./go.sh dart2js,htmldartium
 #
 # The following gives a picture of the changes due to 'work'
 #
@@ -26,7 +26,7 @@
 #   ./go.sh
 #   meld ../generated0 ../generated   # compare directories with too
 
-ALLSYSTEMS="htmldart2js,htmldartium"
+ALLSYSTEMS="htmldart2js,htmldartium,_blink"
 SYSTEMS="$ALLSYSTEMS"
 
 if [[ "$1" != "" ]] ; then

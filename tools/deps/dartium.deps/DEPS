@@ -12,9 +12,9 @@ vars.update({
   "dartium_base": "http://src.chromium.org",
   "dartium_chromium_branch": "master",
   "dartium_chromium_commit": "7404b69ecadcaf3007e8efa53a25c374994d11ed",
-  "chromium_base_revision": "297060",
+  "chromium_base_revision": "338390",
   "dartium_webkit_branch": "/blink/branches/dart/dartium_45",
-  "dartium_webkit_revision": "202722",
+  "dartium_webkit_revision": "202725",
 
   # We use mirrors of all github repos to guarantee reproducibility and
   # consistency between what users see and what the bots see.

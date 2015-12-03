@@ -7,6 +7,7 @@ import optparse
 import os
 import os.path
 import re
+import requests
 import shutil
 import subprocess
 import sys
@@ -16,8 +17,13 @@ SCRIPT_PATH = os.path.abspath(os.path.dirname(__file__))
 DART_PATH = os.path.abspath(os.path.join(SCRIPT_PATH, '..', '..', '..'))
 
 # Dartium DEPS file with Chrome and WebKit revisions.
-DEPS = ('http://dart.googlecode.com/svn/branches/'
-        'bleeding_edge/deps/dartium.deps/DEPS')
+DEPS_SVN = ('http://dart.googlecode.com/svn/branches/'
+            'bleeding_edge/deps/dartium.deps/DEPS')
+
+# Dartium DEPS file from the DEPS file checked into the dart-lang/sdk integration
+# branch.
+DEPS_GIT = ('https://raw.githubusercontent.com/dart-lang/sdk/'
+            'integration/tools/deps/dartium.deps/DEPS')
 
 # Whitelist of files to keep.
 WHITELIST = [
@@ -84,7 +90,7 @@ DEPTH_INFINITY = 'infinity'
 # DEPS file.
 DEPS_PATTERNS = {
     'webkit': (CHROME_TRUNK, WEBKIT_URL_PATTERN, WEBKIT_REV_PATTERN),
-    'chrome': (CHROME_TRUNK, CHROME_URL_PATTERN, CHROME_REV_PATTERN),
+#    'chrome': (CHROME_TRUNK, CHROME_URL_PATTERN, CHROME_REV_PATTERN),
     }
 
 # List of components to update.
@@ -131,10 +137,13 @@ def RunCommand(cmd, valid_exits=[0]):
     sys.exit(pipe.returncode)
 
 
-def GetDeps():
+def GetDepsFromSVN():
   """Returns the DEPS file contents with pinned revision info."""
-  return RunCommand(['svn', 'cat', DEPS])
+  return RunCommand(['svn', 'cat', DEPS_SVN])
 
+def GetDepsFromGit():
+  req = requests.get(DEPS_GIT)
+  return req.text
 
 def GetSvnRevision(deps, component):
   """Returns a tuple with the (dartium webkit repo, latest revision)."""
@@ -208,21 +217,15 @@ def ParseOptions():
                     help='WebKit IDL revision to install', default=None)
   parser.add_option('--chrome-revision', '-c', dest='chrome_revision',
                     help='Chrome IDL revision to install', default=None)
-  parser.add_option('--update', '-u', dest='update',
-                    help='IDL to update (webkit | chrome | all)',
-                    default='webkit')
   args, _ = parser.parse_args()
   update = {}
-  if args.update == 'all' or args.update == 'chrome':
-    update['chrome'] = args.chrome_revision
-  if args.update == 'all' or args.update == 'webkit':
-    update['webkit'] = args.webkit_revision
+  update['webkit'] = args.webkit_revision
   return update
 
 
 def main():
-  deps = GetDeps()
   update = ParseOptions()
+  deps = GetDepsFromGit()
   for (component, remote_path, local_path, readme, depth) in UPDATE_LIST:
     if component in update.keys():
       revision = update[component]

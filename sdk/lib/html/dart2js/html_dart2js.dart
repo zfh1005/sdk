@@ -187,10 +187,10 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   @DocsEditable()
   String hreflang;
 
-  @DomName('HTMLAnchorElement.integrity')
+  @DomName('HTMLAnchorElement.referrerpolicy')
   @DocsEditable()
   @Experimental() // untriaged
-  String integrity;
+  String referrerpolicy;
 
   @DomName('HTMLAnchorElement.rel')
   @DocsEditable()
@@ -268,183 +268,200 @@ class AnchorElement extends HtmlElement implements UrlUtils {
 @DomName('Animation')
 @Experimental() // untriaged
 @Native("Animation")
-class Animation extends AnimationNode {
+class Animation extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory Animation._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('Animation.Animation')
-  @DocsEditable()
-  factory Animation(Element target, List<Map> keyframes, [timingInput]) {
-    if ((keyframes is List<Map> || keyframes == null) && (target is Element || target == null) && timingInput == null) {
-      return Animation._create_1(target, keyframes);
-    }
-    if ((timingInput is num || timingInput == null) && (keyframes is List<Map> || keyframes == null) && (target is Element || target == null)) {
-      return Animation._create_2(target, keyframes, timingInput);
-    }
-    if ((timingInput is Map || timingInput == null) && (keyframes is List<Map> || keyframes == null) && (target is Element || target == null)) {
-      var timingInput_1 = convertDartToNative_Dictionary(timingInput);
-      return Animation._create_3(target, keyframes, timingInput_1);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-  static Animation _create_1(target, keyframes) => JS('Animation', 'new Animation(#,#)', target, keyframes);
-  static Animation _create_2(target, keyframes, timingInput) => JS('Animation', 'new Animation(#,#,#)', target, keyframes, timingInput);
-  static Animation _create_3(target, keyframes, timingInput) => JS('Animation', 'new Animation(#,#,#)', target, keyframes, timingInput);
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('AnimationEffect')
-@Experimental() // untriaged
-@Native("AnimationEffect")
-class AnimationEffect extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory AnimationEffect._() { throw new UnsupportedError("Not supported"); }
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('WebKitAnimationEvent')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
-@Native("WebKitAnimationEvent")
-class AnimationEvent extends Event {
-  // To suppress missing implicit constructor warnings.
-  factory AnimationEvent._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('WebKitAnimationEvent.animationName')
-  @DocsEditable()
-  final String animationName;
-
-  @DomName('WebKitAnimationEvent.elapsedTime')
-  @DocsEditable()
-  final double elapsedTime;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('AnimationNode')
-@Experimental() // untriaged
-@Native("AnimationNode")
-class AnimationNode extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory AnimationNode._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('AnimationNode.activeDuration')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double activeDuration;
-
-  @DomName('AnimationNode.currentIteration')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int currentIteration;
-
-  @DomName('AnimationNode.duration')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double duration;
-
-  @DomName('AnimationNode.endTime')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double endTime;
-
-  @DomName('AnimationNode.localTime')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double localTime;
-
-  @DomName('AnimationNode.player')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final AnimationPlayer player;
-
-  @DomName('AnimationNode.startTime')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double startTime;
-
-  @DomName('AnimationNode.timing')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final Timing timing;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('AnimationPlayer')
-@Experimental() // untriaged
-@Native("AnimationPlayer")
-class AnimationPlayer extends EventTarget {
-  // To suppress missing implicit constructor warnings.
-  factory AnimationPlayer._() { throw new UnsupportedError("Not supported"); }
-
-  /// Checks if this type is supported on the current platform.
-  static bool get supported => JS('bool', '!!(document.body.animate)');
-
-  @DomName('AnimationPlayer.currentTime')
+  @DomName('Animation.currentTime')
   @DocsEditable()
   @Experimental() // untriaged
   num currentTime;
 
-  @DomName('AnimationPlayer.playState')
+  @DomName('Animation.effect')
+  @DocsEditable()
+  @Experimental() // untriaged
+  AnimationEffectReadOnly effect;
+
+  @DomName('Animation.endClip')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num endClip;
+
+  @DomName('Animation.finished')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final Future finished;
+
+  @DomName('Animation.playState')
   @DocsEditable()
   @Experimental() // untriaged
   final String playState;
 
-  @DomName('AnimationPlayer.playbackRate')
+  @DomName('Animation.playbackRate')
   @DocsEditable()
   @Experimental() // untriaged
   num playbackRate;
 
-  @DomName('AnimationPlayer.source')
+  @DomName('Animation.ready')
   @DocsEditable()
   @Experimental() // untriaged
-  AnimationNode source;
+  final Future ready;
 
-  @DomName('AnimationPlayer.startTime')
+  @DomName('Animation.startClip')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num startClip;
+
+  @DomName('Animation.startTime')
   @DocsEditable()
   @Experimental() // untriaged
   num startTime;
 
-  @DomName('AnimationPlayer.cancel')
+  @DomName('Animation.cancel')
   @DocsEditable()
   @Experimental() // untriaged
   void cancel() native;
 
-  @DomName('AnimationPlayer.finish')
+  @DomName('Animation.finish')
   @DocsEditable()
   @Experimental() // untriaged
   void finish() native;
 
-  @DomName('AnimationPlayer.pause')
+  @DomName('Animation.pause')
   @DocsEditable()
   @Experimental() // untriaged
   void pause() native;
 
-  @DomName('AnimationPlayer.play')
+  @DomName('Animation.play')
   @DocsEditable()
   @Experimental() // untriaged
   void play() native;
 
-  @DomName('AnimationPlayer.reverse')
+  @DomName('Animation.reverse')
   @DocsEditable()
   @Experimental() // untriaged
   void reverse() native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('AnimationEffectReadOnly')
+@Experimental() // untriaged
+@Native("AnimationEffectReadOnly")
+class AnimationEffectReadOnly extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory AnimationEffectReadOnly._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('AnimationEffectReadOnly.computedTiming')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Map get computedTiming => convertNativeToDart_Dictionary(this._get_computedTiming);
+  @JSName('computedTiming')
+  @DomName('AnimationEffectReadOnly.computedTiming')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final dynamic _get_computedTiming;
+
+  @DomName('AnimationEffectReadOnly.timing')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final AnimationEffectTiming timing;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('AnimationEffectTiming')
+@Experimental() // untriaged
+@Native("AnimationEffectTiming")
+class AnimationEffectTiming extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory AnimationEffectTiming._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('AnimationEffectTiming.delay')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num delay;
+
+  @DomName('AnimationEffectTiming.direction')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String direction;
+
+  @DomName('AnimationEffectTiming.duration')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object duration;
+
+  @DomName('AnimationEffectTiming.easing')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String easing;
+
+  @DomName('AnimationEffectTiming.endDelay')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num endDelay;
+
+  @DomName('AnimationEffectTiming.fill')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String fill;
+
+  @DomName('AnimationEffectTiming.iterationStart')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num iterationStart;
+
+  @DomName('AnimationEffectTiming.iterations')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num iterations;
+
+  @DomName('AnimationEffectTiming.playbackRate')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num playbackRate;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('AnimationEvent')
+@Experimental() // untriaged
+@Native("AnimationEvent")
+class AnimationEvent extends Event {
+  // To suppress missing implicit constructor warnings.
+  factory AnimationEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('AnimationEvent.AnimationEvent')
+  @DocsEditable()
+  factory AnimationEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return AnimationEvent._create_1(type, eventInitDict_1);
+    }
+    return AnimationEvent._create_2(type);
+  }
+  static AnimationEvent _create_1(type, eventInitDict) => JS('AnimationEvent', 'new AnimationEvent(#,#)', type, eventInitDict);
+  static AnimationEvent _create_2(type) => JS('AnimationEvent', 'new AnimationEvent(#)', type);
+
+  @DomName('AnimationEvent.animationName')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String animationName;
+
+  @DomName('AnimationEvent.elapsedTime')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final double elapsedTime;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -458,6 +475,18 @@ class AnimationPlayer extends EventTarget {
 class AnimationPlayerEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory AnimationPlayerEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('AnimationPlayerEvent.AnimationPlayerEvent')
+  @DocsEditable()
+  factory AnimationPlayerEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return AnimationPlayerEvent._create_1(type, eventInitDict_1);
+    }
+    return AnimationPlayerEvent._create_2(type);
+  }
+  static AnimationPlayerEvent _create_1(type, eventInitDict) => JS('AnimationPlayerEvent', 'new AnimationPlayerEvent(#,#)', type, eventInitDict);
+  static AnimationPlayerEvent _create_2(type) => JS('AnimationPlayerEvent', 'new AnimationPlayerEvent(#)', type);
 
   @DomName('AnimationPlayerEvent.currentTime')
   @DocsEditable()
@@ -485,17 +514,45 @@ class AnimationTimeline extends Interceptor {
   @DomName('AnimationTimeline.currentTime')
   @DocsEditable()
   @Experimental() // untriaged
-  final double currentTime;
+  num currentTime;
 
-  @DomName('AnimationTimeline.getAnimationPlayers')
+  @DomName('AnimationTimeline.playbackRate')
   @DocsEditable()
   @Experimental() // untriaged
-  List<AnimationPlayer> getAnimationPlayers() native;
+  num playbackRate;
+
+  @DomName('AnimationTimeline.getAnimations')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<Animation> getAnimations() native;
 
   @DomName('AnimationTimeline.play')
   @DocsEditable()
   @Experimental() // untriaged
-  AnimationPlayer play(AnimationNode source) native;
+  Animation play(AnimationEffectReadOnly source) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('AppBannerPromptResult')
+@Experimental() // untriaged
+@Native("AppBannerPromptResult")
+class AppBannerPromptResult extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory AppBannerPromptResult._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('AppBannerPromptResult.outcome')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String outcome;
+
+  @DomName('AppBannerPromptResult.platform')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String platform;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -693,6 +750,18 @@ class ApplicationCache extends EventTarget {
 class ApplicationCacheErrorEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory ApplicationCacheErrorEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('ApplicationCacheErrorEvent.ApplicationCacheErrorEvent')
+  @DocsEditable()
+  factory ApplicationCacheErrorEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return ApplicationCacheErrorEvent._create_1(type, eventInitDict_1);
+    }
+    return ApplicationCacheErrorEvent._create_2(type);
+  }
+  static ApplicationCacheErrorEvent _create_1(type, eventInitDict) => JS('ApplicationCacheErrorEvent', 'new ApplicationCacheErrorEvent(#,#)', type, eventInitDict);
+  static ApplicationCacheErrorEvent _create_2(type) => JS('ApplicationCacheErrorEvent', 'new ApplicationCacheErrorEvent(#)', type);
 
   @DomName('ApplicationCacheErrorEvent.message')
   @DocsEditable()
@@ -935,6 +1004,18 @@ class AutocompleteErrorEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory AutocompleteErrorEvent._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('AutocompleteErrorEvent.AutocompleteErrorEvent')
+  @DocsEditable()
+  factory AutocompleteErrorEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return AutocompleteErrorEvent._create_1(type, eventInitDict_1);
+    }
+    return AutocompleteErrorEvent._create_2(type);
+  }
+  static AutocompleteErrorEvent _create_1(type, eventInitDict) => JS('AutocompleteErrorEvent', 'new AutocompleteErrorEvent(#,#)', type, eventInitDict);
+  static AutocompleteErrorEvent _create_2(type) => JS('AutocompleteErrorEvent', 'new AutocompleteErrorEvent(#)', type);
+
   @DomName('AutocompleteErrorEvent.reason')
   @DocsEditable()
   final String reason;
@@ -1045,6 +1126,43 @@ class BatteryManager extends EventTarget {
 
 
 @DocsEditable()
+@DomName('BeforeInstallPromptEvent')
+@Experimental() // untriaged
+@Native("BeforeInstallPromptEvent")
+class BeforeInstallPromptEvent extends Event {
+  // To suppress missing implicit constructor warnings.
+  factory BeforeInstallPromptEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('BeforeInstallPromptEvent.BeforeInstallPromptEvent')
+  @DocsEditable()
+  factory BeforeInstallPromptEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return BeforeInstallPromptEvent._create_1(type, eventInitDict_1);
+    }
+    return BeforeInstallPromptEvent._create_2(type);
+  }
+  static BeforeInstallPromptEvent _create_1(type, eventInitDict) => JS('BeforeInstallPromptEvent', 'new BeforeInstallPromptEvent(#,#)', type, eventInitDict);
+  static BeforeInstallPromptEvent _create_2(type) => JS('BeforeInstallPromptEvent', 'new BeforeInstallPromptEvent(#)', type);
+
+  List<String> get platforms => JS("List<String>", "#.platforms", this);
+
+  @DomName('BeforeInstallPromptEvent.userChoice')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final Future userChoice;
+
+  @DomName('BeforeInstallPromptEvent.prompt')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future prompt() native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
 @DomName('BeforeUnloadEvent')
 @Native("BeforeUnloadEvent")
 class BeforeUnloadEvent extends Event {
@@ -1104,6 +1222,173 @@ class Blob extends Interceptor {
 
   static _create_bag() => JS('var', '{}');
   static _bag_set(bag, key, value) { JS('void', '#[#] = #', bag, key, value); }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('Bluetooth')
+@Experimental() // untriaged
+@Native("Bluetooth")
+class Bluetooth extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory Bluetooth._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('Bluetooth.requestDevice')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future requestDevice(Map options) {
+    var options_1 = convertDartToNative_Dictionary(options);
+    return _requestDevice_1(options_1);
+  }
+  @JSName('requestDevice')
+  @DomName('Bluetooth.requestDevice')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _requestDevice_1(options) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('BluetoothDevice')
+@Experimental() // untriaged
+@Native("BluetoothDevice")
+class BluetoothDevice extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory BluetoothDevice._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('BluetoothDevice.deviceClass')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int deviceClass;
+
+  @DomName('BluetoothDevice.instanceID')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String instanceID;
+
+  @DomName('BluetoothDevice.name')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String name;
+
+  @DomName('BluetoothDevice.paired')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final bool paired;
+
+  @DomName('BluetoothDevice.productID')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int productID;
+
+  @DomName('BluetoothDevice.productVersion')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int productVersion;
+
+  @DomName('BluetoothDevice.vendorID')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int vendorID;
+
+  @DomName('BluetoothDevice.vendorIDSource')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String vendorIDSource;
+
+  @JSName('connectGATT')
+  @DomName('BluetoothDevice.connectGATT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future connectGatt() native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('BluetoothGATTCharacteristic')
+@Experimental() // untriaged
+@Native("BluetoothGATTCharacteristic")
+class BluetoothGattCharacteristic extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory BluetoothGattCharacteristic._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('BluetoothGATTCharacteristic.readValue')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future readValue() native;
+
+  @DomName('BluetoothGATTCharacteristic.writeValue')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future writeValue(/*BufferSource*/ value) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('BluetoothGATTRemoteServer')
+@Experimental() // untriaged
+@Native("BluetoothGATTRemoteServer")
+class BluetoothGattRemoteServer extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory BluetoothGattRemoteServer._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('BluetoothGATTRemoteServer.connected')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final bool connected;
+
+  @DomName('BluetoothGATTRemoteServer.getPrimaryService')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future getPrimaryService(/*BluetoothServiceUUID*/ service) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('BluetoothGATTService')
+@Experimental() // untriaged
+@Native("BluetoothGATTService")
+class BluetoothGattService extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory BluetoothGattService._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('BluetoothGATTService.isPrimary')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final bool isPrimary;
+
+  @DomName('BluetoothGATTService.getCharacteristic')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future getCharacteristic(/*BluetoothCharacteristicUUID*/ characteristic) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('BluetoothUUID')
+@Experimental() // untriaged
+@Native("BluetoothUUID")
+class BluetoothUuid extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory BluetoothUuid._() { throw new UnsupportedError("Not supported"); }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1444,6 +1729,11 @@ class ButtonElement extends HtmlElement {
   @DocsEditable()
   bool checkValidity() native;
 
+  @DomName('HTMLButtonElement.reportValidity')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool reportValidity() native;
+
   @DomName('HTMLButtonElement.setCustomValidity')
   @DocsEditable()
   void setCustomValidity(String error) native;
@@ -1475,20 +1765,10 @@ class CacheStorage extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory CacheStorage._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('CacheStorage.create')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future create(String cacheName) native;
-
   @DomName('CacheStorage.delete')
   @DocsEditable()
   @Experimental() // untriaged
   Future delete(String cacheName) native;
-
-  @DomName('CacheStorage.get')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future get(String cacheName) native;
 
   @DomName('CacheStorage.has')
   @DocsEditable()
@@ -1499,29 +1779,32 @@ class CacheStorage extends Interceptor {
   @DocsEditable()
   @Experimental() // untriaged
   Future keys() native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
 
-
-@DocsEditable()
-@DomName('Canvas2DContextAttributes')
-// http://wiki.whatwg.org/wiki/CanvasOpaque#Suggested_IDL
-@Experimental()
-@Native("Canvas2DContextAttributes")
-class Canvas2DContextAttributes extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory Canvas2DContextAttributes._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('Canvas2DContextAttributes.alpha')
-  @DocsEditable()
-  bool alpha;
-
-  @DomName('Canvas2DContextAttributes.storage')
+  @DomName('CacheStorage.match')
   @DocsEditable()
   @Experimental() // untriaged
-  String storage;
+  Future match(/*RequestInfo*/ request, [Map options]) {
+    if (options != null) {
+      var options_1 = convertDartToNative_Dictionary(options);
+      return _match_1(request, options_1);
+    }
+    return _match_2(request);
+  }
+  @JSName('match')
+  @DomName('CacheStorage.match')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _match_1(request, options) native;
+  @JSName('match')
+  @DomName('CacheStorage.match')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _match_2(request) native;
+
+  @DomName('CacheStorage.open')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future open(String cacheName) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1583,10 +1866,10 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   @DocsEditable()
   @Creates('CanvasRenderingContext2D|RenderingContext')
   @Returns('CanvasRenderingContext2D|RenderingContext|Null')
-  Object getContext(String contextId, [Map attrs]) {
-    if (attrs != null) {
-      var attrs_1 = convertDartToNative_Dictionary(attrs);
-      return _getContext_1(contextId, attrs_1);
+  Object getContext(String contextId, [Map attributes]) {
+    if (attributes != null) {
+      var attributes_1 = convertDartToNative_Dictionary(attributes);
+      return _getContext_1(contextId, attributes_1);
     }
     return _getContext_2(contextId);
   }
@@ -1595,7 +1878,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   @DocsEditable()
   @Creates('CanvasRenderingContext2D|RenderingContext')
   @Returns('CanvasRenderingContext2D|RenderingContext|Null')
-  Object _getContext_1(contextId, attrs) native;
+  Object _getContext_1(contextId, attributes) native;
   @JSName('getContext')
   @DomName('HTMLCanvasElement.getContext')
   @DocsEditable()
@@ -1603,10 +1886,15 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   @Returns('CanvasRenderingContext2D|RenderingContext|Null')
   Object _getContext_2(contextId) native;
 
+  @DomName('HTMLCanvasElement.toBlob')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void toBlob(_FileCallback callback, String type, [Object arguments]) native;
+
   @JSName('toDataURL')
   @DomName('HTMLCanvasElement.toDataURL')
   @DocsEditable()
-  String _toDataUrl(String type, [num quality]) native;
+  String _toDataUrl(String type, [arguments_OR_quality]) native;
 
   /// Stream of `webglcontextlost` events handled by this [CanvasElement].
   @DomName('HTMLCanvasElement.onwebglcontextlost')
@@ -1831,6 +2119,11 @@ class CanvasRenderingContext2D extends Interceptor implements CanvasRenderingCon
   @Returns('String|CanvasGradient|CanvasPattern')
   Object fillStyle;
 
+  @DomName('CanvasRenderingContext2D.filter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String filter;
+
   @DomName('CanvasRenderingContext2D.font')
   @DocsEditable()
   String font;
@@ -1904,6 +2197,14 @@ class CanvasRenderingContext2D extends Interceptor implements CanvasRenderingCon
   @DocsEditable()
   String textBaseline;
 
+  @JSName('webkitImageSmoothingEnabled')
+  @DomName('CanvasRenderingContext2D.webkitImageSmoothingEnabled')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
+  bool imageSmoothingEnabled;
+
   @DomName('CanvasRenderingContext2D.addHitRegion')
   @DocsEditable()
   @Experimental() // untriaged
@@ -1947,27 +2248,26 @@ class CanvasRenderingContext2D extends Interceptor implements CanvasRenderingCon
   @DomName('CanvasRenderingContext2D.createImageData')
   @DocsEditable()
   @Creates('ImageData|=Object')
-  ImageData createImageData(num sw, num sh) {
-    return convertNativeToDart_ImageData(_createImageData_1(sw, sh));
+  ImageData createImageData(imagedata_OR_sw, [num sh]) {
+    if ((imagedata_OR_sw is ImageData) && sh == null) {
+      var imagedata_1 = convertDartToNative_ImageData(imagedata_OR_sw);
+      return convertNativeToDart_ImageData(_createImageData_1(imagedata_1));
+    }
+    if (sh != null && (imagedata_OR_sw is num)) {
+      return convertNativeToDart_ImageData(_createImageData_2(imagedata_OR_sw, sh));
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
   }
   @JSName('createImageData')
   @DomName('CanvasRenderingContext2D.createImageData')
   @DocsEditable()
   @Creates('ImageData|=Object')
-  _createImageData_1(sw, sh) native;
-
-  @DomName('CanvasRenderingContext2D.createImageData')
-  @DocsEditable()
-  @Creates('ImageData|=Object')
-  ImageData createImageDataFromImageData(ImageData imagedata) {
-    var imagedata_1 = convertDartToNative_ImageData(imagedata);
-    return convertNativeToDart_ImageData(_createImageDataFromImageData_1(imagedata_1));
-  }
+  _createImageData_1(imagedata) native;
   @JSName('createImageData')
   @DomName('CanvasRenderingContext2D.createImageData')
   @DocsEditable()
   @Creates('ImageData|=Object')
-  _createImageDataFromImageData_1(imagedata) native;
+  _createImageData_2(num sw, sh) native;
 
   @DomName('CanvasRenderingContext2D.createLinearGradient')
   @DocsEditable()
@@ -1975,12 +2275,7 @@ class CanvasRenderingContext2D extends Interceptor implements CanvasRenderingCon
 
   @DomName('CanvasRenderingContext2D.createPattern')
   @DocsEditable()
-  CanvasPattern createPattern(canvas_OR_image, String repetitionType) native;
-
-  @JSName('createPattern')
-  @DomName('CanvasRenderingContext2D.createPattern')
-  @DocsEditable()
-  CanvasPattern createPatternFromImage(ImageElement image, String repetitionType) native;
+  CanvasPattern createPattern(Object image, String repetitionType) native;
 
   @DomName('CanvasRenderingContext2D.createRadialGradient')
   @DocsEditable()
@@ -1999,7 +2294,15 @@ class CanvasRenderingContext2D extends Interceptor implements CanvasRenderingCon
   @DocsEditable()
   // http://wiki.whatwg.org/wiki/CanvasOpaque#Suggested_IDL
   @Experimental()
-  Canvas2DContextAttributes getContextAttributes() native;
+  Map getContextAttributes() {
+    return convertNativeToDart_Dictionary(_getContextAttributes_1());
+  }
+  @JSName('getContextAttributes')
+  @DomName('CanvasRenderingContext2D.getContextAttributes')
+  @DocsEditable()
+  // http://wiki.whatwg.org/wiki/CanvasOpaque#Suggested_IDL
+  @Experimental()
+  _getContextAttributes_1() native;
 
   @DomName('CanvasRenderingContext2D.getImageData')
   @DocsEditable()
@@ -2456,7 +2759,7 @@ class CanvasRenderingContext2D extends Interceptor implements CanvasRenderingCon
 @DocsEditable()
 @DomName('CharacterData')
 @Native("CharacterData")
-class CharacterData extends Node implements ChildNode {
+class CharacterData extends Node implements NonDocumentTypeChildNode, ChildNode {
   // To suppress missing implicit constructor warnings.
   factory CharacterData._() { throw new UnsupportedError("Not supported"); }
 
@@ -2474,7 +2777,7 @@ class CharacterData extends Node implements ChildNode {
 
   @DomName('CharacterData.deleteData')
   @DocsEditable()
-  void deleteData(int offset, int length) native;
+  void deleteData(int offset, int count) native;
 
   @DomName('CharacterData.insertData')
   @DocsEditable()
@@ -2482,13 +2785,15 @@ class CharacterData extends Node implements ChildNode {
 
   @DomName('CharacterData.replaceData')
   @DocsEditable()
-  void replaceData(int offset, int length, String data) native;
+  void replaceData(int offset, int count, String data) native;
 
   @DomName('CharacterData.substringData')
   @DocsEditable()
-  String substringData(int offset, int length) native;
+  String substringData(int offset, int count) native;
 
   // From ChildNode
+
+  // From NonDocumentTypeChildNode
 
   @DomName('CharacterData.nextElementSibling')
   @DocsEditable()
@@ -2510,11 +2815,85 @@ abstract class ChildNode extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory ChildNode._() { throw new UnsupportedError("Not supported"); }
 
-  final Element nextElementSibling;
-
-  final Element previousElementSibling;
-
   void remove();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('CHROMIUMSubscribeUniform')
+@Experimental() // untriaged
+@Native("CHROMIUMSubscribeUniform")
+class ChromiumSubscribeUniform extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory ChromiumSubscribeUniform._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('CHROMIUMSubscribeUniform.MOUSE_POSITION_CHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MOUSE_POSITION_CHROMIUM = 0x924C;
+
+  @DomName('CHROMIUMSubscribeUniform.SUBSCRIBED_VALUES_BUFFER_CHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SUBSCRIBED_VALUES_BUFFER_CHROMIUM = 0x924B;
+
+  @JSName('bindValuebufferCHROMIUM')
+  @DomName('CHROMIUMSubscribeUniform.bindValuebufferCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bindValuebufferChromium(int target, ChromiumValuebuffer buffer) native;
+
+  @JSName('createValuebufferCHROMIUM')
+  @DomName('CHROMIUMSubscribeUniform.createValuebufferCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ChromiumValuebuffer createValuebufferChromium() native;
+
+  @JSName('deleteValuebufferCHROMIUM')
+  @DomName('CHROMIUMSubscribeUniform.deleteValuebufferCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deleteValuebufferChromium(ChromiumValuebuffer buffer) native;
+
+  @JSName('isValuebufferCHROMIUM')
+  @DomName('CHROMIUMSubscribeUniform.isValuebufferCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isValuebufferChromium(ChromiumValuebuffer buffer) native;
+
+  @JSName('populateSubscribedValuesCHROMIUM')
+  @DomName('CHROMIUMSubscribeUniform.populateSubscribedValuesCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void populateSubscribedValuesChromium(int target) native;
+
+  @JSName('subscribeValueCHROMIUM')
+  @DomName('CHROMIUMSubscribeUniform.subscribeValueCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void subscribeValueChromium(int target, int subscriptions) native;
+
+  @JSName('uniformValuebufferCHROMIUM')
+  @DomName('CHROMIUMSubscribeUniform.uniformValuebufferCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniformValuebufferChromium(UniformLocation location, int target, int subscription) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('CHROMIUMValuebuffer')
+@Experimental() // untriaged
+@Native("CHROMIUMValuebuffer")
+class ChromiumValuebuffer extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory ChromiumValuebuffer._() { throw new UnsupportedError("Not supported"); }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2568,11 +2947,118 @@ class CircularGeofencingRegion extends GeofencingRegion {
 
 
 @DocsEditable()
+@DomName('Client')
+@Experimental() // untriaged
+@Native("Client")
+class Client extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory Client._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('Client.frameType')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String frameType;
+
+  @DomName('Client.id')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String id;
+
+  @DomName('Client.url')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String url;
+
+  @DomName('Client.postMessage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('Clients')
+@Experimental() // untriaged
+@Native("Clients")
+class Clients extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory Clients._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('Clients.claim')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future claim() native;
+
+  @DomName('Clients.matchAll')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future matchAll([Map options]) {
+    if (options != null) {
+      var options_1 = convertDartToNative_Dictionary(options);
+      return _matchAll_1(options_1);
+    }
+    return _matchAll_2();
+  }
+  @JSName('matchAll')
+  @DomName('Clients.matchAll')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _matchAll_1(options) native;
+  @JSName('matchAll')
+  @DomName('Clients.matchAll')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _matchAll_2() native;
+
+  @DomName('Clients.openWindow')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future openWindow(String url) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('ClipboardEvent')
+@Experimental() // untriaged
+@Native("ClipboardEvent")
+class ClipboardEvent extends Event {
+  // To suppress missing implicit constructor warnings.
+  factory ClipboardEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('ClipboardEvent.clipboardData')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final DataTransfer clipboardData;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
 @DomName('CloseEvent')
 @Native("CloseEvent")
 class CloseEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory CloseEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('CloseEvent.CloseEvent')
+  @DocsEditable()
+  factory CloseEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return CloseEvent._create_1(type, eventInitDict_1);
+    }
+    return CloseEvent._create_2(type);
+  }
+  static CloseEvent _create_1(type, eventInitDict) => JS('CloseEvent', 'new CloseEvent(#,#)', type, eventInitDict);
+  static CloseEvent _create_2(type) => JS('CloseEvent', 'new CloseEvent(#)', type);
 
   @DomName('CloseEvent.code')
   @DocsEditable()
@@ -2636,30 +3122,165 @@ class CompositionEvent extends UIEvent {
   // To suppress missing implicit constructor warnings.
   factory CompositionEvent._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('CompositionEvent.activeSegmentEnd')
+  @DomName('CompositionEvent.CompositionEvent')
   @DocsEditable()
-  @Experimental() // untriaged
-  final int activeSegmentEnd;
-
-  @DomName('CompositionEvent.activeSegmentStart')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int activeSegmentStart;
+  factory CompositionEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return CompositionEvent._create_1(type, eventInitDict_1);
+    }
+    return CompositionEvent._create_2(type);
+  }
+  static CompositionEvent _create_1(type, eventInitDict) => JS('CompositionEvent', 'new CompositionEvent(#,#)', type, eventInitDict);
+  static CompositionEvent _create_2(type) => JS('CompositionEvent', 'new CompositionEvent(#)', type);
 
   @DomName('CompositionEvent.data')
   @DocsEditable()
   final String data;
 
-  @DomName('CompositionEvent.getSegments')
-  @DocsEditable()
-  @Experimental() // untriaged
-  List<int> getSegments() native;
-
   @JSName('initCompositionEvent')
   @DomName('CompositionEvent.initCompositionEvent')
   @DocsEditable()
-  void _initCompositionEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Window viewArg, String dataArg) native;
+  void _initCompositionEvent(String type, bool bubbles, bool cancelable, Window view, String data) native;
 
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('CompositorProxy')
+@Experimental() // untriaged
+@Native("CompositorProxy")
+class CompositorProxy extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory CompositorProxy._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('CompositorProxy.CompositorProxy')
+  @DocsEditable()
+  factory CompositorProxy(Element element, List<String> attributeArray) {
+    return CompositorProxy._create_1(element, attributeArray);
+  }
+  static CompositorProxy _create_1(element, attributeArray) => JS('CompositorProxy', 'new CompositorProxy(#,#)', element, attributeArray);
+
+  @DomName('CompositorProxy.opacity')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num opacity;
+
+  @DomName('CompositorProxy.scrollLeft')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num scrollLeft;
+
+  @DomName('CompositorProxy.scrollTop')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num scrollTop;
+
+  @DomName('CompositorProxy.transform')
+  @DocsEditable()
+  @Experimental() // untriaged
+  DomMatrix transform;
+
+  @DomName('CompositorProxy.disconnect')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void disconnect() native;
+
+  @DomName('CompositorProxy.supports')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool supports(String attribute) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('CompositorWorker')
+@Experimental() // untriaged
+@Native("CompositorWorker")
+class CompositorWorker extends EventTarget implements AbstractWorker {
+  // To suppress missing implicit constructor warnings.
+  factory CompositorWorker._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('CompositorWorker.errorEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  @DomName('CompositorWorker.messageEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
+
+  @DomName('CompositorWorker.CompositorWorker')
+  @DocsEditable()
+  factory CompositorWorker(String scriptUrl) {
+    return CompositorWorker._create_1(scriptUrl);
+  }
+  static CompositorWorker _create_1(scriptUrl) => JS('CompositorWorker', 'new CompositorWorker(#)', scriptUrl);
+
+  @DomName('CompositorWorker.postMessage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) native;
+
+  @DomName('CompositorWorker.terminate')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void terminate() native;
+
+  @DomName('CompositorWorker.onerror')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  @DomName('CompositorWorker.onmessage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('CompositorWorkerGlobalScope')
+@Experimental() // untriaged
+@Native("CompositorWorkerGlobalScope")
+class CompositorWorkerGlobalScope extends WorkerGlobalScope {
+  // To suppress missing implicit constructor warnings.
+  factory CompositorWorkerGlobalScope._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('CompositorWorkerGlobalScope.messageEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
+
+  @DomName('CompositorWorkerGlobalScope.cancelAnimationFrame')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void cancelAnimationFrame(int handle) native;
+
+  @DomName('CompositorWorkerGlobalScope.postMessage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void postMessage(Object message, [List<MessagePort> transfer]) native;
+
+  @DomName('CompositorWorkerGlobalScope.requestAnimationFrame')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int requestAnimationFrame(FrameRequestCallback callback) native;
+
+  @DomName('CompositorWorkerGlobalScope.onmessage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2779,6 +3400,11 @@ class ConsoleBase extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory ConsoleBase._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('ConsoleBase.assert')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void assert(bool condition, Object arg) native;
+
   @DomName('ConsoleBase.timeline')
   @DocsEditable()
   @Experimental() // untriaged
@@ -2880,11 +3506,11 @@ class Credential extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Credential._() { throw new UnsupportedError("Not supported"); }
 
-  @JSName('avatarURL')
-  @DomName('Credential.avatarURL')
+  @JSName('iconURL')
+  @DomName('Credential.iconURL')
   @DocsEditable()
   @Experimental() // untriaged
-  final String avatarUrl;
+  final String iconUrl;
 
   @DomName('Credential.id')
   @DocsEditable()
@@ -2895,6 +3521,11 @@ class Credential extends Interceptor {
   @DocsEditable()
   @Experimental() // untriaged
   final String name;
+
+  @DomName('Credential.type')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String type;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2909,41 +3540,64 @@ class CredentialsContainer extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory CredentialsContainer._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('CredentialsContainer.notifyFailedSignIn')
+  @DomName('CredentialsContainer.get')
   @DocsEditable()
   @Experimental() // untriaged
-  Future notifyFailedSignIn(Credential credential) native;
-
-  @DomName('CredentialsContainer.notifySignedIn')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future notifySignedIn(Credential credential) native;
-
-  @DomName('CredentialsContainer.notifySignedOut')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future notifySignedOut() native;
-
-  @DomName('CredentialsContainer.request')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future request([Map options]) {
+  Future get([Map options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
-      return _request_1(options_1);
+      return _get_1(options_1);
     }
-    return _request_2();
+    return _get_2();
   }
-  @JSName('request')
-  @DomName('CredentialsContainer.request')
+  @JSName('get')
+  @DomName('CredentialsContainer.get')
   @DocsEditable()
   @Experimental() // untriaged
-  Future _request_1(options) native;
-  @JSName('request')
-  @DomName('CredentialsContainer.request')
+  Future _get_1(options) native;
+  @JSName('get')
+  @DomName('CredentialsContainer.get')
   @DocsEditable()
   @Experimental() // untriaged
-  Future _request_2() native;
+  Future _get_2() native;
+
+  @DomName('CredentialsContainer.requireUserMediation')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future requireUserMediation() native;
+
+  @DomName('CredentialsContainer.store')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future store(Credential credential) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('CrossOriginServiceWorkerClient')
+@Experimental() // untriaged
+@Native("CrossOriginServiceWorkerClient")
+class CrossOriginServiceWorkerClient extends EventTarget {
+  // To suppress missing implicit constructor warnings.
+  factory CrossOriginServiceWorkerClient._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('CrossOriginServiceWorkerClient.origin')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String origin;
+
+  @DomName('CrossOriginServiceWorkerClient.targetUrl')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String targetUrl;
+
+  @DomName('CrossOriginServiceWorkerClient.postMessage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) native;
 }
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3028,52 +3682,19 @@ class Css extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Css._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('CSS.escape')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static String escape(String ident) native;
+
   @DomName('CSS.supports')
   @DocsEditable()
-  bool supports(String property, String value) native;
+  static bool supports(String property, String value) native;
 
   @JSName('supports')
   @DomName('CSS.supports')
   @DocsEditable()
-  bool supportsCondition(String conditionText) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('CSSCharsetRule')
-// http://dev.w3.org/csswg/cssom/#the-csscharsetrule-interface
-@Experimental()
-@Native("CSSCharsetRule")
-class CssCharsetRule extends CssRule {
-  // To suppress missing implicit constructor warnings.
-  factory CssCharsetRule._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('CSSCharsetRule.encoding')
-  @DocsEditable()
-  String encoding;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('WebKitCSSFilterRule')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
-// http://www.w3.org/TR/filter-effects/
-@Native("WebKitCSSFilterRule")
-class CssFilterRule extends CssRule {
-  // To suppress missing implicit constructor warnings.
-  factory CssFilterRule._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('WebKitCSSFilterRule.style')
-  @DocsEditable()
-  final CssStyleDeclaration style;
+  static bool supportsCondition(String conditionText) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3090,6 +3711,36 @@ class CssFontFaceRule extends CssRule {
   @DomName('CSSFontFaceRule.style')
   @DocsEditable()
   final CssStyleDeclaration style;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('CSSGroupingRule')
+@Experimental() // untriaged
+@Native("CSSGroupingRule")
+class CssGroupingRule extends CssRule {
+  // To suppress missing implicit constructor warnings.
+  factory CssGroupingRule._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('CSSGroupingRule.cssRules')
+  @DocsEditable()
+  @Experimental() // untriaged
+  @Returns('_CssRuleList')
+  @Creates('_CssRuleList')
+  final List<CssRule> cssRules;
+
+  @DomName('CSSGroupingRule.deleteRule')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deleteRule(int index) native;
+
+  @DomName('CSSGroupingRule.insertRule')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int insertRule(String rule, int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3168,21 +3819,20 @@ class CssKeyframesRule extends CssRule {
   @Experimental() // untriaged
   CssKeyframeRule __getter__(int index) native;
 
+  @DomName('CSSKeyframesRule.appendRule')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void appendRule(String rule) native;
+
   @DomName('CSSKeyframesRule.deleteRule')
   @DocsEditable()
   @Experimental() // untriaged
-  void deleteRule(String key) native;
+  void deleteRule(String select) native;
 
   @DomName('CSSKeyframesRule.findRule')
   @DocsEditable()
   @Experimental() // untriaged
-  CssKeyframeRule findRule(String key) native;
-
-  @JSName('insertRule')
-  @DomName('CSSKeyframesRule.insertRule')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void appendRule(String rule) native;
+  CssKeyframeRule findRule(String select) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3192,27 +3842,37 @@ class CssKeyframesRule extends CssRule {
 @DocsEditable()
 @DomName('CSSMediaRule')
 @Native("CSSMediaRule")
-class CssMediaRule extends CssRule {
+class CssMediaRule extends CssGroupingRule {
   // To suppress missing implicit constructor warnings.
   factory CssMediaRule._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('CSSMediaRule.cssRules')
-  @DocsEditable()
-  @Returns('_CssRuleList')
-  @Creates('_CssRuleList')
-  final List<CssRule> cssRules;
 
   @DomName('CSSMediaRule.media')
   @DocsEditable()
   final MediaList media;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
-  @DomName('CSSMediaRule.deleteRule')
-  @DocsEditable()
-  void deleteRule(int index) native;
 
-  @DomName('CSSMediaRule.insertRule')
+@DocsEditable()
+@DomName('CSSNamespaceRule')
+@Experimental() // untriaged
+@Native("CSSNamespaceRule")
+class CssNamespaceRule extends CssRule {
+  // To suppress missing implicit constructor warnings.
+  factory CssNamespaceRule._() { throw new UnsupportedError("Not supported"); }
+
+  @JSName('namespaceURI')
+  @DomName('CSSNamespaceRule.namespaceURI')
   @DocsEditable()
-  int insertRule(String rule, int index) native;
+  @Experimental() // untriaged
+  final String namespaceUri;
+
+  @DomName('CSSNamespaceRule.prefix')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String prefix;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3272,6 +3932,11 @@ class CssRule extends Interceptor {
   @DocsEditable()
   static const int MEDIA_RULE = 4;
 
+  @DomName('CSSRule.NAMESPACE_RULE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int NAMESPACE_RULE = 10;
+
   @DomName('CSSRule.PAGE_RULE')
   @DocsEditable()
   static const int PAGE_RULE = 6;
@@ -3288,12 +3953,6 @@ class CssRule extends Interceptor {
   @DocsEditable()
   @Experimental() // untriaged
   static const int VIEWPORT_RULE = 15;
-
-  @DomName('CSSRule.WEBKIT_FILTER_RULE')
-  @DocsEditable()
-  // http://www.w3.org/TR/filter-effects/
-  @Experimental()
-  static const int WEBKIT_FILTER_RULE = 17;
 
   @DomName('CSSRule.WEBKIT_KEYFRAMES_RULE')
   @DocsEditable()
@@ -3426,6 +4085,11 @@ class CssStyleDeclaration  extends Interceptor with
   // To suppress missing implicit constructor warnings.
   factory CssStyleDeclaration._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('CSSStyleDeclaration.cssFloat')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String cssFloat;
+
   @DomName('CSSStyleDeclaration.cssText')
   @DocsEditable()
   String cssText;
@@ -3445,16 +4109,16 @@ class CssStyleDeclaration  extends Interceptor with
 
   @DomName('CSSStyleDeclaration.__setter__')
   @DocsEditable()
-  void __setter__(String propertyName, String propertyValue) native;
+  void __setter__(String property, String propertyValue) native;
 
   @DomName('CSSStyleDeclaration.getPropertyPriority')
   @DocsEditable()
-  String getPropertyPriority(String propertyName) native;
+  String getPropertyPriority(String property) native;
 
   @JSName('getPropertyValue')
   @DomName('CSSStyleDeclaration.getPropertyValue')
   @DocsEditable()
-  String _getPropertyValue(String propertyName) native;
+  String _getPropertyValue(String property) native;
 
   @DomName('CSSStyleDeclaration.item')
   @DocsEditable()
@@ -3462,7 +4126,7 @@ class CssStyleDeclaration  extends Interceptor with
 
   @DomName('CSSStyleDeclaration.removeProperty')
   @DocsEditable()
-  String removeProperty(String propertyName) native;
+  String removeProperty(String property) native;
 
 
   /** Gets the value of "background" */
@@ -8190,6 +8854,18 @@ class CustomEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory CustomEvent._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('CustomEvent.CustomEvent')
+  @DocsEditable()
+  factory CustomEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return CustomEvent._create_1(type, eventInitDict_1);
+    }
+    return CustomEvent._create_2(type);
+  }
+  static CustomEvent _create_1(type, eventInitDict) => JS('CustomEvent', 'new CustomEvent(#,#)', type, eventInitDict);
+  static CustomEvent _create_2(type) => JS('CustomEvent', 'new CustomEvent(#)', type);
+
   @DomName('CustomEvent._detail')
   @DocsEditable()
   @Experimental() // untriaged
@@ -8204,7 +8880,7 @@ class CustomEvent extends Event {
   @JSName('initCustomEvent')
   @DomName('CustomEvent.initCustomEvent')
   @DocsEditable()
-  void _initCustomEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object detailArg) native;
+  void _initCustomEvent(String type, bool bubbles, bool cancelable, Object detail) native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8307,17 +8983,17 @@ class DataTransfer extends Interceptor {
   @DomName('DataTransfer.clearData')
   @DocsEditable()
   @Experimental() // untriaged
-  void clearData([String type]) native;
+  void clearData([String format]) native;
 
   @DomName('DataTransfer.getData')
   @DocsEditable()
   @Experimental() // untriaged
-  String getData(String type) native;
+  String getData(String format) native;
 
   @DomName('DataTransfer.setData')
   @DocsEditable()
   @Experimental() // untriaged
-  void setData(String type, String data) native;
+  void setData(String format, String data) native;
 
   @DomName('DataTransfer.setDragImage')
   @DocsEditable()
@@ -8391,11 +9067,6 @@ class DataTransferItemList extends Interceptor {
   @DocsEditable()
   final int length;
 
-  @DomName('DataTransferItemList.__getter__')
-  @DocsEditable()
-  @Experimental() // untriaged
-  DataTransferItem __getter__(int index) native;
-
   @DomName('DataTransferItemList.add')
   @DocsEditable()
   DataTransferItem add(data_OR_file, [String type]) native;
@@ -8413,6 +9084,10 @@ class DataTransferItemList extends Interceptor {
   @DomName('DataTransferItemList.clear')
   @DocsEditable()
   void clear() native;
+
+  @DomName('DataTransferItemList.item')
+  @DocsEditable()
+  DataTransferItem item(int index) native;
 
   @DomName('DataTransferItemList.remove')
   @DocsEditable()
@@ -8597,6 +9272,18 @@ class DeviceAcceleration extends Interceptor {
 class DeviceLightEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory DeviceLightEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('DeviceLightEvent.DeviceLightEvent')
+  @DocsEditable()
+  factory DeviceLightEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return DeviceLightEvent._create_1(type, eventInitDict_1);
+    }
+    return DeviceLightEvent._create_2(type);
+  }
+  static DeviceLightEvent _create_1(type, eventInitDict) => JS('DeviceLightEvent', 'new DeviceLightEvent(#,#)', type, eventInitDict);
+  static DeviceLightEvent _create_2(type) => JS('DeviceLightEvent', 'new DeviceLightEvent(#)', type);
 
   @DomName('DeviceLightEvent.value')
   @DocsEditable()
@@ -9136,6 +9823,11 @@ class Document extends Node
   @DocsEditable()
   final String _lastModified;
 
+  @DomName('Document.origin')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String origin;
+
   @DomName('Document.pointerLockElement')
   @DocsEditable()
   @Experimental() // untriaged
@@ -9159,6 +9851,11 @@ class Document extends Node
   @DocsEditable()
   @Experimental() // untriaged
   final SvgSvgElement rootElement;
+
+  @DomName('Document.scrollingElement')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final Element scrollingElement;
 
   @JSName('selectedStylesheetSet')
   @DomName('Document.selectedStylesheetSet')
@@ -9266,16 +9963,16 @@ class Document extends Node
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
-  Touch _createTouch(Window window, EventTarget target, int identifier, num pageX, num pageY, num screenX, num screenY, num webkitRadiusX, num webkitRadiusY, num webkitRotationAngle, num webkitForce) {
+  Touch _createTouch(Window window, EventTarget target, int identifier, num pageX, num pageY, num screenX, num screenY, num radiusX, num radiusY, num rotationAngle, num force) {
     var target_1 = _convertDartToNative_EventTarget(target);
-    return _createTouch_1(window, target_1, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce);
+    return _createTouch_1(window, target_1, identifier, pageX, pageY, screenX, screenY, radiusX, radiusY, rotationAngle, force);
   }
   @JSName('createTouch')
   @DomName('Document.createTouch')
   @DocsEditable()
   // http://www.w3.org/TR/touch-events/, http://www.chromestatus.com/features
   @Experimental()
-  Touch _createTouch_1(Window window, target, identifier, pageX, pageY, screenX, screenY, webkitRadiusX, webkitRadiusY, webkitRotationAngle, webkitForce) native;
+  Touch _createTouch_1(Window window, target, identifier, pageX, pageY, screenX, screenY, radiusX, radiusY, rotationAngle, force) native;
 
   @JSName('createTouchList')
   @DomName('Document.createTouchList')
@@ -9289,9 +9986,14 @@ class Document extends Node
   @DocsEditable()
   Element _elementFromPoint(int x, int y) native;
 
+  @DomName('Document.elementsFromPoint')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<Element> elementsFromPoint(int x, int y) native;
+
   @DomName('Document.execCommand')
   @DocsEditable()
-  bool execCommand(String command, bool userInterface, String value) native;
+  bool execCommand(String commandId, [bool showUI, String value]) native;
 
   @DomName('Document.exitFullscreen')
   @DocsEditable()
@@ -9309,10 +10011,6 @@ class Document extends Node
   // https://developer.apple.com/library/safari/#documentation/AppleApplications/Reference/SafariCSSRef/Articles/Functions.html
   @Experimental() // non-standard
   Object _getCssCanvasContext(String contextId, String name, int width, int height) native;
-
-  @DomName('Document.getElementById')
-  @DocsEditable()
-  Element getElementById(String elementId) native;
 
   @DomName('Document.getElementsByClassName')
   @DocsEditable()
@@ -9338,23 +10036,23 @@ class Document extends Node
 
   @DomName('Document.queryCommandEnabled')
   @DocsEditable()
-  bool queryCommandEnabled(String command) native;
+  bool queryCommandEnabled(String commandId) native;
 
   @DomName('Document.queryCommandIndeterm')
   @DocsEditable()
-  bool queryCommandIndeterm(String command) native;
+  bool queryCommandIndeterm(String commandId) native;
 
   @DomName('Document.queryCommandState')
   @DocsEditable()
-  bool queryCommandState(String command) native;
+  bool queryCommandState(String commandId) native;
 
   @DomName('Document.queryCommandSupported')
   @DocsEditable()
-  bool queryCommandSupported(String command) native;
+  bool queryCommandSupported(String commandId) native;
 
   @DomName('Document.queryCommandValue')
   @DocsEditable()
-  String queryCommandValue(String command) native;
+  String queryCommandValue(String commandId) native;
 
   @DomName('Document.transformDocumentToTreeView')
   @DocsEditable()
@@ -9369,6 +10067,12 @@ class Document extends Node
   @Experimental()
   // https://dvcs.w3.org/hg/fullscreen/raw-file/tip/Overview.html#dom-document-exitfullscreen
   void _webkitExitFullscreen() native;
+
+  // From NonElementParentNode
+
+  @DomName('Document.getElementById')
+  @DocsEditable()
+  Element getElementById(String elementId) native;
 
   // From ParentNode
 
@@ -9892,7 +10596,7 @@ class Document extends Node
 
 @DomName('DocumentFragment')
 @Native("DocumentFragment")
-class DocumentFragment extends Node implements ParentNode {
+class DocumentFragment extends Node implements NonElementParentNode, ParentNode {
   factory DocumentFragment() => document.createDocumentFragment();
 
   factory DocumentFragment.html(String html,
@@ -10006,6 +10710,8 @@ class DocumentFragment extends Node implements ParentNode {
   }
   // To suppress missing implicit constructor warnings.
   factory DocumentFragment._() { throw new UnsupportedError("Not supported"); }
+
+  // From NonElementParentNode
 
   @DomName('DocumentFragment.getElementById')
   @DocsEditable()
@@ -10165,7 +10871,7 @@ class DomImplementation extends Interceptor {
 
   @DomName('DOMImplementation.hasFeature')
   @DocsEditable()
-  bool hasFeature(String feature, String version) native;
+  bool hasFeature() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10379,17 +11085,17 @@ class DomMatrix extends DomMatrixReadOnly {
   @DomName('DOMMatrix.scale3dSelf')
   @DocsEditable()
   @Experimental() // untriaged
-  DomMatrix scale3dSelf(num scale, [num ox, num oy, num oz]) native;
+  DomMatrix scale3dSelf(num scale, [num originX, num originY, num originZ]) native;
 
   @DomName('DOMMatrix.scaleNonUniformSelf')
   @DocsEditable()
   @Experimental() // untriaged
-  DomMatrix scaleNonUniformSelf(num sx, [num sy, num sz, num ox, num oy, num oz]) native;
+  DomMatrix scaleNonUniformSelf(num scaleX, [num scaleY, num scaleZ, num originX, num originY, num originZ]) native;
 
   @DomName('DOMMatrix.scaleSelf')
   @DocsEditable()
   @Experimental() // untriaged
-  DomMatrix scaleSelf(num scale, [num ox, num oy]) native;
+  DomMatrix scaleSelf(num scale, [num originX, num originY]) native;
 
   @DomName('DOMMatrix.translateSelf')
   @DocsEditable()
@@ -10537,17 +11243,17 @@ class DomMatrixReadOnly extends Interceptor {
   @DomName('DOMMatrixReadOnly.scale')
   @DocsEditable()
   @Experimental() // untriaged
-  DomMatrix scale(num scale, [num ox, num oy]) native;
+  DomMatrix scale(num scale, [num originX, num originY]) native;
 
   @DomName('DOMMatrixReadOnly.scale3d')
   @DocsEditable()
   @Experimental() // untriaged
-  DomMatrix scale3d(num scale, [num ox, num oy, num oz]) native;
+  DomMatrix scale3d(num scale, [num originX, num originY, num originZ]) native;
 
   @DomName('DOMMatrixReadOnly.scaleNonUniform')
   @DocsEditable()
   @Experimental() // untriaged
-  DomMatrix scaleNonUniform(num sx, [num sy, num sz, num ox, num oy, num oz]) native;
+  DomMatrix scaleNonUniform(num scaleX, [num scaleY, num scaleZn, num originX, num originY, num originZ]) native;
 
   @DomName('DOMMatrixReadOnly.toFloat32Array')
   @DocsEditable()
@@ -10585,7 +11291,7 @@ class DomParser extends Interceptor {
 
   @DomName('DOMParser.parseFromString')
   @DocsEditable()
-  Document parseFromString(String str, String contentType) native;
+  Document parseFromString(String str, String type) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10603,29 +11309,33 @@ class DomPoint extends DomPointReadOnly {
   @DomName('DOMPoint.DOMPoint')
   @DocsEditable()
   factory DomPoint([point_OR_x, num y, num z, num w]) {
-    if (point_OR_x == null && y == null && z == null && w == null) {
-      return DomPoint._create_1();
-    }
     if ((point_OR_x is Map || point_OR_x == null) && y == null && z == null && w == null) {
       var point_1 = convertDartToNative_Dictionary(point_OR_x);
-      return DomPoint._create_2(point_1);
+      return DomPoint._create_1(point_1);
+    }
+    if (point_OR_x == null && y == null && z == null && w == null) {
+      return DomPoint._create_2();
+    }
+    if ((point_OR_x is num || point_OR_x == null) && y == null && z == null && w == null) {
+      return DomPoint._create_3(point_OR_x);
     }
     if ((y is num || y == null) && (point_OR_x is num || point_OR_x == null) && z == null && w == null) {
-      return DomPoint._create_3(point_OR_x, y);
+      return DomPoint._create_4(point_OR_x, y);
     }
     if ((z is num || z == null) && (y is num || y == null) && (point_OR_x is num || point_OR_x == null) && w == null) {
-      return DomPoint._create_4(point_OR_x, y, z);
+      return DomPoint._create_5(point_OR_x, y, z);
     }
     if ((w is num || w == null) && (z is num || z == null) && (y is num || y == null) && (point_OR_x is num || point_OR_x == null)) {
-      return DomPoint._create_5(point_OR_x, y, z, w);
+      return DomPoint._create_6(point_OR_x, y, z, w);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
-  static DomPoint _create_1() => JS('DomPoint', 'new DOMPoint()');
-  static DomPoint _create_2(point_OR_x) => JS('DomPoint', 'new DOMPoint(#)', point_OR_x);
-  static DomPoint _create_3(point_OR_x, y) => JS('DomPoint', 'new DOMPoint(#,#)', point_OR_x, y);
-  static DomPoint _create_4(point_OR_x, y, z) => JS('DomPoint', 'new DOMPoint(#,#,#)', point_OR_x, y, z);
-  static DomPoint _create_5(point_OR_x, y, z, w) => JS('DomPoint', 'new DOMPoint(#,#,#,#)', point_OR_x, y, z, w);
+  static DomPoint _create_1(point_OR_x) => JS('DomPoint', 'new DOMPoint(#)', point_OR_x);
+  static DomPoint _create_2() => JS('DomPoint', 'new DOMPoint()');
+  static DomPoint _create_3(point_OR_x) => JS('DomPoint', 'new DOMPoint(#)', point_OR_x);
+  static DomPoint _create_4(point_OR_x, y) => JS('DomPoint', 'new DOMPoint(#,#)', point_OR_x, y);
+  static DomPoint _create_5(point_OR_x, y, z) => JS('DomPoint', 'new DOMPoint(#,#,#)', point_OR_x, y, z);
+  static DomPoint _create_6(point_OR_x, y, z, w) => JS('DomPoint', 'new DOMPoint(#,#,#,#)', point_OR_x, y, z, w);
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.DOMPoint) || !!(window.WebKitPoint)');
@@ -10864,10 +11574,6 @@ class DomSettableTokenList extends DomTokenList {
   @DomName('DOMSettableTokenList.value')
   @DocsEditable()
   String value;
-
-  @DomName('DOMSettableTokenList.__getter__')
-  @DocsEditable()
-  String __getter__(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10877,7 +11583,7 @@ class DomSettableTokenList extends DomTokenList {
 @DocsEditable()
 @DomName('DOMStringList')
 @Native("DOMStringList")
-class DomStringList extends Interceptor with ListMixin<String>, ImmutableListMixin<String> implements JavaScriptIndexingBehavior, List<String> {
+class DomStringList extends Interceptor with ListMixin<String>, ImmutableListMixin<String> implements List<String> {
   // To suppress missing implicit constructor warnings.
   factory DomStringList._() { throw new UnsupportedError("Not supported"); }
 
@@ -10889,7 +11595,7 @@ class DomStringList extends Interceptor with ListMixin<String>, ImmutableListMix
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
       throw new RangeError.index(index, this);
-    return JS("String", "#[#]", this, index);
+    return this.item(index);
   }
   void operator[]=(int index, String value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -10929,6 +11635,11 @@ class DomStringList extends Interceptor with ListMixin<String>, ImmutableListMix
   String elementAt(int index) => this[index];
   // -- end List<String> mixins.
 
+  @DomName('DOMStringList.__getter__')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String __getter__(int index) native;
+
   @DomName('DOMStringList.contains')
   @DocsEditable()
   bool contains(String string) native;
@@ -10948,11 +11659,13 @@ abstract class DomStringMap extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory DomStringMap._() { throw new UnsupportedError("Not supported"); }
 
-  bool __delete__(index_OR_name);
+  void __delete__(index_OR_name);
 
-  String __getter__(index_OR_name);
+  String __getter__(int index);
 
   void __setter__(index_OR_name, String value);
+
+  String item(String name);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -10991,6 +11704,49 @@ class DomTokenList extends Interceptor {
   @DomName('DOMTokenList.toggle')
   @DocsEditable()
   bool toggle(String token, [bool force]) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('DragEvent')
+@Experimental() // untriaged
+@Native("DragEvent")
+class DragEvent extends MouseEvent {
+  // To suppress missing implicit constructor warnings.
+  factory DragEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('DragEvent.DragEvent')
+  @DocsEditable()
+  factory DragEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return DragEvent._create_1(type, eventInitDict_1);
+    }
+    return DragEvent._create_2(type);
+  }
+  static DragEvent _create_1(type, eventInitDict) => JS('DragEvent', 'new DragEvent(#,#)', type, eventInitDict);
+  static DragEvent _create_2(type) => JS('DragEvent', 'new DragEvent(#)', type);
+
+  @DomName('DragEvent.dataTransfer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final DataTransfer dataTransfer;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('EffectModel')
+@Experimental() // untriaged
+@Native("EffectModel")
+class EffectModel extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory EffectModel._() { throw new UnsupportedError("Not supported"); }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12250,7 +13006,7 @@ class _FrozenElementList extends ListBase
  */
 @DomName('Element')
 @Native("Element")
-class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode {
+class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandlers, ParentNode, ChildNode {
 
   /**
    * Creates an HTML element from a valid fragment of HTML.
@@ -14149,11 +14905,39 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
   @DocsEditable()
   String lang;
 
+  @JSName('offsetHeight')
+  @DomName('Element.offsetHeight')
+  @DocsEditable()
+  final int _offsetHeight;
+
+  @JSName('offsetLeft')
+  @DomName('Element.offsetLeft')
+  @DocsEditable()
+  final int _offsetLeft;
+
+  @DomName('Element.offsetParent')
+  @DocsEditable()
+  final Element offsetParent;
+
+  @JSName('offsetTop')
+  @DomName('Element.offsetTop')
+  @DocsEditable()
+  final int _offsetTop;
+
+  @JSName('offsetWidth')
+  @DomName('Element.offsetWidth')
+  @DocsEditable()
+  final int _offsetWidth;
+
   @DomName('Element.spellcheck')
   @DocsEditable()
   // http://blog.whatwg.org/the-road-to-html-5-spellchecking
   @Experimental() // nonstandard
   bool spellcheck;
+
+  @DomName('Element.style')
+  @DocsEditable()
+  final CssStyleDeclaration style;
 
   @DomName('Element.tabIndex')
   @DocsEditable()
@@ -14202,9 +14986,17 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
   // http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#the-dropzone-attribute
   String dropzone;
 
+  @DomName('Element.blur')
+  @DocsEditable()
+  void blur() native;
+
   @DomName('Element.click')
   @DocsEditable()
   void click() native;
+
+  @DomName('Element.focus')
+  @DocsEditable()
+  void focus() native;
 
   @JSName('attributes')
   @DomName('Element.attributes')
@@ -14235,6 +15027,16 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
   @DocsEditable()
   final int _clientWidth;
 
+  @DomName('Element.computedName')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String computedName;
+
+  @DomName('Element.computedRole')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String computedRole;
+
   @DomName('Element.id')
   @DocsEditable()
   String id;
@@ -14244,35 +15046,17 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
   @DocsEditable()
   String _innerHtml;
 
-  // Use implementation from Node.
-  // final String _localName;
-
-  // Use implementation from Node.
-  // final String _namespaceUri;
-
-  @JSName('offsetHeight')
-  @DomName('Element.offsetHeight')
+  @JSName('localName')
+  @DomName('Element.localName')
   @DocsEditable()
-  final int _offsetHeight;
+  @Experimental() // untriaged
+  final String _localName;
 
-  @JSName('offsetLeft')
-  @DomName('Element.offsetLeft')
+  @JSName('namespaceURI')
+  @DomName('Element.namespaceURI')
   @DocsEditable()
-  final int _offsetLeft;
-
-  @DomName('Element.offsetParent')
-  @DocsEditable()
-  final Element offsetParent;
-
-  @JSName('offsetTop')
-  @DomName('Element.offsetTop')
-  @DocsEditable()
-  final int _offsetTop;
-
-  @JSName('offsetWidth')
-  @DomName('Element.offsetWidth')
-  @DocsEditable()
-  final int _offsetWidth;
+  @Experimental() // untriaged
+  final String _namespaceUri;
 
   @JSName('outerHTML')
   @DomName('Element.outerHTML')
@@ -14299,26 +15083,19 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
   @DocsEditable()
   final int _scrollWidth;
 
-  @DomName('Element.style')
-  @DocsEditable()
-  final CssStyleDeclaration style;
-
   @DomName('Element.tagName')
   @DocsEditable()
   final String tagName;
 
-  @DomName('Element.blur')
-  @DocsEditable()
-  void blur() native;
-
-  @DomName('Element.focus')
-  @DocsEditable()
-  void focus() native;
-
-  @DomName('Element.getAnimationPlayers')
+  @DomName('Element.closest')
   @DocsEditable()
   @Experimental() // untriaged
-  List<AnimationPlayer> getAnimationPlayers() native;
+  Element closest(String selectors) native;
+
+  @DomName('Element.getAnimations')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<Animation> getAnimations() native;
 
   @DomName('Element.getAttribute')
   @DocsEditable()
@@ -14405,7 +15182,7 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
   @DocsEditable()
   @Creates('NodeList|HtmlCollection')
   @Returns('NodeList|HtmlCollection')
-  List<Node> _getElementsByTagName(String name) native;
+  List<Node> _getElementsByTagName(String localName) native;
 
   @JSName('hasAttribute')
   @DomName('Element.hasAttribute')
@@ -14437,6 +15214,76 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
   @Experimental() // untriaged
   void requestPointerLock() native;
 
+  @DomName('Element.scroll')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void scroll([options_OR_x, num y]) {
+    if (options_OR_x == null && y == null) {
+      _scroll_1();
+      return;
+    }
+    if ((options_OR_x is Map) && y == null) {
+      var options_1 = convertDartToNative_Dictionary(options_OR_x);
+      _scroll_2(options_1);
+      return;
+    }
+    if (y != null && (options_OR_x is num)) {
+      _scroll_3(options_OR_x, y);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+  @JSName('scroll')
+  @DomName('Element.scroll')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _scroll_1() native;
+  @JSName('scroll')
+  @DomName('Element.scroll')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _scroll_2(options) native;
+  @JSName('scroll')
+  @DomName('Element.scroll')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _scroll_3(num x, y) native;
+
+  @DomName('Element.scrollBy')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void scrollBy([options_OR_x, num y]) {
+    if (options_OR_x == null && y == null) {
+      _scrollBy_1();
+      return;
+    }
+    if ((options_OR_x is Map) && y == null) {
+      var options_1 = convertDartToNative_Dictionary(options_OR_x);
+      _scrollBy_2(options_1);
+      return;
+    }
+    if (y != null && (options_OR_x is num)) {
+      _scrollBy_3(options_OR_x, y);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+  @JSName('scrollBy')
+  @DomName('Element.scrollBy')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _scrollBy_1() native;
+  @JSName('scrollBy')
+  @DomName('Element.scrollBy')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _scrollBy_2(options) native;
+  @JSName('scrollBy')
+  @DomName('Element.scrollBy')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _scrollBy_3(num x, y) native;
+
   @JSName('scrollIntoView')
   @DomName('Element.scrollIntoView')
   @DocsEditable()
@@ -14449,15 +15296,62 @@ class Element extends Node implements GlobalEventHandlers, ParentNode, ChildNode
   @Experimental() // non-standard
   void _scrollIntoViewIfNeeded([bool centerIfNeeded]) native;
 
+  @DomName('Element.scrollTo')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void scrollTo([options_OR_x, num y]) {
+    if (options_OR_x == null && y == null) {
+      _scrollTo_1();
+      return;
+    }
+    if ((options_OR_x is Map) && y == null) {
+      var options_1 = convertDartToNative_Dictionary(options_OR_x);
+      _scrollTo_2(options_1);
+      return;
+    }
+    if (y != null && (options_OR_x is num)) {
+      _scrollTo_3(options_OR_x, y);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+  @JSName('scrollTo')
+  @DomName('Element.scrollTo')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _scrollTo_1() native;
+  @JSName('scrollTo')
+  @DomName('Element.scrollTo')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _scrollTo_2(options) native;
+  @JSName('scrollTo')
+  @DomName('Element.scrollTo')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _scrollTo_3(num x, y) native;
+
+  @DomName('Element.setApplyScroll')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void setApplyScroll(ScrollStateCallback scrollStateCallback, String nativeScrollBehavior) native;
+
   @DomName('Element.setAttribute')
   @DocsEditable()
   void setAttribute(String name, String value) native;
 
   @DomName('Element.setAttributeNS')
   @DocsEditable()
-  void setAttributeNS(String namespaceURI, String qualifiedName, String value) native;
+  void setAttributeNS(String namespaceURI, String name, String value) native;
+
+  @DomName('Element.setDistributeScroll')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void setDistributeScroll(ScrollStateCallback scrollStateCallback, String nativeScrollBehavior) native;
 
   // From ChildNode
+
+  // From NonDocumentTypeChildNode
 
   @DomName('Element.nextElementSibling')
   @DocsEditable()
@@ -15056,11 +15950,6 @@ class EmbedElement extends HtmlElement {
   @DocsEditable()
   String height;
 
-  @DomName('HTMLEmbedElement.integrity')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String integrity;
-
   @DomName('HTMLEmbedElement.name')
   @DocsEditable()
   String name;
@@ -15250,6 +16139,18 @@ class ErrorEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory ErrorEvent._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('ErrorEvent.ErrorEvent')
+  @DocsEditable()
+  factory ErrorEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return ErrorEvent._create_1(type, eventInitDict_1);
+    }
+    return ErrorEvent._create_2(type);
+  }
+  static ErrorEvent _create_1(type, eventInitDict) => JS('ErrorEvent', 'new ErrorEvent(#,#)', type, eventInitDict);
+  static ErrorEvent _create_2(type) => JS('ErrorEvent', 'new ErrorEvent(#)', type);
+
   @DomName('ErrorEvent.colno')
   @DocsEditable()
   @Experimental() // untriaged
@@ -15335,6 +16236,18 @@ class Event extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory Event._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('Event.Event')
+  @DocsEditable()
+  factory Event(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return Event._create_1(type, eventInitDict_1);
+    }
+    return Event._create_2(type);
+  }
+  static Event _create_1(type, eventInitDict) => JS('Event', 'new Event(#,#)', type, eventInitDict);
+  static Event _create_2(type) => JS('Event', 'new Event(#)', type);
+
   /**
    * This event is being handled by the event target.
    *
@@ -15380,24 +16293,6 @@ class Event extends Interceptor {
   @DocsEditable()
   final bool cancelable;
 
-  /**
-   * Access to the system's clipboard data during copy, cut, and paste events.
-   *
-   * ## Other resources
-   *
-   * * [clipboardData specification]
-   * (http://www.w3.org/TR/clipboard-apis/#attributes) from W3C.
-   */
-  @DomName('Event.clipboardData')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.FIREFOX)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // Part of copy/paste
-  @Experimental() // nonstandard
-  final DataTransfer clipboardData;
-
   @DomName('Event.currentTarget')
   @DocsEditable()
   EventTarget get currentTarget => _convertNativeToDart_EventTarget(this._get_currentTarget);
@@ -15416,6 +16311,11 @@ class Event extends Interceptor {
   @DocsEditable()
   final int eventPhase;
 
+  @DomName('Event.isTrusted')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final bool isTrusted;
+
   /**
    * This event's path, taking into account shadow DOM.
    *
@@ -15429,9 +16329,7 @@ class Event extends Interceptor {
   @DocsEditable()
   // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#extensions-to-event
   @Experimental()
-  @Returns('NodeList')
-  @Creates('NodeList')
-  final List<Node> path;
+  final List<EventTarget> path;
 
   @DomName('Event.target')
   @DocsEditable()
@@ -15454,7 +16352,7 @@ class Event extends Interceptor {
   @JSName('initEvent')
   @DomName('Event.initEvent')
   @DocsEditable()
-  void _initEvent(String eventTypeArg, bool canBubbleArg, bool cancelableArg) native;
+  void _initEvent(String type, bool bubbles, bool cancelable) native;
 
   @DomName('Event.preventDefault')
   @DocsEditable()
@@ -15520,14 +16418,14 @@ class EventSource extends EventTarget {
 
   @DomName('EventSource.EventSource')
   @DocsEditable()
-  static EventSource _factoryEventSource(String url, [Map eventSourceInit]) {
-    if (eventSourceInit != null) {
-      var eventSourceInit_1 = convertDartToNative_Dictionary(eventSourceInit);
-      return EventSource._create_1(url, eventSourceInit_1);
+  static EventSource _factoryEventSource(String url, [Map eventSourceInitDict]) {
+    if (eventSourceInitDict != null) {
+      var eventSourceInitDict_1 = convertDartToNative_Dictionary(eventSourceInitDict);
+      return EventSource._create_1(url, eventSourceInitDict_1);
     }
     return EventSource._create_2(url);
   }
-  static EventSource _create_1(url, eventSourceInit) => JS('EventSource', 'new EventSource(#,#)', url, eventSourceInit);
+  static EventSource _create_1(url, eventSourceInitDict) => JS('EventSource', 'new EventSource(#,#)', url, eventSourceInitDict);
   static EventSource _create_2(url) => JS('EventSource', 'new EventSource(#)', url);
 
   @DomName('EventSource.CLOSED')
@@ -15702,7 +16600,7 @@ class EventTarget extends Interceptor {
   @JSName('addEventListener')
   @DomName('EventTarget.addEventListener')
   @DocsEditable()
-  void _addEventListener([String type, EventListener listener, bool useCapture]) native;
+  void _addEventListener(String type, EventListener listener, [bool capture]) native;
 
   @DomName('EventTarget.dispatchEvent')
   @DocsEditable()
@@ -15711,7 +16609,7 @@ class EventTarget extends Interceptor {
   @JSName('removeEventListener')
   @DomName('EventTarget.removeEventListener')
   @DocsEditable()
-  void _removeEventListener([String type, EventListener listener, bool useCapture]) native;
+  void _removeEventListener(String type, EventListener listener, [bool capture]) native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15727,10 +16625,22 @@ class ExtendableEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory ExtendableEvent._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('ExtendableEvent.ExtendableEvent')
+  @DocsEditable()
+  factory ExtendableEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return ExtendableEvent._create_1(type, eventInitDict_1);
+    }
+    return ExtendableEvent._create_2(type);
+  }
+  static ExtendableEvent _create_1(type, eventInitDict) => JS('ExtendableEvent', 'new ExtendableEvent(#,#)', type, eventInitDict);
+  static ExtendableEvent _create_2(type) => JS('ExtendableEvent', 'new ExtendableEvent(#)', type);
+
   @DomName('ExtendableEvent.waitUntil')
   @DocsEditable()
   @Experimental() // untriaged
-  void waitUntil(Object value) native;
+  void waitUntil(Future f) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15747,15 +16657,21 @@ class FederatedCredential extends Credential {
 
   @DomName('FederatedCredential.FederatedCredential')
   @DocsEditable()
-  factory FederatedCredential(String id, String name, String avatarURL, String federation) {
-    return FederatedCredential._create_1(id, name, avatarURL, federation);
+  factory FederatedCredential(Map data) {
+    var data_1 = convertDartToNative_Dictionary(data);
+    return FederatedCredential._create_1(data_1);
   }
-  static FederatedCredential _create_1(id, name, avatarURL, federation) => JS('FederatedCredential', 'new FederatedCredential(#,#,#,#)', id, name, avatarURL, federation);
+  static FederatedCredential _create_1(data) => JS('FederatedCredential', 'new FederatedCredential(#)', data);
 
-  @DomName('FederatedCredential.federation')
+  @DomName('FederatedCredential.protocol')
   @DocsEditable()
   @Experimental() // untriaged
-  final String federation;
+  final String protocol;
+
+  @DomName('FederatedCredential.provider')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String provider;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15766,9 +16682,21 @@ class FederatedCredential extends Credential {
 @DomName('FetchEvent')
 @Experimental() // untriaged
 @Native("FetchEvent")
-class FetchEvent extends Event {
+class FetchEvent extends ExtendableEvent {
   // To suppress missing implicit constructor warnings.
   factory FetchEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('FetchEvent.FetchEvent')
+  @DocsEditable()
+  factory FetchEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return FetchEvent._create_1(type, eventInitDict_1);
+    }
+    return FetchEvent._create_2(type);
+  }
+  static FetchEvent _create_1(type, eventInitDict) => JS('FetchEvent', 'new FetchEvent(#,#)', type, eventInitDict);
+  static FetchEvent _create_2(type) => JS('FetchEvent', 'new FetchEvent(#)', type);
 
   @DomName('FetchEvent.isReload')
   @DocsEditable()
@@ -15783,7 +16711,7 @@ class FetchEvent extends Event {
   @DomName('FetchEvent.respondWith')
   @DocsEditable()
   @Experimental() // untriaged
-  void respondWith(Object value) native;
+  void respondWith(Future r) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -15814,9 +16742,7 @@ class FieldSetElement extends HtmlElement {
 
   @DomName('HTMLFieldSetElement.elements')
   @DocsEditable()
-  @Returns('HtmlCollection')
-  @Creates('HtmlCollection')
-  final List<Node> elements;
+  final HtmlFormControlsCollection elements;
 
   @DomName('HTMLFieldSetElement.form')
   @DocsEditable()
@@ -15846,6 +16772,11 @@ class FieldSetElement extends HtmlElement {
   @DocsEditable()
   bool checkValidity() native;
 
+  @DomName('HTMLFieldSetElement.reportValidity')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool reportValidity() native;
+
   @DomName('HTMLFieldSetElement.setCustomValidity')
   @DocsEditable()
   void setCustomValidity(String error) native;
@@ -15861,6 +16792,18 @@ class FieldSetElement extends HtmlElement {
 class File extends Blob {
   // To suppress missing implicit constructor warnings.
   factory File._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('File.File')
+  @DocsEditable()
+  factory File(List<Object> fileBits, String fileName, [Map options]) {
+    if (options != null) {
+      var options_1 = convertDartToNative_Dictionary(options);
+      return File._create_1(fileBits, fileName, options_1);
+    }
+    return File._create_2(fileBits, fileName);
+  }
+  static File _create_1(fileBits, fileName, options) => JS('File', 'new File(#,#,#)', fileBits, fileName, options);
+  static File _create_2(fileBits, fileName) => JS('File', 'new File(#,#)', fileBits, fileName);
 
   @DomName('File.lastModified')
   @DocsEditable()
@@ -16201,7 +17144,7 @@ class FileReader extends EventTarget {
 
   @DomName('FileReader.readAsText')
   @DocsEditable()
-  void readAsText(Blob blob, [String encoding]) native;
+  void readAsText(Blob blob, [String label]) native;
 
   /// Stream of `abort` events handled by this [FileReader].
   @DomName('FileReader.onabort')
@@ -16460,6 +17403,18 @@ class FocusEvent extends UIEvent {
   // To suppress missing implicit constructor warnings.
   factory FocusEvent._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('FocusEvent.FocusEvent')
+  @DocsEditable()
+  factory FocusEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return FocusEvent._create_1(type, eventInitDict_1);
+    }
+    return FocusEvent._create_2(type);
+  }
+  static FocusEvent _create_1(type, eventInitDict) => JS('FocusEvent', 'new FocusEvent(#,#)', type, eventInitDict);
+  static FocusEvent _create_2(type) => JS('FocusEvent', 'new FocusEvent(#)', type);
+
   @DomName('FocusEvent.relatedTarget')
   @DocsEditable()
   EventTarget get relatedTarget => _convertNativeToDart_EventTarget(this._get_relatedTarget);
@@ -16484,36 +17439,15 @@ class FontFace extends Interceptor {
 
   @DomName('FontFace.FontFace')
   @DocsEditable()
-  factory FontFace(String family, source, [Map descriptors]) {
-    if ((source is String || source == null) && (family is String || family == null) && descriptors == null) {
-      return FontFace._create_1(family, source);
-    }
-    if ((descriptors is Map || descriptors == null) && (source is String || source == null) && (family is String || family == null)) {
+  factory FontFace(String family, Object source, [Map descriptors]) {
+    if (descriptors != null) {
       var descriptors_1 = convertDartToNative_Dictionary(descriptors);
-      return FontFace._create_2(family, source, descriptors_1);
+      return FontFace._create_1(family, source, descriptors_1);
     }
-    if ((source is TypedData || source == null) && (family is String || family == null) && descriptors == null) {
-      return FontFace._create_3(family, source);
-    }
-    if ((descriptors is Map || descriptors == null) && (source is TypedData || source == null) && (family is String || family == null)) {
-      var descriptors_1 = convertDartToNative_Dictionary(descriptors);
-      return FontFace._create_4(family, source, descriptors_1);
-    }
-    if ((source is ByteBuffer || source == null) && (family is String || family == null) && descriptors == null) {
-      return FontFace._create_5(family, source);
-    }
-    if ((descriptors is Map || descriptors == null) && (source is ByteBuffer || source == null) && (family is String || family == null)) {
-      var descriptors_1 = convertDartToNative_Dictionary(descriptors);
-      return FontFace._create_6(family, source, descriptors_1);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
+    return FontFace._create_2(family, source);
   }
-  static FontFace _create_1(family, source) => JS('FontFace', 'new FontFace(#,#)', family, source);
-  static FontFace _create_2(family, source, descriptors) => JS('FontFace', 'new FontFace(#,#,#)', family, source, descriptors);
-  static FontFace _create_3(family, source) => JS('FontFace', 'new FontFace(#,#)', family, source);
-  static FontFace _create_4(family, source, descriptors) => JS('FontFace', 'new FontFace(#,#,#)', family, source, descriptors);
-  static FontFace _create_5(family, source) => JS('FontFace', 'new FontFace(#,#)', family, source);
-  static FontFace _create_6(family, source, descriptors) => JS('FontFace', 'new FontFace(#,#,#)', family, source, descriptors);
+  static FontFace _create_1(family, source, descriptors) => JS('FontFace', 'new FontFace(#,#,#)', family, source, descriptors);
+  static FontFace _create_2(family, source) => JS('FontFace', 'new FontFace(#,#)', family, source);
 
   @DomName('FontFace.family')
   @DocsEditable()
@@ -16684,6 +17618,31 @@ class FormData extends Interceptor {
   @DomName('FormData.append')
   @DocsEditable()
   void appendBlob(String name, Blob value, [String filename]) native;
+
+  @DomName('FormData.delete')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void delete(String name) native;
+
+  @DomName('FormData.get')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object get(String name) native;
+
+  @DomName('FormData.getAll')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<Object> getAll(String name) native;
+
+  @DomName('FormData.has')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool has(String name) native;
+
+  @DomName('FormData.set')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void set(String name, value, [String filename]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16751,11 +17710,21 @@ class FormElement extends HtmlElement {
 
   @DomName('HTMLFormElement.__getter__')
   @DocsEditable()
-  Element __getter__(index_OR_name) native;
+  Object __getter__(String name) native;
 
   @DomName('HTMLFormElement.checkValidity')
   @DocsEditable()
   bool checkValidity() native;
+
+  @DomName('HTMLFormElement.item')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Element item(int index) native;
+
+  @DomName('HTMLFormElement.reportValidity')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool reportValidity() native;
 
   @DomName('HTMLFormElement.requestAutocomplete')
   @DocsEditable()
@@ -16781,6 +17750,16 @@ class FormElement extends HtmlElement {
   @DocsEditable()
   void submit() native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DomName('FrameRequestCallback')
+@Experimental() // untriaged
+typedef void FrameRequestCallback(num highResTime);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -16857,6 +17836,18 @@ class GamepadEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory GamepadEvent._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('GamepadEvent.GamepadEvent')
+  @DocsEditable()
+  factory GamepadEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return GamepadEvent._create_1(type, eventInitDict_1);
+    }
+    return GamepadEvent._create_2(type);
+  }
+  static GamepadEvent _create_1(type, eventInitDict) => JS('GamepadEvent', 'new GamepadEvent(#,#)', type, eventInitDict);
+  static GamepadEvent _create_2(type) => JS('GamepadEvent', 'new GamepadEvent(#)', type);
+
   @DomName('GamepadEvent.gamepad')
   @DocsEditable()
   @Experimental() // untriaged
@@ -16889,6 +17880,29 @@ class Geofencing extends Interceptor {
   @DocsEditable()
   @Experimental() // untriaged
   Future unregisterRegion(String regionId) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('GeofencingEvent')
+@Experimental() // untriaged
+@Native("GeofencingEvent")
+class GeofencingEvent extends Event {
+  // To suppress missing implicit constructor warnings.
+  factory GeofencingEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('GeofencingEvent.id')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String id;
+
+  @DomName('GeofencingEvent.region')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final GeofencingRegion region;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17675,6 +18689,18 @@ class HashChangeEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory HashChangeEvent._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('HashChangeEvent.HashChangeEvent')
+  @DocsEditable()
+  factory HashChangeEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return HashChangeEvent._create_1(type, eventInitDict_1);
+    }
+    return HashChangeEvent._create_2(type);
+  }
+  static HashChangeEvent _create_1(type, eventInitDict) => JS('HashChangeEvent', 'new HashChangeEvent(#,#)', type, eventInitDict);
+  static HashChangeEvent _create_2(type) => JS('HashChangeEvent', 'new HashChangeEvent(#)', type);
+
   /// Checks if this type is supported on the current platform.
   static bool get supported => Device.isEventTypeSupported('HashChangeEvent');
 
@@ -17687,11 +18713,6 @@ class HashChangeEvent extends Event {
   @DomName('HashChangeEvent.oldURL')
   @DocsEditable()
   final String oldUrl;
-
-  @JSName('initHashChangeEvent')
-  @DomName('HashChangeEvent.initHashChangeEvent')
-  @DocsEditable()
-  void _initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17735,39 +18756,23 @@ class Headers extends Interceptor {
     if (input == null) {
       return Headers._create_1();
     }
-    if ((input is Headers || input == null)) {
+    if ((input is Headers)) {
       return Headers._create_2(input);
     }
-    if ((input is Map || input == null)) {
+    if ((input is Map)) {
       var input_1 = convertDartToNative_Dictionary(input);
       return Headers._create_3(input_1);
+    }
+    if ((input is List<Object>)) {
+      return Headers._create_4(input);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
   static Headers _create_1() => JS('Headers', 'new Headers()');
   static Headers _create_2(input) => JS('Headers', 'new Headers(#)', input);
   static Headers _create_3(input) => JS('Headers', 'new Headers(#)', input);
-
-  @DomName('Headers.size')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int size;
-
-  @DomName('Headers.forEach')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void forEach(HeadersForEachCallback callback, [Object thisArg]) native;
+  static Headers _create_4(input) => JS('Headers', 'new Headers(#)', input);
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DomName('HeadersForEachCallback')
-@Experimental() // untriaged
-typedef void HeadersForEachCallback(String value, String key, Headers map);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -17836,6 +18841,11 @@ class History extends Interceptor implements HistoryBase {
   @DocsEditable()
   final int length;
 
+  @DomName('History.scrollRestoration')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String scrollRestoration;
+
   @DomName('History.state')
   @DocsEditable()
   dynamic get state => convertNativeToDart_SerializedScriptValue(this._get_state);
@@ -17856,7 +18866,7 @@ class History extends Interceptor implements HistoryBase {
 
   @DomName('History.go')
   @DocsEditable()
-  void go(int distance) native;
+  void go([int delta]) native;
 
   @DomName('History.pushState')
   @DocsEditable()
@@ -17864,32 +18874,7 @@ class History extends Interceptor implements HistoryBase {
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  void pushState(/*any*/ data, String title, [String url]) {
-    if (url != null) {
-      var data_1 = convertDartToNative_SerializedScriptValue(data);
-      _pushState_1(data_1, title, url);
-      return;
-    }
-    var data_1 = convertDartToNative_SerializedScriptValue(data);
-    _pushState_2(data_1, title);
-    return;
-  }
-  @JSName('pushState')
-  @DomName('History.pushState')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.FIREFOX)
-  @SupportedBrowser(SupportedBrowser.IE, '10')
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  void _pushState_1(data, title, url) native;
-  @JSName('pushState')
-  @DomName('History.pushState')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.FIREFOX)
-  @SupportedBrowser(SupportedBrowser.IE, '10')
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  void _pushState_2(data, title) native;
+  void pushState(/*SerializedScriptValue*/ data, String title, String url) native;
 
   @DomName('History.replaceState')
   @DocsEditable()
@@ -17897,32 +18882,30 @@ class History extends Interceptor implements HistoryBase {
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.IE, '10')
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  void replaceState(/*any*/ data, String title, [String url]) {
-    if (url != null) {
-      var data_1 = convertDartToNative_SerializedScriptValue(data);
-      _replaceState_1(data_1, title, url);
-      return;
-    }
-    var data_1 = convertDartToNative_SerializedScriptValue(data);
-    _replaceState_2(data_1, title);
-    return;
-  }
-  @JSName('replaceState')
-  @DomName('History.replaceState')
+  void replaceState(/*SerializedScriptValue*/ data, String title, String url) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('HMDVRDevice')
+@Experimental() // untriaged
+@Native("HMDVRDevice")
+class HmdvrDevice extends VRDevice {
+  // To suppress missing implicit constructor warnings.
+  factory HmdvrDevice._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('HMDVRDevice.getEyeParameters')
   @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.FIREFOX)
-  @SupportedBrowser(SupportedBrowser.IE, '10')
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  void _replaceState_1(data, title, url) native;
-  @JSName('replaceState')
-  @DomName('History.replaceState')
+  @Experimental() // untriaged
+  VREyeParameters getEyeParameters(String whichEye) native;
+
+  @DomName('HMDVRDevice.setFieldOfView')
   @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.FIREFOX)
-  @SupportedBrowser(SupportedBrowser.IE, '10')
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  void _replaceState_2(data, title) native;
+  @Experimental() // untriaged
+  void setFieldOfView([VRFieldOfView leftFov, VRFieldOfView rightFov]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18283,9 +19266,10 @@ class HtmlFormControlsCollection extends HtmlCollection {
   // To suppress missing implicit constructor warnings.
   factory HtmlFormControlsCollection._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('HTMLFormControlsCollection.namedItem')
+  @DomName('HTMLFormControlsCollection.item')
   @DocsEditable()
-  Object namedItem(String name) native;
+  @Experimental() // untriaged
+  Node item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18320,6 +19304,12 @@ class HtmlHtmlElement extends HtmlElement {
 class HtmlOptionsCollection extends HtmlCollection {
   // To suppress missing implicit constructor warnings.
   factory HtmlOptionsCollection._() { throw new UnsupportedError("Not supported"); }
+
+  @JSName('item')
+  @DomName('HTMLOptionsCollection.item')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Node _item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18962,7 +19952,7 @@ class HttpRequest extends HttpRequestEventTarget {
   @DomName('XMLHttpRequest.getResponseHeader')
   @DocsEditable()
   @Unstable()
-  String getResponseHeader(String header) native;
+  String getResponseHeader(String name) native;
 
   /**
    * Specify a particular MIME type (such as `text/xml`) desired for the
@@ -18976,7 +19966,7 @@ class HttpRequest extends HttpRequestEventTarget {
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
   @SupportedBrowser(SupportedBrowser.SAFARI)
-  void overrideMimeType(String override) native;
+  void overrideMimeType(String mime) native;
 
   /**
    * Send the request with any given `data`.
@@ -19016,7 +20006,7 @@ class HttpRequest extends HttpRequestEventTarget {
    */
   @DomName('XMLHttpRequest.setRequestHeader')
   @DocsEditable()
-  void setRequestHeader(String header, String value) native;
+  void setRequestHeader(String name, String value) native;
 
   /// Stream of `readystatechange` events handled by this [HttpRequest].
 /**
@@ -19223,18 +20213,18 @@ class IFrameElement extends HtmlElement {
   @DocsEditable()
   String height;
 
-  @DomName('HTMLIFrameElement.integrity')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String integrity;
-
   @DomName('HTMLIFrameElement.name')
   @DocsEditable()
   String name;
 
+  @DomName('HTMLIFrameElement.referrerpolicy')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String referrerpolicy;
+
   @DomName('HTMLIFrameElement.sandbox')
   @DocsEditable()
-  String sandbox;
+  final DomSettableTokenList sandbox;
 
   @DomName('HTMLIFrameElement.src')
   @DocsEditable()
@@ -19248,6 +20238,39 @@ class IFrameElement extends HtmlElement {
   @DocsEditable()
   String width;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('IdleDeadline')
+@Experimental() // untriaged
+@Native("IdleDeadline")
+class IdleDeadline extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory IdleDeadline._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('IdleDeadline.didTimeout')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final bool didTimeout;
+
+  @DomName('IdleDeadline.timeRemaining')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double timeRemaining() native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DomName('IdleRequestCallback')
+@Experimental() // untriaged
+typedef void IdleRequestCallback(IdleDeadline deadline);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -19284,27 +20307,21 @@ class ImageData extends Interceptor {
 
   @DomName('ImageData.ImageData')
   @DocsEditable()
-  factory ImageData(data_OR_width, int height_OR_width, [int height]) {
-    if ((height_OR_width is int || height_OR_width == null) && (data_OR_width is int || data_OR_width == null) && height == null) {
-      return ImageData._create_1(data_OR_width, height_OR_width);
+  factory ImageData(data_OR_sw, int sh_OR_sw, [int sh]) {
+    if ((sh_OR_sw is int) && (data_OR_sw is int) && sh == null) {
+      return ImageData._create_1(data_OR_sw, sh_OR_sw);
     }
-    if ((height_OR_width is int || height_OR_width == null) && (data_OR_width is Uint8ClampedList || data_OR_width == null) && height == null) {
-      return ImageData._create_2(data_OR_width, height_OR_width);
+    if ((sh_OR_sw is int) && (data_OR_sw is Uint8ClampedList) && sh == null) {
+      return ImageData._create_2(data_OR_sw, sh_OR_sw);
     }
-    if ((height is int || height == null) && (height_OR_width is int || height_OR_width == null) && (data_OR_width is Uint8ClampedList || data_OR_width == null)) {
-      return ImageData._create_3(data_OR_width, height_OR_width, height);
+    if ((sh is int) && (sh_OR_sw is int) && (data_OR_sw is Uint8ClampedList)) {
+      return ImageData._create_3(data_OR_sw, sh_OR_sw, sh);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
-  static ImageData _create_1(data_OR_width, height_OR_width) => JS('ImageData', 'new ImageData(#,#)', data_OR_width, height_OR_width);
-  static ImageData _create_2(data_OR_width, height_OR_width) => JS('ImageData', 'new ImageData(#,#)', data_OR_width, height_OR_width);
-  static ImageData _create_3(data_OR_width, height_OR_width, height) => JS('ImageData', 'new ImageData(#,#,#)', data_OR_width, height_OR_width, height);
-
-  @DomName('ImageData.data')
-  @DocsEditable()
-  @Creates('NativeUint8ClampedList')
-  @Returns('NativeUint8ClampedList')
-  final Uint8ClampedList data;
+  static ImageData _create_1(data_OR_sw, sh_OR_sw) => JS('ImageData', 'new ImageData(#,#)', data_OR_sw, sh_OR_sw);
+  static ImageData _create_2(data_OR_sw, sh_OR_sw) => JS('ImageData', 'new ImageData(#,#)', data_OR_sw, sh_OR_sw);
+  static ImageData _create_3(data_OR_sw, sh_OR_sw, sh) => JS('ImageData', 'new ImageData(#,#,#)', data_OR_sw, sh_OR_sw, sh);
 
   @DomName('ImageData.height')
   @DocsEditable()
@@ -19363,11 +20380,6 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   @DocsEditable()
   int height;
 
-  @DomName('HTMLImageElement.integrity')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String integrity;
-
   @DomName('HTMLImageElement.isMap')
   @DocsEditable()
   bool isMap;
@@ -19379,6 +20391,11 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   @DomName('HTMLImageElement.naturalWidth')
   @DocsEditable()
   final int naturalWidth;
+
+  @DomName('HTMLImageElement.referrerpolicy')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String referrerpolicy;
 
   @DomName('HTMLImageElement.sizes')
   @DocsEditable()
@@ -19420,6 +20437,36 @@ class InjectedScriptHost extends Interceptor {
   @DocsEditable()
   @Experimental() // untriaged
   void inspect(Object objectId, Object hints) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('InputDeviceCapabilities')
+@Experimental() // untriaged
+@Native("InputDeviceCapabilities")
+class InputDeviceCapabilities extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory InputDeviceCapabilities._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('InputDeviceCapabilities.InputDeviceCapabilities')
+  @DocsEditable()
+  factory InputDeviceCapabilities([Map deviceInitDict]) {
+    if (deviceInitDict != null) {
+      var deviceInitDict_1 = convertDartToNative_Dictionary(deviceInitDict);
+      return InputDeviceCapabilities._create_1(deviceInitDict_1);
+    }
+    return InputDeviceCapabilities._create_2();
+  }
+  static InputDeviceCapabilities _create_1(deviceInitDict) => JS('InputDeviceCapabilities', 'new InputDeviceCapabilities(#)', deviceInitDict);
+  static InputDeviceCapabilities _create_2() => JS('InputDeviceCapabilities', 'new InputDeviceCapabilities()');
+
+  @DomName('InputDeviceCapabilities.firesTouchEvents')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final bool firesTouchEvents;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19478,6 +20525,11 @@ class InputElement extends HtmlElement implements
   @DomName('HTMLInputElement.alt')
   @DocsEditable()
   String alt;
+
+  @DomName('HTMLInputElement.autocapitalize')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String autocapitalize;
 
   @DomName('HTMLInputElement.autocomplete')
   @DocsEditable()
@@ -19582,6 +20634,11 @@ class InputElement extends HtmlElement implements
   @DomName('HTMLInputElement.min')
   @DocsEditable()
   String min;
+
+  @DomName('HTMLInputElement.minLength')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int minLength;
 
   @DomName('HTMLInputElement.multiple')
   @DocsEditable()
@@ -19696,6 +20753,11 @@ class InputElement extends HtmlElement implements
   @DomName('HTMLInputElement.checkValidity')
   @DocsEditable()
   bool checkValidity() native;
+
+  @DomName('HTMLInputElement.reportValidity')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool reportValidity() native;
 
   @DomName('HTMLInputElement.select')
   @DocsEditable()
@@ -20284,66 +21346,6 @@ abstract class ButtonInputElement implements InputElementBase {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DocsEditable()
-@DomName('InputMethodContext')
-// http://www.w3.org/TR/ime-api/#idl-def-InputMethodContext
-@Experimental()
-@Native("InputMethodContext")
-class InputMethodContext extends EventTarget {
-  // To suppress missing implicit constructor warnings.
-  factory InputMethodContext._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('InputMethodContext.compositionEndOffset')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int compositionEndOffset;
-
-  @DomName('InputMethodContext.compositionStartOffset')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final int compositionStartOffset;
-
-  @DomName('InputMethodContext.locale')
-  @DocsEditable()
-  final String locale;
-
-  @DomName('InputMethodContext.target')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final HtmlElement target;
-
-  @DomName('InputMethodContext.confirmComposition')
-  @DocsEditable()
-  void confirmComposition() native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('InstallEvent')
-@Experimental() // untriaged
-@Native("InstallEvent")
-class InstallEvent extends ExtendableEvent {
-  // To suppress missing implicit constructor warnings.
-  factory InstallEvent._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('InstallEvent.reloadAll')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future reloadAll() native;
-
-  @DomName('InstallEvent.replace')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void replace() native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 /**
  * An event that describes user interaction with the keyboard.
  *
@@ -20408,6 +21410,18 @@ class KeyboardEvent extends UIEvent {
   // To suppress missing implicit constructor warnings.
   factory KeyboardEvent._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('KeyboardEvent.KeyboardEvent')
+  @DocsEditable()
+  factory KeyboardEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return KeyboardEvent._create_1(type, eventInitDict_1);
+    }
+    return KeyboardEvent._create_2(type);
+  }
+  static KeyboardEvent _create_1(type, eventInitDict) => JS('KeyboardEvent', 'new KeyboardEvent(#,#)', type, eventInitDict);
+  static KeyboardEvent _create_2(type) => JS('KeyboardEvent', 'new KeyboardEvent(#)', type);
+
   @DomName('KeyboardEvent.DOM_KEY_LOCATION_LEFT')
   @DocsEditable()
   @Experimental() // untriaged
@@ -20432,9 +21446,31 @@ class KeyboardEvent extends UIEvent {
   @DocsEditable()
   final bool altKey;
 
+  @JSName('charCode')
+  @DomName('KeyboardEvent.charCode')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int _charCode;
+
+  @DomName('KeyboardEvent.code')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String code;
+
   @DomName('KeyboardEvent.ctrlKey')
   @DocsEditable()
   final bool ctrlKey;
+
+  @DomName('KeyboardEvent.key')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String key;
+
+  @JSName('keyCode')
+  @DomName('KeyboardEvent.keyCode')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int _keyCode;
 
   @JSName('keyIdentifier')
   @DomName('KeyboardEvent.keyIdentifier')
@@ -20465,11 +21501,46 @@ class KeyboardEvent extends UIEvent {
   @DocsEditable()
   final bool shiftKey;
 
+  // Use implementation from UIEvent.
+  // final int which;
+
   @DomName('KeyboardEvent.getModifierState')
   @DocsEditable()
   @Experimental() // untriaged
-  bool getModifierState(String keyArgument) native;
+  bool getModifierState(String keyArg) native;
 
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('KeyframeEffect')
+@Experimental() // untriaged
+@Native("KeyframeEffect")
+class KeyframeEffect extends AnimationEffectReadOnly {
+  // To suppress missing implicit constructor warnings.
+  factory KeyframeEffect._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('KeyframeEffect.KeyframeEffect')
+  @DocsEditable()
+  factory KeyframeEffect(Element target, List<Map> keyframes, [timing]) {
+    if ((keyframes is List<Map>) && (target is Element || target == null) && timing == null) {
+      return KeyframeEffect._create_1(target, keyframes);
+    }
+    if ((timing is num) && (keyframes is List<Map>) && (target is Element || target == null)) {
+      return KeyframeEffect._create_2(target, keyframes, timing);
+    }
+    if ((timing is Map) && (keyframes is List<Map>) && (target is Element || target == null)) {
+      var timing_1 = convertDartToNative_Dictionary(timing);
+      return KeyframeEffect._create_3(target, keyframes, timing_1);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+  static KeyframeEffect _create_1(target, keyframes) => JS('KeyframeEffect', 'new KeyframeEffect(#,#)', target, keyframes);
+  static KeyframeEffect _create_2(target, keyframes, timing) => JS('KeyframeEffect', 'new KeyframeEffect(#,#,#)', target, keyframes, timing);
+  static KeyframeEffect _create_3(target, keyframes, timing) => JS('KeyframeEffect', 'new KeyframeEffect(#,#,#)', target, keyframes, timing);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20550,6 +21621,11 @@ class KeygenElement extends HtmlElement {
   @DomName('HTMLKeygenElement.checkValidity')
   @DocsEditable()
   bool checkValidity() native;
+
+  @DomName('HTMLKeygenElement.reportValidity')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool reportValidity() native;
 
   @DomName('HTMLKeygenElement.setCustomValidity')
   @DocsEditable()
@@ -20717,31 +21793,6 @@ class LinkElement extends HtmlElement {
     return JS('bool', '("import" in #)', this);
   }
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('LocalCredential')
-@Experimental() // untriaged
-@Native("LocalCredential")
-class LocalCredential extends Credential {
-  // To suppress missing implicit constructor warnings.
-  factory LocalCredential._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('LocalCredential.LocalCredential')
-  @DocsEditable()
-  factory LocalCredential(String id, String name, String avatarURL, String password) {
-    return LocalCredential._create_1(id, name, avatarURL, password);
-  }
-  static LocalCredential _create_1(id, name, avatarURL, password) => JS('LocalCredential', 'new LocalCredential(#,#,#,#)', id, name, avatarURL, password);
-
-  @DomName('LocalCredential.password')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final String password;
-}
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -20818,27 +21869,6 @@ class Location extends Interceptor implements LocationBase {
   @DocsEditable()
   String toString() => JS('String', 'String(#)', this);
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DomName('MIDIErrorCallback')
-// http://webaudio.github.io/web-midi-api/#midierrorcallback
-@Experimental()
-typedef void MidiErrorCallback(DomError error);
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DomName('MIDISuccessCallback')
-@Experimental() // untriaged
-typedef void MidiSuccessCallback(MidiAccess access, bool sysex);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -20985,12 +22015,33 @@ class MediaDeviceInfo extends Interceptor {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
-
-@DomName('MediaDeviceInfoCallback')
+@DocsEditable()
+@DomName('MediaDevices')
 @Experimental() // untriaged
-typedef void MediaDeviceInfoCallback(List<MediaDeviceInfo> devices);
+@Native("MediaDevices")
+class MediaDevices extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory MediaDevices._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('MediaDevices.enumerateDevices')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future enumerateDevices() native;
+
+  @DomName('MediaDevices.getUserMedia')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future getUserMedia(Map options) {
+    var options_1 = convertDartToNative_Dictionary(options);
+    return _getUserMedia_1(options_1);
+  }
+  @JSName('getUserMedia')
+  @DomName('MediaDevices.getUserMedia')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _getUserMedia_1(options) native;
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -21156,11 +22207,6 @@ class MediaElement extends HtmlElement {
   @DocsEditable()
   final MediaError error;
 
-  @DomName('HTMLMediaElement.integrity')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String integrity;
-
   @DomName('HTMLMediaElement.loop')
   @DocsEditable()
   bool loop;
@@ -21210,6 +22256,16 @@ class MediaElement extends HtmlElement {
   @DomName('HTMLMediaElement.seeking')
   @DocsEditable()
   final bool seeking;
+
+  @DomName('HTMLMediaElement.session')
+  @DocsEditable()
+  @Experimental() // untriaged
+  MediaSession session;
+
+  @DomName('HTMLMediaElement.sinkId')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String sinkId;
 
   @DomName('HTMLMediaElement.src')
   @DocsEditable()
@@ -21276,6 +22332,11 @@ class MediaElement extends HtmlElement {
   @Experimental() // untriaged
   Future setMediaKeys(MediaKeys mediaKeys) native;
 
+  @DomName('HTMLMediaElement.setSinkId')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future setSinkId(String sinkId) native;
+
   @JSName('webkitAddKey')
   @DomName('HTMLMediaElement.webkitAddKey')
   @DocsEditable()
@@ -21337,6 +22398,41 @@ class MediaElement extends HtmlElement {
 
 
 @DocsEditable()
+@DomName('MediaEncryptedEvent')
+@Experimental() // untriaged
+@Native("MediaEncryptedEvent")
+class MediaEncryptedEvent extends Event {
+  // To suppress missing implicit constructor warnings.
+  factory MediaEncryptedEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('MediaEncryptedEvent.MediaEncryptedEvent')
+  @DocsEditable()
+  factory MediaEncryptedEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return MediaEncryptedEvent._create_1(type, eventInitDict_1);
+    }
+    return MediaEncryptedEvent._create_2(type);
+  }
+  static MediaEncryptedEvent _create_1(type, eventInitDict) => JS('MediaEncryptedEvent', 'new MediaEncryptedEvent(#,#)', type, eventInitDict);
+  static MediaEncryptedEvent _create_2(type) => JS('MediaEncryptedEvent', 'new MediaEncryptedEvent(#)', type);
+
+  @DomName('MediaEncryptedEvent.initData')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final ByteBuffer initData;
+
+  @DomName('MediaEncryptedEvent.initDataType')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String initDataType;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
 @DomName('MediaError')
 @Unstable()
 @Native("MediaError")
@@ -21351,12 +22447,6 @@ class MediaError extends Interceptor {
   @DomName('MediaError.MEDIA_ERR_DECODE')
   @DocsEditable()
   static const int MEDIA_ERR_DECODE = 3;
-
-  @DomName('MediaError.MEDIA_ERR_ENCRYPTED')
-  @DocsEditable()
-  // https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#error-codes
-  @Experimental()
-  static const int MEDIA_ERR_ENCRYPTED = 5;
 
   @DomName('MediaError.MEDIA_ERR_NETWORK')
   @DocsEditable()
@@ -21431,6 +22521,18 @@ class MediaKeyEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory MediaKeyEvent._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('MediaKeyEvent.MediaKeyEvent')
+  @DocsEditable()
+  factory MediaKeyEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return MediaKeyEvent._create_1(type, eventInitDict_1);
+    }
+    return MediaKeyEvent._create_2(type);
+  }
+  static MediaKeyEvent _create_1(type, eventInitDict) => JS('MediaKeyEvent', 'new MediaKeyEvent(#,#)', type, eventInitDict);
+  static MediaKeyEvent _create_2(type) => JS('MediaKeyEvent', 'new MediaKeyEvent(#)', type);
+
   @JSName('defaultURL')
   @DomName('MediaKeyEvent.defaultURL')
   @DocsEditable()
@@ -21474,37 +22576,26 @@ class MediaKeyMessageEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory MediaKeyMessageEvent._() { throw new UnsupportedError("Not supported"); }
 
-  @JSName('destinationURL')
-  @DomName('MediaKeyMessageEvent.destinationURL')
+  @DomName('MediaKeyMessageEvent.MediaKeyMessageEvent')
   @DocsEditable()
-  final String destinationUrl;
+  factory MediaKeyMessageEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return MediaKeyMessageEvent._create_1(type, eventInitDict_1);
+    }
+    return MediaKeyMessageEvent._create_2(type);
+  }
+  static MediaKeyMessageEvent _create_1(type, eventInitDict) => JS('MediaKeyMessageEvent', 'new MediaKeyMessageEvent(#,#)', type, eventInitDict);
+  static MediaKeyMessageEvent _create_2(type) => JS('MediaKeyMessageEvent', 'new MediaKeyMessageEvent(#)', type);
 
   @DomName('MediaKeyMessageEvent.message')
   @DocsEditable()
   final ByteBuffer message;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
 
-
-@DocsEditable()
-@DomName('MediaKeyNeededEvent')
-// https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-mediakeyneededevent
-@Experimental()
-@Native("MediaKeyNeededEvent")
-class MediaKeyNeededEvent extends Event {
-  // To suppress missing implicit constructor warnings.
-  factory MediaKeyNeededEvent._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('MediaKeyNeededEvent.contentType')
+  @DomName('MediaKeyMessageEvent.messageType')
   @DocsEditable()
   @Experimental() // untriaged
-  final String contentType;
-
-  @DomName('MediaKeyNeededEvent.initData')
-  @DocsEditable()
-  final Uint8List initData;
+  final String messageType;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21525,32 +22616,96 @@ class MediaKeySession extends EventTarget {
   @Experimental() // untriaged
   final Future closed;
 
-  @DomName('MediaKeySession.error')
+  @DomName('MediaKeySession.expiration')
   @DocsEditable()
-  final MediaKeyError error;
+  @Experimental() // untriaged
+  final double expiration;
 
-  @DomName('MediaKeySession.keySystem')
+  @DomName('MediaKeySession.keyStatuses')
   @DocsEditable()
-  final String keySystem;
+  @Experimental() // untriaged
+  final MediaKeyStatusMap keyStatuses;
 
   @DomName('MediaKeySession.sessionId')
   @DocsEditable()
   final String sessionId;
 
+  @DomName('MediaKeySession.close')
+  @DocsEditable()
+  Future close() native;
+
   @DomName('MediaKeySession.generateRequest')
   @DocsEditable()
   @Experimental() // untriaged
-  Future generateRequest(String initDataType, initData) native;
+  Future generateRequest(String initDataType, /*BufferSource*/ initData) native;
 
-  @DomName('MediaKeySession.release')
+  @DomName('MediaKeySession.load')
   @DocsEditable()
   @Experimental() // untriaged
-  Future release() native;
+  Future load(String sessionId) native;
+
+  @DomName('MediaKeySession.remove')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future remove() native;
 
   @JSName('update')
   @DomName('MediaKeySession.update')
   @DocsEditable()
-  Future _update(response) native;
+  Future _update(/*BufferSource*/ response) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('MediaKeyStatusMap')
+@Experimental() // untriaged
+@Native("MediaKeyStatusMap")
+class MediaKeyStatusMap extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory MediaKeyStatusMap._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('MediaKeyStatusMap.size')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int size;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('MediaKeySystemAccess')
+@Experimental() // untriaged
+@Native("MediaKeySystemAccess")
+class MediaKeySystemAccess extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory MediaKeySystemAccess._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('MediaKeySystemAccess.keySystem')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String keySystem;
+
+  @DomName('MediaKeySystemAccess.createMediaKeys')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future createMediaKeys() native;
+
+  @DomName('MediaKeySystemAccess.getConfiguration')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Map getConfiguration() {
+    return convertNativeToDart_Dictionary(_getConfiguration_1());
+  }
+  @JSName('getConfiguration')
+  @DomName('MediaKeySystemAccess.getConfiguration')
+  @DocsEditable()
+  @Experimental() // untriaged
+  _getConfiguration_1() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21566,24 +22721,15 @@ class MediaKeys extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory MediaKeys._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('MediaKeys.keySystem')
-  @DocsEditable()
-  final String keySystem;
-
-  @DomName('MediaKeys.create')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static Future create(String keySystem) native;
-
   @JSName('createSession')
   @DomName('MediaKeys.createSession')
   @DocsEditable()
   MediaKeySession _createSession([String sessionType]) native;
 
-  @DomName('MediaKeys.isTypeSupported')
+  @DomName('MediaKeys.setServerCertificate')
   @DocsEditable()
   @Experimental() // untriaged
-  static bool isTypeSupported(String keySystem, String contentType) native;
+  Future setServerCertificate(/*BufferSource*/ serverCertificate) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21608,11 +22754,11 @@ class MediaList extends Interceptor {
 
   @DomName('MediaList.appendMedium')
   @DocsEditable()
-  void appendMedium(String newMedium) native;
+  void appendMedium(String medium) native;
 
   @DomName('MediaList.deleteMedium')
   @DocsEditable()
-  void deleteMedium(String oldMedium) native;
+  void deleteMedium(String medium) native;
 
   @DomName('MediaList.item')
   @DocsEditable()
@@ -21670,6 +22816,18 @@ class MediaQueryListEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory MediaQueryListEvent._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('MediaQueryListEvent.MediaQueryListEvent')
+  @DocsEditable()
+  factory MediaQueryListEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return MediaQueryListEvent._create_1(type, eventInitDict_1);
+    }
+    return MediaQueryListEvent._create_2(type);
+  }
+  static MediaQueryListEvent _create_1(type, eventInitDict) => JS('MediaQueryListEvent', 'new MediaQueryListEvent(#,#)', type, eventInitDict);
+  static MediaQueryListEvent _create_2(type) => JS('MediaQueryListEvent', 'new MediaQueryListEvent(#)', type);
+
   @DomName('MediaQueryListEvent.matches')
   @DocsEditable()
   @Experimental() // untriaged
@@ -21679,6 +22837,153 @@ class MediaQueryListEvent extends Event {
   @DocsEditable()
   @Experimental() // untriaged
   final String media;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('MediaRecorder')
+@Experimental() // untriaged
+@Native("MediaRecorder")
+class MediaRecorder extends EventTarget {
+  // To suppress missing implicit constructor warnings.
+  factory MediaRecorder._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('MediaRecorder.errorEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+
+  @DomName('MediaRecorder.pauseEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> pauseEvent = const EventStreamProvider<Event>('pause');
+
+  @DomName('MediaRecorder.MediaRecorder')
+  @DocsEditable()
+  factory MediaRecorder(MediaStream stream, [String mimeType]) {
+    if (mimeType != null) {
+      return MediaRecorder._create_1(stream, mimeType);
+    }
+    return MediaRecorder._create_2(stream);
+  }
+  static MediaRecorder _create_1(stream, mimeType) => JS('MediaRecorder', 'new MediaRecorder(#,#)', stream, mimeType);
+  static MediaRecorder _create_2(stream) => JS('MediaRecorder', 'new MediaRecorder(#)', stream);
+
+  @DomName('MediaRecorder.ignoreMutedMedia')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool ignoreMutedMedia;
+
+  @DomName('MediaRecorder.mimeType')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String mimeType;
+
+  @DomName('MediaRecorder.state')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String state;
+
+  @DomName('MediaRecorder.stream')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final MediaStream stream;
+
+  @DomName('MediaRecorder.canRecordMimeType')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static String canRecordMimeType(String mimeType) native;
+
+  @DomName('MediaRecorder.pause')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void pause() native;
+
+  @DomName('MediaRecorder.requestData')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void requestData() native;
+
+  @DomName('MediaRecorder.resume')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void resume() native;
+
+  @DomName('MediaRecorder.start')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void start([int timeslice]) native;
+
+  @DomName('MediaRecorder.stop')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void stop() native;
+
+  @DomName('MediaRecorder.onerror')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<Event> get onError => errorEvent.forTarget(this);
+
+  @DomName('MediaRecorder.onpause')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<Event> get onPause => pauseEvent.forTarget(this);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('MediaRecorderErrorEvent')
+@Experimental() // untriaged
+@Native("MediaRecorderErrorEvent")
+class MediaRecorderErrorEvent extends Event {
+  // To suppress missing implicit constructor warnings.
+  factory MediaRecorderErrorEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('MediaRecorderErrorEvent.message')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String message;
+
+  @DomName('MediaRecorderErrorEvent.name')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String name;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('MediaSession')
+@Experimental() // untriaged
+@Native("MediaSession")
+class MediaSession extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory MediaSession._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('MediaSession.MediaSession')
+  @DocsEditable()
+  factory MediaSession() {
+    return MediaSession._create_1();
+  }
+  static MediaSession _create_1() => JS('MediaSession', 'new MediaSession()');
+
+  @DomName('MediaSession.activate')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void activate() native;
+
+  @DomName('MediaSession.deactivate')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deactivate() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21800,6 +23105,11 @@ class MediaStream extends EventTarget {
   static MediaStream _create_2(stream_OR_tracks) => JS('MediaStream', 'new MediaStream(#)', stream_OR_tracks);
   static MediaStream _create_3(stream_OR_tracks) => JS('MediaStream', 'new MediaStream(#)', stream_OR_tracks);
 
+  @DomName('MediaStream.active')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final bool active;
+
   @DomName('MediaStream.ended')
   @DocsEditable()
   final bool ended;
@@ -21896,6 +23206,18 @@ class MediaStream extends EventTarget {
 class MediaStreamEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory MediaStreamEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('MediaStreamEvent.MediaStreamEvent')
+  @DocsEditable()
+  factory MediaStreamEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return MediaStreamEvent._create_1(type, eventInitDict_1);
+    }
+    return MediaStreamEvent._create_2(type);
+  }
+  static MediaStreamEvent _create_1(type, eventInitDict) => JS('MediaStreamEvent', 'new MediaStreamEvent(#,#)', type, eventInitDict);
+  static MediaStreamEvent _create_2(type) => JS('MediaStreamEvent', 'new MediaStreamEvent(#)', type);
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => Device.isEventTypeSupported('MediaStreamEvent');
@@ -22150,10 +23472,20 @@ class MenuItemElement extends HtmlElement {
   @Experimental() // untriaged
   bool disabled;
 
+  @DomName('HTMLMenuItemElement.icon')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String icon;
+
   @DomName('HTMLMenuItemElement.label')
   @DocsEditable()
   @Experimental() // untriaged
   String label;
+
+  @DomName('HTMLMenuItemElement.radiogroup')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String radiogroup;
 
   @DomName('HTMLMenuItemElement.type')
   @DocsEditable()
@@ -22212,6 +23544,18 @@ class MessageEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory MessageEvent._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('MessageEvent.MessageEvent')
+  @DocsEditable()
+  factory MessageEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return MessageEvent._create_1(type, eventInitDict_1);
+    }
+    return MessageEvent._create_2(type);
+  }
+  static MessageEvent _create_1(type, eventInitDict) => JS('MessageEvent', 'new MessageEvent(#,#)', type, eventInitDict);
+  static MessageEvent _create_2(type) => JS('MessageEvent', 'new MessageEvent(#)', type);
+
   @DomName('MessageEvent.data')
   @DocsEditable()
   dynamic get data => convertNativeToDart_SerializedScriptValue(this._get_data);
@@ -22244,7 +23588,7 @@ class MessageEvent extends Event {
   @JSName('initMessageEvent')
   @DomName('MessageEvent.initMessageEvent')
   @DocsEditable()
-  void _initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List<MessagePort> messagePorts) native;
+  void _initMessageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, Object dataArg, String originArg, String lastEventIdArg, Window sourceArg, List<MessagePort> portsArg) native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -22450,26 +23794,6 @@ class MidiAccess extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory MidiAccess._() { throw new UnsupportedError("Not supported"); }
 
-  /**
-   * Static factory designed to expose `connect` events to event
-   * handlers that are not necessarily instances of [MidiAccess].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('MIDIAccess.connectEvent')
-  @DocsEditable()
-  static const EventStreamProvider<MidiConnectionEvent> connectEvent = const EventStreamProvider<MidiConnectionEvent>('connect');
-
-  /**
-   * Static factory designed to expose `disconnect` events to event
-   * handlers that are not necessarily instances of [MidiAccess].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('MIDIAccess.disconnectEvent')
-  @DocsEditable()
-  static const EventStreamProvider<MidiConnectionEvent> disconnectEvent = const EventStreamProvider<MidiConnectionEvent>('disconnect');
-
   @DomName('MIDIAccess.inputs')
   @DocsEditable()
   final MidiInputMap inputs;
@@ -22482,16 +23806,6 @@ class MidiAccess extends EventTarget {
   @DocsEditable()
   @Experimental() // untriaged
   final bool sysexEnabled;
-
-  /// Stream of `connect` events handled by this [MidiAccess].
-  @DomName('MIDIAccess.onconnect')
-  @DocsEditable()
-  Stream<MidiConnectionEvent> get onConnect => connectEvent.forTarget(this);
-
-  /// Stream of `disconnect` events handled by this [MidiAccess].
-  @DomName('MIDIAccess.ondisconnect')
-  @DocsEditable()
-  Stream<MidiConnectionEvent> get onDisconnect => disconnectEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22506,6 +23820,18 @@ class MidiAccess extends EventTarget {
 class MidiConnectionEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory MidiConnectionEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('MIDIConnectionEvent.MIDIConnectionEvent')
+  @DocsEditable()
+  factory MidiConnectionEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return MidiConnectionEvent._create_1(type, eventInitDict_1);
+    }
+    return MidiConnectionEvent._create_2(type);
+  }
+  static MidiConnectionEvent _create_1(type, eventInitDict) => JS('MidiConnectionEvent', 'new MIDIConnectionEvent(#,#)', type, eventInitDict);
+  static MidiConnectionEvent _create_2(type) => JS('MidiConnectionEvent', 'new MIDIConnectionEvent(#)', type);
 
   @DomName('MIDIConnectionEvent.port')
   @DocsEditable()
@@ -22557,31 +23883,6 @@ class MidiInputMap extends Interceptor {
   @DocsEditable()
   @Experimental() // untriaged
   final int size;
-
-  @DomName('MIDIInputMap.entries')
-  @DocsEditable()
-  @Experimental() // untriaged
-  DomIterator entries() native;
-
-  @DomName('MIDIInputMap.get')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object get(String id) native;
-
-  @DomName('MIDIInputMap.has')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool has(String key) native;
-
-  @DomName('MIDIInputMap.keys')
-  @DocsEditable()
-  @Experimental() // untriaged
-  DomIterator keys() native;
-
-  @DomName('MIDIInputMap.values')
-  @DocsEditable()
-  @Experimental() // untriaged
-  DomIterator values() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22596,6 +23897,18 @@ class MidiInputMap extends Interceptor {
 class MidiMessageEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory MidiMessageEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('MIDIMessageEvent.MIDIMessageEvent')
+  @DocsEditable()
+  factory MidiMessageEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return MidiMessageEvent._create_1(type, eventInitDict_1);
+    }
+    return MidiMessageEvent._create_2(type);
+  }
+  static MidiMessageEvent _create_1(type, eventInitDict) => JS('MidiMessageEvent', 'new MIDIMessageEvent(#,#)', type, eventInitDict);
+  static MidiMessageEvent _create_2(type) => JS('MidiMessageEvent', 'new MIDIMessageEvent(#)', type);
 
   @DomName('MIDIMessageEvent.data')
   @DocsEditable()
@@ -22640,31 +23953,6 @@ class MidiOutputMap extends Interceptor {
   @DocsEditable()
   @Experimental() // untriaged
   final int size;
-
-  @DomName('MIDIOutputMap.entries')
-  @DocsEditable()
-  @Experimental() // untriaged
-  DomIterator entries() native;
-
-  @DomName('MIDIOutputMap.get')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object get(String id) native;
-
-  @DomName('MIDIOutputMap.has')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool has(String key) native;
-
-  @DomName('MIDIOutputMap.keys')
-  @DocsEditable()
-  @Experimental() // untriaged
-  DomIterator keys() native;
-
-  @DomName('MIDIOutputMap.values')
-  @DocsEditable()
-  @Experimental() // untriaged
-  DomIterator values() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22680,15 +23968,10 @@ class MidiPort extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory MidiPort._() { throw new UnsupportedError("Not supported"); }
 
-  /**
-   * Static factory designed to expose `disconnect` events to event
-   * handlers that are not necessarily instances of [MidiPort].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('MIDIPort.disconnectEvent')
+  @DomName('MIDIPort.connection')
   @DocsEditable()
-  static const EventStreamProvider<MidiConnectionEvent> disconnectEvent = const EventStreamProvider<MidiConnectionEvent>('disconnect');
+  @Experimental() // untriaged
+  final String connection;
 
   @DomName('MIDIPort.id')
   @DocsEditable()
@@ -22702,6 +23985,11 @@ class MidiPort extends EventTarget {
   @DocsEditable()
   final String name;
 
+  @DomName('MIDIPort.state')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String state;
+
   @DomName('MIDIPort.type')
   @DocsEditable()
   final String type;
@@ -22710,10 +23998,15 @@ class MidiPort extends EventTarget {
   @DocsEditable()
   final String version;
 
-  /// Stream of `disconnect` events handled by this [MidiPort].
-  @DomName('MIDIPort.ondisconnect')
+  @DomName('MIDIPort.close')
   @DocsEditable()
-  Stream<MidiConnectionEvent> get onDisconnect => disconnectEvent.forTarget(this);
+  @Experimental() // untriaged
+  Future close() native;
+
+  @DomName('MIDIPort.open')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future open() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22805,10 +24098,6 @@ class MimeTypeArray extends Interceptor with ListMixin<MimeType>, ImmutableListM
   MimeType elementAt(int index) => this[index];
   // -- end List<MimeType> mixins.
 
-  @DomName('MimeTypeArray.__getter__')
-  @DocsEditable()
-  MimeType __getter__(String name) native;
-
   @DomName('MimeTypeArray.item')
   @DocsEditable()
   MimeType item(int index) native;
@@ -22870,6 +24159,18 @@ class MouseEvent extends UIEvent {
   // To suppress missing implicit constructor warnings.
   factory MouseEvent._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('MouseEvent.MouseEvent')
+  @DocsEditable()
+  factory MouseEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return MouseEvent._create_1(type, eventInitDict_1);
+    }
+    return MouseEvent._create_2(type);
+  }
+  static MouseEvent _create_1(type, eventInitDict) => JS('MouseEvent', 'new MouseEvent(#,#)', type, eventInitDict);
+  static MouseEvent _create_2(type) => JS('MouseEvent', 'new MouseEvent(#)', type);
+
   @DomName('MouseEvent.altKey')
   @DocsEditable()
   final bool altKey;
@@ -22877,6 +24178,11 @@ class MouseEvent extends UIEvent {
   @DomName('MouseEvent.button')
   @DocsEditable()
   final int button;
+
+  @DomName('MouseEvent.buttons')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int buttons;
 
   @JSName('clientX')
   @DomName('MouseEvent.clientX')
@@ -22892,11 +24198,6 @@ class MouseEvent extends UIEvent {
   @DocsEditable()
   final bool ctrlKey;
 
-  @DomName('MouseEvent.dataTransfer')
-  @DocsEditable()
-  @Unstable()
-  final DataTransfer dataTransfer;
-
   /**
    * The nonstandard way to access the element that the mouse comes
    * from in the case of a `mouseover` event.
@@ -22908,6 +24209,18 @@ class MouseEvent extends UIEvent {
   @DocsEditable()
   @deprecated
   final Node fromElement;
+
+  @JSName('layerX')
+  @DomName('MouseEvent.layerX')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int _layerX;
+
+  @JSName('layerY')
+  @DomName('MouseEvent.layerY')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int _layerY;
 
   @DomName('MouseEvent.metaKey')
   @DocsEditable()
@@ -22924,6 +24237,18 @@ class MouseEvent extends UIEvent {
   @DocsEditable()
   @Experimental() // untriaged
   final int _movementY;
+
+  @JSName('pageX')
+  @DomName('MouseEvent.pageX')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int _pageX;
+
+  @JSName('pageY')
+  @DomName('MouseEvent.pageY')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int _pageY;
 
   @DomName('MouseEvent.region')
   @DocsEditable()
@@ -22982,17 +24307,25 @@ class MouseEvent extends UIEvent {
   @Experimental()
   final int _webkitMovementY;
 
+  // Use implementation from UIEvent.
+  // final int which;
+
+  @DomName('MouseEvent.getModifierState')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool getModifierState(String keyArg) native;
+
   @DomName('MouseEvent.initMouseEvent')
   @DocsEditable()
-  void _initMouseEvent(String type, bool canBubble, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) {
+  void _initMouseEvent(String type, bool bubbles, bool cancelable, Window view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, EventTarget relatedTarget) {
     var relatedTarget_1 = _convertDartToNative_EventTarget(relatedTarget);
-    _initMouseEvent_1(type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget_1);
+    _initMouseEvent_1(type, bubbles, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget_1);
     return;
   }
   @JSName('initMouseEvent')
   @DomName('MouseEvent.initMouseEvent')
   @DocsEditable()
-  void _initMouseEvent_1(type, canBubble, cancelable, Window view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget) native;
+  void _initMouseEvent_1(type, bubbles, cancelable, Window view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget) native;
 
 
   @DomName('MouseEvent.clientX')
@@ -23212,7 +24545,7 @@ class MutationRecord extends Interceptor {
 
 @DomName('Navigator')
 @Native("Navigator")
-class Navigator extends Interceptor implements NavigatorCpu, NavigatorLanguage, NavigatorOnLine, NavigatorID {
+class Navigator extends Interceptor implements NavigatorStorageUtils, NavigatorCpu, NavigatorLanguage, NavigatorOnLine, NavigatorID {
 
   @DomName('Navigator.language')
   String get language => JS('String', '#.language || #.userLanguage', this,
@@ -23288,15 +24621,15 @@ class Navigator extends Interceptor implements NavigatorCpu, NavigatorLanguage, 
   // To suppress missing implicit constructor warnings.
   factory Navigator._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('Navigator.bluetooth')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final Bluetooth bluetooth;
+
   @DomName('Navigator.connection')
   @DocsEditable()
   @Experimental() // untriaged
   final NetworkInformation connection;
-
-  @DomName('Navigator.cookieEnabled')
-  @DocsEditable()
-  @Unstable()
-  final bool cookieEnabled;
 
   @DomName('Navigator.credentials')
   @DocsEditable()
@@ -23309,11 +24642,6 @@ class Navigator extends Interceptor implements NavigatorCpu, NavigatorLanguage, 
   @Experimental() // experimental
   final String doNotTrack;
 
-  @DomName('Navigator.geofencing')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final Geofencing geofencing;
-
   @DomName('Navigator.geolocation')
   @DocsEditable()
   @Unstable()
@@ -23324,10 +24652,25 @@ class Navigator extends Interceptor implements NavigatorCpu, NavigatorLanguage, 
   @Experimental() // untriaged
   final int maxTouchPoints;
 
+  @DomName('Navigator.mediaDevices')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final MediaDevices mediaDevices;
+
   @DomName('Navigator.mimeTypes')
   @DocsEditable()
   @Experimental() // nonstandard
   final MimeTypeArray mimeTypes;
+
+  @DomName('Navigator.nfc')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final Nfc nfc;
+
+  @DomName('Navigator.permissions')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final Permissions permissions;
 
   @DomName('Navigator.presentation')
   @DocsEditable()
@@ -23339,20 +24682,30 @@ class Navigator extends Interceptor implements NavigatorCpu, NavigatorLanguage, 
   @Unstable()
   final String productSub;
 
-  @DomName('Navigator.push')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final PushManager push;
-
   @DomName('Navigator.serviceWorker')
   @DocsEditable()
   @Experimental() // untriaged
   final ServiceWorkerContainer serviceWorker;
 
+  @DomName('Navigator.services')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final ServicePortCollection services;
+
+  @DomName('Navigator.storage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final StorageManager storage;
+
   @DomName('Navigator.storageQuota')
   @DocsEditable()
   @Experimental() // untriaged
   final StorageQuota storageQuota;
+
+  @DomName('Navigator.usb')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final Usb usb;
 
   @DomName('Navigator.vendor')
   @DocsEditable()
@@ -23394,21 +24747,41 @@ class Navigator extends Interceptor implements NavigatorCpu, NavigatorLanguage, 
   @Creates('_GamepadList')
   List<Gamepad> getGamepads() native;
 
-  @DomName('Navigator.getStorageUpdates')
+  @DomName('Navigator.getVRDevices')
   @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#navigatorstorageutils
-  @Experimental()
-  void getStorageUpdates() native;
+  @Experimental() // untriaged
+  Future getVRDevices() native;
 
   @DomName('Navigator.registerProtocolHandler')
   @DocsEditable()
   @Unstable()
   void registerProtocolHandler(String scheme, String url, String title) native;
 
-  @DomName('Navigator.sendBeacon')
+  @DomName('Navigator.requestMIDIAccess')
   @DocsEditable()
   @Experimental() // untriaged
-  bool sendBeacon(String url, data) native;
+  Future requestMidiAccess([Map options]) {
+    if (options != null) {
+      var options_1 = convertDartToNative_Dictionary(options);
+      return _requestMidiAccess_1(options_1);
+    }
+    return _requestMidiAccess_2();
+  }
+  @JSName('requestMIDIAccess')
+  @DomName('Navigator.requestMIDIAccess')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _requestMidiAccess_1(options) native;
+  @JSName('requestMIDIAccess')
+  @DomName('Navigator.requestMIDIAccess')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _requestMidiAccess_2() native;
+
+  @DomName('Navigator.requestMediaKeySystemAccess')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future requestMediaKeySystemAccess(String keySystem, List<MediaKeySystemConfiguration> supportedConfigurations) native;
 
   // From NavigatorCPU
 
@@ -23463,6 +24836,19 @@ class Navigator extends Interceptor implements NavigatorCpu, NavigatorLanguage, 
   @DocsEditable()
   @Unstable()
   final bool onLine;
+
+  // From NavigatorStorageUtils
+
+  @DomName('Navigator.cookieEnabled')
+  @DocsEditable()
+  @Unstable()
+  final bool cookieEnabled;
+
+  @DomName('Navigator.getStorageUpdates')
+  @DocsEditable()
+  // http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#navigatorstorageutils
+  @Experimental()
+  void getStorageUpdates() native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -23541,6 +24927,29 @@ abstract class NavigatorOnLine extends Interceptor {
 
 
 @DocsEditable()
+@DomName('NavigatorStorageUtils')
+@Experimental() // untriaged
+@Native("NavigatorStorageUtils")
+class NavigatorStorageUtils extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory NavigatorStorageUtils._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('NavigatorStorageUtils.cookieEnabled')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final bool cookieEnabled;
+
+  @DomName('NavigatorStorageUtils.getStorageUpdates')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void getStorageUpdates() native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
 @DomName('NavigatorUserMediaError')
 // http://dev.w3.org/2011/webrtc/editor/getusermedia.html#idl-def-NavigatorUserMediaError
 @Experimental()
@@ -23596,10 +25005,38 @@ class NetworkInformation extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory NetworkInformation._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('NetworkInformation.changeEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
+
   @DomName('NetworkInformation.type')
   @DocsEditable()
   @Experimental() // untriaged
   final String type;
+
+  @DomName('NetworkInformation.onchange')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<Event> get onChange => changeEvent.forTarget(this);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('NFC')
+@Experimental() // untriaged
+@Native("NFC")
+class Nfc extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory Nfc._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('NFC.requestAdapter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future requestAdapter() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23959,16 +25396,6 @@ class Node extends EventTarget {
   @DocsEditable()
   final Node lastChild;
 
-  @JSName('localName')
-  @DomName('Node.localName')
-  @DocsEditable()
-  final String _localName;
-
-  @JSName('namespaceURI')
-  @DomName('Node.namespaceURI')
-  @DocsEditable()
-  final String _namespaceUri;
-
   @JSName('nextSibling')
   /**
    * The next sibling node.
@@ -24127,7 +25554,7 @@ class Node extends EventTarget {
    */
   @DomName('Node.appendChild')
   @DocsEditable()
-  Node append(Node newChild) native;
+  Node append(Node node) native;
 
   @JSName('cloneNode')
   /**
@@ -24182,17 +25609,17 @@ class Node extends EventTarget {
    */
   @DomName('Node.insertBefore')
   @DocsEditable()
-  Node insertBefore(Node newChild, Node refChild) native;
+  Node insertBefore(Node node, Node child) native;
 
   @JSName('removeChild')
   @DomName('Node.removeChild')
   @DocsEditable()
-  Node _removeChild(Node oldChild) native;
+  Node _removeChild(Node child) native;
 
   @JSName('replaceChild')
   @DomName('Node.replaceChild')
   @DocsEditable()
-  Node _replaceChild(Node newChild, Node oldChild) native;
+  Node _replaceChild(Node node, Node child) native;
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -24226,31 +25653,31 @@ class NodeFilter extends Interceptor {
 
   @DomName('NodeFilter.SHOW_COMMENT')
   @DocsEditable()
-  static const int SHOW_COMMENT = 0x00000080;
+  static const int SHOW_COMMENT = 0x80;
 
   @DomName('NodeFilter.SHOW_DOCUMENT')
   @DocsEditable()
-  static const int SHOW_DOCUMENT = 0x00000100;
+  static const int SHOW_DOCUMENT = 0x100;
 
   @DomName('NodeFilter.SHOW_DOCUMENT_FRAGMENT')
   @DocsEditable()
-  static const int SHOW_DOCUMENT_FRAGMENT = 0x00000400;
+  static const int SHOW_DOCUMENT_FRAGMENT = 0x400;
 
   @DomName('NodeFilter.SHOW_DOCUMENT_TYPE')
   @DocsEditable()
-  static const int SHOW_DOCUMENT_TYPE = 0x00000200;
+  static const int SHOW_DOCUMENT_TYPE = 0x200;
 
   @DomName('NodeFilter.SHOW_ELEMENT')
   @DocsEditable()
-  static const int SHOW_ELEMENT = 0x00000001;
+  static const int SHOW_ELEMENT = 0x1;
 
   @DomName('NodeFilter.SHOW_PROCESSING_INSTRUCTION')
   @DocsEditable()
-  static const int SHOW_PROCESSING_INSTRUCTION = 0x00000040;
+  static const int SHOW_PROCESSING_INSTRUCTION = 0x40;
 
   @DomName('NodeFilter.SHOW_TEXT')
   @DocsEditable()
-  static const int SHOW_TEXT = 0x00000004;
+  static const int SHOW_TEXT = 0x4;
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24361,6 +25788,47 @@ class NodeList extends Interceptor with ListMixin<Node>, ImmutableListMixin<Node
   @DocsEditable()
   Node _item(int index) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('NonDocumentTypeChildNode')
+@Experimental() // untriaged
+@Native("NonDocumentTypeChildNode")
+class NonDocumentTypeChildNode extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory NonDocumentTypeChildNode._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('NonDocumentTypeChildNode.nextElementSibling')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final Element nextElementSibling;
+
+  @DomName('NonDocumentTypeChildNode.previousElementSibling')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final Element previousElementSibling;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('NonElementParentNode')
+@Experimental() // untriaged
+@Native("NonElementParentNode")
+class NonElementParentNode extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory NonElementParentNode._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('NonElementParentNode.getElementById')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Element getElementById(String elementId) native;
+}
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -24441,10 +25909,20 @@ class Notification extends EventTarget {
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.Notification)');
 
+  @DomName('Notification.actions')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final List<NotificationAction> actions;
+
   @DomName('Notification.body')
   @DocsEditable()
   @Experimental() // untriaged
   final String body;
+
+  @DomName('Notification.data')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final Object data;
 
   @DomName('Notification.dir')
   @DocsEditable()
@@ -24461,9 +25939,24 @@ class Notification extends EventTarget {
   @Experimental() // untriaged
   final String lang;
 
+  @DomName('Notification.maxActions')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int maxActions;
+
   @DomName('Notification.permission')
   @DocsEditable()
   final String permission;
+
+  @DomName('Notification.requireInteraction')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final bool requireInteraction;
+
+  @DomName('Notification.silent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final bool silent;
 
   @DomName('Notification.tag')
   @DocsEditable()
@@ -24475,6 +25968,11 @@ class Notification extends EventTarget {
   @Experimental() // untriaged
   final String title;
 
+  @DomName('Notification.vibrate')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final List<int> vibrate;
+
   @DomName('Notification.close')
   @DocsEditable()
   void close() native;
@@ -24482,7 +25980,7 @@ class Notification extends EventTarget {
   @JSName('requestPermission')
   @DomName('Notification.requestPermission')
   @DocsEditable()
-  static void _requestPermission([_NotificationPermissionCallback callback]) native;
+  static Future _requestPermission([_NotificationPermissionCallback deprecatedCallback]) native;
 
   @JSName('requestPermission')
   @DomName('Notification.requestPermission')
@@ -24514,6 +26012,41 @@ class Notification extends EventTarget {
   @DocsEditable()
   Stream<Event> get onShow => showEvent.forTarget(this);
 
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('NotificationEvent')
+@Experimental() // untriaged
+@Native("NotificationEvent")
+class NotificationEvent extends ExtendableEvent {
+  // To suppress missing implicit constructor warnings.
+  factory NotificationEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('NotificationEvent.NotificationEvent')
+  @DocsEditable()
+  factory NotificationEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return NotificationEvent._create_1(type, eventInitDict_1);
+    }
+    return NotificationEvent._create_2(type);
+  }
+  static NotificationEvent _create_1(type, eventInitDict) => JS('NotificationEvent', 'new NotificationEvent(#,#)', type, eventInitDict);
+  static NotificationEvent _create_2(type) => JS('NotificationEvent', 'new NotificationEvent(#)', type);
+
+  @DomName('NotificationEvent.action')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String action;
+
+  @DomName('NotificationEvent.notification')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final Notification notification;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24601,11 +26134,6 @@ class ObjectElement extends HtmlElement {
   @DocsEditable()
   String height;
 
-  @DomName('HTMLObjectElement.integrity')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String integrity;
-
   @DomName('HTMLObjectElement.name')
   @DocsEditable()
   String name;
@@ -24645,6 +26173,11 @@ class ObjectElement extends HtmlElement {
   @DomName('HTMLObjectElement.checkValidity')
   @DocsEditable()
   bool checkValidity() native;
+
+  @DomName('HTMLObjectElement.reportValidity')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool reportValidity() native;
 
   @DomName('HTMLObjectElement.setCustomValidity')
   @DocsEditable()
@@ -24825,46 +26358,14 @@ class OutputElement extends HtmlElement {
   @DocsEditable()
   bool checkValidity() native;
 
+  @DomName('HTMLOutputElement.reportValidity')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool reportValidity() native;
+
   @DomName('HTMLOutputElement.setCustomValidity')
   @DocsEditable()
   void setCustomValidity(String error) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('OverflowEvent')
-@Experimental() // nonstandard
-@Native("OverflowEvent")
-class OverflowEvent extends Event {
-  // To suppress missing implicit constructor warnings.
-  factory OverflowEvent._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('OverflowEvent.BOTH')
-  @DocsEditable()
-  static const int BOTH = 2;
-
-  @DomName('OverflowEvent.HORIZONTAL')
-  @DocsEditable()
-  static const int HORIZONTAL = 0;
-
-  @DomName('OverflowEvent.VERTICAL')
-  @DocsEditable()
-  static const int VERTICAL = 1;
-
-  @DomName('OverflowEvent.horizontalOverflow')
-  @DocsEditable()
-  final bool horizontalOverflow;
-
-  @DomName('OverflowEvent.orient')
-  @DocsEditable()
-  final int orient;
-
-  @DomName('OverflowEvent.verticalOverflow')
-  @DocsEditable()
-  final bool verticalOverflow;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24879,6 +26380,18 @@ class OverflowEvent extends Event {
 class PageTransitionEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory PageTransitionEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('PageTransitionEvent.PageTransitionEvent')
+  @DocsEditable()
+  factory PageTransitionEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return PageTransitionEvent._create_1(type, eventInitDict_1);
+    }
+    return PageTransitionEvent._create_2(type);
+  }
+  static PageTransitionEvent _create_1(type, eventInitDict) => JS('PageTransitionEvent', 'new PageTransitionEvent(#,#)', type, eventInitDict);
+  static PageTransitionEvent _create_2(type) => JS('PageTransitionEvent', 'new PageTransitionEvent(#)', type);
 
   @DomName('PageTransitionEvent.persisted')
   @DocsEditable()
@@ -24960,6 +26473,48 @@ abstract class ParentNode extends Interceptor {
   Element querySelector(String selectors);
 
   List<Node> _querySelectorAll(String selectors);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('PasswordCredential')
+@Experimental() // untriaged
+@Native("PasswordCredential")
+class PasswordCredential extends Credential {
+  // To suppress missing implicit constructor warnings.
+  factory PasswordCredential._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('PasswordCredential.PasswordCredential')
+  @DocsEditable()
+  factory PasswordCredential(Map data) {
+    var data_1 = convertDartToNative_Dictionary(data);
+    return PasswordCredential._create_1(data_1);
+  }
+  static PasswordCredential _create_1(data) => JS('PasswordCredential', 'new PasswordCredential(#)', data);
+
+  @DomName('PasswordCredential.toFormData')
+  @DocsEditable()
+  @Experimental() // untriaged
+  FormData toFormData([Map options]) {
+    if (options != null) {
+      var options_1 = convertDartToNative_Dictionary(options);
+      return _toFormData_1(options_1);
+    }
+    return _toFormData_2();
+  }
+  @JSName('toFormData')
+  @DomName('PasswordCredential.toFormData')
+  @DocsEditable()
+  @Experimental() // untriaged
+  FormData _toFormData_1(options) native;
+  @JSName('toFormData')
+  @DomName('PasswordCredential.toFormData')
+  @DocsEditable()
+  @Experimental() // untriaged
+  FormData _toFormData_2() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25089,6 +26644,11 @@ class Performance extends EventTarget {
   @DocsEditable()
   final PerformanceTiming timing;
 
+  @DomName('Performance.clearFrameTimings')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void clearFrameTimings() native;
+
   @DomName('Performance.clearMarks')
   @DocsEditable()
   // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/UserTiming/Overview.html#extensions-performance-interface
@@ -25101,23 +26661,10 @@ class Performance extends EventTarget {
   @Experimental()
   void clearMeasures(String measureName) native;
 
-  @DomName('Performance.getEntries')
+  @DomName('Performance.clearResourceTimings')
   @DocsEditable()
-  // http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute
-  @Experimental()
-  List<PerformanceEntry> getEntries() native;
-
-  @DomName('Performance.getEntriesByName')
-  @DocsEditable()
-  // http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute
-  @Experimental()
-  List<PerformanceEntry> getEntriesByName(String name, String entryType) native;
-
-  @DomName('Performance.getEntriesByType')
-  @DocsEditable()
-  // http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute
-  @Experimental()
-  List<PerformanceEntry> getEntriesByType(String entryType) native;
+  @Experimental() // untriaged
+  void clearResourceTimings() native;
 
   @DomName('Performance.mark')
   @DocsEditable()
@@ -25131,9 +26678,15 @@ class Performance extends EventTarget {
   @Experimental()
   void measure(String measureName, String startMark, String endMark) native;
 
-  @DomName('Performance.now')
+  @DomName('Performance.setFrameTimingBufferSize')
   @DocsEditable()
-  double now() native;
+  @Experimental() // untriaged
+  void setFrameTimingBufferSize(int maxSize) native;
+
+  @DomName('Performance.setResourceTimingBufferSize')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void setResourceTimingBufferSize(int maxSize) native;
 
   @JSName('webkitClearResourceTimings')
   @DomName('Performance.webkitClearResourceTimings')
@@ -25166,6 +26719,24 @@ class Performance extends EventTarget {
 
 
 @DocsEditable()
+@DomName('PerformanceCompositeTiming')
+@Experimental() // untriaged
+@Native("PerformanceCompositeTiming")
+class PerformanceCompositeTiming extends PerformanceEntry {
+  // To suppress missing implicit constructor warnings.
+  factory PerformanceCompositeTiming._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('PerformanceCompositeTiming.sourceFrame')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int sourceFrame;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
 @DomName('PerformanceEntry')
 // http://www.w3.org/TR/performance-timeline/#sec-PerformanceEntry-interface
 @Experimental()
@@ -25174,10 +26745,6 @@ class PerformanceEntry extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory PerformanceEntry._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('PerformanceEntry.duration')
-  @DocsEditable()
-  final double duration;
-
   @DomName('PerformanceEntry.entryType')
   @DocsEditable()
   final String entryType;
@@ -25185,10 +26752,6 @@ class PerformanceEntry extends Interceptor {
   @DomName('PerformanceEntry.name')
   @DocsEditable()
   final String name;
-
-  @DomName('PerformanceEntry.startTime')
-  @DocsEditable()
-  final double startTime;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25261,6 +26824,84 @@ class PerformanceNavigation extends Interceptor {
 
 
 @DocsEditable()
+@DomName('PerformanceObserver')
+@Experimental() // untriaged
+@Native("PerformanceObserver")
+class PerformanceObserver extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory PerformanceObserver._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('PerformanceObserver.disconnect')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void disconnect() native;
+
+  @DomName('PerformanceObserver.observe')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void observe(Map options) {
+    var options_1 = convertDartToNative_Dictionary(options);
+    _observe_1(options_1);
+    return;
+  }
+  @JSName('observe')
+  @DomName('PerformanceObserver.observe')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void _observe_1(options) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('PerformanceObserverEntryList')
+@Experimental() // untriaged
+@Native("PerformanceObserverEntryList")
+class PerformanceObserverEntryList extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory PerformanceObserverEntryList._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('PerformanceObserverEntryList.getEntries')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<PerformanceEntry> getEntries() native;
+
+  @DomName('PerformanceObserverEntryList.getEntriesByName')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<PerformanceEntry> getEntriesByName(String name, String entryType) native;
+
+  @DomName('PerformanceObserverEntryList.getEntriesByType')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<PerformanceEntry> getEntriesByType(String entryType) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('PerformanceRenderTiming')
+@Experimental() // untriaged
+@Native("PerformanceRenderTiming")
+class PerformanceRenderTiming extends PerformanceEntry {
+  // To suppress missing implicit constructor warnings.
+  factory PerformanceRenderTiming._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('PerformanceRenderTiming.sourceFrame')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int sourceFrame;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
 @DomName('PerformanceResourceTiming')
 // http://www.w3c-test.org/webperf/specs/ResourceTiming/#performanceresourcetiming
 @Experimental()
@@ -25269,56 +26910,9 @@ class PerformanceResourceTiming extends PerformanceEntry {
   // To suppress missing implicit constructor warnings.
   factory PerformanceResourceTiming._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('PerformanceResourceTiming.connectEnd')
-  @DocsEditable()
-  final double connectEnd;
-
-  @DomName('PerformanceResourceTiming.connectStart')
-  @DocsEditable()
-  final double connectStart;
-
-  @DomName('PerformanceResourceTiming.domainLookupEnd')
-  @DocsEditable()
-  final double domainLookupEnd;
-
-  @DomName('PerformanceResourceTiming.domainLookupStart')
-  @DocsEditable()
-  final double domainLookupStart;
-
-  @DomName('PerformanceResourceTiming.fetchStart')
-  @DocsEditable()
-  final double fetchStart;
-
   @DomName('PerformanceResourceTiming.initiatorType')
   @DocsEditable()
   final String initiatorType;
-
-  @DomName('PerformanceResourceTiming.redirectEnd')
-  @DocsEditable()
-  final double redirectEnd;
-
-  @DomName('PerformanceResourceTiming.redirectStart')
-  @DocsEditable()
-  final double redirectStart;
-
-  @DomName('PerformanceResourceTiming.requestStart')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  final double requestStart;
-
-  @DomName('PerformanceResourceTiming.responseEnd')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  final double responseEnd;
-
-  @DomName('PerformanceResourceTiming.responseStart')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  final double responseStart;
-
-  @DomName('PerformanceResourceTiming.secureConnectionStart')
-  @DocsEditable()
-  final double secureConnectionStart;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25423,6 +27017,215 @@ class PerformanceTiming extends Interceptor {
 
 
 @DocsEditable()
+@DomName('PeriodicSyncEvent')
+@Experimental() // untriaged
+@Native("PeriodicSyncEvent")
+class PeriodicSyncEvent extends ExtendableEvent {
+  // To suppress missing implicit constructor warnings.
+  factory PeriodicSyncEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('PeriodicSyncEvent.PeriodicSyncEvent')
+  @DocsEditable()
+  factory PeriodicSyncEvent(String type, Map init) {
+    var init_1 = convertDartToNative_Dictionary(init);
+    return PeriodicSyncEvent._create_1(type, init_1);
+  }
+  static PeriodicSyncEvent _create_1(type, init) => JS('PeriodicSyncEvent', 'new PeriodicSyncEvent(#,#)', type, init);
+
+  @DomName('PeriodicSyncEvent.registration')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final PeriodicSyncRegistration registration;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('PeriodicSyncManager')
+@Experimental() // untriaged
+@Native("PeriodicSyncManager")
+class PeriodicSyncManager extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory PeriodicSyncManager._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('PeriodicSyncManager.minPossiblePeriod')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int minPossiblePeriod;
+
+  @DomName('PeriodicSyncManager.getRegistration')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future getRegistration(String tag) native;
+
+  @DomName('PeriodicSyncManager.getRegistrations')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future getRegistrations() native;
+
+  @DomName('PeriodicSyncManager.permissionState')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future permissionState() native;
+
+  @DomName('PeriodicSyncManager.register')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future register([Map options]) {
+    if (options != null) {
+      var options_1 = convertDartToNative_Dictionary(options);
+      return _register_1(options_1);
+    }
+    return _register_2();
+  }
+  @JSName('register')
+  @DomName('PeriodicSyncManager.register')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _register_1(options) native;
+  @JSName('register')
+  @DomName('PeriodicSyncManager.register')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _register_2() native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('PeriodicSyncRegistration')
+@Experimental() // untriaged
+@Native("PeriodicSyncRegistration")
+class PeriodicSyncRegistration extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory PeriodicSyncRegistration._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('PeriodicSyncRegistration.minPeriod')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int minPeriod;
+
+  @DomName('PeriodicSyncRegistration.networkState')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String networkState;
+
+  @DomName('PeriodicSyncRegistration.powerState')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String powerState;
+
+  @DomName('PeriodicSyncRegistration.tag')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String tag;
+
+  @DomName('PeriodicSyncRegistration.unregister')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future unregister() native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('PermissionStatus')
+@Experimental() // untriaged
+@Native("PermissionStatus")
+class PermissionStatus extends EventTarget {
+  // To suppress missing implicit constructor warnings.
+  factory PermissionStatus._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('PermissionStatus.changeEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
+
+  @DomName('PermissionStatus.state')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String state;
+
+  @DomName('PermissionStatus.onchange')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<Event> get onChange => changeEvent.forTarget(this);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('Permissions')
+@Experimental() // untriaged
+@Native("Permissions")
+class Permissions extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory Permissions._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('Permissions.query')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future query(Map permission) {
+    var permission_1 = convertDartToNative_Dictionary(permission);
+    return _query_1(permission_1);
+  }
+  @JSName('query')
+  @DomName('Permissions.query')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _query_1(permission) native;
+
+  @DomName('Permissions.request')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future request(permissions) {
+    if ((permissions is Map || permissions == null)) {
+      var permissions_1 = convertDartToNative_Dictionary(permissions);
+      return _request_1(permissions_1);
+    }
+    if ((permissions is List<Map> || permissions == null)) {
+      return _request_2(permissions);
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+  @JSName('request')
+  @DomName('Permissions.request')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _request_1(permissions) native;
+  @JSName('request')
+  @DomName('Permissions.request')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _request_2(List<Map> permissions) native;
+
+  @DomName('Permissions.revoke')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future revoke(Map permission) {
+    var permission_1 = convertDartToNative_Dictionary(permission);
+    return _revoke_1(permission_1);
+  }
+  @JSName('revoke')
+  @DomName('Permissions.revoke')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _revoke_1(permission) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
 @DomName('HTMLPictureElement')
 @Experimental() // untriaged
 @Native("HTMLPictureElement")
@@ -25464,10 +27267,6 @@ class Plugin extends Interceptor {
   @DomName('Plugin.name')
   @DocsEditable()
   final String name;
-
-  @DomName('Plugin.__getter__')
-  @DocsEditable()
-  MimeType __getter__(String name) native;
 
   @DomName('Plugin.item')
   @DocsEditable()
@@ -25538,10 +27337,6 @@ class PluginArray extends Interceptor with ListMixin<Plugin>, ImmutableListMixin
   Plugin elementAt(int index) => this[index];
   // -- end List<Plugin> mixins.
 
-  @DomName('PluginArray.__getter__')
-  @DocsEditable()
-  Plugin __getter__(String name) native;
-
   @DomName('PluginArray.item')
   @DocsEditable()
   Plugin item(int index) native;
@@ -25560,28 +27355,64 @@ class PluginArray extends Interceptor with ListMixin<Plugin>, ImmutableListMixin
 
 
 @DocsEditable()
-@DomName('PluginPlaceholderElement')
+@DomName('PointerEvent')
 @Experimental() // untriaged
-@Native("PluginPlaceholderElement")
-class PluginPlaceholderElement extends DivElement {
+@Native("PointerEvent")
+class PointerEvent extends MouseEvent {
   // To suppress missing implicit constructor warnings.
-  factory PluginPlaceholderElement._() { throw new UnsupportedError("Not supported"); }
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  PluginPlaceholderElement.created() : super.created();
+  factory PointerEvent._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('PluginPlaceholderElement.message')
+  @DomName('PointerEvent.PointerEvent')
+  @DocsEditable()
+  factory PointerEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return PointerEvent._create_1(type, eventInitDict_1);
+    }
+    return PointerEvent._create_2(type);
+  }
+  static PointerEvent _create_1(type, eventInitDict) => JS('PointerEvent', 'new PointerEvent(#,#)', type, eventInitDict);
+  static PointerEvent _create_2(type) => JS('PointerEvent', 'new PointerEvent(#)', type);
+
+  @DomName('PointerEvent.height')
   @DocsEditable()
   @Experimental() // untriaged
-  String message;
+  final double height;
 
-  @DomName('PluginPlaceholderElement.createdCallback')
+  @DomName('PointerEvent.isPrimary')
   @DocsEditable()
   @Experimental() // untriaged
-  void createdCallback() native;
+  final bool isPrimary;
+
+  @DomName('PointerEvent.pointerId')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int pointerId;
+
+  @DomName('PointerEvent.pointerType')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String pointerType;
+
+  @DomName('PointerEvent.pressure')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final double pressure;
+
+  @DomName('PointerEvent.tiltX')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int tiltX;
+
+  @DomName('PointerEvent.tiltY')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int tiltY;
+
+  @DomName('PointerEvent.width')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final double width;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25598,6 +27429,18 @@ class PluginPlaceholderElement extends DivElement {
 class PopStateEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory PopStateEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('PopStateEvent.PopStateEvent')
+  @DocsEditable()
+  factory PopStateEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return PopStateEvent._create_1(type, eventInitDict_1);
+    }
+    return PopStateEvent._create_2(type);
+  }
+  static PopStateEvent _create_1(type, eventInitDict) => JS('PopStateEvent', 'new PopStateEvent(#,#)', type, eventInitDict);
+  static PopStateEvent _create_2(type) => JS('PopStateEvent', 'new PopStateEvent(#)', type);
 
   @DomName('PopStateEvent.state')
   @DocsEditable()
@@ -25668,6 +27511,34 @@ typedef void _PositionErrorCallback(PositionError error);
 
 
 @DocsEditable()
+@DomName('PositionSensorVRDevice')
+@Experimental() // untriaged
+@Native("PositionSensorVRDevice")
+class PositionSensorVRDevice extends VRDevice {
+  // To suppress missing implicit constructor warnings.
+  factory PositionSensorVRDevice._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('PositionSensorVRDevice.getImmediateState')
+  @DocsEditable()
+  @Experimental() // untriaged
+  VRPositionState getImmediateState() native;
+
+  @DomName('PositionSensorVRDevice.getState')
+  @DocsEditable()
+  @Experimental() // untriaged
+  VRPositionState getState() native;
+
+  @DomName('PositionSensorVRDevice.resetSensor')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void resetSensor() native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
 @DomName('HTMLPreElement')
 @Native("HTMLPreElement")
 class PreElement extends HtmlElement {
@@ -25696,6 +27567,153 @@ class PreElement extends HtmlElement {
 class Presentation extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory Presentation._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('Presentation.defaultRequest')
+  @DocsEditable()
+  @Experimental() // untriaged
+  PresentationRequest defaultRequest;
+
+  @DomName('Presentation.session')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final PresentationSession session;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('PresentationAvailability')
+@Experimental() // untriaged
+@Native("PresentationAvailability")
+class PresentationAvailability extends EventTarget {
+  // To suppress missing implicit constructor warnings.
+  factory PresentationAvailability._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('PresentationAvailability.changeEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
+
+  @DomName('PresentationAvailability.value')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final bool value;
+
+  @DomName('PresentationAvailability.onchange')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<Event> get onChange => changeEvent.forTarget(this);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('PresentationRequest')
+@Experimental() // untriaged
+@Native("PresentationRequest")
+class PresentationRequest extends EventTarget {
+  // To suppress missing implicit constructor warnings.
+  factory PresentationRequest._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('PresentationRequest.PresentationRequest')
+  @DocsEditable()
+  factory PresentationRequest(String url) {
+    return PresentationRequest._create_1(url);
+  }
+  static PresentationRequest _create_1(url) => JS('PresentationRequest', 'new PresentationRequest(#)', url);
+
+  @DomName('PresentationRequest.getAvailability')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future getAvailability() native;
+
+  @DomName('PresentationRequest.reconnect')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future reconnect(String id) native;
+
+  @DomName('PresentationRequest.start')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future start() native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('PresentationSession')
+@Experimental() // untriaged
+@Native("PresentationSession")
+class PresentationSession extends EventTarget {
+  // To suppress missing implicit constructor warnings.
+  factory PresentationSession._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('PresentationSession.messageEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
+
+  @DomName('PresentationSession.binaryType')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String binaryType;
+
+  @DomName('PresentationSession.id')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String id;
+
+  @DomName('PresentationSession.state')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String state;
+
+  @DomName('PresentationSession.close')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void close() native;
+
+  @DomName('PresentationSession.send')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void send(data_OR_message) native;
+
+  @DomName('PresentationSession.onmessage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('PresentationSessionConnectEvent')
+@Experimental() // untriaged
+@Native("PresentationSessionConnectEvent")
+class PresentationSessionConnectEvent extends Event {
+  // To suppress missing implicit constructor warnings.
+  factory PresentationSessionConnectEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('PresentationSessionConnectEvent.PresentationSessionConnectEvent')
+  @DocsEditable()
+  factory PresentationSessionConnectEvent(String type, Map eventInitDict) {
+    var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+    return PresentationSessionConnectEvent._create_1(type, eventInitDict_1);
+  }
+  static PresentationSessionConnectEvent _create_1(type, eventInitDict) => JS('PresentationSessionConnectEvent', 'new PresentationSessionConnectEvent(#,#)', type, eventInitDict);
+
+  @DomName('PresentationSessionConnectEvent.session')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final PresentationSession session;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25779,6 +27797,18 @@ class ProgressEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory ProgressEvent._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('ProgressEvent.ProgressEvent')
+  @DocsEditable()
+  factory ProgressEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return ProgressEvent._create_1(type, eventInitDict_1);
+    }
+    return ProgressEvent._create_2(type);
+  }
+  static ProgressEvent _create_1(type, eventInitDict) => JS('ProgressEvent', 'new ProgressEvent(#,#)', type, eventInitDict);
+  static ProgressEvent _create_2(type) => JS('ProgressEvent', 'new ProgressEvent(#)', type);
+
   @DomName('ProgressEvent.lengthComputable')
   @DocsEditable()
   final bool lengthComputable;
@@ -25797,17 +27827,64 @@ class ProgressEvent extends Event {
 
 
 @DocsEditable()
+@DomName('PromiseRejectionEvent')
+@Experimental() // untriaged
+@Native("PromiseRejectionEvent")
+class PromiseRejectionEvent extends Event {
+  // To suppress missing implicit constructor warnings.
+  factory PromiseRejectionEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('PromiseRejectionEvent.PromiseRejectionEvent')
+  @DocsEditable()
+  factory PromiseRejectionEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return PromiseRejectionEvent._create_1(type, eventInitDict_1);
+    }
+    return PromiseRejectionEvent._create_2(type);
+  }
+  static PromiseRejectionEvent _create_1(type, eventInitDict) => JS('PromiseRejectionEvent', 'new PromiseRejectionEvent(#,#)', type, eventInitDict);
+  static PromiseRejectionEvent _create_2(type) => JS('PromiseRejectionEvent', 'new PromiseRejectionEvent(#)', type);
+
+  @DomName('PromiseRejectionEvent.promise')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final Future promise;
+
+  @DomName('PromiseRejectionEvent.reason')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final Object reason;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
 @DomName('PushEvent')
 @Experimental() // untriaged
 @Native("PushEvent")
-class PushEvent extends Event {
+class PushEvent extends ExtendableEvent {
   // To suppress missing implicit constructor warnings.
   factory PushEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('PushEvent.PushEvent')
+  @DocsEditable()
+  factory PushEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return PushEvent._create_1(type, eventInitDict_1);
+    }
+    return PushEvent._create_2(type);
+  }
+  static PushEvent _create_1(type, eventInitDict) => JS('PushEvent', 'new PushEvent(#,#)', type, eventInitDict);
+  static PushEvent _create_2(type) => JS('PushEvent', 'new PushEvent(#)', type);
 
   @DomName('PushEvent.data')
   @DocsEditable()
   @Experimental() // untriaged
-  final String data;
+  final PushMessageData data;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25822,10 +27899,52 @@ class PushManager extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory PushManager._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('PushManager.register')
+  @DomName('PushManager.getSubscription')
   @DocsEditable()
   @Experimental() // untriaged
-  Future register(String senderId) native;
+  Future getSubscription() native;
+
+  @DomName('PushManager.permissionState')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future permissionState([Map options]) {
+    if (options != null) {
+      var options_1 = convertDartToNative_Dictionary(options);
+      return _permissionState_1(options_1);
+    }
+    return _permissionState_2();
+  }
+  @JSName('permissionState')
+  @DomName('PushManager.permissionState')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _permissionState_1(options) native;
+  @JSName('permissionState')
+  @DomName('PushManager.permissionState')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _permissionState_2() native;
+
+  @DomName('PushManager.subscribe')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future subscribe([Map options]) {
+    if (options != null) {
+      var options_1 = convertDartToNative_Dictionary(options);
+      return _subscribe_1(options_1);
+    }
+    return _subscribe_2();
+  }
+  @JSName('subscribe')
+  @DomName('PushManager.subscribe')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _subscribe_1(options) native;
+  @JSName('subscribe')
+  @DomName('PushManager.subscribe')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _subscribe_2() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25833,22 +27952,55 @@ class PushManager extends Interceptor {
 
 
 @DocsEditable()
-@DomName('PushRegistration')
+@DomName('PushMessageData')
 @Experimental() // untriaged
-@Native("PushRegistration")
-class PushRegistration extends Interceptor {
+@Native("PushMessageData")
+class PushMessageData extends Interceptor {
   // To suppress missing implicit constructor warnings.
-  factory PushRegistration._() { throw new UnsupportedError("Not supported"); }
+  factory PushMessageData._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('PushRegistration.pushEndpoint')
+  @DomName('PushMessageData.arrayBuffer')
   @DocsEditable()
   @Experimental() // untriaged
-  final String pushEndpoint;
+  ByteBuffer arrayBuffer() native;
 
-  @DomName('PushRegistration.pushRegistrationId')
+  @DomName('PushMessageData.blob')
   @DocsEditable()
   @Experimental() // untriaged
-  final String pushRegistrationId;
+  Blob blob() native;
+
+  @DomName('PushMessageData.text')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String text() native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('PushSubscription')
+@Experimental() // untriaged
+@Native("PushSubscription")
+class PushSubscription extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory PushSubscription._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('PushSubscription.endpoint')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String endpoint;
+
+  @DomName('PushSubscription.getKey')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ByteBuffer getKey(String name) native;
+
+  @DomName('PushSubscription.unsubscribe')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future unsubscribe() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25935,26 +28087,6 @@ class Range extends Interceptor {
   @DocsEditable()
   static const int END_TO_START = 3;
 
-  @DomName('Range.NODE_AFTER')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  static const int NODE_AFTER = 1;
-
-  @DomName('Range.NODE_BEFORE')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  static const int NODE_BEFORE = 0;
-
-  @DomName('Range.NODE_BEFORE_AND_AFTER')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  static const int NODE_BEFORE_AND_AFTER = 2;
-
-  @DomName('Range.NODE_INSIDE')
-  @DocsEditable()
-  @Experimental() // nonstandard
-  static const int NODE_INSIDE = 3;
-
   @DomName('Range.START_TO_END')
   @DocsEditable()
   static const int START_TO_END = 1;
@@ -26006,11 +28138,11 @@ class Range extends Interceptor {
 
   @DomName('Range.comparePoint')
   @DocsEditable()
-  int comparePoint(Node refNode, int offset) native;
+  int comparePoint(Node node, int offset) native;
 
   @DomName('Range.createContextualFragment')
   @DocsEditable()
-  DocumentFragment createContextualFragment(String html) native;
+  DocumentFragment createContextualFragment(String fragment) native;
 
   @DomName('Range.deleteContents')
   @DocsEditable()
@@ -26041,43 +28173,43 @@ class Range extends Interceptor {
 
   @DomName('Range.insertNode')
   @DocsEditable()
-  void insertNode(Node newNode) native;
+  void insertNode(Node node) native;
 
   @DomName('Range.isPointInRange')
   @DocsEditable()
-  bool isPointInRange(Node refNode, int offset) native;
+  bool isPointInRange(Node node, int offset) native;
 
   @DomName('Range.selectNode')
   @DocsEditable()
-  void selectNode(Node refNode) native;
+  void selectNode(Node node) native;
 
   @DomName('Range.selectNodeContents')
   @DocsEditable()
-  void selectNodeContents(Node refNode) native;
+  void selectNodeContents(Node node) native;
 
   @DomName('Range.setEnd')
   @DocsEditable()
-  void setEnd(Node refNode, int offset) native;
+  void setEnd(Node node, int offset) native;
 
   @DomName('Range.setEndAfter')
   @DocsEditable()
-  void setEndAfter(Node refNode) native;
+  void setEndAfter(Node node) native;
 
   @DomName('Range.setEndBefore')
   @DocsEditable()
-  void setEndBefore(Node refNode) native;
+  void setEndBefore(Node node) native;
 
   @DomName('Range.setStart')
   @DocsEditable()
-  void setStart(Node refNode, int offset) native;
+  void setStart(Node node, int offset) native;
 
   @DomName('Range.setStartAfter')
   @DocsEditable()
-  void setStartAfter(Node refNode) native;
+  void setStartAfter(Node node) native;
 
   @DomName('Range.setStartBefore')
   @DocsEditable()
-  void setStartBefore(Node refNode) native;
+  void setStartBefore(Node node) native;
 
   @DomName('Range.surroundContents')
   @DocsEditable()
@@ -26100,6 +28232,62 @@ class Range extends Interceptor {
 
 
 @DocsEditable()
+@DomName('ReadableByteStream')
+@Experimental() // untriaged
+@Native("ReadableByteStream")
+class ReadableByteStream extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory ReadableByteStream._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('ReadableByteStream.cancel')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future cancel([Object reason]) native;
+
+  @DomName('ReadableByteStream.getReader')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ReadableByteStreamReader getReader() native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('ReadableByteStreamReader')
+@Experimental() // untriaged
+@Native("ReadableByteStreamReader")
+class ReadableByteStreamReader extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory ReadableByteStreamReader._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('ReadableByteStreamReader.closed')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final Future closed;
+
+  @DomName('ReadableByteStreamReader.cancel')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future cancel([Object reason]) native;
+
+  @DomName('ReadableByteStreamReader.read')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future read() native;
+
+  @DomName('ReadableByteStreamReader.releaseLock')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void releaseLock() native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
 @DomName('ReadableStream')
 @Experimental() // untriaged
 @Native("ReadableStream")
@@ -26107,30 +28295,48 @@ class ReadableStream extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory ReadableStream._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('ReadableStream.closed')
+  @DomName('ReadableStream.cancel')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future cancel([Object reason]) native;
+
+  @DomName('ReadableStream.getReader')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ReadableStreamReader getReader() native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('ReadableStreamReader')
+@Experimental() // untriaged
+@Native("ReadableStreamReader")
+class ReadableStreamReader extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory ReadableStreamReader._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('ReadableStreamReader.closed')
   @DocsEditable()
   @Experimental() // untriaged
   final Future closed;
 
-  @DomName('ReadableStream.state')
+  @DomName('ReadableStreamReader.cancel')
   @DocsEditable()
   @Experimental() // untriaged
-  final String state;
+  Future cancel([Object reason]) native;
 
-  @DomName('ReadableStream.cancel')
+  @DomName('ReadableStreamReader.read')
   @DocsEditable()
   @Experimental() // untriaged
-  Future cancel(Object reason) native;
+  Future read() native;
 
-  @DomName('ReadableStream.read')
+  @DomName('ReadableStreamReader.releaseLock')
   @DocsEditable()
   @Experimental() // untriaged
-  Object read() native;
-
-  @DomName('ReadableStream.wait')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future wait() native;
+  void releaseLock() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26145,6 +28351,18 @@ class RelatedEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory RelatedEvent._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('RelatedEvent.RelatedEvent')
+  @DocsEditable()
+  factory RelatedEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return RelatedEvent._create_1(type, eventInitDict_1);
+    }
+    return RelatedEvent._create_2(type);
+  }
+  static RelatedEvent _create_1(type, eventInitDict) => JS('RelatedEvent', 'new RelatedEvent(#,#)', type, eventInitDict);
+  static RelatedEvent _create_2(type) => JS('RelatedEvent', 'new RelatedEvent(#)', type);
+
   @DomName('RelatedEvent.relatedTarget')
   @DocsEditable()
   @Experimental() // untriaged
@@ -26155,15 +28373,6 @@ class RelatedEvent extends Event {
   @Experimental() // untriaged
   final dynamic _get_relatedTarget;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DomName('RequestAnimationFrameCallback')
-typedef void RequestAnimationFrameCallback(num highResTime);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -26243,6 +28452,11 @@ class RtcDataChannel extends EventTarget {
   @DomName('RTCDataChannel.bufferedAmount')
   @DocsEditable()
   final int bufferedAmount;
+
+  @DomName('RTCDataChannel.bufferedAmountLowThreshold')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int bufferedAmountLowThreshold;
 
   @DomName('RTCDataChannel.id')
   @DocsEditable()
@@ -26420,6 +28634,14 @@ class RtcDtmfSender extends EventTarget {
 class RtcDtmfToneChangeEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory RtcDtmfToneChangeEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('RTCDTMFToneChangeEvent.RTCDTMFToneChangeEvent')
+  @DocsEditable()
+  factory RtcDtmfToneChangeEvent(String type, Map eventInitDict) {
+    var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+    return RtcDtmfToneChangeEvent._create_1(type, eventInitDict_1);
+  }
+  static RtcDtmfToneChangeEvent _create_1(type, eventInitDict) => JS('RtcDtmfToneChangeEvent', 'new RTCDTMFToneChangeEvent(#,#)', type, eventInitDict);
 
   @DomName('RTCDTMFToneChangeEvent.tone')
   @DocsEditable()
@@ -26897,14 +29119,6 @@ class RtcStatsReport extends Interceptor {
   @DocsEditable()
   final String id;
 
-  @DomName('RTCStatsReport.local')
-  @DocsEditable()
-  final RtcStatsReport local;
-
-  @DomName('RTCStatsReport.remote')
-  @DocsEditable()
-  final RtcStatsReport remote;
-
   @DomName('RTCStatsReport.timestamp')
   @DocsEditable()
   DateTime get timestamp => convertNativeToDart_DateTime(this._get_timestamp);
@@ -26939,10 +29153,6 @@ class RtcStatsReport extends Interceptor {
 class RtcStatsResponse extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory RtcStatsResponse._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('RTCStatsResponse.__getter__')
-  @DocsEditable()
-  RtcStatsReport __getter__(String name) native;
 
   @DomName('RTCStatsResponse.namedItem')
   @DocsEditable()
@@ -27000,6 +29210,11 @@ class Screen extends Interceptor {
   @DomName('Screen.height')
   @DocsEditable()
   final int height;
+
+  @DomName('Screen.keepAwake')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool keepAwake;
 
   @DomName('Screen.orientation')
   @DocsEditable()
@@ -27122,6 +29337,128 @@ class ScriptElement extends HtmlElement {
 
 
 @DocsEditable()
+@DomName('ScrollState')
+@Experimental() // untriaged
+@Native("ScrollState")
+class ScrollState extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory ScrollState._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('ScrollState.ScrollState')
+  @DocsEditable()
+  factory ScrollState([num deltaX, num deltaY, num deltaGranularity, num velocityX, num velocityY, bool inInertialPhase, bool isBeginning, bool isEnding]) {
+    if (isEnding != null) {
+      return ScrollState._create_1(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase, isBeginning, isEnding);
+    }
+    if (isBeginning != null) {
+      return ScrollState._create_2(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase, isBeginning);
+    }
+    if (inInertialPhase != null) {
+      return ScrollState._create_3(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase);
+    }
+    if (velocityY != null) {
+      return ScrollState._create_4(deltaX, deltaY, deltaGranularity, velocityX, velocityY);
+    }
+    if (velocityX != null) {
+      return ScrollState._create_5(deltaX, deltaY, deltaGranularity, velocityX);
+    }
+    if (deltaGranularity != null) {
+      return ScrollState._create_6(deltaX, deltaY, deltaGranularity);
+    }
+    if (deltaY != null) {
+      return ScrollState._create_7(deltaX, deltaY);
+    }
+    if (deltaX != null) {
+      return ScrollState._create_8(deltaX);
+    }
+    return ScrollState._create_9();
+  }
+  static ScrollState _create_1(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase, isBeginning, isEnding) => JS('ScrollState', 'new ScrollState(#,#,#,#,#,#,#,#)', deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase, isBeginning, isEnding);
+  static ScrollState _create_2(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase, isBeginning) => JS('ScrollState', 'new ScrollState(#,#,#,#,#,#,#)', deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase, isBeginning);
+  static ScrollState _create_3(deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase) => JS('ScrollState', 'new ScrollState(#,#,#,#,#,#)', deltaX, deltaY, deltaGranularity, velocityX, velocityY, inInertialPhase);
+  static ScrollState _create_4(deltaX, deltaY, deltaGranularity, velocityX, velocityY) => JS('ScrollState', 'new ScrollState(#,#,#,#,#)', deltaX, deltaY, deltaGranularity, velocityX, velocityY);
+  static ScrollState _create_5(deltaX, deltaY, deltaGranularity, velocityX) => JS('ScrollState', 'new ScrollState(#,#,#,#)', deltaX, deltaY, deltaGranularity, velocityX);
+  static ScrollState _create_6(deltaX, deltaY, deltaGranularity) => JS('ScrollState', 'new ScrollState(#,#,#)', deltaX, deltaY, deltaGranularity);
+  static ScrollState _create_7(deltaX, deltaY) => JS('ScrollState', 'new ScrollState(#,#)', deltaX, deltaY);
+  static ScrollState _create_8(deltaX) => JS('ScrollState', 'new ScrollState(#)', deltaX);
+  static ScrollState _create_9() => JS('ScrollState', 'new ScrollState()');
+
+  @DomName('ScrollState.deltaGranularity')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final double deltaGranularity;
+
+  @DomName('ScrollState.deltaX')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final double deltaX;
+
+  @DomName('ScrollState.deltaY')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final double deltaY;
+
+  @DomName('ScrollState.fromUserInput')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final bool fromUserInput;
+
+  @DomName('ScrollState.inInertialPhase')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final bool inInertialPhase;
+
+  @DomName('ScrollState.isBeginning')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final bool isBeginning;
+
+  @DomName('ScrollState.isEnding')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final bool isEnding;
+
+  @DomName('ScrollState.shouldPropagate')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final bool shouldPropagate;
+
+  @DomName('ScrollState.velocityX')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final double velocityX;
+
+  @DomName('ScrollState.velocityY')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final double velocityY;
+
+  @DomName('ScrollState.consumeDelta')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void consumeDelta(num x, num y) native;
+
+  @DomName('ScrollState.distributeToScrollChainDescendant')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void distributeToScrollChainDescendant() native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DomName('ScrollStateCallback')
+@Experimental() // untriaged
+typedef void ScrollStateCallback(ScrollState scrollState);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
 @DomName('SecurityPolicyViolationEvent')
 // https://dvcs.w3.org/hg/content-security-policy/raw-file/tip/csp-specification.dev.html#securitypolicyviolationevent-events
 @Experimental()
@@ -27129,6 +29466,18 @@ class ScriptElement extends HtmlElement {
 class SecurityPolicyViolationEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory SecurityPolicyViolationEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('SecurityPolicyViolationEvent.SecurityPolicyViolationEvent')
+  @DocsEditable()
+  factory SecurityPolicyViolationEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return SecurityPolicyViolationEvent._create_1(type, eventInitDict_1);
+    }
+    return SecurityPolicyViolationEvent._create_2(type);
+  }
+  static SecurityPolicyViolationEvent _create_1(type, eventInitDict) => JS('SecurityPolicyViolationEvent', 'new SecurityPolicyViolationEvent(#,#)', type, eventInitDict);
+  static SecurityPolicyViolationEvent _create_2(type) => JS('SecurityPolicyViolationEvent', 'new SecurityPolicyViolationEvent(#)', type);
 
   @JSName('blockedURI')
   @DomName('SecurityPolicyViolationEvent.blockedURI')
@@ -27259,12 +29608,7 @@ class SelectElement extends HtmlElement {
 
   @DomName('HTMLSelectElement.__setter__')
   @DocsEditable()
-  void __setter__(int index, OptionElement value) native;
-
-  @DomName('HTMLSelectElement.add')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void add(HtmlElement element, int before) native;
+  void __setter__(int index, OptionElement option) native;
 
   @DomName('HTMLSelectElement.checkValidity')
   @DocsEditable()
@@ -27276,7 +29620,12 @@ class SelectElement extends HtmlElement {
 
   @DomName('HTMLSelectElement.namedItem')
   @DocsEditable()
-  Element namedItem(String name) native;
+  OptionElement namedItem(String name) native;
+
+  @DomName('HTMLSelectElement.reportValidity')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool reportValidity() native;
 
   @DomName('HTMLSelectElement.setCustomValidity')
   @DocsEditable()
@@ -27381,7 +29730,7 @@ class Selection extends Interceptor {
   @DomName('Selection.containsNode')
   @DocsEditable()
   @Experimental() // non-standard
-  bool containsNode(Node node, bool allowPartial) native;
+  bool containsNode(Node node, [bool allowPartialContainment]) native;
 
   @DomName('Selection.deleteFromDocument')
   @DocsEditable()
@@ -27429,19 +29778,35 @@ class Selection extends Interceptor {
 
 
 @DocsEditable()
-@DomName('ServiceWorkerClient')
+@DomName('ServicePort')
 @Experimental() // untriaged
-@Native("ServiceWorkerClient")
-class ServiceWorkerClient extends Interceptor {
+@Native("ServicePort")
+class ServicePort extends Interceptor {
   // To suppress missing implicit constructor warnings.
-  factory ServiceWorkerClient._() { throw new UnsupportedError("Not supported"); }
+  factory ServicePort._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('ServiceWorkerClient.id')
+  @DomName('ServicePort.data')
   @DocsEditable()
   @Experimental() // untriaged
-  final int id;
+  final Object data;
 
-  @DomName('ServiceWorkerClient.postMessage')
+  @DomName('ServicePort.name')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String name;
+
+  @JSName('targetURL')
+  @DomName('ServicePort.targetURL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String targetUrl;
+
+  @DomName('ServicePort.close')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void close() native;
+
+  @DomName('ServicePort.postMessage')
   @DocsEditable()
   @Experimental() // untriaged
   void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) native;
@@ -27452,33 +29817,118 @@ class ServiceWorkerClient extends Interceptor {
 
 
 @DocsEditable()
-@DomName('ServiceWorkerClients')
+@DomName('ServicePortCollection')
 @Experimental() // untriaged
-@Native("ServiceWorkerClients")
-class ServiceWorkerClients extends Interceptor {
+@Native("ServicePortCollection")
+class ServicePortCollection extends EventTarget {
   // To suppress missing implicit constructor warnings.
-  factory ServiceWorkerClients._() { throw new UnsupportedError("Not supported"); }
+  factory ServicePortCollection._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('ServiceWorkerClients.getAll')
+  @DomName('ServicePortCollection.messageEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  Future getAll([Map options]) {
+  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
+
+  @DomName('ServicePortCollection.connect')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future connect(String url, [Map options]) {
     if (options != null) {
       var options_1 = convertDartToNative_Dictionary(options);
-      return _getAll_1(options_1);
+      return _connect_1(url, options_1);
     }
-    return _getAll_2();
+    return _connect_2(url);
   }
-  @JSName('getAll')
-  @DomName('ServiceWorkerClients.getAll')
+  @JSName('connect')
+  @DomName('ServicePortCollection.connect')
   @DocsEditable()
   @Experimental() // untriaged
-  Future _getAll_1(options) native;
-  @JSName('getAll')
-  @DomName('ServiceWorkerClients.getAll')
+  Future _connect_1(url, options) native;
+  @JSName('connect')
+  @DomName('ServicePortCollection.connect')
   @DocsEditable()
   @Experimental() // untriaged
-  Future _getAll_2() native;
+  Future _connect_2(url) native;
+
+  @DomName('ServicePortCollection.match')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future match(Map options) {
+    var options_1 = convertDartToNative_Dictionary(options);
+    return _match_1(options_1);
+  }
+  @JSName('match')
+  @DomName('ServicePortCollection.match')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _match_1(options) native;
+
+  @DomName('ServicePortCollection.matchAll')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future matchAll([Map options]) {
+    if (options != null) {
+      var options_1 = convertDartToNative_Dictionary(options);
+      return _matchAll_1(options_1);
+    }
+    return _matchAll_2();
+  }
+  @JSName('matchAll')
+  @DomName('ServicePortCollection.matchAll')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _matchAll_1(options) native;
+  @JSName('matchAll')
+  @DomName('ServicePortCollection.matchAll')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _matchAll_2() native;
+
+  @DomName('ServicePortCollection.onmessage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('ServicePortConnectEvent')
+@Experimental() // untriaged
+@Native("ServicePortConnectEvent")
+class ServicePortConnectEvent extends ExtendableEvent {
+  // To suppress missing implicit constructor warnings.
+  factory ServicePortConnectEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('ServicePortConnectEvent.ServicePortConnectEvent')
+  @DocsEditable()
+  factory ServicePortConnectEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return ServicePortConnectEvent._create_1(type, eventInitDict_1);
+    }
+    return ServicePortConnectEvent._create_2(type);
+  }
+  static ServicePortConnectEvent _create_1(type, eventInitDict) => JS('ServicePortConnectEvent', 'new ServicePortConnectEvent(#,#)', type, eventInitDict);
+  static ServicePortConnectEvent _create_2(type) => JS('ServicePortConnectEvent', 'new ServicePortConnectEvent(#)', type);
+
+  @DomName('ServicePortConnectEvent.origin')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String origin;
+
+  @JSName('targetURL')
+  @DomName('ServicePortConnectEvent.targetURL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String targetUrl;
+
+  @DomName('ServicePortConnectEvent.respondWith')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future respondWith(Future response) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27489,9 +29939,14 @@ class ServiceWorkerClients extends Interceptor {
 @DomName('ServiceWorkerContainer')
 @Experimental() // untriaged
 @Native("ServiceWorkerContainer")
-class ServiceWorkerContainer extends Interceptor {
+class ServiceWorkerContainer extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory ServiceWorkerContainer._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('ServiceWorkerContainer.messageEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
   @DomName('ServiceWorkerContainer.controller')
   @DocsEditable()
@@ -27507,6 +29962,11 @@ class ServiceWorkerContainer extends Interceptor {
   @DocsEditable()
   @Experimental() // untriaged
   Future getRegistration([String documentURL]) native;
+
+  @DomName('ServiceWorkerContainer.getRegistrations')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future getRegistrations() native;
 
   @DomName('ServiceWorkerContainer.register')
   @DocsEditable()
@@ -27528,6 +29988,11 @@ class ServiceWorkerContainer extends Interceptor {
   @DocsEditable()
   @Experimental() // untriaged
   Future _register_2(url) native;
+
+  @DomName('ServiceWorkerContainer.onmessage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27547,66 +30012,70 @@ class ServiceWorkerGlobalScope extends WorkerGlobalScope {
   @Experimental() // untriaged
   static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
 
-  @DomName('ServiceWorkerGlobalScope.caches')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final CacheStorage caches;
-
   @DomName('ServiceWorkerGlobalScope.clients')
   @DocsEditable()
   @Experimental() // untriaged
-  final ServiceWorkerClients clients;
+  final Clients clients;
 
-  @DomName('ServiceWorkerGlobalScope.scope')
+  @DomName('ServiceWorkerGlobalScope.registration')
   @DocsEditable()
   @Experimental() // untriaged
-  final String scope;
+  final ServiceWorkerRegistration registration;
 
-  @DomName('ServiceWorkerGlobalScope.fetch')
+  @DomName('ServiceWorkerGlobalScope.skipWaiting')
   @DocsEditable()
   @Experimental() // untriaged
-  Future _fetch(request, [Map requestInitDict]) {
-    if ((request is String || request == null) && requestInitDict == null) {
-      return _fetch_1(request);
-    }
-    if (requestInitDict != null && (request is String || request == null)) {
-      var requestInitDict_1 = convertDartToNative_Dictionary(requestInitDict);
-      return _fetch_2(request, requestInitDict_1);
-    }
-    if ((request is _Request || request == null) && requestInitDict == null) {
-      return _fetch_3(request);
-    }
-    if (requestInitDict != null && (request is _Request || request == null)) {
-      var requestInitDict_1 = convertDartToNative_Dictionary(requestInitDict);
-      return _fetch_4(request, requestInitDict_1);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-  @JSName('fetch')
-  @DomName('ServiceWorkerGlobalScope.fetch')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future _fetch_1(String request) native;
-  @JSName('fetch')
-  @DomName('ServiceWorkerGlobalScope.fetch')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future _fetch_2(String request, requestInitDict) native;
-  @JSName('fetch')
-  @DomName('ServiceWorkerGlobalScope.fetch')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future _fetch_3(_Request request) native;
-  @JSName('fetch')
-  @DomName('ServiceWorkerGlobalScope.fetch')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future _fetch_4(_Request request, requestInitDict) native;
+  Future skipWaiting() native;
 
   @DomName('ServiceWorkerGlobalScope.onmessage')
   @DocsEditable()
   @Experimental() // untriaged
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('ServiceWorkerMessageEvent')
+@Experimental() // untriaged
+@Native("ServiceWorkerMessageEvent")
+class ServiceWorkerMessageEvent extends Event {
+  // To suppress missing implicit constructor warnings.
+  factory ServiceWorkerMessageEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('ServiceWorkerMessageEvent.ServiceWorkerMessageEvent')
+  @DocsEditable()
+  factory ServiceWorkerMessageEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return ServiceWorkerMessageEvent._create_1(type, eventInitDict_1);
+    }
+    return ServiceWorkerMessageEvent._create_2(type);
+  }
+  static ServiceWorkerMessageEvent _create_1(type, eventInitDict) => JS('ServiceWorkerMessageEvent', 'new ServiceWorkerMessageEvent(#,#)', type, eventInitDict);
+  static ServiceWorkerMessageEvent _create_2(type) => JS('ServiceWorkerMessageEvent', 'new ServiceWorkerMessageEvent(#)', type);
+
+  @DomName('ServiceWorkerMessageEvent.data')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final Object data;
+
+  @DomName('ServiceWorkerMessageEvent.lastEventId')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String lastEventId;
+
+  @DomName('ServiceWorkerMessageEvent.origin')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String origin;
+
+  @DomName('ServiceWorkerMessageEvent.ports')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final List<MessagePort> ports;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27626,25 +30095,92 @@ class ServiceWorkerRegistration extends EventTarget {
   @Experimental() // untriaged
   final _ServiceWorker active;
 
+  @DomName('ServiceWorkerRegistration.geofencing')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final Geofencing geofencing;
+
   @DomName('ServiceWorkerRegistration.installing')
   @DocsEditable()
   @Experimental() // untriaged
   final _ServiceWorker installing;
+
+  @DomName('ServiceWorkerRegistration.periodicSync')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final PeriodicSyncManager periodicSync;
+
+  @DomName('ServiceWorkerRegistration.pushManager')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final PushManager pushManager;
 
   @DomName('ServiceWorkerRegistration.scope')
   @DocsEditable()
   @Experimental() // untriaged
   final String scope;
 
+  @DomName('ServiceWorkerRegistration.sync')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final SyncManager sync;
+
   @DomName('ServiceWorkerRegistration.waiting')
   @DocsEditable()
   @Experimental() // untriaged
   final _ServiceWorker waiting;
 
+  @DomName('ServiceWorkerRegistration.getNotifications')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future getNotifications([Map filter]) {
+    if (filter != null) {
+      var filter_1 = convertDartToNative_Dictionary(filter);
+      return _getNotifications_1(filter_1);
+    }
+    return _getNotifications_2();
+  }
+  @JSName('getNotifications')
+  @DomName('ServiceWorkerRegistration.getNotifications')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _getNotifications_1(filter) native;
+  @JSName('getNotifications')
+  @DomName('ServiceWorkerRegistration.getNotifications')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _getNotifications_2() native;
+
+  @DomName('ServiceWorkerRegistration.showNotification')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future showNotification(String title, [Map options]) {
+    if (options != null) {
+      var options_1 = convertDartToNative_Dictionary(options);
+      return _showNotification_1(title, options_1);
+    }
+    return _showNotification_2(title);
+  }
+  @JSName('showNotification')
+  @DomName('ServiceWorkerRegistration.showNotification')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _showNotification_1(title, options) native;
+  @JSName('showNotification')
+  @DomName('ServiceWorkerRegistration.showNotification')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _showNotification_2(title) native;
+
   @DomName('ServiceWorkerRegistration.unregister')
   @DocsEditable()
   @Experimental() // untriaged
   Future unregister() native;
+
+  @DomName('ServiceWorkerRegistration.update')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future update() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27701,6 +30237,11 @@ class ShadowRoot extends DocumentFragment {
   @DocsEditable()
   final Element activeElement;
 
+  @DomName('ShadowRoot.delegatesFocus')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final bool delegatesFocus;
+
   @DomName('ShadowRoot.host')
   @DocsEditable()
   @Experimental() // untriaged
@@ -27732,17 +30273,10 @@ class ShadowRoot extends DocumentFragment {
   @DocsEditable()
   Element elementFromPoint(int x, int y) native;
 
-  @DomName('ShadowRoot.getElementsByClassName')
+  @DomName('ShadowRoot.elementsFromPoint')
   @DocsEditable()
-  @Creates('NodeList|HtmlCollection')
-  @Returns('NodeList|HtmlCollection')
-  List<Node> getElementsByClassName(String className) native;
-
-  @DomName('ShadowRoot.getElementsByTagName')
-  @DocsEditable()
-  @Creates('NodeList|HtmlCollection')
-  @Returns('NodeList|HtmlCollection')
-  List<Node> getElementsByTagName(String tagName) native;
+  @Experimental() // untriaged
+  List<Element> elementsFromPoint(int x, int y) native;
 
   @DomName('ShadowRoot.getSelection')
   @DocsEditable()
@@ -27793,6 +30327,24 @@ Please remove them from your code.
 
 
 @DocsEditable()
+@DomName('SharedArrayBuffer')
+@Experimental() // untriaged
+@Native("SharedArrayBuffer")
+class SharedArrayBuffer extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory SharedArrayBuffer._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('SharedArrayBuffer.byteLength')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int byteLength;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
 @DomName('SharedWorker')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/workers.html#shared-workers-and-the-sharedworker-interface
 @Experimental()
@@ -27820,11 +30372,6 @@ class SharedWorker extends EventTarget implements AbstractWorker {
   @DomName('SharedWorker.port')
   @DocsEditable()
   final MessagePort port;
-
-  @DomName('SharedWorker.workerStart')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double workerStart;
 
   @DomName('SharedWorker.onerror')
   @DocsEditable()
@@ -27902,6 +30449,11 @@ class SourceBuffer extends EventTarget {
   @DomName('SourceBuffer.timestampOffset')
   @DocsEditable()
   num timestampOffset;
+
+  @DomName('SourceBuffer.trackDefaults')
+  @DocsEditable()
+  @Experimental() // untriaged
+  TrackDefaultList trackDefaults;
 
   @DomName('SourceBuffer.updating')
   @DocsEditable()
@@ -28020,11 +30572,6 @@ class SourceElement extends HtmlElement {
    * This can only be called by subclasses from their created constructor.
    */
   SourceElement.created() : super.created();
-
-  @DomName('HTMLSourceElement.integrity')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String integrity;
 
   @DomName('HTMLSourceElement.media')
   @DocsEditable()
@@ -28340,6 +30887,11 @@ class SpeechRecognition extends EventTarget {
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.SpeechRecognition || window.webkitSpeechRecognition)');
 
+  @DomName('SpeechRecognition.audioTrack')
+  @DocsEditable()
+  @Experimental() // untriaged
+  MediaStreamTrack audioTrack;
+
   @DomName('SpeechRecognition.continuous')
   @DocsEditable()
   bool continuous;
@@ -28359,6 +30911,12 @@ class SpeechRecognition extends EventTarget {
   @DomName('SpeechRecognition.maxAlternatives')
   @DocsEditable()
   int maxAlternatives;
+
+  @JSName('serviceURI')
+  @DomName('SpeechRecognition.serviceURI')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String serviceUri;
 
   @DomName('SpeechRecognition.abort')
   @DocsEditable()
@@ -28470,6 +31028,18 @@ class SpeechRecognitionError extends Event {
   // To suppress missing implicit constructor warnings.
   factory SpeechRecognitionError._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('SpeechRecognitionError.SpeechRecognitionError')
+  @DocsEditable()
+  factory SpeechRecognitionError(String type, [Map initDict]) {
+    if (initDict != null) {
+      var initDict_1 = convertDartToNative_Dictionary(initDict);
+      return SpeechRecognitionError._create_1(type, initDict_1);
+    }
+    return SpeechRecognitionError._create_2(type);
+  }
+  static SpeechRecognitionError _create_1(type, initDict) => JS('SpeechRecognitionError', 'new SpeechRecognitionError(#,#)', type, initDict);
+  static SpeechRecognitionError _create_2(type) => JS('SpeechRecognitionError', 'new SpeechRecognitionError(#)', type);
+
   @DomName('SpeechRecognitionError.error')
   @DocsEditable()
   final String error;
@@ -28492,6 +31062,18 @@ class SpeechRecognitionError extends Event {
 class SpeechRecognitionEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory SpeechRecognitionEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('SpeechRecognitionEvent.SpeechRecognitionEvent')
+  @DocsEditable()
+  factory SpeechRecognitionEvent(String type, [Map initDict]) {
+    if (initDict != null) {
+      var initDict_1 = convertDartToNative_Dictionary(initDict);
+      return SpeechRecognitionEvent._create_1(type, initDict_1);
+    }
+    return SpeechRecognitionEvent._create_2(type);
+  }
+  static SpeechRecognitionEvent _create_1(type, initDict) => JS('SpeechRecognitionEvent', 'new SpeechRecognitionEvent(#,#)', type, initDict);
+  static SpeechRecognitionEvent _create_2(type) => JS('SpeechRecognitionEvent', 'new SpeechRecognitionEvent(#)', type);
 
   @DomName('SpeechRecognitionEvent.emma')
   @DocsEditable()
@@ -28609,6 +31191,11 @@ class SpeechSynthesisEvent extends Event {
   @DomName('SpeechSynthesisEvent.name')
   @DocsEditable()
   final String name;
+
+  @DomName('SpeechSynthesisEvent.utterance')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final SpeechSynthesisUtterance utterance;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -28968,6 +31555,18 @@ class StorageEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory StorageEvent._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('StorageEvent.StorageEvent')
+  @DocsEditable()
+  factory StorageEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return StorageEvent._create_1(type, eventInitDict_1);
+    }
+    return StorageEvent._create_2(type);
+  }
+  static StorageEvent _create_1(type, eventInitDict) => JS('StorageEvent', 'new StorageEvent(#,#)', type, eventInitDict);
+  static StorageEvent _create_2(type) => JS('StorageEvent', 'new StorageEvent(#)', type);
+
   @DomName('StorageEvent.key')
   @DocsEditable()
   final String key;
@@ -29017,6 +31616,29 @@ class StorageInfo extends Interceptor {
   @DocsEditable()
   @Experimental() // untriaged
   final int usage;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('StorageManager')
+@Experimental() // untriaged
+@Native("StorageManager")
+class StorageManager extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory StorageManager._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('StorageManager.persistentPermission')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future persistentPermission() native;
+
+  @DomName('StorageManager.requestPersistent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future requestPersistent() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29179,6 +31801,109 @@ class StyleSheet extends Interceptor {
   @DomName('StyleSheet.type')
   @DocsEditable()
   final String type;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('SyncEvent')
+@Experimental() // untriaged
+@Native("SyncEvent")
+class SyncEvent extends ExtendableEvent {
+  // To suppress missing implicit constructor warnings.
+  factory SyncEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('SyncEvent.SyncEvent')
+  @DocsEditable()
+  factory SyncEvent(String type, Map init) {
+    var init_1 = convertDartToNative_Dictionary(init);
+    return SyncEvent._create_1(type, init_1);
+  }
+  static SyncEvent _create_1(type, init) => JS('SyncEvent', 'new SyncEvent(#,#)', type, init);
+
+  @DomName('SyncEvent.registration')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final SyncRegistration registration;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('SyncManager')
+@Experimental() // untriaged
+@Native("SyncManager")
+class SyncManager extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory SyncManager._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('SyncManager.getRegistration')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future getRegistration(String tag) native;
+
+  @DomName('SyncManager.getRegistrations')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future getRegistrations() native;
+
+  @DomName('SyncManager.permissionState')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future permissionState() native;
+
+  @DomName('SyncManager.register')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future register([Map options]) {
+    if (options != null) {
+      var options_1 = convertDartToNative_Dictionary(options);
+      return _register_1(options_1);
+    }
+    return _register_2();
+  }
+  @JSName('register')
+  @DomName('SyncManager.register')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _register_1(options) native;
+  @JSName('register')
+  @DomName('SyncManager.register')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _register_2() native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('SyncRegistration')
+@Experimental() // untriaged
+@Native("SyncRegistration")
+class SyncRegistration extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory SyncRegistration._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('SyncRegistration.done')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final Future done;
+
+  @DomName('SyncRegistration.tag')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String tag;
+
+  @DomName('SyncRegistration.unregister')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future unregister() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29631,6 +32356,11 @@ class TextAreaElement extends HtmlElement {
    */
   TextAreaElement.created() : super.created();
 
+  @DomName('HTMLTextAreaElement.autocapitalize')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String autocapitalize;
+
   @DomName('HTMLTextAreaElement.autofocus')
   @DocsEditable()
   bool autofocus;
@@ -29672,6 +32402,11 @@ class TextAreaElement extends HtmlElement {
   @DomName('HTMLTextAreaElement.maxLength')
   @DocsEditable()
   int maxLength;
+
+  @DomName('HTMLTextAreaElement.minLength')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int minLength;
 
   @DomName('HTMLTextAreaElement.name')
   @DocsEditable()
@@ -29736,6 +32471,11 @@ class TextAreaElement extends HtmlElement {
   @DomName('HTMLTextAreaElement.checkValidity')
   @DocsEditable()
   bool checkValidity() native;
+
+  @DomName('HTMLTextAreaElement.reportValidity')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool reportValidity() native;
 
   @DomName('HTMLTextAreaElement.select')
   @DocsEditable()
@@ -30210,69 +32950,6 @@ typedef void TimeoutHandler();
 
 
 @DocsEditable()
-@DomName('Timing')
-@Experimental() // untriaged
-@Native("Timing")
-class Timing extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory Timing._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('Timing.delay')
-  @DocsEditable()
-  @Experimental() // untriaged
-  num delay;
-
-  @DomName('Timing.direction')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String direction;
-
-  @DomName('Timing.easing')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String easing;
-
-  @DomName('Timing.endDelay')
-  @DocsEditable()
-  @Experimental() // untriaged
-  num endDelay;
-
-  @DomName('Timing.fill')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String fill;
-
-  @DomName('Timing.iterationStart')
-  @DocsEditable()
-  @Experimental() // untriaged
-  num iterationStart;
-
-  @DomName('Timing.iterations')
-  @DocsEditable()
-  @Experimental() // untriaged
-  num iterations;
-
-  @DomName('Timing.playbackRate')
-  @DocsEditable()
-  @Experimental() // untriaged
-  num playbackRate;
-
-  @DomName('Timing.__getter__')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object __getter__(String name) native;
-
-  @DomName('Timing.__setter__')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void __setter__(String name, num duration) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
 @DomName('HTMLTitleElement')
 @Native("HTMLTitleElement")
 class TitleElement extends HtmlElement {
@@ -30344,6 +33021,16 @@ class Touch extends Interceptor {
   @Experimental() // untriaged
   final double _radiusY;
 
+  @DomName('Touch.region')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String region;
+
+  @DomName('Touch.rotationAngle')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final double rotationAngle;
+
   @JSName('screenX')
   @DomName('Touch.screenX')
   @DocsEditable()
@@ -30363,14 +33050,6 @@ class Touch extends Interceptor {
   @Creates('Element|Document')
   @Returns('Element|Document')
   final dynamic _get_target;
-
-  @JSName('webkitRotationAngle')
-  @DomName('Touch.webkitRotationAngle')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  final double rotationAngle;
 
 
 // As of Chrome 37, these all changed from long to double.  This code
@@ -30563,6 +33242,91 @@ class TouchList extends Interceptor with ListMixin<Touch>, ImmutableListMixin<To
 
 
 @DocsEditable()
+@DomName('TrackDefault')
+@Experimental() // untriaged
+@Native("TrackDefault")
+class TrackDefault extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory TrackDefault._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('TrackDefault.TrackDefault')
+  @DocsEditable()
+  factory TrackDefault(String type, String language, String label, List<String> kinds, [String byteStreamTrackID]) {
+    if (byteStreamTrackID != null) {
+      List kinds_1 = convertDartToNative_StringArray(kinds);
+      return TrackDefault._create_1(type, language, label, kinds_1, byteStreamTrackID);
+    }
+    List kinds_1 = convertDartToNative_StringArray(kinds);
+    return TrackDefault._create_2(type, language, label, kinds_1);
+  }
+  static TrackDefault _create_1(type, language, label, kinds, byteStreamTrackID) => JS('TrackDefault', 'new TrackDefault(#,#,#,#,#)', type, language, label, kinds, byteStreamTrackID);
+  static TrackDefault _create_2(type, language, label, kinds) => JS('TrackDefault', 'new TrackDefault(#,#,#,#)', type, language, label, kinds);
+
+  @DomName('TrackDefault.byteStreamTrackID')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String byteStreamTrackID;
+
+  @DomName('TrackDefault.kinds')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final List<String> kinds;
+
+  @DomName('TrackDefault.label')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String label;
+
+  @DomName('TrackDefault.language')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String language;
+
+  @DomName('TrackDefault.type')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String type;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('TrackDefaultList')
+@Experimental() // untriaged
+@Native("TrackDefaultList")
+class TrackDefaultList extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory TrackDefaultList._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('TrackDefaultList.TrackDefaultList')
+  @DocsEditable()
+  factory TrackDefaultList([List<TrackDefault> trackDefaults]) {
+    if (trackDefaults != null) {
+      return TrackDefaultList._create_1(trackDefaults);
+    }
+    return TrackDefaultList._create_2();
+  }
+  static TrackDefaultList _create_1(trackDefaults) => JS('TrackDefaultList', 'new TrackDefaultList(#)', trackDefaults);
+  static TrackDefaultList _create_2() => JS('TrackDefaultList', 'new TrackDefaultList()');
+
+  @DomName('TrackDefaultList.length')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int length;
+
+  @DomName('TrackDefaultList.item')
+  @DocsEditable()
+  @Experimental() // untriaged
+  TrackDefault item(int index) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
 @DomName('HTMLTrackElement')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.IE, '10')
@@ -30608,11 +33372,6 @@ class TrackElement extends HtmlElement {
   @DocsEditable()
   bool defaultValue;
 
-  @DomName('HTMLTrackElement.integrity')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String integrity;
-
   @DomName('HTMLTrackElement.kind')
   @DocsEditable()
   String kind;
@@ -30650,10 +33409,17 @@ class TrackEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory TrackEvent._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('TrackEvent.track')
+  @DomName('TrackEvent.TrackEvent')
   @DocsEditable()
-  @Creates('Null')
-  final Object track;
+  factory TrackEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return TrackEvent._create_1(type, eventInitDict_1);
+    }
+    return TrackEvent._create_2(type);
+  }
+  static TrackEvent _create_1(type, eventInitDict) => JS('TrackEvent', 'new TrackEvent(#,#)', type, eventInitDict);
+  static TrackEvent _create_2(type) => JS('TrackEvent', 'new TrackEvent(#)', type);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30666,6 +33432,18 @@ class TrackEvent extends Event {
 class TransitionEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory TransitionEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('TransitionEvent.TransitionEvent')
+  @DocsEditable()
+  factory TransitionEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return TransitionEvent._create_1(type, eventInitDict_1);
+    }
+    return TransitionEvent._create_2(type);
+  }
+  static TransitionEvent _create_1(type, eventInitDict) => JS('TransitionEvent', 'new TransitionEvent(#,#)', type, eventInitDict);
+  static TransitionEvent _create_2(type) => JS('TransitionEvent', 'new TransitionEvent(#)', type);
 
   @DomName('TransitionEvent.elapsedTime')
   @DocsEditable()
@@ -30768,49 +33546,26 @@ class UIEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory UIEvent._() { throw new UnsupportedError("Not supported"); }
 
-  @JSName('charCode')
-  @DomName('UIEvent.charCode')
+  @DomName('UIEvent.UIEvent')
   @DocsEditable()
-  @Unstable()
-  final int _charCode;
+  factory UIEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return UIEvent._create_1(type, eventInitDict_1);
+    }
+    return UIEvent._create_2(type);
+  }
+  static UIEvent _create_1(type, eventInitDict) => JS('UIEvent', 'new UIEvent(#,#)', type, eventInitDict);
+  static UIEvent _create_2(type) => JS('UIEvent', 'new UIEvent(#)', type);
 
   @DomName('UIEvent.detail')
   @DocsEditable()
   final int detail;
 
-  @JSName('keyCode')
-  @DomName('UIEvent.keyCode')
+  @DomName('UIEvent.sourceCapabilities')
   @DocsEditable()
-  @Unstable()
-  final int _keyCode;
-
-  @JSName('layerX')
-  @DomName('UIEvent.layerX')
-  @DocsEditable()
-  // http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-mouseevents
-  @Experimental() // nonstandard
-  final int _layerX;
-
-  @JSName('layerY')
-  @DomName('UIEvent.layerY')
-  @DocsEditable()
-  // http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-mouseevents
-  @Experimental() // nonstandard
-  final int _layerY;
-
-  @JSName('pageX')
-  @DomName('UIEvent.pageX')
-  @DocsEditable()
-  // http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-mouseevents
-  @Experimental() // nonstandard
-  final int _pageX;
-
-  @JSName('pageY')
-  @DomName('UIEvent.pageY')
-  @DocsEditable()
-  // http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#events-mouseevents
-  @Experimental() // nonstandard
-  final int _pageY;
+  @Experimental() // untriaged
+  final InputDeviceCapabilities sourceCapabilities;
 
   @DomName('UIEvent.view')
   @DocsEditable()
@@ -30830,7 +33585,7 @@ class UIEvent extends Event {
   @JSName('initUIEvent')
   @DomName('UIEvent.initUIEvent')
   @DocsEditable()
-  void _initUIEvent(String type, bool canBubble, bool cancelable, Window view, int detail) native;
+  void _initUIEvent(String type, bool bubbles, bool cancelable, Window view, int detail) native;
 
 
   @DomName('UIEvent.layerX')
@@ -31047,6 +33802,610 @@ abstract class UrlUtilsReadOnly extends Interceptor {
 
 
 @DocsEditable()
+@DomName('USB')
+@Experimental() // untriaged
+@Native("USB")
+class Usb extends EventTarget {
+  // To suppress missing implicit constructor warnings.
+  factory Usb._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('USB.getDevices')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future getDevices() native;
+
+  @DomName('USB.requestDevice')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future requestDevice(Map options) {
+    var options_1 = convertDartToNative_Dictionary(options);
+    return _requestDevice_1(options_1);
+  }
+  @JSName('requestDevice')
+  @DomName('USB.requestDevice')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _requestDevice_1(options) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('USBAlternateInterface')
+@Experimental() // untriaged
+@Native("USBAlternateInterface")
+class UsbAlternateInterface extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory UsbAlternateInterface._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('USBAlternateInterface.USBAlternateInterface')
+  @DocsEditable()
+  factory UsbAlternateInterface(UsbInterface deviceInterface, int alternateSetting) {
+    return UsbAlternateInterface._create_1(deviceInterface, alternateSetting);
+  }
+  static UsbAlternateInterface _create_1(deviceInterface, alternateSetting) => JS('UsbAlternateInterface', 'new USBAlternateInterface(#,#)', deviceInterface, alternateSetting);
+
+  @DomName('USBAlternateInterface.alternateSetting')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int alternateSetting;
+
+  @DomName('USBAlternateInterface.endpoints')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final List<UsbEndpoint> endpoints;
+
+  @DomName('USBAlternateInterface.interfaceClass')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int interfaceClass;
+
+  @DomName('USBAlternateInterface.interfaceName')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String interfaceName;
+
+  @DomName('USBAlternateInterface.interfaceProtocol')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int interfaceProtocol;
+
+  @DomName('USBAlternateInterface.interfaceSubclass')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int interfaceSubclass;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('USBConfiguration')
+@Experimental() // untriaged
+@Native("USBConfiguration")
+class UsbConfiguration extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory UsbConfiguration._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('USBConfiguration.USBConfiguration')
+  @DocsEditable()
+  factory UsbConfiguration(UsbDevice device, int configurationValue) {
+    return UsbConfiguration._create_1(device, configurationValue);
+  }
+  static UsbConfiguration _create_1(device, configurationValue) => JS('UsbConfiguration', 'new USBConfiguration(#,#)', device, configurationValue);
+
+  @DomName('USBConfiguration.configurationName')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String configurationName;
+
+  @DomName('USBConfiguration.configurationValue')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int configurationValue;
+
+  @DomName('USBConfiguration.interfaces')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final List<UsbInterface> interfaces;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('USBConnectionEvent')
+@Experimental() // untriaged
+@Native("USBConnectionEvent")
+class UsbConnectionEvent extends Event {
+  // To suppress missing implicit constructor warnings.
+  factory UsbConnectionEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('USBConnectionEvent.USBConnectionEvent')
+  @DocsEditable()
+  factory UsbConnectionEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return UsbConnectionEvent._create_1(type, eventInitDict_1);
+    }
+    return UsbConnectionEvent._create_2(type);
+  }
+  static UsbConnectionEvent _create_1(type, eventInitDict) => JS('UsbConnectionEvent', 'new USBConnectionEvent(#,#)', type, eventInitDict);
+  static UsbConnectionEvent _create_2(type) => JS('UsbConnectionEvent', 'new USBConnectionEvent(#)', type);
+
+  @DomName('USBConnectionEvent.device')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final UsbDevice device;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('USBDevice')
+@Experimental() // untriaged
+@Native("USBDevice")
+class UsbDevice extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory UsbDevice._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('USBDevice.configurations')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final List<UsbConfiguration> configurations;
+
+  @DomName('USBDevice.deviceClass')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int deviceClass;
+
+  @DomName('USBDevice.deviceProtocol')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int deviceProtocol;
+
+  @DomName('USBDevice.deviceSubclass')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int deviceSubclass;
+
+  @DomName('USBDevice.deviceVersionMajor')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int deviceVersionMajor;
+
+  @DomName('USBDevice.deviceVersionMinor')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int deviceVersionMinor;
+
+  @DomName('USBDevice.deviceVersionSubminor')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int deviceVersionSubminor;
+
+  @DomName('USBDevice.guid')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String guid;
+
+  @DomName('USBDevice.manufacturerName')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String manufacturerName;
+
+  @DomName('USBDevice.productId')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int productId;
+
+  @DomName('USBDevice.productName')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String productName;
+
+  @DomName('USBDevice.serialNumber')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String serialNumber;
+
+  @DomName('USBDevice.usbVersionMajor')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int usbVersionMajor;
+
+  @DomName('USBDevice.usbVersionMinor')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int usbVersionMinor;
+
+  @DomName('USBDevice.usbVersionSubminor')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int usbVersionSubminor;
+
+  @DomName('USBDevice.vendorId')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int vendorId;
+
+  @DomName('USBDevice.claimInterface')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future claimInterface(int interfaceNumber) native;
+
+  @DomName('USBDevice.clearHalt')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future clearHalt(int endpointNumber) native;
+
+  @DomName('USBDevice.close')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future close() native;
+
+  @DomName('USBDevice.controlTransferIn')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future controlTransferIn(Map setup, int length) {
+    var setup_1 = convertDartToNative_Dictionary(setup);
+    return _controlTransferIn_1(setup_1, length);
+  }
+  @JSName('controlTransferIn')
+  @DomName('USBDevice.controlTransferIn')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _controlTransferIn_1(setup, length) native;
+
+  @DomName('USBDevice.controlTransferOut')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future controlTransferOut(Map setup, [/*BufferSource*/ data]) {
+    if (data != null) {
+      var setup_1 = convertDartToNative_Dictionary(setup);
+      return _controlTransferOut_1(setup_1, data);
+    }
+    var setup_1 = convertDartToNative_Dictionary(setup);
+    return _controlTransferOut_2(setup_1);
+  }
+  @JSName('controlTransferOut')
+  @DomName('USBDevice.controlTransferOut')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _controlTransferOut_1(setup, data) native;
+  @JSName('controlTransferOut')
+  @DomName('USBDevice.controlTransferOut')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _controlTransferOut_2(setup) native;
+
+  @DomName('USBDevice.open')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future open() native;
+
+  @DomName('USBDevice.releaseInterface')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future releaseInterface(int interfaceNumber) native;
+
+  @DomName('USBDevice.reset')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future reset() native;
+
+  @DomName('USBDevice.setConfiguration')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future setConfiguration(int configurationValue) native;
+
+  @DomName('USBDevice.setInterface')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future setInterface(int interfaceNumber, int alternateSetting) native;
+
+  @DomName('USBDevice.transferIn')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future transferIn(int endpointNumber, int length) native;
+
+  @DomName('USBDevice.transferOut')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future transferOut(int endpointNumber, /*BufferSource*/ data) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('USBEndpoint')
+@Experimental() // untriaged
+@Native("USBEndpoint")
+class UsbEndpoint extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory UsbEndpoint._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('USBEndpoint.USBEndpoint')
+  @DocsEditable()
+  factory UsbEndpoint(UsbAlternateInterface alternate, int endpointNumber, String direction) {
+    return UsbEndpoint._create_1(alternate, endpointNumber, direction);
+  }
+  static UsbEndpoint _create_1(alternate, endpointNumber, direction) => JS('UsbEndpoint', 'new USBEndpoint(#,#,#)', alternate, endpointNumber, direction);
+
+  @DomName('USBEndpoint.direction')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String direction;
+
+  @DomName('USBEndpoint.endpointNumber')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int endpointNumber;
+
+  @DomName('USBEndpoint.packetSize')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int packetSize;
+
+  @DomName('USBEndpoint.type')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String type;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('USBInTransferResult')
+@Experimental() // untriaged
+@Native("USBInTransferResult")
+class UsbInTransferResult extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory UsbInTransferResult._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('USBInTransferResult.data')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final ByteBuffer data;
+
+  @DomName('USBInTransferResult.status')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String status;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('USBInterface')
+@Experimental() // untriaged
+@Native("USBInterface")
+class UsbInterface extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory UsbInterface._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('USBInterface.USBInterface')
+  @DocsEditable()
+  factory UsbInterface(UsbConfiguration configuration, int interfaceNumber) {
+    return UsbInterface._create_1(configuration, interfaceNumber);
+  }
+  static UsbInterface _create_1(configuration, interfaceNumber) => JS('UsbInterface', 'new USBInterface(#,#)', configuration, interfaceNumber);
+
+  @DomName('USBInterface.alternates')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final List<UsbAlternateInterface> alternates;
+
+  @DomName('USBInterface.interfaceNumber')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int interfaceNumber;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('USBOutTransferResult')
+@Experimental() // untriaged
+@Native("USBOutTransferResult")
+class UsbOutTransferResult extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory UsbOutTransferResult._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('USBOutTransferResult.bytesWritten')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final int bytesWritten;
+
+  @DomName('USBOutTransferResult.status')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String status;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('VRDevice')
+@Experimental() // untriaged
+@Native("VRDevice")
+class VRDevice extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory VRDevice._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('VRDevice.deviceId')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String deviceId;
+
+  @DomName('VRDevice.deviceName')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String deviceName;
+
+  @DomName('VRDevice.hardwareUnitId')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String hardwareUnitId;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('VREyeParameters')
+@Experimental() // untriaged
+@Native("VREyeParameters")
+class VREyeParameters extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory VREyeParameters._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('VREyeParameters.currentFieldOfView')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final VRFieldOfView currentFieldOfView;
+
+  @DomName('VREyeParameters.eyeTranslation')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final DomPoint eyeTranslation;
+
+  @DomName('VREyeParameters.maximumFieldOfView')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final VRFieldOfView maximumFieldOfView;
+
+  @DomName('VREyeParameters.minimumFieldOfView')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final VRFieldOfView minimumFieldOfView;
+
+  @DomName('VREyeParameters.recommendedFieldOfView')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final VRFieldOfView recommendedFieldOfView;
+
+  @DomName('VREyeParameters.renderRect')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final _DomRect renderRect;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('VRFieldOfView')
+@Experimental() // untriaged
+@Native("VRFieldOfView")
+class VRFieldOfView extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory VRFieldOfView._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('VRFieldOfView.VRFieldOfView')
+  @DocsEditable()
+  factory VRFieldOfView([Map fov]) {
+    if (fov != null) {
+      var fov_1 = convertDartToNative_Dictionary(fov);
+      return VRFieldOfView._create_1(fov_1);
+    }
+    return VRFieldOfView._create_2();
+  }
+  static VRFieldOfView _create_1(fov) => JS('VRFieldOfView', 'new VRFieldOfView(#)', fov);
+  static VRFieldOfView _create_2() => JS('VRFieldOfView', 'new VRFieldOfView()');
+
+  @DomName('VRFieldOfView.downDegrees')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num downDegrees;
+
+  @DomName('VRFieldOfView.leftDegrees')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num leftDegrees;
+
+  @DomName('VRFieldOfView.rightDegrees')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num rightDegrees;
+
+  @DomName('VRFieldOfView.upDegrees')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num upDegrees;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('VRPositionState')
+@Experimental() // untriaged
+@Native("VRPositionState")
+class VRPositionState extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory VRPositionState._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('VRPositionState.angularAcceleration')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final DomPoint angularAcceleration;
+
+  @DomName('VRPositionState.angularVelocity')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final DomPoint angularVelocity;
+
+  @DomName('VRPositionState.linearAcceleration')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final DomPoint linearAcceleration;
+
+  @DomName('VRPositionState.linearVelocity')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final DomPoint linearVelocity;
+
+  @DomName('VRPositionState.orientation')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final DomPoint orientation;
+
+  @DomName('VRPositionState.position')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final DomPoint position;
+
+  @DomName('VRPositionState.timeStamp')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final double timeStamp;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
 @DomName('ValidityState')
 @Native("ValidityState")
 class ValidityState extends Interceptor {
@@ -31080,6 +34439,11 @@ class ValidityState extends Interceptor {
   @DomName('ValidityState.tooLong')
   @DocsEditable()
   final bool tooLong;
+
+  @DomName('ValidityState.tooShort')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final bool tooShort;
 
   @DomName('ValidityState.typeMismatch')
   @DocsEditable()
@@ -31327,12 +34691,12 @@ class VttCue extends TextTrackCue {
   @DomName('VTTCue.line')
   @DocsEditable()
   @Experimental() // untriaged
-  int line;
+  Object line;
 
   @DomName('VTTCue.position')
   @DocsEditable()
   @Experimental() // untriaged
-  int position;
+  Object position;
 
   @DomName('VTTCue.regionId')
   @DocsEditable()
@@ -31342,7 +34706,7 @@ class VttCue extends TextTrackCue {
   @DomName('VTTCue.size')
   @DocsEditable()
   @Experimental() // untriaged
-  int size;
+  num size;
 
   @DomName('VTTCue.snapToLines')
   @DocsEditable()
@@ -31551,22 +34915,14 @@ class WebSocket extends EventTarget {
 
   @DomName('WebSocket.WebSocket')
   @DocsEditable()
-  factory WebSocket(String url, [protocol_OR_protocols]) {
-    if ((url is String || url == null) && protocol_OR_protocols == null) {
-      return WebSocket._create_1(url);
+  factory WebSocket(String url, [Object protocols]) {
+    if (protocols != null) {
+      return WebSocket._create_1(url, protocols);
     }
-    if ((protocol_OR_protocols is String || protocol_OR_protocols == null) && (url is String || url == null)) {
-      return WebSocket._create_2(url, protocol_OR_protocols);
-    }
-    if ((protocol_OR_protocols is List<String> || protocol_OR_protocols == null) && (url is String || url == null)) {
-      List protocols_1 = convertDartToNative_StringArray(protocol_OR_protocols);
-      return WebSocket._create_3(url, protocols_1);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
+    return WebSocket._create_2(url);
   }
-  static WebSocket _create_1(url) => JS('WebSocket', 'new WebSocket(#)', url);
-  static WebSocket _create_2(url, protocol_OR_protocols) => JS('WebSocket', 'new WebSocket(#,#)', url, protocol_OR_protocols);
-  static WebSocket _create_3(url, protocol_OR_protocols) => JS('WebSocket', 'new WebSocket(#,#)', url, protocol_OR_protocols);
+  static WebSocket _create_1(url, protocols) => JS('WebSocket', 'new WebSocket(#,#)', url, protocols);
+  static WebSocket _create_2(url) => JS('WebSocket', 'new WebSocket(#)', url);
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', 'typeof window.WebSocket != "undefined"');
@@ -31743,6 +35099,18 @@ class WheelEvent extends MouseEvent {
 
   // To suppress missing implicit constructor warnings.
   factory WheelEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('WheelEvent.WheelEvent')
+  @DocsEditable()
+  factory WheelEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return WheelEvent._create_1(type, eventInitDict_1);
+    }
+    return WheelEvent._create_2(type);
+  }
+  static WheelEvent _create_1(type, eventInitDict) => JS('WheelEvent', 'new WheelEvent(#,#)', type, eventInitDict);
+  static WheelEvent _create_2(type) => JS('WheelEvent', 'new WheelEvent(#)', type);
 
   @DomName('WheelEvent.DOM_DELTA_LINE')
   @DocsEditable()
@@ -32300,18 +35668,6 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @Experimental()
   static const int TEMPORARY = 0;
 
-  @JSName('CSS')
-  /**
-   * Entrypoint for CSS-related functions.
-   *
-   * ## Other resources
-   *
-   * * [The CSS interface](http://dev.w3.org/csswg/css-conditional/#the-css-interface) from W3C.
-   */
-  @DomName('Window.CSS')
-  @DocsEditable()
-  final Css css;
-
   /**
    * The application cache for this window.
    *
@@ -32326,6 +35682,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @DomName('Window.applicationCache')
   @DocsEditable()
   final ApplicationCache applicationCache;
+
+  @DomName('Window.caches')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final CacheStorage caches;
 
   @DomName('Window.closed')
   @DocsEditable()
@@ -32856,6 +36217,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @DocsEditable()
   void alert([String message]) native;
 
+  @DomName('Window.cancelIdleCallback')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void cancelIdleCallback(int handle) native;
+
   @DomName('Window.close')
   @DocsEditable()
   void close() native;
@@ -32873,6 +36239,27 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @DocsEditable()
   bool confirm([String message]) native;
 
+  @DomName('Window.fetch')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future fetch(/*RequestInfo*/ input, [Map init]) {
+    if (init != null) {
+      var init_1 = convertDartToNative_Dictionary(init);
+      return _fetch_1(input, init_1);
+    }
+    return _fetch_2(input);
+  }
+  @JSName('fetch')
+  @DomName('Window.fetch')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _fetch_1(input, init) native;
+  @JSName('fetch')
+  @DomName('Window.fetch')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _fetch_2(input) native;
+
   /**
    * Finds text in this window.
    *
@@ -32889,7 +36276,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @JSName('getComputedStyle')
   @DomName('Window.getComputedStyle')
   @DocsEditable()
-  CssStyleDeclaration _getComputedStyle(Element element, String pseudoElement) native;
+  CssStyleDeclaration _getComputedStyle(Element elt, String pseudoElt) native;
 
   @JSName('getMatchedCSSRules')
   /**
@@ -32944,12 +36331,12 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.moveBy')
   @DocsEditable()
-  void moveBy(num x, num y) native;
+  void moveBy(int x, int y) native;
 
   @JSName('moveTo')
   @DomName('Window.moveTo')
   @DocsEditable()
-  void _moveTo(num x, num y) native;
+  void _moveTo(int x, int y) native;
 
   /// *Deprecated.*
   @DomName('Window.openDatabase')
@@ -32964,24 +36351,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
 
   @DomName('Window.postMessage')
   @DocsEditable()
-  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List<MessagePort> transfer]) {
-    if (transfer != null) {
-      var message_1 = convertDartToNative_SerializedScriptValue(message);
-      _postMessage_1(message_1, targetOrigin, transfer);
-      return;
-    }
-    var message_1 = convertDartToNative_SerializedScriptValue(message);
-    _postMessage_2(message_1, targetOrigin);
-    return;
-  }
-  @JSName('postMessage')
-  @DomName('Window.postMessage')
-  @DocsEditable()
-  void _postMessage_1(message, targetOrigin, List<MessagePort> transfer) native;
-  @JSName('postMessage')
-  @DomName('Window.postMessage')
-  @DocsEditable()
-  void _postMessage_2(message, targetOrigin) native;
+  void postMessage(Object message, String targetOrigin, [List<MessagePort> transfer]) native;
 
   /**
    * Opens the print dialog for this window.
@@ -32995,6 +36365,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @DocsEditable()
   void print() native;
 
+  @DomName('Window.requestIdleCallback')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int requestIdleCallback(IdleRequestCallback callback, [num timeout]) native;
+
   /**
    * Resizes this window by an offset.
    *
@@ -33005,7 +36380,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.resizeBy')
   @DocsEditable()
-  void resizeBy(num x, num y) native;
+  void resizeBy(int x, int y) native;
 
   /**
    * Resizes this window to a specific width and height.
@@ -33017,7 +36392,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.resizeTo')
   @DocsEditable()
-  void resizeTo(num width, num height) native;
+  void resizeTo(int x, int y) native;
 
   /**
    * Scrolls the page horizontally and vertically to a specific point.
@@ -33031,23 +36406,27 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.scroll')
   @DocsEditable()
-  void scroll(x, y, [Map scrollOptions]) {
-    if ((y is num) && (x is num) && scrollOptions == null) {
-      _scroll_1(x, y);
+  void scroll([options_OR_x, y, Map scrollOptions]) {
+    if (options_OR_x == null && y == null && scrollOptions == null) {
+      _scroll_1();
       return;
     }
-    if (scrollOptions != null && (y is num) && (x is num)) {
+    if ((options_OR_x is Map) && y == null && scrollOptions == null) {
+      var options_1 = convertDartToNative_Dictionary(options_OR_x);
+      _scroll_2(options_1);
+      return;
+    }
+    if ((y is num) && (options_OR_x is num) && scrollOptions == null) {
+      _scroll_3(options_OR_x, y);
+      return;
+    }
+    if ((y is int) && (options_OR_x is int) && scrollOptions == null) {
+      _scroll_4(options_OR_x, y);
+      return;
+    }
+    if (scrollOptions != null && (y is int) && (options_OR_x is int)) {
       var scrollOptions_1 = convertDartToNative_Dictionary(scrollOptions);
-      _scroll_2(x, y, scrollOptions_1);
-      return;
-    }
-    if ((y is int) && (x is int) && scrollOptions == null) {
-      _scroll_3(x, y);
-      return;
-    }
-    if (scrollOptions != null && (y is int) && (x is int)) {
-      var scrollOptions_1 = convertDartToNative_Dictionary(scrollOptions);
-      _scroll_4(x, y, scrollOptions_1);
+      _scroll_5(options_OR_x, y, scrollOptions_1);
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -33065,7 +36444,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.scroll')
   @DocsEditable()
-  void _scroll_1(num x, num y) native;
+  void _scroll_1() native;
   @JSName('scroll')
   /**
    * Scrolls the page horizontally and vertically to a specific point.
@@ -33079,7 +36458,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.scroll')
   @DocsEditable()
-  void _scroll_2(num x, num y, scrollOptions) native;
+  void _scroll_2(options) native;
   @JSName('scroll')
   /**
    * Scrolls the page horizontally and vertically to a specific point.
@@ -33093,7 +36472,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.scroll')
   @DocsEditable()
-  void _scroll_3(int x, int y) native;
+  void _scroll_3(num x, num y) native;
   @JSName('scroll')
   /**
    * Scrolls the page horizontally and vertically to a specific point.
@@ -33107,7 +36486,21 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.scroll')
   @DocsEditable()
-  void _scroll_4(int x, int y, scrollOptions) native;
+  void _scroll_4(int x, int y) native;
+  @JSName('scroll')
+  /**
+   * Scrolls the page horizontally and vertically to a specific point.
+   *
+   * This method is identical to [scrollTo].
+   *
+   * ## Other resources
+   *
+   * * [Window scroll] (http://docs.webplatform.org/wiki/dom/methods/scroll)
+   * from WebPlatform.org.
+   */
+  @DomName('Window.scroll')
+  @DocsEditable()
+  void _scroll_5(int x, int y, scrollOptions) native;
 
   /**
    * Scrolls the page horizontally and vertically by an offset.
@@ -33119,23 +36512,27 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.scrollBy')
   @DocsEditable()
-  void scrollBy(x, y, [Map scrollOptions]) {
-    if ((y is num) && (x is num) && scrollOptions == null) {
-      _scrollBy_1(x, y);
+  void scrollBy([options_OR_x, y, Map scrollOptions]) {
+    if (options_OR_x == null && y == null && scrollOptions == null) {
+      _scrollBy_1();
       return;
     }
-    if (scrollOptions != null && (y is num) && (x is num)) {
+    if ((options_OR_x is Map) && y == null && scrollOptions == null) {
+      var options_1 = convertDartToNative_Dictionary(options_OR_x);
+      _scrollBy_2(options_1);
+      return;
+    }
+    if ((y is num) && (options_OR_x is num) && scrollOptions == null) {
+      _scrollBy_3(options_OR_x, y);
+      return;
+    }
+    if ((y is int) && (options_OR_x is int) && scrollOptions == null) {
+      _scrollBy_4(options_OR_x, y);
+      return;
+    }
+    if (scrollOptions != null && (y is int) && (options_OR_x is int)) {
       var scrollOptions_1 = convertDartToNative_Dictionary(scrollOptions);
-      _scrollBy_2(x, y, scrollOptions_1);
-      return;
-    }
-    if ((y is int) && (x is int) && scrollOptions == null) {
-      _scrollBy_3(x, y);
-      return;
-    }
-    if (scrollOptions != null && (y is int) && (x is int)) {
-      var scrollOptions_1 = convertDartToNative_Dictionary(scrollOptions);
-      _scrollBy_4(x, y, scrollOptions_1);
+      _scrollBy_5(options_OR_x, y, scrollOptions_1);
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -33151,7 +36548,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.scrollBy')
   @DocsEditable()
-  void _scrollBy_1(num x, num y) native;
+  void _scrollBy_1() native;
   @JSName('scrollBy')
   /**
    * Scrolls the page horizontally and vertically by an offset.
@@ -33163,7 +36560,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.scrollBy')
   @DocsEditable()
-  void _scrollBy_2(num x, num y, scrollOptions) native;
+  void _scrollBy_2(options) native;
   @JSName('scrollBy')
   /**
    * Scrolls the page horizontally and vertically by an offset.
@@ -33175,7 +36572,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.scrollBy')
   @DocsEditable()
-  void _scrollBy_3(int x, int y) native;
+  void _scrollBy_3(num x, num y) native;
   @JSName('scrollBy')
   /**
    * Scrolls the page horizontally and vertically by an offset.
@@ -33187,7 +36584,19 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.scrollBy')
   @DocsEditable()
-  void _scrollBy_4(int x, int y, scrollOptions) native;
+  void _scrollBy_4(int x, int y) native;
+  @JSName('scrollBy')
+  /**
+   * Scrolls the page horizontally and vertically by an offset.
+   *
+   * ## Other resources
+   *
+   * * [Window scrollBy] (http://docs.webplatform.org/wiki/dom/methods/scrollBy)
+   * from WebPlatform.org.
+   */
+  @DomName('Window.scrollBy')
+  @DocsEditable()
+  void _scrollBy_5(int x, int y, scrollOptions) native;
 
   /**
    * Scrolls the page horizontally and vertically to a specific point.
@@ -33201,23 +36610,27 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.scrollTo')
   @DocsEditable()
-  void scrollTo(x, y, [Map scrollOptions]) {
-    if ((y is num) && (x is num) && scrollOptions == null) {
-      _scrollTo_1(x, y);
+  void scrollTo([options_OR_x, y, Map scrollOptions]) {
+    if (options_OR_x == null && y == null && scrollOptions == null) {
+      _scrollTo_1();
       return;
     }
-    if (scrollOptions != null && (y is num) && (x is num)) {
+    if ((options_OR_x is Map) && y == null && scrollOptions == null) {
+      var options_1 = convertDartToNative_Dictionary(options_OR_x);
+      _scrollTo_2(options_1);
+      return;
+    }
+    if ((y is num) && (options_OR_x is num) && scrollOptions == null) {
+      _scrollTo_3(options_OR_x, y);
+      return;
+    }
+    if ((y is int) && (options_OR_x is int) && scrollOptions == null) {
+      _scrollTo_4(options_OR_x, y);
+      return;
+    }
+    if (scrollOptions != null && (y is int) && (options_OR_x is int)) {
       var scrollOptions_1 = convertDartToNative_Dictionary(scrollOptions);
-      _scrollTo_2(x, y, scrollOptions_1);
-      return;
-    }
-    if ((y is int) && (x is int) && scrollOptions == null) {
-      _scrollTo_3(x, y);
-      return;
-    }
-    if (scrollOptions != null && (y is int) && (x is int)) {
-      var scrollOptions_1 = convertDartToNative_Dictionary(scrollOptions);
-      _scrollTo_4(x, y, scrollOptions_1);
+      _scrollTo_5(options_OR_x, y, scrollOptions_1);
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -33235,7 +36648,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.scrollTo')
   @DocsEditable()
-  void _scrollTo_1(num x, num y) native;
+  void _scrollTo_1() native;
   @JSName('scrollTo')
   /**
    * Scrolls the page horizontally and vertically to a specific point.
@@ -33249,7 +36662,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.scrollTo')
   @DocsEditable()
-  void _scrollTo_2(num x, num y, scrollOptions) native;
+  void _scrollTo_2(options) native;
   @JSName('scrollTo')
   /**
    * Scrolls the page horizontally and vertically to a specific point.
@@ -33263,7 +36676,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.scrollTo')
   @DocsEditable()
-  void _scrollTo_3(int x, int y) native;
+  void _scrollTo_3(num x, num y) native;
   @JSName('scrollTo')
   /**
    * Scrolls the page horizontally and vertically to a specific point.
@@ -33277,21 +36690,21 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.scrollTo')
   @DocsEditable()
-  void _scrollTo_4(int x, int y, scrollOptions) native;
-
+  void _scrollTo_4(int x, int y) native;
+  @JSName('scrollTo')
   /**
-   * Opens a new page as a modal dialog.
+   * Scrolls the page horizontally and vertically to a specific point.
+   *
+   * This method is identical to [scroll].
    *
    * ## Other resources
    *
-   * * [Dialogs implemented using separate documents]
-   * (http://www.w3.org/html/wg/drafts/html/master/webappapis.html#dialogs-implemented-using-separate-documents)
-   * from W3C.
+   * * [Window scrollTo] (http://docs.webplatform.org/wiki/dom/methods/scrollTo)
+   * from WebPlatform.org.
    */
-  @DomName('Window.showModalDialog')
+  @DomName('Window.scrollTo')
   @DocsEditable()
-  @Creates('Null')
-  Object showModalDialog(String url, [Object dialogArgs, String featureArgs]) native;
+  void _scrollTo_5(int x, int y, scrollOptions) native;
 
   /**
    * Stops the window from loading.
@@ -33372,33 +36785,33 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
 
   @DomName('Window.atob')
   @DocsEditable()
-  String atob(String string) native;
+  String atob(String atob) native;
 
   @DomName('Window.btoa')
   @DocsEditable()
-  String btoa(String string) native;
+  String btoa(String btoa) native;
 
   // From WindowTimers
 
   @JSName('clearInterval')
   @DomName('Window.clearInterval')
   @DocsEditable()
-  void _clearInterval(int handle) native;
+  void _clearInterval([int handle]) native;
 
   @JSName('clearTimeout')
   @DomName('Window.clearTimeout')
   @DocsEditable()
-  void _clearTimeout(int handle) native;
+  void _clearTimeout([int handle]) native;
 
   @JSName('setInterval')
   @DomName('Window.setInterval')
   @DocsEditable()
-  int _setInterval(Object handler, int timeout) native;
+  int _setInterval(String handler, [int timeout, Object arguments]) native;
 
   @JSName('setTimeout')
   @DomName('Window.setTimeout')
   @DocsEditable()
-  int _setTimeout(Object handler, int timeout) native;
+  int _setTimeout(String handler, [int timeout, Object arguments]) native;
 
   /// Stream of `contentloaded` events handled by this [Window].
   @DomName('Window.onDOMContentLoaded')
@@ -33907,9 +37320,42 @@ abstract class WindowBase64 extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory WindowBase64._() { throw new UnsupportedError("Not supported"); }
 
-  String atob(String string);
+  String atob(String atob);
 
-  String btoa(String string);
+  String btoa(String btoa);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('WindowClient')
+@Experimental() // untriaged
+@Native("WindowClient")
+class WindowClient extends Client {
+  // To suppress missing implicit constructor warnings.
+  factory WindowClient._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('WindowClient.focused')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final bool focused;
+
+  @DomName('WindowClient.visibilityState')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String visibilityState;
+
+  @DomName('WindowClient.focus')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future focus() native;
+
+  @DomName('WindowClient.navigate')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future navigate(String url) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34108,6 +37554,11 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   @Experimental() // untriaged
   static const int TEMPORARY = 0;
 
+  @DomName('WorkerGlobalScope.caches')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final CacheStorage caches;
+
   @DomName('WorkerGlobalScope.console')
   @DocsEditable()
   @Experimental() // untriaged
@@ -34147,6 +37598,27 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   @DocsEditable()
   @Experimental() // untriaged
   void close() native;
+
+  @DomName('WorkerGlobalScope.fetch')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future fetch(/*RequestInfo*/ input, [Map init]) {
+    if (init != null) {
+      var init_1 = convertDartToNative_Dictionary(init);
+      return _fetch_1(input, init_1);
+    }
+    return _fetch_2(input);
+  }
+  @JSName('fetch')
+  @DomName('WorkerGlobalScope.fetch')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _fetch_1(input, init) native;
+  @JSName('fetch')
+  @DomName('WorkerGlobalScope.fetch')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future _fetch_2(input) native;
 
   @DomName('WorkerGlobalScope.importScripts')
   @DocsEditable()
@@ -34212,12 +37684,12 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   @DomName('WorkerGlobalScope.atob')
   @DocsEditable()
   @Experimental() // untriaged
-  String atob(String string) native;
+  String atob(String atob) native;
 
   @DomName('WorkerGlobalScope.btoa')
   @DocsEditable()
   @Experimental() // untriaged
-  String btoa(String string) native;
+  String btoa(String btoa) native;
 
   // From WindowTimers
 
@@ -34225,25 +37697,25 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   @DomName('WorkerGlobalScope.clearInterval')
   @DocsEditable()
   @Experimental() // untriaged
-  void _clearInterval(int handle) native;
+  void _clearInterval([int handle]) native;
 
   @JSName('clearTimeout')
   @DomName('WorkerGlobalScope.clearTimeout')
   @DocsEditable()
   @Experimental() // untriaged
-  void _clearTimeout(int handle) native;
+  void _clearTimeout([int handle]) native;
 
   @JSName('setInterval')
   @DomName('WorkerGlobalScope.setInterval')
   @DocsEditable()
   @Experimental() // untriaged
-  int _setInterval(Object handler, int timeout) native;
+  int _setInterval(String handler, [int timeout, Object arguments]) native;
 
   @JSName('setTimeout')
   @DomName('WorkerGlobalScope.setTimeout')
   @DocsEditable()
   @Experimental() // untriaged
-  int _setTimeout(Object handler, int timeout) native;
+  int _setTimeout(String handler, [int timeout, Object arguments]) native;
 
   /// Stream of `error` events handled by this [WorkerGlobalScope].
   @DomName('WorkerGlobalScope.onerror')
@@ -34260,7 +37732,7 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
 @DomName('WorkerPerformance')
 @Experimental() // untriaged
 @Native("WorkerPerformance")
-class WorkerPerformance extends Interceptor {
+class WorkerPerformance extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory WorkerPerformance._() { throw new UnsupportedError("Not supported"); }
 
@@ -34269,10 +37741,35 @@ class WorkerPerformance extends Interceptor {
   @Experimental() // untriaged
   final MemoryInfo memory;
 
-  @DomName('WorkerPerformance.now')
+  @DomName('WorkerPerformance.clearMarks')
   @DocsEditable()
   @Experimental() // untriaged
-  double now() native;
+  void clearMarks(String markName) native;
+
+  @DomName('WorkerPerformance.clearMeasures')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void clearMeasures(String measureName) native;
+
+  @DomName('WorkerPerformance.clearResourceTimings')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void clearResourceTimings() native;
+
+  @DomName('WorkerPerformance.mark')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void mark(String markName) native;
+
+  @DomName('WorkerPerformance.measure')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void measure(String measureName, String startMark, String endMark) native;
+
+  @DomName('WorkerPerformance.setResourceTimingBufferSize')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void setResourceTimingBufferSize(int maxSize) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34305,7 +37802,7 @@ class XPathEvaluator extends Interceptor {
 
   @DomName('XPathEvaluator.evaluate')
   @DocsEditable()
-  XPathResult evaluate(String expression, Node contextNode, XPathNSResolver resolver, int type, XPathResult inResult) native;
+  XPathResult evaluate(String expression, Node contextNode, XPathNSResolver resolver, [int type, Object inResult]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34323,7 +37820,7 @@ class XPathExpression extends Interceptor {
 
   @DomName('XPathExpression.evaluate')
   @DocsEditable()
-  XPathResult evaluate(Node contextNode, int type, XPathResult inResult) native;
+  XPathResult evaluate(Node contextNode, [int type, Object inResult]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34470,7 +37967,7 @@ class XmlSerializer extends Interceptor {
 
   @DomName('XMLSerializer.serializeToString')
   @DocsEditable()
-  String serializeToString(Node node) native;
+  String serializeToString(Node root) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34508,7 +38005,7 @@ class XsltProcessor extends Interceptor {
 
   @DomName('XSLTProcessor.importStylesheet')
   @DocsEditable()
-  void importStylesheet(Node stylesheet) native;
+  void importStylesheet(Node style) native;
 
   @DomName('XSLTProcessor.removeParameter')
   @DocsEditable()
@@ -34528,7 +38025,7 @@ class XsltProcessor extends Interceptor {
 
   @DomName('XSLTProcessor.transformToFragment')
   @DocsEditable()
-  DocumentFragment transformToFragment(Node source, Document docVal) native;
+  DocumentFragment transformToFragment(Node source, Document output) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34542,15 +38039,21 @@ class _Attr extends Node {
   // To suppress missing implicit constructor warnings.
   factory _Attr._() { throw new UnsupportedError("Not supported"); }
 
-  // Use implementation from Node.
-  // final String _localName;
+  @JSName('localName')
+  @DomName('Attr.localName')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String _localName;
 
   @DomName('Attr.name')
   @DocsEditable()
   final String name;
 
-  // Use implementation from Node.
-  // final String _namespaceUri;
+  @JSName('namespaceURI')
+  @DomName('Attr.namespaceURI')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String _namespaceUri;
 
   // Use implementation from Node.
   // final String nodeValue;
@@ -34565,48 +38068,6 @@ class _Attr extends Node {
   @DomName('Attr.value')
   @DocsEditable()
   String value;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('CSSPrimitiveValue')
-// http://dev.w3.org/csswg/cssom/#the-cssstyledeclaration-interface
-@deprecated // deprecated
-@Native("CSSPrimitiveValue")
-abstract class _CSSPrimitiveValue extends _CSSValue {
-  // To suppress missing implicit constructor warnings.
-  factory _CSSPrimitiveValue._() { throw new UnsupportedError("Not supported"); }
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('CSSUnknownRule')
-// http://dev.w3.org/csswg/cssom/#the-cssstylesheet-interface
-@deprecated // deprecated
-@Native("CSSUnknownRule")
-abstract class _CSSUnknownRule extends CssRule {
-  // To suppress missing implicit constructor warnings.
-  factory _CSSUnknownRule._() { throw new UnsupportedError("Not supported"); }
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('CSSValue')
-// http://dev.w3.org/csswg/cssom/
-@deprecated // deprecated
-@Native("CSSValue")
-abstract class _CSSValue extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory _CSSValue._() { throw new UnsupportedError("Not supported"); }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34804,7 +38265,7 @@ class _JenkinsSmiHash {
 @DocsEditable()
 @DomName('ClientRectList')
 @Native("ClientRectList,DOMRectList")
-class _ClientRectList extends Interceptor with ListMixin<Rectangle>, ImmutableListMixin<Rectangle> implements List<Rectangle>, JavaScriptIndexingBehavior {
+class _ClientRectList extends Interceptor with ListMixin<Rectangle>, ImmutableListMixin<Rectangle> implements List<Rectangle> {
   // To suppress missing implicit constructor warnings.
   factory _ClientRectList._() { throw new UnsupportedError("Not supported"); }
 
@@ -34816,7 +38277,7 @@ class _ClientRectList extends Interceptor with ListMixin<Rectangle>, ImmutableLi
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
       throw new RangeError.index(index, this);
-    return JS("Rectangle", "#[#]", this, index);
+    return this.item(index);
   }
   void operator[]=(int index, Rectangle value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -34856,23 +38317,14 @@ class _ClientRectList extends Interceptor with ListMixin<Rectangle>, ImmutableLi
   Rectangle elementAt(int index) => this[index];
   // -- end List<Rectangle> mixins.
 
+  @DomName('ClientRectList.__getter__')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Rectangle __getter__(int index) native;
+
   @DomName('ClientRectList.item')
   @DocsEditable()
   Rectangle item(int index) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('Counter')
-// http://dev.w3.org/csswg/cssom/
-@deprecated // deprecated
-@Native("Counter")
-abstract class _Counter extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory _Counter._() { throw new UnsupportedError("Not supported"); }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34937,72 +38389,6 @@ class _CssRuleList extends Interceptor with ListMixin<CssRule>, ImmutableListMix
   @DomName('CSSRuleList.item')
   @DocsEditable()
   CssRule item(int index) native;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('CSSValueList')
-// http://dev.w3.org/csswg/cssom/
-@deprecated // deprecated
-@Native("CSSValueList")
-class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMixin<_CSSValue> implements JavaScriptIndexingBehavior, List<_CSSValue> {
-  // To suppress missing implicit constructor warnings.
-  factory _CssValueList._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('CSSValueList.length')
-  @DocsEditable()
-  int get length => JS("int", "#.length", this);
-
-  _CSSValue operator[](int index) {
-    if (JS("bool", "# >>> 0 !== # || # >= #", index,
-        index, index, length))
-      throw new RangeError.index(index, this);
-    return JS("_CSSValue", "#[#]", this, index);
-  }
-  void operator[]=(int index, _CSSValue value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<_CSSValue> mixins.
-  // _CSSValue is the element type.
-
-
-  set length(int value) {
-    throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  _CSSValue get first {
-    if (this.length > 0) {
-      return JS('_CSSValue', '#[0]', this);
-    }
-    throw new StateError("No elements");
-  }
-
-  _CSSValue get last {
-    int len = this.length;
-    if (len > 0) {
-      return JS('_CSSValue', '#[#]', this, len - 1);
-    }
-    throw new StateError("No elements");
-  }
-
-  _CSSValue get single {
-    int len = this.length;
-    if (len == 1) {
-      return JS('_CSSValue', '#[0]', this);
-    }
-    if (len == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  _CSSValue elementAt(int index) => this[index];
-  // -- end List<_CSSValue> mixins.
-
-  @DomName('CSSValueList.item')
-  @DocsEditable()
-  _CSSValue item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35283,26 +38669,6 @@ abstract class _HTMLAllCollection extends Interceptor {
 
 
 @DocsEditable()
-@DomName('HTMLAppletElement')
-// http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#the-applet-element
-@deprecated // deprecated
-@Native("HTMLAppletElement")
-abstract class _HTMLAppletElement extends HtmlElement {
-  // To suppress missing implicit constructor warnings.
-  factory _HTMLAppletElement._() { throw new UnsupportedError("Not supported"); }
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _HTMLAppletElement.created() : super.created();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
 @DomName('HTMLDirectoryElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#dir
 @deprecated // deprecated
@@ -35484,37 +38850,33 @@ class _NamedNodeMap extends Interceptor with ListMixin<Node>, ImmutableListMixin
   Node elementAt(int index) => this[index];
   // -- end List<Node> mixins.
 
-  @DomName('NamedNodeMap.__getter__')
-  @DocsEditable()
-  Node __getter__(String name) native;
-
   @DomName('NamedNodeMap.getNamedItem')
   @DocsEditable()
-  Node getNamedItem(String name) native;
+  _Attr getNamedItem(String name) native;
 
   @DomName('NamedNodeMap.getNamedItemNS')
   @DocsEditable()
-  Node getNamedItemNS(String namespaceURI, String localName) native;
+  _Attr getNamedItemNS(String namespaceURI, String localName) native;
 
   @DomName('NamedNodeMap.item')
   @DocsEditable()
-  Node item(int index) native;
+  _Attr item(int index) native;
 
   @DomName('NamedNodeMap.removeNamedItem')
   @DocsEditable()
-  Node removeNamedItem(String name) native;
+  _Attr removeNamedItem(String name) native;
 
   @DomName('NamedNodeMap.removeNamedItemNS')
   @DocsEditable()
-  Node removeNamedItemNS(String namespaceURI, String localName) native;
+  _Attr removeNamedItemNS(String namespaceURI, String localName) native;
 
   @DomName('NamedNodeMap.setNamedItem')
   @DocsEditable()
-  Node setNamedItem(Node node) native;
+  _Attr setNamedItem(_Attr attr) native;
 
   @DomName('NamedNodeMap.setNamedItemNS')
   @DocsEditable()
-  Node setNamedItemNS(Node node) native;
+  _Attr setNamedItemNS(_Attr attr) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35528,20 +38890,6 @@ class _NamedNodeMap extends Interceptor with ListMixin<Node>, ImmutableListMixin
 abstract class _PagePopupController extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory _PagePopupController._() { throw new UnsupportedError("Not supported"); }
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('RGBColor')
-// http://dev.w3.org/csswg/cssom/
-@deprecated // deprecated
-@Native("RGBColor")
-abstract class _RGBColor extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory _RGBColor._() { throw new UnsupportedError("Not supported"); }
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35558,20 +38906,6 @@ abstract class _RGBColor extends Interceptor {
 
 
 @DocsEditable()
-@DomName('Rect')
-// http://dev.w3.org/csswg/cssom/
-@deprecated // deprecated
-@Native("Rect")
-abstract class _Rect extends Interceptor {
-  // To suppress missing implicit constructor warnings.
-  factory _Rect._() { throw new UnsupportedError("Not supported"); }
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
 @DomName('Request')
 @Experimental() // untriaged
 @Native("Request")
@@ -35581,27 +38915,15 @@ class _Request extends Body {
 
   @DomName('Request.Request')
   @DocsEditable()
-  factory _Request(input, [Map requestInitDict]) {
-    if ((input is String || input == null) && requestInitDict == null) {
-      return _Request._create_1(input);
-    }
-    if ((requestInitDict is Map || requestInitDict == null) && (input is String || input == null)) {
+  factory _Request(Object input, [Map requestInitDict]) {
+    if (requestInitDict != null) {
       var requestInitDict_1 = convertDartToNative_Dictionary(requestInitDict);
-      return _Request._create_2(input, requestInitDict_1);
+      return _Request._create_1(input, requestInitDict_1);
     }
-    if ((input is _Request || input == null) && requestInitDict == null) {
-      return _Request._create_3(input);
-    }
-    if ((requestInitDict is Map || requestInitDict == null) && (input is _Request || input == null)) {
-      var requestInitDict_1 = convertDartToNative_Dictionary(requestInitDict);
-      return _Request._create_4(input, requestInitDict_1);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
+    return _Request._create_2(input);
   }
-  static _Request _create_1(input) => JS('_Request', 'new Request(#)', input);
-  static _Request _create_2(input, requestInitDict) => JS('_Request', 'new Request(#,#)', input, requestInitDict);
-  static _Request _create_3(input) => JS('_Request', 'new Request(#)', input);
-  static _Request _create_4(input, requestInitDict) => JS('_Request', 'new Request(#,#)', input, requestInitDict);
+  static _Request _create_1(input, requestInitDict) => JS('_Request', 'new Request(#,#)', input, requestInitDict);
+  static _Request _create_2(input) => JS('_Request', 'new Request(#)', input);
 
   @DomName('Request.credentials')
   @DocsEditable()
@@ -35613,10 +38935,20 @@ class _Request extends Body {
   @Experimental() // untriaged
   final Headers headers;
 
+  @DomName('Request.integrity')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String integrity;
+
   @DomName('Request.mode')
   @DocsEditable()
   @Experimental() // untriaged
   final String mode;
+
+  @DomName('Request.redirect')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String redirect;
 
   @DomName('Request.referrer')
   @DocsEditable()
@@ -35648,45 +38980,19 @@ abstract class _Response extends Body {
 
   @DomName('Response.Response')
   @DocsEditable()
-  factory _Response(body_OR_input, [Map requestInitDict_OR_responseInitDict]) {
-    if ((body_OR_input is String || body_OR_input == null) && requestInitDict_OR_responseInitDict == null) {
-      return _Response._create_1(body_OR_input);
+  factory _Response([Object body, Map responseInitDict]) {
+    if (responseInitDict != null) {
+      var responseInitDict_1 = convertDartToNative_Dictionary(responseInitDict);
+      return _Response._create_1(body, responseInitDict_1);
     }
-    if ((requestInitDict_OR_responseInitDict is Map || requestInitDict_OR_responseInitDict == null) && (body_OR_input is String || body_OR_input == null)) {
-      var responseInitDict_1 = convertDartToNative_Dictionary(requestInitDict_OR_responseInitDict);
-      return _Response._create_2(body_OR_input, responseInitDict_1);
+    if (body != null) {
+      return _Response._create_2(body);
     }
-    if ((body_OR_input is Blob || body_OR_input == null) && requestInitDict_OR_responseInitDict == null) {
-      return _Response._create_3(body_OR_input);
-    }
-    if ((requestInitDict_OR_responseInitDict is Map || requestInitDict_OR_responseInitDict == null) && (body_OR_input is Blob || body_OR_input == null)) {
-      var responseInitDict_1 = convertDartToNative_Dictionary(requestInitDict_OR_responseInitDict);
-      return _Response._create_4(body_OR_input, responseInitDict_1);
-    }
-    if ((body_OR_input is TypedData || body_OR_input == null) && requestInitDict_OR_responseInitDict == null) {
-      return _Response._create_5(body_OR_input);
-    }
-    if ((requestInitDict_OR_responseInitDict is Map || requestInitDict_OR_responseInitDict == null) && (body_OR_input is TypedData || body_OR_input == null)) {
-      var requestInitDict_1 = convertDartToNative_Dictionary(requestInitDict_OR_responseInitDict);
-      return _Response._create_6(body_OR_input, requestInitDict_1);
-    }
-    if ((body_OR_input is ByteBuffer || body_OR_input == null) && requestInitDict_OR_responseInitDict == null) {
-      return _Response._create_7(body_OR_input);
-    }
-    if ((requestInitDict_OR_responseInitDict is Map || requestInitDict_OR_responseInitDict == null) && (body_OR_input is ByteBuffer || body_OR_input == null)) {
-      var requestInitDict_1 = convertDartToNative_Dictionary(requestInitDict_OR_responseInitDict);
-      return _Response._create_8(body_OR_input, requestInitDict_1);
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
+    return _Response._create_3();
   }
-  static _Response _create_1(body_OR_input) => JS('_Response', 'new Response(#)', body_OR_input);
-  static _Response _create_2(body_OR_input, requestInitDict_OR_responseInitDict) => JS('_Response', 'new Response(#,#)', body_OR_input, requestInitDict_OR_responseInitDict);
-  static _Response _create_3(body_OR_input) => JS('_Response', 'new Response(#)', body_OR_input);
-  static _Response _create_4(body_OR_input, requestInitDict_OR_responseInitDict) => JS('_Response', 'new Response(#,#)', body_OR_input, requestInitDict_OR_responseInitDict);
-  static _Response _create_5(body_OR_input) => JS('_Response', 'new Response(#)', body_OR_input);
-  static _Response _create_6(body_OR_input, requestInitDict_OR_responseInitDict) => JS('_Response', 'new Response(#,#)', body_OR_input, requestInitDict_OR_responseInitDict);
-  static _Response _create_7(body_OR_input) => JS('_Response', 'new Response(#)', body_OR_input);
-  static _Response _create_8(body_OR_input, requestInitDict_OR_responseInitDict) => JS('_Response', 'new Response(#,#)', body_OR_input, requestInitDict_OR_responseInitDict);
+  static _Response _create_1(body, responseInitDict) => JS('_Response', 'new Response(#,#)', body, responseInitDict);
+  static _Response _create_2(body) => JS('_Response', 'new Response(#)', body);
+  static _Response _create_3() => JS('_Response', 'new Response()');
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35856,20 +39162,6 @@ abstract class _SubtleCrypto extends Interceptor {
 
 
 @DocsEditable()
-@DomName('WebKitCSSFilterValue')
-// http://dev.w3.org/csswg/cssom/
-@deprecated // deprecated
-@Native("WebKitCSSFilterValue")
-abstract class _WebKitCSSFilterValue extends _CssValueList {
-  // To suppress missing implicit constructor warnings.
-  factory _WebKitCSSFilterValue._() { throw new UnsupportedError("Not supported"); }
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
 @DomName('WebKitCSSMatrix')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -35898,33 +39190,19 @@ abstract class _WebKitCSSMatrix extends Interceptor {
 
 
 @DocsEditable()
-@DomName('WebKitCSSTransformValue')
-// http://dev.w3.org/csswg/cssom/
-@deprecated // deprecated
-@Native("WebKitCSSTransformValue")
-abstract class _WebKitCSSTransformValue extends _CssValueList {
-  // To suppress missing implicit constructor warnings.
-  factory _WebKitCSSTransformValue._() { throw new UnsupportedError("Not supported"); }
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
 @DomName('WindowTimers')
 @Experimental() // untriaged
 abstract class _WindowTimers extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory _WindowTimers._() { throw new UnsupportedError("Not supported"); }
 
-  void _clearInterval(int handle);
+  void _clearInterval([int handle]);
 
-  void _clearTimeout(int handle);
+  void _clearTimeout([int handle]);
 
-  int _setInterval(Object handler, int timeout);
+  int _setInterval(String handler, [int timeout, Object arguments]);
 
-  int _setTimeout(Object handler, int timeout);
+  int _setTimeout(String handler, [int timeout, Object arguments]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

@@ -207,7 +207,7 @@ class SqlResultSet extends Interceptor {
 // http://www.w3.org/TR/webdatabase/#sqlresultsetrowlist
 @Experimental() // deprecated
 @Native("SQLResultSetRowList")
-class SqlResultSetRowList extends Interceptor with ListMixin<Map>, ImmutableListMixin<Map> implements List<Map> {
+class SqlResultSetRowList extends Interceptor with ListMixin<Map>, ImmutableListMixin<Map> implements JavaScriptIndexingBehavior, List<Map> {
   // To suppress missing implicit constructor warnings.
   factory SqlResultSetRowList._() { throw new UnsupportedError("Not supported"); }
 
@@ -219,7 +219,7 @@ class SqlResultSetRowList extends Interceptor with ListMixin<Map>, ImmutableList
     if (JS("bool", "# >>> 0 !== # || # >= #", index,
         index, index, length))
       throw new RangeError.index(index, this);
-    return this.item(index);
+    return JS("Map", "#[#]", this, index);
   }
   void operator[]=(int index, Map value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -262,14 +262,7 @@ class SqlResultSetRowList extends Interceptor with ListMixin<Map>, ImmutableList
   @DomName('SQLResultSetRowList.item')
   @DocsEditable()
   @Creates('=Object')
-  Map item(int index) {
-    return convertNativeToDart_Dictionary(_item_1(index));
-  }
-  @JSName('item')
-  @DomName('SQLResultSetRowList.item')
-  @DocsEditable()
-  @Creates('=Object')
-  _item_1(index) native;
+  Object item(int index) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -290,5 +283,5 @@ class SqlTransaction extends Interceptor {
 
   @DomName('SQLTransaction.executeSql')
   @DocsEditable()
-  void executeSql(String sqlStatement, List<Object> arguments, [SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) native;
+  void executeSql(String sqlStatement, [List arguments, SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) native;
 }
