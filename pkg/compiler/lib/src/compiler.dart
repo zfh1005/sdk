@@ -220,7 +220,8 @@ abstract class Compiler implements LibraryLoaderListener, IdGenerator {
   ConstructorElement stringEnvironment;
 
   /// Tracks elements with compile-time errors.
-  final Set<Element> elementsWithCompileTimeErrors = new Set<Element>();
+  final Map<Element, DiagnosticMessage> elementsWithCompileTimeErrors =
+      new Map<Element, DiagnosticMessage>();
 
   final Environment environment;
   // TODO(sigmund): delete once we migrate the rest of the compiler to use
@@ -281,16 +282,7 @@ abstract class Compiler implements LibraryLoaderListener, IdGenerator {
   static const int PHASE_COMPILING = 3;
   int phase;
 
-  bool compilationFailedInternal = false;
-
-  bool get compilationFailed => compilationFailedInternal;
-
-  void set compilationFailed(bool value) {
-    if (value) {
-      elementsWithCompileTimeErrors.add(currentElement);
-    }
-    compilationFailedInternal = value;
-  }
+  bool compilationFailed = false;
 
   Compiler(
       {CompilerOptions options,
@@ -1113,6 +1105,7 @@ abstract class Compiler implements LibraryLoaderListener, IdGenerator {
     if (markCompilationAsFailed(message, kind)) {
       compilationFailed = true;
     }
+    registerCompiletimeError(currentElement, message);
   }
 
   // TODO(sigmund): move this dart doc somewhere else too.
@@ -1269,8 +1262,17 @@ abstract class Compiler implements LibraryLoaderListener, IdGenerator {
     backend.forgetElement(element);
   }
 
+  /// Returns [true] if a compile-time error has been reported for element.
   bool elementHasCompileTimeError(Element element) {
-    return elementsWithCompileTimeErrors.contains(element);
+    return elementsWithCompileTimeErrors.containsKey(element);
+  }
+
+  /// Associate [element] with a compile-time error [message].
+  void registerCompiletimeError(Element element, DiagnosticMessage message) {
+    // The information is only needed if [generateCodeWithCompileTimeErrors].
+    if (options.generateCodeWithCompileTimeErrors) {
+      elementsWithCompileTimeErrors[element] = message;
+    }
   }
 
   EventSink<String> outputProvider(String name, String extension) {
