@@ -1566,8 +1566,13 @@ class JavaScriptBackend extends Backend {
   WorldImpact codegen(CodegenWorkItem work) {
     Element element = work.element;
     if (compiler.elementHasCompileTimeError(element)) {
-      generatedCode[element] = jsAst.js(
-          "function () { throw new Error('Compile time error in $element') }");
+      DiagnosticMessage message =
+          compiler.elementsWithCompileTimeErrors[element];
+      String messageText = message.message.computeMessage();
+      jsAst.LiteralString messageLiteral =
+          js.escapedString("Compile time error in $element: $messageText");
+      generatedCode[element] = js(
+          "function () { throw new Error(#); }", [messageLiteral]);
       return const CodegenImpact();
     }
     var kind = element.kind;

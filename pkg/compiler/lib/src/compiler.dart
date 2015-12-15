@@ -346,7 +346,8 @@ abstract class Compiler {
   ConstructorElement stringEnvironment;
 
   /// Tracks elements with compile-time errors.
-  final Set<Element> elementsWithCompileTimeErrors = new Set<Element>();
+  final Map<Element, DiagnosticMessage> elementsWithCompileTimeErrors =
+      new Map<Element, DiagnosticMessage>();
 
   fromEnvironment(String name) => null;
 
@@ -408,16 +409,7 @@ abstract class Compiler {
   static const int PHASE_COMPILING = 3;
   int phase;
 
-  bool compilationFailedInternal = false;
-
-  bool get compilationFailed => compilationFailedInternal;
-
-  void set compilationFailed(bool value) {
-    if (value) {
-      elementsWithCompileTimeErrors.add(currentElement);
-    }
-    compilationFailedInternal = value;
-  }
+  bool compilationFailed = false;
 
   /// Set by the backend if real reflection is detected in use of dart:mirrors.
   bool disableTypeInferenceForMirrors = false;
@@ -1423,8 +1415,17 @@ abstract class Compiler {
     backend.forgetElement(element);
   }
 
+  /// Returns [true] if a compile-time error has been reported for element.
   bool elementHasCompileTimeError(Element element) {
-    return elementsWithCompileTimeErrors.contains(element);
+    return elementsWithCompileTimeErrors.containsKey(element);
+  }
+
+  /// Associate [element] with a compile-time error [message].
+  void registerCompiletimeError(Element element, DiagnosticMessage message) {
+    // The information is only needed if [generateCodeWithCompileTimeErrors].
+    if (generateCodeWithCompileTimeErrors) {
+      elementsWithCompileTimeErrors[element] = message;
+    }
   }
 
   EventSink<String> outputProvider(String name, String extension) {
@@ -1693,6 +1694,7 @@ class _CompilerDiagnosticReporter extends DiagnosticReporter {
         kind == api.Diagnostic.CRASH ||
         (options.fatalWarnings &&
          kind == api.Diagnostic.WARNING)) {
+      compiler.registerCompiletimeError(currentElement, message);
       compiler.compilationFailed = true;
     }
     compiler.reportDiagnostic(message, infos, kind);
