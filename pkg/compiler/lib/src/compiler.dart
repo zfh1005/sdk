@@ -278,7 +278,8 @@ abstract class Compiler {
   ConstructorElement stringEnvironment;
 
   /// Tracks elements with compile-time errors.
-  final Set<Element> elementsWithCompileTimeErrors = new Set<Element>();
+  final Map<Element, DiagnosticMessage> elementsWithCompileTimeErrors =
+      new Map<Element, DiagnosticMessage>();
 
   fromEnvironment(String name) => null;
 
@@ -336,16 +337,7 @@ abstract class Compiler {
   static const int PHASE_COMPILING = 3;
   int phase;
 
-  bool compilationFailedInternal = false;
-
-  bool get compilationFailed => compilationFailedInternal;
-
-  void set compilationFailed(bool value) {
-    if (value) {
-      elementsWithCompileTimeErrors.add(currentElement);
-    }
-    compilationFailedInternal = value;
-  }
+  bool compilationFailed = false;
 
   Compiler({api.CompilerOptions options,
             api.CompilerOutput outputProvider,
@@ -1152,6 +1144,7 @@ abstract class Compiler {
     if (markCompilationAsFailed(message, kind)) {
       compilationFailed = true;
     }
+    registerCompiletimeError(currentElement, message);
   }
 
   /**
@@ -1340,8 +1333,17 @@ abstract class Compiler {
     backend.forgetElement(element);
   }
 
+  /// Returns [true] if a compile-time error has been reported for element.
   bool elementHasCompileTimeError(Element element) {
-    return elementsWithCompileTimeErrors.contains(element);
+    return elementsWithCompileTimeErrors.containsKey(element);
+  }
+
+  /// Associate [element] with a compile-time error [message].
+  void registerCompiletimeError(Element element, DiagnosticMessage message) {
+    // The information is only needed if [generateCodeWithCompileTimeErrors].
+    if (options.generateCodeWithCompileTimeErrors) {
+      elementsWithCompileTimeErrors[element] = message;
+    }
   }
 
   EventSink<String> outputProvider(String name, String extension) {
