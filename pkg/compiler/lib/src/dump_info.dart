@@ -565,7 +565,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
         size: _programSize,
         dart2jsVersion: compiler.hasBuildId ? compiler.buildId : null,
         compilationMoment: new DateTime.now(),
-        compilationDuration: compiler.totalCompileTime.elapsed,
+        compilationDuration: compiler.measurer.wallClock.elapsed,
         toJsonDuration: stopwatch.elapsedMilliseconds,
         dumpInfoDuration: this.timing,
         noSuchMethodEnabled: compiler.backend.enabledNoSuchMethod,
