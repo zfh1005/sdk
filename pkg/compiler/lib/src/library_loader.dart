@@ -37,6 +37,9 @@ import 'util/util.dart' show
     Link,
     LinkBuilder;
 
+typedef Future<Iterable<LibraryElement>> ReuseLibrariesFunction(
+    Iterable<LibraryElement> libraries);
+
 /**
  * [CompilerTask] for loading libraries and setting up the import/export scopes.
  *
@@ -157,6 +160,10 @@ abstract class LibraryLoaderTask implements CompilerTask {
 
   /// Asynchronous version of [reset].
   Future resetAsync(Future<bool> reuseLibrary(LibraryElement library));
+
+  /// Similar to [resetAsync] but [reuseLibrary] maps all libraries to a list
+  /// of libraries that can be reused.
+  Future<Null> resetLibraries(ReuseLibrariesFunction reuseLibraries);
 }
 
 /// Handle for creating synthesized/patch libraries during library loading.
@@ -326,9 +333,29 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
               () => libraryCanonicalUriMap.values.map(wrapper).toList());
 
       return Future.wait(reusedLibrariesFuture).then(
-          (List<LibraryElement> reusedLibraries) {
+          (Iterable<LibraryElement> reusedLibraries) {
             resetImplementation(reusedLibraries.where((e) => e != null));
           });
+    });
+  }
+
+  Future<Null> resetLibraries(
+      Future<Iterable<LibraryElement>> reuseLibraries(
+          Iterable<LibraryElement> libraries)) {
+    assert(currentHandler == null);
+    return compiler.reuseLibraryTask.measure(() {
+      return new Future<Iterable<LibraryElement>>(() {
+        // Wrap in Future to shield against errors in user code.
+        return reuseLibraries(libraryCanonicalUriMap.values);
+      }).catchError((exception, StackTrace trace) {
+        compiler.diagnoseCrashInUserCode(
+            'Uncaught exception in reuseLibraries', exception, trace);
+        throw exception; // Async rethrow.
+      }).then((Iterable<LibraryElement> reusedLibraries) {
+        measure(() {
+          resetImplementation(reusedLibraries);
+        });
+      });
     });
   }
 
