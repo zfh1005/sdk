@@ -16,7 +16,8 @@ import 'package:package_config/src/util.dart' show checkValidPackageUri;
 import '../compiler_new.dart' as api;
 import 'common.dart';
 import 'common/tasks.dart' show
-    GenericTask;
+    GenericTask,
+    Measurer;
 import 'common/backend_api.dart' show
     Backend;
 import 'compiler.dart';
@@ -227,14 +228,14 @@ class CompilerImpl extends Compiler {
 
   Future<elements.LibraryElement> analyzeUri(Uri uri,
       {bool skipLibraryWithPartOfTag: true}) {
-    List<Future> setupFutures = new List<Future>();
+    Future setupFuture = new Future.value();
     if (sdkLibraries == null) {
-      setupFutures.add(setupSdk());
+      setupFuture = setupFuture.then((_) => setupSdk());
     }
     if (packages == null) {
-      setupFutures.add(setupPackages(uri));
+      setupFuture = setupFuture.then((_) => setupPackages(uri));
     }
-    return Future.wait(setupFutures).then((_) {
+    return setupFuture.then((_) {
       return super
           .analyzeUri(uri, skipLibraryWithPartOfTag: skipLibraryWithPartOfTag);
     });
@@ -291,28 +292,47 @@ class CompilerImpl extends Compiler {
   }
 
   Future<bool> run(Uri uri) {
-    log('Using platform configuration at ${options.platformConfigUri}');
+    Duration setupDuration = measurer.wallClock.elapsed;
+    return selfTask.measureSubtask("CompilerImpl.run", () {
+      log('Using platform configuration at ${options.platformConfigUri}');
 
-    return Future.wait([setupSdk(), setupPackages(uri)]).then((_) {
-      assert(sdkLibraries != null);
-      assert(packages != null);
-
-      return super.run(uri).then((bool success) {
-        int cumulated = 0;
+      return setupSdk().then((_) => setupPackages(uri)).then((_) {
+        assert(sdkLibraries != null);
+        assert(packages != null);
+        return super.run(uri);
+      }).then((bool success) {
+        StringBuffer timings = new StringBuffer();
+        timings.writeln("Timings:");
+        Duration totalDuration = measurer.wallClock.elapsed;
+        Duration asyncDuration = measurer.asyncWallClock.elapsed;
+        Duration cumulatedDuration = Duration.ZERO;
         for (final task in tasks) {
-          int elapsed = task.timing;
-          if (elapsed != 0) {
-            cumulated += elapsed;
-            log('${task.name} took ${elapsed}msec');
+          String running = task.isRunning ? "*" : "";
+          Duration duration = task.duration;
+          if (duration != Duration.ZERO) {
+            cumulatedDuration += duration;
+            timings.writeln(
+                '    $running${task.name} took'
+                ' ${duration.inMilliseconds}msec');
             for (String subtask in task.subtasks) {
               int subtime = task.getSubtaskTime(subtask);
-              log('${task.name} > $subtask took ${subtime}msec');
+              String running = task.getSubtaskIsRunning(subtask) ? "*" : "";
+              timings.writeln(
+                  '    $running${task.name} > $subtask took ${subtime}msec');
             }
           }
         }
-        int total = totalCompileTime.elapsedMilliseconds;
-        log('Total compile-time ${total}msec;'
-            ' unaccounted ${total - cumulated}msec');
+        Duration unaccountedDuration =
+            totalDuration - cumulatedDuration - setupDuration - asyncDuration;
+        double percent = unaccountedDuration.inMilliseconds * 100
+            / totalDuration.inMilliseconds;
+        timings.write(
+            '    Total compile-time ${totalDuration.inMilliseconds}msec;'
+            ' setup ${setupDuration.inMilliseconds}msec;'
+            ' async ${asyncDuration.inMilliseconds}msec;'
+            ' unaccounted ${unaccountedDuration.inMilliseconds}msec'
+            ' (${percent.toStringAsFixed(2)}%)');
+        log("$timings");
         return success;
       });
     });
@@ -351,12 +371,12 @@ class CompilerImpl extends Compiler {
   }
 
   Future callUserProvider(Uri uri) {
-    return userProviderTask.measure(() => provider.readFromUri(uri));
+    return userProviderTask.measureIo(() => provider.readFromUri(uri));
   }
 
   Future<Packages> callUserPackagesDiscovery(Uri uri) {
     return userPackagesDiscoveryTask
-        .measure(() => options.packagesDiscoveryProvider(uri));
+        .measureIo(() => options.packagesDiscoveryProvider(uri));
   }
 
   Uri lookupLibraryUri(String libraryName) {
