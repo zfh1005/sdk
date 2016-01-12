@@ -49,6 +49,9 @@ class Object {
 
 
   @patch
+  static void dumpCore() => throw 'no coredump support';
+
+  @patch
   String toString() => Primitives.objectToHumanReadableString(this);
 
   @patch

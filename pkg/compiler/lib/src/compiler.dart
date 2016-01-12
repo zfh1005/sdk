@@ -1862,7 +1862,9 @@ class _CompilerDiagnosticReporter extends DiagnosticReporter {
         createMessage(node, MessageKind.GENERIC, {'text': message}),
         const <DiagnosticMessage>[],
         api.Diagnostic.CRASH);
-    throw 'Internal Error: $message';
+    print('Internal Error: $message');
+    Object.dumpCore();
+    throw 'XAXAXA';
   }
 
   void unhandledExceptionOnElement(Element element) {

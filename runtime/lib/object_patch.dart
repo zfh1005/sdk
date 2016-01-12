@@ -12,6 +12,8 @@ patch class Object {
   // number generator.
   static final _hashCodeRnd = new Random();
 
+  static void dumpCore() native "Object_dumpCore";
+
   static _getHash(obj) native "Object_getHash";
   static _setHash(obj, hash) native "Object_setHash";
 
