@@ -79,6 +79,8 @@ DEFINE_NATIVE_ENTRY(Developer_registerExtension, 2) {
 
 DEFINE_NATIVE_ENTRY(Developer_dumpCore, 0) {
   if (FLAG_enable_dumpcore) {
+    Instance& stacktrace = Instance::Handle(Exceptions::CurrentStacktrace());
+    OS::Print("abort()ing\n%s\n", stacktrace.ToCString());
     abort();
   }
   return Smi::New(0);

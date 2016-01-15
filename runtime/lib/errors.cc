@@ -10,11 +10,19 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, enable_dumpcore);
+
 // Allocate and throw a new AssertionError.
 // Arg0: index of the first token of the failed assertion.
 // Arg1: index of the first token after the failed assertion.
 // Return value: none, throws an exception.
 DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 2) {
+  if (FLAG_enable_dumpcore) {
+    Instance& stacktrace = Instance::Handle(Exceptions::CurrentStacktrace());
+    OS::Print("abort()ing\n%s\n", stacktrace.ToCString());
+    abort();
+  }
+
   // No need to type check the arguments. This function can only be called
   // internally from the VM.
   intptr_t assertion_start =
