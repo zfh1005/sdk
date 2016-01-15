@@ -53,3 +53,10 @@ external void log(String message,
                    Zone zone,
                    Object error,
                    StackTrace stackTrace});
+
+/// Crashes the program via abort() - which will produce a coredump if the
+/// ulimit allows it.
+///
+/// This function has only an effect if --enable_dumpcore was passed to the
+/// DartVM.
+external void dumpCore();

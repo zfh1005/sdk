@@ -55,3 +55,5 @@ patch ServiceExtensionHandler _lookupExtension(String method)
 
 patch _registerExtension(String method, ServiceExtensionHandler handler)
     native "Developer_registerExtension";
+
+patch void dumpCore() native "Developer_dumpCore";

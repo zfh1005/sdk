@@ -88,8 +88,6 @@ class Object {
    */
   external dynamic noSuchMethod(Invocation invocation);
 
-  external static void dumpCore();
-
   /**
    * A representation of the runtime type of the object.
    */

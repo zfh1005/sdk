@@ -8,6 +8,8 @@ import 'dart:async' show
     EventSink,
     Future;
 
+import 'dart:developer' as developer;
+
 import '../compiler_new.dart' as api;
 import 'cache_strategy.dart' show
     CacheStrategy;
@@ -1862,9 +1864,8 @@ class _CompilerDiagnosticReporter extends DiagnosticReporter {
         createMessage(node, MessageKind.GENERIC, {'text': message}),
         const <DiagnosticMessage>[],
         api.Diagnostic.CRASH);
-    print('Internal Error: $message');
-    Object.dumpCore();
-    throw 'XAXAXA';
+    developer.dumpCore();
+    throw 'Internal Error: $message';
   }
 
   void unhandledExceptionOnElement(Element element) {

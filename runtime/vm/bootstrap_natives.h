@@ -14,7 +14,6 @@ namespace dart {
 // List of bootstrap native entry points used in the core dart library.
 #define BOOTSTRAP_NATIVE_LIST(V)                                               \
   V(DartCore_fatal, 1)                                                         \
-  V(Object_dumpCore, 0)                                                        \
   V(Object_equals, 2)                                                          \
   V(Object_getHash, 1)                                                         \
   V(Object_setHash, 2)                                                         \
@@ -74,6 +73,7 @@ namespace dart {
   V(Developer_lookupExtension, 1)                                              \
   V(Developer_registerExtension, 2)                                            \
   V(Developer_log, 8)                                                          \
+  V(Developer_dumpCore, 0)                                                     \
   V(Double_getIsNegative, 1)                                                   \
   V(Double_getIsInfinite, 1)                                                   \
   V(Double_getIsNaN, 1)                                                        \
