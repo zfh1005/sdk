@@ -41,7 +41,6 @@ import 'script.dart';
 /// to "true".
 const String dartLibraryEnvironmentPrefix = 'dart.library.';
 
-
 /// Implements the [Compiler] using a [api.CompilerInput] for supplying the
 /// sources.
 class CompilerImpl extends Compiler {
@@ -63,9 +62,10 @@ class CompilerImpl extends Compiler {
 
   CompilerImpl(this.provider, api.CompilerOutput outputProvider,
       this.handler, api.CompilerOptions options,
-      {Backend makeBackend(Compiler compiler)})
+      {MakeBackendFuncion makeBackend,
+       MakeReporterFunction makeReporter})
       : super(options: options, outputProvider: outputProvider,
-              makeBackend: makeBackend) {
+              makeBackend: makeBackend, makeReporter: makeReporter) {
     tasks.addAll([
         userHandlerTask = new GenericTask('Diagnostic handler', this),
         userProviderTask = new GenericTask('Input provider', this),
