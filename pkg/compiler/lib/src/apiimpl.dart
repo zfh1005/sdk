@@ -49,12 +49,13 @@ class CompilerImpl extends Compiler {
   Uri get libraryRoot => options.platformConfigUri.resolve(".");
 
   CompilerImpl(this.provider, api.CompilerOutput outputProvider, this.handler,
-      CompilerOptions options, {Backend makeBackend(Compiler compiler)})
+      CompilerOptions options,
+      {MakeBackendFuncion makeBackend, MakeReporterFunction makeReporter})
       : super(
             options: options,
             outputProvider: outputProvider,
             environment: new _Environment(options.environment),
-            makeBackend: makeBackend) {
+            makeBackend: makeBackend, makeReporter: makeReporter) {
     _Environment env = environment;
     env.compiler = this;
     tasks.addAll([

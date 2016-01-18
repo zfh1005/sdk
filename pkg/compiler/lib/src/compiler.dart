@@ -89,6 +89,11 @@ import 'universe/world_impact.dart' show ImpactStrategy, WorldImpact;
 import 'util/util.dart' show Link, Setlet;
 import 'world.dart' show World;
 
+typedef Backend MakeBackendFuncion(Compiler compiler);
+
+typedef CompilerDiagnosticReporter MakeReporterFunction(
+    Compiler compiler, CompilerOptions options);
+
 abstract class Compiler implements LibraryLoaderListener, IdGenerator {
   /// Helper instance for measurements in [CompilerTask].
   ///
@@ -100,7 +105,7 @@ abstract class Compiler implements LibraryLoaderListener, IdGenerator {
   World world;
   Types types;
   _CompilerCoreTypes _coreTypes;
-  _CompilerDiagnosticReporter _reporter;
+  CompilerDiagnosticReporter _reporter;
   _CompilerResolution _resolution;
   _CompilerParsing _parsing;
 
@@ -294,18 +299,23 @@ abstract class Compiler implements LibraryLoaderListener, IdGenerator {
       {CompilerOptions options,
       api.CompilerOutput outputProvider,
       this.environment: const _EmptyEnvironment(),
-      Backend makeBackend(Compiler compiler)})
+      MakeBackendFuncion makeBackend,
+      MakeReporterFunction makeReporter})
       : this.options = options,
         this.cacheStrategy = new CacheStrategy(options.hasIncrementalSupport),
         this.userOutputProvider = outputProvider == null
             ? const NullCompilerOutput()
             : outputProvider {
     world = new World(this);
-    // TODO(johnniwinther): Initialize core types in [initializeCoreClasses] and
-    // make its field final.
-    _reporter = new _CompilerDiagnosticReporter(this, options);
+    if (makeReporter != null) {
+      _reporter = makeReporter(this, options);
+    } else {
+      _reporter = new CompilerDiagnosticReporter(this, options);
+    }
     _parsing = new _CompilerParsing(this);
     _resolution = new _CompilerResolution(this);
+    // TODO(johnniwinther): Initialize core types in [initializeCoreClasses] and
+    // make its field final.
     _coreTypes = new _CompilerCoreTypes(_resolution);
     types = new Types(_resolution);
     tracer = new Tracer(this, this.outputProvider);
@@ -1461,7 +1471,7 @@ class _CompilerCoreTypes implements CoreTypes, CoreClasses {
   }
 }
 
-class _CompilerDiagnosticReporter extends DiagnosticReporter {
+class CompilerDiagnosticReporter extends DiagnosticReporter {
   final Compiler compiler;
   final DiagnosticOptions options;
 
@@ -1476,7 +1486,7 @@ class _CompilerDiagnosticReporter extends DiagnosticReporter {
   /// suppressed for each library.
   Map<Uri, SuppressionInfo> suppressedWarnings = <Uri, SuppressionInfo>{};
 
-  _CompilerDiagnosticReporter(this.compiler, this.options);
+  CompilerDiagnosticReporter(this.compiler, this.options);
 
   Element get currentElement => _currentElement;
 
