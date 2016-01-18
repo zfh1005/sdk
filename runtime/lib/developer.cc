@@ -83,7 +83,7 @@ DEFINE_NATIVE_ENTRY(Developer_dumpCore, 0) {
     OS::Print("abort()ing\n%s\n", stacktrace.ToCString());
     abort();
   }
-  return Smi::New(0);
+  return Object::null();
 }
 
 }  // namespace dart
