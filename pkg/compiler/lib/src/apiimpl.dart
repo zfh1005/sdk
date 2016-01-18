@@ -42,6 +42,27 @@ const String _serverPlatform = "lib/dart_server.platform";
 const String _sharedPlatform = "lib/dart_shared.platform";
 const String _dart2dartPlatform = "lib/dart2dart.platform";
 
+typedef DiagnosticOptions MakeDiagnosticOptionsFunction(
+    {bool suppressWarnings,
+     bool fatalWarnings,
+     bool suppressHints,
+     bool terseDiagnostics,
+     bool showPackageWarnings});
+
+DiagnosticOptions makeDiagnosticOptions(
+    {bool suppressWarnings: false,
+     bool fatalWarnings: false,
+     bool suppressHints: false,
+     bool terseDiagnostics: false,
+     bool showPackageWarnings: false}) {
+  return new DiagnosticOptions(
+      suppressWarnings: suppressWarnings,
+      fatalWarnings: fatalWarnings,
+      suppressHints: suppressHints,
+      terseDiagnostics: terseDiagnostics,
+      showPackageWarnings: showPackageWarnings);
+}
+
 /// Implements the [Compiler] using a [api.CompilerInput] for supplying the
 /// sources.
 class CompilerImpl extends Compiler {
@@ -67,16 +88,20 @@ class CompilerImpl extends Compiler {
 
   Uri get libraryRoot => platformConfigUri.resolve(".");
 
-  CompilerImpl(this.provider,
-           api.CompilerOutput outputProvider,
-           this.handler,
-           Uri libraryRoot,
-           this.packageRoot,
-           List<String> options,
-           this.environment,
-           [this.packageConfig,
-            this.packagesDiscoveryProvider,
-            Backend makeBackend(Compiler compiler)])
+  CompilerImpl(
+      this.provider,
+      api.CompilerOutput outputProvider,
+      this.handler,
+      Uri libraryRoot,
+      this.packageRoot,
+      List<String> options,
+      this.environment,
+      [this.packageConfig,
+       this.packagesDiscoveryProvider,
+       MakeBackendFuncion makeBackend,
+       MakeReporterFunction makeReporter,
+       MakeDiagnosticOptionsFunction makeDiagnosticOptionsFunction =
+           makeDiagnosticOptions])
       : this.options = options,
         this.platformConfigUri = resolvePlatformConfig(libraryRoot, options),
         super(
@@ -121,7 +146,7 @@ class CompilerImpl extends Compiler {
             hasIncrementalSupport:
                 forceIncrementalSupport ||
                 hasOption(options, Flags.incrementalSupport),
-            diagnosticOptions: new DiagnosticOptions(
+            diagnosticOptions: makeDiagnosticOptions(
                 suppressWarnings: hasOption(options, Flags.suppressWarnings),
                 fatalWarnings: hasOption(options, Flags.fatalWarnings),
                 suppressHints: hasOption(options, Flags.suppressHints),
@@ -137,7 +162,8 @@ class CompilerImpl extends Compiler {
             testMode: hasOption(options, Flags.testMode),
             allowNativeExtensions:
                 hasOption(options, Flags.allowNativeExtensions),
-            makeBackend: makeBackend) {
+            makeBackend: makeBackend,
+            makeReporter: makeReporter) {
     tasks.addAll([
         userHandlerTask = new GenericTask('Diagnostic handler', this),
         userProviderTask = new GenericTask('Input provider', this),

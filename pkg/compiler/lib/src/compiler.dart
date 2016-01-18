@@ -147,6 +147,11 @@ import 'util/util.dart' show
 import 'world.dart' show
     World;
 
+typedef Backend MakeBackendFuncion(Compiler compiler);
+
+typedef CompilerDiagnosticReporter MakeReporterFunction(
+    Compiler compiler, DiagnosticOptions diagnosticOptions);
+
 abstract class Compiler {
   /// Helper instance for measurements in [CompilerTask].
   ///
@@ -158,7 +163,7 @@ abstract class Compiler {
   World world;
   Types types;
   _CompilerCoreTypes _coreTypes;
-  _CompilerDiagnosticReporter _reporter;
+  CompilerDiagnosticReporter _reporter;
   _CompilerResolution _resolution;
   _CompilerParsing _parsing;
 
@@ -458,7 +463,8 @@ abstract class Compiler {
             DiagnosticOptions diagnosticOptions,
             api.CompilerOutput outputProvider,
             List<String> strips: const [],
-            Backend makeBackend(Compiler compiler)})
+            MakeBackendFuncion makeBackend,
+            MakeReporterFunction makeReporter})
       : this.disableTypeInferenceFlag =
             disableTypeInferenceFlag || !emitJavaScript,
         this.analyzeOnly =
@@ -475,9 +481,13 @@ abstract class Compiler {
       disableInlining = true;
     }
     world = new World(this);
-    // TODO(johnniwinther): Initialize core types in [initializeCoreClasses] and
-    // make its field final.
-    _reporter = new _CompilerDiagnosticReporter(this, diagnosticOptions);
+    if (makeReporter != null) {
+      _reporter = makeReporter(this, diagnosticOptions);
+    } else {
+      // TODO(johnniwinther): Initialize core types in [initializeCoreClasses]
+      // and make its field final.
+      _reporter = new CompilerDiagnosticReporter(this, diagnosticOptions);
+    }
     _parsing = new _CompilerParsing(this);
     _resolution = new _CompilerResolution(this);
     _coreTypes = new _CompilerCoreTypes(_resolution);
@@ -1615,7 +1625,7 @@ class _CompilerCoreTypes implements CoreTypes, CoreClasses {
   }
 }
 
-class _CompilerDiagnosticReporter extends DiagnosticReporter {
+class CompilerDiagnosticReporter extends DiagnosticReporter {
   final Compiler compiler;
   final DiagnosticOptions options;
 
@@ -1630,7 +1640,7 @@ class _CompilerDiagnosticReporter extends DiagnosticReporter {
   /// suppressed for each library.
   Map<Uri, SuppressionInfo> suppressedWarnings = <Uri, SuppressionInfo>{};
 
-  _CompilerDiagnosticReporter(this.compiler, this.options);
+  CompilerDiagnosticReporter(this.compiler, this.options);
 
   Element get currentElement => _currentElement;
 
