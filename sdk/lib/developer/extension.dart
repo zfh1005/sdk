@@ -118,7 +118,7 @@ _runExtension(ServiceExtensionHandler handler,
               String method,
               List<String> parameterKeys,
               List<String> parameterValues,
-              SendPort replyPort,
+              /*SendPort*/ replyPort,
               Object id) {
   var parameters = {};
   for (var i = 0; i < parameterKeys.length; i++) {
@@ -164,7 +164,7 @@ _runExtension(ServiceExtensionHandler handler,
 }
 
 // This code is only invoked by _runExtension.
-_postResponse(SendPort replyPort,
+_postResponse(/*SendPort*/ replyPort,
               Object id,
               ServiceExtensionResponse response) {
   assert(replyPort != null);
