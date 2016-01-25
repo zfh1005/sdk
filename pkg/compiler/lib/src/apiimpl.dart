@@ -146,7 +146,7 @@ class CompilerImpl extends Compiler {
             hasIncrementalSupport:
                 forceIncrementalSupport ||
                 hasOption(options, Flags.incrementalSupport),
-            diagnosticOptions: makeDiagnosticOptions(
+            diagnosticOptions: makeDiagnosticOptionsFunction(
                 suppressWarnings: hasOption(options, Flags.suppressWarnings),
                 fatalWarnings: hasOption(options, Flags.fatalWarnings),
                 suppressHints: hasOption(options, Flags.suppressHints),
