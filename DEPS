@@ -122,7 +122,7 @@ vars = {
 deps = {
   # Pull in fletch for annotated steps -  ONLY ON FLETCH BRANCH OF SDK.
   Var("dart_root") + "/third_party/fletch":
-      "https://github.com/dart-lang/fletch.git",
+      "https://github.com/dartino/sdk.git",
 
   # Stuff needed for GYP to run.
   Var("dart_root") + "/third_party/gyp":
