@@ -266,7 +266,9 @@ abstract class _AcceptStructuredClone {
 // Conversions for ContextAttributes.
 //
 // On Firefox, the returned ContextAttributes is a plain object.
-class _TypedContextAttributes implements gl.ContextAttributes {
+// TODO(terry): Roll 45 ContextAttributes is a Dictionary (Map).
+//class _TypedContextAttributes implements gl.ContextAttributes {
+class _TypedContextAttributes {
   bool alpha;
   bool antialias;
   bool depth;
@@ -280,9 +282,13 @@ class _TypedContextAttributes implements gl.ContextAttributes {
       this.preserveDrawingBuffer, this.stencil);
 }
 
-gl.ContextAttributes convertNativeToDart_ContextAttributes(
+// TODO(terry): Roll 45 ContextAttributes is a Dictionary (Map).
+//gl.ContextAttributes convertNativeToDart_ContextAttributes(
+convertNativeToDart_ContextAttributes(
     nativeContextAttributes) {
-  if (nativeContextAttributes is gl.ContextAttributes) {
+// TODO(terry): Roll 45 ContextAttributes is a Dictionary (Map).
+//  if (nativeContextAttributes is gl.ContextAttributes) {
+  if (nativeContextAttributes is  _TypedContextAttributes) {
     return nativeContextAttributes;
   }
 

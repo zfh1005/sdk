@@ -189,7 +189,7 @@ def Generate_Blink(output_dir, database, type_registry):
   for interface in interfaces:
     name = interface.id
 
-    if interface.parents:
+    if interface.parents and len(interface.parents) > 0 and interface.parents[0].id:
       extends = interface.parents[0].id
       class_def = CLASS_DEFINITION_EXTENDS % (name, extends, name)
     else:

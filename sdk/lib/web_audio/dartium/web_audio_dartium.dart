@@ -496,13 +496,11 @@ class AudioContext extends EventTarget {
   @DocsEditable()
   PannerNode createPanner() => wrap_jso(_blink.BlinkAudioContext.instance.createPanner_Callback_0_(unwrap_jso(this)));
   
-  PeriodicWave createPeriodicWave(Float32List real, Float32List imag, [Map options]) {
-    if (options != null) {
-      return wrap_jso(_blink.BlinkAudioContext.instance.createPeriodicWave_Callback_3_(unwrap_jso(this), unwrap_jso(real), unwrap_jso(imag), convertDartToNative_Dictionary(options)));
-    }
-    return wrap_jso(_blink.BlinkAudioContext.instance.createPeriodicWave_Callback_2_(unwrap_jso(this), unwrap_jso(real), unwrap_jso(imag)));
-  }
-
+  @DomName('AudioContext.createPeriodicWave')
+  @DocsEditable()
+  @Experimental() // untriaged
+  PeriodicWave createPeriodicWave(Float32List real, Float32List imag) => wrap_jso(_blink.BlinkAudioContext.instance.createPeriodicWave_Callback_2_(unwrap_jso(this), unwrap_jso(real), unwrap_jso(imag)));
+  
   ScriptProcessorNode createScriptProcessor([int bufferSize, int numberOfInputChannels, int numberOfOutputChannels]) {
     if (numberOfOutputChannels != null) {
       return wrap_jso(_blink.BlinkAudioContext.instance.createScriptProcessor_Callback_3_(unwrap_jso(this), bufferSize, numberOfInputChannels, numberOfOutputChannels));

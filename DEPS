@@ -109,7 +109,7 @@ vars = {
   "when_tag": "@0.2.0+2",
   "which_tag": "@0.1.3+1",
   "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
-  "WebCore_rev" : "@44061",
+  "WebCore_rev" : "@45837",
   "yaml_tag": "@2.1.5",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
   "font_awesome_rev": "@31824",
@@ -166,7 +166,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/petitparser":
       Var("third_party") + "/petitparser" + Var("petitparser_rev"),
   Var("dart_root") + "/third_party/WebCore":
-      Var("third_party") + "/WebCore" + Var("WebCore_rev"),
+      Var("third_party") + "/WebCore_45" + Var("WebCore_rev"),
 
   Var("dart_root") + "/third_party/dart-services":
       (Var("github_mirror") % "dart-services") +

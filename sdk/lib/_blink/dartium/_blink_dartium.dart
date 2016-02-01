@@ -66,7 +66,6 @@ dynamic resolver(String s) {
   if (s == "CSSKeyframeRule") return BlinkCSSKeyframeRule.instance;
   if (s == "CSSKeyframesRule") return BlinkCSSKeyframesRule.instance;
   if (s == "CSSMediaRule") return BlinkCSSMediaRule.instance;
-  if (s == "CSSNamespaceRule") return BlinkCSSNamespaceRule.instance;
   if (s == "CSSPageRule") return BlinkCSSPageRule.instance;
   if (s == "CSSRule") return BlinkCSSRule.instance;
   if (s == "CSSRuleList") return BlinkCSSRuleList.instance;
@@ -103,6 +102,7 @@ dynamic resolver(String s) {
   if (s == "Coordinates") return BlinkCoordinates.instance;
   if (s == "Credential") return BlinkCredential.instance;
   if (s == "CredentialsContainer") return BlinkCredentialsContainer.instance;
+  if (s == "CrossOriginConnectEvent") return BlinkCrossOriginConnectEvent.instance;
   if (s == "CrossOriginServiceWorkerClient") return BlinkCrossOriginServiceWorkerClient.instance;
   if (s == "Crypto") return BlinkCrypto.instance;
   if (s == "CryptoKey") return BlinkCryptoKey.instance;
@@ -130,6 +130,7 @@ dynamic resolver(String s) {
   if (s == "Database") return BlinkDatabase.instance;
   if (s == "DatabaseCallback") return BlinkDatabaseCallback.instance;
   if (s == "DedicatedWorkerGlobalScope") return BlinkDedicatedWorkerGlobalScope.instance;
+  if (s == "DefaultSessionStartEvent") return BlinkDefaultSessionStartEvent.instance;
   if (s == "DelayNode") return BlinkDelayNode.instance;
   if (s == "DeprecatedStorageInfo") return BlinkDeprecatedStorageInfo.instance;
   if (s == "DeprecatedStorageQuota") return BlinkDeprecatedStorageQuota.instance;
@@ -145,10 +146,8 @@ dynamic resolver(String s) {
   if (s == "Document") return BlinkDocument.instance;
   if (s == "DocumentFragment") return BlinkDocumentFragment.instance;
   if (s == "DocumentType") return BlinkDocumentType.instance;
-  if (s == "DragEvent") return BlinkDragEvent.instance;
   if (s == "DynamicsCompressorNode") return BlinkDynamicsCompressorNode.instance;
   if (s == "EXTBlendMinMax") return BlinkEXTBlendMinMax.instance;
-  if (s == "EXTDisjointTimerQuery") return BlinkEXTDisjointTimerQuery.instance;
   if (s == "EXTFragDepth") return BlinkEXTFragDepth.instance;
   if (s == "EXTShaderTextureLOD") return BlinkEXTShaderTextureLOD.instance;
   if (s == "EXTTextureFilterAnisotropic") return BlinkEXTTextureFilterAnisotropic.instance;
@@ -203,6 +202,7 @@ dynamic resolver(String s) {
   if (s == "HMDVRDevice") return BlinkHMDVRDevice.instance;
   if (s == "HTMLAllCollection") return BlinkHTMLAllCollection.instance;
   if (s == "HTMLAnchorElement") return BlinkHTMLAnchorElement.instance;
+  if (s == "HTMLAppletElement") return BlinkHTMLAppletElement.instance;
   if (s == "HTMLAreaElement") return BlinkHTMLAreaElement.instance;
   if (s == "HTMLAudioElement") return BlinkHTMLAudioElement.instance;
   if (s == "HTMLBRElement") return BlinkHTMLBRElement.instance;
@@ -292,12 +292,10 @@ dynamic resolver(String s) {
   if (s == "IDBRequest") return BlinkIDBRequest.instance;
   if (s == "IDBTransaction") return BlinkIDBTransaction.instance;
   if (s == "IDBVersionChangeEvent") return BlinkIDBVersionChangeEvent.instance;
-  if (s == "IdleDeadline") return BlinkIdleDeadline.instance;
-  if (s == "IdleRequestCallback") return BlinkIdleRequestCallback.instance;
   if (s == "ImageBitmap") return BlinkImageBitmap.instance;
   if (s == "ImageData") return BlinkImageData.instance;
   if (s == "InjectedScriptHost") return BlinkInjectedScriptHost.instance;
-  if (s == "InputDeviceCapabilities") return BlinkInputDeviceCapabilities.instance;
+  if (s == "InputDevice") return BlinkInputDevice.instance;
   if (s == "Int16Array") return BlinkInt16Array.instance;
   if (s == "Int32Array") return BlinkInt32Array.instance;
   if (s == "Int8Array") return BlinkInt8Array.instance;
@@ -329,8 +327,6 @@ dynamic resolver(String s) {
   if (s == "MediaList") return BlinkMediaList.instance;
   if (s == "MediaQueryList") return BlinkMediaQueryList.instance;
   if (s == "MediaQueryListEvent") return BlinkMediaQueryListEvent.instance;
-  if (s == "MediaRecorder") return BlinkMediaRecorder.instance;
-  if (s == "MediaRecorderErrorEvent") return BlinkMediaRecorderErrorEvent.instance;
   if (s == "MediaSession") return BlinkMediaSession.instance;
   if (s == "MediaSource") return BlinkMediaSource.instance;
   if (s == "MediaStream") return BlinkMediaStream.instance;
@@ -353,7 +349,6 @@ dynamic resolver(String s) {
   if (s == "MutationEvent") return BlinkMutationEvent.instance;
   if (s == "MutationObserver") return BlinkMutationObserver.instance;
   if (s == "MutationRecord") return BlinkMutationRecord.instance;
-  if (s == "NFC") return BlinkNFC.instance;
   if (s == "NamedNodeMap") return BlinkNamedNodeMap.instance;
   if (s == "Navigator") return BlinkNavigator.instance;
   if (s == "NavigatorCPU") return BlinkNavigatorCPU.instance;
@@ -396,8 +391,6 @@ dynamic resolver(String s) {
   if (s == "PerformanceMark") return BlinkPerformanceMark.instance;
   if (s == "PerformanceMeasure") return BlinkPerformanceMeasure.instance;
   if (s == "PerformanceNavigation") return BlinkPerformanceNavigation.instance;
-  if (s == "PerformanceObserver") return BlinkPerformanceObserver.instance;
-  if (s == "PerformanceObserverEntryList") return BlinkPerformanceObserverEntryList.instance;
   if (s == "PerformanceRenderTiming") return BlinkPerformanceRenderTiming.instance;
   if (s == "PerformanceResourceTiming") return BlinkPerformanceResourceTiming.instance;
   if (s == "PerformanceTiming") return BlinkPerformanceTiming.instance;
@@ -409,6 +402,7 @@ dynamic resolver(String s) {
   if (s == "Permissions") return BlinkPermissions.instance;
   if (s == "Plugin") return BlinkPlugin.instance;
   if (s == "PluginArray") return BlinkPluginArray.instance;
+  if (s == "PluginPlaceholderElement") return BlinkPluginPlaceholderElement.instance;
   if (s == "PointerEvent") return BlinkPointerEvent.instance;
   if (s == "PopStateEvent") return BlinkPopStateEvent.instance;
   if (s == "PositionCallback") return BlinkPositionCallback.instance;
@@ -417,9 +411,7 @@ dynamic resolver(String s) {
   if (s == "PositionSensorVRDevice") return BlinkPositionSensorVRDevice.instance;
   if (s == "Presentation") return BlinkPresentation.instance;
   if (s == "PresentationAvailability") return BlinkPresentationAvailability.instance;
-  if (s == "PresentationRequest") return BlinkPresentationRequest.instance;
   if (s == "PresentationSession") return BlinkPresentationSession.instance;
-  if (s == "PresentationSessionConnectEvent") return BlinkPresentationSessionConnectEvent.instance;
   if (s == "ProcessingInstruction") return BlinkProcessingInstruction.instance;
   if (s == "ProgressEvent") return BlinkProgressEvent.instance;
   if (s == "PromiseRejectionEvent") return BlinkPromiseRejectionEvent.instance;
@@ -589,7 +581,6 @@ dynamic resolver(String s) {
   if (s == "ScreenOrientation") return BlinkScreenOrientation.instance;
   if (s == "ScriptProcessorNode") return BlinkScriptProcessorNode.instance;
   if (s == "ScrollState") return BlinkScrollState.instance;
-  if (s == "ScrollStateCallback") return BlinkScrollStateCallback.instance;
   if (s == "SecurityPolicyViolationEvent") return BlinkSecurityPolicyViolationEvent.instance;
   if (s == "Selection") return BlinkSelection.instance;
   if (s == "ServicePort") return BlinkServicePort.instance;
@@ -619,12 +610,13 @@ dynamic resolver(String s) {
   if (s == "SpeechSynthesisEvent") return BlinkSpeechSynthesisEvent.instance;
   if (s == "SpeechSynthesisUtterance") return BlinkSpeechSynthesisUtterance.instance;
   if (s == "SpeechSynthesisVoice") return BlinkSpeechSynthesisVoice.instance;
+  if (s == "StashedMessagePort") return BlinkStashedMessagePort.instance;
+  if (s == "StashedPortCollection") return BlinkStashedPortCollection.instance;
   if (s == "StereoPannerNode") return BlinkStereoPannerNode.instance;
   if (s == "Storage") return BlinkStorage.instance;
   if (s == "StorageErrorCallback") return BlinkStorageErrorCallback.instance;
   if (s == "StorageEvent") return BlinkStorageEvent.instance;
   if (s == "StorageInfo") return BlinkStorageInfo.instance;
-  if (s == "StorageManager") return BlinkStorageManager.instance;
   if (s == "StorageQuota") return BlinkStorageQuota.instance;
   if (s == "StorageQuotaCallback") return BlinkStorageQuotaCallback.instance;
   if (s == "StorageUsageCallback") return BlinkStorageUsageCallback.instance;
@@ -658,15 +650,6 @@ dynamic resolver(String s) {
   if (s == "URL") return BlinkURL.instance;
   if (s == "URLUtils") return BlinkURLUtils.instance;
   if (s == "URLUtilsReadOnly") return BlinkURLUtilsReadOnly.instance;
-  if (s == "USB") return BlinkUSB.instance;
-  if (s == "USBAlternateInterface") return BlinkUSBAlternateInterface.instance;
-  if (s == "USBConfiguration") return BlinkUSBConfiguration.instance;
-  if (s == "USBConnectionEvent") return BlinkUSBConnectionEvent.instance;
-  if (s == "USBDevice") return BlinkUSBDevice.instance;
-  if (s == "USBEndpoint") return BlinkUSBEndpoint.instance;
-  if (s == "USBInTransferResult") return BlinkUSBInTransferResult.instance;
-  if (s == "USBInterface") return BlinkUSBInterface.instance;
-  if (s == "USBOutTransferResult") return BlinkUSBOutTransferResult.instance;
   if (s == "Uint16Array") return BlinkUint16Array.instance;
   if (s == "Uint32Array") return BlinkUint32Array.instance;
   if (s == "Uint8Array") return BlinkUint8Array.instance;
@@ -688,7 +671,6 @@ dynamic resolver(String s) {
   if (s == "WebGL2RenderingContextBase") return BlinkWebGL2RenderingContextBase.instance;
   if (s == "WebGLActiveInfo") return BlinkWebGLActiveInfo.instance;
   if (s == "WebGLBuffer") return BlinkWebGLBuffer.instance;
-  if (s == "WebGLCompressedTextureASTC") return BlinkWebGLCompressedTextureASTC.instance;
   if (s == "WebGLCompressedTextureATC") return BlinkWebGLCompressedTextureATC.instance;
   if (s == "WebGLCompressedTextureETC1") return BlinkWebGLCompressedTextureETC1.instance;
   if (s == "WebGLCompressedTexturePVRTC") return BlinkWebGLCompressedTexturePVRTC.instance;
@@ -710,7 +692,6 @@ dynamic resolver(String s) {
   if (s == "WebGLShaderPrecisionFormat") return BlinkWebGLShaderPrecisionFormat.instance;
   if (s == "WebGLSync") return BlinkWebGLSync.instance;
   if (s == "WebGLTexture") return BlinkWebGLTexture.instance;
-  if (s == "WebGLTimerQueryEXT") return BlinkWebGLTimerQueryEXT.instance;
   if (s == "WebGLTransformFeedback") return BlinkWebGLTransformFeedback.instance;
   if (s == "WebGLUniformLocation") return BlinkWebGLUniformLocation.instance;
   if (s == "WebGLVertexArrayObject") return BlinkWebGLVertexArrayObject.instance;
@@ -1240,8 +1221,6 @@ class BlinkAudioContext extends BlinkEventTarget {
 
   createPeriodicWave_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "createPeriodicWave", [__arg_0, __arg_1]);
 
-  createPeriodicWave_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "createPeriodicWave", [__arg_0, __arg_1, __arg_2]);
-
   createScriptProcessor_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "createScriptProcessor", []);
 
   createScriptProcessor_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "createScriptProcessor", [__arg_0]);
@@ -1710,10 +1689,6 @@ class BlinkCHROMIUMValuebuffer {
 class BlinkCSS {
   static final instance = new BlinkCSS();
 
-  escape_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "escape", []);
-
-  escape_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "escape", [__arg_0]);
-
   supports_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "supports", []);
 
   supports_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "supports", [__arg_0]);
@@ -1802,15 +1777,6 @@ class BlinkCSSMediaRule extends BlinkCSSGroupingRule {
 
 }
 
-class BlinkCSSNamespaceRule extends BlinkCSSRule {
-  static final instance = new BlinkCSSNamespaceRule();
-
-  namespaceURI_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "namespaceURI");
-
-  prefix_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "prefix");
-
-}
-
 class BlinkCSSPageRule extends BlinkCSSRule {
   static final instance = new BlinkCSSPageRule();
 
@@ -1850,10 +1816,6 @@ class BlinkCSSRuleList {
 
 class BlinkCSSStyleDeclaration {
   static final instance = new BlinkCSSStyleDeclaration();
-
-  cssFloat_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "cssFloat");
-
-  cssFloat_Setter_(mthis, __arg_0) => mthis["cssFloat"] = __arg_0;
 
   cssText_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "cssText");
 
@@ -2000,12 +1962,6 @@ class BlinkCache {
 
   match_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "match", [__arg_0, __arg_1]);
 
-  matchAll_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "matchAll", []);
-
-  matchAll_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "matchAll", [__arg_0]);
-
-  matchAll_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "matchAll", [__arg_0, __arg_1]);
-
   put_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "put", []);
 
   put_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "put", [__arg_0]);
@@ -2114,7 +2070,7 @@ class BlinkCanvasPattern {
 
 }
 
-class BlinkCanvasRenderingContext2D extends BlinkNone {
+class BlinkCanvasRenderingContext2D {
   static final instance = new BlinkCanvasRenderingContext2D();
 
   canvas_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "canvas");
@@ -2502,7 +2458,19 @@ class BlinkCharacterData extends BlinkNode {
 
   substringData_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "substringData", [__arg_0, __arg_1]);
 
+  after_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "after", []);
+
+  after_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "after", [__arg_0]);
+
+  before_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "before", []);
+
+  before_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "before", [__arg_0]);
+
   remove_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "remove", []);
+
+  replaceWith_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "replaceWith", []);
+
+  replaceWith_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "replaceWith", [__arg_0]);
 
   nextElementSibling_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "nextElementSibling");
 
@@ -2513,7 +2481,19 @@ class BlinkCharacterData extends BlinkNode {
 class BlinkChildNode {
   static final instance = new BlinkChildNode();
 
+  after_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "after", []);
+
+  after_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "after", [__arg_0]);
+
+  before_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "before", []);
+
+  before_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "before", [__arg_0]);
+
   remove_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "remove", []);
+
+  replaceWith_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "replaceWith", []);
+
+  replaceWith_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "replaceWith", [__arg_0]);
 
 }
 
@@ -2883,15 +2863,26 @@ class BlinkCredential {
 class BlinkCredentialsContainer {
   static final instance = new BlinkCredentialsContainer();
 
-  get_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "get", []);
+  notifySignedIn_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "notifySignedIn", []);
 
-  get_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "get", [__arg_0]);
+  notifySignedIn_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "notifySignedIn", [__arg_0]);
+
+  request_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "request", []);
+
+  request_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "request", [__arg_0]);
 
   requireUserMediation_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "requireUserMediation", []);
 
-  store_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "store", []);
+}
 
-  store_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "store", [__arg_0]);
+class BlinkCrossOriginConnectEvent extends BlinkEvent {
+  static final instance = new BlinkCrossOriginConnectEvent();
+
+  client_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "client");
+
+  acceptConnection_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "acceptConnection", []);
+
+  acceptConnection_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "acceptConnection", [__arg_0]);
 
 }
 
@@ -2970,12 +2961,6 @@ class BlinkDOMError {
 
 class BlinkDOMException {
   static final instance = new BlinkDOMException();
-
-  constructorCallback_0_() => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "DOMException"), []);
-
-  constructorCallback_1_(__arg_0) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "DOMException"), [__arg_0]);
-
-  constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "DOMException"), [__arg_0, __arg_1]);
 
   code_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "code");
 
@@ -3619,6 +3604,19 @@ class BlinkDedicatedWorkerGlobalScope extends BlinkWorkerGlobalScope {
   postMessage_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "postMessage", [__arg_0]);
 
   postMessage_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "postMessage", [__arg_0, __arg_1]);
+
+}
+
+class BlinkDefaultSessionStartEvent extends BlinkEvent {
+  static final instance = new BlinkDefaultSessionStartEvent();
+
+  constructorCallback_0_() => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "DefaultSessionStartEvent"), []);
+
+  constructorCallback_1_(__arg_0) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "DefaultSessionStartEvent"), [__arg_0]);
+
+  constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "DefaultSessionStartEvent"), [__arg_0, __arg_1]);
+
+  session_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "session");
 
 }
 
@@ -4523,6 +4521,14 @@ class BlinkDocument extends BlinkNode {
 
   lastElementChild_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "lastElementChild");
 
+  append_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "append", []);
+
+  append_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "append", [__arg_0]);
+
+  prepend_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "prepend", []);
+
+  prepend_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "prepend", [__arg_0]);
+
   querySelector_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "querySelector", []);
 
   querySelector_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "querySelector", [__arg_0]);
@@ -4550,6 +4556,14 @@ class BlinkDocumentFragment extends BlinkNode {
 
   lastElementChild_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "lastElementChild");
 
+  append_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "append", []);
+
+  append_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "append", [__arg_0]);
+
+  prepend_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "prepend", []);
+
+  prepend_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "prepend", [__arg_0]);
+
   querySelector_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "querySelector", []);
 
   querySelector_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "querySelector", [__arg_0]);
@@ -4573,20 +4587,19 @@ class BlinkDocumentType extends BlinkNode {
 
   systemId_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "systemId");
 
+  after_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "after", []);
+
+  after_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "after", [__arg_0]);
+
+  before_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "before", []);
+
+  before_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "before", [__arg_0]);
+
   remove_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "remove", []);
 
-}
+  replaceWith_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "replaceWith", []);
 
-class BlinkDragEvent extends BlinkMouseEvent {
-  static final instance = new BlinkDragEvent();
-
-  constructorCallback_0_() => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "DragEvent"), []);
-
-  constructorCallback_1_(__arg_0) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "DragEvent"), [__arg_0]);
-
-  constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "DragEvent"), [__arg_0, __arg_1]);
-
-  dataTransfer_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "dataTransfer");
+  replaceWith_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "replaceWith", [__arg_0]);
 
 }
 
@@ -4609,49 +4622,6 @@ class BlinkDynamicsCompressorNode extends BlinkAudioNode {
 
 class BlinkEXTBlendMinMax {
   static final instance = new BlinkEXTBlendMinMax();
-
-}
-
-class BlinkEXTDisjointTimerQuery {
-  static final instance = new BlinkEXTDisjointTimerQuery();
-
-  beginQueryEXT_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "beginQueryEXT", []);
-
-  beginQueryEXT_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "beginQueryEXT", [__arg_0]);
-
-  beginQueryEXT_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "beginQueryEXT", [__arg_0, __arg_1]);
-
-  createQueryEXT_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "createQueryEXT", []);
-
-  deleteQueryEXT_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "deleteQueryEXT", []);
-
-  deleteQueryEXT_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "deleteQueryEXT", [__arg_0]);
-
-  endQueryEXT_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "endQueryEXT", []);
-
-  endQueryEXT_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "endQueryEXT", [__arg_0]);
-
-  getQueryEXT_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getQueryEXT", []);
-
-  getQueryEXT_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getQueryEXT", [__arg_0]);
-
-  getQueryEXT_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "getQueryEXT", [__arg_0, __arg_1]);
-
-  getQueryObjectEXT_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getQueryObjectEXT", []);
-
-  getQueryObjectEXT_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getQueryObjectEXT", [__arg_0]);
-
-  getQueryObjectEXT_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "getQueryObjectEXT", [__arg_0, __arg_1]);
-
-  isQueryEXT_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "isQueryEXT", []);
-
-  isQueryEXT_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "isQueryEXT", [__arg_0]);
-
-  queryCounterEXT_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "queryCounterEXT", []);
-
-  queryCounterEXT_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "queryCounterEXT", [__arg_0]);
-
-  queryCounterEXT_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "queryCounterEXT", [__arg_0, __arg_1]);
 
 }
 
@@ -4714,6 +4684,16 @@ class BlinkElement extends BlinkNode {
   localName_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "localName");
 
   namespaceURI_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "namespaceURI");
+
+  offsetHeight_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "offsetHeight");
+
+  offsetLeft_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "offsetLeft");
+
+  offsetParent_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "offsetParent");
+
+  offsetTop_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "offsetTop");
+
+  offsetWidth_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "offsetWidth");
 
   onbeforecopy_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "onbeforecopy");
 
@@ -4925,12 +4905,6 @@ class BlinkElement extends BlinkNode {
 
   scrollTo_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "scrollTo", [__arg_0, __arg_1]);
 
-  setApplyScroll_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "setApplyScroll", []);
-
-  setApplyScroll_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "setApplyScroll", [__arg_0]);
-
-  setApplyScroll_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "setApplyScroll", [__arg_0, __arg_1]);
-
   setAttribute_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "setAttribute", []);
 
   setAttribute_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "setAttribute", [__arg_0]);
@@ -4951,12 +4925,6 @@ class BlinkElement extends BlinkNode {
 
   setAttributeNodeNS_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "setAttributeNodeNS", [__arg_0]);
 
-  setDistributeScroll_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "setDistributeScroll", []);
-
-  setDistributeScroll_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "setDistributeScroll", [__arg_0]);
-
-  setDistributeScroll_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "setDistributeScroll", [__arg_0, __arg_1]);
-
   webkitMatchesSelector_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "webkitMatchesSelector", []);
 
   webkitMatchesSelector_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "webkitMatchesSelector", [__arg_0]);
@@ -4971,6 +4939,14 @@ class BlinkElement extends BlinkNode {
 
   lastElementChild_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "lastElementChild");
 
+  append_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "append", []);
+
+  append_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "append", [__arg_0]);
+
+  prepend_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "prepend", []);
+
+  prepend_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "prepend", [__arg_0]);
+
   querySelector_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "querySelector", []);
 
   querySelector_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "querySelector", [__arg_0]);
@@ -4979,7 +4955,19 @@ class BlinkElement extends BlinkNode {
 
   querySelectorAll_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "querySelectorAll", [__arg_0]);
 
+  after_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "after", []);
+
+  after_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "after", [__arg_0]);
+
+  before_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "before", []);
+
+  before_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "before", [__arg_0]);
+
   remove_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "remove", []);
+
+  replaceWith_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "replaceWith", []);
+
+  replaceWith_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "replaceWith", [__arg_0]);
 
   nextElementSibling_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "nextElementSibling");
 
@@ -5423,8 +5411,6 @@ class BlinkEvent {
   defaultPrevented_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "defaultPrevented");
 
   eventPhase_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "eventPhase");
-
-  isTrusted_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "isTrusted");
 
   path_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "path");
 
@@ -6015,6 +6001,8 @@ class BlinkGamepad {
 
   axes_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "axes");
 
+  buttons_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "buttons");
+
   connected_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "connected");
 
   id_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "id");
@@ -6459,10 +6447,6 @@ class BlinkHTMLAnchorElement extends BlinkHTMLElement {
 
   ping_Setter_(mthis, __arg_0) => mthis["ping"] = __arg_0;
 
-  referrerpolicy_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "referrerpolicy");
-
-  referrerpolicy_Setter_(mthis, __arg_0) => mthis["referrerpolicy"] = __arg_0;
-
   rel_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "rel");
 
   rel_Setter_(mthis, __arg_0) => mthis["rel"] = __arg_0;
@@ -6530,6 +6514,65 @@ class BlinkHTMLAnchorElement extends BlinkHTMLElement {
   username_Setter_(mthis, __arg_0) => mthis["username"] = __arg_0;
 
   toString_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "toString", []);
+
+}
+
+class BlinkHTMLAppletElement extends BlinkHTMLElement {
+  static final instance = new BlinkHTMLAppletElement();
+
+  align_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "align");
+
+  align_Setter_(mthis, __arg_0) => mthis["align"] = __arg_0;
+
+  alt_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "alt");
+
+  alt_Setter_(mthis, __arg_0) => mthis["alt"] = __arg_0;
+
+  archive_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "archive");
+
+  archive_Setter_(mthis, __arg_0) => mthis["archive"] = __arg_0;
+
+  code_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "code");
+
+  code_Setter_(mthis, __arg_0) => mthis["code"] = __arg_0;
+
+  codeBase_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "codeBase");
+
+  codeBase_Setter_(mthis, __arg_0) => mthis["codeBase"] = __arg_0;
+
+  height_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "height");
+
+  height_Setter_(mthis, __arg_0) => mthis["height"] = __arg_0;
+
+  hspace_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "hspace");
+
+  hspace_Setter_(mthis, __arg_0) => mthis["hspace"] = __arg_0;
+
+  name_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "name");
+
+  name_Setter_(mthis, __arg_0) => mthis["name"] = __arg_0;
+
+  object_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "object");
+
+  object_Setter_(mthis, __arg_0) => mthis["object"] = __arg_0;
+
+  vspace_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "vspace");
+
+  vspace_Setter_(mthis, __arg_0) => mthis["vspace"] = __arg_0;
+
+  width_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "width");
+
+  width_Setter_(mthis, __arg_0) => mthis["width"] = __arg_0;
+
+  __getter___Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "__getter__", []);
+
+  __getter___Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "__getter__", [__arg_0]);
+
+  __setter___Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "__setter__", []);
+
+  __setter___Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "__setter__", [__arg_0]);
+
+  __setter___Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "__setter__", [__arg_0, __arg_1]);
 
 }
 
@@ -6825,14 +6868,6 @@ class BlinkHTMLCanvasElement extends BlinkHTMLElement {
   getContext_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getContext", [__arg_0]);
 
   getContext_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "getContext", [__arg_0, __arg_1]);
-
-  toBlob_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "toBlob", []);
-
-  toBlob_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "toBlob", [__arg_0]);
-
-  toBlob_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "toBlob", [__arg_0, __arg_1]);
-
-  toBlob_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "toBlob", [__arg_0, __arg_1, __arg_2]);
 
   toDataURL_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "toDataURL", []);
 
@@ -7716,10 +7751,6 @@ class BlinkHTMLIFrameElement extends BlinkHTMLElement {
 
   name_Setter_(mthis, __arg_0) => mthis["name"] = __arg_0;
 
-  referrerpolicy_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "referrerpolicy");
-
-  referrerpolicy_Setter_(mthis, __arg_0) => mthis["referrerpolicy"] = __arg_0;
-
   sandbox_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "sandbox");
 
   scrolling_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "scrolling");
@@ -7798,10 +7829,6 @@ class BlinkHTMLImageElement extends BlinkHTMLElement {
   naturalHeight_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "naturalHeight");
 
   naturalWidth_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "naturalWidth");
-
-  referrerpolicy_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "referrerpolicy");
-
-  referrerpolicy_Setter_(mthis, __arg_0) => mthis["referrerpolicy"] = __arg_0;
 
   sizes_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "sizes");
 
@@ -9551,6 +9578,12 @@ class BlinkHashChangeEvent extends BlinkEvent {
 
   oldURL_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "oldURL");
 
+  initHashChangeEvent_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "initHashChangeEvent", [__arg_0, __arg_1, __arg_2]);
+
+  initHashChangeEvent_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "initHashChangeEvent", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  initHashChangeEvent_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => Blink_JsNative_DomException.callMethod(mthis, "initHashChangeEvent", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4]);
+
 }
 
 class BlinkHeaders {
@@ -9567,9 +9600,7 @@ class BlinkHistory {
 
   length_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "length");
 
-  scrollRestoration_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "scrollRestoration");
-
-  scrollRestoration_Setter_(mthis, __arg_0) => mthis["scrollRestoration"] = __arg_0;
+  options_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "options");
 
   state_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "state");
 
@@ -9587,11 +9618,15 @@ class BlinkHistory {
 
   pushState_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "pushState", [__arg_0, __arg_1, __arg_2]);
 
+  pushState_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "pushState", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
   replaceState_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "replaceState", [__arg_0]);
 
   replaceState_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "replaceState", [__arg_0, __arg_1]);
 
   replaceState_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "replaceState", [__arg_0, __arg_1, __arg_2]);
+
+  replaceState_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "replaceState", [__arg_0, __arg_1, __arg_2, __arg_3]);
 
 }
 
@@ -9960,24 +9995,6 @@ class BlinkIDBVersionChangeEvent extends BlinkEvent {
 
 }
 
-class BlinkIdleDeadline {
-  static final instance = new BlinkIdleDeadline();
-
-  didTimeout_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "didTimeout");
-
-  timeRemaining_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "timeRemaining", []);
-
-}
-
-class BlinkIdleRequestCallback {
-  static final instance = new BlinkIdleRequestCallback();
-
-  handleEvent_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "handleEvent", []);
-
-  handleEvent_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "handleEvent", [__arg_0]);
-
-}
-
 class BlinkImageBitmap {
   static final instance = new BlinkImageBitmap();
 
@@ -10015,12 +10032,12 @@ class BlinkInjectedScriptHost {
 
 }
 
-class BlinkInputDeviceCapabilities {
-  static final instance = new BlinkInputDeviceCapabilities();
+class BlinkInputDevice {
+  static final instance = new BlinkInputDevice();
 
-  constructorCallback_0_() => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "InputDeviceCapabilities"), []);
+  constructorCallback_0_() => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "InputDevice"), []);
 
-  constructorCallback_1_(__arg_0) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "InputDeviceCapabilities"), [__arg_0]);
+  constructorCallback_1_(__arg_0) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "InputDevice"), [__arg_0]);
 
   firesTouchEvents_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "firesTouchEvents");
 
@@ -10537,76 +10554,6 @@ class BlinkMediaQueryListEvent extends BlinkEvent {
 
 }
 
-class BlinkMediaRecorder extends BlinkEventTarget {
-  static final instance = new BlinkMediaRecorder();
-
-  constructorCallback_0_() => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "MediaRecorder"), []);
-
-  constructorCallback_1_(__arg_0) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "MediaRecorder"), [__arg_0]);
-
-  constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "MediaRecorder"), [__arg_0, __arg_1]);
-
-  ignoreMutedMedia_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "ignoreMutedMedia");
-
-  ignoreMutedMedia_Setter_(mthis, __arg_0) => mthis["ignoreMutedMedia"] = __arg_0;
-
-  mimeType_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "mimeType");
-
-  ondataavailable_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "ondataavailable");
-
-  ondataavailable_Setter_(mthis, __arg_0) => mthis["ondataavailable"] = __arg_0;
-
-  onerror_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "onerror");
-
-  onerror_Setter_(mthis, __arg_0) => mthis["onerror"] = __arg_0;
-
-  onpause_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "onpause");
-
-  onpause_Setter_(mthis, __arg_0) => mthis["onpause"] = __arg_0;
-
-  onresume_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "onresume");
-
-  onresume_Setter_(mthis, __arg_0) => mthis["onresume"] = __arg_0;
-
-  onstart_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "onstart");
-
-  onstart_Setter_(mthis, __arg_0) => mthis["onstart"] = __arg_0;
-
-  onstop_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "onstop");
-
-  onstop_Setter_(mthis, __arg_0) => mthis["onstop"] = __arg_0;
-
-  state_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "state");
-
-  stream_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "stream");
-
-  canRecordMimeType_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "canRecordMimeType", []);
-
-  canRecordMimeType_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "canRecordMimeType", [__arg_0]);
-
-  pause_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "pause", []);
-
-  requestData_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "requestData", []);
-
-  resume_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "resume", []);
-
-  start_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "start", []);
-
-  start_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "start", [__arg_0]);
-
-  stop_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "stop", []);
-
-}
-
-class BlinkMediaRecorderErrorEvent extends BlinkEvent {
-  static final instance = new BlinkMediaRecorderErrorEvent();
-
-  message_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "message");
-
-  name_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "name");
-
-}
-
 class BlinkMediaSession {
   static final instance = new BlinkMediaSession();
 
@@ -10925,6 +10872,8 @@ class BlinkMouseEvent extends BlinkUIEvent {
 
   ctrlKey_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "ctrlKey");
 
+  dataTransfer_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "dataTransfer");
+
   fromElement_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "fromElement");
 
   layerX_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "layerX");
@@ -10966,10 +10915,6 @@ class BlinkMouseEvent extends BlinkUIEvent {
   x_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "x");
 
   y_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "y");
-
-  getModifierState_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getModifierState", []);
-
-  getModifierState_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getModifierState", [__arg_0]);
 
   initMouseEvent_Callback_13_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8, __arg_9, __arg_10, __arg_11, __arg_12) => Blink_JsNative_DomException.callMethod(mthis, "initMouseEvent", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8, __arg_9, __arg_10, __arg_11, __arg_12]);
 
@@ -11053,13 +10998,6 @@ class BlinkMutationRecord {
 
 }
 
-class BlinkNFC {
-  static final instance = new BlinkNFC();
-
-  requestAdapter_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "requestAdapter", []);
-
-}
-
 class BlinkNamedNodeMap {
   static final instance = new BlinkNamedNodeMap();
 
@@ -11099,7 +11037,7 @@ class BlinkNamedNodeMap {
 
 }
 
-class BlinkNavigator extends BlinkNone {
+class BlinkNavigator {
   static final instance = new BlinkNavigator();
 
   bluetooth_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "bluetooth");
@@ -11118,8 +11056,6 @@ class BlinkNavigator extends BlinkNone {
 
   mimeTypes_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "mimeTypes");
 
-  nfc_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "nfc");
-
   permissions_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "permissions");
 
   plugins_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "plugins");
@@ -11132,11 +11068,7 @@ class BlinkNavigator extends BlinkNone {
 
   services_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "services");
 
-  storage_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "storage");
-
   storageQuota_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "storageQuota");
-
-  usb_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "usb");
 
   vendor_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "vendor");
 
@@ -11299,10 +11231,6 @@ class BlinkNavigatorUserMediaSuccessCallback {
 class BlinkNetworkInformation extends BlinkEventTarget {
   static final instance = new BlinkNetworkInformation();
 
-  onchange_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "onchange");
-
-  onchange_Setter_(mthis, __arg_0) => mthis["onchange"] = __arg_0;
-
   ontypechange_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "ontypechange");
 
   ontypechange_Setter_(mthis, __arg_0) => mthis["ontypechange"] = __arg_0;
@@ -11321,6 +11249,10 @@ class BlinkNode extends BlinkEventTarget {
   firstChild_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "firstChild");
 
   lastChild_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "lastChild");
+
+  localName_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "localName");
+
+  namespaceURI_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "namespaceURI");
 
   nextSibling_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "nextSibling");
 
@@ -11470,8 +11402,6 @@ class BlinkNotification extends BlinkEventTarget {
 
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "Notification"), [__arg_0, __arg_1]);
 
-  actions_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "actions");
-
   body_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "body");
 
   data_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "data");
@@ -11481,8 +11411,6 @@ class BlinkNotification extends BlinkEventTarget {
   icon_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "icon");
 
   lang_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "lang");
-
-  maxActions_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "maxActions");
 
   onclick_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "onclick");
 
@@ -11501,8 +11429,6 @@ class BlinkNotification extends BlinkEventTarget {
   onshow_Setter_(mthis, __arg_0) => mthis["onshow"] = __arg_0;
 
   permission_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "permission");
-
-  requireInteraction_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "requireInteraction");
 
   silent_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "silent");
 
@@ -11528,8 +11454,6 @@ class BlinkNotificationEvent extends BlinkExtendableEvent {
   constructorCallback_1_(__arg_0) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "NotificationEvent"), [__arg_0]);
 
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "NotificationEvent"), [__arg_0, __arg_1]);
-
-  action_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "action");
 
   notification_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "notification");
 
@@ -11780,6 +11704,14 @@ class BlinkParentNode {
 
   lastElementChild_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "lastElementChild");
 
+  append_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "append", []);
+
+  append_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "append", [__arg_0]);
+
+  prepend_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "prepend", []);
+
+  prepend_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "prepend", [__arg_0]);
+
   querySelector_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "querySelector", []);
 
   querySelector_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "querySelector", [__arg_0]);
@@ -11797,13 +11729,19 @@ class BlinkPasswordCredential extends BlinkCredential {
 
   constructorCallback_1_(__arg_0) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "PasswordCredential"), [__arg_0]);
 
-  toFormData_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "toFormData", []);
+  constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "PasswordCredential"), [__arg_0, __arg_1]);
 
-  toFormData_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "toFormData", [__arg_0]);
+  constructorCallback_3_(__arg_0, __arg_1, __arg_2) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "PasswordCredential"), [__arg_0, __arg_1, __arg_2]);
+
+  constructorCallback_4_(__arg_0, __arg_1, __arg_2, __arg_3) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "PasswordCredential"), [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  formData_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "formData");
+
+  password_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "password");
 
 }
 
-class BlinkPath2D extends BlinkNone {
+class BlinkPath2D {
   static final instance = new BlinkPath2D();
 
   constructorCallback_0_() => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "Path2D"), []);
@@ -11879,10 +11817,6 @@ class BlinkPerformance extends BlinkEventTarget {
 
   onframetimingbufferfull_Setter_(mthis, __arg_0) => mthis["onframetimingbufferfull"] = __arg_0;
 
-  onresourcetimingbufferfull_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "onresourcetimingbufferfull");
-
-  onresourcetimingbufferfull_Setter_(mthis, __arg_0) => mthis["onresourcetimingbufferfull"] = __arg_0;
-
   onwebkitresourcetimingbufferfull_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "onwebkitresourcetimingbufferfull");
 
   onwebkitresourcetimingbufferfull_Setter_(mthis, __arg_0) => mthis["onwebkitresourcetimingbufferfull"] = __arg_0;
@@ -11899,8 +11833,6 @@ class BlinkPerformance extends BlinkEventTarget {
 
   clearMeasures_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "clearMeasures", [__arg_0]);
 
-  clearResourceTimings_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "clearResourceTimings", []);
-
   mark_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "mark", []);
 
   mark_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "mark", [__arg_0]);
@@ -11914,10 +11846,6 @@ class BlinkPerformance extends BlinkEventTarget {
   setFrameTimingBufferSize_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "setFrameTimingBufferSize", []);
 
   setFrameTimingBufferSize_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "setFrameTimingBufferSize", [__arg_0]);
-
-  setResourceTimingBufferSize_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "setResourceTimingBufferSize", []);
-
-  setResourceTimingBufferSize_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "setResourceTimingBufferSize", [__arg_0]);
 
   webkitClearResourceTimings_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "webkitClearResourceTimings", []);
 
@@ -11959,34 +11887,6 @@ class BlinkPerformanceNavigation {
   redirectCount_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "redirectCount");
 
   type_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "type");
-
-}
-
-class BlinkPerformanceObserver {
-  static final instance = new BlinkPerformanceObserver();
-
-  disconnect_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "disconnect", []);
-
-  observe_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "observe", []);
-
-  observe_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "observe", [__arg_0]);
-
-}
-
-class BlinkPerformanceObserverEntryList {
-  static final instance = new BlinkPerformanceObserverEntryList();
-
-  getEntries_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getEntries", []);
-
-  getEntriesByName_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getEntriesByName", []);
-
-  getEntriesByName_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getEntriesByName", [__arg_0]);
-
-  getEntriesByName_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "getEntriesByName", [__arg_0, __arg_1]);
-
-  getEntriesByType_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getEntriesByType", []);
-
-  getEntriesByType_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getEntriesByType", [__arg_0]);
 
 }
 
@@ -12112,6 +12012,8 @@ class BlinkPermissionStatus extends BlinkEventTarget {
 
   state_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "state");
 
+  status_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "status");
+
 }
 
 class BlinkPermissions {
@@ -12120,14 +12022,6 @@ class BlinkPermissions {
   query_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "query", []);
 
   query_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "query", [__arg_0]);
-
-  request_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "request", []);
-
-  request_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "request", [__arg_0]);
-
-  revoke_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "revoke", []);
-
-  revoke_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "revoke", [__arg_0]);
 
 }
 
@@ -12168,6 +12062,21 @@ class BlinkPluginArray {
   refresh_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "refresh", []);
 
   refresh_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "refresh", [__arg_0]);
+
+}
+
+class BlinkPluginPlaceholderElement extends BlinkHTMLDivElement {
+  static final instance = new BlinkPluginPlaceholderElement();
+
+  closeable_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "closeable");
+
+  closeable_Setter_(mthis, __arg_0) => mthis["closeable"] = __arg_0;
+
+  message_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "message");
+
+  message_Setter_(mthis, __arg_0) => mthis["message"] = __arg_0;
+
+  createdCallback_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "createdCallback", []);
 
 }
 
@@ -12252,11 +12161,25 @@ class BlinkPositionSensorVRDevice extends BlinkVRDevice {
 class BlinkPresentation extends BlinkEventTarget {
   static final instance = new BlinkPresentation();
 
-  defaultRequest_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "defaultRequest");
+  ondefaultsessionstart_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "ondefaultsessionstart");
 
-  defaultRequest_Setter_(mthis, __arg_0) => mthis["defaultRequest"] = __arg_0;
+  ondefaultsessionstart_Setter_(mthis, __arg_0) => mthis["ondefaultsessionstart"] = __arg_0;
 
   session_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "session");
+
+  getAvailability_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getAvailability", []);
+
+  getAvailability_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getAvailability", [__arg_0]);
+
+  joinSession_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "joinSession", []);
+
+  joinSession_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "joinSession", [__arg_0]);
+
+  joinSession_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "joinSession", [__arg_0, __arg_1]);
+
+  startSession_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "startSession", []);
+
+  startSession_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "startSession", [__arg_0]);
 
 }
 
@@ -12268,27 +12191,6 @@ class BlinkPresentationAvailability extends BlinkEventTarget {
   onchange_Setter_(mthis, __arg_0) => mthis["onchange"] = __arg_0;
 
   value_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "value");
-
-}
-
-class BlinkPresentationRequest extends BlinkEventTarget {
-  static final instance = new BlinkPresentationRequest();
-
-  constructorCallback_0_() => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "PresentationRequest"), []);
-
-  constructorCallback_1_(__arg_0) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "PresentationRequest"), [__arg_0]);
-
-  onsessionconnect_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "onsessionconnect");
-
-  onsessionconnect_Setter_(mthis, __arg_0) => mthis["onsessionconnect"] = __arg_0;
-
-  getAvailability_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getAvailability", []);
-
-  reconnect_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "reconnect", []);
-
-  reconnect_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "reconnect", [__arg_0]);
-
-  start_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "start", []);
 
 }
 
@@ -12316,19 +12218,6 @@ class BlinkPresentationSession extends BlinkEventTarget {
   send_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "send", []);
 
   send_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "send", [__arg_0]);
-
-}
-
-class BlinkPresentationSessionConnectEvent extends BlinkEvent {
-  static final instance = new BlinkPresentationSessionConnectEvent();
-
-  constructorCallback_0_() => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "PresentationSessionConnectEvent"), []);
-
-  constructorCallback_1_(__arg_0) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "PresentationSessionConnectEvent"), [__arg_0]);
-
-  constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "PresentationSessionConnectEvent"), [__arg_0, __arg_1]);
-
-  session_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "session");
 
 }
 
@@ -12404,6 +12293,10 @@ class BlinkPushManager {
 class BlinkPushMessageData {
   static final instance = new BlinkPushMessageData();
 
+  constructorCallback_0_() => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "PushMessageData"), []);
+
+  constructorCallback_1_(__arg_0) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "PushMessageData"), [__arg_0]);
+
   arrayBuffer_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "arrayBuffer", []);
 
   blob_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "blob", []);
@@ -12416,10 +12309,6 @@ class BlinkPushSubscription {
   static final instance = new BlinkPushSubscription();
 
   endpoint_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "endpoint");
-
-  getKey_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getKey", []);
-
-  getKey_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getKey", [__arg_0]);
 
   unsubscribe_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "unsubscribe", []);
 
@@ -12474,10 +12363,6 @@ class BlinkRTCDataChannel extends BlinkEventTarget {
 
   bufferedAmount_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "bufferedAmount");
 
-  bufferedAmountLowThreshold_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "bufferedAmountLowThreshold");
-
-  bufferedAmountLowThreshold_Setter_(mthis, __arg_0) => mthis["bufferedAmountLowThreshold"] = __arg_0;
-
   id_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "id");
 
   label_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "label");
@@ -12487,10 +12372,6 @@ class BlinkRTCDataChannel extends BlinkEventTarget {
   maxRetransmits_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "maxRetransmits");
 
   negotiated_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "negotiated");
-
-  onbufferedamountlow_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "onbufferedamountlow");
-
-  onbufferedamountlow_Setter_(mthis, __arg_0) => mthis["onbufferedamountlow"] = __arg_0;
 
   onclose_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "onclose");
 
@@ -12949,7 +12830,7 @@ class BlinkRelatedEvent extends BlinkEvent {
 
 }
 
-class BlinkRequest extends BlinkNone {
+class BlinkRequest {
   static final instance = new BlinkRequest();
 
   constructorCallback_0_() => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "Request"), []);
@@ -12958,15 +12839,13 @@ class BlinkRequest extends BlinkNone {
 
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "Request"), [__arg_0, __arg_1]);
 
+  context_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "context");
+
   credentials_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "credentials");
 
   headers_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "headers");
 
-  integrity_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "integrity");
-
   mode_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "mode");
-
-  redirect_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "redirect");
 
   referrer_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "referrer");
 
@@ -12983,7 +12862,7 @@ class BlinkResourceProgressEvent extends BlinkProgressEvent {
 
 }
 
-class BlinkResponse extends BlinkNone {
+class BlinkResponse {
   static final instance = new BlinkResponse();
 
   constructorCallback_0_() => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "Response"), []);
@@ -13397,16 +13276,6 @@ class BlinkSVGElement extends BlinkElement {
   static final instance = new BlinkSVGElement();
 
   className_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "className");
-
-  offsetHeight_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "offsetHeight");
-
-  offsetLeft_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "offsetLeft");
-
-  offsetParent_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "offsetParent");
-
-  offsetTop_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "offsetTop");
-
-  offsetWidth_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "offsetWidth");
 
   ownerSVGElement_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "ownerSVGElement");
 
@@ -15756,7 +15625,7 @@ class BlinkSVGViewElement extends BlinkSVGElement {
 
 }
 
-class BlinkSVGViewSpec extends BlinkNone {
+class BlinkSVGViewSpec {
   static final instance = new BlinkSVGViewSpec();
 
   preserveAspectRatioString_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "preserveAspectRatioString");
@@ -15819,10 +15688,6 @@ class BlinkScreen {
   colorDepth_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "colorDepth");
 
   height_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "height");
-
-  keepAwake_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "keepAwake");
-
-  keepAwake_Setter_(mthis, __arg_0) => mthis["keepAwake"] = __arg_0;
 
   orientation_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "orientation");
 
@@ -15912,17 +15777,6 @@ class BlinkScrollState {
   consumeDelta_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "consumeDelta", [__arg_0]);
 
   consumeDelta_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "consumeDelta", [__arg_0, __arg_1]);
-
-  distributeToScrollChainDescendant_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "distributeToScrollChainDescendant", []);
-
-}
-
-class BlinkScrollStateCallback {
-  static final instance = new BlinkScrollStateCallback();
-
-  handleEvent_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "handleEvent", []);
-
-  handleEvent_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "handleEvent", [__arg_0]);
 
 }
 
@@ -16172,6 +16026,10 @@ class BlinkServiceWorkerGlobalScope extends BlinkWorkerGlobalScope {
 
   onactivate_Setter_(mthis, __arg_0) => mthis["onactivate"] = __arg_0;
 
+  oncrossoriginconnect_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "oncrossoriginconnect");
+
+  oncrossoriginconnect_Setter_(mthis, __arg_0) => mthis["oncrossoriginconnect"] = __arg_0;
+
   oncrossoriginmessage_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "oncrossoriginmessage");
 
   oncrossoriginmessage_Setter_(mthis, __arg_0) => mthis["oncrossoriginmessage"] = __arg_0;
@@ -16200,6 +16058,10 @@ class BlinkServiceWorkerGlobalScope extends BlinkWorkerGlobalScope {
 
   onnotificationclick_Setter_(mthis, __arg_0) => mthis["onnotificationclick"] = __arg_0;
 
+  onnotificationerror_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "onnotificationerror");
+
+  onnotificationerror_Setter_(mthis, __arg_0) => mthis["onnotificationerror"] = __arg_0;
+
   onperiodicsync_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "onperiodicsync");
 
   onperiodicsync_Setter_(mthis, __arg_0) => mthis["onperiodicsync"] = __arg_0;
@@ -16211,6 +16073,8 @@ class BlinkServiceWorkerGlobalScope extends BlinkWorkerGlobalScope {
   onsync_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "onsync");
 
   onsync_Setter_(mthis, __arg_0) => mthis["onsync"] = __arg_0;
+
+  ports_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "ports");
 
   registration_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "registration");
 
@@ -16735,6 +16599,28 @@ class BlinkSpeechSynthesisVoice {
 
 }
 
+class BlinkStashedMessagePort extends BlinkMessagePort {
+  static final instance = new BlinkStashedMessagePort();
+
+  name_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "name");
+
+}
+
+class BlinkStashedPortCollection extends BlinkEventTarget {
+  static final instance = new BlinkStashedPortCollection();
+
+  onmessage_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "onmessage");
+
+  onmessage_Setter_(mthis, __arg_0) => mthis["onmessage"] = __arg_0;
+
+  add_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "add", []);
+
+  add_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "add", [__arg_0]);
+
+  add_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "add", [__arg_0, __arg_1]);
+
+}
+
 class BlinkStereoPannerNode extends BlinkAudioNode {
   static final instance = new BlinkStereoPannerNode();
 
@@ -16825,15 +16711,6 @@ class BlinkStorageInfo {
   quota_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "quota");
 
   usage_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "usage");
-
-}
-
-class BlinkStorageManager {
-  static final instance = new BlinkStorageManager();
-
-  persistentPermission_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "persistentPermission", []);
-
-  requestPersistent_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "requestPersistent", []);
 
 }
 
@@ -17008,8 +16885,6 @@ class BlinkSyncManager {
 
 class BlinkSyncRegistration {
   static final instance = new BlinkSyncRegistration();
-
-  done_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "done");
 
   tag_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "tag");
 
@@ -17231,8 +17106,6 @@ class BlinkTouch {
 
   radiusY_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "radiusY");
 
-  region_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "region");
-
   rotationAngle_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "rotationAngle");
 
   screenX_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "screenX");
@@ -17240,6 +17113,14 @@ class BlinkTouch {
   screenY_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "screenY");
 
   target_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "target");
+
+  webkitForce_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "webkitForce");
+
+  webkitRadiusX_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "webkitRadiusX");
+
+  webkitRadiusY_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "webkitRadiusY");
+
+  webkitRotationAngle_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "webkitRotationAngle");
 
 }
 
@@ -17383,9 +17264,13 @@ class BlinkUIEvent extends BlinkEvent {
 
   constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "UIEvent"), [__arg_0, __arg_1]);
 
+  charCode_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "charCode");
+
   detail_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "detail");
 
-  sourceCapabilities_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "sourceCapabilities");
+  keyCode_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "keyCode");
+
+  sourceDevice_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "sourceDevice");
 
   view_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "view");
 
@@ -17399,7 +17284,7 @@ class BlinkUIEvent extends BlinkEvent {
 
 }
 
-class BlinkURL extends BlinkNone {
+class BlinkURL {
   static final instance = new BlinkURL();
 
   constructorCallback_0_() => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "URL"), []);
@@ -17533,219 +17418,6 @@ class BlinkURLUtilsReadOnly {
   search_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "search");
 
   toString_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "toString", []);
-
-}
-
-class BlinkUSB extends BlinkEventTarget {
-  static final instance = new BlinkUSB();
-
-  onconnect_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "onconnect");
-
-  onconnect_Setter_(mthis, __arg_0) => mthis["onconnect"] = __arg_0;
-
-  ondisconnect_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "ondisconnect");
-
-  ondisconnect_Setter_(mthis, __arg_0) => mthis["ondisconnect"] = __arg_0;
-
-  getDevices_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getDevices", []);
-
-  requestDevice_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "requestDevice", []);
-
-  requestDevice_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "requestDevice", [__arg_0]);
-
-}
-
-class BlinkUSBAlternateInterface {
-  static final instance = new BlinkUSBAlternateInterface();
-
-  constructorCallback_0_() => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "USBAlternateInterface"), []);
-
-  constructorCallback_1_(__arg_0) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "USBAlternateInterface"), [__arg_0]);
-
-  constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "USBAlternateInterface"), [__arg_0, __arg_1]);
-
-  alternateSetting_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "alternateSetting");
-
-  endpoints_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "endpoints");
-
-  interfaceClass_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "interfaceClass");
-
-  interfaceName_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "interfaceName");
-
-  interfaceProtocol_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "interfaceProtocol");
-
-  interfaceSubclass_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "interfaceSubclass");
-
-}
-
-class BlinkUSBConfiguration {
-  static final instance = new BlinkUSBConfiguration();
-
-  constructorCallback_0_() => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "USBConfiguration"), []);
-
-  constructorCallback_1_(__arg_0) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "USBConfiguration"), [__arg_0]);
-
-  constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "USBConfiguration"), [__arg_0, __arg_1]);
-
-  configurationName_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "configurationName");
-
-  configurationValue_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "configurationValue");
-
-  interfaces_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "interfaces");
-
-}
-
-class BlinkUSBConnectionEvent extends BlinkEvent {
-  static final instance = new BlinkUSBConnectionEvent();
-
-  constructorCallback_0_() => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "USBConnectionEvent"), []);
-
-  constructorCallback_1_(__arg_0) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "USBConnectionEvent"), [__arg_0]);
-
-  constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "USBConnectionEvent"), [__arg_0, __arg_1]);
-
-  device_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "device");
-
-}
-
-class BlinkUSBDevice {
-  static final instance = new BlinkUSBDevice();
-
-  configurations_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "configurations");
-
-  deviceClass_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "deviceClass");
-
-  deviceProtocol_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "deviceProtocol");
-
-  deviceSubclass_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "deviceSubclass");
-
-  deviceVersionMajor_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "deviceVersionMajor");
-
-  deviceVersionMinor_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "deviceVersionMinor");
-
-  deviceVersionSubminor_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "deviceVersionSubminor");
-
-  guid_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "guid");
-
-  manufacturerName_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "manufacturerName");
-
-  productId_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "productId");
-
-  productName_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "productName");
-
-  serialNumber_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "serialNumber");
-
-  usbVersionMajor_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "usbVersionMajor");
-
-  usbVersionMinor_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "usbVersionMinor");
-
-  usbVersionSubminor_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "usbVersionSubminor");
-
-  vendorId_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "vendorId");
-
-  claimInterface_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "claimInterface", []);
-
-  claimInterface_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "claimInterface", [__arg_0]);
-
-  clearHalt_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "clearHalt", []);
-
-  clearHalt_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "clearHalt", [__arg_0]);
-
-  close_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "close", []);
-
-  controlTransferIn_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "controlTransferIn", []);
-
-  controlTransferIn_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "controlTransferIn", [__arg_0]);
-
-  controlTransferIn_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "controlTransferIn", [__arg_0, __arg_1]);
-
-  controlTransferOut_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "controlTransferOut", []);
-
-  controlTransferOut_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "controlTransferOut", [__arg_0]);
-
-  controlTransferOut_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "controlTransferOut", [__arg_0, __arg_1]);
-
-  open_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "open", []);
-
-  releaseInterface_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "releaseInterface", []);
-
-  releaseInterface_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "releaseInterface", [__arg_0]);
-
-  reset_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "reset", []);
-
-  setConfiguration_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "setConfiguration", []);
-
-  setConfiguration_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "setConfiguration", [__arg_0]);
-
-  setInterface_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "setInterface", []);
-
-  setInterface_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "setInterface", [__arg_0]);
-
-  setInterface_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "setInterface", [__arg_0, __arg_1]);
-
-  transferIn_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "transferIn", []);
-
-  transferIn_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "transferIn", [__arg_0]);
-
-  transferIn_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "transferIn", [__arg_0, __arg_1]);
-
-  transferOut_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "transferOut", []);
-
-  transferOut_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "transferOut", [__arg_0]);
-
-  transferOut_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "transferOut", [__arg_0, __arg_1]);
-
-}
-
-class BlinkUSBEndpoint {
-  static final instance = new BlinkUSBEndpoint();
-
-  constructorCallback_1_(__arg_0) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "USBEndpoint"), [__arg_0]);
-
-  constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "USBEndpoint"), [__arg_0, __arg_1]);
-
-  constructorCallback_3_(__arg_0, __arg_1, __arg_2) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "USBEndpoint"), [__arg_0, __arg_1, __arg_2]);
-
-  direction_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "direction");
-
-  endpointNumber_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "endpointNumber");
-
-  packetSize_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "packetSize");
-
-  type_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "type");
-
-}
-
-class BlinkUSBInTransferResult {
-  static final instance = new BlinkUSBInTransferResult();
-
-  data_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "data");
-
-  status_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "status");
-
-}
-
-class BlinkUSBInterface {
-  static final instance = new BlinkUSBInterface();
-
-  constructorCallback_0_() => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "USBInterface"), []);
-
-  constructorCallback_1_(__arg_0) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "USBInterface"), [__arg_0]);
-
-  constructorCallback_2_(__arg_0, __arg_1) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "USBInterface"), [__arg_0, __arg_1]);
-
-  alternates_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "alternates");
-
-  interfaceNumber_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "interfaceNumber");
-
-}
-
-class BlinkUSBOutTransferResult {
-  static final instance = new BlinkUSBOutTransferResult();
-
-  bytesWritten_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "bytesWritten");
-
-  status_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "status");
 
 }
 
@@ -18048,7 +17720,7 @@ class BlinkWaveShaperNode extends BlinkAudioNode {
 
 }
 
-class BlinkWebGL2RenderingContext extends BlinkNone {
+class BlinkWebGL2RenderingContext {
   static final instance = new BlinkWebGL2RenderingContext();
 
   canvas_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "canvas");
@@ -18797,7 +18469,7 @@ class BlinkWebGL2RenderingContext extends BlinkNone {
 
 }
 
-class BlinkWebGL2RenderingContextBase extends BlinkNone {
+class BlinkWebGL2RenderingContextBase {
   static final instance = new BlinkWebGL2RenderingContextBase();
 
   beginQuery_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "beginQuery", []);
@@ -19244,11 +18916,6 @@ class BlinkWebGLBuffer {
 
 }
 
-class BlinkWebGLCompressedTextureASTC {
-  static final instance = new BlinkWebGLCompressedTextureASTC();
-
-}
-
 class BlinkWebGLCompressedTextureATC {
   static final instance = new BlinkWebGLCompressedTextureATC();
 
@@ -19339,7 +19006,7 @@ class BlinkWebGLRenderbuffer {
 
 }
 
-class BlinkWebGLRenderingContext extends BlinkNone {
+class BlinkWebGLRenderingContext {
   static final instance = new BlinkWebGLRenderingContext();
 
   getBufferParameter_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getBufferParameter", []);
@@ -20066,11 +19733,6 @@ class BlinkWebGLTexture {
 
 }
 
-class BlinkWebGLTimerQueryEXT {
-  static final instance = new BlinkWebGLTimerQueryEXT();
-
-}
-
 class BlinkWebGLTransformFeedback {
   static final instance = new BlinkWebGLTransformFeedback();
 
@@ -20513,10 +20175,6 @@ class BlinkWindow extends BlinkEventTarget {
 
   cancelAnimationFrame_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "cancelAnimationFrame", [__arg_0]);
 
-  cancelIdleCallback_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "cancelIdleCallback", []);
-
-  cancelIdleCallback_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "cancelIdleCallback", [__arg_0]);
-
   captureEvents_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "captureEvents", []);
 
   close_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "close", []);
@@ -20618,12 +20276,6 @@ class BlinkWindow extends BlinkEventTarget {
   requestAnimationFrame_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "requestAnimationFrame", []);
 
   requestAnimationFrame_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "requestAnimationFrame", [__arg_0]);
-
-  requestIdleCallback_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "requestIdleCallback", []);
-
-  requestIdleCallback_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "requestIdleCallback", [__arg_0]);
-
-  requestIdleCallback_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "requestIdleCallback", [__arg_0, __arg_1]);
 
   resizeBy_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "resizeBy", []);
 
@@ -21075,10 +20727,6 @@ class BlinkWindowClient extends BlinkClient {
 
   focus_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "focus", []);
 
-  navigate_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "navigate", []);
-
-  navigate_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "navigate", [__arg_0]);
-
 }
 
 class BlinkWindowEventHandlers {
@@ -21304,7 +20952,7 @@ class BlinkWorkerGlobalScope extends BlinkEventTarget {
 
 }
 
-class BlinkWorkerLocation extends BlinkNone {
+class BlinkWorkerLocation {
   static final instance = new BlinkWorkerLocation();
 
   hash_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "hash");
@@ -21329,7 +20977,7 @@ class BlinkWorkerLocation extends BlinkNone {
 
 }
 
-class BlinkWorkerNavigator extends BlinkNone {
+class BlinkWorkerNavigator {
   static final instance = new BlinkWorkerNavigator();
 
   connection_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "connection");
@@ -21339,8 +20987,6 @@ class BlinkWorkerNavigator extends BlinkNone {
   permissions_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "permissions");
 
   services_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "services");
-
-  storage_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "storage");
 
   webkitPersistentStorage_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "webkitPersistentStorage");
 
@@ -21371,9 +21017,9 @@ class BlinkWorkerPerformance extends BlinkEventTarget {
 
   memory_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "memory");
 
-  onresourcetimingbufferfull_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "onresourcetimingbufferfull");
+  onwebkitresourcetimingbufferfull_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "onwebkitresourcetimingbufferfull");
 
-  onresourcetimingbufferfull_Setter_(mthis, __arg_0) => mthis["onresourcetimingbufferfull"] = __arg_0;
+  onwebkitresourcetimingbufferfull_Setter_(mthis, __arg_0) => mthis["onwebkitresourcetimingbufferfull"] = __arg_0;
 
   clearMarks_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "clearMarks", []);
 
@@ -21382,8 +21028,6 @@ class BlinkWorkerPerformance extends BlinkEventTarget {
   clearMeasures_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "clearMeasures", []);
 
   clearMeasures_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "clearMeasures", [__arg_0]);
-
-  clearResourceTimings_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "clearResourceTimings", []);
 
   mark_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "mark", []);
 
@@ -21395,9 +21039,11 @@ class BlinkWorkerPerformance extends BlinkEventTarget {
 
   measure_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "measure", [__arg_0, __arg_1, __arg_2]);
 
-  setResourceTimingBufferSize_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "setResourceTimingBufferSize", []);
+  webkitClearResourceTimings_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "webkitClearResourceTimings", []);
 
-  setResourceTimingBufferSize_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "setResourceTimingBufferSize", [__arg_0]);
+  webkitSetResourceTimingBufferSize_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "webkitSetResourceTimingBufferSize", []);
+
+  webkitSetResourceTimingBufferSize_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "webkitSetResourceTimingBufferSize", [__arg_0]);
 
 }
 

@@ -7284,31 +7284,6 @@ class SvgElement extends Element implements GlobalEventHandlers {
   @Experimental() // untriaged
   AnimatedString get _svgClassName => wrap_jso(_blink.BlinkSVGElement.instance.className_Getter_(unwrap_jso(this)));
   
-  @DomName('SVGElement.offsetHeight')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get _offsetHeight => _blink.BlinkSVGElement.instance.offsetHeight_Getter_(unwrap_jso(this));
-  
-  @DomName('SVGElement.offsetLeft')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get _offsetLeft => _blink.BlinkSVGElement.instance.offsetLeft_Getter_(unwrap_jso(this));
-  
-  @DomName('SVGElement.offsetParent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Element get offsetParent => wrap_jso(_blink.BlinkSVGElement.instance.offsetParent_Getter_(unwrap_jso(this)));
-  
-  @DomName('SVGElement.offsetTop')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get _offsetTop => _blink.BlinkSVGElement.instance.offsetTop_Getter_(unwrap_jso(this));
-  
-  @DomName('SVGElement.offsetWidth')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get _offsetWidth => _blink.BlinkSVGElement.instance.offsetWidth_Getter_(unwrap_jso(this));
-  
   @DomName('SVGElement.ownerSVGElement')
   @DocsEditable()
   SvgSvgElement get ownerSvgElement => wrap_jso(_blink.BlinkSVGElement.instance.ownerSVGElement_Getter_(unwrap_jso(this)));

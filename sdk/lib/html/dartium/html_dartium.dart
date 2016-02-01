@@ -165,7 +165,6 @@ final htmlBlinkMap = {
   'CSSKeyframeRule': () => CssKeyframeRule,
   'CSSKeyframesRule': () => CssKeyframesRule,
   'CSSMediaRule': () => CssMediaRule,
-  'CSSNamespaceRule': () => CssNamespaceRule,
   'CSSPageRule': () => CssPageRule,
   'CSSRule': () => CssRule,
   'CSSRuleList': () => _CssRuleList,
@@ -199,6 +198,7 @@ final htmlBlinkMap = {
   'Coordinates': () => Coordinates,
   'Credential': () => Credential,
   'CredentialsContainer': () => CredentialsContainer,
+  'CrossOriginConnectEvent': () => CrossOriginConnectEvent,
   'CrossOriginServiceWorkerClient': () => CrossOriginServiceWorkerClient,
   'Crypto': () => Crypto,
   'CryptoKey': () => CryptoKey,
@@ -223,6 +223,7 @@ final htmlBlinkMap = {
   'DataTransferItem': () => DataTransferItem,
   'DataTransferItemList': () => DataTransferItemList,
   'DedicatedWorkerGlobalScope': () => DedicatedWorkerGlobalScope,
+  'DefaultSessionStartEvent': () => DefaultSessionStartEvent,
   'DeprecatedStorageInfo': () => DeprecatedStorageInfo,
   'DeprecatedStorageQuota': () => DeprecatedStorageQuota,
   'DeviceAcceleration': () => DeviceAcceleration,
@@ -237,7 +238,6 @@ final htmlBlinkMap = {
   'Document': () => Document,
   'DocumentFragment': () => DocumentFragment,
   'DocumentType': () => _DocumentType,
-  'DragEvent': () => DragEvent,
   'EffectModel': () => EffectModel,
   'Element': () => Element,
   'Entry': () => Entry,
@@ -276,6 +276,7 @@ final htmlBlinkMap = {
   'HMDVRDevice': () => HmdvrDevice,
   'HTMLAllCollection': () => _HTMLAllCollection,
   'HTMLAnchorElement': () => AnchorElement,
+  'HTMLAppletElement': () => _HTMLAppletElement,
   'HTMLAreaElement': () => AreaElement,
   'HTMLAudioElement': () => AudioElement,
   'HTMLBRElement': () => BRElement,
@@ -354,11 +355,10 @@ final htmlBlinkMap = {
   'HashChangeEvent': () => HashChangeEvent,
   'Headers': () => Headers,
   'History': () => History,
-  'IdleDeadline': () => IdleDeadline,
   'ImageBitmap': () => ImageBitmap,
   'ImageData': () => ImageData,
   'InjectedScriptHost': () => InjectedScriptHost,
-  'InputDeviceCapabilities': () => InputDeviceCapabilities,
+  'InputDevice': () => InputDevice,
   'Iterator': () => DomIterator,
   'KeyboardEvent': () => KeyboardEvent,
   'KeyframeEffect': () => KeyframeEffect,
@@ -386,8 +386,6 @@ final htmlBlinkMap = {
   'MediaList': () => MediaList,
   'MediaQueryList': () => MediaQueryList,
   'MediaQueryListEvent': () => MediaQueryListEvent,
-  'MediaRecorder': () => MediaRecorder,
-  'MediaRecorderErrorEvent': () => MediaRecorderErrorEvent,
   'MediaSession': () => MediaSession,
   'MediaSource': () => MediaSource,
   'MediaStream': () => MediaStream,
@@ -405,7 +403,6 @@ final htmlBlinkMap = {
   'MutationEvent': () => _MutationEvent,
   'MutationObserver': () => MutationObserver,
   'MutationRecord': () => MutationRecord,
-  'NFC': () => Nfc,
   'NamedNodeMap': () => _NamedNodeMap,
   'Navigator': () => Navigator,
   'NavigatorCPU': () => NavigatorCpu,
@@ -434,8 +431,6 @@ final htmlBlinkMap = {
   'PerformanceMark': () => PerformanceMark,
   'PerformanceMeasure': () => PerformanceMeasure,
   'PerformanceNavigation': () => PerformanceNavigation,
-  'PerformanceObserver': () => PerformanceObserver,
-  'PerformanceObserverEntryList': () => PerformanceObserverEntryList,
   'PerformanceRenderTiming': () => PerformanceRenderTiming,
   'PerformanceResourceTiming': () => PerformanceResourceTiming,
   'PerformanceTiming': () => PerformanceTiming,
@@ -446,15 +441,14 @@ final htmlBlinkMap = {
   'Permissions': () => Permissions,
   'Plugin': () => Plugin,
   'PluginArray': () => PluginArray,
+  'PluginPlaceholderElement': () => PluginPlaceholderElement,
   'PointerEvent': () => PointerEvent,
   'PopStateEvent': () => PopStateEvent,
   'PositionError': () => PositionError,
   'PositionSensorVRDevice': () => PositionSensorVRDevice,
   'Presentation': () => Presentation,
   'PresentationAvailability': () => PresentationAvailability,
-  'PresentationRequest': () => PresentationRequest,
   'PresentationSession': () => PresentationSession,
-  'PresentationSessionConnectEvent': () => PresentationSessionConnectEvent,
   'ProcessingInstruction': () => ProcessingInstruction,
   'ProgressEvent': () => ProgressEvent,
   'PromiseRejectionEvent': () => PromiseRejectionEvent,
@@ -514,10 +508,11 @@ final htmlBlinkMap = {
   'SpeechSynthesisEvent': () => SpeechSynthesisEvent,
   'SpeechSynthesisUtterance': () => SpeechSynthesisUtterance,
   'SpeechSynthesisVoice': () => SpeechSynthesisVoice,
+  'StashedMessagePort': () => StashedMessagePort,
+  'StashedPortCollection': () => StashedPortCollection,
   'Storage': () => Storage,
   'StorageEvent': () => StorageEvent,
   'StorageInfo': () => StorageInfo,
-  'StorageManager': () => StorageManager,
   'StorageQuota': () => StorageQuota,
   'Stream': () => FileStream,
   'StyleMedia': () => StyleMedia,
@@ -547,15 +542,6 @@ final htmlBlinkMap = {
   'URL': () => Url,
   'URLUtils': () => UrlUtils,
   'URLUtilsReadOnly': () => UrlUtilsReadOnly,
-  'USB': () => Usb,
-  'USBAlternateInterface': () => UsbAlternateInterface,
-  'USBConfiguration': () => UsbConfiguration,
-  'USBConnectionEvent': () => UsbConnectionEvent,
-  'USBDevice': () => UsbDevice,
-  'USBEndpoint': () => UsbEndpoint,
-  'USBInTransferResult': () => UsbInTransferResult,
-  'USBInterface': () => UsbInterface,
-  'USBOutTransferResult': () => UsbOutTransferResult,
   'VRDevice': () => VRDevice,
   'VREyeParameters': () => VREyeParameters,
   'VRFieldOfView': () => VRFieldOfView,
@@ -721,7 +707,6 @@ final htmlBlinkFunctionMap = {
   'CSSKeyframeRule': () => CssKeyframeRule.internalCreateCssKeyframeRule,
   'CSSKeyframesRule': () => CssKeyframesRule.internalCreateCssKeyframesRule,
   'CSSMediaRule': () => CssMediaRule.internalCreateCssMediaRule,
-  'CSSNamespaceRule': () => CssNamespaceRule.internalCreateCssNamespaceRule,
   'CSSPageRule': () => CssPageRule.internalCreateCssPageRule,
   'CSSRule': () => CssRule.internalCreateCssRule,
   'CSSRuleList': () => _CssRuleList.internalCreate_CssRuleList,
@@ -753,6 +738,7 @@ final htmlBlinkFunctionMap = {
   'Coordinates': () => Coordinates.internalCreateCoordinates,
   'Credential': () => Credential.internalCreateCredential,
   'CredentialsContainer': () => CredentialsContainer.internalCreateCredentialsContainer,
+  'CrossOriginConnectEvent': () => CrossOriginConnectEvent.internalCreateCrossOriginConnectEvent,
   'CrossOriginServiceWorkerClient': () => CrossOriginServiceWorkerClient.internalCreateCrossOriginServiceWorkerClient,
   'Crypto': () => Crypto.internalCreateCrypto,
   'CryptoKey': () => CryptoKey.internalCreateCryptoKey,
@@ -776,6 +762,7 @@ final htmlBlinkFunctionMap = {
   'DataTransferItem': () => DataTransferItem.internalCreateDataTransferItem,
   'DataTransferItemList': () => DataTransferItemList.internalCreateDataTransferItemList,
   'DedicatedWorkerGlobalScope': () => DedicatedWorkerGlobalScope.internalCreateDedicatedWorkerGlobalScope,
+  'DefaultSessionStartEvent': () => DefaultSessionStartEvent.internalCreateDefaultSessionStartEvent,
   'DeprecatedStorageInfo': () => DeprecatedStorageInfo.internalCreateDeprecatedStorageInfo,
   'DeprecatedStorageQuota': () => DeprecatedStorageQuota.internalCreateDeprecatedStorageQuota,
   'DeviceAcceleration': () => DeviceAcceleration.internalCreateDeviceAcceleration,
@@ -790,7 +777,6 @@ final htmlBlinkFunctionMap = {
   'Document': () => Document.internalCreateDocument,
   'DocumentFragment': () => DocumentFragment.internalCreateDocumentFragment,
   'DocumentType': () => _DocumentType.internalCreate_DocumentType,
-  'DragEvent': () => DragEvent.internalCreateDragEvent,
   'EffectModel': () => EffectModel.internalCreateEffectModel,
   'Element': () => Element.internalCreateElement,
   'Entry': () => Entry.internalCreateEntry,
@@ -828,6 +814,7 @@ final htmlBlinkFunctionMap = {
   'HMDVRDevice': () => HmdvrDevice.internalCreateHmdvrDevice,
   'HTMLAllCollection': () => _HTMLAllCollection.internalCreate_HTMLAllCollection,
   'HTMLAnchorElement': () => AnchorElement.internalCreateAnchorElement,
+  'HTMLAppletElement': () => _HTMLAppletElement.internalCreate_HTMLAppletElement,
   'HTMLAreaElement': () => AreaElement.internalCreateAreaElement,
   'HTMLAudioElement': () => AudioElement.internalCreateAudioElement,
   'HTMLBRElement': () => BRElement.internalCreateBRElement,
@@ -906,11 +893,10 @@ final htmlBlinkFunctionMap = {
   'HashChangeEvent': () => HashChangeEvent.internalCreateHashChangeEvent,
   'Headers': () => Headers.internalCreateHeaders,
   'History': () => History.internalCreateHistory,
-  'IdleDeadline': () => IdleDeadline.internalCreateIdleDeadline,
   'ImageBitmap': () => ImageBitmap.internalCreateImageBitmap,
   'ImageData': () => ImageData.internalCreateImageData,
   'InjectedScriptHost': () => InjectedScriptHost.internalCreateInjectedScriptHost,
-  'InputDeviceCapabilities': () => InputDeviceCapabilities.internalCreateInputDeviceCapabilities,
+  'InputDevice': () => InputDevice.internalCreateInputDevice,
   'Iterator': () => DomIterator.internalCreateDomIterator,
   'KeyboardEvent': () => KeyboardEvent.internalCreateKeyboardEvent,
   'KeyframeEffect': () => KeyframeEffect.internalCreateKeyframeEffect,
@@ -938,8 +924,6 @@ final htmlBlinkFunctionMap = {
   'MediaList': () => MediaList.internalCreateMediaList,
   'MediaQueryList': () => MediaQueryList.internalCreateMediaQueryList,
   'MediaQueryListEvent': () => MediaQueryListEvent.internalCreateMediaQueryListEvent,
-  'MediaRecorder': () => MediaRecorder.internalCreateMediaRecorder,
-  'MediaRecorderErrorEvent': () => MediaRecorderErrorEvent.internalCreateMediaRecorderErrorEvent,
   'MediaSession': () => MediaSession.internalCreateMediaSession,
   'MediaSource': () => MediaSource.internalCreateMediaSource,
   'MediaStream': () => MediaStream.internalCreateMediaStream,
@@ -957,7 +941,6 @@ final htmlBlinkFunctionMap = {
   'MutationEvent': () => _MutationEvent.internalCreate_MutationEvent,
   'MutationObserver': () => MutationObserver.internalCreateMutationObserver,
   'MutationRecord': () => MutationRecord.internalCreateMutationRecord,
-  'NFC': () => Nfc.internalCreateNfc,
   'NamedNodeMap': () => _NamedNodeMap.internalCreate_NamedNodeMap,
   'Navigator': () => Navigator.internalCreateNavigator,
   'NavigatorStorageUtils': () => NavigatorStorageUtils.internalCreateNavigatorStorageUtils,
@@ -981,8 +964,6 @@ final htmlBlinkFunctionMap = {
   'PerformanceMark': () => PerformanceMark.internalCreatePerformanceMark,
   'PerformanceMeasure': () => PerformanceMeasure.internalCreatePerformanceMeasure,
   'PerformanceNavigation': () => PerformanceNavigation.internalCreatePerformanceNavigation,
-  'PerformanceObserver': () => PerformanceObserver.internalCreatePerformanceObserver,
-  'PerformanceObserverEntryList': () => PerformanceObserverEntryList.internalCreatePerformanceObserverEntryList,
   'PerformanceRenderTiming': () => PerformanceRenderTiming.internalCreatePerformanceRenderTiming,
   'PerformanceResourceTiming': () => PerformanceResourceTiming.internalCreatePerformanceResourceTiming,
   'PerformanceTiming': () => PerformanceTiming.internalCreatePerformanceTiming,
@@ -993,15 +974,14 @@ final htmlBlinkFunctionMap = {
   'Permissions': () => Permissions.internalCreatePermissions,
   'Plugin': () => Plugin.internalCreatePlugin,
   'PluginArray': () => PluginArray.internalCreatePluginArray,
+  'PluginPlaceholderElement': () => PluginPlaceholderElement.internalCreatePluginPlaceholderElement,
   'PointerEvent': () => PointerEvent.internalCreatePointerEvent,
   'PopStateEvent': () => PopStateEvent.internalCreatePopStateEvent,
   'PositionError': () => PositionError.internalCreatePositionError,
   'PositionSensorVRDevice': () => PositionSensorVRDevice.internalCreatePositionSensorVRDevice,
   'Presentation': () => Presentation.internalCreatePresentation,
   'PresentationAvailability': () => PresentationAvailability.internalCreatePresentationAvailability,
-  'PresentationRequest': () => PresentationRequest.internalCreatePresentationRequest,
   'PresentationSession': () => PresentationSession.internalCreatePresentationSession,
-  'PresentationSessionConnectEvent': () => PresentationSessionConnectEvent.internalCreatePresentationSessionConnectEvent,
   'ProcessingInstruction': () => ProcessingInstruction.internalCreateProcessingInstruction,
   'ProgressEvent': () => ProgressEvent.internalCreateProgressEvent,
   'PromiseRejectionEvent': () => PromiseRejectionEvent.internalCreatePromiseRejectionEvent,
@@ -1061,10 +1041,11 @@ final htmlBlinkFunctionMap = {
   'SpeechSynthesisEvent': () => SpeechSynthesisEvent.internalCreateSpeechSynthesisEvent,
   'SpeechSynthesisUtterance': () => SpeechSynthesisUtterance.internalCreateSpeechSynthesisUtterance,
   'SpeechSynthesisVoice': () => SpeechSynthesisVoice.internalCreateSpeechSynthesisVoice,
+  'StashedMessagePort': () => StashedMessagePort.internalCreateStashedMessagePort,
+  'StashedPortCollection': () => StashedPortCollection.internalCreateStashedPortCollection,
   'Storage': () => Storage.internalCreateStorage,
   'StorageEvent': () => StorageEvent.internalCreateStorageEvent,
   'StorageInfo': () => StorageInfo.internalCreateStorageInfo,
-  'StorageManager': () => StorageManager.internalCreateStorageManager,
   'StorageQuota': () => StorageQuota.internalCreateStorageQuota,
   'Stream': () => FileStream.internalCreateFileStream,
   'StyleMedia': () => StyleMedia.internalCreateStyleMedia,
@@ -1092,15 +1073,6 @@ final htmlBlinkFunctionMap = {
   'TreeWalker': () => TreeWalker.internalCreateTreeWalker,
   'UIEvent': () => UIEvent.internalCreateUIEvent,
   'URL': () => Url.internalCreateUrl,
-  'USB': () => Usb.internalCreateUsb,
-  'USBAlternateInterface': () => UsbAlternateInterface.internalCreateUsbAlternateInterface,
-  'USBConfiguration': () => UsbConfiguration.internalCreateUsbConfiguration,
-  'USBConnectionEvent': () => UsbConnectionEvent.internalCreateUsbConnectionEvent,
-  'USBDevice': () => UsbDevice.internalCreateUsbDevice,
-  'USBEndpoint': () => UsbEndpoint.internalCreateUsbEndpoint,
-  'USBInTransferResult': () => UsbInTransferResult.internalCreateUsbInTransferResult,
-  'USBInterface': () => UsbInterface.internalCreateUsbInterface,
-  'USBOutTransferResult': () => UsbOutTransferResult.internalCreateUsbOutTransferResult,
   'VRDevice': () => VRDevice.internalCreateVRDevice,
   'VREyeParameters': () => VREyeParameters.internalCreateVREyeParameters,
   'VRFieldOfView': () => VRFieldOfView.internalCreateVRFieldOfView,
@@ -1432,16 +1404,6 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   @DomName('HTMLAnchorElement.hreflang')
   @DocsEditable()
   set hreflang(String value) => _blink.BlinkHTMLAnchorElement.instance.hreflang_Setter_(unwrap_jso(this), value);
-  
-  @DomName('HTMLAnchorElement.referrerpolicy')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get referrerpolicy => _blink.BlinkHTMLAnchorElement.instance.referrerpolicy_Getter_(unwrap_jso(this));
-  
-  @DomName('HTMLAnchorElement.referrerpolicy')
-  @DocsEditable()
-  @Experimental() // untriaged
-  set referrerpolicy(String value) => _blink.BlinkHTMLAnchorElement.instance.referrerpolicy_Setter_(unwrap_jso(this), value);
   
   @DomName('HTMLAnchorElement.rel')
   @DocsEditable()
@@ -3879,15 +3841,6 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
     return wrap_jso(_blink.BlinkHTMLCanvasElement.instance.getContext_Callback_1_(unwrap_jso(this), contextId));
   }
 
-  void toBlob(_FileCallback callback, String type, [Object arguments]) {
-    if (arguments != null) {
-      _blink.BlinkHTMLCanvasElement.instance.toBlob_Callback_3_(unwrap_jso(this), unwrap_jso((file) => callback(wrap_jso(file))), type, arguments);
-      return;
-    }
-    _blink.BlinkHTMLCanvasElement.instance.toBlob_Callback_2_(unwrap_jso(this), unwrap_jso((file) => callback(wrap_jso(file))), type);
-    return;
-  }
-
   String _toDataUrl(String type, [arguments_OR_quality]) {
     if ((type is String || type == null) && arguments_OR_quality == null) {
       return _blink.BlinkHTMLCanvasElement.instance.toDataURL_Callback_1_(unwrap_jso(this), type);
@@ -4953,6 +4906,21 @@ class CharacterData extends Node implements NonDocumentTypeChildNode, ChildNode 
   @DocsEditable()
   String substringData(int offset, int count) => _blink.BlinkCharacterData.instance.substringData_Callback_2_(unwrap_jso(this), offset, count);
   
+  @DomName('CharacterData.after')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void after(Object nodes) => _blink.BlinkCharacterData.instance.after_Callback_1_(unwrap_jso(this), nodes);
+  
+  @DomName('CharacterData.before')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void before(Object nodes) => _blink.BlinkCharacterData.instance.before_Callback_1_(unwrap_jso(this), nodes);
+  
+  @DomName('CharacterData.replaceWith')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void replaceWith(Object nodes) => _blink.BlinkCharacterData.instance.replaceWith_Callback_1_(unwrap_jso(this), nodes);
+  
   @DomName('CharacterData.nextElementSibling')
   @DocsEditable()
   Element get nextElementSibling => wrap_jso(_blink.BlinkCharacterData.instance.nextElementSibling_Getter_(unwrap_jso(this)));
@@ -4976,10 +4944,25 @@ abstract class ChildNode extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory ChildNode._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('ChildNode.after')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void after(Object nodes);
+
+  @DomName('ChildNode.before')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void before(Object nodes);
+
   @DomName('ChildNode.remove')
   @DocsEditable()
   @Experimental() // untriaged
   void remove();
+
+  @DomName('ChildNode.replaceWith')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void replaceWith(Object nodes);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6013,11 +5996,16 @@ class CredentialsContainer extends DartHtmlDomObject {
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
   int get hashCode => unwrap_jso(this).hashCode;
 
-  Future get([Map options]) {
+  @DomName('CredentialsContainer.notifySignedIn')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future notifySignedIn(Credential credential) => wrap_jso(_blink.BlinkCredentialsContainer.instance.notifySignedIn_Callback_1_(unwrap_jso(this), unwrap_jso(credential)));
+  
+  Future request([Map options]) {
     if (options != null) {
-      return wrap_jso(_blink.BlinkCredentialsContainer.instance.get_Callback_1_(unwrap_jso(this), convertDartToNative_Dictionary(options)));
+      return wrap_jso(_blink.BlinkCredentialsContainer.instance.request_Callback_1_(unwrap_jso(this), convertDartToNative_Dictionary(options)));
     }
-    return wrap_jso(_blink.BlinkCredentialsContainer.instance.get_Callback_0_(unwrap_jso(this)));
+    return wrap_jso(_blink.BlinkCredentialsContainer.instance.request_Callback_0_(unwrap_jso(this)));
   }
 
   @DomName('CredentialsContainer.requireUserMediation')
@@ -6025,10 +6013,44 @@ class CredentialsContainer extends DartHtmlDomObject {
   @Experimental() // untriaged
   Future requireUserMediation() => wrap_jso(_blink.BlinkCredentialsContainer.instance.requireUserMediation_Callback_0_(unwrap_jso(this)));
   
-  @DomName('CredentialsContainer.store')
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('CrossOriginConnectEvent')
+@Experimental() // untriaged
+class CrossOriginConnectEvent extends Event {
+  // To suppress missing implicit constructor warnings.
+  factory CrossOriginConnectEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static CrossOriginConnectEvent internalCreateCrossOriginConnectEvent() {
+    return new CrossOriginConnectEvent._internalWrap();
+  }
+
+  factory CrossOriginConnectEvent._internalWrap() {
+    return new CrossOriginConnectEvent.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  CrossOriginConnectEvent.internal_() : super.internal_();
+
+
+  @DomName('CrossOriginConnectEvent.client')
   @DocsEditable()
   @Experimental() // untriaged
-  Future store(Credential credential) => wrap_jso(_blink.BlinkCredentialsContainer.instance.store_Callback_1_(unwrap_jso(this), unwrap_jso(credential)));
+  CrossOriginServiceWorkerClient get client => wrap_jso(_blink.BlinkCrossOriginConnectEvent.instance.client_Getter_(unwrap_jso(this)));
+  
+  @DomName('CrossOriginConnectEvent.acceptConnection')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void acceptConnection(Future shouldAccept) => _blink.BlinkCrossOriginConnectEvent.instance.acceptConnection_Callback_1_(unwrap_jso(this), shouldAccept);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6214,11 +6236,6 @@ class Css extends DartHtmlDomObject {
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
   int get hashCode => unwrap_jso(this).hashCode;
 
-  @DomName('CSS.escape')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static String escape(String ident) => _blink.BlinkCSS.instance.escape_Callback_1_(ident);
-  
   @DomName('CSS.supports')
   @DocsEditable()
   static bool supports(String property, String value) => _blink.BlinkCSS.instance.supports_Callback_2_(property, value);
@@ -6492,45 +6509,6 @@ class CssMediaRule extends CssGroupingRule {
 
 
 @DocsEditable()
-@DomName('CSSNamespaceRule')
-@Experimental() // untriaged
-class CssNamespaceRule extends CssRule {
-  // To suppress missing implicit constructor warnings.
-  factory CssNamespaceRule._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static CssNamespaceRule internalCreateCssNamespaceRule() {
-    return new CssNamespaceRule._internalWrap();
-  }
-
-  factory CssNamespaceRule._internalWrap() {
-    return new CssNamespaceRule.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  CssNamespaceRule.internal_() : super.internal_();
-
-
-  @DomName('CSSNamespaceRule.namespaceURI')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get namespaceUri => _blink.BlinkCSSNamespaceRule.instance.namespaceURI_Getter_(unwrap_jso(this));
-  
-  @DomName('CSSNamespaceRule.prefix')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get prefix => _blink.BlinkCSSNamespaceRule.instance.prefix_Getter_(unwrap_jso(this));
-  
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
 @DomName('CSSPageRule')
 class CssPageRule extends CssRule {
   // To suppress missing implicit constructor warnings.
@@ -6616,11 +6594,6 @@ class CssRule extends DartHtmlDomObject {
   @DomName('CSSRule.MEDIA_RULE')
   @DocsEditable()
   static const int MEDIA_RULE = 4;
-
-  @DomName('CSSRule.NAMESPACE_RULE')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const int NAMESPACE_RULE = 10;
 
   @DomName('CSSRule.PAGE_RULE')
   @DocsEditable()
@@ -6790,16 +6763,6 @@ class CssStyleDeclaration  extends DartHtmlDomObject with
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
   int get hashCode => unwrap_jso(this).hashCode;
 
-  @DomName('CSSStyleDeclaration.cssFloat')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get cssFloat => _blink.BlinkCSSStyleDeclaration.instance.cssFloat_Getter_(unwrap_jso(this));
-  
-  @DomName('CSSStyleDeclaration.cssFloat')
-  @DocsEditable()
-  @Experimental() // untriaged
-  set cssFloat(String value) => _blink.BlinkCSSStyleDeclaration.instance.cssFloat_Setter_(unwrap_jso(this), value);
-  
   @DomName('CSSStyleDeclaration.cssText')
   @DocsEditable()
   String get cssText => _blink.BlinkCSSStyleDeclaration.instance.cssText_Getter_(unwrap_jso(this));
@@ -10613,6 +10576,50 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
 
 
 @DocsEditable()
+@DomName('DefaultSessionStartEvent')
+@Experimental() // untriaged
+class DefaultSessionStartEvent extends Event {
+  // To suppress missing implicit constructor warnings.
+  factory DefaultSessionStartEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('DefaultSessionStartEvent.DefaultSessionStartEvent')
+  @DocsEditable()
+  factory DefaultSessionStartEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return wrap_jso(_blink.BlinkDefaultSessionStartEvent.instance.constructorCallback_2_(type, eventInitDict_1));
+    }
+    return wrap_jso(_blink.BlinkDefaultSessionStartEvent.instance.constructorCallback_1_(type));
+  }
+
+
+  @Deprecated("Internal Use Only")
+  static DefaultSessionStartEvent internalCreateDefaultSessionStartEvent() {
+    return new DefaultSessionStartEvent._internalWrap();
+  }
+
+  factory DefaultSessionStartEvent._internalWrap() {
+    return new DefaultSessionStartEvent.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  DefaultSessionStartEvent.internal_() : super.internal_();
+
+
+  @DomName('DefaultSessionStartEvent.session')
+  @DocsEditable()
+  @Experimental() // untriaged
+  PresentationSession get session => wrap_jso(_blink.BlinkDefaultSessionStartEvent.instance.session_Getter_(unwrap_jso(this)));
+  
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('DeprecatedStorageInfo')
 @Experimental() // untriaged
 class DeprecatedStorageInfo extends DartHtmlDomObject {
@@ -11734,6 +11741,16 @@ class Document extends Node
   @DocsEditable()
   Element get _lastElementChild => wrap_jso(_blink.BlinkDocument.instance.lastElementChild_Getter_(unwrap_jso(this)));
   
+  @DomName('Document.append')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void append(Object nodes) => _blink.BlinkDocument.instance.append_Callback_1_(unwrap_jso(this), nodes);
+  
+  @DomName('Document.prepend')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void prepend(Object nodes) => _blink.BlinkDocument.instance.prepend_Callback_1_(unwrap_jso(this), nodes);
+  
   /**
    * Finds the first descendant element of this document that matches the
    * specified group of selectors.
@@ -12374,6 +12391,16 @@ class DocumentFragment extends Node implements NonElementParentNode, ParentNode 
   @DomName('DocumentFragment.lastElementChild')
   @DocsEditable()
   Element get _lastElementChild => wrap_jso(_blink.BlinkDocumentFragment.instance.lastElementChild_Getter_(unwrap_jso(this)));
+  
+  @DomName('DocumentFragment.append')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void append(Object nodes) => _blink.BlinkDocumentFragment.instance.append_Callback_1_(unwrap_jso(this), nodes);
+  
+  @DomName('DocumentFragment.prepend')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void prepend(Object nodes) => _blink.BlinkDocumentFragment.instance.prepend_Callback_1_(unwrap_jso(this), nodes);
   
   /**
    * Finds the first descendant element of this document fragment that matches
@@ -13724,50 +13751,6 @@ class DomTokenList extends DartHtmlDomObject {
     return _blink.BlinkDOMTokenList.instance.toggle_Callback_1_(unwrap_jso(this), token);
   }
 
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('DragEvent')
-@Experimental() // untriaged
-class DragEvent extends MouseEvent {
-  // To suppress missing implicit constructor warnings.
-  factory DragEvent._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('DragEvent.DragEvent')
-  @DocsEditable()
-  factory DragEvent(String type, [Map eventInitDict]) {
-    if (eventInitDict != null) {
-      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
-      return wrap_jso(_blink.BlinkDragEvent.instance.constructorCallback_2_(type, eventInitDict_1));
-    }
-    return wrap_jso(_blink.BlinkDragEvent.instance.constructorCallback_1_(type));
-  }
-
-
-  @Deprecated("Internal Use Only")
-  static DragEvent internalCreateDragEvent() {
-    return new DragEvent._internalWrap();
-  }
-
-  factory DragEvent._internalWrap() {
-    return new DragEvent.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  DragEvent.internal_() : super.internal_();
-
-
-  @DomName('DragEvent.dataTransfer')
-  @DocsEditable()
-  @Experimental() // untriaged
-  DataTransfer get dataTransfer => wrap_jso(_blink.BlinkDragEvent.instance.dataTransfer_Getter_(unwrap_jso(this)));
-  
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -16878,6 +16861,26 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
   @Experimental() // untriaged
   String get _namespaceUri => _blink.BlinkElement.instance.namespaceURI_Getter_(unwrap_jso(this));
   
+  @DomName('Element.offsetHeight')
+  @DocsEditable()
+  int get _offsetHeight => _blink.BlinkElement.instance.offsetHeight_Getter_(unwrap_jso(this));
+  
+  @DomName('Element.offsetLeft')
+  @DocsEditable()
+  int get _offsetLeft => _blink.BlinkElement.instance.offsetLeft_Getter_(unwrap_jso(this));
+  
+  @DomName('Element.offsetParent')
+  @DocsEditable()
+  Element get offsetParent => wrap_jso(_blink.BlinkElement.instance.offsetParent_Getter_(unwrap_jso(this)));
+  
+  @DomName('Element.offsetTop')
+  @DocsEditable()
+  int get _offsetTop => _blink.BlinkElement.instance.offsetTop_Getter_(unwrap_jso(this));
+  
+  @DomName('Element.offsetWidth')
+  @DocsEditable()
+  int get _offsetWidth => _blink.BlinkElement.instance.offsetWidth_Getter_(unwrap_jso(this));
+  
   @DomName('Element.outerHTML')
   @DocsEditable()
   String get outerHtml => _blink.BlinkElement.instance.outerHTML_Getter_(unwrap_jso(this));
@@ -17126,11 +17129,6 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('Element.setApplyScroll')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void setApplyScroll(ScrollStateCallback scrollStateCallback, String nativeScrollBehavior) => _blink.BlinkElement.instance.setApplyScroll_Callback_2_(unwrap_jso(this), unwrap_jso((scrollState) => scrollStateCallback(wrap_jso(scrollState))), nativeScrollBehavior);
-  
   @DomName('Element.setAttribute')
   @DocsEditable()
   void setAttribute(String name, String value) => _blink.BlinkElement.instance.setAttribute_Callback_2_(unwrap_jso(this), name, value);
@@ -17139,14 +17137,24 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
   @DocsEditable()
   void setAttributeNS(String namespaceURI, String name, String value) => _blink.BlinkElement.instance.setAttributeNS_Callback_3_(unwrap_jso(this), namespaceURI, name, value);
   
-  @DomName('Element.setDistributeScroll')
+  @DomName('Element.after')
   @DocsEditable()
   @Experimental() // untriaged
-  void setDistributeScroll(ScrollStateCallback scrollStateCallback, String nativeScrollBehavior) => _blink.BlinkElement.instance.setDistributeScroll_Callback_2_(unwrap_jso(this), unwrap_jso((scrollState) => scrollStateCallback(wrap_jso(scrollState))), nativeScrollBehavior);
+  void after(Object nodes) => _blink.BlinkElement.instance.after_Callback_1_(unwrap_jso(this), nodes);
+  
+  @DomName('Element.before')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void before(Object nodes) => _blink.BlinkElement.instance.before_Callback_1_(unwrap_jso(this), nodes);
   
   @DomName('Element.remove')
   @DocsEditable()
   void remove() => _blink.BlinkElement.instance.remove_Callback_0_(unwrap_jso(this));
+  
+  @DomName('Element.replaceWith')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void replaceWith(Object nodes) => _blink.BlinkElement.instance.replaceWith_Callback_1_(unwrap_jso(this), nodes);
   
   @DomName('Element.nextElementSibling')
   @DocsEditable()
@@ -17171,6 +17179,16 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
   @DomName('Element.lastElementChild')
   @DocsEditable()
   Element get _lastElementChild => wrap_jso(_blink.BlinkElement.instance.lastElementChild_Getter_(unwrap_jso(this)));
+  
+  @DomName('Element.append')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void append(Object nodes) => _blink.BlinkElement.instance.append_Callback_1_(unwrap_jso(this), nodes);
+  
+  @DomName('Element.prepend')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void prepend(Object nodes) => _blink.BlinkElement.instance.prepend_Callback_1_(unwrap_jso(this), nodes);
   
   /**
    * Finds the first descendant element of this element that matches the
@@ -18178,11 +18196,6 @@ class Event extends DartHtmlDomObject {
   @DocsEditable()
   int get eventPhase => _blink.BlinkEvent.instance.eventPhase_Getter_(unwrap_jso(this));
   
-  @DomName('Event.isTrusted')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool get isTrusted => _blink.BlinkEvent.instance.isTrusted_Getter_(unwrap_jso(this));
-  
   /**
    * This event's path, taking into account shadow DOM.
    *
@@ -18540,7 +18553,7 @@ class ExtendableEvent extends Event {
   @DomName('ExtendableEvent.waitUntil')
   @DocsEditable()
   @Experimental() // untriaged
-  void waitUntil(Future f) => _blink.BlinkExtendableEvent.instance.waitUntil_Callback_1_(unwrap_jso(this), f);
+  void waitUntil(Object value) => _blink.BlinkExtendableEvent.instance.waitUntil_Callback_1_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18640,7 +18653,7 @@ class FetchEvent extends ExtendableEvent {
   @DomName('FetchEvent.respondWith')
   @DocsEditable()
   @Experimental() // untriaged
-  void respondWith(Future r) => _blink.BlinkFetchEvent.instance.respondWith_Callback_1_(unwrap_jso(this), r);
+  void respondWith(Object value) => _blink.BlinkFetchEvent.instance.respondWith_Callback_1_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20039,6 +20052,10 @@ class Gamepad extends DartHtmlDomObject {
   @DocsEditable()
   List<num> get axes => wrap_jso(_blink.BlinkGamepad.instance.axes_Getter_(unwrap_jso(this)));
   
+  @DomName('Gamepad.buttons')
+  @DocsEditable()
+  List<GamepadButton> get buttons => wrap_jso(_blink.BlinkGamepad.instance.buttons_Getter_(unwrap_jso(this)));
+  
   @DomName('Gamepad.connected')
   @DocsEditable()
   @Experimental() // untriaged
@@ -21069,6 +21086,10 @@ class HashChangeEvent extends Event {
   @DocsEditable()
   String get oldUrl => _blink.BlinkHashChangeEvent.instance.oldURL_Getter_(unwrap_jso(this));
   
+  @DomName('HashChangeEvent.initHashChangeEvent')
+  @DocsEditable()
+  void _initHashChangeEvent(String type, bool canBubble, bool cancelable, String oldURL, String newURL) => _blink.BlinkHashChangeEvent.instance.initHashChangeEvent_Callback_5_(unwrap_jso(this), type, canBubble, cancelable, oldURL, newURL);
+  
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -21255,15 +21276,10 @@ class History extends DartHtmlDomObject implements HistoryBase {
   @DocsEditable()
   int get length => _blink.BlinkHistory.instance.length_Getter_(unwrap_jso(this));
   
-  @DomName('History.scrollRestoration')
+  @DomName('History.options')
   @DocsEditable()
   @Experimental() // untriaged
-  String get scrollRestoration => _blink.BlinkHistory.instance.scrollRestoration_Getter_(unwrap_jso(this));
-  
-  @DomName('History.scrollRestoration')
-  @DocsEditable()
-  @Experimental() // untriaged
-  set scrollRestoration(String value) => _blink.BlinkHistory.instance.scrollRestoration_Setter_(unwrap_jso(this), value);
+  Map get options => wrap_jso(_blink.BlinkHistory.instance.options_Getter_(unwrap_jso(this)));
   
   @DomName('History.state')
   @DocsEditable()
@@ -21286,22 +21302,24 @@ class History extends DartHtmlDomObject implements HistoryBase {
     return;
   }
 
-  @DomName('History.pushState')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.FIREFOX)
-  @SupportedBrowser(SupportedBrowser.IE, '10')
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  void pushState(/*SerializedScriptValue*/ data, String title, String url) => _blink.BlinkHistory.instance.pushState_Callback_3_(unwrap_jso(this), data, title, url);
-  
-  @DomName('History.replaceState')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.FIREFOX)
-  @SupportedBrowser(SupportedBrowser.IE, '10')
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  void replaceState(/*SerializedScriptValue*/ data, String title, String url) => _blink.BlinkHistory.instance.replaceState_Callback_3_(unwrap_jso(this), data, title, url);
+  void pushState(/*SerializedScriptValue*/ data, String title, String url, [Map options]) {
+    if (options != null) {
+      _blink.BlinkHistory.instance.pushState_Callback_4_(unwrap_jso(this), data, title, url, convertDartToNative_Dictionary(options));
+      return;
+    }
+    _blink.BlinkHistory.instance.pushState_Callback_3_(unwrap_jso(this), data, title, url);
+    return;
   }
+
+  void replaceState(/*SerializedScriptValue*/ data, String title, String url, [Map options]) {
+    if (options != null) {
+      _blink.BlinkHistory.instance.replaceState_Callback_4_(unwrap_jso(this), data, title, url, convertDartToNative_Dictionary(options));
+      return;
+    }
+    _blink.BlinkHistory.instance.replaceState_Callback_3_(unwrap_jso(this), data, title, url);
+    return;
+  }
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -23778,16 +23796,6 @@ class IFrameElement extends HtmlElement {
   @DocsEditable()
   set name(String value) => _blink.BlinkHTMLIFrameElement.instance.name_Setter_(unwrap_jso(this), value);
   
-  @DomName('HTMLIFrameElement.referrerpolicy')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get referrerpolicy => _blink.BlinkHTMLIFrameElement.instance.referrerpolicy_Getter_(unwrap_jso(this));
-  
-  @DomName('HTMLIFrameElement.referrerpolicy')
-  @DocsEditable()
-  @Experimental() // untriaged
-  set referrerpolicy(String value) => _blink.BlinkHTMLIFrameElement.instance.referrerpolicy_Setter_(unwrap_jso(this), value);
-  
   @DomName('HTMLIFrameElement.sandbox')
   @DocsEditable()
   DomSettableTokenList get sandbox => wrap_jso(_blink.BlinkHTMLIFrameElement.instance.sandbox_Getter_(unwrap_jso(this)));
@@ -23817,56 +23825,6 @@ class IFrameElement extends HtmlElement {
   set width(String value) => _blink.BlinkHTMLIFrameElement.instance.width_Setter_(unwrap_jso(this), value);
   
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('IdleDeadline')
-@Experimental() // untriaged
-class IdleDeadline extends DartHtmlDomObject {
-  // To suppress missing implicit constructor warnings.
-  factory IdleDeadline._() { throw new UnsupportedError("Not supported"); }
-
-  @Deprecated("Internal Use Only")
-  static IdleDeadline internalCreateIdleDeadline() {
-    return new IdleDeadline._internalWrap();
-  }
-
-  factory IdleDeadline._internalWrap() {
-    return new IdleDeadline.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  IdleDeadline.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
-  @DomName('IdleDeadline.didTimeout')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool get didTimeout => _blink.BlinkIdleDeadline.instance.didTimeout_Getter_(unwrap_jso(this));
-  
-  @DomName('IdleDeadline.timeRemaining')
-  @DocsEditable()
-  @Experimental() // untriaged
-  num timeRemaining() => _blink.BlinkIdleDeadline.instance.timeRemaining_Callback_0_(unwrap_jso(this));
-  
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DomName('IdleRequestCallback')
-@Experimental() // untriaged
-typedef void IdleRequestCallback(IdleDeadline deadline);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -24053,16 +24011,6 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   @DocsEditable()
   int get naturalWidth => _blink.BlinkHTMLImageElement.instance.naturalWidth_Getter_(unwrap_jso(this));
   
-  @DomName('HTMLImageElement.referrerpolicy')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get referrerpolicy => _blink.BlinkHTMLImageElement.instance.referrerpolicy_Getter_(unwrap_jso(this));
-  
-  @DomName('HTMLImageElement.referrerpolicy')
-  @DocsEditable()
-  @Experimental() // untriaged
-  set referrerpolicy(String value) => _blink.BlinkHTMLImageElement.instance.referrerpolicy_Setter_(unwrap_jso(this), value);
-  
   @DomName('HTMLImageElement.sizes')
   @DocsEditable()
   @Experimental() // untriaged
@@ -24151,41 +24099,41 @@ class InjectedScriptHost extends DartHtmlDomObject {
 
 
 @DocsEditable()
-@DomName('InputDeviceCapabilities')
+@DomName('InputDevice')
 @Experimental() // untriaged
-class InputDeviceCapabilities extends DartHtmlDomObject {
+class InputDevice extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
-  factory InputDeviceCapabilities._() { throw new UnsupportedError("Not supported"); }
+  factory InputDevice._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('InputDeviceCapabilities.InputDeviceCapabilities')
+  @DomName('InputDevice.InputDevice')
   @DocsEditable()
-  factory InputDeviceCapabilities([Map deviceInitDict]) {
+  factory InputDevice([Map deviceInitDict]) {
     if (deviceInitDict != null) {
       var deviceInitDict_1 = convertDartToNative_Dictionary(deviceInitDict);
-      return wrap_jso(_blink.BlinkInputDeviceCapabilities.instance.constructorCallback_1_(deviceInitDict_1));
+      return wrap_jso(_blink.BlinkInputDevice.instance.constructorCallback_1_(deviceInitDict_1));
     }
-    return wrap_jso(_blink.BlinkInputDeviceCapabilities.instance.constructorCallback_0_());
+    return wrap_jso(_blink.BlinkInputDevice.instance.constructorCallback_0_());
   }
 
   @Deprecated("Internal Use Only")
-  static InputDeviceCapabilities internalCreateInputDeviceCapabilities() {
-    return new InputDeviceCapabilities._internalWrap();
+  static InputDevice internalCreateInputDevice() {
+    return new InputDevice._internalWrap();
   }
 
-  factory InputDeviceCapabilities._internalWrap() {
-    return new InputDeviceCapabilities.internal_();
+  factory InputDevice._internalWrap() {
+    return new InputDevice.internal_();
   }
 
   @Deprecated("Internal Use Only")
-  InputDeviceCapabilities.internal_() { }
+  InputDevice.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
   int get hashCode => unwrap_jso(this).hashCode;
 
-  @DomName('InputDeviceCapabilities.firesTouchEvents')
+  @DomName('InputDevice.firesTouchEvents')
   @DocsEditable()
   @Experimental() // untriaged
-  bool get firesTouchEvents => _blink.BlinkInputDeviceCapabilities.instance.firesTouchEvents_Getter_(unwrap_jso(this));
+  bool get firesTouchEvents => _blink.BlinkInputDevice.instance.firesTouchEvents_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -27290,162 +27238,6 @@ class MediaQueryListEvent extends Event {
 
 
 @DocsEditable()
-@DomName('MediaRecorder')
-@Experimental() // untriaged
-class MediaRecorder extends EventTarget {
-  // To suppress missing implicit constructor warnings.
-  factory MediaRecorder._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('MediaRecorder.errorEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
-
-  @DomName('MediaRecorder.pauseEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> pauseEvent = const EventStreamProvider<Event>('pause');
-
-  @DomName('MediaRecorder.MediaRecorder')
-  @DocsEditable()
-  factory MediaRecorder(MediaStream stream, [String mimeType]) {
-    if (mimeType != null) {
-      return wrap_jso(_blink.BlinkMediaRecorder.instance.constructorCallback_2_(stream, mimeType));
-    }
-    return wrap_jso(_blink.BlinkMediaRecorder.instance.constructorCallback_1_(stream));
-  }
-
-
-  @Deprecated("Internal Use Only")
-  static MediaRecorder internalCreateMediaRecorder() {
-    return new MediaRecorder._internalWrap();
-  }
-
-  factory MediaRecorder._internalWrap() {
-    return new MediaRecorder.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  MediaRecorder.internal_() : super.internal_();
-
-
-  @DomName('MediaRecorder.ignoreMutedMedia')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool get ignoreMutedMedia => _blink.BlinkMediaRecorder.instance.ignoreMutedMedia_Getter_(unwrap_jso(this));
-  
-  @DomName('MediaRecorder.ignoreMutedMedia')
-  @DocsEditable()
-  @Experimental() // untriaged
-  set ignoreMutedMedia(bool value) => _blink.BlinkMediaRecorder.instance.ignoreMutedMedia_Setter_(unwrap_jso(this), value);
-  
-  @DomName('MediaRecorder.mimeType')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get mimeType => _blink.BlinkMediaRecorder.instance.mimeType_Getter_(unwrap_jso(this));
-  
-  @DomName('MediaRecorder.state')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get state => _blink.BlinkMediaRecorder.instance.state_Getter_(unwrap_jso(this));
-  
-  @DomName('MediaRecorder.stream')
-  @DocsEditable()
-  @Experimental() // untriaged
-  MediaStream get stream => wrap_jso(_blink.BlinkMediaRecorder.instance.stream_Getter_(unwrap_jso(this)));
-  
-  @DomName('MediaRecorder.canRecordMimeType')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static String canRecordMimeType(String mimeType) => _blink.BlinkMediaRecorder.instance.canRecordMimeType_Callback_1_(mimeType);
-  
-  @DomName('MediaRecorder.pause')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void pause() => _blink.BlinkMediaRecorder.instance.pause_Callback_0_(unwrap_jso(this));
-  
-  @DomName('MediaRecorder.requestData')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void requestData() => _blink.BlinkMediaRecorder.instance.requestData_Callback_0_(unwrap_jso(this));
-  
-  @DomName('MediaRecorder.resume')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void resume() => _blink.BlinkMediaRecorder.instance.resume_Callback_0_(unwrap_jso(this));
-  
-  void start([int timeslice]) {
-    if (timeslice != null) {
-      _blink.BlinkMediaRecorder.instance.start_Callback_1_(unwrap_jso(this), timeslice);
-      return;
-    }
-    _blink.BlinkMediaRecorder.instance.start_Callback_0_(unwrap_jso(this));
-    return;
-  }
-
-  @DomName('MediaRecorder.stop')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void stop() => _blink.BlinkMediaRecorder.instance.stop_Callback_0_(unwrap_jso(this));
-  
-  @DomName('MediaRecorder.onerror')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onError => errorEvent.forTarget(this);
-
-  @DomName('MediaRecorder.onpause')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onPause => pauseEvent.forTarget(this);
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('MediaRecorderErrorEvent')
-@Experimental() // untriaged
-class MediaRecorderErrorEvent extends Event {
-  // To suppress missing implicit constructor warnings.
-  factory MediaRecorderErrorEvent._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static MediaRecorderErrorEvent internalCreateMediaRecorderErrorEvent() {
-    return new MediaRecorderErrorEvent._internalWrap();
-  }
-
-  factory MediaRecorderErrorEvent._internalWrap() {
-    return new MediaRecorderErrorEvent.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  MediaRecorderErrorEvent.internal_() : super.internal_();
-
-
-  @DomName('MediaRecorderErrorEvent.message')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get message => _blink.BlinkMediaRecorderErrorEvent.instance.message_Getter_(unwrap_jso(this));
-  
-  @DomName('MediaRecorderErrorEvent.name')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get name => _blink.BlinkMediaRecorderErrorEvent.instance.name_Getter_(unwrap_jso(this));
-  
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
 @DomName('MediaSession')
 @Experimental() // untriaged
 class MediaSession extends DartHtmlDomObject {
@@ -29158,6 +28950,11 @@ class MouseEvent extends UIEvent {
   @DocsEditable()
   bool get ctrlKey => _blink.BlinkMouseEvent.instance.ctrlKey_Getter_(unwrap_jso(this));
   
+  @DomName('MouseEvent.dataTransfer')
+  @DocsEditable()
+  @Unstable()
+  DataTransfer get dataTransfer => wrap_jso(_blink.BlinkMouseEvent.instance.dataTransfer_Getter_(unwrap_jso(this)));
+  
   /**
    * The nonstandard way to access the element that the mouse comes
    * from in the case of a `mouseover` event.
@@ -29265,11 +29062,6 @@ class MouseEvent extends UIEvent {
   @DocsEditable()
   @Experimental() // untriaged
   int get which => _blink.BlinkMouseEvent.instance.which_Getter_(unwrap_jso(this));
-  
-  @DomName('MouseEvent.getModifierState')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool getModifierState(String keyArg) => _blink.BlinkMouseEvent.instance.getModifierState_Callback_1_(unwrap_jso(this), keyArg);
   
   @DomName('MouseEvent.initMouseEvent')
   @DocsEditable()
@@ -29629,11 +29421,6 @@ class Navigator extends DartHtmlDomObject implements NavigatorStorageUtils, Navi
   @Experimental() // nonstandard
   MimeTypeArray get mimeTypes => wrap_jso(_blink.BlinkNavigator.instance.mimeTypes_Getter_(unwrap_jso(this)));
   
-  @DomName('Navigator.nfc')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Nfc get nfc => wrap_jso(_blink.BlinkNavigator.instance.nfc_Getter_(unwrap_jso(this)));
-  
   @DomName('Navigator.permissions')
   @DocsEditable()
   @Experimental() // untriaged
@@ -29659,20 +29446,10 @@ class Navigator extends DartHtmlDomObject implements NavigatorStorageUtils, Navi
   @Experimental() // untriaged
   ServicePortCollection get services => wrap_jso(_blink.BlinkNavigator.instance.services_Getter_(unwrap_jso(this)));
   
-  @DomName('Navigator.storage')
-  @DocsEditable()
-  @Experimental() // untriaged
-  StorageManager get storage => wrap_jso(_blink.BlinkNavigator.instance.storage_Getter_(unwrap_jso(this)));
-  
   @DomName('Navigator.storageQuota')
   @DocsEditable()
   @Experimental() // untriaged
   StorageQuota get storageQuota => wrap_jso(_blink.BlinkNavigator.instance.storageQuota_Getter_(unwrap_jso(this)));
-  
-  @DomName('Navigator.usb')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Usb get usb => wrap_jso(_blink.BlinkNavigator.instance.usb_Getter_(unwrap_jso(this)));
   
   @DomName('Navigator.vendor')
   @DocsEditable()
@@ -30034,11 +29811,6 @@ class NetworkInformation extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory NetworkInformation._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('NetworkInformation.changeEvent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  static const EventStreamProvider<Event> changeEvent = const EventStreamProvider<Event>('change');
-
 
   @Deprecated("Internal Use Only")
   static NetworkInformation internalCreateNetworkInformation() {
@@ -30057,46 +29829,6 @@ class NetworkInformation extends EventTarget {
   @DocsEditable()
   @Experimental() // untriaged
   String get type => _blink.BlinkNetworkInformation.instance.type_Getter_(unwrap_jso(this));
-  
-  @DomName('NetworkInformation.onchange')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Stream<Event> get onChange => changeEvent.forTarget(this);
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('NFC')
-@Experimental() // untriaged
-class Nfc extends DartHtmlDomObject {
-  // To suppress missing implicit constructor warnings.
-  factory Nfc._() { throw new UnsupportedError("Not supported"); }
-
-  @Deprecated("Internal Use Only")
-  static Nfc internalCreateNfc() {
-    return new Nfc._internalWrap();
-  }
-
-  factory Nfc._internalWrap() {
-    return new Nfc.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  Nfc.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
-  @DomName('NFC.requestAdapter')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future requestAdapter() => wrap_jso(_blink.BlinkNFC.instance.requestAdapter_Callback_0_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30473,6 +30205,14 @@ class Node extends EventTarget {
   @DomName('Node.lastChild')
   @DocsEditable()
   Node get lastChild => wrap_jso(_blink.BlinkNode.instance.lastChild_Getter_(unwrap_jso(this)));
+  
+  @DomName('Node.localName')
+  @DocsEditable()
+  String get _localName => _blink.BlinkNode.instance.localName_Getter_(unwrap_jso(this));
+  
+  @DomName('Node.namespaceURI')
+  @DocsEditable()
+  String get _namespaceUri => _blink.BlinkNode.instance.namespaceURI_Getter_(unwrap_jso(this));
   
   /**
    * The next sibling node.
@@ -31086,11 +30826,6 @@ class Notification extends EventTarget {
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
-  @DomName('Notification.actions')
-  @DocsEditable()
-  @Experimental() // untriaged
-  List<NotificationAction> get actions => _blink.BlinkNotification.instance.actions_Getter_(unwrap_jso(this));
-  
   @DomName('Notification.body')
   @DocsEditable()
   @Experimental() // untriaged
@@ -31116,19 +30851,9 @@ class Notification extends EventTarget {
   @Experimental() // untriaged
   String get lang => _blink.BlinkNotification.instance.lang_Getter_(unwrap_jso(this));
   
-  @DomName('Notification.maxActions')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get maxActions => _blink.BlinkNotification.instance.maxActions_Getter_();
-  
   @DomName('Notification.permission')
   @DocsEditable()
   String get permission => _blink.BlinkNotification.instance.permission_Getter_();
-  
-  @DomName('Notification.requireInteraction')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool get requireInteraction => _blink.BlinkNotification.instance.requireInteraction_Getter_(unwrap_jso(this));
   
   @DomName('Notification.silent')
   @DocsEditable()
@@ -31154,11 +30879,13 @@ class Notification extends EventTarget {
   @DocsEditable()
   void close() => _blink.BlinkNotification.instance.close_Callback_0_(unwrap_jso(this));
   
-  static Future _requestPermission([_NotificationPermissionCallback deprecatedCallback]) {
-    if (deprecatedCallback != null) {
-      return wrap_jso(_blink.BlinkNotification.instance.requestPermission_Callback_1_(unwrap_jso((permission) => deprecatedCallback(permission))));
+  static void _requestPermission([_NotificationPermissionCallback callback]) {
+    if (callback != null) {
+      _blink.BlinkNotification.instance.requestPermission_Callback_1_(unwrap_jso((permission) => callback(permission)));
+      return;
     }
-    return wrap_jso(_blink.BlinkNotification.instance.requestPermission_Callback_0_());
+    _blink.BlinkNotification.instance.requestPermission_Callback_0_();
+    return;
   }
 
   static Future<String> requestPermission() {
@@ -31227,11 +30954,6 @@ class NotificationEvent extends ExtendableEvent {
   NotificationEvent.internal_() : super.internal_();
 
 
-  @DomName('NotificationEvent.action')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get action => _blink.BlinkNotificationEvent.instance.action_Getter_(unwrap_jso(this));
-  
   @DomName('NotificationEvent.notification')
   @DocsEditable()
   @Experimental() // untriaged
@@ -31868,6 +31590,16 @@ abstract class ParentNode extends DartHtmlDomObject {
   @Experimental() // untriaged
   Element get _lastElementChild;
 
+  @DomName('ParentNode.append')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void append(Object nodes);
+
+  @DomName('ParentNode.prepend')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void prepend(Object nodes);
+
   @DomName('ParentNode.querySelector')
   @DocsEditable()
   @Experimental() // untriaged
@@ -31895,9 +31627,14 @@ class PasswordCredential extends Credential {
 
   @DomName('PasswordCredential.PasswordCredential')
   @DocsEditable()
-  factory PasswordCredential(Map data) {
-    var data_1 = convertDartToNative_Dictionary(data);
-    return wrap_jso(_blink.BlinkPasswordCredential.instance.constructorCallback_1_(data_1));
+  factory PasswordCredential(String id, String password, [String name, String iconURL]) {
+    if (iconURL != null) {
+      return wrap_jso(_blink.BlinkPasswordCredential.instance.constructorCallback_4_(id, password, name, iconURL));
+    }
+    if (name != null) {
+      return wrap_jso(_blink.BlinkPasswordCredential.instance.constructorCallback_3_(id, password, name));
+    }
+    return wrap_jso(_blink.BlinkPasswordCredential.instance.constructorCallback_2_(id, password));
   }
 
 
@@ -31914,13 +31651,16 @@ class PasswordCredential extends Credential {
   PasswordCredential.internal_() : super.internal_();
 
 
-  FormData toFormData([Map options]) {
-    if (options != null) {
-      return wrap_jso(_blink.BlinkPasswordCredential.instance.toFormData_Callback_1_(unwrap_jso(this), convertDartToNative_Dictionary(options)));
-    }
-    return wrap_jso(_blink.BlinkPasswordCredential.instance.toFormData_Callback_0_(unwrap_jso(this)));
-  }
-
+  @DomName('PasswordCredential.formData')
+  @DocsEditable()
+  @Experimental() // untriaged
+  FormData get formData => wrap_jso(_blink.BlinkPasswordCredential.instance.formData_Getter_(unwrap_jso(this)));
+  
+  @DomName('PasswordCredential.password')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get password => _blink.BlinkPasswordCredential.instance.password_Getter_(unwrap_jso(this));
+  
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32098,11 +31838,6 @@ class Performance extends EventTarget {
   @Experimental()
   void clearMeasures(String measureName) => _blink.BlinkPerformance.instance.clearMeasures_Callback_1_(unwrap_jso(this), measureName);
   
-  @DomName('Performance.clearResourceTimings')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void clearResourceTimings() => _blink.BlinkPerformance.instance.clearResourceTimings_Callback_0_(unwrap_jso(this));
-  
   @DomName('Performance.mark')
   @DocsEditable()
   // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/UserTiming/Overview.html#extensions-performance-interface
@@ -32119,11 +31854,6 @@ class Performance extends EventTarget {
   @DocsEditable()
   @Experimental() // untriaged
   void setFrameTimingBufferSize(int maxSize) => _blink.BlinkPerformance.instance.setFrameTimingBufferSize_Callback_1_(unwrap_jso(this), maxSize);
-  
-  @DomName('Performance.setResourceTimingBufferSize')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void setResourceTimingBufferSize(int maxSize) => _blink.BlinkPerformance.instance.setResourceTimingBufferSize_Callback_1_(unwrap_jso(this), maxSize);
   
   @DomName('Performance.webkitClearResourceTimings')
   @DocsEditable()
@@ -32334,91 +32064,6 @@ class PerformanceNavigation extends DartHtmlDomObject {
   @DomName('PerformanceNavigation.type')
   @DocsEditable()
   int get type => _blink.BlinkPerformanceNavigation.instance.type_Getter_(unwrap_jso(this));
-  
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('PerformanceObserver')
-@Experimental() // untriaged
-class PerformanceObserver extends DartHtmlDomObject {
-  // To suppress missing implicit constructor warnings.
-  factory PerformanceObserver._() { throw new UnsupportedError("Not supported"); }
-
-  @Deprecated("Internal Use Only")
-  static PerformanceObserver internalCreatePerformanceObserver() {
-    return new PerformanceObserver._internalWrap();
-  }
-
-  factory PerformanceObserver._internalWrap() {
-    return new PerformanceObserver.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  PerformanceObserver.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
-  @DomName('PerformanceObserver.disconnect')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void disconnect() => _blink.BlinkPerformanceObserver.instance.disconnect_Callback_0_(unwrap_jso(this));
-  
-  @DomName('PerformanceObserver.observe')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void observe(Map options) => _blink.BlinkPerformanceObserver.instance.observe_Callback_1_(unwrap_jso(this), convertDartToNative_Dictionary(options));
-  
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('PerformanceObserverEntryList')
-@Experimental() // untriaged
-class PerformanceObserverEntryList extends DartHtmlDomObject {
-  // To suppress missing implicit constructor warnings.
-  factory PerformanceObserverEntryList._() { throw new UnsupportedError("Not supported"); }
-
-  @Deprecated("Internal Use Only")
-  static PerformanceObserverEntryList internalCreatePerformanceObserverEntryList() {
-    return new PerformanceObserverEntryList._internalWrap();
-  }
-
-  factory PerformanceObserverEntryList._internalWrap() {
-    return new PerformanceObserverEntryList.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  PerformanceObserverEntryList.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
-  @DomName('PerformanceObserverEntryList.getEntries')
-  @DocsEditable()
-  @Experimental() // untriaged
-  List<PerformanceEntry> getEntries() => wrap_jso(_blink.BlinkPerformanceObserverEntryList.instance.getEntries_Callback_0_(unwrap_jso(this)));
-  
-  @DomName('PerformanceObserverEntryList.getEntriesByName')
-  @DocsEditable()
-  @Experimental() // untriaged
-  List<PerformanceEntry> getEntriesByName(String name, String entryType) => wrap_jso(_blink.BlinkPerformanceObserverEntryList.instance.getEntriesByName_Callback_2_(unwrap_jso(this), name, entryType));
-  
-  @DomName('PerformanceObserverEntryList.getEntriesByType')
-  @DocsEditable()
-  @Experimental() // untriaged
-  List<PerformanceEntry> getEntriesByType(String entryType) => wrap_jso(_blink.BlinkPerformanceObserverEntryList.instance.getEntriesByType_Callback_1_(unwrap_jso(this), entryType));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -32794,6 +32439,11 @@ class PermissionStatus extends EventTarget {
   @Experimental() // untriaged
   String get state => _blink.BlinkPermissionStatus.instance.state_Getter_(unwrap_jso(this));
   
+  @DomName('PermissionStatus.status')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get status => _blink.BlinkPermissionStatus.instance.status_Getter_(unwrap_jso(this));
+  
   @DomName('PermissionStatus.onchange')
   @DocsEditable()
   @Experimental() // untriaged
@@ -32832,22 +32482,7 @@ class Permissions extends DartHtmlDomObject {
   @DomName('Permissions.query')
   @DocsEditable()
   @Experimental() // untriaged
-  Future query(Map permission) => wrap_jso(_blink.BlinkPermissions.instance.query_Callback_1_(unwrap_jso(this), convertDartToNative_Dictionary(permission)));
-  
-  Future request(permissions) {
-    if ((permissions is Map || permissions == null)) {
-      return wrap_jso(_blink.BlinkPermissions.instance.request_Callback_1_(unwrap_jso(this), unwrap_jso(permissions)));
-    }
-    if ((permissions is List<Map> || permissions == null)) {
-      return wrap_jso(_blink.BlinkPermissions.instance.request_Callback_1_(unwrap_jso(this), unwrap_jso(permissions)));
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  @DomName('Permissions.revoke')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future revoke(Map permission) => wrap_jso(_blink.BlinkPermissions.instance.revoke_Callback_1_(unwrap_jso(this), convertDartToNative_Dictionary(permission)));
+  Future query(Object permission) => wrap_jso(_blink.BlinkPermissions.instance.query_Callback_1_(unwrap_jso(this), permission));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33041,6 +32676,66 @@ class PluginArray extends DartHtmlDomObject with ListMixin<Plugin>, ImmutableLis
   @DomName('PluginArray.refresh')
   @DocsEditable()
   void refresh(bool reload) => _blink.BlinkPluginArray.instance.refresh_Callback_1_(unwrap_jso(this), reload);
+  
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('PluginPlaceholderElement')
+@Experimental() // untriaged
+class PluginPlaceholderElement extends DivElement {
+  // To suppress missing implicit constructor warnings.
+  factory PluginPlaceholderElement._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static PluginPlaceholderElement internalCreatePluginPlaceholderElement() {
+    return new PluginPlaceholderElement._internalWrap();
+  }
+
+  factory PluginPlaceholderElement._internalWrap() {
+    return new PluginPlaceholderElement.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  PluginPlaceholderElement.internal_() : super.internal_();
+
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  PluginPlaceholderElement.created() : super.created();
+
+  @DomName('PluginPlaceholderElement.closeable')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool get closeable => _blink.BlinkPluginPlaceholderElement.instance.closeable_Getter_(unwrap_jso(this));
+  
+  @DomName('PluginPlaceholderElement.closeable')
+  @DocsEditable()
+  @Experimental() // untriaged
+  set closeable(bool value) => _blink.BlinkPluginPlaceholderElement.instance.closeable_Setter_(unwrap_jso(this), value);
+  
+  @DomName('PluginPlaceholderElement.message')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get message => _blink.BlinkPluginPlaceholderElement.instance.message_Getter_(unwrap_jso(this));
+  
+  @DomName('PluginPlaceholderElement.message')
+  @DocsEditable()
+  @Experimental() // untriaged
+  set message(String value) => _blink.BlinkPluginPlaceholderElement.instance.message_Setter_(unwrap_jso(this), value);
+  
+  @DomName('PluginPlaceholderElement.createdCallback')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void createdCallback() => _blink.BlinkPluginPlaceholderElement.instance.createdCallback_Callback_0_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33348,20 +33043,25 @@ class Presentation extends EventTarget {
   Presentation.internal_() : super.internal_();
 
 
-  @DomName('Presentation.defaultRequest')
-  @DocsEditable()
-  @Experimental() // untriaged
-  PresentationRequest get defaultRequest => wrap_jso(_blink.BlinkPresentation.instance.defaultRequest_Getter_(unwrap_jso(this)));
-  
-  @DomName('Presentation.defaultRequest')
-  @DocsEditable()
-  @Experimental() // untriaged
-  set defaultRequest(PresentationRequest value) => _blink.BlinkPresentation.instance.defaultRequest_Setter_(unwrap_jso(this), unwrap_jso(value));
-  
   @DomName('Presentation.session')
   @DocsEditable()
   @Experimental() // untriaged
   PresentationSession get session => wrap_jso(_blink.BlinkPresentation.instance.session_Getter_(unwrap_jso(this)));
+  
+  @DomName('Presentation.getAvailability')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future getAvailability(String url) => wrap_jso(_blink.BlinkPresentation.instance.getAvailability_Callback_1_(unwrap_jso(this), url));
+  
+  @DomName('Presentation.joinSession')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future joinSession(String url, String presentationId) => wrap_jso(_blink.BlinkPresentation.instance.joinSession_Callback_2_(unwrap_jso(this), url, presentationId));
+  
+  @DomName('Presentation.startSession')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future startSession(String url) => wrap_jso(_blink.BlinkPresentation.instance.startSession_Callback_1_(unwrap_jso(this), url));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33407,56 +33107,6 @@ class PresentationAvailability extends EventTarget {
   @Experimental() // untriaged
   Stream<Event> get onChange => changeEvent.forTarget(this);
 
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('PresentationRequest')
-@Experimental() // untriaged
-class PresentationRequest extends EventTarget {
-  // To suppress missing implicit constructor warnings.
-  factory PresentationRequest._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('PresentationRequest.PresentationRequest')
-  @DocsEditable()
-  factory PresentationRequest(String url) {
-    return wrap_jso(_blink.BlinkPresentationRequest.instance.constructorCallback_1_(url));
-  }
-
-
-  @Deprecated("Internal Use Only")
-  static PresentationRequest internalCreatePresentationRequest() {
-    return new PresentationRequest._internalWrap();
-  }
-
-  factory PresentationRequest._internalWrap() {
-    return new PresentationRequest.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  PresentationRequest.internal_() : super.internal_();
-
-
-  @DomName('PresentationRequest.getAvailability')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future getAvailability() => wrap_jso(_blink.BlinkPresentationRequest.instance.getAvailability_Callback_0_(unwrap_jso(this)));
-  
-  @DomName('PresentationRequest.reconnect')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future reconnect(String id) => wrap_jso(_blink.BlinkPresentationRequest.instance.reconnect_Callback_1_(unwrap_jso(this), id));
-  
-  @DomName('PresentationRequest.start')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future start() => wrap_jso(_blink.BlinkPresentationRequest.instance.start_Callback_0_(unwrap_jso(this)));
-  
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33541,47 +33191,6 @@ class PresentationSession extends EventTarget {
   @Experimental() // untriaged
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('PresentationSessionConnectEvent')
-@Experimental() // untriaged
-class PresentationSessionConnectEvent extends Event {
-  // To suppress missing implicit constructor warnings.
-  factory PresentationSessionConnectEvent._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('PresentationSessionConnectEvent.PresentationSessionConnectEvent')
-  @DocsEditable()
-  factory PresentationSessionConnectEvent(String type, Map eventInitDict) {
-    var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
-    return wrap_jso(_blink.BlinkPresentationSessionConnectEvent.instance.constructorCallback_2_(type, eventInitDict_1));
-  }
-
-
-  @Deprecated("Internal Use Only")
-  static PresentationSessionConnectEvent internalCreatePresentationSessionConnectEvent() {
-    return new PresentationSessionConnectEvent._internalWrap();
-  }
-
-  factory PresentationSessionConnectEvent._internalWrap() {
-    return new PresentationSessionConnectEvent.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  PresentationSessionConnectEvent.internal_() : super.internal_();
-
-
-  @DomName('PresentationSessionConnectEvent.session')
-  @DocsEditable()
-  @Experimental() // untriaged
-  PresentationSession get session => wrap_jso(_blink.BlinkPresentationSessionConnectEvent.instance.session_Getter_(unwrap_jso(this)));
-  
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33897,6 +33506,12 @@ class PushMessageData extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory PushMessageData._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('PushMessageData.PushMessageData')
+  @DocsEditable()
+  factory PushMessageData(String message) {
+    return wrap_jso(_blink.BlinkPushMessageData.instance.constructorCallback_1_(message));
+  }
+
   @Deprecated("Internal Use Only")
   static PushMessageData internalCreatePushMessageData() {
     return new PushMessageData._internalWrap();
@@ -33961,11 +33576,6 @@ class PushSubscription extends DartHtmlDomObject {
   @DocsEditable()
   @Experimental() // untriaged
   String get endpoint => _blink.BlinkPushSubscription.instance.endpoint_Getter_(unwrap_jso(this));
-  
-  @DomName('PushSubscription.getKey')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ByteBuffer getKey(String name) => wrap_jso(_blink.BlinkPushSubscription.instance.getKey_Callback_1_(unwrap_jso(this), name));
   
   @DomName('PushSubscription.unsubscribe')
   @DocsEditable()
@@ -34579,16 +34189,6 @@ class RtcDataChannel extends EventTarget {
   @DomName('RTCDataChannel.bufferedAmount')
   @DocsEditable()
   int get bufferedAmount => _blink.BlinkRTCDataChannel.instance.bufferedAmount_Getter_(unwrap_jso(this));
-  
-  @DomName('RTCDataChannel.bufferedAmountLowThreshold')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get bufferedAmountLowThreshold => _blink.BlinkRTCDataChannel.instance.bufferedAmountLowThreshold_Getter_(unwrap_jso(this));
-  
-  @DomName('RTCDataChannel.bufferedAmountLowThreshold')
-  @DocsEditable()
-  @Experimental() // untriaged
-  set bufferedAmountLowThreshold(int value) => _blink.BlinkRTCDataChannel.instance.bufferedAmountLowThreshold_Setter_(unwrap_jso(this), value);
   
   @DomName('RTCDataChannel.id')
   @DocsEditable()
@@ -35452,16 +35052,6 @@ class Screen extends DartHtmlDomObject {
   @DocsEditable()
   int get height => _blink.BlinkScreen.instance.height_Getter_(unwrap_jso(this));
   
-  @DomName('Screen.keepAwake')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool get keepAwake => _blink.BlinkScreen.instance.keepAwake_Getter_(unwrap_jso(this));
-  
-  @DomName('Screen.keepAwake')
-  @DocsEditable()
-  @Experimental() // untriaged
-  set keepAwake(bool value) => _blink.BlinkScreen.instance.keepAwake_Setter_(unwrap_jso(this), value);
-  
   @DomName('Screen.orientation')
   @DocsEditable()
   @Experimental() // untriaged
@@ -35760,22 +35350,7 @@ class ScrollState extends DartHtmlDomObject {
   @Experimental() // untriaged
   void consumeDelta(num x, num y) => _blink.BlinkScrollState.instance.consumeDelta_Callback_2_(unwrap_jso(this), x, y);
   
-  @DomName('ScrollState.distributeToScrollChainDescendant')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void distributeToScrollChainDescendant() => _blink.BlinkScrollState.instance.distributeToScrollChainDescendant_Callback_0_(unwrap_jso(this));
-  
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DomName('ScrollStateCallback')
-@Experimental() // untriaged
-typedef void ScrollStateCallback(ScrollState scrollState);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -36130,13 +35705,11 @@ class Selection extends DartHtmlDomObject {
   @DocsEditable()
   void collapseToStart() => _blink.BlinkSelection.instance.collapseToStart_Callback_0_(unwrap_jso(this));
   
-  bool containsNode(Node node, [bool allowPartialContainment]) {
-    if (allowPartialContainment != null) {
-      return _blink.BlinkSelection.instance.containsNode_Callback_2_(unwrap_jso(this), unwrap_jso(node), allowPartialContainment);
-    }
-    return _blink.BlinkSelection.instance.containsNode_Callback_1_(unwrap_jso(this), unwrap_jso(node));
-  }
-
+  @DomName('Selection.containsNode')
+  @DocsEditable()
+  @Experimental() // non-standard
+  bool containsNode(Node node, bool allowPartialContainment) => _blink.BlinkSelection.instance.containsNode_Callback_2_(unwrap_jso(this), unwrap_jso(node), allowPartialContainment);
+  
   @DomName('Selection.deleteFromDocument')
   @DocsEditable()
   void deleteFromDocument() => _blink.BlinkSelection.instance.deleteFromDocument_Callback_0_(unwrap_jso(this));
@@ -36464,6 +36037,11 @@ class ServiceWorkerGlobalScope extends WorkerGlobalScope {
   @Experimental() // untriaged
   Clients get clients => wrap_jso(_blink.BlinkServiceWorkerGlobalScope.instance.clients_Getter_(unwrap_jso(this)));
   
+  @DomName('ServiceWorkerGlobalScope.ports')
+  @DocsEditable()
+  @Experimental() // untriaged
+  StashedPortCollection get ports => wrap_jso(_blink.BlinkServiceWorkerGlobalScope.instance.ports_Getter_(unwrap_jso(this)));
+  
   @DomName('ServiceWorkerGlobalScope.registration')
   @DocsEditable()
   @Experimental() // untriaged
@@ -36641,7 +36219,7 @@ class ServiceWorkerRegistration extends EventTarget {
   @DomName('ServiceWorkerRegistration.update')
   @DocsEditable()
   @Experimental() // untriaged
-  Future update() => wrap_jso(_blink.BlinkServiceWorkerRegistration.instance.update_Callback_0_(unwrap_jso(this)));
+  void update() => _blink.BlinkServiceWorkerRegistration.instance.update_Callback_0_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -38295,6 +37873,84 @@ class SpeechSynthesisVoice extends DartHtmlDomObject {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('StashedMessagePort')
+@Experimental() // untriaged
+class StashedMessagePort extends MessagePort {
+  // To suppress missing implicit constructor warnings.
+  factory StashedMessagePort._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static StashedMessagePort internalCreateStashedMessagePort() {
+    return new StashedMessagePort._internalWrap();
+  }
+
+  factory StashedMessagePort._internalWrap() {
+    return new StashedMessagePort.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  StashedMessagePort.internal_() : super.internal_();
+
+
+  @DomName('StashedMessagePort.name')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get name => _blink.BlinkStashedMessagePort.instance.name_Getter_(unwrap_jso(this));
+  
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('StashedPortCollection')
+@Experimental() // untriaged
+class StashedPortCollection extends EventTarget {
+  // To suppress missing implicit constructor warnings.
+  factory StashedPortCollection._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('StashedPortCollection.messageEvent')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const EventStreamProvider<MessageEvent> messageEvent = const EventStreamProvider<MessageEvent>('message');
+
+
+  @Deprecated("Internal Use Only")
+  static StashedPortCollection internalCreateStashedPortCollection() {
+    return new StashedPortCollection._internalWrap();
+  }
+
+  factory StashedPortCollection._internalWrap() {
+    return new StashedPortCollection.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  StashedPortCollection.internal_() : super.internal_();
+
+
+  @DomName('StashedPortCollection.add')
+  @DocsEditable()
+  @Experimental() // untriaged
+  StashedMessagePort add(String name, MessagePort port) => wrap_jso(_blink.BlinkStashedPortCollection.instance.add_Callback_2_(unwrap_jso(this), name, unwrap_jso(port)));
+  
+  @DomName('StashedPortCollection.onmessage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 /**
  * The type used by the
@@ -38574,46 +38230,6 @@ class StorageInfo extends DartHtmlDomObject {
   @DocsEditable()
   @Experimental() // untriaged
   int get usage => _blink.BlinkStorageInfo.instance.usage_Getter_(unwrap_jso(this));
-  
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('StorageManager')
-@Experimental() // untriaged
-class StorageManager extends DartHtmlDomObject {
-  // To suppress missing implicit constructor warnings.
-  factory StorageManager._() { throw new UnsupportedError("Not supported"); }
-
-  @Deprecated("Internal Use Only")
-  static StorageManager internalCreateStorageManager() {
-    return new StorageManager._internalWrap();
-  }
-
-  factory StorageManager._internalWrap() {
-    return new StorageManager.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  StorageManager.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
-  @DomName('StorageManager.persistentPermission')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future persistentPermission() => wrap_jso(_blink.BlinkStorageManager.instance.persistentPermission_Callback_0_(unwrap_jso(this)));
-  
-  @DomName('StorageManager.requestPersistent')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future requestPersistent() => wrap_jso(_blink.BlinkStorageManager.instance.requestPersistent_Callback_0_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -38983,11 +38599,6 @@ class SyncRegistration extends DartHtmlDomObject {
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
   int get hashCode => unwrap_jso(this).hashCode;
 
-  @DomName('SyncRegistration.done')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future get done => wrap_jso(_blink.BlinkSyncRegistration.instance.done_Getter_(unwrap_jso(this)));
-  
   @DomName('SyncRegistration.tag')
   @DocsEditable()
   @Experimental() // untriaged
@@ -39758,10 +39369,6 @@ class TextAreaElement extends HtmlElement {
       _blink.BlinkHTMLTextAreaElement.instance.setRangeText_Callback_1_(unwrap_jso(this), replacement);
       return;
     }
-    if ((end is int || end == null) && (start is int || start == null) && (replacement is String || replacement == null) && selectionMode == null) {
-      _blink.BlinkHTMLTextAreaElement.instance.setRangeText_Callback_3_(unwrap_jso(this), replacement, start, end);
-      return;
-    }
     if ((selectionMode is String || selectionMode == null) && (end is int || end == null) && (start is int || start == null) && (replacement is String || replacement == null)) {
       _blink.BlinkHTMLTextAreaElement.instance.setRangeText_Callback_4_(unwrap_jso(this), replacement, start, end, selectionMode);
       return;
@@ -40464,11 +40071,6 @@ class Touch extends DartHtmlDomObject {
   @Experimental() // untriaged
   num get _radiusY => _blink.BlinkTouch.instance.radiusY_Getter_(unwrap_jso(this));
   
-  @DomName('Touch.region')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get region => _blink.BlinkTouch.instance.region_Getter_(unwrap_jso(this));
-  
   @DomName('Touch.rotationAngle')
   @DocsEditable()
   @Experimental() // untriaged
@@ -40485,6 +40087,13 @@ class Touch extends DartHtmlDomObject {
   @DomName('Touch.target')
   @DocsEditable()
   EventTarget get target => wrap_jso(_blink.BlinkTouch.instance.target_Getter_(unwrap_jso(this)));
+  
+  @DomName('Touch.webkitRotationAngle')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
+  num get rotationAngle => _blink.BlinkTouch.instance.webkitRotationAngle_Getter_(unwrap_jso(this));
   
 
 // As of Chrome 37, these all changed from long to double.  This code
@@ -41143,14 +40752,24 @@ class UIEvent extends Event {
   UIEvent.internal_() : super.internal_();
 
 
+  @DomName('UIEvent.charCode')
+  @DocsEditable()
+  @Unstable()
+  int get _charCode => _blink.BlinkUIEvent.instance.charCode_Getter_(unwrap_jso(this));
+  
   @DomName('UIEvent.detail')
   @DocsEditable()
   int get detail => _blink.BlinkUIEvent.instance.detail_Getter_(unwrap_jso(this));
   
-  @DomName('UIEvent.sourceCapabilities')
+  @DomName('UIEvent.keyCode')
+  @DocsEditable()
+  @Unstable()
+  int get _keyCode => _blink.BlinkUIEvent.instance.keyCode_Getter_(unwrap_jso(this));
+  
+  @DomName('UIEvent.sourceDevice')
   @DocsEditable()
   @Experimental() // untriaged
-  InputDeviceCapabilities get sourceCapabilities => wrap_jso(_blink.BlinkUIEvent.instance.sourceCapabilities_Getter_(unwrap_jso(this)));
+  InputDevice get sourceDevice => wrap_jso(_blink.BlinkUIEvent.instance.sourceDevice_Getter_(unwrap_jso(this)));
   
   @DomName('UIEvent.view')
   @DocsEditable()
@@ -41603,560 +41222,6 @@ abstract class UrlUtilsReadOnly extends DartHtmlDomObject {
   @Experimental() // untriaged
   String toString();
 
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('USB')
-@Experimental() // untriaged
-class Usb extends EventTarget {
-  // To suppress missing implicit constructor warnings.
-  factory Usb._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static Usb internalCreateUsb() {
-    return new Usb._internalWrap();
-  }
-
-  factory Usb._internalWrap() {
-    return new Usb.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  Usb.internal_() : super.internal_();
-
-
-  @DomName('USB.getDevices')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future getDevices() => wrap_jso(_blink.BlinkUSB.instance.getDevices_Callback_0_(unwrap_jso(this)));
-  
-  @DomName('USB.requestDevice')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future requestDevice(Map options) => wrap_jso(_blink.BlinkUSB.instance.requestDevice_Callback_1_(unwrap_jso(this), convertDartToNative_Dictionary(options)));
-  
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('USBAlternateInterface')
-@Experimental() // untriaged
-class UsbAlternateInterface extends DartHtmlDomObject {
-  // To suppress missing implicit constructor warnings.
-  factory UsbAlternateInterface._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('USBAlternateInterface.USBAlternateInterface')
-  @DocsEditable()
-  factory UsbAlternateInterface(UsbInterface deviceInterface, int alternateSetting) {
-    return wrap_jso(_blink.BlinkUSBAlternateInterface.instance.constructorCallback_2_(deviceInterface, alternateSetting));
-  }
-
-  @Deprecated("Internal Use Only")
-  static UsbAlternateInterface internalCreateUsbAlternateInterface() {
-    return new UsbAlternateInterface._internalWrap();
-  }
-
-  factory UsbAlternateInterface._internalWrap() {
-    return new UsbAlternateInterface.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  UsbAlternateInterface.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
-  @DomName('USBAlternateInterface.alternateSetting')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get alternateSetting => _blink.BlinkUSBAlternateInterface.instance.alternateSetting_Getter_(unwrap_jso(this));
-  
-  @DomName('USBAlternateInterface.endpoints')
-  @DocsEditable()
-  @Experimental() // untriaged
-  List<UsbEndpoint> get endpoints => _blink.BlinkUSBAlternateInterface.instance.endpoints_Getter_(unwrap_jso(this));
-  
-  @DomName('USBAlternateInterface.interfaceClass')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get interfaceClass => _blink.BlinkUSBAlternateInterface.instance.interfaceClass_Getter_(unwrap_jso(this));
-  
-  @DomName('USBAlternateInterface.interfaceName')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get interfaceName => _blink.BlinkUSBAlternateInterface.instance.interfaceName_Getter_(unwrap_jso(this));
-  
-  @DomName('USBAlternateInterface.interfaceProtocol')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get interfaceProtocol => _blink.BlinkUSBAlternateInterface.instance.interfaceProtocol_Getter_(unwrap_jso(this));
-  
-  @DomName('USBAlternateInterface.interfaceSubclass')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get interfaceSubclass => _blink.BlinkUSBAlternateInterface.instance.interfaceSubclass_Getter_(unwrap_jso(this));
-  
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('USBConfiguration')
-@Experimental() // untriaged
-class UsbConfiguration extends DartHtmlDomObject {
-  // To suppress missing implicit constructor warnings.
-  factory UsbConfiguration._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('USBConfiguration.USBConfiguration')
-  @DocsEditable()
-  factory UsbConfiguration(UsbDevice device, int configurationValue) {
-    return wrap_jso(_blink.BlinkUSBConfiguration.instance.constructorCallback_2_(device, configurationValue));
-  }
-
-  @Deprecated("Internal Use Only")
-  static UsbConfiguration internalCreateUsbConfiguration() {
-    return new UsbConfiguration._internalWrap();
-  }
-
-  factory UsbConfiguration._internalWrap() {
-    return new UsbConfiguration.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  UsbConfiguration.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
-  @DomName('USBConfiguration.configurationName')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get configurationName => _blink.BlinkUSBConfiguration.instance.configurationName_Getter_(unwrap_jso(this));
-  
-  @DomName('USBConfiguration.configurationValue')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get configurationValue => _blink.BlinkUSBConfiguration.instance.configurationValue_Getter_(unwrap_jso(this));
-  
-  @DomName('USBConfiguration.interfaces')
-  @DocsEditable()
-  @Experimental() // untriaged
-  List<UsbInterface> get interfaces => _blink.BlinkUSBConfiguration.instance.interfaces_Getter_(unwrap_jso(this));
-  
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('USBConnectionEvent')
-@Experimental() // untriaged
-class UsbConnectionEvent extends Event {
-  // To suppress missing implicit constructor warnings.
-  factory UsbConnectionEvent._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('USBConnectionEvent.USBConnectionEvent')
-  @DocsEditable()
-  factory UsbConnectionEvent(String type, [Map eventInitDict]) {
-    if (eventInitDict != null) {
-      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
-      return wrap_jso(_blink.BlinkUSBConnectionEvent.instance.constructorCallback_2_(type, eventInitDict_1));
-    }
-    return wrap_jso(_blink.BlinkUSBConnectionEvent.instance.constructorCallback_1_(type));
-  }
-
-
-  @Deprecated("Internal Use Only")
-  static UsbConnectionEvent internalCreateUsbConnectionEvent() {
-    return new UsbConnectionEvent._internalWrap();
-  }
-
-  factory UsbConnectionEvent._internalWrap() {
-    return new UsbConnectionEvent.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  UsbConnectionEvent.internal_() : super.internal_();
-
-
-  @DomName('USBConnectionEvent.device')
-  @DocsEditable()
-  @Experimental() // untriaged
-  UsbDevice get device => wrap_jso(_blink.BlinkUSBConnectionEvent.instance.device_Getter_(unwrap_jso(this)));
-  
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('USBDevice')
-@Experimental() // untriaged
-class UsbDevice extends DartHtmlDomObject {
-  // To suppress missing implicit constructor warnings.
-  factory UsbDevice._() { throw new UnsupportedError("Not supported"); }
-
-  @Deprecated("Internal Use Only")
-  static UsbDevice internalCreateUsbDevice() {
-    return new UsbDevice._internalWrap();
-  }
-
-  factory UsbDevice._internalWrap() {
-    return new UsbDevice.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  UsbDevice.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
-  @DomName('USBDevice.configurations')
-  @DocsEditable()
-  @Experimental() // untriaged
-  List<UsbConfiguration> get configurations => _blink.BlinkUSBDevice.instance.configurations_Getter_(unwrap_jso(this));
-  
-  @DomName('USBDevice.deviceClass')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get deviceClass => _blink.BlinkUSBDevice.instance.deviceClass_Getter_(unwrap_jso(this));
-  
-  @DomName('USBDevice.deviceProtocol')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get deviceProtocol => _blink.BlinkUSBDevice.instance.deviceProtocol_Getter_(unwrap_jso(this));
-  
-  @DomName('USBDevice.deviceSubclass')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get deviceSubclass => _blink.BlinkUSBDevice.instance.deviceSubclass_Getter_(unwrap_jso(this));
-  
-  @DomName('USBDevice.deviceVersionMajor')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get deviceVersionMajor => _blink.BlinkUSBDevice.instance.deviceVersionMajor_Getter_(unwrap_jso(this));
-  
-  @DomName('USBDevice.deviceVersionMinor')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get deviceVersionMinor => _blink.BlinkUSBDevice.instance.deviceVersionMinor_Getter_(unwrap_jso(this));
-  
-  @DomName('USBDevice.deviceVersionSubminor')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get deviceVersionSubminor => _blink.BlinkUSBDevice.instance.deviceVersionSubminor_Getter_(unwrap_jso(this));
-  
-  @DomName('USBDevice.guid')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get guid => _blink.BlinkUSBDevice.instance.guid_Getter_(unwrap_jso(this));
-  
-  @DomName('USBDevice.manufacturerName')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get manufacturerName => _blink.BlinkUSBDevice.instance.manufacturerName_Getter_(unwrap_jso(this));
-  
-  @DomName('USBDevice.productId')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get productId => _blink.BlinkUSBDevice.instance.productId_Getter_(unwrap_jso(this));
-  
-  @DomName('USBDevice.productName')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get productName => _blink.BlinkUSBDevice.instance.productName_Getter_(unwrap_jso(this));
-  
-  @DomName('USBDevice.serialNumber')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get serialNumber => _blink.BlinkUSBDevice.instance.serialNumber_Getter_(unwrap_jso(this));
-  
-  @DomName('USBDevice.usbVersionMajor')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get usbVersionMajor => _blink.BlinkUSBDevice.instance.usbVersionMajor_Getter_(unwrap_jso(this));
-  
-  @DomName('USBDevice.usbVersionMinor')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get usbVersionMinor => _blink.BlinkUSBDevice.instance.usbVersionMinor_Getter_(unwrap_jso(this));
-  
-  @DomName('USBDevice.usbVersionSubminor')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get usbVersionSubminor => _blink.BlinkUSBDevice.instance.usbVersionSubminor_Getter_(unwrap_jso(this));
-  
-  @DomName('USBDevice.vendorId')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get vendorId => _blink.BlinkUSBDevice.instance.vendorId_Getter_(unwrap_jso(this));
-  
-  @DomName('USBDevice.claimInterface')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future claimInterface(int interfaceNumber) => wrap_jso(_blink.BlinkUSBDevice.instance.claimInterface_Callback_1_(unwrap_jso(this), interfaceNumber));
-  
-  @DomName('USBDevice.clearHalt')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future clearHalt(int endpointNumber) => wrap_jso(_blink.BlinkUSBDevice.instance.clearHalt_Callback_1_(unwrap_jso(this), endpointNumber));
-  
-  @DomName('USBDevice.close')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future close() => wrap_jso(_blink.BlinkUSBDevice.instance.close_Callback_0_(unwrap_jso(this)));
-  
-  @DomName('USBDevice.controlTransferIn')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future controlTransferIn(Map setup, int length) => wrap_jso(_blink.BlinkUSBDevice.instance.controlTransferIn_Callback_2_(unwrap_jso(this), convertDartToNative_Dictionary(setup), length));
-  
-  Future controlTransferOut(Map setup, [/*BufferSource*/ data]) {
-    if (data != null) {
-      return wrap_jso(_blink.BlinkUSBDevice.instance.controlTransferOut_Callback_2_(unwrap_jso(this), convertDartToNative_Dictionary(setup), data));
-    }
-    return wrap_jso(_blink.BlinkUSBDevice.instance.controlTransferOut_Callback_1_(unwrap_jso(this), convertDartToNative_Dictionary(setup)));
-  }
-
-  @DomName('USBDevice.open')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future open() => wrap_jso(_blink.BlinkUSBDevice.instance.open_Callback_0_(unwrap_jso(this)));
-  
-  @DomName('USBDevice.releaseInterface')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future releaseInterface(int interfaceNumber) => wrap_jso(_blink.BlinkUSBDevice.instance.releaseInterface_Callback_1_(unwrap_jso(this), interfaceNumber));
-  
-  @DomName('USBDevice.reset')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future reset() => wrap_jso(_blink.BlinkUSBDevice.instance.reset_Callback_0_(unwrap_jso(this)));
-  
-  @DomName('USBDevice.setConfiguration')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future setConfiguration(int configurationValue) => wrap_jso(_blink.BlinkUSBDevice.instance.setConfiguration_Callback_1_(unwrap_jso(this), configurationValue));
-  
-  @DomName('USBDevice.setInterface')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future setInterface(int interfaceNumber, int alternateSetting) => wrap_jso(_blink.BlinkUSBDevice.instance.setInterface_Callback_2_(unwrap_jso(this), interfaceNumber, alternateSetting));
-  
-  @DomName('USBDevice.transferIn')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future transferIn(int endpointNumber, int length) => wrap_jso(_blink.BlinkUSBDevice.instance.transferIn_Callback_2_(unwrap_jso(this), endpointNumber, length));
-  
-  @DomName('USBDevice.transferOut')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future transferOut(int endpointNumber, /*BufferSource*/ data) => wrap_jso(_blink.BlinkUSBDevice.instance.transferOut_Callback_2_(unwrap_jso(this), endpointNumber, data));
-  
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('USBEndpoint')
-@Experimental() // untriaged
-class UsbEndpoint extends DartHtmlDomObject {
-  // To suppress missing implicit constructor warnings.
-  factory UsbEndpoint._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('USBEndpoint.USBEndpoint')
-  @DocsEditable()
-  factory UsbEndpoint(UsbAlternateInterface alternate, int endpointNumber, String direction) {
-    return wrap_jso(_blink.BlinkUSBEndpoint.instance.constructorCallback_3_(alternate, endpointNumber, direction));
-  }
-
-  @Deprecated("Internal Use Only")
-  static UsbEndpoint internalCreateUsbEndpoint() {
-    return new UsbEndpoint._internalWrap();
-  }
-
-  factory UsbEndpoint._internalWrap() {
-    return new UsbEndpoint.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  UsbEndpoint.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
-  @DomName('USBEndpoint.direction')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get direction => _blink.BlinkUSBEndpoint.instance.direction_Getter_(unwrap_jso(this));
-  
-  @DomName('USBEndpoint.endpointNumber')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get endpointNumber => _blink.BlinkUSBEndpoint.instance.endpointNumber_Getter_(unwrap_jso(this));
-  
-  @DomName('USBEndpoint.packetSize')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get packetSize => _blink.BlinkUSBEndpoint.instance.packetSize_Getter_(unwrap_jso(this));
-  
-  @DomName('USBEndpoint.type')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get type => _blink.BlinkUSBEndpoint.instance.type_Getter_(unwrap_jso(this));
-  
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('USBInTransferResult')
-@Experimental() // untriaged
-class UsbInTransferResult extends DartHtmlDomObject {
-  // To suppress missing implicit constructor warnings.
-  factory UsbInTransferResult._() { throw new UnsupportedError("Not supported"); }
-
-  @Deprecated("Internal Use Only")
-  static UsbInTransferResult internalCreateUsbInTransferResult() {
-    return new UsbInTransferResult._internalWrap();
-  }
-
-  factory UsbInTransferResult._internalWrap() {
-    return new UsbInTransferResult.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  UsbInTransferResult.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
-  @DomName('USBInTransferResult.data')
-  @DocsEditable()
-  @Experimental() // untriaged
-  ByteBuffer get data => wrap_jso(_blink.BlinkUSBInTransferResult.instance.data_Getter_(unwrap_jso(this)));
-  
-  @DomName('USBInTransferResult.status')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get status => _blink.BlinkUSBInTransferResult.instance.status_Getter_(unwrap_jso(this));
-  
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('USBInterface')
-@Experimental() // untriaged
-class UsbInterface extends DartHtmlDomObject {
-  // To suppress missing implicit constructor warnings.
-  factory UsbInterface._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('USBInterface.USBInterface')
-  @DocsEditable()
-  factory UsbInterface(UsbConfiguration configuration, int interfaceNumber) {
-    return wrap_jso(_blink.BlinkUSBInterface.instance.constructorCallback_2_(configuration, interfaceNumber));
-  }
-
-  @Deprecated("Internal Use Only")
-  static UsbInterface internalCreateUsbInterface() {
-    return new UsbInterface._internalWrap();
-  }
-
-  factory UsbInterface._internalWrap() {
-    return new UsbInterface.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  UsbInterface.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
-  @DomName('USBInterface.alternates')
-  @DocsEditable()
-  @Experimental() // untriaged
-  List<UsbAlternateInterface> get alternates => _blink.BlinkUSBInterface.instance.alternates_Getter_(unwrap_jso(this));
-  
-  @DomName('USBInterface.interfaceNumber')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get interfaceNumber => _blink.BlinkUSBInterface.instance.interfaceNumber_Getter_(unwrap_jso(this));
-  
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('USBOutTransferResult')
-@Experimental() // untriaged
-class UsbOutTransferResult extends DartHtmlDomObject {
-  // To suppress missing implicit constructor warnings.
-  factory UsbOutTransferResult._() { throw new UnsupportedError("Not supported"); }
-
-  @Deprecated("Internal Use Only")
-  static UsbOutTransferResult internalCreateUsbOutTransferResult() {
-    return new UsbOutTransferResult._internalWrap();
-  }
-
-  factory UsbOutTransferResult._internalWrap() {
-    return new UsbOutTransferResult.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  UsbOutTransferResult.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
-  @DomName('USBOutTransferResult.bytesWritten')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get bytesWritten => _blink.BlinkUSBOutTransferResult.instance.bytesWritten_Getter_(unwrap_jso(this));
-  
-  @DomName('USBOutTransferResult.status')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get status => _blink.BlinkUSBOutTransferResult.instance.status_Getter_(unwrap_jso(this));
-  
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -44267,11 +43332,6 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @DocsEditable()
   void cancelAnimationFrame(int handle) => _blink.BlinkWindow.instance.cancelAnimationFrame_Callback_1_(unwrap_jso(this), handle);
   
-  @DomName('Window.cancelIdleCallback')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void cancelIdleCallback(int handle) => _blink.BlinkWindow.instance.cancelIdleCallback_Callback_1_(unwrap_jso(this), handle);
-  
   @DomName('Window.close')
   @DocsEditable()
   void close() => _blink.BlinkWindow.instance.close_Callback_0_(unwrap_jso(this));
@@ -44394,13 +43454,6 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @DocsEditable()
   int _requestAnimationFrame(FrameRequestCallback callback) => _blink.BlinkWindow.instance.requestAnimationFrame_Callback_1_(unwrap_jso(this), unwrap_jso((highResTime) => callback(highResTime)));
   
-  int requestIdleCallback(IdleRequestCallback callback, [num timeout]) {
-    if (timeout != null) {
-      return _blink.BlinkWindow.instance.requestIdleCallback_Callback_2_(unwrap_jso(this), unwrap_jso((deadline) => callback(wrap_jso(deadline))), timeout);
-    }
-    return _blink.BlinkWindow.instance.requestIdleCallback_Callback_1_(unwrap_jso(this), unwrap_jso((deadline) => callback(wrap_jso(deadline))));
-  }
-
   /**
    * Resizes this window by an offset.
    *
@@ -45099,11 +44152,6 @@ class WindowClient extends Client {
   @Experimental() // untriaged
   Future focus() => wrap_jso(_blink.BlinkWindowClient.instance.focus_Callback_0_(unwrap_jso(this)));
   
-  @DomName('WindowClient.navigate')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future navigate(String url) => wrap_jso(_blink.BlinkWindowClient.instance.navigate_Callback_1_(unwrap_jso(this), url));
-  
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -45556,11 +44604,6 @@ class WorkerPerformance extends EventTarget {
   @Experimental() // untriaged
   void clearMeasures(String measureName) => _blink.BlinkWorkerPerformance.instance.clearMeasures_Callback_1_(unwrap_jso(this), measureName);
   
-  @DomName('WorkerPerformance.clearResourceTimings')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void clearResourceTimings() => _blink.BlinkWorkerPerformance.instance.clearResourceTimings_Callback_0_(unwrap_jso(this));
-  
   @DomName('WorkerPerformance.mark')
   @DocsEditable()
   @Experimental() // untriaged
@@ -45571,10 +44614,21 @@ class WorkerPerformance extends EventTarget {
   @Experimental() // untriaged
   void measure(String measureName, String startMark, String endMark) => _blink.BlinkWorkerPerformance.instance.measure_Callback_3_(unwrap_jso(this), measureName, startMark, endMark);
   
-  @DomName('WorkerPerformance.setResourceTimingBufferSize')
+  @DomName('WorkerPerformance.webkitClearResourceTimings')
   @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
   @Experimental() // untriaged
-  void setResourceTimingBufferSize(int maxSize) => _blink.BlinkWorkerPerformance.instance.setResourceTimingBufferSize_Callback_1_(unwrap_jso(this), maxSize);
+  void clearResourceTimings() => _blink.BlinkWorkerPerformance.instance.webkitClearResourceTimings_Callback_0_(unwrap_jso(this));
+  
+  @DomName('WorkerPerformance.webkitSetResourceTimingBufferSize')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
+  @Experimental() // untriaged
+  void setResourceTimingBufferSize(int maxSize) => _blink.BlinkWorkerPerformance.instance.webkitSetResourceTimingBufferSize_Callback_1_(unwrap_jso(this), maxSize);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -46884,6 +45938,42 @@ class _HTMLAllCollection extends DartHtmlDomObject {
 
 
 @DocsEditable()
+@DomName('HTMLAppletElement')
+// http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#the-applet-element
+@deprecated // deprecated
+class _HTMLAppletElement extends HtmlElement {
+  // To suppress missing implicit constructor warnings.
+  factory _HTMLAppletElement._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static _HTMLAppletElement internalCreate_HTMLAppletElement() {
+    return new _HTMLAppletElement._internalWrap();
+  }
+
+  factory _HTMLAppletElement._internalWrap() {
+    return new _HTMLAppletElement.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  _HTMLAppletElement.internal_() : super.internal_();
+
+  /**
+   * Constructor instantiated by the DOM when a custom element has been created.
+   *
+   * This can only be called by subclasses from their created constructor.
+   */
+  _HTMLAppletElement.created() : super.created();
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('HTMLDirectoryElement')
 // http://www.whatwg.org/specs/web-apps/current-work/multipage/obsolete.html#dir
 @deprecated // deprecated
@@ -47312,6 +46402,11 @@ class _Request extends Body {
   _Request.internal_() : super.internal_();
 
 
+  @DomName('Request.context')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get context => _blink.BlinkRequest.instance.context_Getter_(unwrap_jso(this));
+  
   @DomName('Request.credentials')
   @DocsEditable()
   @Experimental() // untriaged
@@ -47322,20 +46417,10 @@ class _Request extends Body {
   @Experimental() // untriaged
   Headers get headers => wrap_jso(_blink.BlinkRequest.instance.headers_Getter_(unwrap_jso(this)));
   
-  @DomName('Request.integrity')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get integrity => _blink.BlinkRequest.instance.integrity_Getter_(unwrap_jso(this));
-  
   @DomName('Request.mode')
   @DocsEditable()
   @Experimental() // untriaged
   String get mode => _blink.BlinkRequest.instance.mode_Getter_(unwrap_jso(this));
-  
-  @DomName('Request.redirect')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get redirect => _blink.BlinkRequest.instance.redirect_Getter_(unwrap_jso(this));
   
   @DomName('Request.referrer')
   @DocsEditable()

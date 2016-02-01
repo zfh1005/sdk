@@ -722,6 +722,15 @@
     },
     "support_level": "stable"
   },
+  "BlobEvent": {
+    "members": {
+      "BlobEvent": {},
+      "data": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "Bluetooth": {
     "members": {
       "requestDevice": {
@@ -1536,7 +1545,13 @@
   "CharacterData": {
     "comment": "http://www.w3.org/TR/DOM-Level-3-Core/core.html#ID-FF21A306",
     "members": {
+      "after": {
+        "support_level": "untriaged"
+      },
       "appendData": {},
+      "before": {
+        "support_level": "untriaged"
+      },
       "data": {},
       "deleteData": {},
       "insertData": {},
@@ -1551,12 +1566,21 @@
         "support_level": "nonstandard"
       },
       "replaceData": {},
+      "replaceWith": {
+        "support_level": "untriaged"
+      },
       "substringData": {}
     },
     "support_level": "stable"
   },
   "ChildNode": {
     "members": {
+      "after": {
+        "support_level": "untriaged"
+      },
+      "before": {
+        "support_level": "untriaged"
+      },
       "nextElementSibling": {
         "support_level": "untriaged"
       },
@@ -1564,6 +1588,9 @@
         "support_level": "untriaged"
       },
       "remove": {
+        "support_level": "untriaged"
+      },
+      "replaceWith": {
         "support_level": "untriaged"
       }
     },
@@ -2001,6 +2028,17 @@
         "support_level": "untriaged"
       },
       "store": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "CrossOriginConnectEvent": {
+    "members": {
+      "acceptConnection": {
+        "support_level": "untriaged"
+      },
+      "client": {
         "support_level": "untriaged"
       }
     },
@@ -2759,6 +2797,15 @@
     },
     "support_level": "untriaged"
   },
+  "DefaultSessionStartEvent": {
+    "members": {
+      "DefaultSessionStartEvent": {},
+      "session": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
   "DelayNode": {
     "comment": "https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#DelayNode",
     "members": {
@@ -2889,6 +2936,9 @@
       "adoptNode": {},
       "anchors": {
         "dart_action": "suppress"
+      },
+      "append": {
+        "support_level": "untriaged"
       },
       "applets": {
         "dart_action": "suppress",
@@ -3224,6 +3274,9 @@
       "preferredStylesheetSet": {
         "comment": "http://dev.w3.org/csswg/cssom/#widl-Document-preferredStyleSheetSet"
       },
+      "prepend": {
+        "support_level": "untriaged"
+      },
       "queryCommandEnabled": {},
       "queryCommandIndeterm": {},
       "queryCommandState": {},
@@ -3337,6 +3390,9 @@
   "DocumentFragment": {
     "members": {
       "DocumentFragment": {},
+      "append": {
+        "support_level": "untriaged"
+      },
       "childElementCount": {
         "comment": "http://dom.spec.whatwg.org/#parentnode"
       },
@@ -3348,6 +3404,9 @@
       },
       "lastElementChild": {
         "comment": "http://dom.spec.whatwg.org/#parentnode"
+      },
+      "prepend": {
+        "support_level": "untriaged"
       },
       "querySelector": {},
       "querySelectorAll": {}
@@ -3516,10 +3575,19 @@
         "dart_action": "suppress",
         "support_level": "deprecated"
       },
+      "after": {
+        "support_level": "untriaged"
+      },
       "animate": {
         "support_level": "untriaged"
       },
+      "append": {
+        "support_level": "untriaged"
+      },
       "attributes": {},
+      "before": {
+        "support_level": "untriaged"
+      },
       "blur": {},
       "childElementCount": {},
       "children": {
@@ -3836,6 +3904,9 @@
         "dart_action": "stable",
         "support_level": "nonstandard"
       },
+      "prepend": {
+        "support_level": "untriaged"
+      },
       "previousElementSibling": {},
       "pseudo": {
         "support_level": "untriaged"
@@ -3852,6 +3923,9 @@
         "comment": "http://dom.spec.whatwg.org/#dom-element-removeattributenode",
         "dart_action": "suppress",
         "support_level": "deprecated"
+      },
+      "replaceWith": {
+        "support_level": "untriaged"
       },
       "requestFullscreen": {
         "support_level": "untriaged"
@@ -7356,6 +7430,9 @@
       "forward": {},
       "go": {},
       "length": {},
+      "options": {
+        "support_level": "untriaged"
+      },
       "pushState": {},
       "replaceState": {},
       "scrollRestoration": {
@@ -7670,6 +7747,15 @@
   "InjectedScriptHost": {
     "members": {
       "inspect": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "InputDevice": {
+    "members": {
+      "InputDevice": {},
+      "firesTouchEvents": {
         "support_level": "untriaged"
       }
     },
@@ -9520,6 +9606,9 @@
   },
   "ParentNode": {
     "members": {
+      "append": {
+        "support_level": "untriaged"
+      },
       "childElementCount": {
         "support_level": "untriaged"
       },
@@ -9530,6 +9619,9 @@
         "support_level": "untriaged"
       },
       "lastElementChild": {
+        "support_level": "untriaged"
+      },
+      "prepend": {
         "support_level": "untriaged"
       },
       "querySelector": {
@@ -9544,6 +9636,12 @@
   "PasswordCredential": {
     "members": {
       "PasswordCredential": {},
+      "formData": {
+        "support_level": "untriaged"
+      },
+      "password": {
+        "support_level": "untriaged"
+      },
       "toFormData": {
         "support_level": "untriaged"
       }
@@ -9877,6 +9975,9 @@
       },
       "state": {
         "support_level": "untriaged"
+      },
+      "status": {
+        "support_level": "untriaged"
       }
     },
     "support_level": "untriaged"
@@ -9962,6 +10063,9 @@
   },
   "PluginPlaceholderElement": {
     "members": {
+      "closeable": {
+        "support_level": "untriaged"
+      },
       "createdCallback": {
         "support_level": "untriaged"
       },
@@ -10056,7 +10160,16 @@
       "defaultRequest": {
         "support_level": "untriaged"
       },
+      "getAvailability": {
+        "support_level": "untriaged"
+      },
+      "joinSession": {
+        "support_level": "untriaged"
+      },
       "session": {
+        "support_level": "untriaged"
+      },
+      "startSession": {
         "support_level": "untriaged"
       }
     },
@@ -10230,6 +10343,7 @@
   },
   "PushMessageData": {
     "members": {
+      "PushMessageData": {},
       "arrayBuffer": {
         "support_level": "untriaged"
       },
@@ -10651,6 +10765,9 @@
     "members": {
       "Request": {},
       "clone": {
+        "support_level": "untriaged"
+      },
+      "context": {
         "support_level": "untriaged"
       },
       "credentials": {
@@ -14641,6 +14758,9 @@
       "onmessage": {
         "support_level": "untriaged"
       },
+      "ports": {
+        "support_level": "untriaged"
+      },
       "registration": {
         "support_level": "untriaged"
       },
@@ -15077,6 +15197,25 @@
       "voiceURI": {}
     },
     "support_level": "experimental"
+  },
+  "StashedMessagePort": {
+    "members": {
+      "name": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
+  },
+  "StashedPortCollection": {
+    "members": {
+      "add": {
+        "support_level": "untriaged"
+      },
+      "onmessage": {
+        "support_level": "untriaged"
+      }
+    },
+    "support_level": "untriaged"
   },
   "StereoPannerNode": {
     "members": {
@@ -15765,6 +15904,9 @@
       "sourceCapabilities": {
         "support_level": "untriaged"
       },
+      "sourceDevice": {
+        "support_level": "untriaged"
+      },
       "view": {},
       "which": {
         "comment": "http://dev.w3.org/2006/webapi/DOM-Level-3-Events/html/DOM3-Events.html#legacy-key-attributes",
@@ -15998,6 +16140,9 @@
         "support_level": "untriaged"
       },
       "deviceVersionSubminor": {
+        "support_level": "untriaged"
+      },
+      "getConfiguration": {
         "support_level": "untriaged"
       },
       "guid": {
@@ -22718,6 +22863,12 @@
         "support_level": "untriaged"
       },
       "setResourceTimingBufferSize": {
+        "support_level": "untriaged"
+      },
+      "webkitClearResourceTimings": {
+        "support_level": "untriaged"
+      },
+      "webkitSetResourceTimingBufferSize": {
         "support_level": "untriaged"
       }
     },

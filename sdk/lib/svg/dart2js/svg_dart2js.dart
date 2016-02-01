@@ -5077,21 +5077,6 @@ class SvgElement extends Element implements GlobalEventHandlers {
   // Shadowing definition.
   AnimatedString get _svgClassName => JS("AnimatedString", "#.className", this);
 
-  // Use implementation from Element.
-  // final int _offsetHeight;
-
-  // Use implementation from Element.
-  // final int _offsetLeft;
-
-  // Use implementation from Element.
-  // final Element offsetParent;
-
-  // Use implementation from Element.
-  // final int _offsetTop;
-
-  // Use implementation from Element.
-  // final int _offsetWidth;
-
   @JSName('ownerSVGElement')
   @DomName('SVGElement.ownerSVGElement')
   @DocsEditable()

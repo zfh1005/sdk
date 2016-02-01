@@ -317,23 +317,7 @@ class AudioContext extends EventTarget {
   @DomName('AudioContext.createPeriodicWave')
   @DocsEditable()
   @Experimental() // untriaged
-  PeriodicWave createPeriodicWave(Float32List real, Float32List imag, [Map options]) {
-    if (options != null) {
-      var options_1 = convertDartToNative_Dictionary(options);
-      return _createPeriodicWave_1(real, imag, options_1);
-    }
-    return _createPeriodicWave_2(real, imag);
-  }
-  @JSName('createPeriodicWave')
-  @DomName('AudioContext.createPeriodicWave')
-  @DocsEditable()
-  @Experimental() // untriaged
-  PeriodicWave _createPeriodicWave_1(Float32List real, Float32List imag, options) native;
-  @JSName('createPeriodicWave')
-  @DomName('AudioContext.createPeriodicWave')
-  @DocsEditable()
-  @Experimental() // untriaged
-  PeriodicWave _createPeriodicWave_2(Float32List real, Float32List imag) native;
+  PeriodicWave createPeriodicWave(Float32List real, Float32List imag) native;
 
   @DomName('AudioContext.createStereoPanner')
   @DocsEditable()

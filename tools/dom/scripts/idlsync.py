@@ -16,10 +16,6 @@ import tempfile
 SCRIPT_PATH = os.path.abspath(os.path.dirname(__file__))
 DART_PATH = os.path.abspath(os.path.join(SCRIPT_PATH, '..', '..', '..'))
 
-# Dartium DEPS file with Chrome and WebKit revisions.
-DEPS_SVN = ('http://dart.googlecode.com/svn/branches/'
-            'bleeding_edge/deps/dartium.deps/DEPS')
-
 # Dartium DEPS file from the DEPS file checked into the dart-lang/sdk integration
 # branch.
 DEPS_GIT = ('https://raw.githubusercontent.com/dart-lang/sdk/'
@@ -35,7 +31,7 @@ WHITELIST = [
     ]
 
 # WebKit / WebCore info.
-CHROME_TRUNK = "http://src.chromium.org"
+CHROME_TRUNK = "https://src.chromium.org"
 WEBKIT_URL_PATTERN = r'"dartium_webkit_branch": "(\S+)",'
 WEBKIT_REV_PATTERN = r'"dartium_webkit_revision": "(\d+)",'
 WEBCORE_SUBPATH = 'Source/core'
@@ -135,11 +131,6 @@ def RunCommand(cmd, valid_exits=[0]):
     print output[1]
     print 'FAILED. RET_CODE=%d' % pipe.returncode
     sys.exit(pipe.returncode)
-
-
-def GetDepsFromSVN():
-  """Returns the DEPS file contents with pinned revision info."""
-  return RunCommand(['svn', 'cat', DEPS_SVN])
 
 def GetDepsFromGit():
   req = requests.get(DEPS_GIT)
