@@ -1654,73 +1654,7 @@ class AnimationEffectReadOnly extends DartHtmlDomObject {
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
   int get hashCode => unwrap_jso(this).hashCode;
 
-<<<<<<< HEAD
   @DomName('AnimationEffectReadOnly.computedTiming')
-||||||| merged common ancestors
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('WebKitAnimationEvent')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
-class AnimationEvent extends Event {
-  // To suppress missing implicit constructor warnings.
-  factory AnimationEvent._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static AnimationEvent internalCreateAnimationEvent() {
-    return new AnimationEvent._internalWrap();
-  }
-
-  factory AnimationEvent._internalWrap() {
-    return new AnimationEvent.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  AnimationEvent.internal_() : super.internal_();
-
-
-  @DomName('WebKitAnimationEvent.animationName')
-=======
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('WebKitAnimationEvent')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Experimental()
-class AnimationEvent extends Event {
-  // To suppress missing implicit constructor warnings.
-  factory AnimationEvent._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static AnimationEvent internalCreateAnimationEvent() {
-    return new AnimationEvent._internalWrap();
-  }
-
-  external factory AnimationEvent._internalWrap();
-
-  @Deprecated("Internal Use Only")
-  AnimationEvent.internal_() : super.internal_();
-
-
-  @DomName('WebKitAnimationEvent.animationName')
->>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
   @DocsEditable()
   @Experimental() // untriaged
   Map get computedTiming => wrap_jso(_blink.BlinkAnimationEffectReadOnly.instance.computedTiming_Getter_(unwrap_jso(this)));
@@ -1795,75 +1729,7 @@ class AnimationEffectTiming extends DartHtmlDomObject {
   @Experimental() // untriaged
   String get easing => _blink.BlinkAnimationEffectTiming.instance.easing_Getter_(unwrap_jso(this));
   
-<<<<<<< HEAD
   @DomName('AnimationEffectTiming.easing')
-||||||| merged common ancestors
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('AnimationPlayer')
-@Experimental() // untriaged
-class AnimationPlayer extends EventTarget {
-  // To suppress missing implicit constructor warnings.
-  factory AnimationPlayer._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static AnimationPlayer internalCreateAnimationPlayer() {
-    return new AnimationPlayer._internalWrap();
-  }
-
-  factory AnimationPlayer._internalWrap() {
-    return new AnimationPlayer.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  AnimationPlayer.internal_() : super.internal_();
-
-
-  /// Checks if this type is supported on the current platform.
-  static bool get supported => true;
-
-  @DomName('AnimationPlayer.currentTime')
-=======
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('AnimationPlayer')
-@Experimental() // untriaged
-class AnimationPlayer extends EventTarget {
-  // To suppress missing implicit constructor warnings.
-  factory AnimationPlayer._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static AnimationPlayer internalCreateAnimationPlayer() {
-    return new AnimationPlayer._internalWrap();
-  }
-
-  external factory AnimationPlayer._internalWrap();
-
-  @Deprecated("Internal Use Only")
-  AnimationPlayer.internal_() : super.internal_();
-
-
-  /// Checks if this type is supported on the current platform.
-  static bool get supported => true;
-
-  @DomName('AnimationPlayer.currentTime')
->>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
   @DocsEditable()
   @Experimental() // untriaged
   set easing(String value) => _blink.BlinkAnimationEffectTiming.instance.easing_Setter_(unwrap_jso(this), value);
@@ -1949,9 +1815,7 @@ class AnimationEvent extends Event {
     return new AnimationEvent._internalWrap();
   }
 
-  factory AnimationEvent._internalWrap() {
-    return new AnimationEvent.internal_();
-  }
+  external factory AnimationEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   AnimationEvent.internal_() : super.internal_();
@@ -2933,9 +2797,7 @@ class BeforeInstallPromptEvent extends Event {
     return new BeforeInstallPromptEvent._internalWrap();
   }
 
-  factory BeforeInstallPromptEvent._internalWrap() {
-    return new BeforeInstallPromptEvent.internal_();
-  }
+  external factory BeforeInstallPromptEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   BeforeInstallPromptEvent.internal_() : super.internal_();
@@ -5325,9 +5187,7 @@ class ClipboardEvent extends Event {
     return new ClipboardEvent._internalWrap();
   }
 
-  factory ClipboardEvent._internalWrap() {
-    return new ClipboardEvent.internal_();
-  }
+  external factory ClipboardEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   ClipboardEvent.internal_() : super.internal_();
@@ -5597,9 +5457,7 @@ class CompositorWorker extends EventTarget implements AbstractWorker {
     return new CompositorWorker._internalWrap();
   }
 
-  factory CompositorWorker._internalWrap() {
-    return new CompositorWorker.internal_();
-  }
+  external factory CompositorWorker._internalWrap();
 
   @Deprecated("Internal Use Only")
   CompositorWorker.internal_() : super.internal_();
@@ -5655,9 +5513,7 @@ class CompositorWorkerGlobalScope extends WorkerGlobalScope {
     return new CompositorWorkerGlobalScope._internalWrap();
   }
 
-  factory CompositorWorkerGlobalScope._internalWrap() {
-    return new CompositorWorkerGlobalScope.internal_();
-  }
+  external factory CompositorWorkerGlobalScope._internalWrap();
 
   @Deprecated("Internal Use Only")
   CompositorWorkerGlobalScope.internal_() : super.internal_();
@@ -6097,9 +5953,7 @@ class CrossOriginConnectEvent extends Event {
     return new CrossOriginConnectEvent._internalWrap();
   }
 
-  factory CrossOriginConnectEvent._internalWrap() {
-    return new CrossOriginConnectEvent.internal_();
-  }
+  external factory CrossOriginConnectEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   CrossOriginConnectEvent.internal_() : super.internal_();
@@ -6136,9 +5990,7 @@ class CrossOriginServiceWorkerClient extends EventTarget {
     return new CrossOriginServiceWorkerClient._internalWrap();
   }
 
-  factory CrossOriginServiceWorkerClient._internalWrap() {
-    return new CrossOriginServiceWorkerClient.internal_();
-  }
+  external factory CrossOriginServiceWorkerClient._internalWrap();
 
   @Deprecated("Internal Use Only")
   CrossOriginServiceWorkerClient.internal_() : super.internal_();
@@ -6327,17 +6179,7 @@ class CssFontFaceRule extends CssRule {
     return new CssFontFaceRule._internalWrap();
   }
 
-<<<<<<< HEAD
-  factory CssFontFaceRule._internalWrap() {
-    return new CssFontFaceRule.internal_();
-  }
-||||||| merged common ancestors
-  factory CssCharsetRule._internalWrap() {
-    return new CssCharsetRule.internal_();
-  }
-=======
-  external factory CssCharsetRule._internalWrap();
->>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
+  external factory CssFontFaceRule._internalWrap();
 
   @Deprecated("Internal Use Only")
   CssFontFaceRule.internal_() : super.internal_();
@@ -6368,17 +6210,7 @@ class CssGroupingRule extends CssRule {
     return new CssGroupingRule._internalWrap();
   }
 
-<<<<<<< HEAD
-  factory CssGroupingRule._internalWrap() {
-    return new CssGroupingRule.internal_();
-  }
-||||||| merged common ancestors
-  factory CssFilterRule._internalWrap() {
-    return new CssFilterRule.internal_();
-  }
-=======
-  external factory CssFilterRule._internalWrap();
->>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
+  external factory CssGroupingRule._internalWrap();
 
   @Deprecated("Internal Use Only")
   CssGroupingRule.internal_() : super.internal_();
@@ -6389,67 +6221,7 @@ class CssGroupingRule extends CssRule {
   @Experimental() // untriaged
   List<CssRule> get cssRules => wrap_jso(_blink.BlinkCSSGroupingRule.instance.cssRules_Getter_(unwrap_jso(this)));
   
-<<<<<<< HEAD
   @DomName('CSSGroupingRule.deleteRule')
-||||||| merged common ancestors
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('CSSFontFaceRule')
-class CssFontFaceRule extends CssRule {
-  // To suppress missing implicit constructor warnings.
-  factory CssFontFaceRule._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static CssFontFaceRule internalCreateCssFontFaceRule() {
-    return new CssFontFaceRule._internalWrap();
-  }
-
-  factory CssFontFaceRule._internalWrap() {
-    return new CssFontFaceRule.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  CssFontFaceRule.internal_() : super.internal_();
-
-
-  @DomName('CSSFontFaceRule.style')
-=======
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('CSSFontFaceRule')
-class CssFontFaceRule extends CssRule {
-  // To suppress missing implicit constructor warnings.
-  factory CssFontFaceRule._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static CssFontFaceRule internalCreateCssFontFaceRule() {
-    return new CssFontFaceRule._internalWrap();
-  }
-
-  external factory CssFontFaceRule._internalWrap();
-
-  @Deprecated("Internal Use Only")
-  CssFontFaceRule.internal_() : super.internal_();
-
-
-  @DomName('CSSFontFaceRule.style')
->>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
   @DocsEditable()
   @Experimental() // untriaged
   void deleteRule(int index) => _blink.BlinkCSSGroupingRule.instance.deleteRule_Callback_1_(unwrap_jso(this), index);
@@ -10665,29 +10437,15 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
   DedicatedWorkerGlobalScope.internal_() : super.internal_();
 
 
-<<<<<<< HEAD
   void postMessage(Object message, [List<MessagePort> transfer]) {
     if (transfer != null) {
-      _blink.BlinkDedicatedWorkerGlobalScope.instance.postMessage_Callback_2_(unwrap_jso(this), message, transfer);
+      _blink.BlinkDedicatedWorkerGlobalScope.instance.postMessage_Callback_2_(unwrap_jso(this), convertDartToNative_SerializedScriptValue(message), transfer);
       return;
     }
-    _blink.BlinkDedicatedWorkerGlobalScope.instance.postMessage_Callback_1_(unwrap_jso(this), message);
+    _blink.BlinkDedicatedWorkerGlobalScope.instance.postMessage_Callback_1_(unwrap_jso(this), convertDartToNative_SerializedScriptValue(message));
     return;
   }
 
-||||||| merged common ancestors
-  @DomName('DedicatedWorkerGlobalScope.postMessage')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void postMessage(Object message, [List<MessagePort> transfer]) => _blink.BlinkDedicatedWorkerGlobalScope.instance.postMessage_Callback_2_(unwrap_jso(this), message, transfer);
-  
-=======
-  @DomName('DedicatedWorkerGlobalScope.postMessage')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void postMessage(Object message, [List<MessagePort> transfer]) => _blink.BlinkDedicatedWorkerGlobalScope.instance.postMessage_Callback_2_(unwrap_jso(this), convertDartToNative_SerializedScriptValue(message), transfer);
-  
->>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
   /// Stream of `message` events handled by this [DedicatedWorkerGlobalScope].
   @DomName('DedicatedWorkerGlobalScope.onmessage')
   @DocsEditable()
@@ -10725,9 +10483,7 @@ class DefaultSessionStartEvent extends Event {
     return new DefaultSessionStartEvent._internalWrap();
   }
 
-  factory DefaultSessionStartEvent._internalWrap() {
-    return new DefaultSessionStartEvent.internal_();
-  }
+  external factory DefaultSessionStartEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   DefaultSessionStartEvent.internal_() : super.internal_();
@@ -18273,46 +18029,6 @@ class Event extends DartHtmlDomObject {
   @DocsEditable()
   bool get cancelable => _blink.BlinkEvent.instance.cancelable_Getter_(unwrap_jso(this));
   
-<<<<<<< HEAD
-||||||| merged common ancestors
-  /**
-   * Access to the system's clipboard data during copy, cut, and paste events.
-   *
-   * ## Other resources
-   *
-   * * [clipboardData specification]
-   * (http://www.w3.org/TR/clipboard-apis/#attributes) from W3C.
-   */
-  @DomName('Event.clipboardData')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.FIREFOX)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // Part of copy/paste
-  @Experimental() // nonstandard
-  DataTransfer get clipboardData => wrap_jso(_blink.BlinkEvent.instance.clipboardData_Getter_(unwrap_jso(this)));
-  
-=======
-  /**
-   * Access to the system's clipboard data during copy, cut, and paste events.
-   *
-   * ## Other resources
-   *
-   * * [clipboardData specification](http://www.w3.org/TR/clipboard-apis/#attributes)
-   *   from W3C.
-   */
-  @DomName('Event.clipboardData')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.FIREFOX)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // Part of copy/paste
-  @Experimental() // nonstandard
-  DataTransfer get clipboardData => wrap_jso(_blink.BlinkEvent.instance.clipboardData_Getter_(unwrap_jso(this)));
-  
->>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
   @DomName('Event.currentTarget')
   @DocsEditable()
   EventTarget get currentTarget => wrap_jso(_blink.BlinkEvent.instance.currentTarget_Getter_(unwrap_jso(this)));
@@ -18626,94 +18342,18 @@ class EventTarget extends DartHtmlDomObject {
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
   int get hashCode => unwrap_jso(this).hashCode;
 
-<<<<<<< HEAD
   @DomName('EventTarget.addEventListener')
   @DocsEditable()
-  void _addEventListener(String type, EventListener listener, [bool capture]) => _blink.BlinkEventTarget.instance.addEventListener_Callback_3_(unwrap_jso(this), type, wrap_event_listener(this, listener), capture);
+  void _addEventListener(String type, EventListener listener, [bool capture]) => _blink.BlinkEventTarget.instance.addEventListener_Callback_3_(unwrap_jso(this), type, unwrap_jso(js.allowInterop(listener)), capture);
   
-||||||| merged common ancestors
-  void _addEventListener([String type, EventListener listener, bool useCapture]) {
-    if (useCapture != null) {
-      _blink.BlinkEventTarget.instance.addEventListener_Callback_3_(unwrap_jso(this), type, wrap_event_listener(this, listener), useCapture);
-      return;
-    }
-    if (listener != null) {
-      _blink.BlinkEventTarget.instance.addEventListener_Callback_2_(unwrap_jso(this), type, wrap_event_listener(this, listener));
-      return;
-    }
-    if (type != null) {
-      _blink.BlinkEventTarget.instance.addEventListener_Callback_1_(unwrap_jso(this), type);
-      return;
-    }
-    _blink.BlinkEventTarget.instance.addEventListener_Callback_0_(unwrap_jso(this));
-    return;
-  }
-
-=======
-  void _addEventListener([String type, EventListener listener, bool useCapture]) {
-    if (useCapture != null) {
-      _blink.BlinkEventTarget.instance.addEventListener_Callback_3_(unwrap_jso(this), type, unwrap_jso(js.allowInterop(listener)), useCapture);
-      return;
-    }
-    if (listener != null) {
-      _blink.BlinkEventTarget.instance.addEventListener_Callback_2_(unwrap_jso(this), type, unwrap_jso(js.allowInterop(listener)));
-      return;
-    }
-    if (type != null) {
-      _blink.BlinkEventTarget.instance.addEventListener_Callback_1_(unwrap_jso(this), type);
-      return;
-    }
-    _blink.BlinkEventTarget.instance.addEventListener_Callback_0_(unwrap_jso(this));
-    return;
-  }
-
->>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
   @DomName('EventTarget.dispatchEvent')
   @DocsEditable()
   bool dispatchEvent(Event event) => _blink.BlinkEventTarget.instance.dispatchEvent_Callback_1_(unwrap_jso(this), unwrap_jso(event));
   
-<<<<<<< HEAD
   @DomName('EventTarget.removeEventListener')
   @DocsEditable()
-  void _removeEventListener(String type, EventListener listener, [bool capture]) => _blink.BlinkEventTarget.instance.removeEventListener_Callback_3_(unwrap_jso(this), type, _knownListeners[this.hashCode][identityHashCode(listener)], capture);
+  void _removeEventListener(String type, EventListener listener, [bool capture]) => _blink.BlinkEventTarget.instance.removeEventListener_Callback_3_(unwrap_jso(this), type, unwrap_jso(js.allowInterop(listener)), capture);
   
-||||||| merged common ancestors
-  void _removeEventListener([String type, EventListener listener, bool useCapture]) {
-    if (useCapture != null) {
-      _blink.BlinkEventTarget.instance.removeEventListener_Callback_3_(unwrap_jso(this), type, _knownListeners[this.hashCode][identityHashCode(listener)], useCapture);
-      return;
-    }
-    if (listener != null) {
-      _blink.BlinkEventTarget.instance.removeEventListener_Callback_2_(unwrap_jso(this), type, _knownListeners[this.hashCode][identityHashCode(listener)]);
-      return;
-    }
-    if (type != null) {
-      _blink.BlinkEventTarget.instance.removeEventListener_Callback_1_(unwrap_jso(this), type);
-      return;
-    }
-    _blink.BlinkEventTarget.instance.removeEventListener_Callback_0_(unwrap_jso(this));
-    return;
-  }
-
-=======
-  void _removeEventListener([String type, EventListener listener, bool useCapture]) {
-    if (useCapture != null) {
-      _blink.BlinkEventTarget.instance.removeEventListener_Callback_3_(unwrap_jso(this), type, unwrap_jso(js.allowInterop(listener)), useCapture);
-      return;
-    }
-    if (listener != null) {
-      _blink.BlinkEventTarget.instance.removeEventListener_Callback_2_(unwrap_jso(this), type, unwrap_jso(js.allowInterop(listener)));
-      return;
-    }
-    if (type != null) {
-      _blink.BlinkEventTarget.instance.removeEventListener_Callback_1_(unwrap_jso(this), type);
-      return;
-    }
-    _blink.BlinkEventTarget.instance.removeEventListener_Callback_0_(unwrap_jso(this));
-    return;
-  }
-
->>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20403,9 +20043,7 @@ class GeofencingEvent extends Event {
     return new GeofencingEvent._internalWrap();
   }
 
-  factory GeofencingEvent._internalWrap() {
-    return new GeofencingEvent.internal_();
-  }
+  external factory GeofencingEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   GeofencingEvent.internal_() : super.internal_();
@@ -21520,9 +21158,7 @@ class HmdvrDevice extends VRDevice {
     return new HmdvrDevice._internalWrap();
   }
 
-  factory HmdvrDevice._internalWrap() {
-    return new HmdvrDevice.internal_();
-  }
+  external factory HmdvrDevice._internalWrap();
 
   @Deprecated("Internal Use Only")
   HmdvrDevice.internal_() : super.internal_();
@@ -25363,190 +24999,6 @@ abstract class ButtonInputElement implements InputElementBase {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-<<<<<<< HEAD
-||||||| merged common ancestors
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('InputMethodContext')
-// http://www.w3.org/TR/ime-api/#idl-def-InputMethodContext
-@Experimental()
-class InputMethodContext extends EventTarget {
-  // To suppress missing implicit constructor warnings.
-  factory InputMethodContext._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static InputMethodContext internalCreateInputMethodContext() {
-    return new InputMethodContext._internalWrap();
-  }
-
-  factory InputMethodContext._internalWrap() {
-    return new InputMethodContext.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  InputMethodContext.internal_() : super.internal_();
-
-
-  @DomName('InputMethodContext.compositionEndOffset')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get compositionEndOffset => _blink.BlinkInputMethodContext.instance.compositionEndOffset_Getter_(unwrap_jso(this));
-  
-  @DomName('InputMethodContext.compositionStartOffset')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get compositionStartOffset => _blink.BlinkInputMethodContext.instance.compositionStartOffset_Getter_(unwrap_jso(this));
-  
-  @DomName('InputMethodContext.locale')
-  @DocsEditable()
-  String get locale => _blink.BlinkInputMethodContext.instance.locale_Getter_(unwrap_jso(this));
-  
-  @DomName('InputMethodContext.target')
-  @DocsEditable()
-  @Experimental() // untriaged
-  HtmlElement get target => wrap_jso(_blink.BlinkInputMethodContext.instance.target_Getter_(unwrap_jso(this)));
-  
-  @DomName('InputMethodContext.confirmComposition')
-  @DocsEditable()
-  void confirmComposition() => _blink.BlinkInputMethodContext.instance.confirmComposition_Callback_0_(unwrap_jso(this));
-  
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('InstallEvent')
-@Experimental() // untriaged
-class InstallEvent extends ExtendableEvent {
-  // To suppress missing implicit constructor warnings.
-  factory InstallEvent._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static InstallEvent internalCreateInstallEvent() {
-    return new InstallEvent._internalWrap();
-  }
-
-  factory InstallEvent._internalWrap() {
-    return new InstallEvent.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  InstallEvent.internal_() : super.internal_();
-
-
-  @DomName('InstallEvent.reloadAll')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future reloadAll() => wrap_jso(_blink.BlinkInstallEvent.instance.reloadAll_Callback_0_(unwrap_jso(this)));
-  
-  @DomName('InstallEvent.replace')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void replace() => _blink.BlinkInstallEvent.instance.replace_Callback_0_(unwrap_jso(this));
-  
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-=======
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('InputMethodContext')
-// http://www.w3.org/TR/ime-api/#idl-def-InputMethodContext
-@Experimental()
-class InputMethodContext extends EventTarget {
-  // To suppress missing implicit constructor warnings.
-  factory InputMethodContext._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static InputMethodContext internalCreateInputMethodContext() {
-    return new InputMethodContext._internalWrap();
-  }
-
-  external factory InputMethodContext._internalWrap();
-
-  @Deprecated("Internal Use Only")
-  InputMethodContext.internal_() : super.internal_();
-
-
-  @DomName('InputMethodContext.compositionEndOffset')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get compositionEndOffset => _blink.BlinkInputMethodContext.instance.compositionEndOffset_Getter_(unwrap_jso(this));
-  
-  @DomName('InputMethodContext.compositionStartOffset')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get compositionStartOffset => _blink.BlinkInputMethodContext.instance.compositionStartOffset_Getter_(unwrap_jso(this));
-  
-  @DomName('InputMethodContext.locale')
-  @DocsEditable()
-  String get locale => _blink.BlinkInputMethodContext.instance.locale_Getter_(unwrap_jso(this));
-  
-  @DomName('InputMethodContext.target')
-  @DocsEditable()
-  @Experimental() // untriaged
-  HtmlElement get target => wrap_jso(_blink.BlinkInputMethodContext.instance.target_Getter_(unwrap_jso(this)));
-  
-  @DomName('InputMethodContext.confirmComposition')
-  @DocsEditable()
-  void confirmComposition() => _blink.BlinkInputMethodContext.instance.confirmComposition_Callback_0_(unwrap_jso(this));
-  
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('InstallEvent')
-@Experimental() // untriaged
-class InstallEvent extends ExtendableEvent {
-  // To suppress missing implicit constructor warnings.
-  factory InstallEvent._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static InstallEvent internalCreateInstallEvent() {
-    return new InstallEvent._internalWrap();
-  }
-
-  external factory InstallEvent._internalWrap();
-
-  @Deprecated("Internal Use Only")
-  InstallEvent.internal_() : super.internal_();
-
-
-  @DomName('InstallEvent.reloadAll')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Future reloadAll() => wrap_jso(_blink.BlinkInstallEvent.instance.reloadAll_Callback_0_(unwrap_jso(this)));
-  
-  @DomName('InstallEvent.replace')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void replace() => _blink.BlinkInstallEvent.instance.replace_Callback_0_(unwrap_jso(this));
-  
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
->>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
 
 @DomName('KeyboardEvent')
 class KeyboardEvent extends UIEvent {
@@ -25721,9 +25173,7 @@ class KeyframeEffect extends AnimationEffectReadOnly {
     return new KeyframeEffect._internalWrap();
   }
 
-  factory KeyframeEffect._internalWrap() {
-    return new KeyframeEffect.internal_();
-  }
+  external factory KeyframeEffect._internalWrap();
 
   @Deprecated("Internal Use Only")
   KeyframeEffect.internal_() : super.internal_();
@@ -26108,88 +25558,6 @@ class LinkElement extends HtmlElement {
     return true;
   }
 }
-<<<<<<< HEAD
-||||||| merged common ancestors
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('LocalCredential')
-@Experimental() // untriaged
-class LocalCredential extends Credential {
-  // To suppress missing implicit constructor warnings.
-  factory LocalCredential._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('LocalCredential.LocalCredential')
-  @DocsEditable()
-  factory LocalCredential(String id, String name, String avatarURL, String password) {
-    return wrap_jso(_blink.BlinkLocalCredential.instance.constructorCallback_4_(id, name, avatarURL, password));
-  }
-
-
-  @Deprecated("Internal Use Only")
-  static LocalCredential internalCreateLocalCredential() {
-    return new LocalCredential._internalWrap();
-  }
-
-  factory LocalCredential._internalWrap() {
-    return new LocalCredential.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  LocalCredential.internal_() : super.internal_();
-
-
-  @DomName('LocalCredential.password')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get password => _blink.BlinkLocalCredential.instance.password_Getter_(unwrap_jso(this));
-  
-}
-=======
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('LocalCredential')
-@Experimental() // untriaged
-class LocalCredential extends Credential {
-  // To suppress missing implicit constructor warnings.
-  factory LocalCredential._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('LocalCredential.LocalCredential')
-  @DocsEditable()
-  factory LocalCredential(String id, String name, String avatarURL, String password) {
-    return wrap_jso(_blink.BlinkLocalCredential.instance.constructorCallback_4_(id, name, avatarURL, password));
-  }
-
-
-  @Deprecated("Internal Use Only")
-  static LocalCredential internalCreateLocalCredential() {
-    return new LocalCredential._internalWrap();
-  }
-
-  external factory LocalCredential._internalWrap();
-
-  @Deprecated("Internal Use Only")
-  LocalCredential.internal_() : super.internal_();
-
-
-  @DomName('LocalCredential.password')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get password => _blink.BlinkLocalCredential.instance.password_Getter_(unwrap_jso(this));
-  
-}
->>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -27023,9 +26391,7 @@ class MediaEncryptedEvent extends Event {
     return new MediaEncryptedEvent._internalWrap();
   }
 
-  factory MediaEncryptedEvent._internalWrap() {
-    return new MediaEncryptedEvent.internal_();
-  }
+  external factory MediaEncryptedEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   MediaEncryptedEvent.internal_() : super.internal_();
@@ -27263,71 +26629,7 @@ class MediaKeyMessageEvent extends Event {
   @DocsEditable()
   ByteBuffer get message => wrap_jso(_blink.BlinkMediaKeyMessageEvent.instance.message_Getter_(unwrap_jso(this)));
   
-<<<<<<< HEAD
   @DomName('MediaKeyMessageEvent.messageType')
-||||||| merged common ancestors
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('MediaKeyNeededEvent')
-// https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-mediakeyneededevent
-@Experimental()
-class MediaKeyNeededEvent extends Event {
-  // To suppress missing implicit constructor warnings.
-  factory MediaKeyNeededEvent._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static MediaKeyNeededEvent internalCreateMediaKeyNeededEvent() {
-    return new MediaKeyNeededEvent._internalWrap();
-  }
-
-  factory MediaKeyNeededEvent._internalWrap() {
-    return new MediaKeyNeededEvent.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  MediaKeyNeededEvent.internal_() : super.internal_();
-
-
-  @DomName('MediaKeyNeededEvent.contentType')
-=======
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('MediaKeyNeededEvent')
-// https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-mediakeyneededevent
-@Experimental()
-class MediaKeyNeededEvent extends Event {
-  // To suppress missing implicit constructor warnings.
-  factory MediaKeyNeededEvent._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static MediaKeyNeededEvent internalCreateMediaKeyNeededEvent() {
-    return new MediaKeyNeededEvent._internalWrap();
-  }
-
-  external factory MediaKeyNeededEvent._internalWrap();
-
-  @Deprecated("Internal Use Only")
-  MediaKeyNeededEvent.internal_() : super.internal_();
-
-
-  @DomName('MediaKeyNeededEvent.contentType')
->>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
   @DocsEditable()
   @Experimental() // untriaged
   String get messageType => _blink.BlinkMediaKeyMessageEvent.instance.messageType_Getter_(unwrap_jso(this));
@@ -31337,9 +30639,7 @@ class NotificationEvent extends ExtendableEvent {
     return new NotificationEvent._internalWrap();
   }
 
-  factory NotificationEvent._internalWrap() {
-    return new NotificationEvent.internal_();
-  }
+  external factory NotificationEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   NotificationEvent.internal_() : super.internal_();
@@ -31792,110 +31092,8 @@ class OutputElement extends HtmlElement {
   
   @DomName('HTMLOutputElement.reportValidity')
   @DocsEditable()
-<<<<<<< HEAD
   @Experimental() // untriaged
   bool reportValidity() => _blink.BlinkHTMLOutputElement.instance.reportValidity_Callback_0_(unwrap_jso(this));
-||||||| merged common ancestors
-  void setCustomValidity(String error) => _blink.BlinkHTMLOutputElement.instance.setCustomValidity_Callback_1_(unwrap_jso(this), error);
-  
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('OverflowEvent')
-@Experimental() // nonstandard
-class OverflowEvent extends Event {
-  // To suppress missing implicit constructor warnings.
-  factory OverflowEvent._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static OverflowEvent internalCreateOverflowEvent() {
-    return new OverflowEvent._internalWrap();
-  }
-
-  factory OverflowEvent._internalWrap() {
-    return new OverflowEvent.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  OverflowEvent.internal_() : super.internal_();
-
-
-  @DomName('OverflowEvent.BOTH')
-  @DocsEditable()
-  static const int BOTH = 2;
-
-  @DomName('OverflowEvent.HORIZONTAL')
-  @DocsEditable()
-  static const int HORIZONTAL = 0;
-
-  @DomName('OverflowEvent.VERTICAL')
-  @DocsEditable()
-  static const int VERTICAL = 1;
-
-  @DomName('OverflowEvent.horizontalOverflow')
-  @DocsEditable()
-  bool get horizontalOverflow => _blink.BlinkOverflowEvent.instance.horizontalOverflow_Getter_(unwrap_jso(this));
-  
-  @DomName('OverflowEvent.orient')
-  @DocsEditable()
-  int get orient => _blink.BlinkOverflowEvent.instance.orient_Getter_(unwrap_jso(this));
-=======
-  void setCustomValidity(String error) => _blink.BlinkHTMLOutputElement.instance.setCustomValidity_Callback_1_(unwrap_jso(this), error);
-  
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('OverflowEvent')
-@Experimental() // nonstandard
-class OverflowEvent extends Event {
-  // To suppress missing implicit constructor warnings.
-  factory OverflowEvent._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static OverflowEvent internalCreateOverflowEvent() {
-    return new OverflowEvent._internalWrap();
-  }
-
-  external factory OverflowEvent._internalWrap();
-
-  @Deprecated("Internal Use Only")
-  OverflowEvent.internal_() : super.internal_();
-
-
-  @DomName('OverflowEvent.BOTH')
-  @DocsEditable()
-  static const int BOTH = 2;
-
-  @DomName('OverflowEvent.HORIZONTAL')
-  @DocsEditable()
-  static const int HORIZONTAL = 0;
-
-  @DomName('OverflowEvent.VERTICAL')
-  @DocsEditable()
-  static const int VERTICAL = 1;
-
-  @DomName('OverflowEvent.horizontalOverflow')
-  @DocsEditable()
-  bool get horizontalOverflow => _blink.BlinkOverflowEvent.instance.horizontalOverflow_Getter_(unwrap_jso(this));
-  
-  @DomName('OverflowEvent.orient')
-  @DocsEditable()
-  int get orient => _blink.BlinkOverflowEvent.instance.orient_Getter_(unwrap_jso(this));
->>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
   
   @DomName('HTMLOutputElement.setCustomValidity')
   @DocsEditable()
@@ -32120,9 +31318,7 @@ class PasswordCredential extends Credential {
     return new PasswordCredential._internalWrap();
   }
 
-  factory PasswordCredential._internalWrap() {
-    return new PasswordCredential.internal_();
-  }
+  external factory PasswordCredential._internalWrap();
 
   @Deprecated("Internal Use Only")
   PasswordCredential.internal_() : super.internal_();
@@ -32374,9 +31570,7 @@ class PerformanceCompositeTiming extends PerformanceEntry {
     return new PerformanceCompositeTiming._internalWrap();
   }
 
-  factory PerformanceCompositeTiming._internalWrap() {
-    return new PerformanceCompositeTiming.internal_();
-  }
+  external factory PerformanceCompositeTiming._internalWrap();
 
   @Deprecated("Internal Use Only")
   PerformanceCompositeTiming.internal_() : super.internal_();
@@ -32557,9 +31751,7 @@ class PerformanceRenderTiming extends PerformanceEntry {
     return new PerformanceRenderTiming._internalWrap();
   }
 
-  factory PerformanceRenderTiming._internalWrap() {
-    return new PerformanceRenderTiming.internal_();
-  }
+  external factory PerformanceRenderTiming._internalWrap();
 
   @Deprecated("Internal Use Only")
   PerformanceRenderTiming.internal_() : super.internal_();
@@ -32744,9 +31936,7 @@ class PeriodicSyncEvent extends ExtendableEvent {
     return new PeriodicSyncEvent._internalWrap();
   }
 
-  factory PeriodicSyncEvent._internalWrap() {
-    return new PeriodicSyncEvent.internal_();
-  }
+  external factory PeriodicSyncEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   PeriodicSyncEvent.internal_() : super.internal_();
@@ -32895,9 +32085,7 @@ class PermissionStatus extends EventTarget {
     return new PermissionStatus._internalWrap();
   }
 
-  factory PermissionStatus._internalWrap() {
-    return new PermissionStatus.internal_();
-  }
+  external factory PermissionStatus._internalWrap();
 
   @Deprecated("Internal Use Only")
   PermissionStatus.internal_() : super.internal_();
@@ -33233,9 +32421,7 @@ class PointerEvent extends MouseEvent {
     return new PointerEvent._internalWrap();
   }
 
-  factory PointerEvent._internalWrap() {
-    return new PointerEvent.internal_();
-  }
+  external factory PointerEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   PointerEvent.internal_() : super.internal_();
@@ -33416,9 +32602,7 @@ class PositionSensorVRDevice extends VRDevice {
     return new PositionSensorVRDevice._internalWrap();
   }
 
-  factory PositionSensorVRDevice._internalWrap() {
-    return new PositionSensorVRDevice.internal_();
-  }
+  external factory PositionSensorVRDevice._internalWrap();
 
   @Deprecated("Internal Use Only")
   PositionSensorVRDevice.internal_() : super.internal_();
@@ -33548,9 +32732,7 @@ class PresentationAvailability extends EventTarget {
     return new PresentationAvailability._internalWrap();
   }
 
-  factory PresentationAvailability._internalWrap() {
-    return new PresentationAvailability.internal_();
-  }
+  external factory PresentationAvailability._internalWrap();
 
   @Deprecated("Internal Use Only")
   PresentationAvailability.internal_() : super.internal_();
@@ -33592,9 +32774,7 @@ class PresentationSession extends EventTarget {
     return new PresentationSession._internalWrap();
   }
 
-  factory PresentationSession._internalWrap() {
-    return new PresentationSession.internal_();
-  }
+  external factory PresentationSession._internalWrap();
 
   @Deprecated("Internal Use Only")
   PresentationSession.internal_() : super.internal_();
@@ -33833,9 +33013,7 @@ class PromiseRejectionEvent extends Event {
     return new PromiseRejectionEvent._internalWrap();
   }
 
-  factory PromiseRejectionEvent._internalWrap() {
-    return new PromiseRejectionEvent.internal_();
-  }
+  external factory PromiseRejectionEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   PromiseRejectionEvent.internal_() : super.internal_();
@@ -36222,13 +35400,7 @@ class ServicePort extends DartHtmlDomObject {
   @DomName('ServicePort.name')
   @DocsEditable()
   @Experimental() // untriaged
-<<<<<<< HEAD
   String get name => _blink.BlinkServicePort.instance.name_Getter_(unwrap_jso(this));
-||||||| merged common ancestors
-  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) => _blink.BlinkServiceWorkerClient.instance.postMessage_Callback_2_(unwrap_jso(this), message, transfer);
-=======
-  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) => _blink.BlinkServiceWorkerClient.instance.postMessage_Callback_2_(unwrap_jso(this), convertDartToNative_SerializedScriptValue(message), transfer);
->>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
   
   @DomName('ServicePort.targetURL')
   @DocsEditable()
@@ -36275,9 +35447,7 @@ class ServicePortCollection extends EventTarget {
     return new ServicePortCollection._internalWrap();
   }
 
-  factory ServicePortCollection._internalWrap() {
-    return new ServicePortCollection.internal_();
-  }
+  external factory ServicePortCollection._internalWrap();
 
   @Deprecated("Internal Use Only")
   ServicePortCollection.internal_() : super.internal_();
@@ -36338,9 +35508,7 @@ class ServicePortConnectEvent extends ExtendableEvent {
     return new ServicePortConnectEvent._internalWrap();
   }
 
-  factory ServicePortConnectEvent._internalWrap() {
-    return new ServicePortConnectEvent.internal_();
-  }
+  external factory ServicePortConnectEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   ServicePortConnectEvent.internal_() : super.internal_();
@@ -36387,9 +35555,7 @@ class ServiceWorkerContainer extends EventTarget {
     return new ServiceWorkerContainer._internalWrap();
   }
 
-  factory ServiceWorkerContainer._internalWrap() {
-    return new ServiceWorkerContainer.internal_();
-  }
+  external factory ServiceWorkerContainer._internalWrap();
 
   @Deprecated("Internal Use Only")
   ServiceWorkerContainer.internal_() : super.internal_();
@@ -36529,9 +35695,7 @@ class ServiceWorkerMessageEvent extends Event {
     return new ServiceWorkerMessageEvent._internalWrap();
   }
 
-  factory ServiceWorkerMessageEvent._internalWrap() {
-    return new ServiceWorkerMessageEvent.internal_();
-  }
+  external factory ServiceWorkerMessageEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   ServiceWorkerMessageEvent.internal_() : super.internal_();
@@ -38288,9 +37452,7 @@ class StashedMessagePort extends MessagePort {
     return new StashedMessagePort._internalWrap();
   }
 
-  factory StashedMessagePort._internalWrap() {
-    return new StashedMessagePort.internal_();
-  }
+  external factory StashedMessagePort._internalWrap();
 
   @Deprecated("Internal Use Only")
   StashedMessagePort.internal_() : super.internal_();
@@ -38327,9 +37489,7 @@ class StashedPortCollection extends EventTarget {
     return new StashedPortCollection._internalWrap();
   }
 
-  factory StashedPortCollection._internalWrap() {
-    return new StashedPortCollection.internal_();
-  }
+  external factory StashedPortCollection._internalWrap();
 
   @Deprecated("Internal Use Only")
   StashedPortCollection.internal_() : super.internal_();
@@ -38899,9 +38059,7 @@ class SyncEvent extends ExtendableEvent {
     return new SyncEvent._internalWrap();
   }
 
-  factory SyncEvent._internalWrap() {
-    return new SyncEvent.internal_();
-  }
+  external factory SyncEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   SyncEvent.internal_() : super.internal_();
@@ -41250,10 +40408,10 @@ class Url extends DartHtmlDomObject implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -43883,36 +43041,6 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   }
 
   /**
-<<<<<<< HEAD
-||||||| merged common ancestors
-   * Opens a new page as a modal dialog.
-   *
-   * ## Other resources
-   *
-   * * [Dialogs implemented using separate documents]
-   * (http://www.w3.org/html/wg/drafts/html/master/webappapis.html#dialogs-implemented-using-separate-documents)
-   * from W3C.
-   */
-  @DomName('Window.showModalDialog')
-  @DocsEditable()
-  Object showModalDialog(String url, [Object dialogArgs, String featureArgs]) => wrap_jso(_blink.BlinkWindow.instance.showModalDialog_Callback_3_(unwrap_jso(this), url, dialogArgs, featureArgs));
-  
-  /**
-=======
-   * Opens a new page as a modal dialog.
-   *
-   * ## Other resources
-   *
-   * * [Dialogs implemented using separate
-   *   documents](http://www.w3.org/html/wg/drafts/html/master/webappapis.html#dialogs-implemented-using-separate-documents)
-   *   from W3C.
-   */
-  @DomName('Window.showModalDialog')
-  @DocsEditable()
-  Object showModalDialog(String url, [Object dialogArgs, String featureArgs]) => wrap_jso(_blink.BlinkWindow.instance.showModalDialog_Callback_3_(unwrap_jso(this), url, dialogArgs, featureArgs));
-  
-  /**
->>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
    * Stops the window from loading.
    *
    * ## Other resources
@@ -44491,9 +43619,7 @@ class WindowClient extends Client {
     return new WindowClient._internalWrap();
   }
 
-  factory WindowClient._internalWrap() {
-    return new WindowClient.internal_();
-  }
+  external factory WindowClient._internalWrap();
 
   @Deprecated("Internal Use Only")
   WindowClient.internal_() : super.internal_();
@@ -44658,27 +43784,15 @@ class Worker extends EventTarget implements AbstractWorker {
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
-<<<<<<< HEAD
   void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) {
     if (transfer != null) {
-      _blink.BlinkWorker.instance.postMessage_Callback_2_(unwrap_jso(this), message, transfer);
+      _blink.BlinkWorker.instance.postMessage_Callback_2_(unwrap_jso(this), convertDartToNative_SerializedScriptValue(message), transfer);
       return;
     }
-    _blink.BlinkWorker.instance.postMessage_Callback_1_(unwrap_jso(this), message);
+    _blink.BlinkWorker.instance.postMessage_Callback_1_(unwrap_jso(this), convertDartToNative_SerializedScriptValue(message));
     return;
   }
 
-||||||| merged common ancestors
-  @DomName('Worker.postMessage')
-  @DocsEditable()
-  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) => _blink.BlinkWorker.instance.postMessage_Callback_2_(unwrap_jso(this), message, transfer);
-  
-=======
-  @DomName('Worker.postMessage')
-  @DocsEditable()
-  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) => _blink.BlinkWorker.instance.postMessage_Callback_2_(unwrap_jso(this), convertDartToNative_SerializedScriptValue(message), transfer);
-  
->>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
   @DomName('Worker.terminate')
   @DocsEditable()
   void terminate() => _blink.BlinkWorker.instance.terminate_Callback_0_(unwrap_jso(this));
@@ -44949,9 +44063,7 @@ class WorkerPerformance extends EventTarget {
     return new WorkerPerformance._internalWrap();
   }
 
-  factory WorkerPerformance._internalWrap() {
-    return new WorkerPerformance.internal_();
-  }
+  external factory WorkerPerformance._internalWrap();
 
   @Deprecated("Internal Use Only")
   WorkerPerformance.internal_() : super.internal_();
@@ -45444,188 +44556,6 @@ class _Attr extends Node {
 
 
 @DocsEditable()
-<<<<<<< HEAD
-||||||| merged common ancestors
-@DomName('CSSPrimitiveValue')
-// http://dev.w3.org/csswg/cssom/#the-cssstyledeclaration-interface
-@deprecated // deprecated
-class _CSSPrimitiveValue extends _CSSValue {
-  // To suppress missing implicit constructor warnings.
-  factory _CSSPrimitiveValue._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static _CSSPrimitiveValue internalCreate_CSSPrimitiveValue() {
-    return new _CSSPrimitiveValue._internalWrap();
-  }
-
-  factory _CSSPrimitiveValue._internalWrap() {
-    return new _CSSPrimitiveValue.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  _CSSPrimitiveValue.internal_() : super.internal_();
-
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('CSSUnknownRule')
-// http://dev.w3.org/csswg/cssom/#the-cssstylesheet-interface
-@deprecated // deprecated
-class _CSSUnknownRule extends CssRule {
-  // To suppress missing implicit constructor warnings.
-  factory _CSSUnknownRule._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static _CSSUnknownRule internalCreate_CSSUnknownRule() {
-    return new _CSSUnknownRule._internalWrap();
-  }
-
-  factory _CSSUnknownRule._internalWrap() {
-    return new _CSSUnknownRule.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  _CSSUnknownRule.internal_() : super.internal_();
-
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('CSSValue')
-// http://dev.w3.org/csswg/cssom/
-@deprecated // deprecated
-class _CSSValue extends DartHtmlDomObject {
-  // To suppress missing implicit constructor warnings.
-  factory _CSSValue._() { throw new UnsupportedError("Not supported"); }
-
-  @Deprecated("Internal Use Only")
-  static _CSSValue internalCreate_CSSValue() {
-    return new _CSSValue._internalWrap();
-  }
-
-  factory _CSSValue._internalWrap() {
-    return new _CSSValue.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  _CSSValue.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-=======
-@DomName('CSSPrimitiveValue')
-// http://dev.w3.org/csswg/cssom/#the-cssstyledeclaration-interface
-@deprecated // deprecated
-class _CSSPrimitiveValue extends _CSSValue {
-  // To suppress missing implicit constructor warnings.
-  factory _CSSPrimitiveValue._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static _CSSPrimitiveValue internalCreate_CSSPrimitiveValue() {
-    return new _CSSPrimitiveValue._internalWrap();
-  }
-
-  external factory _CSSPrimitiveValue._internalWrap();
-
-  @Deprecated("Internal Use Only")
-  _CSSPrimitiveValue.internal_() : super.internal_();
-
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('CSSUnknownRule')
-// http://dev.w3.org/csswg/cssom/#the-cssstylesheet-interface
-@deprecated // deprecated
-class _CSSUnknownRule extends CssRule {
-  // To suppress missing implicit constructor warnings.
-  factory _CSSUnknownRule._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static _CSSUnknownRule internalCreate_CSSUnknownRule() {
-    return new _CSSUnknownRule._internalWrap();
-  }
-
-  external factory _CSSUnknownRule._internalWrap();
-
-  @Deprecated("Internal Use Only")
-  _CSSUnknownRule.internal_() : super.internal_();
-
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('CSSValue')
-// http://dev.w3.org/csswg/cssom/
-@deprecated // deprecated
-class _CSSValue extends DartHtmlDomObject {
-  // To suppress missing implicit constructor warnings.
-  factory _CSSValue._() { throw new UnsupportedError("Not supported"); }
-
-  @Deprecated("Internal Use Only")
-  static _CSSValue internalCreate_CSSValue() {
-    return new _CSSValue._internalWrap();
-  }
-
-  factory _CSSValue._internalWrap() {
-    return new _CSSValue.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  _CSSValue.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
->>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
 @DomName('Cache')
 @Experimental() // untriaged
 class _Cache extends DartHtmlDomObject {
@@ -46017,176 +44947,6 @@ class _CssRuleList extends DartHtmlDomObject with ListMixin<CssRule>, ImmutableL
 
 
 @DocsEditable()
-<<<<<<< HEAD
-||||||| merged common ancestors
-@DomName('CSSValueList')
-// http://dev.w3.org/csswg/cssom/
-@deprecated // deprecated
-class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMixin<_CSSValue> implements List<_CSSValue> {
-  // To suppress missing implicit constructor warnings.
-  factory _CssValueList._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static _CssValueList internalCreate_CssValueList() {
-    return new _CssValueList._internalWrap();
-  }
-
-  factory _CssValueList._internalWrap() {
-    return new _CssValueList.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  _CssValueList.internal_() : super.internal_();
-
-
-  @DomName('CSSValueList.length')
-  @DocsEditable()
-  int get length => _blink.BlinkCSSValueList.instance.length_Getter_(unwrap_jso(this));
-  
-  _CSSValue operator[](int index) {
-    if (index < 0 || index >= length)
-      throw new RangeError.index(index, this);
-    return wrap_jso(_blink.BlinkCSSValueList.instance.item_Callback_1_(unwrap_jso(this), index));
-  }
-
-  _CSSValue _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkCSSValueList.instance.item_Callback_1_(unwrap_jso(this), index));
-
-  void operator[]=(int index, _CSSValue value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<_CSSValue> mixins.
-  // _CSSValue is the element type.
-
-
-  set length(int value) {
-    throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  _CSSValue get first {
-    if (this.length > 0) {
-      return _nativeIndexedGetter(0);
-    }
-    throw new StateError("No elements");
-  }
-
-  _CSSValue get last {
-    int len = this.length;
-    if (len > 0) {
-      return _nativeIndexedGetter(len - 1);
-    }
-    throw new StateError("No elements");
-  }
-
-  _CSSValue get single {
-    int len = this.length;
-    if (len == 1) {
-      return _nativeIndexedGetter(0);
-    }
-    if (len == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  _CSSValue elementAt(int index) => this[index];
-  // -- end List<_CSSValue> mixins.
-
-  @DomName('CSSValueList.item')
-  @DocsEditable()
-  _CSSValue item(int index) => wrap_jso(_blink.BlinkCSSValueList.instance.item_Callback_1_(unwrap_jso(this), index));
-  
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-=======
-@DomName('CSSValueList')
-// http://dev.w3.org/csswg/cssom/
-@deprecated // deprecated
-class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMixin<_CSSValue> implements List<_CSSValue> {
-  // To suppress missing implicit constructor warnings.
-  factory _CssValueList._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static _CssValueList internalCreate_CssValueList() {
-    return new _CssValueList._internalWrap();
-  }
-
-  external factory _CssValueList._internalWrap();
-
-  @Deprecated("Internal Use Only")
-  _CssValueList.internal_() : super.internal_();
-
-
-  @DomName('CSSValueList.length')
-  @DocsEditable()
-  int get length => _blink.BlinkCSSValueList.instance.length_Getter_(unwrap_jso(this));
-  
-  _CSSValue operator[](int index) {
-    if (index < 0 || index >= length)
-      throw new RangeError.index(index, this);
-    return wrap_jso(_blink.BlinkCSSValueList.instance.item_Callback_1_(unwrap_jso(this), index));
-  }
-
-  _CSSValue _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkCSSValueList.instance.item_Callback_1_(unwrap_jso(this), index));
-
-  void operator[]=(int index, _CSSValue value) {
-    throw new UnsupportedError("Cannot assign element of immutable List.");
-  }
-  // -- start List<_CSSValue> mixins.
-  // _CSSValue is the element type.
-
-
-  set length(int value) {
-    throw new UnsupportedError("Cannot resize immutable List.");
-  }
-
-  _CSSValue get first {
-    if (this.length > 0) {
-      return _nativeIndexedGetter(0);
-    }
-    throw new StateError("No elements");
-  }
-
-  _CSSValue get last {
-    int len = this.length;
-    if (len > 0) {
-      return _nativeIndexedGetter(len - 1);
-    }
-    throw new StateError("No elements");
-  }
-
-  _CSSValue get single {
-    int len = this.length;
-    if (len == 1) {
-      return _nativeIndexedGetter(0);
-    }
-    if (len == 0) throw new StateError("No elements");
-    throw new StateError("More than one element");
-  }
-
-  _CSSValue elementAt(int index) => this[index];
-  // -- end List<_CSSValue> mixins.
-
-  @DomName('CSSValueList.item')
-  @DocsEditable()
-  _CSSValue item(int index) => wrap_jso(_blink.BlinkCSSValueList.instance.item_Callback_1_(unwrap_jso(this), index));
-  
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
->>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
 @DomName('DOMFileSystemSync')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental()
@@ -47406,68 +46166,6 @@ class _SubtleCrypto extends DartHtmlDomObject {
 
 
 @DocsEditable()
-<<<<<<< HEAD
-||||||| merged common ancestors
-@DomName('WebKitCSSFilterValue')
-// http://dev.w3.org/csswg/cssom/
-@deprecated // deprecated
-class _WebKitCSSFilterValue extends _CssValueList {
-  // To suppress missing implicit constructor warnings.
-  factory _WebKitCSSFilterValue._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static _WebKitCSSFilterValue internalCreate_WebKitCSSFilterValue() {
-    return new _WebKitCSSFilterValue._internalWrap();
-  }
-
-  factory _WebKitCSSFilterValue._internalWrap() {
-    return new _WebKitCSSFilterValue.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  _WebKitCSSFilterValue.internal_() : super.internal_();
-
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-=======
-@DomName('WebKitCSSFilterValue')
-// http://dev.w3.org/csswg/cssom/
-@deprecated // deprecated
-class _WebKitCSSFilterValue extends _CssValueList {
-  // To suppress missing implicit constructor warnings.
-  factory _WebKitCSSFilterValue._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static _WebKitCSSFilterValue internalCreate_WebKitCSSFilterValue() {
-    return new _WebKitCSSFilterValue._internalWrap();
-  }
-
-  external factory _WebKitCSSFilterValue._internalWrap();
-
-  @Deprecated("Internal Use Only")
-  _WebKitCSSFilterValue.internal_() : super.internal_();
-
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
->>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
 @DomName('WebKitCSSMatrix')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -47508,68 +46206,6 @@ class _WebKitCSSMatrix extends DartHtmlDomObject {
 
 
 @DocsEditable()
-<<<<<<< HEAD
-||||||| merged common ancestors
-@DomName('WebKitCSSTransformValue')
-// http://dev.w3.org/csswg/cssom/
-@deprecated // deprecated
-class _WebKitCSSTransformValue extends _CssValueList {
-  // To suppress missing implicit constructor warnings.
-  factory _WebKitCSSTransformValue._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static _WebKitCSSTransformValue internalCreate_WebKitCSSTransformValue() {
-    return new _WebKitCSSTransformValue._internalWrap();
-  }
-
-  factory _WebKitCSSTransformValue._internalWrap() {
-    return new _WebKitCSSTransformValue.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  _WebKitCSSTransformValue.internal_() : super.internal_();
-
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-=======
-@DomName('WebKitCSSTransformValue')
-// http://dev.w3.org/csswg/cssom/
-@deprecated // deprecated
-class _WebKitCSSTransformValue extends _CssValueList {
-  // To suppress missing implicit constructor warnings.
-  factory _WebKitCSSTransformValue._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static _WebKitCSSTransformValue internalCreate_WebKitCSSTransformValue() {
-    return new _WebKitCSSTransformValue._internalWrap();
-  }
-
-  external factory _WebKitCSSTransformValue._internalWrap();
-
-  @Deprecated("Internal Use Only")
-  _WebKitCSSTransformValue.internal_() : super.internal_();
-
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
->>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
 @DomName('WindowTimers')
 @Experimental() // untriaged
 abstract class _WindowTimers extends DartHtmlDomObject {

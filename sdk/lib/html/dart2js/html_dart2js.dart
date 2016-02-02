@@ -14935,7 +14935,6 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
   @DocsEditable()
   String lang;
 
-<<<<<<< HEAD
   @JSName('offsetHeight')
   @DomName('Element.offsetHeight')
   @DocsEditable()
@@ -14984,9 +14983,9 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    *
    * ## Other resources
    *
-   * * [The translate attribute]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/elements.html#the-translate-attribute)
-   * from WHATWG.
+   * * [The translate
+   *   attribute](https://html.spec.whatwg.org/multipage/dom.html#the-translate-attribute)
+   *   from WHATWG.
    */
   @DomName('Element.translate')
   @DocsEditable()
@@ -15001,13 +15000,13 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.webkitdropzone')
   @DocsEditable()
@@ -15083,211 +15082,6 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
   // Use implementation from Node.
   // final String _namespaceUri;
 
-||||||| merged common ancestors
-  @DomName('Element.spellcheck')
-  @DocsEditable()
-  // http://blog.whatwg.org/the-road-to-html-5-spellchecking
-  @Experimental() // nonstandard
-  bool spellcheck;
-
-  @DomName('Element.tabIndex')
-  @DocsEditable()
-  int tabIndex;
-
-  @DomName('Element.title')
-  @DocsEditable()
-  String title;
-
-  /**
-   * Specifies whether this element's text content changes when the page is
-   * localized.
-   *
-   * ## Other resources
-   *
-   * * [The translate attribute]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/elements.html#the-translate-attribute)
-   * from WHATWG.
-   */
-  @DomName('Element.translate')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/elements.html#the-translate-attribute
-  @Experimental()
-  bool translate;
-
-  @JSName('webkitdropzone')
-  /**
-   * A set of space-separated keywords that specify what kind of data this
-   * Element accepts on drop and what to do with that data.
-   *
-   * ## Other resources
-   *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
-   */
-  @DomName('Element.webkitdropzone')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#the-dropzone-attribute
-  String dropzone;
-
-  @DomName('Element.click')
-  @DocsEditable()
-  void click() native;
-
-  @JSName('attributes')
-  @DomName('Element.attributes')
-  @DocsEditable()
-  final _NamedNodeMap _attributes;
-
-  @DomName('Element.className')
-  @DocsEditable()
-  String className;
-
-  @JSName('clientHeight')
-  @DomName('Element.clientHeight')
-  @DocsEditable()
-  final int _clientHeight;
-
-  @JSName('clientLeft')
-  @DomName('Element.clientLeft')
-  @DocsEditable()
-  final int _clientLeft;
-
-  @JSName('clientTop')
-  @DomName('Element.clientTop')
-  @DocsEditable()
-  final int _clientTop;
-
-  @JSName('clientWidth')
-  @DomName('Element.clientWidth')
-  @DocsEditable()
-  final int _clientWidth;
-
-  @DomName('Element.id')
-  @DocsEditable()
-  String id;
-
-  @JSName('innerHTML')
-  @DomName('Element.innerHTML')
-  @DocsEditable()
-  String _innerHtml;
-
-  // Use implementation from Node.
-  // final String _localName;
-
-  // Use implementation from Node.
-  // final String _namespaceUri;
-
-=======
-  @DomName('Element.spellcheck')
-  @DocsEditable()
-  // http://blog.whatwg.org/the-road-to-html-5-spellchecking
-  @Experimental() // nonstandard
-  bool spellcheck;
-
-  @DomName('Element.tabIndex')
-  @DocsEditable()
-  int tabIndex;
-
-  @DomName('Element.title')
-  @DocsEditable()
-  String title;
-
-  /**
-   * Specifies whether this element's text content changes when the page is
-   * localized.
-   *
-   * ## Other resources
-   *
-   * * [The translate
-   *   attribute](https://html.spec.whatwg.org/multipage/dom.html#the-translate-attribute)
-   *   from WHATWG.
-   */
-  @DomName('Element.translate')
-  @DocsEditable()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/elements.html#the-translate-attribute
-  @Experimental()
-  bool translate;
-
-  @JSName('webkitdropzone')
-  /**
-   * A set of space-separated keywords that specify what kind of data this
-   * Element accepts on drop and what to do with that data.
-   *
-   * ## Other resources
-   *
-   * * [Drag and drop
-   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
-   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   *   from HTML5Rocks.
-   * * [Drag and drop
-   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
-   *   from WHATWG.
-   */
-  @DomName('Element.webkitdropzone')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#the-dropzone-attribute
-  String dropzone;
-
-  @DomName('Element.click')
-  @DocsEditable()
-  void click() native;
-
-  @JSName('attributes')
-  @DomName('Element.attributes')
-  @DocsEditable()
-  final _NamedNodeMap _attributes;
-
-  @DomName('Element.className')
-  @DocsEditable()
-  String className;
-
-  @JSName('clientHeight')
-  @DomName('Element.clientHeight')
-  @DocsEditable()
-  final int _clientHeight;
-
-  @JSName('clientLeft')
-  @DomName('Element.clientLeft')
-  @DocsEditable()
-  final int _clientLeft;
-
-  @JSName('clientTop')
-  @DomName('Element.clientTop')
-  @DocsEditable()
-  final int _clientTop;
-
-  @JSName('clientWidth')
-  @DomName('Element.clientWidth')
-  @DocsEditable()
-  final int _clientWidth;
-
-  @DomName('Element.id')
-  @DocsEditable()
-  String id;
-
-  @JSName('innerHTML')
-  @DomName('Element.innerHTML')
-  @DocsEditable()
-  String _innerHtml;
-
-  // Use implementation from Node.
-  // final String _localName;
-
-  // Use implementation from Node.
-  // final String _namespaceUri;
-
->>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
   @JSName('offsetHeight')
   @DomName('Element.offsetHeight')
   @DocsEditable()
@@ -16558,46 +16352,6 @@ class Event extends Interceptor {
   @DocsEditable()
   final bool cancelable;
 
-<<<<<<< HEAD
-||||||| merged common ancestors
-  /**
-   * Access to the system's clipboard data during copy, cut, and paste events.
-   *
-   * ## Other resources
-   *
-   * * [clipboardData specification]
-   * (http://www.w3.org/TR/clipboard-apis/#attributes) from W3C.
-   */
-  @DomName('Event.clipboardData')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.FIREFOX)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // Part of copy/paste
-  @Experimental() // nonstandard
-  final DataTransfer clipboardData;
-
-=======
-  /**
-   * Access to the system's clipboard data during copy, cut, and paste events.
-   *
-   * ## Other resources
-   *
-   * * [clipboardData specification](http://www.w3.org/TR/clipboard-apis/#attributes)
-   *   from W3C.
-   */
-  @DomName('Event.clipboardData')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.FIREFOX)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  // Part of copy/paste
-  @Experimental() // nonstandard
-  final DataTransfer clipboardData;
-
->>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
   @DomName('Event.currentTarget')
   @DocsEditable()
   EventTarget get currentTarget => _convertNativeToDart_EventTarget(this._get_currentTarget);
@@ -29802,26 +29556,7 @@ class ServicePort extends Interceptor {
   @DomName('ServicePort.postMessage')
   @DocsEditable()
   @Experimental() // untriaged
-  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) {
-    if (transfer != null) {
-      var message_1 = convertDartToNative_SerializedScriptValue(message);
-      _postMessage_1(message_1, transfer);
-      return;
-    }
-    var message_1 = convertDartToNative_SerializedScriptValue(message);
-    _postMessage_2(message_1);
-    return;
-  }
-  @JSName('postMessage')
-  @DomName('ServiceWorkerClient.postMessage')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void _postMessage_1(message, List<MessagePort> transfer) native;
-  @JSName('postMessage')
-  @DomName('ServiceWorkerClient.postMessage')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void _postMessage_2(message) native;
+  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -36086,8 +35821,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window scroll] (http://docs.webplatform.org/wiki/dom/methods/scroll)
-   * from WebPlatform.org.
+   * * [Window scroll](http://docs.webplatform.org/wiki/dom/methods/scroll)
+   *   from WebPlatform.org.
    */
   @DomName('Window.scroll')
   @DocsEditable()
@@ -36146,8 +35881,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window scrollBy] (http://docs.webplatform.org/wiki/dom/methods/scrollBy)
-   * from WebPlatform.org.
+   * * [Window scrollBy](http://docs.webplatform.org/wiki/dom/methods/scrollBy)
+   *   from WebPlatform.org.
    */
   @DomName('Window.scrollBy')
   @DocsEditable()
@@ -36290,18 +36025,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-<<<<<<< HEAD
-   * * [Window scrollTo] (http://docs.webplatform.org/wiki/dom/methods/scrollTo)
-   * from WebPlatform.org.
-||||||| merged common ancestors
-   * * [Dialogs implemented using separate documents]
-   * (http://www.w3.org/html/wg/drafts/html/master/webappapis.html#dialogs-implemented-using-separate-documents)
-   * from W3C.
-=======
-   * * [Dialogs implemented using separate
-   *   documents](http://www.w3.org/html/wg/drafts/html/master/webappapis.html#dialogs-implemented-using-separate-documents)
-   *   from W3C.
->>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
+   * * [Window scrollTo](http://docs.webplatform.org/wiki/dom/methods/scrollTo)
+   *   from WebPlatform.org.
    */
   @DomName('Window.scrollTo')
   @DocsEditable()

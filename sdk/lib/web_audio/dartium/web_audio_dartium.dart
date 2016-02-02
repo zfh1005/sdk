@@ -1641,9 +1641,7 @@ class StereoPannerNode extends AudioNode {
     return new StereoPannerNode._internalWrap();
   }
 
-  factory StereoPannerNode._internalWrap() {
-    return new StereoPannerNode.internal_();
-  }
+  external factory StereoPannerNode._internalWrap();
 
   @Deprecated("Internal Use Only")
   StereoPannerNode.internal_() : super.internal_();

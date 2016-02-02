@@ -396,60 +396,6 @@ class Database extends EventTarget {
   @DocsEditable()
   void deleteObjectStore(String name) => _blink.BlinkIDBDatabase.instance.deleteObjectStore_Callback_1_(unwrap_jso(this), name);
   
-<<<<<<< HEAD
-  Transaction transaction(Object storeNames, [String mode]) {
-    if (mode != null) {
-      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), storeNames, mode));
-    }
-    return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), storeNames));
-  }
-
-||||||| merged common ancestors
-  Transaction transaction(storeName_OR_storeNames, [String mode]) {
-    if ((storeName_OR_storeNames is String || storeName_OR_storeNames == null) && mode == null) {
-      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames)));
-    }
-    if ((mode is String || mode == null) && (storeName_OR_storeNames is String || storeName_OR_storeNames == null)) {
-      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames), mode));
-    }
-    if ((storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null) && mode == null) {
-      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames)));
-    }
-    if ((mode is String || mode == null) && (storeName_OR_storeNames is List<String> || storeName_OR_storeNames == null)) {
-      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames), mode));
-    }
-    if ((storeName_OR_storeNames is DomStringList || storeName_OR_storeNames == null) && mode == null) {
-      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames)));
-    }
-    if ((mode is String || mode == null) && (storeName_OR_storeNames is DomStringList || storeName_OR_storeNames == null)) {
-      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), unwrap_jso(storeName_OR_storeNames), mode));
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
-  }
-
-  Transaction transactionList(List<String> storeNames, [String mode]) {
-    if (mode != null) {
-      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), convertDartToNative_StringArray(storeNames), mode));
-    }
-    return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), convertDartToNative_StringArray(storeNames)));
-  }
-
-  Transaction transactionStore(String storeName, [String mode]) {
-    if (mode != null) {
-      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), storeName, mode));
-    }
-    return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), storeName));
-  }
-
-  Transaction transactionStores(List<String> storeNames, [String mode]) {
-    if (mode != null) {
-      return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), unwrap_jso(storeNames), mode));
-    }
-    return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_1_(unwrap_jso(this), unwrap_jso(storeNames)));
-  }
-
-=======
->>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
   /// Stream of `abort` events handled by this [Database].
   @DomName('IDBDatabase.onabort')
   @DocsEditable()
