@@ -12,6 +12,7 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/plugin/linter_plugin.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_plugin.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -31,7 +32,8 @@ int findIdentifierLength(String search) {
     int c = search.codeUnitAt(length);
     if (!(c >= 'a'.codeUnitAt(0) && c <= 'z'.codeUnitAt(0) ||
         c >= 'A'.codeUnitAt(0) && c <= 'Z'.codeUnitAt(0) ||
-        c >= '0'.codeUnitAt(0) && c <= '9'.codeUnitAt(0))) {
+        c >= '0'.codeUnitAt(0) && c <= '9'.codeUnitAt(0) ||
+        c == '_'.codeUnitAt(0))) {
       break;
     }
     length++;
@@ -96,21 +98,27 @@ class AbstractAnalysisTest {
   }
 
   AnalysisServer createAnalysisServer(Index index) {
+    //
+    // Collect plugins
+    //
     ServerPlugin serverPlugin = new ServerPlugin();
-    // TODO(pq): this convoluted extension registry dance needs cleanup.
-    List<Plugin> plugins = <Plugin>[
-      serverPlugin,
-      linterPlugin,
-      linterServerPlugin
-    ];
-    // Accessing `taskManager` ensures that AE plugins are registered.
-    AnalysisEngine.instance.taskManager;
-    plugins.addAll(AnalysisEngine.instance.supportedPlugins);
+    List<Plugin> plugins = <Plugin>[];
+    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
+    plugins.add(AnalysisEngine.instance.commandLinePlugin);
+    plugins.add(AnalysisEngine.instance.optionsPlugin);
+    plugins.add(serverPlugin);
+    plugins.add(dartCompletionPlugin);
+    plugins.add(linterPlugin);
+    plugins.add(linterServerPlugin);
     addServerPlugins(plugins);
-    // process plugins
+    //
+    // Process plugins
+    //
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins(plugins);
-    // create server
+    //
+    // Create server
+    //
     return new AnalysisServer(
         serverChannel,
         resourceProvider,

@@ -13,6 +13,7 @@
 #include "vm/method_recognizer.h"
 #include "vm/object.h"
 #include "vm/parser.h"
+#include "vm/token_position.h"
 
 namespace dart {
 
@@ -627,7 +628,9 @@ class Instruction : public ZoneAllocated {
   const ICData* GetICData(
       const ZoneGrowableArray<const ICData*>& ic_data_array) const;
 
-  virtual intptr_t token_pos() const { return Scanner::kNoSourcePos; }
+  virtual TokenPosition token_pos() const {
+    return TokenPosition::kNoSource;
+  }
 
   virtual intptr_t InputCount() const = 0;
   virtual Value* InputAt(intptr_t i) const = 0;
@@ -810,7 +813,7 @@ FOR_EACH_ABSTRACT_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   }
 
   // Get the block entry for this instruction.
-  virtual BlockEntryInstr* GetBlock() const;
+  virtual BlockEntryInstr* GetBlock();
 
   // Place identifiers used by the load optimization pass.
   intptr_t place_id() const { return place_id_; }
@@ -1053,6 +1056,10 @@ class ParallelMoveInstr : public TemplateInstruction<0, NoThrow> {
 
   virtual void PrintTo(BufferFormatter* f) const;
 
+  virtual TokenPosition token_pos() const {
+    return TokenPosition::kParallelMove;
+  }
+
  private:
   GrowableArray<MoveOperands*> moves_;   // Elements cannot be null.
 
@@ -1078,6 +1085,8 @@ class BlockEntryInstr : public Instruction {
 
   intptr_t block_id() const { return block_id_; }
 
+  // NOTE: These are SSA positions and not token positions. These are used by
+  // the register allocator.
   void set_start_pos(intptr_t pos) { start_pos_ = pos; }
   intptr_t start_pos() const { return start_pos_; }
   void  set_end_pos(intptr_t pos) { end_pos_ = pos; }
@@ -1181,8 +1190,12 @@ class BlockEntryInstr : public Instruction {
     loop_info_ = loop_info;
   }
 
-  virtual BlockEntryInstr* GetBlock() const {
-    return const_cast<BlockEntryInstr*>(this);
+  virtual BlockEntryInstr* GetBlock() {
+    return this;
+  }
+
+  virtual TokenPosition token_pos() const {
+    return TokenPosition::kControlFlow;
   }
 
   // Helper to mutate the graph during inlining. This block should be
@@ -1886,7 +1899,7 @@ class PhiInstr : public Definition {
   }
 
   // Get the block entry for that instruction.
-  virtual BlockEntryInstr* GetBlock() const { return block(); }
+  virtual BlockEntryInstr* GetBlock() { return block(); }
   JoinEntryInstr* block() const { return block_; }
 
   virtual CompileType ComputeType() const;
@@ -1981,7 +1994,7 @@ class ParameterInstr : public Definition {
   Register base_reg() const { return base_reg_; }
 
   // Get the block entry for that instruction.
-  virtual BlockEntryInstr* GetBlock() const { return block_; }
+  virtual BlockEntryInstr* GetBlock() { return block_; }
 
   intptr_t InputCount() const { return 0; }
   Value* InputAt(intptr_t i) const {
@@ -2034,6 +2047,10 @@ class PushArgumentInstr : public TemplateDefinition<1, NoThrow> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
+  virtual TokenPosition token_pos() const {
+    return TokenPosition::kPushArgument;
+  }
+
  private:
   DISALLOW_COPY_AND_ASSIGN(PushArgumentInstr);
 };
@@ -2046,7 +2063,7 @@ inline Definition* Instruction::ArgumentAt(intptr_t index) const {
 
 class ReturnInstr : public TemplateInstruction<1, NoThrow> {
  public:
-  ReturnInstr(intptr_t token_pos, Value* value)
+  ReturnInstr(TokenPosition token_pos, Value* value)
       : TemplateInstruction(Thread::Current()->GetNextDeoptId()),
         token_pos_(token_pos) {
     SetInputAt(0, value);
@@ -2054,7 +2071,7 @@ class ReturnInstr : public TemplateInstruction<1, NoThrow> {
 
   DECLARE_INSTRUCTION(Return)
 
-  virtual intptr_t token_pos() const { return token_pos_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
   Value* value() const { return inputs_[0]; }
 
   virtual bool CanBecomeDeoptimizationTarget() const {
@@ -2068,7 +2085,7 @@ class ReturnInstr : public TemplateInstruction<1, NoThrow> {
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
-  const intptr_t token_pos_;
+  const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(ReturnInstr);
 };
@@ -2076,7 +2093,7 @@ class ReturnInstr : public TemplateInstruction<1, NoThrow> {
 
 class ThrowInstr : public TemplateInstruction<0, Throws> {
  public:
-  explicit ThrowInstr(intptr_t token_pos)
+  explicit ThrowInstr(TokenPosition token_pos)
       : TemplateInstruction(Thread::Current()->GetNextDeoptId()),
         token_pos_(token_pos) {
   }
@@ -2085,14 +2102,14 @@ class ThrowInstr : public TemplateInstruction<0, Throws> {
 
   virtual intptr_t ArgumentCount() const { return 1; }
 
-  virtual intptr_t token_pos() const { return token_pos_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
 
   virtual bool CanDeoptimize() const { return true; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
-  const intptr_t token_pos_;
+  const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(ThrowInstr);
 };
@@ -2102,7 +2119,7 @@ class ReThrowInstr : public TemplateInstruction<0, Throws> {
  public:
   // 'catch_try_index' can be CatchClauseNode::kInvalidTryIndex if the
   // rethrow has been artifically generated by the parser.
-  ReThrowInstr(intptr_t token_pos, intptr_t catch_try_index)
+  ReThrowInstr(TokenPosition token_pos, intptr_t catch_try_index)
       : TemplateInstruction(Thread::Current()->GetNextDeoptId()),
         token_pos_(token_pos),
         catch_try_index_(catch_try_index) {
@@ -2112,7 +2129,7 @@ class ReThrowInstr : public TemplateInstruction<0, Throws> {
 
   virtual intptr_t ArgumentCount() const { return 2; }
 
-  virtual intptr_t token_pos() const { return token_pos_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
   intptr_t catch_try_index() const { return catch_try_index_; }
 
   virtual bool CanDeoptimize() const { return true; }
@@ -2120,7 +2137,7 @@ class ReThrowInstr : public TemplateInstruction<0, Throws> {
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
-  const intptr_t token_pos_;
+  const TokenPosition token_pos_;
   const intptr_t catch_try_index_;
 
   DISALLOW_COPY_AND_ASSIGN(ReThrowInstr);
@@ -2208,6 +2225,10 @@ class GotoInstr : public TemplateInstruction<0, NoThrow> {
 
   virtual void PrintTo(BufferFormatter* f) const;
 
+  virtual TokenPosition token_pos() const {
+    return TokenPosition::kControlFlow;
+  }
+
  private:
   BlockEntryInstr* block_;
   JoinEntryInstr* successor_;
@@ -2281,7 +2302,7 @@ class ComparisonInstr : public TemplateDefinition<2, NoThrow, Pure> {
   Value* left() const { return inputs_[0]; }
   Value* right() const { return inputs_[1]; }
 
-  virtual intptr_t token_pos() const { return token_pos_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
   Token::Kind kind() const { return kind_; }
 
   virtual ComparisonInstr* CopyWithNewOperands(Value* left, Value* right) = 0;
@@ -2316,7 +2337,7 @@ class ComparisonInstr : public TemplateDefinition<2, NoThrow, Pure> {
   DEFINE_INSTRUCTION_TYPE_CHECK(Comparison)
 
  protected:
-  ComparisonInstr(intptr_t token_pos,
+  ComparisonInstr(TokenPosition token_pos,
                   Token::Kind kind,
                   Value* left,
                   Value* right,
@@ -2332,7 +2353,7 @@ class ComparisonInstr : public TemplateDefinition<2, NoThrow, Pure> {
   }
 
  private:
-  const intptr_t token_pos_;
+  const TokenPosition token_pos_;
   Token::Kind kind_;
   intptr_t operation_cid_;  // Set by optimizer.
 
@@ -2364,7 +2385,7 @@ class BranchInstr : public Instruction {
 
   Value* InputAt(intptr_t i) const { return comparison()->InputAt(i); }
 
-  virtual intptr_t token_pos() const { return comparison_->token_pos(); }
+  virtual TokenPosition token_pos() const { return comparison_->token_pos(); }
 
   virtual bool CanDeoptimize() const {
     // Branches need a deoptimization info in checked mode if they
@@ -2541,7 +2562,8 @@ class ConstraintInstr : public TemplateDefinition<1, NoThrow> {
 
 class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
  public:
-  explicit ConstantInstr(const Object& value);
+  ConstantInstr(const Object& value,
+                TokenPosition token_pos = TokenPosition::kConstant);
 
   DECLARE_INSTRUCTION(Constant)
   virtual CompileType ComputeType() const;
@@ -2558,8 +2580,11 @@ class ConstantInstr : public TemplateDefinition<0, NoThrow, Pure> {
 
   virtual bool AttributesEqual(Instruction* other) const;
 
+  virtual TokenPosition token_pos() const { return token_pos_; }
+
  private:
   const Object& value_;
+  const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(ConstantInstr);
 };
@@ -2590,11 +2615,10 @@ class UnboxedConstantInstr : public ConstantInstr {
 };
 
 
-class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
+class AssertAssignableInstr : public TemplateDefinition<2, Throws, Pure> {
  public:
-  AssertAssignableInstr(intptr_t token_pos,
+  AssertAssignableInstr(TokenPosition token_pos,
                         Value* value,
-                        Value* instantiator,
                         Value* instantiator_type_arguments,
                         const AbstractType& dst_type,
                         const String& dst_name,
@@ -2606,8 +2630,7 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
     ASSERT(!dst_type.IsNull());
     ASSERT(!dst_name.IsNull());
     SetInputAt(0, value);
-    SetInputAt(1, instantiator);
-    SetInputAt(2, instantiator_type_arguments);
+    SetInputAt(1, instantiator_type_arguments);
   }
 
   DECLARE_INSTRUCTION(AssertAssignable)
@@ -2615,10 +2638,9 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
   virtual bool RecomputeType();
 
   Value* value() const { return inputs_[0]; }
-  Value* instantiator() const { return inputs_[1]; }
-  Value* instantiator_type_arguments() const { return inputs_[2]; }
+  Value* instantiator_type_arguments() const { return inputs_[1]; }
 
-  virtual intptr_t token_pos() const { return token_pos_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
   const AbstractType& dst_type() const { return dst_type_; }
   void set_dst_type(const AbstractType& dst_type) {
     dst_type_ = dst_type.raw();
@@ -2640,7 +2662,7 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
   virtual bool AttributesEqual(Instruction* other) const;
 
  private:
-  const intptr_t token_pos_;
+  const TokenPosition token_pos_;
   AbstractType& dst_type_;
   const String& dst_name_;
 
@@ -2650,7 +2672,7 @@ class AssertAssignableInstr : public TemplateDefinition<3, Throws, Pure> {
 
 class AssertBooleanInstr : public TemplateDefinition<1, Throws, Pure> {
  public:
-  AssertBooleanInstr(intptr_t token_pos, Value* value)
+  AssertBooleanInstr(TokenPosition token_pos, Value* value)
       : TemplateDefinition(Thread::Current()->GetNextDeoptId()),
         token_pos_(token_pos) {
     SetInputAt(0, value);
@@ -2659,7 +2681,7 @@ class AssertBooleanInstr : public TemplateDefinition<1, Throws, Pure> {
   DECLARE_INSTRUCTION(AssertBoolean)
   virtual CompileType ComputeType() const;
 
-  virtual intptr_t token_pos() const { return token_pos_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
   Value* value() const { return inputs_[0]; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
@@ -2671,7 +2693,7 @@ class AssertBooleanInstr : public TemplateDefinition<1, Throws, Pure> {
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
  private:
-  const intptr_t token_pos_;
+  const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(AssertBooleanInstr);
 };
@@ -2713,7 +2735,9 @@ class ClosureCallInstr : public TemplateDefinition<1, Throws> {
   DECLARE_INSTRUCTION(ClosureCall)
 
   const Array& argument_names() const { return ast_node_.arguments()->names(); }
-  virtual intptr_t token_pos() const { return ast_node_.token_pos(); }
+  virtual TokenPosition token_pos() const {
+    return ast_node_.token_pos();
+  }
 
   virtual intptr_t ArgumentCount() const { return arguments_->length(); }
   virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
@@ -2739,7 +2763,7 @@ class ClosureCallInstr : public TemplateDefinition<1, Throws> {
 
 class InstanceCallInstr : public TemplateDefinition<0, Throws> {
  public:
-  InstanceCallInstr(intptr_t token_pos,
+  InstanceCallInstr(TokenPosition token_pos,
                     const String& function_name,
                     Token::Kind token_kind,
                     ZoneGrowableArray<PushArgumentInstr*>* arguments,
@@ -2780,7 +2804,7 @@ class InstanceCallInstr : public TemplateDefinition<0, Throws> {
   // ICData can be replaced by optimizer.
   void set_ic_data(const ICData* value) { ic_data_ = value; }
 
-  virtual intptr_t token_pos() const { return token_pos_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
   const String& function_name() const { return function_name_; }
   Token::Kind token_kind() const { return token_kind_; }
   virtual intptr_t ArgumentCount() const { return arguments_->length(); }
@@ -2808,7 +2832,7 @@ class InstanceCallInstr : public TemplateDefinition<0, Throws> {
 
  private:
   const ICData* ic_data_;
-  const intptr_t token_pos_;
+  const TokenPosition token_pos_;
   const String& function_name_;
   const Token::Kind token_kind_;  // Binary op, unary op, kGET or kILLEGAL.
   ZoneGrowableArray<PushArgumentInstr*>* const arguments_;
@@ -2834,7 +2858,9 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
 
   InstanceCallInstr* instance_call() const { return instance_call_; }
   bool with_checks() const { return with_checks_; }
-  virtual intptr_t token_pos() const { return instance_call_->token_pos(); }
+  virtual TokenPosition token_pos() const {
+    return instance_call_->token_pos();
+  }
 
   virtual intptr_t ArgumentCount() const {
     return instance_call()->ArgumentCount();
@@ -2870,7 +2896,7 @@ class PolymorphicInstanceCallInstr : public TemplateDefinition<0, Throws> {
 
 class StrictCompareInstr : public ComparisonInstr {
  public:
-  StrictCompareInstr(intptr_t token_pos,
+  StrictCompareInstr(TokenPosition token_pos,
                      Token::Kind kind,
                      Value* left,
                      Value* right,
@@ -2912,7 +2938,10 @@ class StrictCompareInstr : public ComparisonInstr {
 // comparison pattern.
 class TestSmiInstr : public ComparisonInstr {
  public:
-  TestSmiInstr(intptr_t token_pos, Token::Kind kind, Value* left, Value* right)
+  TestSmiInstr(TokenPosition token_pos,
+               Token::Kind kind,
+               Value* left,
+               Value* right)
       : ComparisonInstr(token_pos, kind, left, right) {
     ASSERT(kind == Token::kEQ || kind == Token::kNE);
   }
@@ -2946,7 +2975,7 @@ class TestSmiInstr : public ComparisonInstr {
 // TestCidInstr needs only one argument
 class TestCidsInstr : public ComparisonInstr {
  public:
-  TestCidsInstr(intptr_t token_pos,
+  TestCidsInstr(TokenPosition token_pos,
                 Token::Kind kind,
                 Value* value,
                 const ZoneGrowableArray<intptr_t>& cid_results,
@@ -2995,7 +3024,7 @@ class TestCidsInstr : public ComparisonInstr {
 
 class EqualityCompareInstr : public ComparisonInstr {
  public:
-  EqualityCompareInstr(intptr_t token_pos,
+  EqualityCompareInstr(TokenPosition token_pos,
                        Token::Kind kind,
                        Value* left,
                        Value* right,
@@ -3036,7 +3065,7 @@ class EqualityCompareInstr : public ComparisonInstr {
 
 class RelationalOpInstr : public ComparisonInstr {
  public:
-  RelationalOpInstr(intptr_t token_pos,
+  RelationalOpInstr(TokenPosition token_pos,
                     Token::Kind kind,
                     Value* left,
                     Value* right,
@@ -3136,7 +3165,8 @@ class IfThenElseInstr : public Definition {
   }
   virtual bool AttributesEqual(Instruction* other) const {
     IfThenElseInstr* other_if_then_else = other->AsIfThenElse();
-    return comparison()->AttributesEqual(other_if_then_else->comparison()) &&
+    return (comparison()->tag() == other_if_then_else->comparison()->tag()) &&
+           comparison()->AttributesEqual(other_if_then_else->comparison()) &&
            (if_true_ == other_if_then_else->if_true_) &&
            (if_false_ == other_if_then_else->if_false_);
   }
@@ -3158,7 +3188,7 @@ class IfThenElseInstr : public Definition {
 
 class StaticCallInstr : public TemplateDefinition<0, Throws> {
  public:
-  StaticCallInstr(intptr_t token_pos,
+  StaticCallInstr(TokenPosition token_pos,
                   const Function& function,
                   const Array& argument_names,
                   ZoneGrowableArray<PushArgumentInstr*>* arguments,
@@ -3190,7 +3220,7 @@ class StaticCallInstr : public TemplateDefinition<0, Throws> {
   // Accessors forwarded to the AST node.
   const Function& function() const { return function_; }
   const Array& argument_names() const { return argument_names_; }
-  virtual intptr_t token_pos() const { return token_pos_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
 
   virtual intptr_t ArgumentCount() const { return arguments_->length(); }
   virtual PushArgumentInstr* PushArgumentAt(intptr_t index) const {
@@ -3234,7 +3264,7 @@ class StaticCallInstr : public TemplateDefinition<0, Throws> {
 
  private:
   const ICData* ic_data_;
-  const intptr_t token_pos_;
+  const TokenPosition token_pos_;
   const Function& function_;
   const Array& argument_names_;
   ZoneGrowableArray<PushArgumentInstr*>* arguments_;
@@ -3252,8 +3282,9 @@ class StaticCallInstr : public TemplateDefinition<0, Throws> {
 
 class LoadLocalInstr : public TemplateDefinition<0, NoThrow> {
  public:
-  explicit LoadLocalInstr(const LocalVariable& local)
-      : local_(local), is_last_(false) { }
+  LoadLocalInstr(const LocalVariable& local,
+                 TokenPosition token_pos)
+      : local_(local), is_last_(false), token_pos_(token_pos) { }
 
   DECLARE_INSTRUCTION(LoadLocal)
   virtual CompileType ComputeType() const;
@@ -3272,9 +3303,12 @@ class LoadLocalInstr : public TemplateDefinition<0, NoThrow> {
   void mark_last() { is_last_ = true; }
   bool is_last() const { return is_last_; }
 
+  virtual TokenPosition token_pos() const { return token_pos_; }
+
  private:
   const LocalVariable& local_;
   bool is_last_;
+  const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadLocalInstr);
 };
@@ -3297,6 +3331,10 @@ class PushTempInstr : public TemplateDefinition<1, NoThrow> {
   virtual EffectSet Effects() const {
     UNREACHABLE();  // Eliminated by SSA construction.
     return EffectSet::None();
+  }
+
+  virtual TokenPosition token_pos() const {
+    return TokenPosition::kTempMove;
   }
 
  private:
@@ -3341,6 +3379,10 @@ class DropTempsInstr : public Definition {
     return false;
   }
 
+  virtual TokenPosition token_pos() const {
+    return TokenPosition::kTempMove;
+  }
+
  private:
   virtual void RawSetInputAt(intptr_t i, Value* value) {
     value_ = value;
@@ -3355,8 +3397,10 @@ class DropTempsInstr : public Definition {
 
 class StoreLocalInstr : public TemplateDefinition<1, NoThrow> {
  public:
-  StoreLocalInstr(const LocalVariable& local, Value* value)
-      : local_(local), is_dead_(false), is_last_(false) {
+  StoreLocalInstr(const LocalVariable& local,
+                  Value* value,
+                  TokenPosition token_pos)
+      : local_(local), is_dead_(false), is_last_(false), token_pos_(token_pos) {
     SetInputAt(0, value);
   }
 
@@ -3381,10 +3425,13 @@ class StoreLocalInstr : public TemplateDefinition<1, NoThrow> {
     return EffectSet::None();
   }
 
+  virtual TokenPosition token_pos() const { return token_pos_; }
+
  private:
   const LocalVariable& local_;
   bool is_dead_;
   bool is_last_;
+  const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreLocalInstr);
 };
@@ -3399,7 +3446,9 @@ class NativeCallInstr : public TemplateDefinition<0, Throws> {
 
   DECLARE_INSTRUCTION(NativeCall)
 
-  virtual intptr_t token_pos() const { return ast_node_.token_pos(); }
+  virtual TokenPosition token_pos() const {
+    return ast_node_.token_pos();
+  }
 
   const Function& function() const { return ast_node_.function(); }
 
@@ -3444,7 +3493,7 @@ class NativeCallInstr : public TemplateDefinition<0, Throws> {
 
 class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {
  public:
-  DebugStepCheckInstr(intptr_t token_pos,
+  DebugStepCheckInstr(TokenPosition token_pos,
                       RawPcDescriptors::Kind stub_kind)
       : token_pos_(token_pos),
         stub_kind_(stub_kind) {
@@ -3452,13 +3501,13 @@ class DebugStepCheckInstr : public TemplateInstruction<0, NoThrow> {
 
   DECLARE_INSTRUCTION(DebugStepCheck)
 
-  virtual intptr_t token_pos() const { return token_pos_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
   virtual bool CanDeoptimize() const { return false; }
   virtual EffectSet Effects() const { return EffectSet::All(); }
   virtual Instruction* Canonicalize(FlowGraph* flow_graph);
 
  private:
-  const intptr_t token_pos_;
+  const TokenPosition token_pos_;
   const RawPcDescriptors::Kind stub_kind_;
 
   DISALLOW_COPY_AND_ASSIGN(DebugStepCheckInstr);
@@ -3477,7 +3526,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
                           Value* instance,
                           Value* value,
                           StoreBarrierType emit_store_barrier,
-                          intptr_t token_pos)
+                          TokenPosition token_pos)
       : field_(field),
         offset_in_bytes_(field.Offset()),
         emit_store_barrier_(emit_store_barrier),
@@ -3492,7 +3541,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
                           Value* instance,
                           Value* value,
                           StoreBarrierType emit_store_barrier,
-                          intptr_t token_pos)
+                          TokenPosition token_pos)
       : field_(Field::ZoneHandle()),
         offset_in_bytes_(offset_in_bytes),
         emit_store_barrier_(emit_store_barrier),
@@ -3525,7 +3574,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
   bool is_object_reference_initialization() const {
     return is_object_reference_initialization_;
   }
-  virtual intptr_t token_pos() const { return token_pos_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
 
   const Field& field() const { return field_; }
   intptr_t offset_in_bytes() const { return offset_in_bytes_; }
@@ -3568,7 +3617,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
   const Field& field_;
   intptr_t offset_in_bytes_;
   const StoreBarrierType emit_store_barrier_;
-  const intptr_t token_pos_;
+  const TokenPosition token_pos_;
   // This may be the first store to an unboxed field.
   bool is_potential_unboxed_initialization_;
   // True if this store initializes an object reference field of an object that
@@ -3646,7 +3695,8 @@ class GuardFieldLengthInstr : public GuardFieldInstr {
 
 class LoadStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
  public:
-  explicit LoadStaticFieldInstr(Value* field_value) {
+  LoadStaticFieldInstr(Value* field_value, TokenPosition token_pos)
+      : token_pos_(token_pos) {
     ASSERT(field_value->BindsToConstant());
     SetInputAt(0, field_value);
   }
@@ -3667,15 +3717,22 @@ class LoadStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
   virtual EffectSet Dependencies() const;
   virtual bool AttributesEqual(Instruction* other) const;
 
+  virtual TokenPosition token_pos() const { return token_pos_; }
+
  private:
+  const TokenPosition token_pos_;
+
   DISALLOW_COPY_AND_ASSIGN(LoadStaticFieldInstr);
 };
 
 
 class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
  public:
-  StoreStaticFieldInstr(const Field& field, Value* value)
-      : field_(field) {
+  StoreStaticFieldInstr(const Field& field,
+                        Value* value,
+                        TokenPosition token_pos)
+      : field_(field),
+        token_pos_(token_pos) {
     ASSERT(field.IsZoneHandle());
     SetInputAt(kValuePos, value);
   }
@@ -3698,6 +3755,8 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
   // are marked as having no side-effects.
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
+  virtual TokenPosition token_pos() const { return token_pos_; }
+
  private:
   bool CanValueBeSmi() const {
     const intptr_t cid = value()->Type()->ToNullableCid();
@@ -3707,6 +3766,7 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
   }
 
   const Field& field_;
+  const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreStaticFieldInstr);
 };
@@ -3719,7 +3779,7 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
                    intptr_t index_scale,
                    intptr_t class_id,
                    intptr_t deopt_id,
-                   intptr_t token_pos)
+                   TokenPosition token_pos)
       : TemplateDefinition(deopt_id),
         index_scale_(index_scale),
         class_id_(class_id),
@@ -3728,7 +3788,7 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
     SetInputAt(1, index);
   }
 
-  intptr_t token_pos() const { return token_pos_; }
+  TokenPosition token_pos() const { return token_pos_; }
 
   DECLARE_INSTRUCTION(LoadIndexed)
   virtual CompileType ComputeType() const;
@@ -3761,7 +3821,7 @@ class LoadIndexedInstr : public TemplateDefinition<2, NoThrow> {
  private:
   const intptr_t index_scale_;
   const intptr_t class_id_;
-  const intptr_t token_pos_;
+  const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadIndexedInstr);
 };
@@ -3780,7 +3840,7 @@ class LoadCodeUnitsInstr : public TemplateDefinition<2, NoThrow> {
                      Value* index,
                      intptr_t element_count,
                      intptr_t class_id,
-                     intptr_t token_pos)
+                     TokenPosition token_pos)
       : class_id_(class_id),
         token_pos_(token_pos),
         element_count_(element_count),
@@ -3791,7 +3851,7 @@ class LoadCodeUnitsInstr : public TemplateDefinition<2, NoThrow> {
     SetInputAt(1, index);
   }
 
-  intptr_t token_pos() const { return token_pos_; }
+  TokenPosition token_pos() const { return token_pos_; }
 
   DECLARE_INSTRUCTION(LoadCodeUnits)
   virtual CompileType ComputeType() const;
@@ -3829,7 +3889,7 @@ class LoadCodeUnitsInstr : public TemplateDefinition<2, NoThrow> {
 
  private:
   const intptr_t class_id_;
-  const intptr_t token_pos_;
+  const TokenPosition token_pos_;
   const intptr_t element_count_;
   Representation representation_;
 
@@ -3892,7 +3952,7 @@ class StringToCharCodeInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
 class StringInterpolateInstr : public TemplateDefinition<1, Throws> {
  public:
-  StringInterpolateInstr(Value* value, intptr_t token_pos)
+  StringInterpolateInstr(Value* value, TokenPosition token_pos)
       : TemplateDefinition(Thread::Current()->GetNextDeoptId()),
         token_pos_(token_pos),
         function_(Function::ZoneHandle()) {
@@ -3900,7 +3960,7 @@ class StringInterpolateInstr : public TemplateDefinition<1, Throws> {
   }
 
   Value* value() const { return inputs_[0]; }
-  virtual intptr_t token_pos() const { return token_pos_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
 
   virtual CompileType ComputeType() const;
   // Issues a static call to Dart code which calls toString on objects.
@@ -3914,7 +3974,7 @@ class StringInterpolateInstr : public TemplateDefinition<1, Throws> {
   DECLARE_INSTRUCTION(StringInterpolate)
 
  private:
-  const intptr_t token_pos_;
+  const TokenPosition token_pos_;
   Function& function_;
 
   DISALLOW_COPY_AND_ASSIGN(StringInterpolateInstr);
@@ -3930,7 +3990,7 @@ class StoreIndexedInstr : public TemplateDefinition<3, NoThrow> {
                     intptr_t index_scale,
                     intptr_t class_id,
                     intptr_t deopt_id,
-                    intptr_t token_pos)
+                    TokenPosition token_pos)
       : TemplateDefinition(deopt_id),
         emit_store_barrier_(emit_store_barrier),
         index_scale_(index_scale),
@@ -3981,7 +4041,7 @@ class StoreIndexedInstr : public TemplateDefinition<3, NoThrow> {
   const StoreBarrierType emit_store_barrier_;
   const intptr_t index_scale_;
   const intptr_t class_id_;
-  const intptr_t token_pos_;
+  const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreIndexedInstr);
 };
@@ -4010,11 +4070,10 @@ class BooleanNegateInstr : public TemplateDefinition<1, NoThrow> {
 };
 
 
-class InstanceOfInstr : public TemplateDefinition<3, Throws> {
+class InstanceOfInstr : public TemplateDefinition<2, Throws> {
  public:
-  InstanceOfInstr(intptr_t token_pos,
+  InstanceOfInstr(TokenPosition token_pos,
                   Value* value,
-                  Value* instantiator,
                   Value* instantiator_type_arguments,
                   const AbstractType& type,
                   bool negate_result,
@@ -4025,20 +4084,18 @@ class InstanceOfInstr : public TemplateDefinition<3, Throws> {
         negate_result_(negate_result) {
     ASSERT(!type.IsNull());
     SetInputAt(0, value);
-    SetInputAt(1, instantiator);
-    SetInputAt(2, instantiator_type_arguments);
+    SetInputAt(1, instantiator_type_arguments);
   }
 
   DECLARE_INSTRUCTION(InstanceOf)
   virtual CompileType ComputeType() const;
 
   Value* value() const { return inputs_[0]; }
-  Value* instantiator() const { return inputs_[1]; }
-  Value* instantiator_type_arguments() const { return inputs_[2]; }
+  Value* instantiator_type_arguments() const { return inputs_[1]; }
 
   bool negate_result() const { return negate_result_; }
   const AbstractType& type() const { return type_; }
-  virtual intptr_t token_pos() const { return token_pos_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -4047,9 +4104,8 @@ class InstanceOfInstr : public TemplateDefinition<3, Throws> {
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
-  const intptr_t token_pos_;
+  const TokenPosition token_pos_;
   Value* value_;
-  Value* instantiator_;
   Value* type_arguments_;
   const AbstractType& type_;
   const bool negate_result_;
@@ -4060,7 +4116,7 @@ class InstanceOfInstr : public TemplateDefinition<3, Throws> {
 
 class AllocateObjectInstr : public TemplateDefinition<0, NoThrow> {
  public:
-  AllocateObjectInstr(intptr_t token_pos,
+  AllocateObjectInstr(TokenPosition token_pos,
                       const Class& cls,
                       ZoneGrowableArray<PushArgumentInstr*>* arguments)
       : token_pos_(token_pos),
@@ -4081,7 +4137,7 @@ class AllocateObjectInstr : public TemplateDefinition<0, NoThrow> {
   }
 
   const Class& cls() const { return cls_; }
-  virtual intptr_t token_pos() const { return token_pos_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
 
   const Function& closure_function() const { return closure_function_; }
   void set_closure_function(const Function& function) {
@@ -4098,7 +4154,7 @@ class AllocateObjectInstr : public TemplateDefinition<0, NoThrow> {
   virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
 
  private:
-  const intptr_t token_pos_;
+  const TokenPosition token_pos_;
   const Class& cls_;
   ZoneGrowableArray<PushArgumentInstr*>* const arguments_;
   AliasIdentity identity_;
@@ -4111,7 +4167,7 @@ class AllocateObjectInstr : public TemplateDefinition<0, NoThrow> {
 class AllocateUninitializedContextInstr
     : public TemplateDefinition<0, NoThrow> {
  public:
-  AllocateUninitializedContextInstr(intptr_t token_pos,
+  AllocateUninitializedContextInstr(TokenPosition token_pos,
                                     intptr_t num_context_variables)
       : token_pos_(token_pos),
         num_context_variables_(num_context_variables),
@@ -4120,7 +4176,7 @@ class AllocateUninitializedContextInstr
   DECLARE_INSTRUCTION(AllocateUninitializedContext)
   virtual CompileType ComputeType() const;
 
-  virtual intptr_t token_pos() const { return token_pos_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
   intptr_t num_context_variables() const { return num_context_variables_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
@@ -4133,7 +4189,7 @@ class AllocateUninitializedContextInstr
   virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
 
  private:
-  const intptr_t token_pos_;
+  const TokenPosition token_pos_;
   const intptr_t num_context_variables_;
   AliasIdentity identity_;
 
@@ -4257,7 +4313,7 @@ class MaterializeObjectInstr : public Definition {
 
 class CreateArrayInstr : public TemplateDefinition<2, Throws> {
  public:
-  CreateArrayInstr(intptr_t token_pos,
+  CreateArrayInstr(TokenPosition token_pos,
                    Value* element_type,
                    Value* num_elements)
       : TemplateDefinition(Thread::Current()->GetNextDeoptId()),
@@ -4275,7 +4331,7 @@ class CreateArrayInstr : public TemplateDefinition<2, Throws> {
   DECLARE_INSTRUCTION(CreateArray)
   virtual CompileType ComputeType() const;
 
-  virtual intptr_t token_pos() const { return token_pos_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
   Value* element_type() const { return inputs_[kElementTypePos]; }
   Value* num_elements() const { return inputs_[kLengthPos]; }
 
@@ -4289,7 +4345,7 @@ class CreateArrayInstr : public TemplateDefinition<2, Throws> {
   virtual void SetIdentity(AliasIdentity identity) { identity_ = identity; }
 
  private:
-  const intptr_t token_pos_;
+  const TokenPosition token_pos_;
   AliasIdentity identity_;
 
   DISALLOW_COPY_AND_ASSIGN(CreateArrayInstr);
@@ -4367,7 +4423,7 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
   LoadFieldInstr(Value* instance,
                  intptr_t offset_in_bytes,
                  const AbstractType& type,
-                 intptr_t token_pos)
+                 TokenPosition token_pos)
       : offset_in_bytes_(offset_in_bytes),
         type_(type),
         result_cid_(kDynamicCid),
@@ -4384,7 +4440,7 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
   LoadFieldInstr(Value* instance,
                  const Field* field,
                  const AbstractType& type,
-                 intptr_t token_pos)
+                 TokenPosition token_pos)
       : offset_in_bytes_(field->Offset()),
         type_(type),
         result_cid_(kDynamicCid),
@@ -4405,7 +4461,7 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
   const AbstractType& type() const { return type_; }
   void set_result_cid(intptr_t value) { result_cid_ = value; }
   intptr_t result_cid() const { return result_cid_; }
-  virtual intptr_t token_pos() const { return token_pos_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
 
   const Field* field() const { return field_; }
 
@@ -4453,7 +4509,7 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
 
   MethodRecognizer::Kind recognized_kind_;
   const Field* field_;
-  const intptr_t token_pos_;
+  const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadFieldInstr);
 };
@@ -4461,7 +4517,7 @@ class LoadFieldInstr : public TemplateDefinition<1, NoThrow> {
 
 class InstantiateTypeInstr : public TemplateDefinition<1, Throws> {
  public:
-  InstantiateTypeInstr(intptr_t token_pos,
+  InstantiateTypeInstr(TokenPosition token_pos,
                        const AbstractType& type,
                        const Class& instantiator_class,
                        Value* instantiator)
@@ -4479,7 +4535,7 @@ class InstantiateTypeInstr : public TemplateDefinition<1, Throws> {
   const AbstractType& type() const { return type_;
   }
   const Class& instantiator_class() const { return instantiator_class_; }
-  virtual intptr_t token_pos() const { return token_pos_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -4488,7 +4544,7 @@ class InstantiateTypeInstr : public TemplateDefinition<1, Throws> {
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
-  const intptr_t token_pos_;
+  const TokenPosition token_pos_;
   const AbstractType& type_;
   const Class& instantiator_class_;
 
@@ -4498,7 +4554,7 @@ class InstantiateTypeInstr : public TemplateDefinition<1, Throws> {
 
 class InstantiateTypeArgumentsInstr : public TemplateDefinition<1, Throws> {
  public:
-  InstantiateTypeArgumentsInstr(intptr_t token_pos,
+  InstantiateTypeArgumentsInstr(TokenPosition token_pos,
                                 const TypeArguments& type_arguments,
                                 const Class& instantiator_class,
                                 Value* instantiator)
@@ -4517,7 +4573,7 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<1, Throws> {
     return type_arguments_;
   }
   const Class& instantiator_class() const { return instantiator_class_; }
-  virtual intptr_t token_pos() const { return token_pos_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -4528,7 +4584,7 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<1, Throws> {
   virtual Definition* Canonicalize(FlowGraph* flow_graph);
 
  private:
-  const intptr_t token_pos_;
+  const TokenPosition token_pos_;
   const TypeArguments& type_arguments_;
   const Class& instantiator_class_;
 
@@ -4538,7 +4594,7 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<1, Throws> {
 
 class AllocateContextInstr : public TemplateDefinition<0, NoThrow> {
  public:
-  AllocateContextInstr(intptr_t token_pos,
+  AllocateContextInstr(TokenPosition token_pos,
                        intptr_t num_context_variables)
       : token_pos_(token_pos),
         num_context_variables_(num_context_variables) { }
@@ -4546,7 +4602,7 @@ class AllocateContextInstr : public TemplateDefinition<0, NoThrow> {
   DECLARE_INSTRUCTION(AllocateContext)
   virtual CompileType ComputeType() const;
 
-  virtual intptr_t token_pos() const { return token_pos_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
   intptr_t num_context_variables() const { return num_context_variables_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
@@ -4556,7 +4612,7 @@ class AllocateContextInstr : public TemplateDefinition<0, NoThrow> {
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
-  const intptr_t token_pos_;
+  const TokenPosition token_pos_;
   const intptr_t num_context_variables_;
 
   DISALLOW_COPY_AND_ASSIGN(AllocateContextInstr);
@@ -4571,7 +4627,9 @@ class InitStaticFieldInstr : public TemplateInstruction<1, Throws> {
     SetInputAt(0, input);
   }
 
-  virtual intptr_t token_pos() const { return field_.token_pos(); }
+  virtual TokenPosition token_pos() const {
+    return field_.token_pos();
+  }
   const Field& field() const { return field_; }
 
   DECLARE_INSTRUCTION(InitStaticField)
@@ -4589,13 +4647,13 @@ class InitStaticFieldInstr : public TemplateInstruction<1, Throws> {
 
 class CloneContextInstr : public TemplateDefinition<1, NoThrow> {
  public:
-  CloneContextInstr(intptr_t token_pos, Value* context_value)
+  CloneContextInstr(TokenPosition token_pos, Value* context_value)
       : TemplateDefinition(Thread::Current()->GetNextDeoptId()),
         token_pos_(token_pos) {
     SetInputAt(0, context_value);
   }
 
-  virtual intptr_t token_pos() const { return token_pos_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
   Value* context_value() const { return inputs_[0]; }
 
   DECLARE_INSTRUCTION(CloneContext)
@@ -4606,7 +4664,7 @@ class CloneContextInstr : public TemplateDefinition<1, NoThrow> {
   virtual EffectSet Effects() const { return EffectSet::None(); }
 
  private:
-  const intptr_t token_pos_;
+  const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(CloneContextInstr);
 };
@@ -4725,6 +4783,10 @@ class BoxInstr : public TemplateDefinition<1, NoThrow, Pure> {
   }
 
   Definition* Canonicalize(FlowGraph* flow_graph);
+
+  virtual TokenPosition token_pos() const {
+    return TokenPosition::kBox;
+  }
 
  protected:
   BoxInstr(Representation from_representation, Value* value)
@@ -4846,6 +4908,10 @@ class UnboxInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
   virtual intptr_t DeoptimizationTarget() const {
     return GetDeoptId();
+  }
+
+  virtual TokenPosition token_pos() const {
+    return TokenPosition::kBox;
   }
 
  protected:
@@ -5164,7 +5230,7 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
                       Value* left,
                       Value* right,
                       intptr_t deopt_id,
-                      intptr_t token_pos)
+                      TokenPosition token_pos)
       : TemplateDefinition(deopt_id),
         op_kind_(op_kind),
         token_pos_(token_pos) {
@@ -5177,7 +5243,7 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
   Token::Kind op_kind() const { return op_kind_; }
 
-  virtual intptr_t token_pos() const { return token_pos_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -5209,7 +5275,7 @@ class BinaryDoubleOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
 
  private:
   const Token::Kind op_kind_;
-  const intptr_t token_pos_;
+  const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(BinaryDoubleOpInstr);
 };
@@ -6849,6 +6915,8 @@ class BinaryIntegerOpInstr : public TemplateDefinition<2, NoThrow, Pure> {
                         Range* range);
 
  private:
+  Definition* CreateConstantResult(FlowGraph* graph, const Integer& result);
+
   const Token::Kind op_kind_;
 
   bool can_overflow_;
@@ -7113,13 +7181,13 @@ class UnaryDoubleOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
 class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
  public:
-  CheckStackOverflowInstr(intptr_t token_pos, intptr_t loop_depth)
+  CheckStackOverflowInstr(TokenPosition token_pos, intptr_t loop_depth)
       : TemplateInstruction(Thread::Current()->GetNextDeoptId()),
         token_pos_(token_pos),
         loop_depth_(loop_depth) {
   }
 
-  virtual intptr_t token_pos() const { return token_pos_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
   bool in_loop() const { return loop_depth_ > 0; }
   intptr_t loop_depth() const { return loop_depth_; }
 
@@ -7132,7 +7200,7 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
-  const intptr_t token_pos_;
+  const TokenPosition token_pos_;
   const intptr_t loop_depth_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckStackOverflowInstr);
@@ -7142,13 +7210,13 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
 // TODO(vegorov): remove this instruction in favor of Int32ToDouble.
 class SmiToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
  public:
-  SmiToDoubleInstr(Value* value, intptr_t token_pos)
+  SmiToDoubleInstr(Value* value, TokenPosition token_pos)
       : token_pos_(token_pos) {
     SetInputAt(0, value);
   }
 
   Value* value() const { return inputs_[0]; }
-  virtual intptr_t token_pos() const { return token_pos_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
 
   DECLARE_INSTRUCTION(SmiToDouble)
   virtual CompileType ComputeType() const;
@@ -7162,7 +7230,7 @@ class SmiToDoubleInstr : public TemplateDefinition<1, NoThrow, Pure> {
   virtual bool AttributesEqual(Instruction* other) const { return true; }
 
  private:
-  const intptr_t token_pos_;
+  const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(SmiToDoubleInstr);
 };
@@ -7409,7 +7477,7 @@ class InvokeMathCFunctionInstr : public PureDefinition {
   InvokeMathCFunctionInstr(ZoneGrowableArray<Value*>* inputs,
                            intptr_t deopt_id,
                            MethodRecognizer::Kind recognized_kind,
-                           intptr_t token_pos);
+                           TokenPosition token_pos);
 
   static intptr_t ArgumentCountFor(MethodRecognizer::Kind recognized_kind_);
 
@@ -7417,7 +7485,7 @@ class InvokeMathCFunctionInstr : public PureDefinition {
 
   MethodRecognizer::Kind recognized_kind() const { return recognized_kind_; }
 
-  virtual intptr_t token_pos() const { return token_pos_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
 
   DECLARE_INSTRUCTION(InvokeMathCFunction)
   virtual CompileType ComputeType() const;
@@ -7462,7 +7530,7 @@ class InvokeMathCFunctionInstr : public PureDefinition {
 
   ZoneGrowableArray<Value*>* inputs_;
   const MethodRecognizer::Kind recognized_kind_;
-  const intptr_t token_pos_;
+  const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(InvokeMathCFunctionInstr);
 };
@@ -7623,13 +7691,13 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
   CheckClassInstr(Value* value,
                   intptr_t deopt_id,
                   const ICData& unary_checks,
-                  intptr_t token_pos);
+                  TokenPosition token_pos);
 
   DECLARE_INSTRUCTION(CheckClass)
 
   virtual bool CanDeoptimize() const { return true; }
 
-  virtual intptr_t token_pos() const { return token_pos_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
 
   Value* value() const { return inputs_[0]; }
 
@@ -7665,7 +7733,7 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
   const ICData& unary_checks_;
   GrowableArray<intptr_t> cids_;  // Sorted, lowest first.
   bool licm_hoisted_;
-  const intptr_t token_pos_;
+  const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckClassInstr);
 };
@@ -7673,7 +7741,7 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
 
 class CheckSmiInstr : public TemplateInstruction<1, NoThrow, Pure> {
  public:
-  CheckSmiInstr(Value* value, intptr_t deopt_id, intptr_t token_pos)
+  CheckSmiInstr(Value* value, intptr_t deopt_id, TokenPosition token_pos)
       : TemplateInstruction(deopt_id),
         token_pos_(token_pos),
         licm_hoisted_(false) {
@@ -7681,7 +7749,7 @@ class CheckSmiInstr : public TemplateInstruction<1, NoThrow, Pure> {
   }
 
   Value* value() const { return inputs_[0]; }
-  virtual intptr_t token_pos() const { return token_pos_; }
+  virtual TokenPosition token_pos() const { return token_pos_; }
 
   DECLARE_INSTRUCTION(CheckSmi)
 
@@ -7694,7 +7762,7 @@ class CheckSmiInstr : public TemplateInstruction<1, NoThrow, Pure> {
   void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
 
  private:
-  const intptr_t token_pos_;
+  const TokenPosition token_pos_;
   bool licm_hoisted_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckSmiInstr);

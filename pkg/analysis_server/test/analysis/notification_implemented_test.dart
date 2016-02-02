@@ -276,6 +276,38 @@ class C extends A {
     assertHasImplementedMember('m() {} // A');
   }
 
+  test_method_withMethod_private_differentLib() async {
+    addFile(
+        '$testFolder/lib.dart',
+        r'''
+import 'test.dart';
+class B extends A {
+  void _m() {}
+}
+''');
+    addTestFile('''
+class A {
+  _m() {} // A
+}
+''');
+    await prepareImplementedElements();
+    assertNoImplementedMember('_m() {} // A');
+  }
+
+  test_method_withMethod_private_sameLibrary() async {
+    addTestFile('''
+class A {
+  _m() {} // A
+}
+class B extends A {
+  _m() {} // B
+}
+''');
+    await prepareImplementedElements();
+    assertHasImplementedMember('_m() {} // A');
+    assertNoImplementedMember('_m() {} // B');
+  }
+
   test_method_withMethod_wasAbstract() async {
     addTestFile('''
 abstract class A {
@@ -313,6 +345,84 @@ class B extends A {
 ''');
     await prepareImplementedElements();
     assertHasImplementedMember('f(_) {} // A');
+  }
+
+  test_static_field_instanceStatic() async {
+    addTestFile('''
+class A {
+  int F = 0;
+}
+class B extends A {
+  static int F = 1;
+}
+''');
+    await prepareImplementedElements();
+    assertNoImplementedMember('F = 0');
+  }
+
+  test_static_field_staticInstance() async {
+    addTestFile('''
+class A {
+  static int F = 0;
+}
+class B extends A {
+  int F = 1;
+}
+''');
+    await prepareImplementedElements();
+    assertNoImplementedMember('F = 0');
+  }
+
+  test_static_field_staticStatic() async {
+    addTestFile('''
+class A {
+  static int F = 0;
+}
+class B extends A {
+  static int F = 1;
+}
+''');
+    await prepareImplementedElements();
+    assertNoImplementedMember('F = 0');
+  }
+
+  test_static_method_instanceStatic() async {
+    addTestFile('''
+class A {
+  int m() => 0;
+}
+class B extends A {
+  static int m() => 1;
+}
+''');
+    await prepareImplementedElements();
+    assertNoImplementedMember('m() => 0');
+  }
+
+  test_static_method_staticInstance() async {
+    addTestFile('''
+class A {
+  static int m() => 0;
+}
+class B extends A {
+  int m() => 1;
+}
+''');
+    await prepareImplementedElements();
+    assertNoImplementedMember('m() => 0');
+  }
+
+  test_static_method_staticStatic() async {
+    addTestFile('''
+class A {
+  static int m() => 0;
+}
+class B extends A {
+  static int m() => 1;
+}
+''');
+    await prepareImplementedElements();
+    assertNoImplementedMember('m() => 0');
   }
 
   Future waitForImplementedElements() {

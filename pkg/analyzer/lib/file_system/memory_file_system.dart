@@ -2,18 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library memory_file_system;
+library analyzer.file_system.memory_file_system;
 
 import 'dart:async';
 import 'dart:collection';
 import 'dart:core' hide Resource;
 
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:path/path.dart';
 import 'package:watcher/watcher.dart';
-
-import 'file_system.dart';
 
 /**
  * An in-memory implementation of [ResourceProvider].
@@ -28,8 +28,15 @@ class MemoryResourceProvider implements ResourceProvider {
       new HashMap<String, List<StreamController<WatchEvent>>>();
   int nextStamp = 0;
 
+  final Context _pathContext;
+  final AbsolutePathContext absolutePathContext;
+
+  MemoryResourceProvider({bool isWindows: false})
+      : _pathContext = isWindows ? windows : posix,
+        absolutePathContext = new AbsolutePathContext(isWindows);
+
   @override
-  Context get pathContext => posix;
+  Context get pathContext => _pathContext;
 
   /**
    * Delete the file with the given path.
@@ -44,7 +51,7 @@ class MemoryResourceProvider implements ResourceProvider {
 
   /**
    * Delete the folder with the given path
-   * and recurively delete nested files and folders.
+   * and recursively delete nested files and folders.
    */
   void deleteFolder(String path) {
     _checkFolderAtPath(path);
@@ -124,9 +131,8 @@ class MemoryResourceProvider implements ResourceProvider {
 
   Folder newFolder(String path) {
     path = pathContext.normalize(path);
-    if (!path.startsWith(pathContext.separator)) {
-      throw new ArgumentError(
-          "Path must start with '${pathContext.separator}' : $path");
+    if (!pathContext.isAbsolute(path)) {
+      throw new ArgumentError("Path must be absolute : $path");
     }
     _MemoryResource resource = _pathToResource[path];
     if (resource == null) {

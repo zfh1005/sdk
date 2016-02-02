@@ -6,14 +6,21 @@
 #include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/isolate.h"
+#include "vm/log.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 
 
 namespace dart {
 
+DEFINE_FLAG(bool, trace_ast_visitor, false,
+            "Trace AstVisitor.");
+
 #define DEFINE_VISIT_FUNCTION(BaseName)                                        \
 void BaseName##Node::Visit(AstNodeVisitor* visitor) {                          \
+  if (FLAG_trace_ast_visitor) {                                                \
+    THR_Print("Visiting %s\n", PrettyName());                                  \
+  }                                                                            \
   visitor->Visit##BaseName##Node(this);                                        \
 }
 
@@ -84,7 +91,7 @@ void ArgumentListNode::VisitChildren(AstNodeVisitor* visitor) const {
 }
 
 
-LetNode::LetNode(intptr_t token_pos)
+LetNode::LetNode(TokenPosition token_pos)
   : AstNode(token_pos),
     vars_(1),
     initializers_(1),
@@ -94,12 +101,12 @@ LetNode::LetNode(intptr_t token_pos)
 LocalVariable* LetNode::AddInitializer(AstNode* node) {
   initializers_.Add(node);
   char name[64];
-  OS::SNPrint(name, sizeof(name), ":lt%" Pd "_%" Pd "",
-      token_pos(), vars_.length());
+  OS::SNPrint(name, sizeof(name), ":lt%s_%" Pd "",
+      token_pos().ToCString(), vars_.length());
   LocalVariable* temp_var =
       new LocalVariable(token_pos(),
                         String::ZoneHandle(Symbols::New(name)),
-                        Type::ZoneHandle(Type::DynamicType()));
+                        Object::dynamic_type());
   vars_.Add(temp_var);
   return temp_var;
 }
@@ -114,11 +121,51 @@ void LetNode::VisitChildren(AstNodeVisitor* visitor) const {
   }
 }
 
+bool LetNode::IsPotentiallyConst() const {
+  for (intptr_t i = 0; i < num_temps(); i++) {
+    if (!initializers_[i]->IsPotentiallyConst()) {
+      return false;
+    }
+  }
+  for (intptr_t i = 0; i < nodes_.length(); i++) {
+    if (!nodes_[i]->IsPotentiallyConst()) {
+      return false;
+    }
+  }
+  return true;
+}
+
+const Instance* LetNode::EvalConstExpr() const {
+  for (intptr_t i = 0; i < num_temps(); i++) {
+    if (initializers_[i]->EvalConstExpr() == NULL) {
+      return NULL;
+    }
+  }
+  const Instance* last = NULL;
+  for (intptr_t i = 0; i < nodes_.length(); i++) {
+    last = nodes_[i]->EvalConstExpr();
+    if (last == NULL) {
+      return NULL;
+    }
+  }
+  return last;
+}
+
 
 void ArrayNode::VisitChildren(AstNodeVisitor* visitor) const {
   for (intptr_t i = 0; i < this->length(); i++) {
     ElementAt(i)->Visit(visitor);
   }
+}
+
+
+bool StringInterpolateNode::IsPotentiallyConst() const {
+  for (int i = 0; i < value_->length(); i++) {
+    if (!value_->ElementAt(i)->IsPotentiallyConst()) {
+      return false;
+    }
+  }
+  return true;
 }
 
 
@@ -312,6 +359,7 @@ bool BinaryOpNode::IsPotentiallyConst() const {
     case Token::kBIT_AND:
     case Token::kSHL:
     case Token::kSHR:
+    case Token::kIFNULL:
       return this->left()->IsPotentiallyConst() &&
           this->right()->IsPotentiallyConst();
     default:
@@ -326,7 +374,8 @@ const Instance* BinaryOpNode::EvalConstExpr() const {
   if (left_val == NULL) {
     return NULL;
   }
-  if (!left_val->IsNumber() && !left_val->IsBool() && !left_val->IsString()) {
+  if (!left_val->IsNumber() && !left_val->IsBool() && !left_val->IsString() &&
+      kind_ != Token::kIFNULL) {
     return NULL;
   }
   const Instance* right_val = this->right()->EvalConstExpr();
@@ -371,6 +420,11 @@ const Instance* BinaryOpNode::EvalConstExpr() const {
         return left_val;
       }
       return NULL;
+    case Token::kIFNULL:
+      if (left_val->IsNull()) {
+        return right_val;
+      }
+      return left_val;
     default:
       UNREACHABLE();
       return NULL;
@@ -379,7 +433,7 @@ const Instance* BinaryOpNode::EvalConstExpr() const {
 }
 
 
-AstNode* UnaryOpNode::UnaryOpOrLiteral(intptr_t token_pos,
+AstNode* UnaryOpNode::UnaryOpOrLiteral(TokenPosition token_pos,
                                        Token::Kind kind,
                                        AstNode* operand) {
   AstNode* new_operand = operand->ApplyUnaryOp(kind);

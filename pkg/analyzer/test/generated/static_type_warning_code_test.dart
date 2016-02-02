@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.static_type_warning_code_test;
+library analyzer.test.generated.static_type_warning_code_test;
 
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -25,6 +25,79 @@ class StaticTypeWarningCodeTest extends ResolverTestCase {
     computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.INACCESSIBLE_SETTER]);
     verify([source]);
+  }
+
+  void fail_method_lookup_mixin_of_extends() {
+    // See dartbug.com/25605
+    resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
+    Source source = addSource('''
+class A { a() => null; }
+class B {}
+abstract class M extends A {}
+class T = B with M; // Warning: B does not extend A
+main() {
+  new T().a(); // Warning: The method 'a' is not defined for the class 'T'
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [
+      // TODO(paulberry): when dartbug.com/25614 is fixed, add static warning
+      // code for "B does not extend A".
+      StaticTypeWarningCode.UNDEFINED_METHOD
+    ]);
+  }
+
+  void fail_method_lookup_mixin_of_implements() {
+    // See dartbug.com/25605
+    resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
+    Source source = addSource('''
+class A { a() => null; }
+class B {}
+abstract class M implements A {}
+class T = B with M; // Warning: Missing concrete implementation of 'A.a'
+main() {
+  new T().a(); // Warning: The method 'a' is not defined for the class 'T'
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [
+      StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE,
+      StaticTypeWarningCode.UNDEFINED_METHOD
+    ]);
+  }
+
+  void fail_method_lookup_mixin_of_mixin() {
+    // See dartbug.com/25605
+    resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
+    Source source = addSource('''
+class A {}
+class B { b() => null; }
+class C {}
+class M extends A with B {}
+class T = C with M;
+main() {
+  new T().b();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+  }
+
+  void fail_method_lookup_mixin_of_mixin_application() {
+    // See dartbug.com/25605
+    resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
+    Source source = addSource('''
+class A { a() => null; }
+class B {}
+class C {}
+class M = A with B;
+class T = C with M;
+main() {
+  new T().a();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
   void fail_undefinedEnumConstant() {
@@ -56,6 +129,30 @@ library lib2;
 f() {}''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
+  }
+
+  void test_assert_message_suppresses_type_promotion() {
+    // If a variable is assigned to inside the expression for an assert
+    // message, type promotion should be suppressed, just as it would be if the
+    // assignment occurred outside an assert statement.  (Note that it is a
+    // dubious practice for the computation of an assert message to have side
+    // effects, since it is only evaluated if the assert fails).
+    resetWithOptions(new AnalysisOptionsImpl()..enableAssertMessage = true);
+    Source source = addSource('''
+class C {
+  void foo() {}
+}
+
+f(Object x) {
+  if (x is C) {
+    x.foo();
+    assert(true, () { x = new C(); return 'msg'; }());
+  }
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+    // Do not verify since `x.foo()` fails to resolve.
   }
 
   void test_await_flattened() {
@@ -1098,7 +1195,8 @@ class A<T extends T> {
     verify([source]);
   }
 
-  void test_typePromotion_booleanAnd_useInRight_accessedInClosureRight_mutated() {
+  void
+      test_typePromotion_booleanAnd_useInRight_accessedInClosureRight_mutated() {
     Source source = addSource(r'''
 callMe(f()) { f(); }
 main(Object p) {
@@ -1127,7 +1225,8 @@ main(Object p) {
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_typePromotion_conditional_useInThen_accessedInClosure_hasAssignment_after() {
+  void
+      test_typePromotion_conditional_useInThen_accessedInClosure_hasAssignment_after() {
     Source source = addSource(r'''
 callMe(f()) { f(); }
 main(Object p) {
@@ -1138,7 +1237,8 @@ main(Object p) {
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
-  void test_typePromotion_conditional_useInThen_accessedInClosure_hasAssignment_before() {
+  void
+      test_typePromotion_conditional_useInThen_accessedInClosure_hasAssignment_before() {
     Source source = addSource(r'''
 callMe(f()) { f(); }
 main(Object p) {
@@ -1418,6 +1518,18 @@ var a = A.B;''');
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
   }
 
+  void test_undefinedGetter_typeLiteral_cascadeTarget() {
+    Source source = addSource(r'''
+class T {
+  static int get foo => 42;
+}
+main() {
+  T..foo;
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_GETTER]);
+  }
+
   void test_undefinedGetter_typeLiteral_conditionalAccess() {
     // When applied to a type literal, the conditional access operator '?.'
     // cannot be used to access instance getters of Type.
@@ -1589,6 +1701,19 @@ main() {
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
+  void test_undefinedMethod_typeLiteral_cascadeTarget() {
+    Source source = addSource('''
+class T {
+  static void foo() {}
+}
+main() {
+  T..foo();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+  }
+
   void test_undefinedMethod_typeLiteral_conditionalAccess() {
     // When applied to a type literal, the conditional access operator '?.'
     // cannot be used to access instance methods of Type.
@@ -1685,6 +1810,18 @@ f(T e1) { e1.m = 0; }''');
     Source source = addSource(r'''
 class A {}
 f() { A.B = 0;}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
+  }
+
+  void test_undefinedSetter_typeLiteral_cascadeTarget() {
+    Source source = addSource(r'''
+class T {
+  static void set foo(_) {}
+}
+main() {
+  T..foo = 42;
+}''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SETTER]);
   }

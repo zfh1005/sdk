@@ -20,12 +20,30 @@ import '../js_emitter/js_emitter.dart' show
 
 import 'js_source_mapping.dart';
 
-CodeBuffer prettyPrint(Node node,
-                       Compiler compiler,
-                       {DumpInfoTask monitor,
-                        bool allowVariableMinification: true,
-                        Renamer renamerForNames:
-                            JavaScriptPrintingOptions.identityRenamer}) {
+String prettyPrint(
+    Node node,
+    Compiler compiler,
+    {bool allowVariableMinification: true,
+     Renamer renamerForNames: JavaScriptPrintingOptions.identityRenamer}) {
+  // TODO(johnniwinther): Do we need all the options here?
+  JavaScriptPrintingOptions options = new JavaScriptPrintingOptions(
+      shouldCompressOutput: compiler.enableMinification,
+      minifyLocalVariables: allowVariableMinification,
+      preferSemicolonToNewlineInMinifiedOutput: USE_LAZY_EMITTER,
+      renamerForNames: renamerForNames);
+  SimpleJavaScriptPrintingContext context =
+      new SimpleJavaScriptPrintingContext();
+  Printer printer = new Printer(options, context);
+  printer.visit(node);
+  return context.getText();
+}
+
+CodeBuffer createCodeBuffer(
+    Node node,
+    Compiler compiler,
+    {DumpInfoTask monitor,
+     bool allowVariableMinification: true,
+     Renamer renamerForNames: JavaScriptPrintingOptions.identityRenamer}) {
   JavaScriptSourceInformationStrategy sourceInformationFactory =
       compiler.backend.sourceInformationStrategy;
   JavaScriptPrintingOptions options = new JavaScriptPrintingOptions(
@@ -35,14 +53,14 @@ CodeBuffer prettyPrint(Node node,
       renamerForNames: renamerForNames);
   CodeBuffer outBuffer = new CodeBuffer();
   SourceInformationProcessor sourceInformationProcessor =
-      sourceInformationFactory.createProcessor(
-          new SourceLocationsMapper(outBuffer));
+        sourceInformationFactory.createProcessor(
+            new SourceLocationsMapper(outBuffer));
   Dart2JSJavaScriptPrintingContext context =
       new Dart2JSJavaScriptPrintingContext(
           compiler.reporter, monitor, outBuffer, sourceInformationProcessor);
   Printer printer = new Printer(options, context);
   printer.visit(node);
-  sourceInformationProcessor.process(node);
+  sourceInformationProcessor.process(node, outBuffer);
   return outBuffer;
 }
 
@@ -137,13 +155,13 @@ class UnparsedNode extends DeferredString
   /// A [js.Literal] that represents the string result of unparsing [ast].
   ///
   /// When its string [value] is requested, the node pretty-prints the given
-  /// [ast] and, if [protectForEval] is true, wraps the resulting
-  /// string in parenthesis. The result is also escaped.
+  /// [ast] and, if [protectForEval] is true, wraps the resulting string in
+  /// parenthesis. The result is also escaped.
   UnparsedNode(this.tree, this._compiler, this._protectForEval);
 
   LiteralString get _literal {
     if (_cachedLiteral == null) {
-      String text = prettyPrint(tree, _compiler).getText();
+      String text = prettyPrint(tree, _compiler);
       if (_protectForEval) {
         if (tree is Fun) text = '($text)';
         if (tree is LiteralExpression) {
@@ -162,4 +180,33 @@ class UnparsedNode extends DeferredString
 
   @override
   String get value => _literal.value;
+}
+
+/// True if the given template consists of just a placeholder. Such templates
+/// are sometimes used to manually promote the type of an expression.
+bool isIdentityTemplate(Template template) {
+  return template.ast is InterpolatedExpression;
+}
+
+/// Returns `true` if [template] will immediately give a TypeError if the first
+/// placeholder is `null` or `undefined`.
+bool isNullGuardOnFirstArgument(Template template) {
+  // We look for a template of the form
+  //
+  //     #.something
+  //     #.something()
+  //
+  Node node = template.ast;
+  if (node is Call) {
+    Call call = node;
+    node = call.target;
+  }
+  if (node is PropertyAccess) {
+    PropertyAccess access = node;
+    if (access.receiver is InterpolatedExpression) {
+      InterpolatedExpression hole = access.receiver;
+      return hole.isPositional && hole.nameOrPosition == 0;
+    }
+  }
+  return false;
 }

@@ -25,6 +25,7 @@
           'GCC_ENABLE_CPP_RTTI': 'NO', # -fno-rtti
           'GCC_DEBUGGING_SYMBOLS': 'default', # -g
           'GCC_GENERATE_DEBUGGING_SYMBOLS': 'YES', # Do not strip symbols
+          'DEAD_CODE_STRIPPING': 'YES',  # -Wl,-dead_strip
           'GCC_SYMBOLS_PRIVATE_EXTERN': 'YES', # -fvisibility=hidden
           'GCC_INLINES_ARE_PRIVATE_EXTERN': 'YES', # -fvisibility-inlines-hidden
           'GCC_WARN_NON_VIRTUAL_DESTRUCTOR': 'YES', # -Wnon-virtual-dtor
@@ -75,6 +76,9 @@
         'abstract': 1,
       },
       'Dart_Macos_simarm_Base': {
+        'abstract': 1,
+      },
+      'Dart_Macos_simarmv6_Base': {
         'abstract': 1,
       },
       'Dart_Macos_simarmv5te_Base': {

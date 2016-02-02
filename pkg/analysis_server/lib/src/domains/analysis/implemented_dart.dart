@@ -7,7 +7,7 @@ library domains.analysis.implemented_dart;
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 class ImplementedComputer {
   final SearchEngine searchEngine;
@@ -54,22 +54,39 @@ class ImplementedComputer {
   }
 
   void _addMemberIfImplemented(Element element) {
-    if (!element.isSynthetic) {
-      String name = element.displayName;
-      if (name != null && _hasOverride(name)) {
-        _addImplementedMember(element);
-      }
+    if (element.isSynthetic || _isStatic(element)) {
+      return;
+    }
+    if (_hasOverride(element)) {
+      _addImplementedMember(element);
     }
   }
 
-  bool _hasOverride(String name) {
+  bool _hasOverride(Element element) {
+    String name = element.displayName;
+    LibraryElement library = element.library;
     for (ClassElement subtype in subtypes) {
-      if (subtype.getMethod(name) != null) {
+      ClassMemberElement subElement = subtype.getMethod(name);
+      if (subElement == null) {
+        subElement = subtype.getField(name);
+      }
+      if (subElement != null &&
+          !subElement.isStatic &&
+          subElement.isAccessibleIn(library)) {
         return true;
       }
-      if (subtype.getField(name) != null) {
-        return true;
-      }
+    }
+    return false;
+  }
+
+  /**
+   * Return `true` if the given [element] is a static element.
+   */
+  static bool _isStatic(Element element) {
+    if (element is ExecutableElement) {
+      return element.isStatic;
+    } else if (element is PropertyInducingElement) {
+      return element.isStatic;
     }
     return false;
   }

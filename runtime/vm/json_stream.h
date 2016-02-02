@@ -6,9 +6,10 @@
 #define VM_JSON_STREAM_H_
 
 #include "include/dart_api.h"  // for Dart_Port
-#include "platform/json.h"
+#include "platform/text_buffer.h"
 #include "vm/allocation.h"
 #include "vm/service.h"
+#include "vm/token_position.h"
 
 
 namespace dart {
@@ -50,6 +51,7 @@ enum JSONRpcErrorCode {
   kCannotAddBreakpoint     = 102,
   kStreamAlreadySubscribed = 103,
   kStreamNotSubscribed     = 104,
+  kIsolateMustBeRunnable   = 105,
 };
 
 
@@ -126,6 +128,10 @@ class JSONStream : ValueObject {
   // Append |serialized_object| to the stream.
   void AppendSerializedObject(const char* serialized_object);
 
+  // Append |serialized_object| to the stream with |property_name|.
+  void AppendSerializedObject(const char* property_name,
+                              const char* serialized_object);
+
  private:
   void Clear();
   void PostNullReply(Dart_Port port);
@@ -150,11 +156,12 @@ class JSONStream : ValueObject {
   void PrintfValue(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   void PrintValue(const Object& o, bool ref = true);
   void PrintValue(Breakpoint* bpt);
+  void PrintValue(TokenPosition tp);
   void PrintValue(const ServiceEvent* event);
   void PrintValue(Metric* metric);
   void PrintValue(MessageQueue* queue);
   void PrintValue(Isolate* isolate, bool ref = true);
-  bool PrintValueStr(const String& s, intptr_t limit);
+  bool PrintValueStr(const String& s, intptr_t offset, intptr_t count);
   void PrintValue(TimelineEvent* timeline_event);
   void PrintValueVM(bool ref = true);
 
@@ -169,7 +176,8 @@ class JSONStream : ValueObject {
                            const uint8_t* bytes,
                            intptr_t length);
   void PrintProperty(const char* name, const char* s);
-  bool PrintPropertyStr(const char* name, const String& s, intptr_t limit);
+  bool PrintPropertyStr(const char* name, const String& s,
+                        intptr_t offset, intptr_t count);
   void PrintPropertyNoEscape(const char* name, const char* s);
   void PrintfProperty(const char* name, const char* format, ...)
   PRINTF_ATTRIBUTE(3, 4);
@@ -177,6 +185,7 @@ class JSONStream : ValueObject {
 
   void PrintProperty(const char* name, const ServiceEvent* event);
   void PrintProperty(const char* name, Breakpoint* bpt);
+  void PrintProperty(const char* name, TokenPosition tp);
   void PrintProperty(const char* name, Metric* metric);
   void PrintProperty(const char* name, MessageQueue* queue);
   void PrintProperty(const char* name, Isolate* isolate);
@@ -186,7 +195,7 @@ class JSONStream : ValueObject {
   void PrintCommaIfNeeded();
   bool NeedComma();
 
-  bool AddDartString(const String& s, intptr_t limit);
+  bool AddDartString(const String& s, intptr_t offset, intptr_t count);
   void AddEscapedUTF8String(const char* s);
   void AddEscapedUTF8String(const char* s, intptr_t len);
 
@@ -235,9 +244,10 @@ class JSONObject : public ValueObject {
 
   void AddFixedServiceId(const char* format, ...) const PRINTF_ATTRIBUTE(2, 3);
 
-  void AddLocation(const Script& script,
-                   intptr_t token_pos,
-                   intptr_t end_token_pos = -1) const;
+  void AddLocation(
+      const Script& script,
+      TokenPosition token_pos,
+      TokenPosition end_token_pos = TokenPosition::kNoSource) const;
 
   void AddLocation(const BreakpointLocation* bpt_loc) const;
 
@@ -271,8 +281,9 @@ class JSONObject : public ValueObject {
   }
   bool AddPropertyStr(const char* name,
                       const String& s,
-                      intptr_t limit = -1) const {
-    return stream_->PrintPropertyStr(name, s, limit);
+                      intptr_t offset = 0,
+                      intptr_t count = -1) const {
+    return stream_->PrintPropertyStr(name, s, offset, count);
   }
   void AddPropertyNoEscape(const char* name, const char* s) const {
     stream_->PrintPropertyNoEscape(name, s);
@@ -285,6 +296,9 @@ class JSONObject : public ValueObject {
   }
   void AddProperty(const char* name, Breakpoint* bpt) const {
     stream_->PrintProperty(name, bpt);
+  }
+  void AddProperty(const char* name, TokenPosition tp) const {
+    stream_->PrintProperty(name, tp);
   }
   void AddProperty(const char* name, Metric* metric) const {
     stream_->PrintProperty(name, metric);
@@ -349,6 +363,9 @@ class JSONArray : public ValueObject {
   }
   void AddValue(Breakpoint* bpt) const {
     stream_->PrintValue(bpt);
+  }
+  void AddValue(TokenPosition tp) const {
+    stream_->PrintValue(tp);
   }
   void AddValue(const ServiceEvent* event) const {
     stream_->PrintValue(event);

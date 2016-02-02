@@ -25,6 +25,7 @@
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
+#include "vm/timeline.h"
 
 namespace dart {
 
@@ -48,6 +49,7 @@ DEFINE_FLAG(bool, use_megamorphic_stub, true, "Out of line megamorphic lookup");
 
 DECLARE_FLAG(bool, background_compilation);
 DECLARE_FLAG(bool, code_comments);
+DECLARE_FLAG(bool, collect_dynamic_function_names);
 DECLARE_FLAG(bool, deoptimize_alot);
 DECLARE_FLAG(int, deoptimize_every);
 DECLARE_FLAG(charp, deoptimize_filter);
@@ -55,7 +57,7 @@ DECLARE_FLAG(bool, disassemble);
 DECLARE_FLAG(bool, disassemble_optimized);
 DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(bool, fields_may_be_reset);
-DECLARE_FLAG(bool, guess_other_cid);
+DECLARE_FLAG(bool, guess_icdata_cid);
 DECLARE_FLAG(bool, ic_range_profiling);
 DECLARE_FLAG(bool, intrinsify);
 DECLARE_FLAG(bool, load_deferred_eagerly);
@@ -75,6 +77,15 @@ DECLARE_FLAG(bool, lazy_dispatchers);
 DECLARE_FLAG(bool, interpret_irregexp);
 DECLARE_FLAG(bool, enable_mirrors);
 DECLARE_FLAG(bool, link_natives_lazily);
+DECLARE_FLAG(bool, trace_compiler);
+DECLARE_FLAG(int, inlining_hotness);
+DECLARE_FLAG(int, inlining_size_threshold);
+DECLARE_FLAG(int, inlining_callee_size_threshold);
+DECLARE_FLAG(int, inline_getters_setters_smaller_than);
+DECLARE_FLAG(int, inlining_depth_threshold);
+DECLARE_FLAG(int, inlining_caller_size_threshold);
+DECLARE_FLAG(int, inlining_constant_arguments_max_size_threshold);
+DECLARE_FLAG(int, inlining_constant_arguments_min_size_threshold);
 
 bool FLAG_precompilation = false;
 static void PrecompilationModeHandler(bool value) {
@@ -96,14 +107,8 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_load_deferred_eagerly = true;
     FLAG_deoptimize_alot = false;  // Used in some tests.
     FLAG_deoptimize_every = 0;     // Used in some tests.
-    FLAG_guess_other_cid = true;
-    Compiler::set_always_optimize(true);
-    // Triggers assert if we try to recompile (e.g., because of deferred
-    // loading, deoptimization, ...). Noopt mode simulates behavior
-    // of precompiled code, therefore do not allow recompilation.
-    Compiler::set_allow_recompilation(false);
-    // TODO(srdjan): Enable CHA deoptimization when eager class finalization is
-    // implemented, either with precompilation or as a special pass.
+    // Precompilation finalizes all classes and thus allows CHA optimizations.
+    // Do not require CHA triggered deoptimization.
     FLAG_use_cha_deopt = false;
     // Calling the PrintStopMessage stub is not supported in precompiled code
     // since it is done at places where no pool pointer is loaded.
@@ -116,9 +121,24 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_fields_may_be_reset = true;
     FLAG_allow_absolute_addresses = false;
 
+    // There is no counter feedback in precompilation, so ignore the counter
+    // when making inlining decisions.
+    FLAG_inlining_hotness = 0;
+    // Use smaller thresholds in precompilation as we are compiling everything
+    // with the optimizing compiler instead of only hot functions.
+    FLAG_inlining_size_threshold = 5;
+    FLAG_inline_getters_setters_smaller_than = 5;
+    FLAG_inlining_callee_size_threshold = 20;
+    FLAG_inlining_depth_threshold = 2;
+    FLAG_inlining_caller_size_threshold = 1000;
+
+    FLAG_inlining_constant_arguments_max_size_threshold = 100;
+    FLAG_inlining_constant_arguments_min_size_threshold = 30;
+
     // Background compilation relies on two-stage compilation pipeline,
     // while precompilation has only one.
     FLAG_background_compilation = false;
+    FLAG_collect_dynamic_function_names = true;
   }
 }
 
@@ -249,8 +269,11 @@ bool FlowGraphCompiler::IsPotentialUnboxedField(const Field& field) {
 
 
 void FlowGraphCompiler::InitCompiler() {
+  TimelineDurationScope tds(thread(),
+                            isolate()->GetCompilerStream(),
+                            "InitCompiler");
   pc_descriptors_list_ = new(zone()) DescriptorList(64);
-  exception_handlers_list_ = new(zone())ExceptionHandlerList();
+  exception_handlers_list_ = new(zone()) ExceptionHandlerList();
   block_info_.Clear();
   // Conservative detection of leaf routines used to remove the stack check
   // on function entry.
@@ -421,7 +444,7 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
 
 
 void FlowGraphCompiler::EmitSourceLine(Instruction* instr) {
-  if ((instr->token_pos() == Scanner::kNoSourcePos) || (instr->env() == NULL)) {
+  if (!instr->token_pos().IsReal() || (instr->env() == NULL)) {
     return;
   }
   const Script& script =
@@ -545,11 +568,6 @@ void FlowGraphCompiler::VisitBlocks() {
 #endif
   }
 
-  if (inline_id_to_function_.length() > max_inlining_id + 1) {
-    // TODO(srdjan): Some inlined function can disappear,
-    // truncate 'inline_id_to_function_'.
-  }
-
   if (is_optimizing()) {
     LogBlock lb;
     intervals.Add(IntervalStruct(prev_offset, prev_inlining_id));
@@ -604,6 +622,7 @@ void FlowGraphCompiler::Bailout(const char* reason) {
   Report::MessageF(Report::kBailout,
                    Script::Handle(function.script()),
                    function.token_pos(),
+                   Report::AtLocation,
                    "FlowGraphCompiler Bailout: %s %s",
                    String::Handle(function.name()).ToCString(),
                    reason);
@@ -740,7 +759,7 @@ void FlowGraphCompiler::SetNeedsStacktrace(intptr_t try_index) {
 // Uses current pc position and try-index.
 void FlowGraphCompiler::AddCurrentDescriptor(RawPcDescriptors::Kind kind,
                                              intptr_t deopt_id,
-                                             intptr_t token_pos) {
+                                             TokenPosition token_pos) {
   // When running with optimizations disabled, don't emit deopt-descriptors.
   if (!CanOptimize() && (kind == RawPcDescriptors::kDeopt)) return;
   pc_descriptors_list()->AddDescriptor(kind,
@@ -766,7 +785,7 @@ void FlowGraphCompiler::AddStubCallTarget(const Code& code) {
 
 
 void FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id,
-                                            intptr_t token_pos) {
+                                            TokenPosition token_pos) {
   ASSERT(is_optimizing());
   ASSERT(!intrinsic_mode());
   CompilerDeoptInfo* info =
@@ -916,7 +935,17 @@ Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
   }
 
   // No deoptimization allowed when 'always_optimize' is set.
-  ASSERT(!Compiler::always_optimize());
+  if (FLAG_precompilation) {
+    if (FLAG_trace_compiler) {
+      THR_Print(
+          "Retrying compilation %s, suppressing inlining of deopt_id:%" Pd "\n",
+          parsed_function_.function().ToFullyQualifiedCString(), deopt_id);
+    }
+    ASSERT(deopt_id != 0);  // longjmp must return non-zero value.
+    Thread::Current()->long_jump_base()->Jump(
+        deopt_id, Object::speculative_inlining_error());
+  }
+
   ASSERT(is_optimizing_);
   CompilerDeoptInfoWithStub* stub =
       new(zone()) CompilerDeoptInfoWithStub(deopt_id,
@@ -954,7 +983,7 @@ void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
 
 RawArray* FlowGraphCompiler::CreateDeoptInfo(Assembler* assembler) {
   // No deopt information if we 'always_optimize' (no deoptimization allowed).
-  if (Compiler::always_optimize()) {
+  if (FLAG_precompilation) {
     return Array::empty_array().raw();
   }
   // For functions with optional arguments, all incoming arguments are copied
@@ -1015,8 +1044,8 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
     RawLocalVarDescriptors::VarInfo info;
     info.set_kind(RawLocalVarDescriptors::kSavedCurrentContext);
     info.scope_id = 0;
-    info.begin_pos = 0;
-    info.end_pos = 0;
+    info.begin_pos = TokenPosition::kMinSource;
+    info.end_pos = TokenPosition::kMinSource;
     info.set_index(parsed_function().current_context_var()->index());
     var_descs.SetVar(0, Symbols::CurrentContextVar(), &info);
   }
@@ -1106,11 +1135,12 @@ bool FlowGraphCompiler::TryIntrinsify() {
 
 void FlowGraphCompiler::GenerateInstanceCall(
     intptr_t deopt_id,
-    intptr_t token_pos,
+    TokenPosition token_pos,
     intptr_t argument_count,
     LocationSummary* locs,
-    const ICData& ic_data) {
-  if (Compiler::always_optimize()) {
+    const ICData& ic_data_in) {
+  const ICData& ic_data = ICData::ZoneHandle(ic_data_in.Original());
+  if (FLAG_precompilation) {
     EmitSwitchableInstanceCall(ic_data, argument_count,
                                deopt_id, token_pos, locs);
     return;
@@ -1171,12 +1201,13 @@ void FlowGraphCompiler::GenerateInstanceCall(
 
 
 void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
-                                           intptr_t token_pos,
+                                           TokenPosition token_pos,
                                            const Function& function,
                                            intptr_t argument_count,
                                            const Array& argument_names,
                                            LocationSummary* locs,
-                                           const ICData& ic_data) {
+                                           const ICData& ic_data_in) {
+  const ICData& ic_data = ICData::ZoneHandle(ic_data_in.Original());
   const Array& arguments_descriptor = Array::ZoneHandle(
       ic_data.IsNull() ? ArgumentsDescriptor::New(argument_count,
                                                   argument_names)
@@ -1749,7 +1780,7 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
     intptr_t argument_count,
     const Array& argument_names,
     intptr_t deopt_id,
-    intptr_t token_pos,
+    TokenPosition token_pos,
     LocationSummary* locs) {
   if (FLAG_polymorphic_with_deopt) {
     Label* deopt = AddDeoptStub(deopt_id,
@@ -1763,16 +1794,17 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
   } else {
     // Instead of deoptimizing, do a megamorphic call when no matching
     // cid found.
-    Label megamorphic, ok;
+    Label ok;
+    MegamorphicSlowPath* slow_path =
+        new MegamorphicSlowPath(ic_data, argument_count, deopt_id,
+                                token_pos, locs, CurrentTryIndex());
+    AddSlowPathCode(slow_path);
     EmitTestAndCall(ic_data, argument_count, argument_names,
-                    &megamorphic,  // No cid match.
-                    &ok,           // Found cid.
+                    slow_path->entry_label(),  // No cid match.
+                    &ok,                       // Found cid.
                     deopt_id, token_pos, locs);
-    // Fall through if last test is match.
-    assembler()->Jump(&ok);
-    assembler()->Bind(&megamorphic);
-    EmitMegamorphicInstanceCall(ic_data, argument_count, deopt_id,
-                                token_pos, locs);
+
+    assembler()->Bind(slow_path->exit_label());
     assembler()->Bind(&ok);
   }
 }

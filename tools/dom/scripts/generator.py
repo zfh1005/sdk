@@ -553,14 +553,10 @@ class OperationInfo(object):
         if (wrap_unwrap_type_blink(type_id, type_registry)):
           type_is_callback = self.isCallback(type_registry, type_id)
           if (dart_js_interop and type_id == 'EventListener' and
-              (self.name == 'addEventListener')):
+              self.name in ['addEventListener', 'removeEventListener']):
               # Events fired need use a JsFunction not a anonymous closure to
               # insure the event can really be removed.
-              parameters.append('wrap_event_listener(this, %s)' % p.name)
-          elif (dart_js_interop and type_id == 'EventListener' and
-              (self.name == 'removeEventListener')):
-              # Find the JsFunction that corresponds to this Dart function.
-              parameters.append('_knownListeners[this.hashCode][identityHashCode(%s)]' % p.name)
+              parameters.append('unwrap_jso(js.allowInterop(%s))' % p.name)
           elif dart_js_interop and type_id == 'FontFaceSetForEachCallback':
               # forEach is supported in the DOM for FontFaceSet as it iterates
               # over the Javascript Object the callback parameters are also
@@ -729,6 +725,9 @@ dart2js_conversions = monitored.Dict('generator.dart2js_conversions', {
     # postMessage
     'any set MessagePort.postMessage': _serialize_SSV,
     'SerializedScriptValue set Window.postMessage': _serialize_SSV,
+    'SerializedScriptValue set Worker.postMessage': _serialize_SSV,
+    'any set DedicatedWorkerGlobalScope.postMessage' : _serialize_SSV,
+    'SerializedScriptValue set ServiceWorkerClient.postMessage': _serialize_SSV,
 
     '* get CustomEvent.detail':
       Conversion('convertNativeToDart_SerializedScriptValue',

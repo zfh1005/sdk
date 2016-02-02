@@ -2,20 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.parser;
+library analyzer.src.generated.parser;
 
 import 'dart:collection';
 import "dart:math" as math;
 
-import 'ast.dart';
-import 'engine.dart' show AnalysisEngine, AnalysisOptionsImpl;
-import 'error.dart';
-import 'java_core.dart';
-import 'java_engine.dart';
-import 'scanner.dart';
-import 'source.dart';
-import 'utilities_collection.dart' show TokenMap;
-import 'utilities_dart.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/generated/engine.dart'
+    show AnalysisEngine, AnalysisOptionsImpl;
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_collection.dart' show TokenMap;
+import 'package:analyzer/src/generated/utilities_dart.dart';
 
 Map<String, MethodTrampoline> methodTable_Parser = <String, MethodTrampoline>{
   'parseCompilationUnit_1': new MethodTrampoline(
@@ -196,6 +200,8 @@ Map<String, MethodTrampoline> methodTable_Parser = <String, MethodTrampoline>{
       1, (Parser target, arg0) => target._parseCommentReferences(arg0)),
   'parseCompilationUnitMember_1': new MethodTrampoline(
       1, (Parser target, arg0) => target._parseCompilationUnitMember(arg0)),
+  'parseConfiguration_0':
+      new MethodTrampoline(0, (Parser target) => target._parseConfiguration()),
   'parseConstExpression_0': new MethodTrampoline(
       0, (Parser target) => target._parseConstExpression()),
   'parseConstructor_8': new MethodTrampoline(
@@ -214,6 +220,8 @@ Map<String, MethodTrampoline> methodTable_Parser = <String, MethodTrampoline>{
       0, (Parser target) => target._parseDocumentationComment()),
   'parseDoStatement_0':
       new MethodTrampoline(0, (Parser target) => target._parseDoStatement()),
+  'parseDottedName_0':
+      new MethodTrampoline(0, (Parser target) => target._parseDottedName()),
   'parseEmptyStatement_0':
       new MethodTrampoline(0, (Parser target) => target._parseEmptyStatement()),
   'parseEnumConstantDeclaration_0': new MethodTrampoline(
@@ -574,6 +582,9 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     if (identical(_oldNode, node.condition)) {
       return _parser.parseExpression2();
     }
+    if (identical(_oldNode, node.message)) {
+      return _parser.parseExpression2();
+    }
     return _notAChild(node);
   }
 
@@ -745,6 +756,18 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
   }
 
   @override
+  AstNode visitConfiguration(Configuration node) {
+    if (identical(_oldNode, node.name)) {
+      throw new InsufficientContextException();
+    } else if (identical(_oldNode, node.value)) {
+      return _parser.parseStringLiteral();
+    } else if (identical(_oldNode, node.libraryUri)) {
+      return _parser.parseStringLiteral();
+    }
+    return _notAChild(node);
+  }
+
+  @override
   AstNode visitConstructorDeclaration(ConstructorDeclaration node) {
     if (identical(_oldNode, node.documentationComment)) {
       throw new InsufficientContextException();
@@ -824,6 +847,14 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
       return _parser.parseStatement2();
     } else if (identical(_oldNode, node.condition)) {
       return _parser.parseExpression2();
+    }
+    return _notAChild(node);
+  }
+
+  @override
+  AstNode visitDottedName(DottedName node) {
+    if (node.components.contains(_oldNode)) {
+      throw new InsufficientContextException();
     }
     return _notAChild(node);
   }
@@ -2080,6 +2111,11 @@ class Parser {
   int _errorListenerLock = 0;
 
   /**
+   * A flag indicating whether the parser is to parse the async support.
+   */
+  bool _parseAsync = true;
+
+  /**
    * A flag indicating whether parser is to parse function bodies.
    */
   bool _parseFunctionBodies = true;
@@ -2116,6 +2152,12 @@ class Parser {
    * initializer, with no intervening parens, braces, or brackets.
    */
   bool _inInitializer = false;
+
+  /**
+   * A flag indicating whether the parser is to parse conditional directives
+   * syntax.
+   */
+  bool parseConditionalDirectives = false;
 
   /**
    * A flag indicating whether the parser is to parse generic method syntax.
@@ -2156,25 +2198,8 @@ class Parser {
   /**
    * Set whether the parser is to parse the async support.
    */
-  @deprecated
   void set parseAsync(bool parseAsync) {
-    // Async support cannot be disabled
-  }
-
-  /**
-   * Set whether the parser is to parse deferred libraries.
-   */
-  @deprecated
-  void set parseDeferredLibraries(bool parseDeferredLibraries) {
-    // Deferred libraries support cannot be disabled
-  }
-
-  /**
-   * Set whether the parser is to parse enum declarations.
-   */
-  @deprecated
-  void set parseEnum(bool parseEnum) {
-    // Enum support cannot be disabled
+    this._parseAsync = parseAsync;
   }
 
   /**
@@ -3776,8 +3801,7 @@ class Parser {
 
   /**
    * If the current token has the type [TokenType.GT], return it after advancing
-   * to the next token. Otherwise report an error and return the current token
-   * without advancing.
+   * to the next token. Otherwise report an error and create a synthetic token.
    */
   Token _expectGt() {
     if (_matchesGt()) {
@@ -3785,7 +3809,7 @@ class Parser {
     }
     _reportErrorForCurrentToken(
         ParserErrorCode.EXPECTED_TOKEN, [TokenType.GT.lexeme]);
-    return _currentToken;
+    return _createSyntheticToken(TokenType.GT);
   }
 
   /**
@@ -3856,6 +3880,16 @@ class Parser {
           (secondChar == 0x2F && thirdChar == 0x2F)) {
         index = 3;
       }
+    }
+    if (StringUtilities.startsWith4(comment, index, 0x20, 0x20, 0x20, 0x20)) {
+      int end = index + 4;
+      while (end < length &&
+          comment.codeUnitAt(end) != 0xD &&
+          comment.codeUnitAt(end) != 0xA) {
+        end = end + 1;
+      }
+      ranges.add(<int>[index, end]);
+      index = end;
     }
     while (index < length) {
       int currentChar = comment.codeUnitAt(index);
@@ -4042,7 +4076,8 @@ class Parser {
   /**
    * Return `true` if the given [character] is a valid hexadecimal digit.
    */
-  bool _isHexDigit(int character) => (0x30 <= character && character <= 0x39) ||
+  bool _isHexDigit(int character) =>
+      (0x30 <= character && character <= 0x39) ||
       (0x41 <= character && character <= 0x46) ||
       (0x61 <= character && character <= 0x66);
 
@@ -4198,6 +4233,14 @@ class Parser {
     return _tokenMatches(token, TokenType.OPEN_PAREN);
   }
 
+  bool _isPeekGenericTypeParametersAndOpenParen() {
+    if (!parseGenericMethods) {
+      return false;
+    }
+    Token token = _skipTypeArgumentList(_peek());
+    return token != null && _tokenMatches(token, TokenType.OPEN_PAREN);
+  }
+
   /**
    * Return `true` if the current token appears to be the beginning of a switch
    * member.
@@ -4316,7 +4359,7 @@ class Parser {
    */
   bool _matchesString(String identifier) =>
       _currentToken.type == TokenType.IDENTIFIER &&
-          _currentToken.lexeme == identifier;
+      _currentToken.lexeme == identifier;
 
   /**
    * If the current token has the given [type], then advance to the next token
@@ -4378,10 +4421,16 @@ class Parser {
       _reportErrorForNode(
           ParserErrorCode.ASSERT_DOES_NOT_TAKE_RETHROW, expression);
     }
+    Token comma;
+    Expression message;
+    if (_matches(TokenType.COMMA)) {
+      comma = getAndAdvance();
+      message = parseExpression2();
+    }
     Token rightParen = _expect(TokenType.CLOSE_PAREN);
     Token semicolon = _expect(TokenType.SEMICOLON);
     return new AssertStatement(
-        keyword, leftParen, expression, rightParen, semicolon);
+        keyword, leftParen, expression, comma, message, rightParen, semicolon);
   }
 
   /**
@@ -5026,6 +5075,7 @@ class Parser {
     List<CommentReference> references = new List<CommentReference>();
     for (DocumentationCommentToken token in tokens) {
       String comment = token.lexeme;
+      comment = _removeCodeBlocksGitHub(comment);
       int length = comment.length;
       List<List<int>> codeBlockRanges = _getCodeBlockRanges(comment);
       int leftIndex = comment.indexOf('[');
@@ -5126,7 +5176,8 @@ class Parser {
           _peek().matchesAny([
             TokenType.OPEN_PAREN,
             TokenType.OPEN_CURLY_BRACKET,
-            TokenType.FUNCTION
+            TokenType.FUNCTION,
+            TokenType.LT
           ])) {
         _validateModifiersForTopLevelFunction(modifiers);
         return _parseFunctionDeclaration(
@@ -5187,10 +5238,14 @@ class Parser {
       }
       _reportErrorForToken(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken);
       return null;
-    } else if (_tokenMatches(_peek(), TokenType.OPEN_PAREN)) {
-      _validateModifiersForTopLevelFunction(modifiers);
+    } else if (_isPeekGenericTypeParametersAndOpenParen()) {
       return _parseFunctionDeclaration(
           commentAndMetadata, modifiers.externalKeyword, null);
+    } else if (_tokenMatches(_peek(), TokenType.OPEN_PAREN)) {
+      TypeName returnType = _parseOptionalTypeNameComment();
+      _validateModifiersForTopLevelFunction(modifiers);
+      return _parseFunctionDeclaration(
+          commentAndMetadata, modifiers.externalKeyword, returnType);
     } else if (_peek()
         .matchesAny([TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
       if (modifiers.constKeyword == null &&
@@ -5245,7 +5300,8 @@ class Parser {
     if (_peek().matchesAny([
       TokenType.OPEN_PAREN,
       TokenType.FUNCTION,
-      TokenType.OPEN_CURLY_BRACKET
+      TokenType.OPEN_CURLY_BRACKET,
+      TokenType.LT
     ])) {
       _validateModifiersForTopLevelFunction(modifiers);
       return _parseFunctionDeclaration(
@@ -5260,6 +5316,52 @@ class Parser {
   }
 
   /**
+   * Parse a configuration in either an import or export directive.
+   *
+   *     configuration ::=
+   *         'if' '(' test ')' uri
+   *
+   *     test ::=
+   *         dottedName ('==' stringLiteral)?
+   *
+   *     dottedName ::=
+   *         identifier ('.' identifier)*
+   */
+  Configuration _parseConfiguration() {
+    Token ifKeyword = _expectKeyword(Keyword.IF);
+    Token leftParenthesis = _expect(TokenType.OPEN_PAREN);
+    DottedName name = _parseDottedName();
+    Token equalToken = null;
+    StringLiteral value = null;
+    if (_matches(TokenType.EQ_EQ)) {
+      equalToken = getAndAdvance();
+      value = parseStringLiteral();
+      if (value is StringInterpolation) {
+        _reportErrorForNode(
+            ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION, value);
+      }
+    }
+    Token rightParenthesis = _expect(TokenType.CLOSE_PAREN);
+    StringLiteral libraryUri = _parseUri();
+    return new Configuration(ifKeyword, leftParenthesis, name, equalToken,
+        value, rightParenthesis, libraryUri);
+  }
+
+  /**
+   * Parse a list of configurations. If conditional directives are not
+   * supported, return an empty list without attempting to parse anything.
+   */
+  List<Configuration> _parseConfigurations() {
+    List<Configuration> configurations = <Configuration>[];
+    if (parseConditionalDirectives) {
+      while (_matchesKeyword(Keyword.IF)) {
+        configurations.add(_parseConfiguration());
+      }
+    }
+    return configurations;
+  }
+
+  /**
    * Parse a const expression. Return the const expression that was parsed.
    *
    *     constExpression ::=
@@ -5269,12 +5371,13 @@ class Parser {
    */
   Expression _parseConstExpression() {
     Token keyword = _expectKeyword(Keyword.CONST);
-    if (_matches(TokenType.OPEN_SQUARE_BRACKET) || _matches(TokenType.INDEX)) {
+    if (_matches(TokenType.LT) || _injectGenericCommentTypeList()) {
+      return _parseListOrMapLiteral(keyword);
+    } else if (_matches(TokenType.OPEN_SQUARE_BRACKET) ||
+        _matches(TokenType.INDEX)) {
       return _parseListLiteral(keyword, null);
     } else if (_matches(TokenType.OPEN_CURLY_BRACKET)) {
       return _parseMapLiteral(keyword, null);
-    } else if (_matches(TokenType.LT)) {
-      return _parseListOrMapLiteral(keyword);
     }
     return _parseInstanceCreationExpression(keyword);
   }
@@ -5575,6 +5678,22 @@ class Parser {
   }
 
   /**
+   * Parse a dotted name. Return the dotted name that was parsed.
+   *
+   *     dottedName ::=
+   *         identifier ('.' identifier)*
+   */
+  DottedName _parseDottedName() {
+    List<SimpleIdentifier> components = new List<SimpleIdentifier>();
+    components.add(parseSimpleIdentifier());
+    while (_matches(TokenType.PERIOD)) {
+      _advance();
+      components.add(parseSimpleIdentifier());
+    }
+    return new DottedName(components);
+  }
+
+  /**
    * Parse an empty statement. Return the empty statement that was parsed.
    *
    *     emptyStatement ::=
@@ -5681,11 +5800,12 @@ class Parser {
    * associated with the directive. Return the export directive that was parsed.
    *
    *     exportDirective ::=
-   *         metadata 'export' stringLiteral combinator*';'
+   *         metadata 'export' stringLiteral configuration* combinator*';'
    */
   ExportDirective _parseExportDirective(CommentAndMetadata commentAndMetadata) {
     Token exportKeyword = _expectKeyword(Keyword.EXPORT);
     StringLiteral libraryUri = _parseUri();
+    List<Configuration> configurations = _parseConfigurations();
     List<Combinator> combinators = _parseCombinators();
     Token semicolon = _expectSemicolon();
     return new ExportDirective(
@@ -5693,6 +5813,7 @@ class Parser {
         commentAndMetadata.metadata,
         exportKeyword,
         libraryUri,
+        configurations,
         combinators,
         semicolon);
   }
@@ -5981,6 +6102,9 @@ class Parser {
       Token star = null;
       if (_matchesString(ASYNC)) {
         keyword = getAndAdvance();
+        if (!_parseAsync) {
+          _reportErrorForToken(ParserErrorCode.ASYNC_NOT_SUPPORTED, keyword);
+        }
         if (_matches(TokenType.STAR)) {
           star = getAndAdvance();
           _inGenerator = true;
@@ -5988,6 +6112,9 @@ class Parser {
         _inAsync = true;
       } else if (_matchesString(SYNC)) {
         keyword = getAndAdvance();
+        if (!_parseAsync) {
+          _reportErrorForToken(ParserErrorCode.ASYNC_NOT_SUPPORTED, keyword);
+        }
         if (_matches(TokenType.STAR)) {
           star = getAndAdvance();
           _inGenerator = true;
@@ -6256,6 +6383,7 @@ class Parser {
         _injectGenericCommentTypeList()) {
       return parseTypeParameterList();
     }
+    return null;
   }
 
   /**
@@ -6347,11 +6475,12 @@ class Parser {
    * associated with the directive. Return the import directive that was parsed.
    *
    *     importDirective ::=
-   *         metadata 'import' stringLiteral (deferred)? ('as' identifier)? combinator*';'
+   *         metadata 'import' stringLiteral configuration* (deferred)? ('as' identifier)? combinator*';'
    */
   ImportDirective _parseImportDirective(CommentAndMetadata commentAndMetadata) {
     Token importKeyword = _expectKeyword(Keyword.IMPORT);
     StringLiteral libraryUri = _parseUri();
+    List<Configuration> configurations = _parseConfigurations();
     Token deferredToken = null;
     Token asToken = null;
     SimpleIdentifier prefix = null;
@@ -6387,6 +6516,7 @@ class Parser {
         commentAndMetadata.metadata,
         importKeyword,
         libraryUri,
+        configurations,
         deferredToken,
         asToken,
         prefix,
@@ -7267,11 +7397,6 @@ class Parser {
       return new IntegerLiteral(token, value);
     } else if (_matches(TokenType.STRING)) {
       return parseStringLiteral();
-    } else if (_matches(TokenType.OPEN_CURLY_BRACKET)) {
-      return _parseMapLiteral(null, null);
-    } else if (_matches(TokenType.OPEN_SQUARE_BRACKET) ||
-        _matches(TokenType.INDEX)) {
-      return _parseListLiteral(null, null);
     } else if (_matchesIdentifier()) {
       // TODO(brianwilkerson) The code below was an attempt to recover from an
       // error case, but it needs to be applied as a recovery only after we
@@ -7304,8 +7429,13 @@ class Parser {
       } finally {
         _inInitializer = wasInInitializer;
       }
-    } else if (_matches(TokenType.LT)) {
+    } else if (_matches(TokenType.LT) || _injectGenericCommentTypeList()) {
       return _parseListOrMapLiteral(null);
+    } else if (_matches(TokenType.OPEN_CURLY_BRACKET)) {
+      return _parseMapLiteral(null, null);
+    } else if (_matches(TokenType.OPEN_SQUARE_BRACKET) ||
+        _matches(TokenType.INDEX)) {
+      return _parseListLiteral(null, null);
     } else if (_matches(TokenType.QUESTION) &&
         _tokenMatches(_peek(), TokenType.IDENTIFIER)) {
       _reportErrorForCurrentToken(
@@ -7923,7 +8053,8 @@ class Parser {
    * was parsed.
    */
   StringLiteral _parseUri() {
-    bool iskeywordAfterUri(Token token) => token.lexeme == Keyword.AS.syntax ||
+    bool iskeywordAfterUri(Token token) =>
+        token.lexeme == Keyword.AS.syntax ||
         token.lexeme == _HIDE ||
         token.lexeme == _SHOW;
     if (!_matches(TokenType.STRING) &&
@@ -8143,6 +8274,25 @@ class Parser {
       token = token.next;
     }
     return token;
+  }
+
+  String _removeCodeBlocksGitHub(String comment) {
+    int index = 0;
+    while (true) {
+      int beginIndex = comment.indexOf('`', index);
+      if (beginIndex == -1) {
+        break;
+      }
+      int endIndex = comment.indexOf('`', beginIndex + 1);
+      if (endIndex == -1) {
+        break;
+      }
+      comment = comment.substring(0, beginIndex + 1) +
+          ' ' * (endIndex - beginIndex - 1) +
+          comment.substring(endIndex);
+      index = endIndex + 1;
+    }
+    return comment;
   }
 
   /**
@@ -8656,21 +8806,21 @@ class Parser {
    */
   bool _tokenMatchesIdentifier(Token token) =>
       _tokenMatches(token, TokenType.IDENTIFIER) ||
-          _tokenMatchesPseudoKeyword(token);
+      _tokenMatchesPseudoKeyword(token);
 
   /**
    * Return `true` if the given [token] matches the given [keyword].
    */
   bool _tokenMatchesKeyword(Token token, Keyword keyword) =>
       token.type == TokenType.KEYWORD &&
-          (token as KeywordToken).keyword == keyword;
+      (token as KeywordToken).keyword == keyword;
 
   /**
    * Return `true` if the given [token] matches a pseudo keyword.
    */
   bool _tokenMatchesPseudoKeyword(Token token) =>
       _tokenMatches(token, TokenType.KEYWORD) &&
-          (token as KeywordToken).keyword.isPseudoKeyword;
+      (token as KeywordToken).keyword.isPseudoKeyword;
 
   /**
    * Return `true` if the given [token] matches the given [identifier].
@@ -9231,6 +9381,13 @@ class ParserErrorCode extends ErrorCode {
       const ParserErrorCode('ASYNC_KEYWORD_USED_AS_IDENTIFIER',
           "The keywords 'async', 'await', and 'yield' may not be used as identifiers in an asynchronous or generator function.");
 
+  /**
+   * Some environments, such as Fletch, do not support async.
+   */
+  static const ParserErrorCode ASYNC_NOT_SUPPORTED = const ParserErrorCode(
+      'ASYNC_NOT_SUPPORTED',
+      "Async and sync are not supported in this environment.");
+
   static const ParserErrorCode BREAK_OUTSIDE_OF_LOOP = const ParserErrorCode(
       'BREAK_OUTSIDE_OF_LOOP',
       "A break statement cannot be used outside of a loop or switch statement");
@@ -9465,6 +9622,10 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode INVALID_HEX_ESCAPE = const ParserErrorCode(
       'INVALID_HEX_ESCAPE',
       "An escape sequence starting with '\\x' must be followed by 2 hexidecimal digits");
+
+  static const ParserErrorCode INVALID_LITERAL_IN_CONFIGURATION =
+      const ParserErrorCode('INVALID_LITERAL_IN_CONFIGURATION',
+          "The literal in a configuration cannot contain interpolation");
 
   static const ParserErrorCode INVALID_OPERATOR = const ParserErrorCode(
       'INVALID_OPERATOR', "The string '{0}' is not a valid operator");
@@ -9859,6 +10020,8 @@ class ResolutionCopier implements AstVisitor<bool> {
         _isEqualTokens(node.assertKeyword, toNode.assertKeyword),
         _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
         _isEqualNodes(node.condition, toNode.condition),
+        _isEqualTokens(node.comma, toNode.comma),
+        _isEqualNodes(node.message, toNode.message),
         _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
         _isEqualTokens(node.semicolon, toNode.semicolon));
   }
@@ -10054,6 +10217,22 @@ class ResolutionCopier implements AstVisitor<bool> {
   }
 
   @override
+  bool visitConfiguration(Configuration node) {
+    Configuration toNode = this._toNode as Configuration;
+    if (_and(
+        _isEqualTokens(node.ifKeyword, toNode.ifKeyword),
+        _isEqualTokens(node.leftParenthesis, toNode.leftParenthesis),
+        _isEqualNodes(node.name, toNode.name),
+        _isEqualTokens(node.equalToken, toNode.equalToken),
+        _isEqualNodes(node.value, toNode.value),
+        _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
+        _isEqualNodes(node.libraryUri, toNode.libraryUri))) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
   bool visitConstructorDeclaration(ConstructorDeclaration node) {
     ConstructorDeclaration toNode = this._toNode as ConstructorDeclaration;
     if (_and(
@@ -10146,6 +10325,12 @@ class ResolutionCopier implements AstVisitor<bool> {
         _isEqualNodes(node.condition, toNode.condition),
         _isEqualTokens(node.rightParenthesis, toNode.rightParenthesis),
         _isEqualTokens(node.semicolon, toNode.semicolon));
+  }
+
+  @override
+  bool visitDottedName(DottedName node) {
+    DottedName toNode = this._toNode as DottedName;
+    return _isEqualNodeLists(node.components, toNode.components);
   }
 
   @override

@@ -5267,7 +5267,7 @@ static void CreateSpecializedFunction(Zone* zone,
       false,  // Not external.
       false,  // Not native.
       owner,
-      0));  // No token position.
+      TokenPosition::kMinSource));
 
   // TODO(zerny): Share these arrays between all irregexp functions.
   fn.set_num_fixed_parameters(kParamCount);
@@ -5276,15 +5276,15 @@ static void CreateSpecializedFunction(Zone* zone,
   fn.set_parameter_names(Array::Handle(zone, Array::New(kParamCount,
                                                            Heap::kOld)));
   fn.SetParameterTypeAt(RegExpMacroAssembler::kParamRegExpIndex,
-                        Type::Handle(zone, Type::DynamicType()));
+                        Object::dynamic_type());
   fn.SetParameterNameAt(RegExpMacroAssembler::kParamRegExpIndex,
                         Symbols::This());
   fn.SetParameterTypeAt(RegExpMacroAssembler::kParamStringIndex,
-                        Type::Handle(zone, Type::DynamicType()));
+                        Object::dynamic_type());
   fn.SetParameterNameAt(RegExpMacroAssembler::kParamStringIndex,
                         Symbols::string_param());
   fn.SetParameterTypeAt(RegExpMacroAssembler::kParamStartOffsetIndex,
-                        Type::Handle(zone, Type::DynamicType()));
+                        Object::dynamic_type());
   fn.SetParameterNameAt(RegExpMacroAssembler::kParamStartOffsetIndex,
                         Symbols::start_index_param());
   fn.set_result_type(Type::Handle(zone, Type::ArrayType()));

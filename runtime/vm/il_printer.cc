@@ -145,7 +145,7 @@ void FlowGraphPrinter::PrintOneInstruction(Instruction* instr,
 
 
 void FlowGraphPrinter::PrintTypeCheck(const ParsedFunction& parsed_function,
-                                      intptr_t token_pos,
+                                      TokenPosition token_pos,
                                       Value* value,
                                       const AbstractType& dst_type,
                                       const String& dst_name,
@@ -405,9 +405,6 @@ void AssertAssignableInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(", %s, '%s'",
            dst_type().ToCString(),
            dst_name().ToCString());
-  f->Print(" instantiator(");
-  instantiator()->PrintTo(f);
-  f->Print(")");
   f->Print(" instantiator_type_arguments(");
   instantiator_type_arguments()->PrintTo(f);
   f->Print(")");
@@ -551,9 +548,6 @@ void InstanceOfInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(" %s %s",
             negate_result() ? "ISNOT" : "IS",
             String::Handle(type().Name()).ToCString());
-  f->Print(" instantiator(");
-  instantiator()->PrintTo(f);
-  f->Print(")");
   f->Print(" type-arg(");
   instantiator_type_arguments()->PrintTo(f);
   f->Print(")");

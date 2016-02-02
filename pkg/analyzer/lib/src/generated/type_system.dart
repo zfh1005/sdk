@@ -5,15 +5,18 @@
 library analyzer.src.generated.type_system;
 
 import 'dart:collection';
+import 'dart:math' as math;
 
-import 'element.dart';
-import 'engine.dart' show AnalysisContext;
-import 'resolver.dart' show TypeProvider;
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
+import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
+import 'package:analyzer/src/generated/utilities_dart.dart';
 
 typedef bool _GuardedSubtypeChecker<T>(T t1, T t2, Set<Element> visited);
-
 typedef bool _SubtypeChecker<T>(T t1, T t2);
-
 
 /**
  * Implementation of [TypeSystem] using the strong mode rules.
@@ -24,6 +27,28 @@ class StrongTypeSystemImpl implements TypeSystem {
 
   StrongTypeSystemImpl();
 
+  bool anyParameterType(FunctionType ft, bool predicate(DartType t)) {
+    return ft.parameters.any((p) => predicate(p.type));
+  }
+
+  @override
+  bool canPromoteToType(DartType to, DartType from) => isSubtypeOf(to, from);
+
+  @override
+  bool isMoreSpecificThan(DartType t1, DartType t2) => isSubtypeOf(t1, t2);
+
+  /**
+   * Given a type t, if t is an interface type with a call method
+   * defined, return the function type for the call method, otherwise
+   * return null.
+   */
+  FunctionType getCallMethodType(DartType t) {
+    if (t is InterfaceType) {
+      return t.lookUpInheritedMethod("call")?.type;
+    }
+    return null;
+  }
+
   @override
   DartType getLeastUpperBound(
       TypeProvider typeProvider, DartType type1, DartType type2) {
@@ -31,9 +56,144 @@ class StrongTypeSystemImpl implements TypeSystem {
     return _specTypeSystem.getLeastUpperBound(typeProvider, type1, type2);
   }
 
-  // TODO(leafp): Document the rules in play here
+  /// Given a function type with generic type parameters, infer the type
+  /// parameters from the actual argument types, and return it. If we can't.
+  /// returns the original function type.
+  ///
+  /// Concretely, given a function type with parameter types P0, P1, ... Pn,
+  /// result type R, and generic type parameters T0, T1, ... Tm, use the
+  /// argument types A0, A1, ... An to solve for the type parameters.
+  ///
+  /// For each parameter Pi, we want to ensure that Ai <: Pi. We can do this by
+  /// running the subtype algorithm, and when we reach a type parameter Pj,
+  /// recording the lower or upper bound it must satisfy. At the end, all
+  /// constraints can be combined to determine the type.
+  ///
+  /// As a simplification, we do not actually store all constraints on each type
+  /// parameter Pj. Instead we track Uj and Lj where U is the upper bound and
+  /// L is the lower bound of that type parameter.
+  FunctionType inferCallFromArguments(
+      TypeProvider typeProvider,
+      FunctionTypeImpl fnType,
+      List<DartType> correspondingParameterTypes,
+      List<DartType> argumentTypes) {
+    if (fnType.typeFormals.isEmpty) {
+      return fnType;
+    }
+
+    List<TypeParameterType> fnTypeParams =
+        TypeParameterTypeImpl.getTypes(fnType.typeFormals);
+
+    // Create a TypeSystem that will allow certain type parameters to be
+    // inferred. It will optimistically assume these type parameters can be
+    // subtypes (or supertypes) as necessary, and track the constraints that
+    // are implied by this.
+    var inferringTypeSystem =
+        new _StrongInferenceTypeSystem(typeProvider, fnTypeParams);
+
+    for (int i = 0; i < argumentTypes.length; i++) {
+      // Try to pass each argument to each parameter, recording any type
+      // parameter bounds that were implied by this assignment.
+      inferringTypeSystem.isSubtypeOf(
+          argumentTypes[i], correspondingParameterTypes[i]);
+    }
+
+    var inferredTypes = new List<DartType>.from(fnTypeParams, growable: false);
+    for (int i = 0; i < fnTypeParams.length; i++) {
+      TypeParameterType typeParam = fnTypeParams[i];
+      _TypeParameterBound bound = inferringTypeSystem._bounds[typeParam];
+
+      // Now we've computed lower and upper bounds for each type parameter.
+      //
+      // To decide on which type to assign, we look at the return type and see
+      // if the type parameter occurs in covariant or contravariant positions.
+      //
+      // If the type is "passed in" at all, or if our lower bound was bottom,
+      // we choose the upper bound as being the most useful.
+      //
+      // Otherwise we choose the more precise lower bound.
+      _TypeParameterVariance variance =
+          new _TypeParameterVariance.from(typeParam, fnType.returnType);
+
+      inferredTypes[i] =
+          variance.passedIn || bound.lower.isBottom ? bound.upper : bound.lower;
+
+      // Assumption: if the current type parameter has an "extends" clause
+      // that refers to another type variable we are inferring, it will appear
+      // before us or in this list position. For example:
+      //
+      //     <TFrom, TTo extends TFrom>
+      //
+      // We may infer TTo is TFrom. In that case, we already know what TFrom
+      // is inferred as, so we can substitute it now. This also handles more
+      // complex cases such as:
+      //
+      //     <TFrom, TTo extends Iterable<TFrom>>
+      //
+      // Or if the type parameter's bound depends on itself such as:
+      //
+      //     <T extends Clonable<T>>
+      inferredTypes[i] =
+          inferredTypes[i].substitute2(inferredTypes, fnTypeParams);
+
+      // See if this actually worked.
+      // If not, fall back to the known upper bound (if any) or `dynamic`.
+      if (inferredTypes[i].isBottom ||
+          !isSubtypeOf(inferredTypes[i],
+              bound.upper.substitute2(inferredTypes, fnTypeParams)) ||
+          !isSubtypeOf(bound.lower.substitute2(inferredTypes, fnTypeParams),
+              inferredTypes[i])) {
+        inferredTypes[i] = DynamicTypeImpl.instance;
+        if (typeParam.element.bound != null) {
+          inferredTypes[i] =
+              typeParam.element.bound.substitute2(inferredTypes, fnTypeParams);
+        }
+      }
+    }
+
+    // Return the instantiated type.
+    return fnType.instantiate(inferredTypes);
+  }
+
+  /**
+   * Given a [FunctionType] [function], of the form
+   * <T0 extends B0, ... Tn extends Bn>.F (where Bi is implicitly
+   * dynamic if absent, and F is a non-generic function type)
+   * compute {I0/T0, ..., In/Tn}F
+   * where I_(i+1) = {I0/T0, ..., Ii/Ti, dynamic/T_(i+1)}B_(i+1).
+   * That is, we instantiate the generic with its bounds, replacing
+   * each Ti in Bi with dynamic to get Ii, and then replacing Ti with
+   * Ii in all of the remaining bounds.
+   */
+  DartType instantiateToBounds(FunctionType function) {
+    int count = function.typeFormals.length;
+    if (count == 0) {
+      return function;
+    }
+    // We build up a substitution replacing bound parameters with
+    // their instantiated bounds, {substituted/variables}
+    List<DartType> substituted = new List<DartType>();
+    List<DartType> variables = new List<DartType>();
+    for (int i = 0; i < count; i++) {
+      TypeParameterElement param = function.typeFormals[i];
+      DartType bound = param.bound ?? DynamicTypeImpl.instance;
+      DartType variable = param.type;
+      // For each Ti extends Bi, first compute Ii by replacing
+      // Ti in Bi with dynamic (simultaneously replacing all
+      // of the previous Tj (j < i) with their instantiated bounds.
+      substituted.add(DynamicTypeImpl.instance);
+      variables.add(variable);
+      // Now update the substitution to replace Ti with Ii instead
+      // of dynamic in subsequent rounds.
+      substituted[i] = bound.substitute2(substituted, variables);
+    }
+    return function.instantiate(substituted);
+  }
+
   @override
   bool isAssignableTo(DartType fromType, DartType toType) {
+    // TODO(leafp): Document the rules in play here
+
     // An actual subtype
     if (isSubtypeOf(fromType, toType)) {
       return true;
@@ -41,8 +201,8 @@ class StrongTypeSystemImpl implements TypeSystem {
 
     // Don't allow implicit downcasts between function types
     // and call method objects, as these will almost always fail.
-    if ((fromType is FunctionType && _getCallMethodType(toType) != null) ||
-        (toType is FunctionType && _getCallMethodType(fromType) != null)) {
+    if ((fromType is FunctionType && getCallMethodType(toType) != null) ||
+        (toType is FunctionType && getCallMethodType(fromType) != null)) {
       return false;
     }
 
@@ -63,21 +223,40 @@ class StrongTypeSystemImpl implements TypeSystem {
     return false;
   }
 
+  bool isGroundType(DartType t) {
+    // TODO(leafp): Revisit this.
+    if (t is TypeParameterType) return false;
+    if (_isTop(t)) return true;
+
+    if (t is FunctionType) {
+      if (!_isTop(t.returnType) ||
+          anyParameterType(t, (pt) => !_isBottom(pt, dynamicIsBottom: true))) {
+        return false;
+      } else {
+        return true;
+      }
+    }
+
+    if (t is InterfaceType) {
+      var typeArguments = t.typeArguments;
+      for (var typeArgument in typeArguments) {
+        if (!_isTop(typeArgument)) return false;
+      }
+      return true;
+    }
+
+    // We should not see any other type aside from malformed code.
+    return false;
+  }
+
   @override
   bool isSubtypeOf(DartType leftType, DartType rightType) {
     return _isSubtypeOf(leftType, rightType, null);
   }
 
-  FunctionType _getCallMethodType(DartType t) {
-    if (t is InterfaceType) {
-      return t.lookUpInheritedMethod("call")?.type;
-    }
-    return null;
-  }
-
-  // Given a type t, if t is an interface type with a call method
-  // defined, return the function type for the call method, otherwise
-  // return null.
+  /**
+   * Guard against loops in the class hierarchy
+   */
   _GuardedSubtypeChecker<DartType> _guard(
       _GuardedSubtypeChecker<DartType> check) {
     return (DartType t1, DartType t2, Set<Element> visited) {
@@ -96,11 +275,18 @@ class StrongTypeSystemImpl implements TypeSystem {
     };
   }
 
+  /// If [t1] or [t2] is a type parameter we are inferring, update its bound.
+  /// Returns `true` if we could possibly find a compatible type,
+  /// otherwise `false`.
+  bool _inferTypeParameterSubtypeOf(
+      DartType t1, DartType t2, Set<Element> visited) {
+    return false;
+  }
+
   bool _isBottom(DartType t, {bool dynamicIsBottom: false}) {
     return (t.isDynamic && dynamicIsBottom) || t.isBottom;
   }
 
-  // Guard against loops in the class hierarchy
   /**
    * Check that [f1] is a subtype of [f2].
    * [fuzzyArrows] indicates whether or not the f1 and f2 should be
@@ -109,14 +295,22 @@ class StrongTypeSystemImpl implements TypeSystem {
    */
   bool _isFunctionSubtypeOf(FunctionType f1, FunctionType f2,
       {bool fuzzyArrows: true}) {
-    final r1s = f1.normalParameterTypes;
-    final o1s = f1.optionalParameterTypes;
-    final n1s = f1.namedParameterTypes;
-    final r2s = f2.normalParameterTypes;
-    final o2s = f2.optionalParameterTypes;
-    final n2s = f2.namedParameterTypes;
-    final ret1 = f1.returnType;
-    final ret2 = f2.returnType;
+    if (!f1.typeFormals.isEmpty) {
+      if (f2.typeFormals.isEmpty) {
+        f1 = instantiateToBounds(f1);
+        return _isFunctionSubtypeOf(f1, f2);
+      } else {
+        return _isGenericFunctionSubtypeOf(f1, f2, fuzzyArrows: fuzzyArrows);
+      }
+    }
+    final List<DartType> r1s = f1.normalParameterTypes;
+    final List<DartType> r2s = f2.normalParameterTypes;
+    final List<DartType> o1s = f1.optionalParameterTypes;
+    final List<DartType> o2s = f2.optionalParameterTypes;
+    final Map<String, DartType> n1s = f1.namedParameterTypes;
+    final Map<String, DartType> n2s = f2.namedParameterTypes;
+    final DartType ret1 = f1.returnType;
+    final DartType ret2 = f2.returnType;
 
     // A -> B <: C -> D if C <: A and
     // either D is void or B <: D
@@ -188,6 +382,54 @@ class StrongTypeSystemImpl implements TypeSystem {
     return true;
   }
 
+  /**
+   * Check that [f1] is a subtype of [f2] where f1 and f2 are known
+   * to be generic function types (both have type parameters)
+   * [fuzzyArrows] indicates whether or not the f1 and f2 should be
+   * treated as fuzzy arrow types (and hence dynamic parameters to f2 treated
+   * as bottom).
+   */
+  bool _isGenericFunctionSubtypeOf(FunctionType f1, FunctionType f2,
+      {bool fuzzyArrows: true}) {
+    List<TypeParameterElement> params1 = f1.typeFormals;
+    List<TypeParameterElement> params2 = f2.typeFormals;
+    int count = params1.length;
+    if (params2.length != count) {
+      return false;
+    }
+    // We build up a substitution matching up the type parameters
+    // from the two types, {variablesFresh/variables1} and
+    // {variablesFresh/variables2}
+    List<DartType> variables1 = new List<DartType>();
+    List<DartType> variables2 = new List<DartType>();
+    List<DartType> variablesFresh = new List<DartType>();
+    for (int i = 0; i < count; i++) {
+      TypeParameterElement p1 = params1[i];
+      TypeParameterElement p2 = params2[i];
+      TypeParameterElementImpl pFresh =
+          new TypeParameterElementImpl(p2.name, -1);
+
+      DartType variable1 = p1.type;
+      DartType variable2 = p2.type;
+      DartType variableFresh = new TypeParameterTypeImpl(pFresh);
+
+      variables1.add(variable1);
+      variables2.add(variable2);
+      variablesFresh.add(variableFresh);
+      DartType bound1 = p1.bound ?? DynamicTypeImpl.instance;
+      DartType bound2 = p2.bound ?? DynamicTypeImpl.instance;
+      bound1 = bound1.substitute2(variablesFresh, variables1);
+      bound2 = bound2.substitute2(variablesFresh, variables2);
+      pFresh.bound = bound2;
+      if (!isSubtypeOf(bound2, bound1)) {
+        return false;
+      }
+    }
+    return _isFunctionSubtypeOf(
+        f1.instantiate(variablesFresh), f2.instantiate(variablesFresh),
+        fuzzyArrows: fuzzyArrows);
+  }
+
   bool _isInterfaceSubtypeOf(
       InterfaceType i1, InterfaceType i2, Set<Element> visited) {
     // Guard recursive calls
@@ -245,6 +487,8 @@ class StrongTypeSystemImpl implements TypeSystem {
       {bool dynamicIsBottom: false}) {
     // Guard recursive calls
     _GuardedSubtypeChecker<DartType> guardedSubtype = _guard(_isSubtypeOf);
+    _GuardedSubtypeChecker<DartType> guardedInferTypeParameter =
+        _guard(_inferTypeParameterSubtypeOf);
 
     if (t1 == t2) {
       return true;
@@ -263,7 +507,7 @@ class StrongTypeSystemImpl implements TypeSystem {
     // Trivially false.
     if (_isTop(t1, dynamicIsBottom: dynamicIsBottom) ||
         _isBottom(t2, dynamicIsBottom: dynamicIsBottom)) {
-      return false;
+      return guardedInferTypeParameter(t1, t2, visited);
     }
 
     // S <: T where S is a type variable
@@ -272,13 +516,15 @@ class StrongTypeSystemImpl implements TypeSystem {
     //  So only true if bound of S is S' and
     //  S' <: T
     if (t1 is TypeParameterType) {
+      if (guardedInferTypeParameter(t1, t2, visited)) {
+        return true;
+      }
       DartType bound = t1.element.bound;
-      if (bound == null) return false;
-      return guardedSubtype(bound, t2, visited);
+      return bound == null ? false : guardedSubtype(bound, t2, visited);
     }
 
     if (t2 is TypeParameterType) {
-      return false;
+      return guardedInferTypeParameter(t1, t2, visited);
     }
 
     if (t1.isVoid || t2.isVoid) {
@@ -298,7 +544,7 @@ class StrongTypeSystemImpl implements TypeSystem {
     // the interface type declares a call method with a type
     // which is a super type of the function type.
     if (t1 is InterfaceType && t2 is FunctionType) {
-      var callType = _getCallMethodType(t1);
+      var callType = getCallMethodType(t1);
       return (callType != null) && _isFunctionSubtypeOf(callType, t2);
     }
 
@@ -316,7 +562,6 @@ class StrongTypeSystemImpl implements TypeSystem {
   }
 }
 
-
 /**
  * The interface `TypeSystem` defines the behavior of an object representing
  * the type system.  This provides a common location to put methods that act on
@@ -326,10 +571,38 @@ class StrongTypeSystemImpl implements TypeSystem {
  */
 abstract class TypeSystem {
   /**
+   * Returns `true` if we can promote to the first type from the second type.
+   *
+   * In the standard Dart type system, it is not possible to promote from or to
+   * `dynamic`, and we must be promoting to a more specific type, see
+   * [isMoreSpecificThan].
+   *
+   * In strong mode, this is equivalent to [isSubtypeOf].
+   */
+  bool canPromoteToType(DartType to, DartType from);
+
+  /**
+   * Return `true` if the [leftType] is more specific than the [rightType]
+   * (that is, if leftType << rightType), as defined in the Dart language spec.
+   *
+   * In strong mode, this is equivalent to [isSubtypeOf].
+   */
+  bool isMoreSpecificThan(DartType leftType, DartType rightType);
+
+  /**
    * Compute the least upper bound of two types.
    */
   DartType getLeastUpperBound(
       TypeProvider typeProvider, DartType type1, DartType type2);
+
+  /**
+   * Given a [function] type, instantiate it with its bounds.
+   *
+   * The behavior of this method depends on the type system, for example, in
+   * classic Dart `dynamic` will be used for all type arguments, whereas
+   * strong mode prefers the actual bound type if it was specified.
+   */
+  FunctionType instantiateToBounds(FunctionType function);
 
   /**
    * Return `true` if the [leftType] is assignable to the [rightType] (that is,
@@ -358,6 +631,18 @@ abstract class TypeSystem {
  */
 class TypeSystemImpl implements TypeSystem {
   TypeSystemImpl();
+
+  @override
+  bool isMoreSpecificThan(DartType t1, DartType t2) =>
+      t1.isMoreSpecificThan(t2);
+
+  @override
+  bool canPromoteToType(DartType to, DartType from) {
+    // Declared type should not be "dynamic".
+    // Promoted type should not be "dynamic".
+    // Promoted type should be more specific than declared.
+    return !from.isDynamic && !to.isDynamic && to.isMoreSpecificThan(from);
+  }
 
   @override
   DartType getLeastUpperBound(
@@ -426,17 +711,102 @@ class TypeSystemImpl implements TypeSystem {
       }
       return result;
     } else if (type1 is FunctionType && type2 is FunctionType) {
-      FunctionType result =
-          FunctionTypeImpl.computeLeastUpperBound(type1, type2);
-      if (result == null) {
-        return typeProvider.functionType;
-      }
-      return result;
+      return _functionLeastUpperBound(typeProvider, type1, type2);
     } else {
       // Should never happen.  As a defensive measure, return the dynamic type.
       assert(false);
       return typeProvider.dynamicType;
     }
+  }
+
+  /**
+   * Compute the least upper bound of function types [f] and [g].
+   *
+   * The spec rules for LUB on function types, informally, are pretty simple
+   * (though unsound):
+   *
+   * - If the functions don't have the same number of required parameters,
+   *   always return `Function`.
+   *
+   * - Discard any optional named or positional parameters the two types do not
+   *   have in common.
+   *
+   * - Compute the LUB of each corresponding pair of parameter and return types.
+   *   Return a function type with those types.
+   */
+  DartType _functionLeastUpperBound(
+      TypeProvider provider, FunctionType f, FunctionType g) {
+    // TODO(rnystrom): Right now, this assumes f and g do not have any type
+    // parameters. Revisit that in the presence of generic methods.
+    List<DartType> fRequired = f.normalParameterTypes;
+    List<DartType> gRequired = g.normalParameterTypes;
+
+    // We need some parameter names for in the synthesized function type, so
+    // arbitrarily use f's.
+    List<String> fRequiredNames = f.normalParameterNames;
+    List<String> fPositionalNames = f.optionalParameterNames;
+
+    // If F and G differ in their number of required parameters, then the
+    // least upper bound of F and G is Function.
+    if (fRequired.length != gRequired.length) {
+      return provider.functionType;
+    }
+
+    // Calculate the LUB of each corresponding pair of parameters.
+    List<ParameterElement> parameters = [];
+
+    for (int i = 0; i < fRequired.length; i++) {
+      parameters.add(new ParameterElementImpl.synthetic(
+          fRequiredNames[i],
+          getLeastUpperBound(provider, fRequired[i], gRequired[i]),
+          ParameterKind.REQUIRED));
+    }
+
+    List<DartType> fPositional = f.optionalParameterTypes;
+    List<DartType> gPositional = g.optionalParameterTypes;
+
+    // Ignore any extra optional positional parameters if one has more than the
+    // other.
+    int length =  math.min(fPositional.length, gPositional.length);
+    for (int i = 0; i < length; i++) {
+      parameters.add(new ParameterElementImpl.synthetic(
+          fPositionalNames[i],
+          getLeastUpperBound(provider, fPositional[i], gPositional[i]),
+          ParameterKind.POSITIONAL));
+    }
+
+    Map<String, DartType> fNamed = f.namedParameterTypes;
+    Map<String, DartType> gNamed = g.namedParameterTypes;
+    for (String name in fNamed.keys.toSet()..retainAll(gNamed.keys)) {
+      parameters.add(new ParameterElementImpl.synthetic(
+          name,
+          getLeastUpperBound(provider, fNamed[name], gNamed[name]),
+          ParameterKind.NAMED));
+    }
+
+    // Calculate the LUB of the return type.
+    DartType returnType =
+        getLeastUpperBound(provider, f.returnType, g.returnType);
+
+    FunctionElementImpl function = new FunctionElementImpl("", -1);
+    function.synthetic = true;
+    function.returnType = returnType;
+    function.parameters = parameters;
+
+    function.type = new FunctionTypeImpl(function);
+    return function.type;
+  }
+
+  /**
+   * Instantiate the function type using `dynamic` for all generic parameters.
+   */
+  FunctionType instantiateToBounds(FunctionType function) {
+    int count = function.typeFormals.length;
+    if (count == 0) {
+      return function;
+    }
+    return function.instantiate(
+        new List<DartType>.filled(count, DynamicTypeImpl.instance));
   }
 
   @override
@@ -447,5 +817,163 @@ class TypeSystemImpl implements TypeSystem {
   @override
   bool isSubtypeOf(DartType leftType, DartType rightType) {
     return leftType.isSubtypeOf(rightType);
+  }
+}
+
+/// Tracks upper and lower type bounds for a set of type parameters.
+class _StrongInferenceTypeSystem extends StrongTypeSystemImpl {
+  final TypeProvider _typeProvider;
+  final Map<TypeParameterType, _TypeParameterBound> _bounds;
+
+  _StrongInferenceTypeSystem(
+      this._typeProvider, Iterable<TypeParameterType> typeParams)
+      : _bounds = new Map.fromIterable(typeParams, value: (t) {
+          _TypeParameterBound bound = new _TypeParameterBound();
+          if (t.element.bound != null) bound.upper = t.element.bound;
+          return bound;
+        });
+
+  @override
+  bool _inferTypeParameterSubtypeOf(
+      DartType t1, DartType t2, Set<Element> visited) {
+    if (t1 is TypeParameterType) {
+      _TypeParameterBound bound = _bounds[t1];
+      if (bound != null) {
+        _GuardedSubtypeChecker<DartType> guardedSubtype = _guard(_isSubtypeOf);
+
+        DartType newUpper = t2;
+        if (guardedSubtype(bound.upper, newUpper, visited)) {
+          // upper bound already covers this. Nothing to do.
+        } else if (guardedSubtype(newUpper, bound.upper, visited)) {
+          // update to the new, more precise upper bound.
+          bound.upper = newUpper;
+        } else {
+          // Failed to find an upper bound. Use bottom to signal no solution.
+          bound.upper = BottomTypeImpl.instance;
+        }
+        // Optimistically assume we will be able to satisfy the constraint.
+        return true;
+      }
+    }
+    if (t2 is TypeParameterType) {
+      _TypeParameterBound bound = _bounds[t2];
+      if (bound != null) {
+        bound.lower = getLeastUpperBound(_typeProvider, bound.lower, t1);
+        // Optimistically assume we will be able to satisfy the constraint.
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+/// An [upper] and [lower] bound for a type variable.
+class _TypeParameterBound {
+  /// The upper bound of the type parameter. In other words, T <: upperBound.
+  ///
+  /// In Dart this can be written as `<T extends UpperBoundType>`.
+  ///
+  /// In inference, this can happen as a result of parameters of function type.
+  /// For example, consider a signature like:
+  ///
+  ///     T reduce<T>(List<T> values, T f(T x, T y));
+  ///
+  /// and a call to it like:
+  ///
+  ///     reduce(values, (num x, num y) => ...);
+  ///
+  /// From the function expression's parameters, we conclude `T <: num`. We may
+  /// still be able to conclude a different [lower] based on `values` or
+  /// the type of the elided `=> ...` body. For example:
+  ///
+  ///      reduce(['x'], (num x, num y) => 'hi');
+  ///
+  /// Here the [lower] will be `String` and the upper bound will be `num`,
+  /// which cannot be satisfied, so this is ill typed.
+  DartType upper = DynamicTypeImpl.instance;
+
+  /// The lower bound of the type parameter. In other words, lowerBound <: T.
+  ///
+  /// This kind of constraint cannot be expressed in Dart, but it applies when
+  /// we're doing inference. For example, consider a signature like:
+  ///
+  ///     T pickAtRandom<T>(T x, T y);
+  ///
+  /// and a call to it like:
+  ///
+  ///     pickAtRandom(1, 2.0)
+  ///
+  /// when we see the first parameter is an `int`, we know that `int <: T`.
+  /// When we see `double` this implies `double <: T`.
+  /// Combining these constraints results in a lower bound of `num`.
+  ///
+  /// In general, we choose the lower bound as our inferred type, so we can
+  /// offer the most constrained (strongest) result type.
+  DartType lower = BottomTypeImpl.instance;
+}
+
+/// Records what positions a type parameter is used in.
+class _TypeParameterVariance {
+  /// The type parameter is a value passed out. It must satisfy T <: S,
+  /// where T is the type parameter and S is what it's assigned to.
+  ///
+  /// For example, this could be the return type, or a parameter to a parameter:
+  ///
+  ///     TOut method<TOut>(void f(TOut t));
+  bool passedOut = false;
+
+  /// The type parameter is a value passed in. It must satisfy S <: T,
+  /// where T is the type parameter and S is what's being assigned to it.
+  ///
+  /// For example, this could be a parameter type, or the parameter of the
+  /// return value:
+  ///
+  ///     typedef void Func<T>(T t);
+  ///     Func<TIn> method<TIn>(TIn t);
+  bool passedIn = false;
+
+  _TypeParameterVariance.from(TypeParameterType typeParam, DartType type) {
+    _visitType(typeParam, type, false);
+  }
+
+  void _visitFunctionType(
+      TypeParameterType typeParam, FunctionType type, bool paramIn) {
+    for (ParameterElement p in type.parameters) {
+      // If a lambda L is passed in to a function F, the the parameters are
+      // "passed out" of F into L. Thus we invert the "passedIn" state.
+      _visitType(typeParam, p.type, !paramIn);
+    }
+    // If a lambda L is passed in to a function F, and we call L, the result of
+    // L is then "passed in" to F. So we keep the "passedIn" state.
+    _visitType(typeParam, type.returnType, paramIn);
+  }
+
+  void _visitInterfaceType(
+      TypeParameterType typeParam, InterfaceType type, bool paramIn) {
+    // Currently in "strong mode" generic type parameters are covariant.
+    //
+    // This means we treat them as "out" type parameters similar to the result
+    // of a function, and thus they follow the same rules.
+    //
+    // For example, we pass in Iterable<T> as a parameter. Then we iterate over
+    // it. The "T" is essentially an input. So it keeps the same state.
+    // Similarly, if we return an Iterable<T> it's equivalent to returning a T.
+    for (DartType typeArg in type.typeArguments) {
+      _visitType(typeParam, typeArg, paramIn);
+    }
+  }
+
+  void _visitType(TypeParameterType typeParam, DartType type, bool paramIn) {
+    if (type == typeParam) {
+      if (paramIn) {
+        passedIn = true;
+      } else {
+        passedOut = true;
+      }
+    } else if (type is FunctionType) {
+      _visitFunctionType(typeParam, type, paramIn);
+    } else if (type is InterfaceType) {
+      _visitInterfaceType(typeParam, type, paramIn);
+    }
   }
 }

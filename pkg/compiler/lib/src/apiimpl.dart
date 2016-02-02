@@ -33,6 +33,14 @@ import 'script.dart';
 const bool forceIncrementalSupport =
     const bool.fromEnvironment('DART2JS_EXPERIMENTAL_INCREMENTAL_SUPPORT');
 
+/// For every 'dart:' library, a corresponding environment variable is set
+/// to "true". The environment variable's name is the concatenation of
+/// this prefix and the name (without the 'dart:'.
+///
+/// For example 'dart:html' has the environment variable 'dart.library.html' set
+/// to "true".
+const String dartLibraryEnvironmentPrefix = 'dart.library.';
+
 /// Locations of the platform descriptor files relative to the library root.
 const String _clientPlatform = "lib/dart_client.platform";
 const String _serverPlatform = "lib/dart_server.platform";
@@ -83,6 +91,8 @@ class CompilerImpl extends Compiler {
                 hasOption(options, Flags.trustTypeAnnotations),
             trustPrimitives:
                 hasOption(options, Flags.trustPrimitives),
+            trustJSInteropTypeAnnotations:
+                hasOption(options, Flags.trustJSInteropTypeAnnotations),
             enableMinification: hasOption(options, Flags.minify),
             useFrequencyNamer:
                 !hasOption(options, Flags.noFrequencyBasedMinification),
@@ -114,6 +124,8 @@ class CompilerImpl extends Compiler {
             useContentSecurityPolicy:
               hasOption(options, Flags.useContentSecurityPolicy),
             useStartupEmitter: hasOption(options, Flags.fastStartup),
+            enableConditionalDirectives:
+                hasOption(options, Flags.conditionalDirectives),
             hasIncrementalSupport:
                 forceIncrementalSupport ||
                 hasOption(options, Flags.incrementalSupport),
@@ -122,8 +134,8 @@ class CompilerImpl extends Compiler {
                 fatalWarnings: hasOption(options, Flags.fatalWarnings),
                 suppressHints: hasOption(options, Flags.suppressHints),
                 terseDiagnostics: hasOption(options, Flags.terse),
-                showPackageWarnings:
-                    hasOption(options, Flags.showPackageWarnings)),
+                shownPackageWarnings: extractOptionalCsvOption(
+                      options, Flags.showPackageWarnings)),
             enableExperimentalMirrors:
                 hasOption(options, Flags.enableExperimentalMirrors),
             enableAssertMessage:
@@ -185,6 +197,23 @@ class CompilerImpl extends Compiler {
       }
     }
     return const <String>[];
+  }
+
+  /// Extract list of comma separated values provided for [flag]. Returns an
+  /// empty list if [option] contain [flag] without arguments. Returns `null` if
+  /// [option] doesn't contain [flag] with or without arguments.
+  static List<String> extractOptionalCsvOption(
+      List<String> options, String flag) {
+    String prefix = '$flag=';
+    for (String option in options) {
+      if (option == flag) {
+        return const <String>[];
+      }
+      if (option.startsWith(flag)) {
+        return option.substring(prefix.length).split(',');
+      }
+    }
+    return null;
   }
 
   static Uri resolvePlatformConfig(Uri libraryRoot,
@@ -414,7 +443,10 @@ class CompilerImpl extends Compiler {
     if (packages == null) {
       setupFutures.add(setupPackages(uri));
     }
-    return Future.wait(setupFutures).then((_) => super.analyzeUri(uri));
+    return Future.wait(setupFutures).then((_) {
+      return super.analyzeUri(uri,
+          skipLibraryWithPartOfTag: skipLibraryWithPartOfTag);
+    });
   }
 
   Future setupPackages(Uri uri) {
@@ -556,7 +588,26 @@ class CompilerImpl extends Compiler {
     }
   }
 
-  fromEnvironment(String name) => environment[name];
+  fromEnvironment(String name) {
+    assert(invariant(NO_LOCATION_SPANNABLE,
+        sdkLibraries != null, message: "setupSdk() has not been run"));
+
+    var result = environment[name];
+    if (result != null || environment.containsKey(name)) return result;
+    if (!name.startsWith(dartLibraryEnvironmentPrefix)) return null;
+
+    String libraryName = name.substring(dartLibraryEnvironmentPrefix.length);
+    if (sdkLibraries.containsKey(libraryName)) {
+      // Dart2js always "supports" importing 'dart:mirrors' but will abort
+      // the compilation at a later point if the backend doesn't support
+      // mirrors. In this case 'mirrors' should not be in the environment.
+      if (name == dartLibraryEnvironmentPrefix + 'mirrors') {
+        return backend.supportsReflection ? "true" : null;
+      }
+      return "true";
+    }
+    return null;
+  }
 
   Uri lookupLibraryUri(String libraryName) {
     assert(invariant(NO_LOCATION_SPANNABLE,

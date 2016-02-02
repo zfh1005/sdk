@@ -101,7 +101,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // We are entering runtime code, so the C stack pointer must be restored from
   // the stack limit to the top of the stack. We cache the stack limit address
   // in a callee-saved register.
-  __ mov(R26, CSP);
+  __ mov(R25, CSP);
   __ mov(CSP, SP);
 
   __ blr(R5);
@@ -109,7 +109,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Restore SP and CSP.
   __ mov(SP, CSP);
-  __ mov(CSP, R26);
+  __ mov(CSP, R25);
 
   // Retval is next to 1st argument.
   // Mark that the thread is executing Dart code.
@@ -204,7 +204,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // We are entering runtime code, so the C stack pointer must be restored from
   // the stack limit to the top of the stack. We cache the stack limit address
   // in the Dart SP register, which is callee-saved in the C ABI.
-  __ mov(R26, CSP);
+  __ mov(R25, CSP);
   __ mov(CSP, SP);
 
   __ mov(R1, R5);  // Pass the function entrypoint to call.
@@ -215,7 +215,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   // Restore SP and CSP.
   __ mov(SP, CSP);
-  __ mov(CSP, R26);
+  __ mov(CSP, R25);
 
   // Mark that the thread is executing Dart code.
   __ LoadImmediate(R2, VMTag::kDartTagId);
@@ -297,7 +297,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   // We are entering runtime code, so the C stack pointer must be restored from
   // the stack limit to the top of the stack. We cache the stack limit address
   // in the Dart SP register, which is callee-saved in the C ABI.
-  __ mov(R26, CSP);
+  __ mov(R25, CSP);
   __ mov(CSP, SP);
 
   // Call native function or redirection via simulator.
@@ -305,7 +305,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   // Restore SP and CSP.
   __ mov(SP, CSP);
-  __ mov(CSP, R26);
+  __ mov(CSP, R25);
 
   // Mark that the thread is executing Dart code.
   __ LoadImmediate(R2, VMTag::kDartTagId);
@@ -786,7 +786,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Copy the C stack pointer (R31) into the stack pointer we'll actually use
   // to access the stack, and put the C stack pointer at the stack limit.
-  __ SetupDartSP(Isolate::GetSpecifiedStackSize());
+  __ SetupDartSP(OSThread::GetSpecifiedStackSize());
   __ EnterFrame(0);
 
   // Push code object to PC marker slot.
@@ -829,7 +829,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ LoadFromOffset(R6, THR, Thread::top_exit_frame_info_offset());
   __ StoreToOffset(ZR, THR, Thread::top_exit_frame_info_offset());
   // kExitLinkSlotFromEntryFp must be kept in sync with the code below.
-  ASSERT(kExitLinkSlotFromEntryFp == -21);
+  ASSERT(kExitLinkSlotFromEntryFp == -22);
   __ Push(R6);
 
   // Load arguments descriptor array into R4, which is passed to Dart code.
@@ -1865,9 +1865,13 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // R3: instance class id.
   // R4: instance type arguments.
   __ SmiTag(R3);
+  __ CompareImmediate(R3, Smi::RawValue(kClosureCid));
+  __ b(&loop, NE);
+  __ LoadFieldFromOffset(R3, R0, Closure::function_offset());
+  // R3: instance class id as Smi or function.
   __ Bind(&loop);
   __ LoadFromOffset(
-      R5, R2, kWordSize * SubtypeTestCache::kInstanceClassId);
+      R5, R2, kWordSize * SubtypeTestCache::kInstanceClassIdOrFunction);
   __ CompareObject(R5, Object::null_object());
   __ b(&not_found, EQ);
   __ CompareRegisters(R5, R3);

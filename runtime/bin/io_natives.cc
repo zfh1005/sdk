@@ -31,6 +31,7 @@ namespace bin {
   V(Directory_Rename, 2)                                                       \
   V(Directory_List, 3)                                                         \
   V(EventHandler_SendData, 3)                                                  \
+  V(EventHandler_TimerMillisecondClock, 0)                                     \
   V(File_Open, 2)                                                              \
   V(File_Exists, 1)                                                            \
   V(File_GetFD, 1)                                                             \
@@ -84,7 +85,6 @@ namespace bin {
   V(Platform_ResolvedExecutableName, 0)                                        \
   V(Platform_Environment, 0)                                                   \
   V(Platform_ExecutableArguments, 0)                                           \
-  V(Platform_PackageRoot, 0)                                                   \
   V(Platform_GetVersion, 0)                                                    \
   V(Process_Start, 11)                                                         \
   V(Process_Wait, 5)                                                           \
@@ -107,12 +107,12 @@ namespace bin {
   V(SecureSocket_RegisterHandshakeCompleteCallback, 2)                         \
   V(SecureSocket_Renegotiate, 4)                                               \
   V(SecurityContext_Allocate, 1)                                               \
-  V(SecurityContext_UsePrivateKey, 3)                                          \
+  V(SecurityContext_UsePrivateKeyBytes, 3)                                     \
   V(SecurityContext_SetAlpnProtocols, 3)                                       \
   V(SecurityContext_SetClientAuthorities, 2)                                   \
   V(SecurityContext_SetTrustedCertificates, 3)                                 \
   V(SecurityContext_TrustBuiltinRoots, 1)                                      \
-  V(SecurityContext_UseCertificateChain, 2)                                    \
+  V(SecurityContext_UseCertificateChainBytes, 2)                               \
   V(ServerSocket_Accept, 2)                                                    \
   V(ServerSocket_CreateBindListen, 6)                                          \
   V(Socket_CreateConnect, 3)                                                   \

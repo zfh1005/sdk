@@ -240,10 +240,10 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
 }
 
 
-intptr_t StackFrame::GetTokenPos() const {
+TokenPosition StackFrame::GetTokenPos() const {
   const Code& code = Code::Handle(LookupDartCode());
   if (code.IsNull()) {
-    return -1;  // Stub frames do not have token_pos.
+    return TokenPosition::kNoSource;  // Stub frames do not have token_pos.
   }
   uword pc_offset = pc() - code.EntryPoint();
   const PcDescriptors& descriptors =
@@ -252,10 +252,10 @@ intptr_t StackFrame::GetTokenPos() const {
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
     if (iter.PcOffset() == pc_offset) {
-      return iter.TokenPos();
+      return TokenPosition(iter.TokenPos());
     }
   }
-  return -1;
+  return TokenPosition::kNoSource;
 }
 
 
@@ -283,12 +283,11 @@ void StackFrameIterator::SetupNextExitFrameData() {
 }
 
 
-// TODO(johnmccutchan): Remove |isolate| argument.
 // Tell MemorySanitizer that generated code initializes part of the stack.
 // TODO(koda): Limit to frames that are actually written by generated code.
-static void UnpoisonStack(Isolate* isolate, uword fp) {
+static void UnpoisonStack(uword fp) {
   ASSERT(fp != 0);
-  uword size = isolate->GetSpecifiedStackSize();
+  uword size = OSThread::GetSpecifiedStackSize();
   MSAN_UNPOISON(reinterpret_cast<void*>(fp - size), 2 * size);
 }
 
@@ -355,7 +354,7 @@ StackFrame* StackFrameIterator::NextFrame() {
     if (!HasNextFrame()) {
       return NULL;
     }
-    UnpoisonStack(thread_->isolate(), frames_.fp_);
+    UnpoisonStack(frames_.fp_);
     if (frames_.pc_ == 0) {
       // Iteration starts from an exit frame given by its fp.
       current_frame_ = NextExitFrame();

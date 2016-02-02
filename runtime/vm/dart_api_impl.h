@@ -8,10 +8,9 @@
 #include "vm/allocation.h"
 #include "vm/native_arguments.h"
 #include "vm/object.h"
+#include "vm/safepoint.h"
 
 namespace dart {
-
-DECLARE_FLAG(bool, trace_api);
 
 class ApiLocalScope;
 class ApiState;
@@ -24,20 +23,9 @@ const char* CanonicalFunction(const char* func);
 
 #define CURRENT_FUNC CanonicalFunction(__FUNCTION__)
 
-#if defined(DEBUG)
-#define TRACE_API_CALL(name)                                                   \
-  if (FLAG_trace_api) {                                                        \
-    OS::Print("Calling API func: %s\n", name);                                 \
-  }
-#else
-#define TRACE_API_CALL(name)
-#endif
-
-
 // Checks that the current isolate is not NULL.
 #define CHECK_ISOLATE(isolate)                                                 \
   do {                                                                         \
-    TRACE_API_CALL(CURRENT_FUNC);                                              \
     if ((isolate) == NULL) {                                                   \
       FATAL1("%s expects there to be a current isolate. Did you "              \
              "forget to call Dart_CreateIsolate or Dart_EnterIsolate?",        \
@@ -48,7 +36,6 @@ const char* CanonicalFunction(const char* func);
 // Checks that the current isolate is NULL.
 #define CHECK_NO_ISOLATE(isolate)                                              \
   do {                                                                         \
-    TRACE_API_CALL(CURRENT_FUNC);                                              \
     if ((isolate) != NULL) {                                                   \
       FATAL1("%s expects there to be no current isolate. Did you "             \
              "forget to call Dart_ExitIsolate?", CURRENT_FUNC);                \
@@ -56,22 +43,21 @@ const char* CanonicalFunction(const char* func);
   } while (0)
 
 // Checks that the current isolate is not NULL and that it has an API scope.
-#define CHECK_ISOLATE_SCOPE(isolate)                                           \
+#define CHECK_API_SCOPE(thread)                                                \
   do {                                                                         \
-    Isolate* tmp = (isolate);                                                  \
-    CHECK_ISOLATE(tmp);                                                        \
-    ApiState* state = tmp->api_state();                                        \
-    ASSERT(state);                                                             \
-    if (state->top_scope() == NULL) {                                          \
+    Thread* tmpT = (thread);                                                   \
+    Isolate* tmpI = tmpT->isolate();                                           \
+    CHECK_ISOLATE(tmpI);                                                       \
+    if (tmpT->api_top_scope() == NULL) {                                       \
       FATAL1("%s expects to find a current scope. Did you forget to call "     \
            "Dart_EnterScope?", CURRENT_FUNC);                                  \
     }                                                                          \
-  } while (0)
+  } while (0);                                                                 \
 
 #define DARTSCOPE(thread)                                                      \
   Thread* T = (thread);                                                        \
-  Isolate* I = T->isolate();                                                   \
-  CHECK_ISOLATE_SCOPE(I);                                                      \
+  CHECK_API_SCOPE(T);                                                          \
+  TransitionNativeToVM trainsition(T);                                         \
   HANDLESCOPE(T);
 
 
@@ -124,7 +110,7 @@ class Api : AllStatic {
   };
 
   // Creates a new local handle.
-  static Dart_Handle NewHandle(Isolate* isolate, RawObject* raw);
+  static Dart_Handle NewHandle(Thread* thread, RawObject* raw);
 
   // Unwraps the raw object from the handle.
   static RawObject* UnwrapHandle(Dart_Handle object);
@@ -146,7 +132,7 @@ class Api : AllStatic {
   // Returns an Error handle if isolate is in an inconsistent state
   // or there was an error while finalizing classes.
   // Returns a Success handle when no error condition exists.
-  static Dart_Handle CheckAndFinalizePendingClasses(Isolate *isolate);
+  static Dart_Handle CheckAndFinalizePendingClasses(Thread *thread);
 
   // Casts the internal Isolate* type to the external Dart_Isolate type.
   static Dart_Isolate CastIsolate(Isolate* isolate);
@@ -216,7 +202,7 @@ class Api : AllStatic {
   }
 
   // Retrieves the top ApiLocalScope.
-  static ApiLocalScope* TopScope(Isolate* isolate);
+  static ApiLocalScope* TopScope(Thread* thread);
 
   // Performs one-time initialization needed by the API.
   static void InitOnce();
@@ -273,7 +259,7 @@ class Api : AllStatic {
                                             const String& name);
 
  private:
-  static Dart_Handle InitNewHandle(Isolate* isolate, RawObject* raw);
+  static Dart_Handle InitNewHandle(Thread* thread, RawObject* raw);
 
   // Thread local key used by the API. Currently holds the current
   // ApiNativeScope if any.
@@ -284,23 +270,6 @@ class Api : AllStatic {
   static Dart_Handle empty_string_handle_;
 
   friend class ApiNativeScope;
-};
-
-class IsolateSaver {
- public:
-  explicit IsolateSaver(Isolate* current_isolate)
-      : saved_isolate_(current_isolate) {
-  }
-  ~IsolateSaver() {
-    // TODO(koda): Audit users; they should know whether they're in an isolate.
-    if (saved_isolate_ != NULL) {
-      Thread::EnterIsolate(saved_isolate_);
-    }
-  }
- private:
-  Isolate* saved_isolate_;
-
-  DISALLOW_COPY_AND_ASSIGN(IsolateSaver);
 };
 
 // Start a scope in which no Dart API call backs are allowed.

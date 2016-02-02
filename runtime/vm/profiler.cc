@@ -296,6 +296,18 @@ bool ReturnAddressLocator::LocateReturnAddress(uword* return_address) {
 #endif
 
 
+bool SampleFilter::TimeFilterSample(Sample* sample) {
+  if ((time_origin_micros_ == -1) ||
+      (time_extent_micros_ == -1)) {
+    // No time filter passed in, always pass.
+    return true;
+  }
+  const int64_t timestamp = sample->timestamp();
+  int64_t delta = timestamp - time_origin_micros_;
+  return (delta >= 0) && (delta <= time_extent_micros_);
+}
+
+
 ClearProfileVisitor::ClearProfileVisitor(Isolate* isolate)
     : SampleVisitor(isolate) {
 }
@@ -712,7 +724,6 @@ static void CollectSample(Isolate* isolate,
     // We are executing Dart code. We have frame pointers.
     dart_stack_walker->walk();
   } else {
-    sample->set_vm_tag(VMTag::kEmbedderTagId);
     sample->SetAt(0, pc);
   }
 
@@ -747,17 +758,19 @@ static bool GetAndValidateIsolateStackBounds(Thread* thread,
                                              uword* stack_lower,
                                              uword* stack_upper) {
   ASSERT(thread != NULL);
-  Isolate* isolate = thread->isolate();
-  ASSERT(isolate != NULL);
+  OSThread* os_thread = thread->os_thread();
+  ASSERT(os_thread != NULL);
   ASSERT(stack_lower != NULL);
   ASSERT(stack_upper != NULL);
 #if defined(USING_SIMULATOR)
   const bool in_dart_code = thread->IsExecutingDartCode();
   if (in_dart_code) {
+    Isolate* isolate = thread->isolate();
+    ASSERT(isolate != NULL);
     Simulator* simulator = isolate->simulator();
     *stack_lower = simulator->StackBase();
     *stack_upper = simulator->StackTop();
-  } else if (!isolate->GetProfilerStackBounds(stack_lower, stack_upper)) {
+  } else if (!os_thread->GetProfilerStackBounds(stack_lower, stack_upper)) {
     // Could not get stack boundary.
     return false;
   }
@@ -765,7 +778,7 @@ static bool GetAndValidateIsolateStackBounds(Thread* thread,
     return false;
   }
 #else
-  if (!isolate->GetProfilerStackBounds(stack_lower, stack_upper) ||
+  if (!os_thread->GetProfilerStackBounds(stack_lower, stack_upper) ||
       (*stack_lower == 0) || (*stack_upper == 0)) {
     // Could not get stack boundary.
     return false;
@@ -782,12 +795,12 @@ static bool GetAndValidateIsolateStackBounds(Thread* thread,
   }
 
   if ((sp < *stack_lower) || (sp >= *stack_upper)) {
-    // Stack pointer is outside isolate stack boundary.
+    // Stack pointer is outside thread's stack boundary.
     return false;
   }
 
   if ((fp < *stack_lower) || (fp >= *stack_upper)) {
-    // Frame pointer is outside isolate stack boundary.
+    // Frame pointer is outside threads's stack boundary.
     return false;
   }
 
@@ -819,7 +832,7 @@ static Sample* SetupSample(Thread* thread,
   Isolate* isolate = thread->isolate();
   ASSERT(sample_buffer != NULL);
   Sample* sample = sample_buffer->ReserveSample();
-  sample->Init(isolate, OS::GetCurrentTimeMicros(), tid);
+  sample->Init(isolate, OS::GetCurrentMonotonicMicros(), tid);
   uword vm_tag = thread->vm_tag();
 #if defined(USING_SIMULATOR)
   // When running in the simulator, the runtime entry function address
@@ -859,6 +872,8 @@ static uintptr_t __attribute__((noinline)) GetProgramCounter() {
 
 void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
   ASSERT(thread != NULL);
+  OSThread* os_thread = thread->os_thread();
+  ASSERT(os_thread != NULL);
   Isolate* isolate = thread->isolate();
   if (!CheckIsolate(isolate)) {
     return;
@@ -895,9 +910,7 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
       return;
     }
 
-    Sample* sample = SetupSample(thread,
-                                 sample_buffer,
-                                 OSThread::GetCurrentThreadId());
+    Sample* sample = SetupSample(thread, sample_buffer, os_thread->trace_id());
     sample->SetAllocationCid(cid);
     ProfilerNativeStackWalker native_stack_walker(isolate,
                                                   sample,
@@ -909,9 +922,7 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
                                                   sp);
     native_stack_walker.walk();
   } else if (exited_dart_code) {
-    Sample* sample = SetupSample(thread,
-                                 sample_buffer,
-                                 OSThread::GetCurrentThreadId());
+    Sample* sample = SetupSample(thread, sample_buffer, os_thread->trace_id());
     sample->SetAllocationCid(cid);
     ProfilerDartExitStackWalker dart_exit_stack_walker(thread,
                                                        isolate,
@@ -921,11 +932,8 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
   } else {
     // Fall back.
     uintptr_t pc = GetProgramCounter();
-    Sample* sample = SetupSample(thread,
-                                 sample_buffer,
-                                 OSThread::GetCurrentThreadId());
+    Sample* sample = SetupSample(thread, sample_buffer, os_thread->trace_id());
     sample->SetAllocationCid(cid);
-    sample->set_vm_tag(VMTag::kEmbedderTagId);
     sample->SetAt(0, pc);
   }
 }
@@ -934,6 +942,8 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
 void Profiler::SampleThread(Thread* thread,
                             const InterruptedThreadState& state) {
   ASSERT(thread != NULL);
+  OSThread* os_thread = thread->os_thread();
+  ASSERT(os_thread != NULL);
   Isolate* isolate = thread->isolate();
 
   if (StubCode::HasBeenInitialized() &&
@@ -1002,9 +1012,7 @@ void Profiler::SampleThread(Thread* thread,
   }
 
   // Setup sample.
-  Sample* sample = SetupSample(thread,
-                               sample_buffer,
-                               OSThread::GetCurrentThreadId());
+  Sample* sample = SetupSample(thread, sample_buffer, os_thread->trace_id());
   // Increment counter for vm tag.
   VMTagCounters* counters = isolate->vm_tag_counters();
   ASSERT(counters != NULL);
@@ -1197,9 +1205,9 @@ ProcessedSampleBuffer* SampleBuffer::BuildProcessedSampleBuffer(
       continue;
     }
     if (!sample->head_sample()) {
-        // An inner sample in a chain of samples.
-        continue;
-      }
+      // An inner sample in a chain of samples.
+      continue;
+    }
     if (sample->isolate() != filter->isolate()) {
       // Another isolate.
       continue;
@@ -1210,6 +1218,10 @@ ProcessedSampleBuffer* SampleBuffer::BuildProcessedSampleBuffer(
     }
     if (sample->At(0) == 0) {
       // No frames.
+      continue;
+    }
+    if (!filter->TimeFilterSample(sample)) {
+      // Did not pass time filter.
       continue;
     }
     if (!filter->FilterSample(sample)) {
@@ -1232,6 +1244,7 @@ ProcessedSample* SampleBuffer::BuildProcessedSample(
 
   // Copy state bits from sample.
   processed_sample->set_timestamp(sample->timestamp());
+  processed_sample->set_tid(sample->tid());
   processed_sample->set_vm_tag(sample->vm_tag());
   processed_sample->set_user_tag(sample->user_tag());
   if (sample->is_allocation_sample()) {
@@ -1291,7 +1304,8 @@ ProcessedSample::ProcessedSample()
       vm_tag_(0),
       user_tag_(0),
       allocation_cid_(-1),
-      truncated_(false) {
+      truncated_(false),
+      timeline_trie_(NULL) {
 }
 
 

@@ -4,6 +4,11 @@
 
 part of service;
 
+// Some value smaller than the object ring, so requesting a large array
+// doesn't result in an expired ref because the elements lapped it in the
+// object ring.
+const int kDefaultFieldLimit = 100;
+
 /// Helper function for canceling a Future<StreamSubscription>.
 Future cancelFutureSubscription(
     Future<StreamSubscription> subscriptionFuture) async {
@@ -36,6 +41,7 @@ class ServerRpcException extends RpcException {
   static const kCannotAddBreakpoint     = 102;
   static const kStreamAlreadySubscribed = 103;
   static const kStreamNotSubscribed     = 104;
+  static const kIsolateMustBeRunnable   = 105;
 
   int code;
   Map data;
@@ -284,6 +290,7 @@ abstract class ServiceObject extends Observable {
   Future<ObservableMap> _fetchDirect() {
     Map params = {
       'objectId': id,
+      'count': kDefaultFieldLimit,
     };
     return isolate.invokeRpcNoUpgrade('getObject', params);
   }
@@ -386,40 +393,6 @@ abstract class HeapObject extends ServiceObject {
       return;
     }
     size = map['size'];
-  }
-}
-
-abstract class Coverage {
-  // Following getters and functions will be provided by [ServiceObject].
-  String get id;
-  Isolate get isolate;
-
-  Future refreshCoverage() {
-    return refreshCallSiteData();
-  }
-
-  /// Default handler for coverage data.
-  void processCallSiteData(List coverageData) {
-    coverageData.forEach((scriptCoverage) {
-      assert(scriptCoverage['script'] != null);
-      scriptCoverage['script']._processCallSites(scriptCoverage['callSites']);
-    });
-  }
-
-  Future refreshCallSiteData() {
-    Map params = {};
-    if (this is! Isolate) {
-      params['targetId'] = id;
-    }
-    return isolate.invokeRpcNoUpgrade('_getCallSiteData', params).then(
-        (ObservableMap map) {
-          var coverage = new ServiceObject._fromMap(isolate, map);
-          assert(coverage.type == 'CodeCoverage');
-          var coverageList = coverage['coverage'];
-          assert(coverageList != null);
-          processCallSiteData(coverageList);
-          return this;
-        });
   }
 }
 
@@ -1129,8 +1102,10 @@ class HeapSnapshot {
 }
 
 /// State for a running isolate.
-class Isolate extends ServiceObjectOwner with Coverage {
+class Isolate extends ServiceObjectOwner {
   static const kLoggingStream = '_Logging';
+  static const kExtensionStream = 'Extension';
+
   @reflectable VM get vm => owner;
   @reflectable Isolate get isolate => this;
   @observable int number;
@@ -1165,6 +1140,8 @@ class Isolate extends ServiceObjectOwner with Coverage {
 
   @observable bool ioEnabled = false;
 
+  final List<String> extensionRPCs = new List<String>();
+
   Map<String,ServiceObject> _cache = new Map<String,ServiceObject>();
   final TagProfile tagProfile = new TagProfile(20);
 
@@ -1182,6 +1159,26 @@ class Isolate extends ServiceObjectOwner with Coverage {
         function.profile = null;
       }
     });
+  }
+
+  static const kCallSitesReport = '_CallSites';
+  static const kPossibleBreakpointsReport = 'PossibleBreakpoints';
+
+  Future<ServiceMap> getSourceReport(List<String> report_kinds,
+                                     [Script script,
+                                      int startPos,
+                                      int endPos]) {
+    var params = { 'reports' : report_kinds };
+    if (script != null) {
+      params['scriptId'] = script.id;
+    }
+    if (startPos != null) {
+      params['tokenPos'] = startPos;
+    }
+    if (endPos != null) {
+      params['endTokenPos'] = endPos;
+    }
+    return invokeRpc('_getSourceReport', params);
   }
 
   /// Fetches and builds the class hierarchy for this isolate. Returns the
@@ -1288,6 +1285,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     }
     Map params = {
       'objectId': objectId,
+      'count': kDefaultFieldLimit,
     };
     return isolate.invokeRpc('getObject', params);
   }
@@ -1429,6 +1427,11 @@ class Isolate extends ServiceObjectOwner with Coverage {
     if (savedStartTime == null) {
       vm._buildIsolateList();
     }
+
+    extensionRPCs.clear();
+    if (map['extensionRPCs'] != null) {
+      extensionRPCs.addAll(map['extensionRPCs']);
+    }
   }
 
   Future<TagProfile> updateTagProfile() {
@@ -1520,34 +1523,15 @@ class Isolate extends ServiceObjectOwner with Coverage {
     }
   }
 
-  Future<ServiceObject> addBreakpoint(
-      Script script, int line, [int col]) async {
-    // TODO(turnidge): Pass line as an int instead of a string.
-    try {
-      Map params = {
-        'scriptId': script.id,
-        'line': line.toString(),
-      };
-      if (col != null) {
-        params['column'] = col.toString();
-      }
-      Breakpoint bpt = await invokeRpc('addBreakpoint', params);
-      if (bpt.resolved && script.loaded) {
-        SourceLocation loc = bpt.location;
-        if (script.tokenToLine(loc.tokenPos) != line) {
-          script.getLine(line).possibleBpt = false;
-        }
-      }
-      return bpt;
-    } on ServerRpcException catch(e) {
-      if (e.code == ServerRpcException.kCannotAddBreakpoint) {
-        // Unable to set a breakpoint at the desired line.
-        if (script.loaded) {
-          script.getLine(line).possibleBpt = false;
-        }
-      }
-      rethrow;
+  Future<ServiceObject> addBreakpoint(Script script, int line, [int col]) {
+    Map params = {
+      'scriptId': script.id,
+      'line': line,
+    };
+    if (col != null) {
+      params['column'] = col;
     }
+    return invokeRpc('addBreakpoint', params);
   }
 
   Future<ServiceObject> addBreakpointByScriptUri(
@@ -1686,6 +1670,13 @@ class Isolate extends ServiceObjectOwner with Coverage {
       'expression': expression,
     };
     return invokeRpc('evaluateInFrame', params);
+  }
+
+  Future<ServiceObject> getReachableSize(ServiceObject target) {
+    Map params = {
+      'targetId': target.id,
+    };
+    return invokeRpc('_getReachableSize', params);
   }
 
   Future<ServiceObject> getRetainedSize(ServiceObject target) {
@@ -1870,6 +1861,7 @@ class ServiceEvent extends ServiceObject {
   static const kIsolateRunnable        = 'IsolateRunnable';
   static const kIsolateExit            = 'IsolateExit';
   static const kIsolateUpdate          = 'IsolateUpdate';
+  static const kServiceExtensionAdded  = 'ServiceExtensionAdded';
   static const kPauseStart             = 'PauseStart';
   static const kPauseExit              = 'PauseExit';
   static const kPauseBreakpoint        = 'PauseBreakpoint';
@@ -1885,6 +1877,7 @@ class ServiceEvent extends ServiceObject {
   static const kDebuggerSettingsUpdate = '_DebuggerSettingsUpdate';
   static const kConnectionClosed       = 'ConnectionClosed';
   static const kLogging                = '_Logging';
+  static const kExtension              = 'Extension';
 
   ServiceEvent._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -1896,6 +1889,7 @@ class ServiceEvent extends ServiceObject {
   @observable DateTime timestamp;
   @observable Breakpoint breakpoint;
   @observable Frame topFrame;
+  @observable String extensionRPC;
   @observable Instance exception;
   @observable Instance asyncContinuation;
   @observable bool atAsyncJump;
@@ -1906,6 +1900,8 @@ class ServiceEvent extends ServiceObject {
   @observable String exceptions;
   @observable String bytesAsString;
   @observable Map logRecord;
+  @observable String extensionKind;
+  @observable Map extensionData;
 
   int chunkIndex, chunkCount, nodeCount;
 
@@ -1937,6 +1933,9 @@ class ServiceEvent extends ServiceObject {
       if (pauseBpts.length > 0) {
         breakpoint = pauseBpts[0];
       }
+    }
+    if (map['extensionRPC'] != null) {
+      extensionRPC = map['extensionRPC'];
     }
     topFrame = map['topFrame'];
     if (map['exception'] != null) {
@@ -1971,7 +1970,7 @@ class ServiceEvent extends ServiceObject {
       exceptions = map['_debuggerSettings']['_exceptions'];
     }
     if (map['bytes'] != null) {
-      var bytes = decodeBase64(map['bytes']);
+      var bytes = BASE64.decode(map['bytes']);
       bytesAsString = UTF8.decode(bytes);
     }
     if (map['logRecord'] != null) {
@@ -1979,6 +1978,10 @@ class ServiceEvent extends ServiceObject {
       logRecord['time'] =
           new DateTime.fromMillisecondsSinceEpoch(logRecord['time']);
       logRecord['level'] = _findLogLevel(logRecord['level']);
+    }
+    if (map['extensionKind'] != null) {
+      extensionKind = map['extensionKind'];
+      extensionData = map['extensionData'];
     }
   }
 
@@ -2080,7 +2083,7 @@ class LibraryDependency {
 }
 
 
-class Library extends HeapObject with Coverage {
+class Library extends HeapObject {
   @observable String uri;
   @reflectable final dependencies = new ObservableList<LibraryDependency>();
   @reflectable final scripts = new ObservableList<Script>();
@@ -2178,7 +2181,7 @@ class Allocations {
   bool get empty => accumulated.empty && current.empty;
 }
 
-class Class extends HeapObject with Coverage {
+class Class extends HeapObject {
   @observable Library library;
 
   @observable bool isAbstract;
@@ -2413,7 +2416,7 @@ class Instance extends HeapObject {
     elements = map['elements'];
     associations = map['associations'];
     if (map['bytes'] != null) {
-      var bytes = decodeBase64(map['bytes']);
+      var bytes = BASE64.decode(map['bytes']);
       switch (map['kind']) {
         case "Uint8ClampedList":
           typedElements = bytes.buffer.asUint8ClampedList(); break;
@@ -2557,7 +2560,7 @@ class FunctionKind {
   static FunctionKind kUNKNOWN = new FunctionKind._internal('UNKNOWN');
 }
 
-class ServiceFunction extends HeapObject with Coverage {
+class ServiceFunction extends HeapObject {
   // owner is a Library, Class, or ServiceFunction.
   @observable ServiceObject dartOwner;
   @observable Library library;
@@ -2632,6 +2635,14 @@ class ServiceFunction extends HeapObject with Coverage {
     icDataArray = map['_icDataArray'];
     field = map['_field'];
   }
+
+  ServiceFunction get homeMethod {
+    var m = this;
+    while (m.dartOwner is ServiceFunction) {
+      m = m.dartOwner;
+    }
+    return m;
+  }
 }
 
 
@@ -2695,21 +2706,21 @@ class ScriptLine extends Observable {
   final Script script;
   final int line;
   final String text;
-  @observable int hits;
-  @observable bool possibleBpt = true;
-  @observable bool breakpointResolved = false;
   @observable Set<Breakpoint> breakpoints;
 
-  bool get isBlank {
-    // Compute isBlank on demand.
-    if (_isBlank == null) {
-      _isBlank = text.trim().isEmpty;
-    }
-    return _isBlank;
-  }
-  bool _isBlank;
+  ScriptLine(this.script, this.line, this.text);
 
-  bool get isTrivialLine => !possibleBpt;
+  bool get isBlank {
+    return text.isEmpty || text.trim().isEmpty;
+  }
+
+  bool _isTrivial = null;
+  bool get isTrivial {
+    if (_isTrivial == null) {
+      _isTrivial = _isTrivialLine(text);
+    }
+    return _isTrivial;
+  }
 
   static bool _isTrivialToken(String token) {
     if (token == 'else') {
@@ -2746,16 +2757,11 @@ class ScriptLine extends Observable {
     return true;
   }
 
-  ScriptLine(this.script, this.line, this.text) {
-    possibleBpt = !_isTrivialLine(text);
-  }
-
   void addBreakpoint(Breakpoint bpt) {
     if (breakpoints == null) {
       breakpoints = new Set<Breakpoint>();
     }
     breakpoints.add(bpt);
-    breakpointResolved = breakpointResolved || bpt.resolved;
   }
 
   void removeBreakpoint(Breakpoint bpt) {
@@ -2763,7 +2769,6 @@ class ScriptLine extends Observable {
     breakpoints.remove(bpt);
     if (breakpoints.isEmpty) {
       breakpoints = null;
-      breakpointResolved = false;
     }
   }
 }
@@ -2807,19 +2812,19 @@ class CallSite {
 }
 
 class CallSiteEntry {
-  final /* Class | Library */ receiverContainer;
+  final /* Class | Library */ receiver;
   final int count;
   final ServiceFunction target;
 
-  CallSiteEntry(this.receiverContainer, this.count, this.target);
+  CallSiteEntry(this.receiver, this.count, this.target);
 
   factory CallSiteEntry.fromMap(Map entryMap) {
-    return new CallSiteEntry(entryMap['receiverContainer'],
+    return new CallSiteEntry(entryMap['receiver'],
                              entryMap['count'],
                              entryMap['target']);
   }
 
-  String toString() => "CallSiteEntry(${receiverContainer.name}, $count)";
+  String toString() => "CallSiteEntry(${receiver.name}, $count)";
 }
 
 /// The location of a local variable reference in a script.
@@ -2830,10 +2835,8 @@ class LocalVarLocation {
   LocalVarLocation(this.line, this.column, this.endColumn);
 }
 
-class Script extends HeapObject with Coverage {
-  Set<CallSite> callSites = new Set<CallSite>();
+class Script extends HeapObject {
   final lines = new ObservableList<ScriptLine>();
-  final _hits = new Map<int, int>();
   @observable String uri;
   @observable String kind;
   @observable int firstTokenPos;
@@ -2978,36 +2981,6 @@ class Script extends HeapObject with Coverage {
         _tokenToCol[tokenOffset] = colNumber;
       }
     }
-
-    for (var line in lines) {
-      // Remove possible breakpoints on lines with no tokens.
-      if (!lineSet.contains(line.line)) {
-        line.possibleBpt = false;
-      }
-    }
-  }
-
-  void _processCallSites(List newCallSiteMaps) {
-    var mergedCallSites = new Set<CallSite>();
-    for (var callSiteMap in newCallSiteMaps) {
-      var newSite = new CallSite.fromMap(callSiteMap, this);
-      mergedCallSites.add(newSite);
-
-      var line = newSite.line;
-      var hit = newSite.aggregateCount;
-      assert(line >= 1); // Lines start at 1.
-      var oldHits = _hits[line];
-      if (oldHits != null) {
-        hit += oldHits;
-      }
-      _hits[line] = hit;
-    }
-
-    mergedCallSites.addAll(callSites);
-    callSites = mergedCallSites;
-    _applyHitsToLines();
-    // Notify any Observers that this Script's state has changed.
-    notifyChange(null);
   }
 
   void _processSource(String source) {
@@ -3029,16 +3002,8 @@ class Script extends HeapObject with Coverage {
       }
     }
 
-    _applyHitsToLines();
     // Notify any Observers that this Script's state has changed.
     notifyChange(null);
-  }
-
-  void _applyHitsToLines() {
-    for (var line in lines) {
-      var hits = _hits[line.line];
-      line.hits = hits;
-    }
   }
 
   void _addBreakpoint(Breakpoint bpt) {
@@ -3131,7 +3096,7 @@ class Script extends HeapObject with Coverage {
 
     if (line == lastLine) {
       // Only one line.
-      if (!getLine(line).isTrivialLine) {
+      if (!getLine(line).isTrivial) {
         // TODO(johnmccutchan): end token pos -> column can lie for snapshotted
         // code. e.g.:
         // io_sink.dart source line 23 ends at column 39
@@ -3147,7 +3112,7 @@ class Script extends HeapObject with Coverage {
     }
 
     // Scan first line.
-    if (!getLine(line).isTrivialLine) {
+    if (!getLine(line).isTrivial) {
       lineContents = getLine(line).text.substring(column);
       r.addAll(scanLineForLocalVariableLocations(pattern,
                                                   name,
@@ -3158,7 +3123,7 @@ class Script extends HeapObject with Coverage {
 
     // Scan middle lines.
     while (line < (lastLine - 1)) {
-      if (getLine(line).isTrivialLine) {
+      if (getLine(line).isTrivial) {
         line++;
         continue;
       }
@@ -3172,7 +3137,7 @@ class Script extends HeapObject with Coverage {
     }
 
     // Scan last line.
-    if (!getLine(line).isTrivialLine) {
+    if (!getLine(line).isTrivial) {
       // TODO(johnmccutchan): end token pos -> column can lie for snapshotted
       // code. e.g.:
       // io_sink.dart source line 23 ends at column 39
@@ -3979,6 +3944,48 @@ class ServiceMessage extends ServiceObject {
     this.handler = map['handler'];
     this.location = map['location'];
   }
+}
+
+
+// Helper function to extract possible breakpoint locations from a
+// SourceReport for some script.
+Set<int> getPossibleBreakpointLines(ServiceMap report, Script script) {
+  var result = new Set<int>();
+  int scriptIndex;
+  int numScripts = report['scripts'].length;
+  for (scriptIndex = 0; scriptIndex < numScripts; scriptIndex++) {
+    if (report['scripts'][scriptIndex].id == script.id) {
+      break;
+    }
+  }
+  if (scriptIndex == numScripts) {
+    return result;
+  }
+  var ranges = report['ranges'];
+  if (ranges != null) {
+    for (var range in ranges) {
+      if (range['scriptIndex'] != scriptIndex) {
+        continue;
+      }
+      if (range['compiled']) {
+        var possibleBpts = range['possibleBreakpoints'];
+        if (possibleBpts != null) {
+          for (var tokenPos in possibleBpts) {
+            result.add(script.tokenToLine(tokenPos));
+          }
+        }
+      } else {
+        int startLine = script.tokenToLine(range['startPos']);
+        int endLine = script.tokenToLine(range['endPos']);
+        for (int line = startLine; line <= endLine; line++) {
+          if (!script.getLine(line).isTrivial) {
+            result.add(line);
+          }
+        }
+      }
+    }
+  }
+  return result;
 }
 
 

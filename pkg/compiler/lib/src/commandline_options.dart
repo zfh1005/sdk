@@ -40,8 +40,18 @@ class Flags {
   static const String testMode = '--test-mode';
   static const String trustPrimitives = '--trust-primitives';
   static const String trustTypeAnnotations = '--trust-type-annotations';
+  static const String trustJSInteropTypeAnnotations =
+      '--experimental-trust-js-interop-type-annotations';
   static const String useContentSecurityPolicy = '--csp';
   static const String useCpsIr = '--use-cps-ir';
   static const String verbose = '--verbose';
   static const String version = '--version';
+
+  // Experimental flags.
+  static const String conditionalDirectives = '--conditional-directives';
+}
+
+class Option {
+  static const String showPackageWarnings =
+      '${Flags.showPackageWarnings}|${Flags.showPackageWarnings}=.*';
 }

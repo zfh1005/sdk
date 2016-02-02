@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.src.mock_sdk;
+library analyzer.test.src.mock_sdk;
 
 import 'package:analyzer/file_system/file_system.dart' as resource;
 import 'package:analyzer/file_system/memory_file_system.dart' as resource;
-import 'package:analyzer/src/context/context.dart' as newContext;
+import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -184,6 +184,10 @@ class HtmlElement {}
     LIB_HTML,
   ];
 
+  static const List<SdkLibrary> LIBRARIES_NO_ASYNC = const [
+    LIB_CORE,
+  ];
+
   final resource.MemoryResourceProvider provider =
       new resource.MemoryResourceProvider();
 
@@ -192,8 +196,9 @@ class HtmlElement {}
    */
   InternalAnalysisContext _analysisContext;
 
-  MockSdk() {
-    LIBRARIES.forEach((_MockSdkLibrary library) {
+  MockSdk({bool dartAsync: true}) {
+    List<SdkLibrary> libraries = dartAsync ? LIBRARIES : LIBRARIES_NO_ASYNC;
+    libraries.forEach((_MockSdkLibrary library) {
       provider.newFile(library.path, library.content);
     });
   }
@@ -201,19 +206,9 @@ class HtmlElement {}
   @override
   AnalysisContext get context {
     if (_analysisContext == null) {
-      if (AnalysisEngine.instance.useTaskModel) {
-        _analysisContext = new newContext.SdkAnalysisContext();
-      } else {
-        _analysisContext = new SdkAnalysisContext();
-      }
+      _analysisContext = new SdkAnalysisContext();
       SourceFactory factory = new SourceFactory([new DartUriResolver(this)]);
       _analysisContext.sourceFactory = factory;
-      ChangeSet changeSet = new ChangeSet();
-      for (String uri in uris) {
-        Source source = factory.forUri(uri);
-        changeSet.addedSource(source);
-      }
-      _analysisContext.applyChanges(changeSet);
     }
     return _analysisContext;
   }
@@ -255,7 +250,7 @@ class HtmlElement {}
       }
       if (filePath.startsWith("$libraryPath/")) {
         String pathInLibrary = filePath.substring(libraryPath.length + 1);
-        String path = '${library.shortName}/${pathInLibrary}';
+        String path = '${library.shortName}/$pathInLibrary';
         try {
           resource.File file = provider.getResource(uri.path);
           Uri dartUri = new Uri(scheme: 'dart', path: path);

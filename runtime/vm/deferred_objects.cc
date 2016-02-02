@@ -173,16 +173,18 @@ void DeferredPcMarker::Materialize(DeoptContext* deopt_context) {
   *reinterpret_cast<RawObject**>(dest_addr) = code.raw();
 
   if (FLAG_trace_deoptimization_verbose) {
-    OS::PrintErr("materializing pc marker at 0x%" Px ": %s, %s\n",
-                 reinterpret_cast<uword>(slot()), code.ToCString(),
-                 function.ToCString());
+    THR_Print("materializing pc marker at 0x%" Px ": %s, %s\n",
+        reinterpret_cast<uword>(slot()), code.ToCString(),
+        function.ToCString());
   }
 
   // Increment the deoptimization counter. This effectively increments each
   // function occurring in the optimized frame.
-  function.set_deoptimization_counter(function.deoptimization_counter() + 1);
+  if (deopt_context->deoptimizing_code()) {
+    function.set_deoptimization_counter(function.deoptimization_counter() + 1);
+  }
   if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
-    OS::PrintErr("Deoptimizing %s (count %d)\n",
+    THR_Print("Deoptimizing '%s' (count %d)\n",
         function.ToFullyQualifiedCString(),
         function.deoptimization_counter());
   }
@@ -302,6 +304,48 @@ void DeferredObject::Fill() {
         }
       }
     }
+  } else if (cls.id() == kClosureCid) {
+    // TODO(regis): It would be better to programmatically add these fields to
+    // the VM Closure class. Declaring them in the Dart class _Closure does not
+    // work, because the class is prefinalized and CalculateFieldOffsets is
+    // therefore not called. Resetting the finalization state may be an option.
+    const Closure& closure = Closure::Cast(*object_);
+
+    Smi& offset = Smi::Handle();
+    Object& value = Object::Handle();
+
+    for (intptr_t i = 0; i < field_count_; i++) {
+      offset ^= GetFieldOffset(i);
+      if (offset.Value() == Closure::type_arguments_offset()) {
+        TypeArguments& arguments = TypeArguments::Handle();
+        arguments ^= GetValue(i);
+        closure.SetTypeArguments(arguments);
+        if (FLAG_trace_deoptimization_verbose) {
+          OS::PrintErr("    closure@type_arguments (offset %" Pd ") <- %s\n",
+                       offset.Value(),
+                       value.ToCString());
+        }
+      } else if (offset.Value() == Closure::function_offset()) {
+        Function& function = Function::Handle();
+        function ^= GetValue(i);
+        closure.set_function(function);
+        if (FLAG_trace_deoptimization_verbose) {
+          OS::PrintErr("    closure@function (offset %" Pd ") <- %s\n",
+                       offset.Value(),
+                       value.ToCString());
+        }
+      } else {
+        ASSERT(offset.Value() == Closure::context_offset());
+        Context& context = Context::Handle();
+        context ^= GetValue(i);
+        closure.set_context(context);
+        if (FLAG_trace_deoptimization_verbose) {
+          OS::PrintErr("    closure@context (offset %" Pd ") <- %s\n",
+                       offset.Value(),
+                       value.ToCString());
+        }
+      }
+    }
   } else {
     const Instance& obj = Instance::Cast(*object_);
 
@@ -322,8 +366,7 @@ void DeferredObject::Fill() {
                        value.ToCString());
         }
       } else {
-        ASSERT(cls.IsSignatureClass() ||
-               (offset.Value() == cls.type_arguments_field_offset()));
+        ASSERT(offset.Value() == cls.type_arguments_field_offset());
         obj.SetFieldAtOffset(offset.Value(), value);
         if (FLAG_trace_deoptimization_verbose) {
           OS::PrintErr("    null Field @ offset(%" Pd ") <- %s\n",

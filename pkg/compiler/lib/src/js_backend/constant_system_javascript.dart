@@ -191,6 +191,7 @@ class JavaScriptConstantSystem extends ConstantSystem {
   final greaterEqual = const GreaterEqualOperation();
   final greater = const GreaterOperation();
   final identity = const JavaScriptIdentityOperation();
+  final ifNull = const IfNullOperation();
   final lessEqual = const LessEqualOperation();
   final less = const LessOperation();
   final modulo =
@@ -273,8 +274,17 @@ class JavaScriptConstantSystem extends ConstantSystem {
         compiler.backend.typeImplementation.computeType(compiler.resolution));
   }
 
-  // Integer checks don't verify that the number is not -0.0.
-  bool isInt(ConstantValue constant) => constant.isInt || constant.isMinusZero;
+  // Integer checks report true for -0.0, INFINITY, and -INFINITY.  At
+  // runtime an 'X is int' check is implemented as:
+  //
+  // typeof(X) === "number" && Math.floor(X) === X
+  //
+  // We consistently match that runtime semantics at compile time as well.
+  bool isInt(ConstantValue constant) {
+    return constant.isInt || constant.isMinusZero ||
+        constant.isPositiveInfinity ||
+        constant.isNegativeInfinity;
+  }
   bool isDouble(ConstantValue constant)
       => constant.isDouble && !constant.isMinusZero;
   bool isString(ConstantValue constant) => constant.isString;
@@ -355,7 +365,7 @@ class JavaScriptMapConstant extends MapConstantValue {
   static const String DART_STRING_CLASS = "ConstantStringMap";
   static const String DART_PROTO_CLASS = "ConstantProtoMap";
   static const String DART_GENERAL_CLASS = "GeneralConstantMap";
-  static const String LENGTH_NAME = "length";
+  static const String LENGTH_NAME = "_length";
   static const String JS_OBJECT_NAME = "_jsObject";
   static const String KEYS_NAME = "_keys";
   static const String PROTO_VALUE = "_protoValue";

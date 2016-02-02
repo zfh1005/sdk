@@ -43,7 +43,7 @@ main(List args) {
     return;
   }
 
-  var abs_package_root = new File(Platform.packageRoot).absolute.path;
+  var abs_package_root = Uri.parse(Platform.packageRoot).toFilePath();
   var dart_executable =
       Directory.current.path + Platform.pathSeparator + Platform.executable;
   Directory tmp;
@@ -87,7 +87,7 @@ main(List args) {
 
     var ld_library_path = new String.fromEnvironment("LD_LIBRARY_PATH");
     ld_library_path = "${ld_library_path}:${tmp.path}";
-    exec = "${dart_executable}";
+    exec = "${dart_executable}_precompiled_runtime";
     args = ["--run-precompiled-snapshot", "ignored_script", "--version"];
     print("LD_LIBRARY_PATH=$ld_library_path $exec ${args.join(' ')}");
     result = Process.runSync(exec, args,

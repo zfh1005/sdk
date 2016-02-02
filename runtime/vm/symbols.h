@@ -55,9 +55,9 @@ class ObjectPointerVisitor;
   V(_EnumNames, "_enum_names")                                                 \
   V(ExprTemp, ":expr_temp")                                                    \
   V(AnonymousClosure, "<anonymous closure>")                                   \
+  V(AnonymousSignature, "<anonymous signature>")                               \
   V(ImplicitClosure, "<implicit closure>")                                     \
   V(ClosureParameter, ":closure")                                              \
-  V(PhaseParameter, ":phase")                                                  \
   V(TypeArgumentsParameter, ":type_arguments")                                 \
   V(AssertionError, "_AssertionError")                                         \
   V(CastError, "_CastError")                                                   \
@@ -136,6 +136,7 @@ class ObjectPointerVisitor;
   V(Dynamic, "dynamic")                                                        \
   V(UnresolvedClass, "UnresolvedClass")                                        \
   V(Type, "_Type")                                                             \
+  V(FunctionType, "_FunctionType")                                             \
   V(TypeRef, "_TypeRef")                                                       \
   V(TypeParameter, "_TypeParameter")                                           \
   V(BoundedType, "_BoundedType")                                               \
@@ -144,7 +145,7 @@ class ObjectPointerVisitor;
   V(Patch, "patch")                                                            \
   V(PatchClass, "PatchClass")                                                  \
   V(Function, "Function")                                                      \
-  V(FunctionImpl, "_FunctionImpl")                                             \
+  V(_Closure, "_Closure")                                                      \
   V(FunctionResult, "function result")                                         \
   V(FactoryResult, "factory result")                                           \
   V(ClosureData, "ClosureData")                                                \
@@ -160,6 +161,7 @@ class ObjectPointerVisitor;
   V(Instructions, "Instructions")                                              \
   V(ObjectPool, "ObjectPool")                                                  \
   V(PcDescriptors, "PcDescriptors")                                            \
+  V(CodeSourceMap, "CodeSourceMap")                                            \
   V(Stackmap, "Stackmap")                                                      \
   V(LocalVarDescriptors, "LocalVarDescriptors")                                \
   V(ExceptionHandlers, "ExceptionHandlers")                                    \
@@ -305,7 +307,6 @@ class ObjectPointerVisitor;
   V(OutOfMemoryError, "OutOfMemoryError")                                      \
   V(NullThrownError, "NullThrownError")                                        \
   V(IsolateSpawnException, "IsolateSpawnException")                            \
-  V(IsolateUnhandledException, "_IsolateUnhandledException")                   \
   V(JavascriptIntegerOverflowError, "_JavascriptIntegerOverflowError")         \
   V(JavascriptCompatibilityError, "_JavascriptCompatibilityError")             \
   V(BooleanExpression, "boolean expression")                                   \
@@ -570,6 +571,11 @@ class Symbols : public AllStatic {
 
   // Initialize and setup a symbol table for the isolate.
   static void SetupSymbolTable(Isolate* isolate);
+
+  // Treat the symbol table as weak and collect garbage. Answer the number of
+  // symbols deleted from the symbol table because they where not referenced
+  // from anywhere else.
+  static intptr_t Compact(Isolate* isolate);
 
   // Creates a Symbol given a C string that is assumed to contain
   // UTF-8 encoded characters and '\0' is considered a termination character.

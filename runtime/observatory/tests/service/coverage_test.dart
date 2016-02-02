@@ -11,7 +11,7 @@ import 'dart:developer';
 int globalVar = 100;
 
 class MyClass {
-       static       void myFunction(int value) {
+  static void myFunction(int value) {
     if (value < 0) {
       print("negative");
     } else {
@@ -69,37 +69,40 @@ hasStoppedAtBreakpoint,
   expect(coverage['coverage'].length, equals(1));
   expect(coverage['coverage'][0]['hits'],
          equals([15, 1, 16, 0, 18, 1, 20, 1,
-                 24, 1, 25, 1, 27, 0]));
+                 24, 1, 25, 1, 27, 0, 13, 0]));
 
   // Library
   coverage = await isolate.invokeRpcNoUpgrade('_getCoverage',
                                               { 'targetId': lib.id });
   expect(coverage['type'], equals('CodeCoverage'));
-  expect(coverage['coverage'].length, equals(3));
+  expect(coverage['coverage'].length, equals(4));
   expect(coverage['coverage'][0]['hits'],
          equals([15, 1, 16, 0, 18, 1, 20, 1,
-                 24, 1, 25, 1, 27, 0]));
+                 24, 1, 25, 1, 27, 0, 13, 0]));
   expect(coverage['coverage'][1]['hits'],
-         equals([33, 1, 34, 1, 105, 2]));
+         equals([33, 1, 34, 1, 106, 2]));
 
   // Script
   await cls.load();
   coverage = await isolate.invokeRpcNoUpgrade('_getCoverage',
                                        { 'targetId': cls.location.script.id });
   expect(coverage['type'], equals('CodeCoverage'));
-  expect(coverage['coverage'].length, equals(3));
+  expect(coverage['coverage'].length, equals(4));
   expect(coverage['coverage'][0]['hits'],
          equals([15, 1, 16, 0, 18, 1, 20, 1,
-                 24, 1, 25, 1, 27, 0]));
+                 24, 1, 25, 1, 27, 0, 13, 0]));
   expect(coverage['coverage'][1]['hits'],
-         equals([33, 1, 34, 1, 105, 2]));
+         equals([33, 1, 34, 1, 106, 2]));
 
   // Isolate
   coverage = await isolate.invokeRpcNoUpgrade('_getCoverage', {});
+  print('Done processing _getCoverage for full isolate');
   expect(coverage['type'], equals('CodeCoverage'));
   expect(coverage['coverage'].length, greaterThan(100));
 },
 
 ];
 
-main(args) => runIsolateTests(args, tests, testeeConcurrent: testFunction);
+main(args) => runIsolateTests(args, tests,
+                              testeeConcurrent: testFunction,
+                              trace_service: true);

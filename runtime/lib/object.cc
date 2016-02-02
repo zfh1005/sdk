@@ -88,7 +88,7 @@ DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 6) {
     // found.
     Function& function = Function::Handle();
     if (instance.IsClosure()) {
-      function = Closure::function(instance);
+      function = Closure::Cast(instance).function();
     } else {
       Class& instance_class = Class::Handle(instance.clazz());
       function = instance_class.LookupDynamicFunction(member_name);
@@ -155,17 +155,14 @@ static void WarnOnJSIntegralNumTypeTest(
 }
 
 
-DEFINE_NATIVE_ENTRY(Object_instanceOf, 5) {
+DEFINE_NATIVE_ENTRY(Object_instanceOf, 4) {
   const Instance& instance =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
-  // Instantiator at position 1 is not used. It is passed along so that the call
-  // can be easily converted to an optimized implementation. Instantiator is
-  // used to populate the subtype cache.
   const TypeArguments& instantiator_type_arguments =
-      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(2));
+      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(1));
   const AbstractType& type =
-      AbstractType::CheckedHandle(zone, arguments->NativeArgAt(3));
-  const Bool& negate = Bool::CheckedHandle(zone, arguments->NativeArgAt(4));
+      AbstractType::CheckedHandle(zone, arguments->NativeArgAt(2));
+  const Bool& negate = Bool::CheckedHandle(zone, arguments->NativeArgAt(3));
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsMalformed());
   ASSERT(!type.IsMalbounded());
@@ -182,7 +179,8 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 5) {
   if (FLAG_trace_type_checks) {
     const char* result_str = is_instance_of ? "true" : "false";
     OS::Print("Native Object.instanceOf: result %s\n", result_str);
-    const Type& instance_type = Type::Handle(instance.GetType());
+    const AbstractType& instance_type =
+        AbstractType::Handle(instance.GetType());
     OS::Print("  instance type: %s\n",
               String::Handle(instance_type.Name()).ToCString());
     OS::Print("  test type: %s\n", String::Handle(type.Name()).ToCString());
@@ -195,7 +193,7 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 5) {
     DartFrameIterator iterator;
     StackFrame* caller_frame = iterator.NextFrame();
     ASSERT(caller_frame != NULL);
-    const intptr_t location = caller_frame->GetTokenPos();
+    const TokenPosition location = caller_frame->GetTokenPos();
     String& bound_error_message = String::Handle(
         zone, String::New(bound_error.ToErrorCString()));
     Exceptions::CreateAndThrowTypeError(
@@ -267,15 +265,12 @@ DEFINE_NATIVE_ENTRY(Object_instanceOfString, 2) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Object_as, 4) {
+DEFINE_NATIVE_ENTRY(Object_as, 3) {
   const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
-  // Instantiator at position 1 is not used. It is passed along so that the call
-  // can be easily converted to an optimized implementation. Instantiator is
-  // used to populate the subtype cache.
   const TypeArguments& instantiator_type_arguments =
-      TypeArguments::CheckedHandle(arguments->NativeArgAt(2));
+      TypeArguments::CheckedHandle(arguments->NativeArgAt(1));
   const AbstractType& type =
-      AbstractType::CheckedHandle(arguments->NativeArgAt(3));
+      AbstractType::CheckedHandle(arguments->NativeArgAt(2));
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsMalformed());
   ASSERT(!type.IsMalbounded());
@@ -295,7 +290,8 @@ DEFINE_NATIVE_ENTRY(Object_as, 4) {
   if (FLAG_trace_type_checks) {
     const char* result_str = is_instance_of ? "true" : "false";
     OS::Print("Object.as: result %s\n", result_str);
-    const Type& instance_type = Type::Handle(instance.GetType());
+    const AbstractType& instance_type =
+        AbstractType::Handle(instance.GetType());
     OS::Print("  instance type: %s\n",
               String::Handle(instance_type.Name()).ToCString());
     OS::Print("  cast type: %s\n", String::Handle(type.Name()).ToCString());
@@ -307,7 +303,7 @@ DEFINE_NATIVE_ENTRY(Object_as, 4) {
     DartFrameIterator iterator;
     StackFrame* caller_frame = iterator.NextFrame();
     ASSERT(caller_frame != NULL);
-    const intptr_t location = caller_frame->GetTokenPos();
+    const TokenPosition location = caller_frame->GetTokenPos();
     const AbstractType& instance_type =
         AbstractType::Handle(instance.GetType());
     const String& instance_type_name =

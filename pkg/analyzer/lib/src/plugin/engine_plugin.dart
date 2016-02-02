@@ -14,6 +14,7 @@ import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/html_work_manager.dart';
 import 'package:analyzer/src/task/options_work_manager.dart';
+import 'package:analyzer/src/task/yaml.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:plugin/plugin.dart';
 
@@ -197,6 +198,8 @@ class EnginePlugin implements Plugin {
     registerExtension(
         taskId, ComputeInferableStaticVariableDependenciesTask.DESCRIPTOR);
     registerExtension(taskId, ComputeLibraryCycleTask.DESCRIPTOR);
+    registerExtension(
+        taskId, ComputePropagableVariableDependenciesTask.DESCRIPTOR);
     registerExtension(taskId, ContainingLibrariesTask.DESCRIPTOR);
     registerExtension(taskId, DartErrorsTask.DESCRIPTOR);
     registerExtension(taskId, EvaluateUnitConstantsTask.DESCRIPTOR);
@@ -211,13 +214,20 @@ class EnginePlugin implements Plugin {
     registerExtension(taskId, LibraryUnitErrorsTask.DESCRIPTOR);
     registerExtension(taskId, ParseDartTask.DESCRIPTOR);
     registerExtension(taskId, PartiallyResolveUnitReferencesTask.DESCRIPTOR);
+    registerExtension(
+        taskId, PropagateVariableTypesInLibraryClosureTask.DESCRIPTOR);
+    registerExtension(taskId, PropagateVariableTypesInLibraryTask.DESCRIPTOR);
+    registerExtension(taskId, PropagateVariableTypesInUnitTask.DESCRIPTOR);
+    registerExtension(taskId, PropagateVariableTypeTask.DESCRIPTOR);
     registerExtension(taskId, ReadyLibraryElement2Task.DESCRIPTOR);
     registerExtension(taskId, ReadyLibraryElement5Task.DESCRIPTOR);
+    registerExtension(taskId, ReadyLibraryElement6Task.DESCRIPTOR);
     registerExtension(taskId, ReadyResolvedUnitTask.DESCRIPTOR);
-    registerExtension(taskId, ReadyResolvedUnit9Task.DESCRIPTOR);
     registerExtension(taskId, ReadyResolvedUnit10Task.DESCRIPTOR);
+    registerExtension(taskId, ReadyResolvedUnit11Task.DESCRIPTOR);
     registerExtension(taskId, ResolveInstanceFieldsInUnitTask.DESCRIPTOR);
     registerExtension(taskId, ResolveLibraryReferencesTask.DESCRIPTOR);
+    registerExtension(taskId, ResolveLibraryTask.DESCRIPTOR);
     registerExtension(taskId, ResolveLibraryTypeNamesTask.DESCRIPTOR);
     registerExtension(taskId, ResolveUnitTask.DESCRIPTOR);
     registerExtension(taskId, ResolveUnitTypeNamesTask.DESCRIPTOR);
@@ -231,6 +241,10 @@ class EnginePlugin implements Plugin {
     registerExtension(taskId, DartScriptsTask.DESCRIPTOR);
     registerExtension(taskId, HtmlErrorsTask.DESCRIPTOR);
     registerExtension(taskId, ParseHtmlTask.DESCRIPTOR);
+    //
+    // Register YAML tasks.
+    //
+    registerExtension(taskId, ParseYamlTask.DESCRIPTOR);
   }
 
   void _registerWorkManagerFactoryExtensions(

@@ -26,7 +26,10 @@ class _TestLauncher {
                             Platform.script.toFilePath(),
                             _TESTEE_MODE_FLAG] {}
 
-  Future<int> launch(bool pause_on_start, bool pause_on_exit, bool trace_service) {
+  Future<int> launch(bool pause_on_start,
+                     bool pause_on_exit,
+                     bool pause_on_unhandled_exceptions,
+                     bool trace_service) {
     assert(pause_on_start != null);
     assert(pause_on_exit != null);
     assert(trace_service != null);
@@ -40,6 +43,9 @@ class _TestLauncher {
     }
     if (pause_on_exit) {
       fullArgs.add('--pause-isolates-on-exit');
+    }
+    if (pause_on_unhandled_exceptions) {
+      fullArgs.add('--pause-isolates-on-unhandled-exceptions');
     }
     fullArgs.addAll(Platform.executableArguments);
     fullArgs.addAll(args);
@@ -103,19 +109,23 @@ String serviceHttpAddress;
 /// return a [Future]. Code for setting up state can run before and/or
 /// concurrently with the tests. Uses [mainArgs] to determine whether
 /// to run tests or testee in this invokation of the script.
-void runIsolateTests(List<String> mainArgs,
-                     List<IsolateTest> tests,
-                     {void testeeBefore(),
-                      void testeeConcurrent(),
-                      bool pause_on_start: false,
-                      bool pause_on_exit: false,
-                      bool trace_service: false,
-                      bool verbose_vm: false}) {
+Future runIsolateTests(List<String> mainArgs,
+                       List<IsolateTest> tests,
+                       {testeeBefore(),
+                        void testeeConcurrent(),
+                        bool pause_on_start: false,
+                        bool pause_on_exit: false,
+                        bool trace_service: false,
+                        bool verbose_vm: false,
+                        bool pause_on_unhandled_exceptions: false}) async {
   assert(!pause_on_start || testeeBefore == null);
   if (mainArgs.contains(_TESTEE_MODE_FLAG)) {
     if (!pause_on_start) {
       if (testeeBefore != null) {
-        testeeBefore();
+        var result = testeeBefore();
+        if (result is Future) {
+          await result;
+        }
       }
       print(''); // Print blank line to signal that we are ready.
     }
@@ -128,7 +138,8 @@ void runIsolateTests(List<String> mainArgs,
     }
   } else {
     var process = new _TestLauncher();
-    process.launch(pause_on_start, pause_on_exit, trace_service).then((port) {
+    process.launch(pause_on_start, pause_on_exit,
+                   pause_on_unhandled_exceptions, trace_service).then((port) {
       if (mainArgs.contains("--gdb")) {
         port = 8181;
       }
@@ -157,15 +168,82 @@ void runIsolateTests(List<String> mainArgs,
   }
 }
 
+/// Runs [tests] in sequence, each of which should take an [Isolate] and
+/// return a [Future]. Code for setting up state can run before and/or
+/// concurrently with the tests. Uses [mainArgs] to determine whether
+/// to run tests or testee in this invokation of the script.
+///
+/// This is a special version of this test harness specifically for the
+/// pause_on_unhandled_exceptions_test, which cannot properly function
+/// in an async context (because exceptions are *always* handled in async
+/// functions).
+///
+/// TODO(johnmccutchan): Don't use the shared harness for the
+/// pause_on_unhandled_exceptions_test.
+void runIsolateTestsSynchronous(List<String> mainArgs,
+                                List<IsolateTest> tests,
+                                {void testeeBefore(),
+                                 void testeeConcurrent(),
+                                 bool pause_on_start: false,
+                                 bool pause_on_exit: false,
+                                 bool trace_service: false,
+                                 bool verbose_vm: false,
+                                 bool pause_on_unhandled_exceptions: false}) {
+  assert(!pause_on_start || testeeBefore == null);
+  if (mainArgs.contains(_TESTEE_MODE_FLAG)) {
+    if (!pause_on_start) {
+      if (testeeBefore != null) {
+        testeeBefore();
+      }
+      print(''); // Print blank line to signal that we are ready.
+    }
+    if (testeeConcurrent != null) {
+      testeeConcurrent();
+    }
+    if (!pause_on_exit) {
+      // Wait around for the process to be killed.
+      stdin.first.then((_) => exit(0));
+    }
+  } else {
+    var process = new _TestLauncher();
+    process.launch(pause_on_start, pause_on_exit,
+                   pause_on_unhandled_exceptions, trace_service).then((port) {
+      if (mainArgs.contains("--gdb")) {
+        port = 8181;
+      }
+      String addr = 'ws://localhost:$port/ws';
+      serviceHttpAddress = 'http://localhost:$port';
+      var testIndex = 1;
+      var totalTests = tests.length;
+      var name = Platform.script.pathSegments.last;
+      runZoned(() {
+        new WebSocketVM(new WebSocketVMTarget(addr)).load()
+            .then((VM vm) => vm.isolates.first.load())
+            .then((Isolate isolate) => Future.forEach(tests, (test) {
+              isolate.vm.verbose = verbose_vm;
+              print('Running $name [$testIndex/$totalTests]');
+              testIndex++;
+              return test(isolate);
+            })).then((_) => process.requestExit());
+      }, onError: (e, st) {
+        process.requestExit();
+        if (!_isWebSocketDisconnect(e)) {
+          print('Unexpected exception in service tests: $e $st');
+          throw e;
+        }
+      });
+    });
+  }
+}
 
-Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) {
+Future<Isolate> hasPausedFor(Isolate isolate, String kind) {
   // Set up a listener to wait for breakpoint events.
   Completer completer = new Completer();
   isolate.vm.getEventStream(VM.kDebugStream).then((stream) {
     var subscription;
     subscription = stream.listen((ServiceEvent event) {
-        if (event.kind == ServiceEvent.kPauseBreakpoint) {
-          print('Breakpoint reached');
+        if (event.kind == kind) {
+          print('Paused with $kind');
           subscription.cancel();
           if (completer != null) {
             // Reload to update isolate.pauseEvent.
@@ -178,9 +256,9 @@ Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) {
     // Pause may have happened before we subscribed.
     isolate.reload().then((_) {
       if ((isolate.pauseEvent != null) &&
-         (isolate.pauseEvent.kind == ServiceEvent.kPauseBreakpoint)) {
+         (isolate.pauseEvent.kind == kind)) {
         // Already waiting at a breakpoint.
-        print('Breakpoint reached');
+        print('Paused with $kind');
         subscription.cancel();
         if (completer != null) {
           completer.complete(isolate);
@@ -193,6 +271,13 @@ Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) {
   return completer.future;  // Will complete when breakpoint hit.
 }
 
+Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) {
+  return hasPausedFor(isolate, ServiceEvent.kPauseBreakpoint);
+}
+
+Future<Isolate> hasStoppedWithUnhandledException(Isolate isolate) {
+  return hasPausedFor(isolate, ServiceEvent.kPauseException);
+}
 
 Future<Isolate> hasPausedAtStart(Isolate isolate) {
   // Set up a listener to wait for breakpoint events.
@@ -255,11 +340,13 @@ IsolateTest stoppedAtLine(int line) {
 
     Frame top = frames[0];
     Script script = await top.location.script.load();
-    if (script.tokenToLine(top.location.tokenPos) != line) {
+    int actualLine = script.tokenToLine(top.location.tokenPos);
+    if (actualLine != line) {
       var sb = new StringBuffer();
-      sb.write("Expected to be at line $line, but got stack trace:\n");
+      sb.write("Expected to be at line $line but actually at line $actualLine");
+      sb.write("\nFull stack trace:\n");
       for (Frame f in stack['frames']) {
-        sb.write(" $f\n");
+        sb.write(" $f [${await f.location.getLine()}]\n");
       }
       throw sb.toString();
     }
@@ -319,6 +406,17 @@ Future<Class> getClassFromRootLib(Isolate isolate, String className) async {
 }
 
 
+Future<Instance> rootLibraryFieldValue(Isolate isolate,
+                                       String fieldName) async {
+  Library rootLib = await isolate.rootLibrary.load();
+  Field field = rootLib.variables.singleWhere((v) => v.name == fieldName);
+  await field.load();
+  Instance value = field.staticValue;
+  await value.load();
+  return value;
+}
+
+
 /// Runs [tests] in sequence, each of which should take an [Isolate] and
 /// return a [Future]. Code for setting up state can run before and/or
 /// concurrently with the tests. Uses [mainArgs] to determine whether
@@ -330,7 +428,8 @@ Future runVMTests(List<String> mainArgs,
                    bool pause_on_start: false,
                    bool pause_on_exit: false,
                    bool trace_service: false,
-                   bool verbose_vm: false}) async {
+                   bool verbose_vm: false,
+                   bool pause_on_unhandled_exceptions: false}) async {
   if (mainArgs.contains(_TESTEE_MODE_FLAG)) {
     if (!pause_on_start) {
       if (testeeBefore != null) {
@@ -349,6 +448,7 @@ Future runVMTests(List<String> mainArgs,
     var process = new _TestLauncher();
     process.launch(pause_on_start,
                    pause_on_exit,
+                   pause_on_unhandled_exceptions,
                    trace_service).then((port) async {
       if (mainArgs.contains("--gdb")) {
         port = 8181;

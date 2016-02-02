@@ -22,7 +22,29 @@ static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
 }
 
 
-DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message) {
+class IsolateSaver {
+ public:
+  explicit IsolateSaver(Isolate* current_isolate)
+      : saved_isolate_(current_isolate) {
+    if (current_isolate != NULL) {
+      ASSERT(current_isolate == Isolate::Current());
+      Dart_ExitIsolate();
+    }
+  }
+  ~IsolateSaver() {
+    if (saved_isolate_ != NULL) {
+      Dart_Isolate I = reinterpret_cast<Dart_Isolate>(saved_isolate_);
+      Dart_EnterIsolate(I);
+    }
+  }
+ private:
+  Isolate* saved_isolate_;
+
+  DISALLOW_COPY_AND_ASSIGN(IsolateSaver);
+};
+
+
+static bool PostCObjectHelper(Dart_Port port_id, Dart_CObject* message) {
   uint8_t* buffer = NULL;
   ApiMessageWriter writer(&buffer, allocator);
   bool success = writer.WriteCMessage(message);
@@ -32,6 +54,23 @@ DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message) {
   // Post the message at the given port.
   return PortMap::PostMessage(new Message(
       port_id, buffer, writer.BytesWritten(), Message::kNormalPriority));
+}
+
+
+DART_EXPORT bool Dart_PostCObject(Dart_Port port_id, Dart_CObject* message) {
+  return PostCObjectHelper(port_id, message);
+}
+
+
+DART_EXPORT bool Dart_PostInteger(Dart_Port port_id, int64_t message) {
+  if (Smi::IsValid(message)) {
+    return PortMap::PostMessage(new Message(
+        port_id, Smi::New(message), Message::kNormalPriority));
+  }
+  Dart_CObject cobj;
+  cobj.type = Dart_CObject_kInt64;
+  cobj.value.as_int64 = message;
+  return PostCObjectHelper(port_id, &cobj);
 }
 
 
@@ -48,7 +87,6 @@ DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
   }
   // Start the native port without a current isolate.
   IsolateSaver saver(Isolate::Current());
-  Thread::ExitIsolate();
 
   NativeMessageHandler* nmh = new NativeMessageHandler(name, handler);
   Dart_Port port_id = PortMap::CreatePort(nmh);
@@ -60,7 +98,6 @@ DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
 DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id) {
   // Close the native port without a current isolate.
   IsolateSaver saver(Isolate::Current());
-  Thread::ExitIsolate();
 
   // TODO(turnidge): Check that the port is native before trying to close.
   return PortMap::ClosePort(native_port_id);
@@ -75,14 +112,14 @@ static void CompileAll(Thread* thread, Dart_Handle* result) {
   if (error.IsNull()) {
     *result = Api::Success();
   } else {
-    *result = Api::NewHandle(thread->isolate(), error.raw());
+    *result = Api::NewHandle(thread, error.raw());
   }
 }
 
 
 DART_EXPORT Dart_Handle Dart_CompileAll() {
   DARTSCOPE(Thread::Current());
-  Dart_Handle result = Api::CheckAndFinalizePendingClasses(I);
+  Dart_Handle result = Api::CheckAndFinalizePendingClasses(T);
   if (::Dart_IsError(result)) {
     return result;
   }

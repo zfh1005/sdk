@@ -75,7 +75,7 @@ class TypeMaskStrategy implements SelectorConstraintsStrategy {
  * operations on it are not guaranteed to be precise and they may
  * yield conservative answers that contain too many classes.
  */
-abstract class TypeMask implements ReceiverConstraint {
+abstract class TypeMask implements ReceiverConstraint, AbstractValue {
   factory TypeMask(ClassElement base,
                    int kind,
                    bool isNullable,
@@ -328,6 +328,10 @@ abstract class TypeMask implements ReceiverConstraint {
    * Returns a type mask representing the union of [this] and [other].
    */
   TypeMask union(TypeMask other, ClassWorld classWorld);
+
+
+  /// Returns whether the intersection of this and [other] is empty.
+  bool isDisjoint(TypeMask other, ClassWorld classWorld);
 
   /**
    * Returns a type mask representing the intersection of [this] and [other].

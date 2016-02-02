@@ -66,7 +66,9 @@ class InitializerResolver {
     return node.receiver.asIdentifier().isThis();
   }
 
-  reportDuplicateInitializerError(Element field, Node init, Node existing) {
+  reportDuplicateInitializerError(Element field,
+                                  Node init,
+                                  Spannable existing) {
     reporter.reportError(
         reporter.createMessage(
             init,
@@ -90,7 +92,9 @@ class InitializerResolver {
       field.parseNode(visitor.resolution.parsing);
       Expression initializer = field.initializer;
       if (initializer != null) {
-        reportDuplicateInitializerError(field, init, initializer);
+        reportDuplicateInitializerError(field, init,
+            reporter.withCurrentElement(field,
+                () => reporter.spanFromSpannable(initializer)));
       }
     }
     initialized[field] = init;
@@ -485,18 +489,19 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
       MessageKind kind,
       Map arguments,
       {bool isError: false,
-       bool missingConstructor: false}) {
+       bool missingConstructor: false,
+       List<DiagnosticMessage> infos: const <DiagnosticMessage>[]}) {
     if (missingConstructor) {
       registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
     } else {
       registry.registerFeature(Feature.THROW_RUNTIME_ERROR);
     }
+    DiagnosticMessage message =
+        reporter.createMessage(diagnosticNode, kind, arguments);
     if (isError || inConstContext) {
-      reporter.reportErrorMessage(
-          diagnosticNode, kind, arguments);
+      reporter.reportError(message, infos);
     } else {
-      reporter.reportWarningMessage(
-          diagnosticNode, kind, arguments);
+      reporter.reportWarning(message, infos);
     }
     ErroneousElement error = new ErroneousConstructorElementX(
         kind, arguments, name, enclosing);
@@ -616,8 +621,7 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
     if (send != null) {
       // The type name is of the form [: prefix . identifier :].
       String name = send.receiver.asIdentifier().source;
-      Element element = resolver.reportLookupErrorIfAny(
-          lookupInScope(reporter, send, resolver.scope, name), node, name);
+      Element element = lookupInScope(reporter, send, resolver.scope, name);
       if (element != null && element.isPrefix) {
         prefix = element;
       }
@@ -666,10 +670,8 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
 
   ConstructorResult visitIdentifier(Identifier node) {
     String name = node.source;
-    Element element = resolver.reportLookupErrorIfAny(
-        lookupInScope(reporter, node, resolver.scope, name), node, name);
+    Element element = lookupInScope(reporter, node, resolver.scope, name);
     registry.useElement(node, element);
-    // TODO(johnniwinther): Change errors to warnings, cf. 11.11.1.
     return constructorResultForElement(node, name, element);
   }
 
@@ -691,6 +693,15 @@ class ConstructorResolver extends CommonResolverVisitor<ConstructorResult> {
           resolver.enclosingElement, name,
           MessageKind.CANNOT_RESOLVE,
           {'name': name});
+    } else if (element.isAmbiguous) {
+      AmbiguousElement ambiguous = element;
+      return reportAndCreateErroneousConstructorElement(
+          node,
+          ConstructorResultKind.INVALID_TYPE, null,
+          resolver.enclosingElement, name,
+          ambiguous.messageKind,
+          ambiguous.messageArguments,
+          infos: ambiguous.computeInfos(resolver.enclosingElement, reporter));
     } else if (element.isMalformed) {
       return constructorResultForErroneous(node, element);
     } else if (element.isClass) {

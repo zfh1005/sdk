@@ -19,6 +19,7 @@
 #include "bin/file.h"
 #include "bin/log.h"
 #include "bin/thread.h"
+#include "bin/utils.h"
 #include "bin/vmservice_impl.h"
 
 #include "platform/globals.h"
@@ -448,7 +449,7 @@ static Dart_Handle LoadSnapshotCreationScript(const char* script_name) {
   if (Dart_IsError(source)) {
     return source;
   }
-  return Dart_LoadScript(resolved_script_uri, source, 0, 0);
+  return Dart_LoadLibrary(resolved_script_uri, source, 0, 0);
 }
 
 
@@ -954,7 +955,7 @@ static void SetupForGenericSnapshotCreation() {
 static Dart_Isolate CreateServiceIsolate(const char* script_uri,
                                          const char* main,
                                          const char* package_root,
-                                         const char** package_map,
+                                         const char* package_config,
                                          Dart_IsolateFlags* flags,
                                          void* data,
                                          char** error) {
@@ -1017,6 +1018,7 @@ int main(int argc, char** argv) {
   Thread::InitOnce();
   DartUtils::SetOriginalWorkingDirectory();
   // Start event handler.
+  TimerUtils::InitOnce();
   EventHandler::Start();
 
   vm_options.AddArgument("--load_deferred_eagerly");
@@ -1092,7 +1094,6 @@ int main(int argc, char** argv) {
     // closures and setting up 'package root' for URI resolution.
     result =
         DartUtils::PrepareForScriptLoading(package_root,
-                                           NULL,
                                            NULL,
                                            false,
                                            false,

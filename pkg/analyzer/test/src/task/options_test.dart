@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.src.task.options_test;
+library analyzer.test.src.task.options_test;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
-import 'package:analyzer/src/generated/engine.dart' hide AnalysisContextImpl;
+import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/task/general.dart';
@@ -41,6 +42,31 @@ class ContextConfigurationTest extends AbstractContextTest {
   Map<String, YamlNode> parseOptions(String source) =>
       optionsProvider.getOptionsFromString(source);
 
+  test_configure_bad_options_contents() {
+    configureContext('''
+analyzer:
+  strong-mode:true # misformatted
+''');
+    expect(analysisOptions.strongMode, false);
+  }
+
+  test_configure_enableAsync() {
+    configureContext('''
+analyzer:
+  language:
+''');
+    expect(analysisOptions.enableAsync, true);
+  }
+
+  test_configure_enableAsync_false() {
+    configureContext('''
+analyzer:
+  language:
+    enableAsync: false
+''');
+    expect(analysisOptions.enableAsync, false);
+  }
+
   test_configure_enableGenericMethods() {
     expect(analysisOptions.enableGenericMethods, false);
     configureContext('''
@@ -60,30 +86,36 @@ analyzer:
     expect(analysisOptions.enableSuperMixins, true);
   }
 
-  test_configure_error_filters() {
+  test_configure_error_processors() {
     configureContext('''
 analyzer:
   errors:
     invalid_assignment: ignore
-    unused_local_variable: ignore
+    unused_local_variable: error
 ''');
 
-    List<ErrorFilter> filters =
-        context.getConfigurationData(CONFIGURED_ERROR_FILTERS);
-    expect(filters, hasLength(2));
+    List<ErrorProcessor> processors =
+        context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
+    expect(processors, hasLength(2));
 
-    var unused_error = new AnalysisError(
+    var unused_local = new AnalysisError(
         new TestSource(), 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
       ['x']
     ]);
-    var invalid_assignment_error =
+    var invalid_assignment =
         new AnalysisError(new TestSource(), 0, 1, HintCode.INVALID_ASSIGNMENT, [
       ['x'],
       ['y']
     ]);
 
-    expect(filters.any((filter) => filter(unused_error)), isTrue);
-    expect(filters.any((filter) => filter(invalid_assignment_error)), isTrue);
+    // ignore
+    var invalidAssignment =
+        processors.firstWhere((p) => p.appliesTo(invalid_assignment));
+    expect(invalidAssignment.severity, isNull);
+
+    // error
+    var unusedLocal = processors.firstWhere((p) => p.appliesTo(unused_local));
+    expect(unusedLocal.severity, ErrorSeverity.ERROR);
   }
 
   test_configure_strong_mode() {
@@ -98,14 +130,6 @@ analyzer:
     configureContext('''
 analyzer:
   strong-mode: foo
-''');
-    expect(analysisOptions.strongMode, false);
-  }
-
-  test_configure_bad_options_contents() {
-    configureContext('''
-analyzer:
-  strong-mode:true # misformatted
 ''');
     expect(analysisOptions.strongMode, false);
   }
@@ -230,6 +254,9 @@ class OptionsFileValidatorTest {
 analyzer:
   errors:
     unused_local_variable: ignore
+    invalid_assignment: warning
+    missing_return: error
+    dead_code: info
 ''',
         []);
   }
@@ -284,6 +311,16 @@ analyzer:
         [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
   }
 
+  test_analyzer_strong_mode_error_code_supported() {
+    validate(
+        '''
+analyzer:
+  errors:
+    strong_mode_assignment_cast: ignore
+''',
+        []);
+  }
+
   test_analyzer_supported_exclude() {
     validate(
         '''
@@ -301,6 +338,15 @@ analyzer:
   strong-mode: true
     ''',
         []);
+  }
+
+  test_analyzer_supported_strong_mode_supported_bad_value() {
+    validate(
+        '''
+analyzer:
+  strong-mode: w00t
+    ''',
+        [AnalysisOptionsWarningCode.UNSUPPORTED_VALUE]);
   }
 
   test_analyzer_unsupported_option() {

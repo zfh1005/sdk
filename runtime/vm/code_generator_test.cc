@@ -20,7 +20,7 @@
 
 namespace dart {
 
-static const intptr_t kPos = Scanner::kNoSourcePos;
+static const TokenPosition kPos = TokenPosition::kMinSource;
 
 
 CODEGEN_TEST_GENERATE(SimpleReturnCodegen, test) {

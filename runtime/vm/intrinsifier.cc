@@ -68,19 +68,19 @@ void Intrinsifier::InitializeState() {
   ASSERT(!func.IsNull());                                                      \
   func.set_is_intrinsic(true);
 
-  // Set up all core lib functions that can be intrisified.
+  // Set up all core lib functions that can be intrinsified.
   lib = Library::CoreLibrary();
   ASSERT(!lib.IsNull());
   CORE_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
   CORE_INTEGER_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
   GRAPH_CORE_INTRINSICS_LIST(SETUP_FUNCTION);
 
-  // Set up all math lib functions that can be intrisified.
+  // Set up all math lib functions that can be intrinsified.
   lib = Library::MathLibrary();
   ASSERT(!lib.IsNull());
   MATH_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
 
-  // Set up all dart:typed_data lib functions that can be intrisified.
+  // Set up all dart:typed_data lib functions that can be intrinsified.
   lib = Library::TypedDataLibrary();
   ASSERT(!lib.IsNull());
   TYPED_DATA_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
@@ -264,7 +264,7 @@ class BlockBuilder : public ValueObject {
                          SPREG));
   }
 
-  intptr_t TokenPos() {
+  TokenPosition TokenPos() {
     return flow_graph_->function().token_pos();
   }
 
@@ -294,7 +294,7 @@ static void PrepareIndexedOp(BlockBuilder* builder,
                              Definition* array,
                              Definition* index,
                              intptr_t length_offset) {
-  intptr_t token_pos = builder->TokenPos();
+  TokenPosition token_pos = builder->TokenPos();
   builder->AddInstruction(
       new CheckSmiInstr(new Value(index),
                         Thread::kNoDeoptId,
@@ -304,7 +304,7 @@ static void PrepareIndexedOp(BlockBuilder* builder,
       new LoadFieldInstr(new Value(array),
                          length_offset,
                          Type::ZoneHandle(Type::SmiType()),
-                         Scanner::kNoSourcePos));
+                         TokenPosition::kNoSource));
   builder->AddInstruction(
       new CheckArrayBoundInstr(new Value(length),
                                new Value(index),

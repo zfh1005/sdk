@@ -19,6 +19,7 @@ import '../compiler.dart' show
     Compiler;
 import '../constants/expressions.dart';
 import '../dart_types.dart';
+import '../diagnostics/source_span.dart';
 import '../enqueue.dart' show
     ResolutionEnqueuer;
 import '../elements/elements.dart';
@@ -35,7 +36,10 @@ import '../universe/use.dart' show
     TypeUse;
 import '../universe/world_impact.dart' show
     WorldImpactBuilder;
-import '../world.dart' show World;
+import '../util/enumset.dart' show
+    EnumSet;
+import '../world.dart' show
+    World;
 
 import 'send_structure.dart';
 
@@ -46,7 +50,7 @@ import 'tree_elements.dart' show
 
 class _ResolutionWorldImpact extends ResolutionImpact with WorldImpactBuilder {
   final String name;
-  Setlet<Feature> _features;
+  EnumSet<Feature> _features;
   Setlet<MapLiteralUse> _mapLiterals;
   Setlet<ListLiteralUse> _listLiterals;
   Setlet<String> _constSymbolNames;
@@ -97,14 +101,15 @@ class _ResolutionWorldImpact extends ResolutionImpact with WorldImpactBuilder {
 
   void registerFeature(Feature feature) {
     if (_features == null) {
-      _features = new Setlet<Feature>();
+      _features = new EnumSet<Feature>();
     }
     _features.add(feature);
   }
 
   @override
   Iterable<Feature> get features {
-    return _features != null ? _features : const <Feature>[];
+    return _features != null
+        ? _features.iterable(Feature.values) : const <Feature>[];
   }
 
   void registerConstantLiteral(ConstantExpression constant) {
@@ -314,8 +319,8 @@ class ResolutionRegistry extends Registry {
     worldImpact.registerTypeUse(typeUse);
   }
 
-  void registerSuperUse(Node node) {
-    mapping.addSuperUse(node);
+  void registerSuperUse(SourceSpan span) {
+    mapping.addSuperUse(span);
   }
 
   void registerTypeLiteral(Send node, DartType type) {

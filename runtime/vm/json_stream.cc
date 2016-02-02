@@ -161,16 +161,8 @@ static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
 
 
 void JSONStream::PostNullReply(Dart_Port port) {
-  const Object& reply = Object::Handle(Object::null());
-  ASSERT(reply.IsNull());
-
-  uint8_t* data = NULL;
-  MessageWriter writer(&data, &allocator, false);
-  writer.WriteMessage(reply);
-  PortMap::PostMessage(new Message(port,
-                                   data,
-                                   writer.BytesWritten(),
-                                   Message::kNormalPriority));
+  PortMap::PostMessage(new Message(
+      port, Object::null(), Message::kNormalPriority));
 }
 
 
@@ -269,6 +261,13 @@ void JSONStream::AppendSerializedObject(const char* serialized_object) {
   buffer_.AddString(serialized_object);
 }
 
+
+void JSONStream::AppendSerializedObject(const char* property_name,
+                                        const char* serialized_object) {
+  PrintCommaIfNeeded();
+  PrintPropertyName(property_name);
+  buffer_.AddString(serialized_object);
+}
 
 void JSONStream::Clear() {
   buffer_.Clear();
@@ -397,10 +396,12 @@ void JSONStream::PrintValue(const char* s) {
 }
 
 
-bool JSONStream::PrintValueStr(const String& s, intptr_t limit) {
+bool JSONStream::PrintValueStr(const String& s,
+                               intptr_t offset,
+                               intptr_t count) {
   PrintCommaIfNeeded();
   buffer_.AddChar('"');
-  bool did_truncate = AddDartString(s, limit);
+  bool did_truncate = AddDartString(s, offset, count);
   buffer_.AddChar('"');
   return did_truncate;
 }
@@ -440,6 +441,12 @@ void JSONStream::PrintValue(const Object& o, bool ref) {
 void JSONStream::PrintValue(Breakpoint* bpt) {
   PrintCommaIfNeeded();
   bpt->PrintJSON(this);
+}
+
+
+void JSONStream::PrintValue(TokenPosition tp) {
+  PrintCommaIfNeeded();
+  PrintValue(tp.value());
 }
 
 
@@ -535,9 +542,10 @@ void JSONStream::PrintPropertyBase64(const char* name,
 
 bool JSONStream::PrintPropertyStr(const char* name,
                                   const String& s,
-                                  intptr_t limit) {
+                                  intptr_t offset,
+                                  intptr_t count) {
   PrintPropertyName(name);
-  return PrintValueStr(s, limit);
+  return PrintValueStr(s, offset, count);
 }
 
 
@@ -556,6 +564,12 @@ void JSONStream::PrintProperty(const char* name, const ServiceEvent* event) {
 void JSONStream::PrintProperty(const char* name, Breakpoint* bpt) {
   PrintPropertyName(name);
   PrintValue(bpt);
+}
+
+
+void JSONStream::PrintProperty(const char* name, TokenPosition tp) {
+  PrintPropertyName(name);
+  PrintValue(tp);
 }
 
 
@@ -703,23 +717,24 @@ void JSONStream::AddEscapedUTF8String(const char* s, intptr_t len) {
 }
 
 
-bool JSONStream::AddDartString(const String& s, intptr_t limit) {
-  bool did_truncate = false;
+bool JSONStream::AddDartString(const String& s,
+                               intptr_t offset,
+                               intptr_t count) {
   intptr_t length = s.Length();
-  if (limit == -1) {
-    limit = length;
+  ASSERT(offset >= 0);
+  if (offset > length) {
+    offset = length;
   }
-  if (length <= limit) {
-    limit = length;
-  } else {
-    did_truncate = true;
+  if (!Utils::RangeCheck(offset, count, length)) {
+    count = length - offset;
   }
-
-  for (intptr_t i = 0; i < limit; i++) {
+  intptr_t limit = offset + count;
+  for (intptr_t i = offset; i < limit; i++) {
     intptr_t code_unit = s.CharAt(i);
     buffer_.EscapeAndAddCodeUnit(code_unit);
   }
-  return did_truncate;
+  // Return value indicates whether the string is truncated.
+  return (offset > 0) || (limit < length);
 }
 
 
@@ -750,13 +765,13 @@ void JSONObject::AddFixedServiceId(const char* format, ...) const {
 
 
 void JSONObject::AddLocation(const Script& script,
-                             intptr_t token_pos,
-                             intptr_t end_token_pos) const {
+                             TokenPosition token_pos,
+                             TokenPosition end_token_pos) const {
   JSONObject location(this, "location");
   location.AddProperty("type", "SourceLocation");
   location.AddProperty("script", script);
   location.AddProperty("tokenPos", token_pos);
-  if (end_token_pos >= 0) {
+  if (end_token_pos.IsReal()) {
     location.AddProperty("endTokenPos", end_token_pos);
   }
 }
@@ -768,7 +783,7 @@ void JSONObject::AddLocation(const BreakpointLocation* bpt_loc) const {
   Zone* zone = Thread::Current()->zone();
   Library& library = Library::Handle(zone);
   Script& script = Script::Handle(zone);
-  intptr_t token_pos;
+  TokenPosition token_pos = TokenPosition::kNoSource;
   bpt_loc->GetCodeLocation(&library, &script, &token_pos);
   AddLocation(script, token_pos);
 }
@@ -781,7 +796,7 @@ void JSONObject::AddUnresolvedLocation(
   Zone* zone = Thread::Current()->zone();
   Library& library = Library::Handle(zone);
   Script& script = Script::Handle(zone);
-  intptr_t token_pos;
+  TokenPosition token_pos = TokenPosition::kNoSource;
   bpt_loc->GetCodeLocation(&library, &script, &token_pos);
 
   JSONObject location(this, "location");

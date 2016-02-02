@@ -20,7 +20,8 @@ import '../../js/js.dart' as js;
 import '../../tree_ir/tree_ir_nodes.dart' as tree_ir;
 import '../../tree_ir/tree_ir_nodes.dart' show
     BuiltinMethod,
-    BuiltinOperator;
+    BuiltinOperator,
+    isCompoundableOperator;
 import '../../types/types.dart' show
     TypeMask;
 import '../../universe/call_structure.dart' show
@@ -68,7 +69,19 @@ class CodeGenerator extends tree_ir.StatementVisitor
   final tree_ir.FallthroughStack shortContinue =
       new tree_ir.FallthroughStack();
 
-  Set<tree_ir.Label> usedLabels = new Set<tree_ir.Label>();
+  /// When the top element is true, [Unreachable] statements will be emitted
+  /// as [Return]s, otherwise they are emitted as empty because they are
+  /// followed by the end of the method.
+  ///
+  /// Note on why the [fallthrough] stack should not be used for this:
+  /// Ordinary statements may choose whether to use the [fallthrough] target,
+  /// and the choice to do so may disable an optimization in [visitIf].
+  /// But omitting an unreachable 'return' should have lower priority than
+  /// the optimizations in [visitIf], so [visitIf] will instead tell the
+  /// [Unreachable] statements whether they may use fallthrough or not.
+  List<bool> emitUnreachableAsReturn = <bool>[false];
+
+  final Map<tree_ir.Label, String> labelNames = <tree_ir.Label, String>{};
 
   List<js.Statement> accumulator = new List<js.Statement>();
 
@@ -78,7 +91,10 @@ class CodeGenerator extends tree_ir.StatementVisitor
   js.Fun buildFunction(tree_ir.FunctionDefinition function) {
     registerDefaultParameterValues(function.element);
     currentFunction = function.element;
-    visitStatement(function.body);
+    tree_ir.Statement statement = function.body;
+    while (statement != null) {
+      statement = visitStatement(statement);
+    }
 
     List<js.Parameter> parameters = new List<js.Parameter>();
     Set<tree_ir.Variable> parameterSet = new Set<tree_ir.Variable>();
@@ -108,6 +124,9 @@ class CodeGenerator extends tree_ir.StatementVisitor
       if (assign.op != null) break; // Compound assignment.
       js.VariableUse use = assign.leftHandSide;
 
+      // Do not touch non-local variables.
+      if (!usedVariableNames.contains(use.name)) break;
+
       // We cannot declare a variable more than once.
       if (!declaredVariables.add(use.name)) break;
 
@@ -130,6 +149,9 @@ class CodeGenerator extends tree_ir.StatementVisitor
       if (assign.leftHandSide is! js.VariableUse) break pullFromForLoop;
       if (assign.op != null) break pullFromForLoop; // Compound assignment.
       js.VariableUse use = assign.leftHandSide;
+
+      // Do not touch non-local variables.
+      if (!usedVariableNames.contains(use.name)) break pullFromForLoop;
 
       // We cannot declare a variable more than once.
       if (!declaredVariables.add(use.name)) break pullFromForLoop;
@@ -205,9 +227,11 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   List<js.Expression> visitExpressionList(
       List<tree_ir.Expression> expressions) {
-    return new List<js.Expression>.generate(expressions.length,
-        (int index) => visitExpression(expressions[index]),
-        growable: false);
+    List<js.Expression> result = new List<js.Expression>(expressions.length);
+    for (int i = 0; i < expressions.length; ++i) {
+      result[i] = visitExpression(expressions[i]);
+    }
+    return result;
   }
 
   giveup(tree_ir.Node node,
@@ -269,28 +293,19 @@ class CodeGenerator extends tree_ir.StatementVisitor
         sourceInformation: node.sourceInformation);
   }
 
-  void registerMethodInvoke(tree_ir.InvokeMethod node) {
-    Selector selector = node.selector;
-    TypeMask mask = node.mask;
-    if (selector.isGetter) {
-      registry.registerDynamicUse(new DynamicUse(selector, mask));
-    } else if (selector.isSetter) {
-      registry.registerDynamicUse(new DynamicUse(selector, mask));
-    } else {
-      assert(invariant(CURRENT_ELEMENT_SPANNABLE,
-          selector.isCall || selector.isOperator ||
-          selector.isIndex || selector.isIndexSet,
-          message: 'unexpected kind ${selector.kind}'));
+  void registerMethodInvoke(Selector selector, TypeMask receiverType) {
+    registry.registerDynamicUse(new DynamicUse(selector, receiverType));
+    if (!selector.isGetter && !selector.isSetter) {
       // TODO(sigurdm): We should find a better place to register the call.
       Selector call = new Selector.callClosureFrom(selector);
       registry.registerDynamicUse(new DynamicUse(call, null));
-      registry.registerDynamicUse(new DynamicUse(selector, mask));
     }
   }
 
   @override
   js.Expression visitInvokeMethod(tree_ir.InvokeMethod node) {
-    registerMethodInvoke(node);
+    TypeMask mask = glue.extendMaskIfReachesAll(node.selector, node.mask);
+    registerMethodInvoke(node.selector, mask);
     return js.propertyCall(visitExpression(node.receiver),
                            glue.invocationName(node.selector),
                            visitExpressionList(node.arguments))
@@ -342,30 +357,21 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   @override
+  js.Expression visitOneShotInterceptor(tree_ir.OneShotInterceptor node) {
+    registerMethodInvoke(node.selector, node.mask);
+    registry.registerUseInterceptor();
+    return js.js('#.#(#)',
+        [glue.getInterceptorLibrary(),
+         glue.registerOneShotInterceptor(node.selector),
+         visitExpressionList(node.arguments)])
+        .withSourceInformation(node.sourceInformation);
+  }
+
+  @override
   js.Expression visitLiteralList(tree_ir.LiteralList node) {
     registry.registerInstantiatedClass(glue.listClass);
     List<js.Expression> entries = visitExpressionList(node.values);
     return new js.ArrayInitializer(entries);
-  }
-
-  @override
-  js.Expression visitLiteralMap(tree_ir.LiteralMap node) {
-    ConstructorElement constructor;
-    if (node.entries.isEmpty) {
-      constructor = glue.mapLiteralConstructorEmpty;
-    } else {
-      constructor = glue.mapLiteralConstructor;
-    }
-    List<js.Expression> entries =
-        new List<js.Expression>(2 * node.entries.length);
-    for (int i = 0; i < node.entries.length; i++) {
-      entries[2 * i] = visitExpression(node.entries[i].key);
-      entries[2 * i + 1] = visitExpression(node.entries[i].value);
-    }
-    List<js.Expression> args = entries.isEmpty
-         ? <js.Expression>[]
-         : <js.Expression>[new js.ArrayInitializer(entries)];
-    return buildStaticInvoke(constructor, args);
   }
 
   @override
@@ -386,6 +392,25 @@ class CodeGenerator extends tree_ir.StatementVisitor
     return new js.This();
   }
 
+  /// Ensure that 'instanceof' checks may be performed against [class_].
+  ///
+  /// Even if the class is never instantiated, a JS constructor must be emitted
+  /// so the 'instanceof' expression does not throw an exception at runtime.
+  bool tryRegisterInstanceofCheck(ClassElement class_) {
+    if (glue.classWorld.isInstantiated(class_)) {
+      // Ensure the class remains instantiated during backend tree-shaking.
+      // TODO(asgerf): We could have a more precise hook to inform the emitter
+      // that the JS constructor function is needed, without the class being
+      // instantiated.
+      registry.registerInstantiatedClass(class_);
+      return true;
+    }
+    // Will throw if the JS constructor is not emitted, so do not allow the
+    // instanceof check.  This should only happen when certain optimization
+    // passes are disabled, as the type check itself is trivial.
+    return false;
+  }
+
   @override
   js.Expression visitTypeOperator(tree_ir.TypeOperator node) {
     js.Expression value = visitExpression(node.value);
@@ -393,7 +418,6 @@ class CodeGenerator extends tree_ir.StatementVisitor
     DartType type = node.type;
     if (type is InterfaceType) {
       registry.registerTypeUse(new TypeUse.isCheck(type));
-      //glue.registerIsCheck(type, registry);
       ClassElement clazz = type.element;
 
       if (glue.isStringClass(clazz)) {
@@ -406,6 +430,11 @@ class CodeGenerator extends tree_ir.StatementVisitor
           return js.js(r'typeof # === "boolean"', <js.Expression>[value]);
         }
         // TODO(sra): Implement fast cast via calling 'boolTypeCast'.
+      } else if (node.isTypeTest &&
+                 node.typeArguments.isEmpty &&
+                 glue.mayGenerateInstanceofCheck(type) &&
+                 tryRegisterInstanceofCheck(clazz)) {
+        return js.js('# instanceof #', [value, glue.constructorAccess(clazz)]);
       }
 
       // The helper we use needs the JSArray class to exist, but for some
@@ -474,11 +503,67 @@ class CodeGenerator extends tree_ir.StatementVisitor
     return new js.VariableUse(getVariableName(variable));
   }
 
+  /// Returns the JS operator for the given built-in operator for use in a
+  /// compound assignment (not including the '=' sign).
+  String getAsCompoundOperator(BuiltinOperator operator) {
+    switch (operator) {
+      case BuiltinOperator.NumAdd:
+      case BuiltinOperator.StringConcatenate:
+        return '+';
+      case BuiltinOperator.NumSubtract:
+        return '-';
+      case BuiltinOperator.NumMultiply:
+        return '*';
+      case BuiltinOperator.NumDivide:
+        return '/';
+      case BuiltinOperator.NumRemainder:
+        return '%';
+      default:
+        throw 'Not a compoundable operator: $operator';
+    }
+  }
+
+  bool isCompoundableBuiltin(tree_ir.Expression exp) {
+    return exp is tree_ir.ApplyBuiltinOperator &&
+           exp.arguments.length == 2 &&
+           isCompoundableOperator(exp.operator);
+  }
+
+  bool isOneConstant(tree_ir.Expression exp) {
+    return exp is tree_ir.Constant && exp.value.isOne;
+  }
+
+  js.Expression makeAssignment(
+      js.Expression leftHand,
+      tree_ir.Expression value,
+      {BuiltinOperator compound}) {
+    if (isOneConstant(value)) {
+      if (compound == BuiltinOperator.NumAdd) {
+        return new js.Prefix('++', leftHand);
+      }
+      if (compound == BuiltinOperator.NumSubtract) {
+        return new js.Prefix('--', leftHand);
+      }
+    }
+    if (compound != null) {
+      return new js.Assignment.compound(leftHand,
+          getAsCompoundOperator(compound), visitExpression(value));
+    }
+    return new js.Assignment(leftHand, visitExpression(value));
+  }
+
   @override
   js.Expression visitAssign(tree_ir.Assign node) {
-    return new js.Assignment(
-        buildVariableAccess(node.variable),
-        visitExpression(node.value));
+    js.Expression variable = buildVariableAccess(node.variable);
+    if (isCompoundableBuiltin(node.value)) {
+      tree_ir.ApplyBuiltinOperator rhs = node.value;
+      tree_ir.Expression left = rhs.arguments[0];
+      tree_ir.Expression right = rhs.arguments[1];
+      if (left is tree_ir.VariableUse && left.variable == node.variable) {
+        return makeAssignment(variable, right, compound: rhs.operator);
+      }
+    }
+    return makeAssignment(variable, node.value);
   }
 
   @override
@@ -493,8 +578,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
       shortContinue.use();
       accumulator.add(new js.Continue(null));
     } else {
-      usedLabels.add(node.target);
-      accumulator.add(new js.Continue(node.target.name));
+      accumulator.add(new js.Continue(makeLabel(node.target)));
     }
   }
 
@@ -526,51 +610,75 @@ class CodeGenerator extends tree_ir.StatementVisitor
       shortContinue.use();
       accumulator.add(new js.Continue(null));
     } else {
-      usedLabels.add(node.target);
-      accumulator.add(new js.Break(node.target.name));
+      accumulator.add(new js.Break(makeLabel(node.target)));
     }
   }
 
   @override
-  void visitExpressionStatement(tree_ir.ExpressionStatement node) {
-    accumulator.add(new js.ExpressionStatement(
-        visitExpression(node.expression)));
-    visitStatement(node.next);
+  visitExpressionStatement(tree_ir.ExpressionStatement node) {
+    js.Expression exp = visitExpression(node.expression);
+    if (node.next is tree_ir.Unreachable && emitUnreachableAsReturn.last) {
+      // Emit as 'return exp' to assist local analysis in the VM.
+      accumulator.add(new js.Return(exp));
+      return null;
+    } else {
+      accumulator.add(new js.ExpressionStatement(exp));
+      return node.next;
+    }
+  }
+
+  bool isNullReturn(tree_ir.Statement node) {
+    return node is tree_ir.Return && isNull(node.value);
+  }
+
+  bool isEndOfMethod(tree_ir.Statement node) {
+    return isNullReturn(node) ||
+           node is tree_ir.Break && isNullReturn(node.target.binding.next);
   }
 
   @override
-  void visitIf(tree_ir.If node) {
+  visitIf(tree_ir.If node) {
     js.Expression condition = visitExpression(node.condition);
     int usesBefore = fallthrough.useCount;
+    // Unless the 'else' part ends the method. make sure to terminate any
+    // uncompletable code paths in the 'then' part.
+    emitUnreachableAsReturn.add(!isEndOfMethod(node.elseStatement));
     js.Statement thenBody = buildBodyStatement(node.thenStatement);
+    emitUnreachableAsReturn.removeLast();
     bool thenHasFallthrough = (fallthrough.useCount > usesBefore);
     if (thenHasFallthrough) {
       js.Statement elseBody = buildBodyStatement(node.elseStatement);
       accumulator.add(new js.If(condition, thenBody, elseBody));
+      return null;
     } else {
       // The 'then' body cannot complete normally, so emit a short 'if'
       // and put the 'else' body after it.
       accumulator.add(new js.If.noElse(condition, thenBody));
-      visitStatement(node.elseStatement);
+      return node.elseStatement;
     }
   }
 
   @override
-  void visitLabeledStatement(tree_ir.LabeledStatement node) {
+  visitLabeledStatement(tree_ir.LabeledStatement node) {
     fallthrough.push(node.next);
     js.Statement body = buildBodyStatement(node.body);
     fallthrough.pop();
     accumulator.add(insertLabel(node.label, body));
-    visitStatement(node.next);
+    return node.next;
+  }
+
+  /// Creates a name for [label] if it does not already have one.
+  ///
+  /// This also marks the label as being used.
+  String makeLabel(tree_ir.Label label) {
+    return labelNames.putIfAbsent(label, () => 'L${labelNames.length}');
   }
 
   /// Wraps a node in a labeled statement unless the label is unused.
   js.Statement insertLabel(tree_ir.Label label, js.Statement node) {
-    if (usedLabels.remove(label)) {
-      return new js.LabeledStatement(label.name, node);
-    } else {
-      return node;
-    }
+    String name = labelNames[label];
+    if (name == null) return node; // Label is unused.
+    return new js.LabeledStatement(name, node);
   }
 
   /// Returns the current [accumulator] wrapped in a block if neccessary.
@@ -588,7 +696,9 @@ class CodeGenerator extends tree_ir.StatementVisitor
   js.Statement buildBodyStatement(tree_ir.Statement statement) {
     List<js.Statement> savedAccumulator = accumulator;
     accumulator = <js.Statement>[];
-    visitStatement(statement);
+    while (statement != null) {
+      statement = visitStatement(statement);
+    }
     js.Statement result = _bodyAsStatement();
     accumulator = savedAccumulator;
     return result;
@@ -597,7 +707,9 @@ class CodeGenerator extends tree_ir.StatementVisitor
   js.Block buildBodyBlock(tree_ir.Statement statement) {
     List<js.Statement> savedAccumulator = accumulator;
     accumulator = <js.Statement>[];
-    visitStatement(statement);
+    while (statement != null) {
+      statement = visitStatement(statement);
+    }
     js.Statement result = new js.Block(accumulator);
     accumulator = savedAccumulator;
     return result;
@@ -608,12 +720,14 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   @override
-  void visitFor(tree_ir.For node) {
+  visitFor(tree_ir.For node) {
     js.Expression condition = visitExpression(node.condition);
     shortBreak.push(node.next);
     shortContinue.push(node);
     fallthrough.push(node);
+    emitUnreachableAsReturn.add(true);
     js.Statement body = buildBodyStatement(node.body);
+    emitUnreachableAsReturn.removeLast();
     fallthrough.pop();
     shortContinue.pop();
     shortBreak.pop();
@@ -633,17 +747,18 @@ class CodeGenerator extends tree_ir.StatementVisitor
       loopNode = new js.For(init, condition, update, body);
     }
     accumulator.add(insertLabel(node.label, loopNode));
-    visitStatement(node.next);
+    return node.next;
   }
 
   @override
   void visitWhileTrue(tree_ir.WhileTrue node) {
-    js.Expression condition = new js.LiteralBool(true);
     // A short break in the while will jump to the current fallthrough target.
     shortBreak.push(fallthrough.target);
     shortContinue.push(node);
     fallthrough.push(node);
+    emitUnreachableAsReturn.add(true);
     js.Statement jsBody = buildBodyStatement(node.body);
+    emitUnreachableAsReturn.removeLast();
     fallthrough.pop();
     shortContinue.pop();
     if (shortBreak.useCount > 0) {
@@ -651,7 +766,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
       fallthrough.use();
     }
     shortBreak.pop();
-    accumulator.add(insertLabel(node.label, new js.While(condition, jsBody)));
+    accumulator.add(
+        insertLabel(node.label, new js.For(null, null, null, jsBody)));
   }
 
   bool isNull(tree_ir.Expression node) {
@@ -676,14 +792,11 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   @override
-  void visitRethrow(tree_ir.Rethrow node) {
-    glue.reportInternalError('rethrow seen in JavaScript output');
-  }
-
-  @override
   void visitUnreachable(tree_ir.Unreachable node) {
-    // Output nothing.
-    // TODO(asgerf): Emit a throw/return to assist local analysis in the VM?
+    if (emitUnreachableAsReturn.last) {
+      // Emit a return to assist local analysis in the VM.
+      accumulator.add(new js.Return());
+    }
   }
 
   @override
@@ -714,17 +827,14 @@ class CodeGenerator extends tree_ir.StatementVisitor
       registry.registerInstantiatedClosure(classElement.methodElement);
     }
     js.Expression instance = new js.New(
-        glue.constructorAccess(classElement),
-        visitExpressionList(node.arguments))
+            glue.constructorAccess(classElement),
+            visitExpressionList(node.arguments))
         .withSourceInformation(node.sourceInformation);
 
-    List<tree_ir.Expression> typeInformation = node.typeInformation;
-    assert(typeInformation.isEmpty ||
-        typeInformation.length == classElement.typeVariables.length);
-    if (typeInformation.isNotEmpty) {
+    tree_ir.Expression typeInformation = node.typeInformation;
+    if (typeInformation != null) {
       FunctionElement helper = glue.getAddRuntimeTypeInformation();
-      js.Expression typeArguments = new js.ArrayInitializer(
-          visitExpressionList(typeInformation));
+      js.Expression typeArguments = visitExpression(typeInformation);
       return buildStaticHelperInvocation(helper,
           <js.Expression>[instance, typeArguments],
           sourceInformation: node.sourceInformation);
@@ -751,8 +861,13 @@ class CodeGenerator extends tree_ir.StatementVisitor
   @override
   js.Expression visitInterceptor(tree_ir.Interceptor node) {
     registry.registerUseInterceptor();
-    registry.registerSpecializedGetInterceptor(node.interceptedClasses);
-    js.Name helperName = glue.getInterceptorName(node.interceptedClasses);
+    // Default to all intercepted classes if they have not been computed.
+    // This is to ensure we can run codegen without prior optimization passes.
+    Set<ClassElement> interceptedClasses = node.interceptedClasses.isEmpty
+        ? glue.interceptedClasses
+        : node.interceptedClasses;
+    registry.registerSpecializedGetInterceptor(interceptedClasses);
+    js.Name helperName = glue.getInterceptorName(interceptedClasses);
     js.Expression globalHolder = glue.getInterceptorLibrary();
     return js.js('#.#(#)',
         [globalHolder, helperName, visitExpression(node.input)])
@@ -768,13 +883,13 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   @override
-  js.Assignment visitSetField(tree_ir.SetField node) {
+  js.Expression visitSetField(tree_ir.SetField node) {
     registry.registerStaticUse(new StaticUse.fieldSet(node.field));
     js.PropertyAccess field =
         new js.PropertyAccess(
             visitExpression(node.object),
             glue.instanceFieldPropertyName(node.field));
-    return new js.Assignment(field, visitExpression(node.value));
+    return makeAssignment(field, node.value, compound: node.compound);
   }
 
   @override
@@ -786,7 +901,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
           new StaticUse.staticTearOff(node.element.declaration));
       return glue.isolateStaticClosureAccess(node.element);
     }
-    if (glue.isLazilyInitialized(node.element)) {
+    if (node.useLazyGetter) {
       // Read a lazily initialized field.
       registry.registerStaticUse(
           new StaticUse.staticInit(node.element.declaration));
@@ -806,8 +921,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
     registry.registerStaticUse(
         new StaticUse.staticSet(node.element.declaration));
     js.Expression field = glue.staticFieldAccess(node.element);
-    js.Expression value = visitExpression(node.value);
-    return new js.Assignment(field, value);
+    return makeAssignment(field, node.value, compound: node.compound);
   }
 
   @override
@@ -824,10 +938,9 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   js.Expression visitSetIndex(tree_ir.SetIndex node) {
-    return js.js('#[#] = #',
-        [visitExpression(node.object),
-         visitExpression(node.index),
-         visitExpression(node.value)]);
+    js.Expression index = new js.PropertyAccess(
+        visitExpression(node.object), visitExpression(node.index));
+    return makeAssignment(index, node.value, compound: node.compound);
   }
 
   js.Expression buildStaticHelperInvocation(
@@ -873,7 +986,17 @@ class CodeGenerator extends tree_ir.StatementVisitor
   @override
   js.Expression visitTypeExpression(tree_ir.TypeExpression node) {
     List<js.Expression> arguments = visitExpressionList(node.arguments);
-    return glue.generateTypeRepresentation(node.dartType, arguments, registry);
+    switch (node.kind) {
+      case tree_ir.TypeExpressionKind.COMPLETE:
+        return glue.generateTypeRepresentation(
+            node.dartType, arguments, registry);
+      case tree_ir.TypeExpressionKind.INSTANCE:
+        // We expect only flat types for the INSTANCE representation.
+        assert(node.dartType ==
+               (node.dartType.element as ClassElement).thisType);
+        registry.registerInstantiatedClass(glue.listClass);
+        return new js.ArrayInitializer(arguments);
+    }
   }
 
   js.Node handleForeignCode(tree_ir.ForeignCode node) {
@@ -901,10 +1024,36 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   @override
-  void visitYield(tree_ir.Yield node) {
+  visitYield(tree_ir.Yield node) {
     js.Expression value = visitExpression(node.input);
     accumulator.add(new js.DartYield(value, node.hasStar));
-    visitStatement(node.next);
+    return node.next;
+  }
+
+  @override
+  visitNullCheck(tree_ir.NullCheck node) {
+    js.Expression value = visitExpression(node.value);
+    // TODO(sra): Try to use the selector even when [useSelector] is false. The
+    // reason we use 'toString' is that it is always defined so avoids a slow
+    // lookup (in V8) of an absent property. We could use the property for the
+    // selector if we knew it was present. The property is present if the
+    // associated method was not inlined away, or if there is a noSuchMethod
+    // hook for that selector. We don't know these things here, but the decision
+    // could be deferred by creating a deferred property that was resolved after
+    // codegen.
+    js.Expression access = node.selector != null && node.useSelector
+        ? js.js('#.#', [value, glue.invocationName(node.selector)])
+        : js.js('#.toString', [value]);
+    if (node.condition != null) {
+      js.Expression condition = visitExpression(node.condition);
+      js.Statement body = isNullReturn(node.next)
+          ? new js.ExpressionStatement(access)
+          : new js.Return(access);
+      accumulator.add(new js.If.noElse(condition, body));
+    } else {
+      accumulator.add(new js.ExpressionStatement(access));
+    }
+    return node.next;
   }
 
   @override
@@ -949,6 +1098,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
       case BuiltinOperator.StringConcatenate:
         if (args.isEmpty) return js.string('');
         return args.reduce((e1,e2) => new js.Binary('+', e1, e2));
+      case BuiltinOperator.CharCodeAt:
+        return js.js('#.charCodeAt(#)', args);
       case BuiltinOperator.Identical:
         registry.registerStaticUse(new StaticUse.staticInvoke(
             glue.identicalFunction, new CallStructure.unnamed(args.length)));
@@ -1070,12 +1221,6 @@ class CodeGenerator extends tree_ir.StatementVisitor
   @override
   js.Expression visitAwait(tree_ir.Await node) {
     return new js.Await(visitExpression(node.input));
-  }
-
-  visitFunctionExpression(tree_ir.FunctionExpression node) {
-    // FunctionExpressions are currently unused.
-    // We might need them if we want to emit raw JS nested functions.
-    throw 'FunctionExpressions should not be used';
   }
 
   /// Ensures that parameter defaults will be emitted.

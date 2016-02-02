@@ -94,11 +94,11 @@ class SimulatorDebugger {
   bool GetFValue(char* desc, double* value);
   bool GetDValue(char* desc, double* value);
 
-  static intptr_t GetApproximateTokenIndex(const Code& code, uword pc);
+  static TokenPosition GetApproximateTokenIndex(const Code& code, uword pc);
 
   static void PrintDartFrame(uword pc, uword fp, uword sp,
                              const Function& function,
-                             intptr_t token_pos,
+                             TokenPosition token_pos,
                              bool is_optimized,
                              bool is_inlined);
   void PrintBacktrace();
@@ -256,9 +256,9 @@ bool SimulatorDebugger::GetDValue(char* desc, double* value) {
 }
 
 
-intptr_t SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
+TokenPosition SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
                                                      uword pc) {
-  intptr_t token_pos = -1;
+  TokenPosition token_pos = TokenPosition::kNoSource;
   uword pc_offset = pc - code.EntryPoint();
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
@@ -266,7 +266,7 @@ intptr_t SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
   while (iter.MoveNext()) {
     if (iter.PcOffset() == pc_offset) {
       return iter.TokenPos();
-    } else if ((token_pos <= 0) && (iter.PcOffset() > pc_offset)) {
+    } else if (!token_pos.IsReal() && (iter.PcOffset() > pc_offset)) {
       token_pos = iter.TokenPos();
     }
   }
@@ -276,7 +276,7 @@ intptr_t SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
 
 void SimulatorDebugger::PrintDartFrame(uword pc, uword fp, uword sp,
                                        const Function& function,
-                                       intptr_t token_pos,
+                                       TokenPosition token_pos,
                                        bool is_optimized,
                                        bool is_inlined) {
   const Script& script = Script::Handle(function.script());
@@ -284,7 +284,7 @@ void SimulatorDebugger::PrintDartFrame(uword pc, uword fp, uword sp,
   const String& url = String::Handle(script.url());
   intptr_t line = -1;
   intptr_t column = -1;
-  if (token_pos >= 0) {
+  if (token_pos.IsReal()) {
     script.GetTokenLocation(token_pos, &line, &column);
   }
   OS::Print("pc=0x%" Px " fp=0x%" Px " sp=0x%" Px " %s%s (%s:%" Pd
@@ -699,8 +699,8 @@ Simulator::Simulator() {
   // the size specified by the user and the buffer space needed for
   // handling stack overflow exceptions. To be safe in potential
   // stack underflows we also add some underflow buffer space.
-  stack_ = new char[(Isolate::GetSpecifiedStackSize() +
-                     Isolate::kStackSizeBuffer +
+  stack_ = new char[(OSThread::GetSpecifiedStackSize() +
+                     OSThread::kStackSizeBuffer +
                      kSimulatorStackUnderflowSize)];
   icount_ = 0;
   delay_slot_ = false;
@@ -997,7 +997,7 @@ uword Simulator::StackTop() const {
   // To be safe in potential stack underflows we leave some buffer above and
   // set the stack top.
   return StackBase() +
-      (Isolate::GetSpecifiedStackSize() + Isolate::kStackSizeBuffer);
+      (OSThread::GetSpecifiedStackSize() + OSThread::kStackSizeBuffer);
 }
 
 
@@ -1188,6 +1188,16 @@ uword Simulator::CompareExchange(uword* address,
     SetExclusiveAccess(reinterpret_cast<uword>(address));
   }
   return value;
+}
+
+
+uint32_t Simulator::CompareExchangeUint32(uint32_t* address,
+                                          uint32_t compare_value,
+                                          uint32_t new_value) {
+  COMPILE_ASSERT(sizeof(uword) == sizeof(uint32_t));
+  return CompareExchange(reinterpret_cast<uword*>(address),
+                         static_cast<uword>(compare_value),
+                         static_cast<uword>(new_value));
 }
 
 

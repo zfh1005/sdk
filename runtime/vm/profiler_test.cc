@@ -13,6 +13,7 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, background_compilation);
 DECLARE_FLAG(bool, profile_vm);
 DECLARE_FLAG(int, max_profile_depth);
 
@@ -30,6 +31,22 @@ class DisableNativeProfileScope : public ValueObject {
 
  private:
   const bool FLAG_profile_vm_;
+};
+
+
+class DisableBackgroundCompilationScope : public ValueObject {
+ public:
+  DisableBackgroundCompilationScope()
+      : FLAG_background_compilation_(FLAG_background_compilation) {
+    FLAG_background_compilation = false;
+  }
+
+  ~DisableBackgroundCompilationScope() {
+    FLAG_background_compilation = FLAG_background_compilation_;
+  }
+
+ private:
+  const bool FLAG_background_compilation_;
 };
 
 
@@ -138,6 +155,7 @@ TEST_CASE(Profiler_AllocationSampleTest) {
   delete sample_buffer;
 }
 
+
 static RawClass* GetClass(const Library& lib, const char* name) {
   const Class& cls = Class::Handle(
       lib.LookupClassAllowPrivate(String::Handle(Symbols::New(name))));
@@ -146,17 +164,30 @@ static RawClass* GetClass(const Library& lib, const char* name) {
 }
 
 
+static RawFunction* GetFunction(const Library& lib, const char* name) {
+  const Function& func = Function::Handle(
+      lib.LookupFunctionAllowPrivate(String::Handle(Symbols::New(name))));
+  EXPECT(!func.IsNull());  // No ambiguity error expected.
+  return func.raw();
+}
+
+
 class AllocationFilter : public SampleFilter {
  public:
-  explicit AllocationFilter(Isolate* isolate, intptr_t cid)
-      : SampleFilter(isolate),
+  AllocationFilter(Isolate* isolate,
+                   intptr_t cid,
+                   int64_t time_origin_micros = -1,
+                   int64_t time_extent_micros = -1)
+      : SampleFilter(isolate,
+                     time_origin_micros,
+                     time_extent_micros),
         cid_(cid),
-        enable_embedder_ticks_(false) {
+        enable_vm_ticks_(false) {
   }
 
   bool FilterSample(Sample* sample) {
-    if (!enable_embedder_ticks_ &&
-        (sample->vm_tag() == VMTag::kEmbedderTagId)) {
+    if (!enable_vm_ticks_ &&
+        (sample->vm_tag() == VMTag::kVMTagId)) {
       // We don't want to see embedder ticks in the test.
       return false;
     }
@@ -164,13 +195,13 @@ class AllocationFilter : public SampleFilter {
            (sample->allocation_cid() == cid_);
   }
 
-  void set_enable_embedder_ticks(bool enable) {
-    enable_embedder_ticks_ = enable;
+  void set_enable_vm_ticks(bool enable) {
+    enable_vm_ticks_ = enable;
   }
 
  private:
   intptr_t cid_;
-  bool enable_embedder_ticks_;
+  bool enable_vm_ticks_;
 };
 
 
@@ -195,6 +226,7 @@ TEST_CASE(Profiler_TrivialRecordAllocation) {
   Library& root_library = Library::Handle();
   root_library ^= Api::UnwrapHandle(lib);
 
+  const int64_t before_allocations_micros = Dart_TimelineGetMicros();
   const Class& class_a = Class::Handle(GetClass(root_library, "A"));
   EXPECT(!class_a.IsNull());
   class_a.SetTraceAllocation(true);
@@ -202,14 +234,20 @@ TEST_CASE(Profiler_TrivialRecordAllocation) {
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
 
-
+  const int64_t after_allocations_micros = Dart_TimelineGetMicros();
+  const int64_t allocation_extent_micros =
+      after_allocations_micros - before_allocations_micros;
   {
     Thread* thread = Thread::Current();
     Isolate* isolate = thread->isolate();
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
-    AllocationFilter filter(isolate, class_a.id());
+    // Filter for the class in the time range.
+    AllocationFilter filter(isolate,
+                            class_a.id(),
+                            before_allocations_micros,
+                            allocation_extent_micros);
     profile.Build(thread, &filter, Profile::kNoTags);
     // We should have 1 allocation sample.
     EXPECT_EQ(1, profile.sample_count());
@@ -250,6 +288,23 @@ TEST_CASE(Profiler_TrivialRecordAllocation) {
     EXPECT(walker.Down());
     EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT(!walker.Down());
+  }
+
+  // Query with a time filter where no allocations occurred.
+  {
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate,
+                            class_a.id(),
+                            Dart_TimelineGetMicros(),
+                            16000);
+    profile.Build(thread, &filter, Profile::kNoTags);
+    // We should have no allocation samples because none occured within
+    // the specified time range.
+    EXPECT_EQ(0, profile.sample_count());
   }
 }
 
@@ -798,7 +853,7 @@ TEST_CASE(Profiler_ContextAllocation) {
 }
 
 
-TEST_CASE(Profiler_ClassAllocation) {
+TEST_CASE(Profiler_ClosureAllocation) {
   DisableNativeProfileScope dnps;
   const char* kScript =
       "var msg1 = 'a';\n"
@@ -820,12 +875,12 @@ TEST_CASE(Profiler_ClassAllocation) {
   root_library ^= Api::UnwrapHandle(lib);
   Isolate* isolate = thread->isolate();
 
-  const Class& class_class =
-      Class::Handle(Object::class_class());
-  EXPECT(!class_class.IsNull());
-  class_class.SetTraceAllocation(true);
+  const Class& closure_class =
+      Class::Handle(Isolate::Current()->object_store()->closure_class());
+  EXPECT(!closure_class.IsNull());
+  closure_class.SetTraceAllocation(true);
 
-  // Invoke "foo" which during compilation, triggers a closure class allocation.
+  // Invoke "foo" which during compilation, triggers a closure allocation.
   Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
   EXPECT_VALID(result);
 
@@ -833,8 +888,8 @@ TEST_CASE(Profiler_ClassAllocation) {
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
-    AllocationFilter filter(isolate, class_class.id());
-    filter.set_enable_embedder_ticks(true);
+    AllocationFilter filter(isolate, closure_class.id());
+    filter.set_enable_vm_ticks(true);
     profile.Build(thread, &filter, Profile::kNoTags);
     // We should have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
@@ -842,19 +897,14 @@ TEST_CASE(Profiler_ClassAllocation) {
 
     walker.Reset(Profile::kExclusiveCode);
     EXPECT(walker.Down());
-#if defined(TARGET_OS_WINDOWS)
-    // TODO(johnmccutchan): Hookup native symbol resolver on Windows.
-    EXPECT_SUBSTRING("[Native]", walker.CurrentName());
-#else
-    EXPECT_SUBSTRING("dart::Profiler::SampleAllocation", walker.CurrentName());
-#endif
+    EXPECT_SUBSTRING("foo", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 
-  // Disable allocation tracing for Class.
-  class_class.SetTraceAllocation(false);
+  // Disable allocation tracing for Closure.
+  closure_class.SetTraceAllocation(false);
 
-  // Invoke "bar" which during compilation, triggers a closure class allocation.
+  // Invoke "bar" which during compilation, triggers a closure allocation.
   result = Dart_Invoke(lib, NewString("bar"), 0, NULL);
   EXPECT_VALID(result);
 
@@ -862,8 +912,8 @@ TEST_CASE(Profiler_ClassAllocation) {
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
-    AllocationFilter filter(isolate, class_class.id());
-    filter.set_enable_embedder_ticks(true);
+    AllocationFilter filter(isolate, closure_class.id());
+    filter.set_enable_vm_ticks(true);
     profile.Build(thread, &filter, Profile::kNoTags);
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
@@ -1124,6 +1174,8 @@ TEST_CASE(Profiler_StringInterpolation) {
 
 TEST_CASE(Profiler_FunctionInline) {
   DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
+
   const char* kScript =
       "class A {\n"
       "  var a;\n"
@@ -1364,6 +1416,133 @@ TEST_CASE(Profiler_FunctionInline) {
     EXPECT_STREQ("B.choo", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("[Inline End]", walker.CurrentName());
+    EXPECT(!walker.Down());
+  }
+}
+
+
+TEST_CASE(Profiler_InliningIntervalBoundry) {
+  // The PC of frames below the top frame is a call's return address,
+  // which can belong to a different inlining interval than the call.
+  // This test checks the profiler service takes this into account; see
+  // ProfileBuilder::ProcessFrame.
+
+  DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
+  const char* kScript =
+      "class A {\n"
+      "}\n"
+      "bool alloc = false;"
+      "maybeAlloc() {\n"
+      "  try {\n"
+      "    if (alloc) new A();\n"
+      "  } catch (e) {\n"
+      "  }\n"
+      "}\n"
+      "right() => maybeAlloc();\n"
+      "doNothing() {\n"
+      "  try {\n"
+      "  } catch (e) {\n"
+      "  }\n"
+      "}\n"
+      "wrong() => doNothing();\n"
+      "a() {\n"
+      "  try {\n"
+      "    right();\n"
+      "    wrong();\n"
+      "  } catch (e) {\n"
+      "  }\n"
+      "}\n"
+      "mainNoAlloc() {\n"
+      "  for (var i = 0; i < 20000; i++) {\n"
+      "    a();\n"
+      "  }\n"
+      "}\n"
+      "mainAlloc() {\n"
+      "  alloc = true;\n"
+      "  a();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& root_library = Library::Handle();
+  root_library ^= Api::UnwrapHandle(lib);
+
+  const Class& class_a = Class::Handle(GetClass(root_library, "A"));
+  EXPECT(!class_a.IsNull());
+
+  // Compile and optimize.
+  Dart_Handle result = Dart_Invoke(lib, NewString("mainNoAlloc"), 0, NULL);
+  EXPECT_VALID(result);
+  result = Dart_Invoke(lib, NewString("mainAlloc"), 0, NULL);
+  EXPECT_VALID(result);
+
+  // At this point a should be optimized and have inlined both right and wrong,
+  // but not maybeAllocate or doNothing.
+  Function& func = Function::Handle();
+  func = GetFunction(root_library, "a");
+  EXPECT(!func.is_inlinable());
+  EXPECT(func.HasOptimizedCode());
+  func = GetFunction(root_library, "right");
+  EXPECT(func.is_inlinable());
+  func = GetFunction(root_library, "wrong");
+  EXPECT(func.is_inlinable());
+  func = GetFunction(root_library, "doNothing");
+  EXPECT(!func.is_inlinable());
+  func = GetFunction(root_library, "maybeAlloc");
+  EXPECT(!func.is_inlinable());
+
+  {
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, class_a.id());
+    profile.Build(thread, &filter, Profile::kNoTags);
+    // We should have no allocation samples.
+    EXPECT_EQ(0, profile.sample_count());
+  }
+
+  // Turn on allocation tracing for A.
+  class_a.SetTraceAllocation(true);
+
+  result = Dart_Invoke(lib, NewString("mainAlloc"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, class_a.id());
+    profile.Build(thread, &filter, Profile::kNoTags);
+    EXPECT_EQ(1, profile.sample_count());
+    ProfileTrieWalker walker(&profile);
+
+    // Inline expansion should show us the complete call chain:
+    walker.Reset(Profile::kExclusiveFunction);
+    EXPECT(walker.Down());
+    EXPECT_STREQ("maybeAlloc", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("right", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("a", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("mainAlloc", walker.CurrentName());
+    EXPECT(!walker.Down());
+
+    // Inline expansion should show us the complete call chain:
+    walker.Reset(Profile::kInclusiveFunction);
+    EXPECT(walker.Down());
+    EXPECT_STREQ("mainAlloc", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("a", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("right", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("maybeAlloc", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 }

@@ -96,6 +96,10 @@ class NativeArguments {
     return *arg_ptr;
   }
 
+  bool IsNativeAutoSetupScope() const {
+    return AutoSetupScopeBits::decode(argc_tag_);
+  }
+
   int NativeArgCount() const {
     int function_bits = FunctionBits::decode(argc_tag_);
     return ArgCount() - NumHiddenArgs(function_bits);
@@ -107,7 +111,7 @@ class NativeArguments {
       // Retrieve the receiver from the context.
       const Object& closure = Object::Handle(ArgAt(0));
       const Context& context =
-          Context::Handle(Closure::context(Instance::Cast(closure)));
+          Context::Handle(Closure::Cast(closure).context());
       return context.At(0);
     }
     return ArgAt(NumHiddenArgs(function_bits));

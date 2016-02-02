@@ -4198,9 +4198,11 @@ class SsaBuilder extends ast.Visitor
       // If the isolate library is not used, we just generate code
       // to fetch the static state.
       String name = backend.namer.staticStateHolder;
-      push(new HForeignCode(js.js.parseForeignJS(name),
-                            backend.dynamicType,
-                            <HInstruction>[]));
+      push(new HForeignCode(
+          js.js.parseForeignJS(name),
+          backend.dynamicType,
+          <HInstruction>[],
+          nativeBehavior: native.NativeBehavior.DEPENDS_OTHER));
     } else {
       // Call a helper method from the isolate library. The isolate
       // library uses its own isolate structure, that encapsulates
@@ -4478,7 +4480,7 @@ class SsaBuilder extends ast.Visitor
         js.js.parseForeignJS("$isolateName = #"),
         backend.dynamicType,
         <HInstruction>[pop()],
-        nativeBehavior: native.NativeBehavior.PURE,
+        nativeBehavior: native.NativeBehavior.CHANGES_OTHER,
         effects: sideEffects));
   }
 
@@ -4488,7 +4490,8 @@ class SsaBuilder extends ast.Visitor
     }
     push(new HForeignCode(js.js.parseForeignJS(backend.namer.staticStateHolder),
                           backend.dynamicType,
-                          <HInstruction>[]));
+                          <HInstruction>[],
+                          nativeBehavior: native.NativeBehavior.DEPENDS_OTHER));
   }
 
   void handleForeignSend(ast.Send node, FunctionElement element) {
@@ -4837,8 +4840,7 @@ class SsaBuilder extends ast.Visitor
     ClassWorld classWorld = compiler.world;
     if (classWorld.isUsedAsMixin(cls)) return true;
 
-    Iterable<ClassElement> subclasses = compiler.world.strictSubclassesOf(cls);
-    return subclasses.any((ClassElement subclass) {
+    return compiler.world.anyStrictSubclassOf(cls, (ClassElement subclass) {
       return !rti.isTrivialSubstitution(subclass, cls);
     });
   }
@@ -5134,15 +5136,23 @@ class SsaBuilder extends ast.Visitor
       stack.add(graph.addConstantNull(compiler));
       return;
     }
+
     if (checkTypeVariableBounds(node, type)) return;
 
-    var inputs = <HInstruction>[];
-    if (constructor.isGenerativeConstructor &&
-        backend.isNativeOrExtendsNative(constructor.enclosingClass) &&
-        !backend.isJsInterop(constructor)) {
-      // Native class generative constructors take a pre-constructed object.
-      inputs.add(graph.addConstantNull(compiler));
+    // Abstract class instantiation error takes precedence over argument
+    // mismatch.
+    ClassElement cls = constructor.enclosingClass;
+    if (cls.isAbstract && constructor.isGenerativeConstructor) {
+      // However, we need to ensure that all arguments are evaluated before we
+      // throw the ACIE exception.
+      send.arguments.forEach((arg) {
+        visit(arg);
+        pop();
+      });
+      generateAbstractClassInstantiationError(send, cls.name);
+      return;
     }
+
     // TODO(5347): Try to avoid the need for calling [implementation] before
     // calling [makeStaticArgumentList].
     constructorImplementation = constructor.implementation;
@@ -5151,6 +5161,14 @@ class SsaBuilder extends ast.Visitor
             constructorImplementation.functionSignature)) {
       generateWrongArgumentCountError(send, constructor, send.arguments);
       return;
+    }
+
+    var inputs = <HInstruction>[];
+    if (constructor.isGenerativeConstructor &&
+        backend.isNativeOrExtendsNative(constructor.enclosingClass) &&
+        !backend.isJsInterop(constructor)) {
+      // Native class generative constructors take a pre-constructed object.
+      inputs.add(graph.addConstantNull(compiler));
     }
     inputs.addAll(makeStaticArgumentList(callStructure,
                                          send.arguments,
@@ -5198,13 +5216,7 @@ class SsaBuilder extends ast.Visitor
     } else {
       SourceInformation sourceInformation =
           sourceInformationBuilder.buildNew(send);
-      ClassElement cls = constructor.enclosingClass;
-      if (cls.isAbstract && constructor.isGenerativeConstructor) {
-        generateAbstractClassInstantiationError(send, cls.name);
-        return;
-      }
       potentiallyAddTypeArguments(inputs, cls, expectedType);
-
       addInlinedInstantiation(expectedType);
       pushInvokeStatic(node, constructor, inputs,
           typeMask: elementType,
@@ -5864,7 +5876,7 @@ class SsaBuilder extends ast.Visitor
         && params.optionalParametersAreNamed;
   }
 
-  HForeignCode invokeJsInteropFunction(Element element,
+  HForeignCode invokeJsInteropFunction(FunctionElement element,
                                        List<HInstruction> arguments,
                                        SourceInformation sourceInformation) {
     assert(backend.isJsInterop(element));
@@ -5898,6 +5910,9 @@ class SsaBuilder extends ast.Visitor
 
       var nativeBehavior = new native.NativeBehavior()
         ..codeTemplate = codeTemplate;
+      if (compiler.trustJSInteropTypeAnnotations) {
+        nativeBehavior.typesReturned.add(constructor.enclosingClass.thisType);
+      }
       return new HForeignCode(
           codeTemplate,
           backend.dynamicType, filteredArguments,
@@ -5917,34 +5932,43 @@ class SsaBuilder extends ast.Visitor
     arguments = arguments.where((arg) => arg != null).toList();
     var inputs = <HInstruction>[target]..addAll(arguments);
 
-    js.Template codeTemplate;
-    if (element.isGetter) {
-      codeTemplate = js.js.parseForeignJS("#");
-    } else if (element.isSetter) {
-      codeTemplate = js.js.parseForeignJS("# = #");
-    } else {
-      FunctionElement function = element;
-      FunctionSignature params = function.functionSignature;
+    var nativeBehavior = new native.NativeBehavior()
+      ..sideEffects.setAllSideEffects();
 
-      var argsStub = <String>[];
-      for (int i = 0; i < arguments.length; i++) {
-        argsStub.add('#');
-      }
+    DartType type = element.isConstructor ?
+        element.enclosingClass.thisType : element.type.returnType;
+    // Native behavior effects here are similar to native/behavior.dart.
+    // The return type is dynamic if we don't trust js-interop type
+    // declarations.
+    nativeBehavior.typesReturned.add(
+        compiler.trustJSInteropTypeAnnotations ? type : const DynamicType());
 
-      if (element.isConstructor) {
-        codeTemplate = js.js.parseForeignJS("new #(${argsStub.join(",")})");
-      } else {
-        codeTemplate = js.js.parseForeignJS("#(${argsStub.join(",")})");
-      }
+    // The allocation effects include the declared type if it is native (which
+    // includes js interop types).
+    if (type.element != null && backend.isNative(type.element)) {
+      nativeBehavior.typesInstantiated.add(type);
     }
 
-    var nativeBehavior = new native.NativeBehavior()
-      ..codeTemplate = codeTemplate
-      ..typesReturned.add(
-          helpers.jsJavaScriptObjectClass.thisType)
-      ..typesInstantiated.add(
-          helpers.jsJavaScriptObjectClass.thisType)
-      ..sideEffects.setAllSideEffects();
+    // It also includes any other JS interop type if we don't trust the
+    // annotation or if is declared too broad.
+    if (!compiler.trustJSInteropTypeAnnotations || type.isObject ||
+        type.isDynamic) {
+      nativeBehavior.typesInstantiated.add(
+          backend.helpers.jsJavaScriptObjectClass.thisType);
+    }
+
+    String code;
+    if (element.isGetter) {
+      code = "#";
+    } else if (element.isSetter) {
+      code = "# = #";
+    } else {
+      var args = new List.filled(arguments.length, '#').join(',');
+      code = element.isConstructor ? "new #($args)" : "#($args)";
+    }
+    js.Template codeTemplate = js.js.parseForeignJS(code);
+    nativeBehavior.codeTemplate = codeTemplate;
+
     return new HForeignCode(
         codeTemplate,
         backend.dynamicType, inputs,
@@ -7125,21 +7149,64 @@ class SsaBuilder extends ast.Visitor
     FunctionSignature targetSignature = targetConstructor.functionSignature;
     FunctionSignature redirectingSignature =
         redirectingConstructor.functionSignature;
-    redirectingSignature.forEachRequiredParameter((ParameterElement element) {
-      inputs.add(localsHandler.readLocal(element));
-    });
+
+    List<Element> targetRequireds = targetSignature.requiredParameters;
+    List<Element> redirectingRequireds
+        = redirectingSignature.requiredParameters;
+
     List<Element> targetOptionals =
         targetSignature.orderedOptionalParameters;
     List<Element> redirectingOptionals =
         redirectingSignature.orderedOptionalParameters;
-    int i = 0;
-    for (; i < redirectingOptionals.length; i++) {
-      ParameterElement parameter = redirectingOptionals[i];
+
+    // TODO(25579): This code can do the wrong thing redirecting constructor and
+    // the target do not correspond. It is correct if there is no
+    // warning. Ideally the redirecting constructor and the target would be the
+    // same function.
+
+    void loadLocal(ParameterElement parameter) {
       inputs.add(localsHandler.readLocal(parameter));
     }
-    for (; i < targetOptionals.length; i++) {
-      inputs.add(handleConstantForOptionalParameter(targetOptionals[i]));
+    void loadPosition(int position, ParameterElement optionalParameter) {
+      if (position < redirectingRequireds.length) {
+        loadLocal(redirectingRequireds[position]);
+      } else if (position < redirectingSignature.parameterCount &&
+                 !redirectingSignature.optionalParametersAreNamed) {
+        loadLocal(redirectingOptionals[position - redirectingRequireds.length]);
+      } else if (optionalParameter != null) {
+        inputs.add(handleConstantForOptionalParameter(optionalParameter));
+      } else {
+        // Wrong.
+        inputs.add(graph.addConstantNull(compiler));
+      }
     }
+
+    int position = 0;
+
+    for (ParameterElement targetParameter in targetRequireds) {
+      loadPosition(position++, null);
+    }
+
+    if (targetOptionals.isNotEmpty) {
+      if (targetSignature.optionalParametersAreNamed) {
+        for (ParameterElement parameter in targetOptionals) {
+          ParameterElement redirectingParameter =
+              redirectingOptionals.firstWhere(
+                  (p) => p.name == parameter.name,
+                  orElse: () => null);
+          if (redirectingParameter == null) {
+            inputs.add(handleConstantForOptionalParameter(parameter));
+          } else {
+            inputs.add(localsHandler.readLocal(redirectingParameter));
+          }
+        }
+      } else {
+        for (ParameterElement parameter in targetOptionals) {
+          loadPosition(position++, parameter);
+        }
+      }
+    }
+
     ClassElement targetClass = targetConstructor.enclosingClass;
     if (backend.classNeedsRti(targetClass)) {
       ClassElement cls = redirectingConstructor.enclosingClass;

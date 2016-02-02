@@ -67,9 +67,9 @@ class ObjectStore {
     function_type_ = value.raw();
   }
 
-  RawType* function_impl_type() const { return function_impl_type_; }
-  void set_function_impl_type(const Type& value) {
-    function_impl_type_ = value.raw();
+  RawClass* closure_class() const { return closure_class_; }
+  void set_closure_class(const Class& value) {
+    closure_class_ = value.raw();
   }
 
   RawType* number_type() const { return number_type_; }
@@ -332,6 +332,14 @@ class ObjectStore {
     libraries_ = value.raw();
   }
 
+  RawGrowableObjectArray* closure_functions() const {
+    return closure_functions_;
+  }
+  void set_closure_functions(const GrowableObjectArray& value) {
+    ASSERT(!value.IsNull());
+    closure_functions_ = value.raw();
+  }
+
   RawGrowableObjectArray* pending_classes() const { return pending_classes_; }
   void set_pending_classes(const GrowableObjectArray& value) {
     ASSERT(!value.IsNull());
@@ -359,6 +367,8 @@ class ObjectStore {
 
   RawError* sticky_error() const { return sticky_error_; }
   void set_sticky_error(const Error& value) {
+    // TODO(asiva): Move sticky_error_ into thread specific area.
+    ASSERT(Thread::Current()->IsMutatorThread());
     ASSERT(!value.IsNull());
     sticky_error_ = value.raw();
   }
@@ -434,6 +444,13 @@ class ObjectStore {
     compile_time_constants_ = value.raw();
   }
 
+  RawArray* unique_dynamic_targets() const {
+    return unique_dynamic_targets_;
+  }
+  void set_unique_dynamic_targets(const Array& value) {
+    unique_dynamic_targets_ = value.raw();
+  }
+
   RawGrowableObjectArray* token_objects() const {
     return token_objects_;
   }
@@ -487,7 +504,7 @@ class ObjectStore {
   RawClass* null_class_;
   RawType* null_type_;
   RawType* function_type_;
-  RawType* function_impl_type_;
+  RawClass* closure_class_;
   RawType* number_type_;
   RawType* int_type_;
   RawClass* integer_implementation_class_;
@@ -540,6 +557,7 @@ class ObjectStore {
   RawLibrary* typed_data_library_;
   RawLibrary* vmservice_library_;
   RawGrowableObjectArray* libraries_;
+  RawGrowableObjectArray* closure_functions_;
   RawGrowableObjectArray* pending_classes_;
   RawGrowableObjectArray* pending_deferred_loads_;
   RawGrowableObjectArray* resume_capabilities_;
@@ -559,6 +577,7 @@ class ObjectStore {
   RawObject** to_snapshot() {
     return reinterpret_cast<RawObject**>(&compile_time_constants_);
   }
+  RawArray* unique_dynamic_targets_;
   RawGrowableObjectArray* token_objects_;
   RawArray* token_objects_map_;
   RawGrowableObjectArray* megamorphic_cache_table_;

@@ -1,19 +1,121 @@
-## 1.14.0
+## 1.15.0
 
 ### Core library changes
+  * Added `Uri.queryParametersAll` to handle multiple query parameters with
+    the same name.
+
+## 1.14.0 - 2016-01-28
+
+### Core library changes
+* `dart:async`
+  * Added `Future.any` static method.
+  * Added `Stream.fromFutures` constructor.
+
+* `dart:convert`
+  * `Base64Decoder.convert` now takes optional `start` and `end` parameters.
+
+* `dart:core`
+  * Added `current` getter to `StackTrace` class.
+  * `Uri` class added support for data URIs
+      * Added two new constructors: `dataFromBytes` and `dataFromString`.
+      * Added a `data` getter for `data:` URIs with a new `UriData` class for
+      the return type.
+  * Added `growable` parameter to `List.filled` constructor.
+  * Added microsecond support to `DateTime`: `DateTime.microsecond`,
+    `DateTime.microsecondsSinceEpoch`, and
+    `new DateTime.fromMicrosecondsSinceEpoch`.
+
 * `dart:math`
   * `Random` added a `secure` constructor returning a cryptographically secure
     random generator which reads from the entropy source provided by the
     embedder for every generated random value.
 
-* `dart:core`
-  * Added `Uri.data` getter for `data:` URIs, and `UriData` class for the
-    return type.
+* `dart:io`
+  * `Platform` added a static `isIOS` getter and `Platform.operatingSystem` may
+    now return `ios`.
+  * `Platform` added a static `packageConfig` getter.
+  * Added support for WebSocket compression as standardized in RFC 7692.
+  * Compression is enabled by default for all WebSocket connections.
+      * The optionally named parameter `compression` on the methods
+      `WebSocket.connect`, `WebSocket.fromUpgradedSocket`, and
+      `WebSocketTransformer.upgrade` and  the `WebSocketTransformer`
+      constructor can be used to modify or disable compression using the new
+      `CompressionOptions` class.
 
-* `dart:convert`
-  * `Base64Decoder.convert` now takes optional `start` and `end` parameters.
+* `dart:isolate`
+  * Added **_experimental_** support for [Package Resolution Configuration].
+    * Added `packageConfig` and `packageRoot` instance getters to `Isolate`.
+    * Added a `resolvePackageUri` method to `Isolate`.
+    * Added named arguments `packageConfig` and `automaticPackageResolution` to
+    the `Isolate.spawnUri` constructor.
 
-## 1.13.0
+[Package Resolution Configuration]: https://github.com/dart-lang/dart_enhancement_proposals/blob/master/Accepted/0005%20-%20Package%20Specification/DEP-pkgspec.md
+
+### Tool changes
+
+* `dartfmt`
+
+  * Better line splitting in a variety of cases.
+
+  * Other optimizations and bug fixes.
+
+* Pub
+
+  * **Breaking:** Pub now eagerly emits an error when a pubspec's "name" field
+    is not a valid Dart identifier. Since packages with non-identifier names
+    were never allowed to be published, and some of them already caused crashes
+    when being written to a `.packages` file, this is unlikely to break many
+    people in practice.
+
+  * **Breaking:** Support for `barback` versions prior to 0.15.0 (released July
+    2014) has been dropped. Pub will no longer install these older barback
+    versions.
+
+  * `pub serve` now GZIPs the assets it serves to make load times more similar
+    to real-world use-cases.
+
+  * `pub deps` now supports a `--no-dev` flag, which causes it to emit the
+    dependency tree as it would be if no `dev_dependencies` were in use. This
+    makes it easier to see your package's dependency footprint as your users
+    will experience it.
+
+  * `pub global run` now detects when a global executable's SDK constraint is no
+    longer met and errors out, rather than trying to run the executable anyway.
+
+  * Pub commands that check whether the lockfile is up-to-date (`pub run`, `pub
+    deps`, `pub serve`, and `pub build`) now do additional verification. They
+    ensure that any path dependencies' pubspecs haven't been changed, and they
+    ensure that the current SDK version is compatible with all dependencies.
+
+  * Fixed a crashing bug when using `pub global run` on a global script that
+    didn't exist.
+
+  * Fixed a crashing bug when a pubspec contains a dependency without a source
+    declared.
+
+## 1.13.2 - 2016-01-06
+
+Patch release, resolves one issue:
+
+* dart2js: Stack traces are not captured correctly (SDK issue [25235]
+(https://github.com/dart-lang/sdk/issues/25235))
+
+## 1.13.1 - 2015-12-17
+
+Patch release, resolves three issues:
+
+* VM type propagation fix: Resolves a potential crash in the Dart VM (SDK commit
+ [dff13be]
+(https://github.com/dart-lang/sdk/commit/dff13bef8de104d33b04820136da2d80f3c835d7))
+
+* dart2js crash fix: Resolves a crash in pkg/js and dart2js (SDK issue [24974]
+(https://github.com/dart-lang/sdk/issues/24974))
+
+* Pub get crash on ARM: Fixes a crash triggered when running 'pub get' on ARM
+ processors such as those on a Raspberry Pi (SDK issue [24855]
+(https://github.com/dart-lang/sdk/issues/24855))
+
+## 1.13.0 - 2015-11-18
 
 ### Core library changes
 * `dart:async`
@@ -136,10 +238,14 @@
 ### Language changes
 
 * Null-aware operators
-    * `??`: if null operator. `expr1 ?? expr2` evaluates to `expr1` if not `null`, otherwise `expr2`.
-    * `??=`: null-aware assignment. `v ??= expr` causes `v` to be assigned `expr` only if `v` is `null`.
-    * `x?.p`: null-aware access. `x?.p` evaluates to `x.p` if `x` is not `null`, otherwise evaluates to `null`.
-    * `x?.m()`: null-aware method invocation. `x?.m()` invokes `m` only if `x` is not `null`.
+    * `??`: if null operator. `expr1 ?? expr2` evaluates to `expr1` if
+      not `null`, otherwise `expr2`.
+    * `??=`: null-aware assignment. `v ??= expr` causes `v` to be assigned
+      `expr` only if `v` is `null`.
+    * `x?.p`: null-aware access. `x?.p` evaluates to `x.p` if `x` is not
+      `null`, otherwise evaluates to `null`.
+    * `x?.m()`: null-aware method invocation. `x?.m()` invokes `m` only
+      if `x` is not `null`.
 
 ### Core library changes
 

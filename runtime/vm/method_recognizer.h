@@ -15,7 +15,7 @@ namespace dart {
 #define OTHER_RECOGNIZED_LIST(V)                                               \
   V(::, identical, ObjectIdentical, 554128144)                                 \
   V(ClassID, getID, ClassIDgetID, 535124072)                                   \
-  V(Object, Object., ObjectConstructor, 1066759160)                            \
+  V(Object, Object., ObjectConstructor, 1852396454)                            \
   V(_List, ., ObjectArrayAllocate, 850375012)                                  \
   V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 1541411498)                    \
   V(_TypedList, _getUint8, ByteArrayBaseGetUint8, 1032404349)                  \
@@ -188,6 +188,7 @@ namespace dart {
   V(_StringBase, get:hashCode, String_getHashCode, 2103025405)                 \
   V(_StringBase, get:isEmpty, StringBaseIsEmpty, 780870414)                    \
   V(_StringBase, codeUnitAt, StringBaseCodeUnitAt, 397735324)                  \
+  V(_StringBase, _substringMatches, StringBaseSubstringMatches, 347814979)     \
   V(_StringBase, [], StringBaseCharAt, 408544820)                              \
   V(_OneByteString, get:hashCode, OneByteString_getHashCode, 1111957093)       \
   V(_OneByteString, _substringUncheckedNative,                                 \

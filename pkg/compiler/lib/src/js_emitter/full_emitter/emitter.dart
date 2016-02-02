@@ -17,6 +17,7 @@ import '../js_emitter.dart' hide Emitter;
 import '../js_emitter.dart' as js_emitter show Emitter;
 import '../model.dart';
 import '../program_builder/program_builder.dart';
+import '../constant_ordering.dart' show deepCompareConstants;
 
 import '../../common.dart';
 import '../../common/names.dart' show
@@ -73,6 +74,7 @@ import '../../js_backend/js_backend.dart' show
     TypeCheck,
     TypeChecks,
     TypeVariableHandler;
+import '../../js/js_debug.dart';
 import '../../universe/call_structure.dart' show
     CallStructure;
 import '../../universe/selector.dart' show
@@ -252,11 +254,9 @@ class Emitter implements js_emitter.Emitter {
     // which compresses a tiny bit better.
     int r = namer.constantLongName(a).compareTo(namer.constantLongName(b));
     if (r != 0) return r;
-    // Resolve collisions in the long name by using the constant name (i.e. JS
-    // name) which is unique.
-    // TODO(herhut): Find a better way to resolve collisions.
-    return namer.constantName(a).hashCode.compareTo(
-        namer.constantName(b).hashCode);
+
+    // Resolve collisions in the long name by using a structural order.
+    return deepCompareConstants(a, b);
   }
 
   @override
@@ -675,56 +675,66 @@ class Emitter implements js_emitter.Emitter {
     return new jsAst.Block(parts);
   }
 
-  jsAst.Statement buildLazilyInitializedStaticFields() {
-    JavaScriptConstantCompiler handler = backend.constants;
-    List<VariableElement> lazyFields =
-        handler.getLazilyInitializedFieldsForEmission();
+  jsAst.Statement buildLazilyInitializedStaticFields(
+      Iterable<StaticField> lazyFields, {bool isMainFragment: true}) {
     if (lazyFields.isNotEmpty) {
       needsLazyInitializer = true;
-      List<jsAst.Expression> laziesInfo = buildLaziesInfo(lazyFields);
+      List<jsAst.Expression> laziesInfo =
+          buildLaziesInfo(lazyFields, isMainFragment);
       return js.statement('''
       (function(lazies) {
         for (var i = 0; i < lazies.length; ) {
           var fieldName = lazies[i++];
           var getterName = lazies[i++];
+          var lazyValue = lazies[i++];
           if (#notMinified) {
             var staticName = lazies[i++];
           }
-          var lazyValue = lazies[i++];
-
+          if (#isDeferredFragment) {
+            var fieldHolder = lazies[i++];
+          }
           // We build the lazy-check here:
           //   lazyInitializer(fieldName, getterName, lazyValue, staticName);
           // 'staticName' is used for error reporting in non-minified mode.
           // 'lazyValue' must be a closure that constructs the initial value.
-          if (#notMinified) {
-            #lazy(fieldName, getterName, lazyValue, staticName);
+          if (#isMainFragment) {
+            if (#notMinified) {
+              #lazy(fieldName, getterName, lazyValue, staticName);
+            } else {
+              #lazy(fieldName, getterName, lazyValue);
+            }
           } else {
-            #lazy(fieldName, getterName, lazyValue);
+            if (#notMinified) {
+              #lazy(fieldName, getterName, lazyValue, staticName, fieldHolder);
+            } else {
+              #lazy(fieldName, getterName, lazyValue, null, fieldHolder);
+            }
           }
         }
       })(#laziesInfo)
       ''', {'notMinified': !compiler.enableMinification,
             'laziesInfo': new jsAst.ArrayInitializer(laziesInfo),
-            'lazy': js(lazyInitializerName)});
+            'lazy': js(lazyInitializerName),
+            'isMainFragment': isMainFragment,
+            'isDeferredFragment': !isMainFragment});
     } else {
       return js.comment("No lazy statics.");
     }
   }
 
-  List<jsAst.Expression> buildLaziesInfo(List<VariableElement> lazies) {
+  List<jsAst.Expression> buildLaziesInfo(
+      Iterable<StaticField> lazies, bool isMainFragment) {
     List<jsAst.Expression> laziesInfo = <jsAst.Expression>[];
-    for (VariableElement element in Elements.sortedByPosition(lazies)) {
-      jsAst.Expression code = backend.generatedCode[element];
-      // The code is null if we ended up not needing the lazily
-      // initialized field after all because of constant folding
-      // before code generation.
-      if (code == null) continue;
-      laziesInfo.add(js.quoteName(namer.globalPropertyName(element)));
-      laziesInfo.add(js.quoteName(namer.lazyInitializerName(element)));
+    for (StaticField field in lazies) {
+      laziesInfo.add(js.quoteName(field.name));
+      laziesInfo.add(js.quoteName(namer.deriveLazyInitializerName(field.name)));
+      laziesInfo.add(field.code);
       if (!compiler.enableMinification) {
-        laziesInfo.add(js.string(element.name));
+        laziesInfo.add(js.quoteName(field.name));
       }
-      laziesInfo.add(code);
+      if (!isMainFragment) {
+        laziesInfo.add(js('#', field.holder.name));
+      }
     }
     return laziesInfo;
   }
@@ -1371,6 +1381,16 @@ class Emitter implements js_emitter.Emitter {
     assembleTypedefs(program);
   }
 
+  jsAst.Statement buildDeferredHeader() {
+    /// For deferred loading we communicate the initializers via this global
+    /// variable. The deferred hunks will add their initialization to this.
+    /// The semicolon is important in minified mode, without it the
+    /// following parenthesis looks like a call to the object literal.
+    return js.statement('self.#deferredInitializers = '
+                        'self.#deferredInitializers || Object.create(null);',
+                        {'deferredInitializers': deferredInitializers});
+  }
+
   jsAst.Program buildOutputAstForMain(Program program,
       Map<OutputUnit, _DeferredOutputUnitHash> deferredLoadHashes) {
     MainFragment mainFragment = program.mainFragment;
@@ -1383,14 +1403,7 @@ class Emitter implements js_emitter.Emitter {
               ..add(js.comment(HOOKS_API_USAGE));
 
     if (isProgramSplit) {
-      /// For deferred loading we communicate the initializers via this global
-      /// variable. The deferred hunks will add their initialization to this.
-      /// The semicolon is important in minified mode, without it the
-      /// following parenthesis looks like a call to the object literal.
-      statements.add(
-          js.statement('self.#deferredInitializers = '
-                       'self.#deferredInitializers || Object.create(null);',
-                       {'deferredInitializers': deferredInitializers}));
+      statements.add(buildDeferredHeader());
     }
 
     // Collect the AST for the decriptors
@@ -1568,7 +1581,8 @@ class Emitter implements js_emitter.Emitter {
           mainOutputUnit),
       "typeToInterceptorMap":
           interceptorEmitter.buildTypeToInterceptorMap(program),
-      "lazyStaticFields": buildLazilyInitializedStaticFields(),
+      "lazyStaticFields": buildLazilyInitializedStaticFields(
+          mainFragment.staticLazilyInitializedFields),
       "metadata": buildMetadata(program, mainOutputUnit),
       "convertToFastObject": buildConvertToFastObjectFunction(),
       "convertToSlowObject": buildConvertToSlowObjectFunction(),
@@ -1596,9 +1610,8 @@ class Emitter implements js_emitter.Emitter {
     outputBuffers[mainOutputUnit] = mainOutput;
 
 
-    mainOutput.addBuffer(jsAst.prettyPrint(program,
-                                           compiler,
-                                           monitor: compiler.dumpInfoTask));
+    mainOutput.addBuffer(jsAst.createCodeBuffer(
+        program, compiler, monitor: compiler.dumpInfoTask));
 
     if (compiler.deferredMapUri != null) {
       outputDeferredMap();
@@ -1994,11 +2007,14 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       body.add(buildCompileTimeConstants(fragment.constants,
                                          isMainFragment: false));
       body.add(buildStaticNonFinalFieldInitializations(outputUnit));
+      body.add(buildLazilyInitializedStaticFields(
+          fragment.staticLazilyInitializedFields, isMainFragment: false));
 
       List<jsAst.Statement> statements = <jsAst.Statement>[];
 
       statements
           ..add(buildGeneratedBy())
+          ..add(buildDeferredHeader())
           ..add(js.statement('${deferredInitializers}.current = '
                              """function (#, ${namer.staticStateHolder}) {
                                   #
@@ -2039,9 +2055,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
 
       outputBuffers[outputUnit] = output;
 
-      output.addBuffer(jsAst.prettyPrint(outputAsts[outputUnit],
-                                         compiler,
-                                         monitor: compiler.dumpInfoTask));
+      output.addBuffer(jsAst.createCodeBuffer(
+          outputAsts[outputUnit], compiler, monitor: compiler.dumpInfoTask));
 
       // Make a unique hash of the code (before the sourcemaps are added)
       // This will be used to retrieve the initializing function from the global

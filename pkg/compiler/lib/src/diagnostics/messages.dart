@@ -72,6 +72,10 @@ import 'invariant.dart' show
 import 'spannable.dart' show
     CURRENT_ELEMENT_SPANNABLE;
 
+import 'generated/shared_messages.dart' as shared_messages;
+
+export 'generated/shared_messages.dart' show SharedMessageKind;
+
 const DONT_KNOW_HOW_TO_FIX = "Computer says no!";
 
 /// Keys for the [MessageTemplate]s.
@@ -146,6 +150,7 @@ enum MessageKind {
   CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS,
   CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_CONSTRUCTOR,
   CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD,
+  CONST_LOOP_VARIABLE,
   CONST_MAP_KEY_OVERRIDES_EQUALS,
   CONST_WITHOUT_INITIALIZER,
   CONSTRUCTOR_CALL_EXPECTED,
@@ -233,6 +238,7 @@ enum MessageKind {
   IMPORT_BEFORE_PARTS,
   IMPORT_EXPERIMENTAL_MIRRORS,
   IMPORT_PART_OF,
+  IMPORT_PART_OF_HERE,
   IMPORTED_HERE,
   INHERIT_GETTER_AND_METHOD,
   INHERITED_EXPLICIT_GETTER,
@@ -246,7 +252,9 @@ enum MessageKind {
   INTERNAL_LIBRARY,
   INTERNAL_LIBRARY_FROM,
   INVALID_ARGUMENT_AFTER_NAMED,
+  INVALID_AWAIT,
   INVALID_AWAIT_FOR,
+  INVALID_AWAIT_FOR_IN,
   INVALID_BREAK,
   INVALID_CASE_DEFAULT,
   INVALID_CONSTRUCTOR_ARGUMENTS,
@@ -254,6 +262,8 @@ enum MessageKind {
   INVALID_CONTINUE,
   INVALID_FOR_IN,
   INVALID_INITIALIZER,
+  INVALID_METADATA,
+  INVALID_METADATA_GENERIC,
   INVALID_OVERRIDDEN_FIELD,
   INVALID_OVERRIDDEN_GETTER,
   INVALID_OVERRIDDEN_METHOD,
@@ -277,6 +287,7 @@ enum MessageKind {
   INVALID_UNNAMED_CONSTRUCTOR_NAME,
   INVALID_URI,
   INVALID_USE_OF_SUPER,
+  INVALID_YIELD,
   JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS,
   JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
   JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
@@ -286,6 +297,7 @@ enum MessageKind {
   LIBRARY_NOT_FOUND,
   LIBRARY_NOT_SUPPORTED,
   LIBRARY_TAG_MUST_BE_FIRST,
+  MAIN_HAS_PART_OF,
   MAIN_NOT_A_FUNCTION,
   MAIN_WITH_EXTRA_PARAMETER,
   MALFORMED_STRING_LITERAL,
@@ -465,7 +477,7 @@ enum MessageKind {
 // TODO(johnnniwinther): For Infos, consider adding a reference to the
 // error/warning/hint that they belong to.
 class MessageTemplate {
-  final MessageKind kind;
+  final dynamic/*MessageKind | SharedMessageKind*/ kind;
 
   /// Should describe what is wrong and why.
   final String template;
@@ -497,8 +509,11 @@ class MessageTemplate {
   ///
   /// The map is complete mapping from [MessageKind] to their corresponding
   /// [MessageTemplate].
-  static const Map<MessageKind, MessageTemplate> TEMPLATES =
-    const <MessageKind, MessageTemplate>{
+  // The key type is a union of MessageKind and SharedMessageKind.
+  static final Map<dynamic, MessageTemplate> TEMPLATES =
+      <dynamic, MessageTemplate>{}
+    ..addAll(shared_messages.TEMPLATES)
+    ..addAll(const<MessageKind, MessageTemplate>{
       /// Do not use this. It is here for legacy and debugging. It violates item
       /// 4 of the guide lines for error messages in the beginning of the file.
       MessageKind.GENERIC:
@@ -1248,6 +1263,40 @@ main() => new C<String>();
         const MessageTemplate(MessageKind.INVALID_ARGUMENT_AFTER_NAMED,
           "Unnamed argument after named argument."),
 
+      MessageKind.INVALID_AWAIT_FOR_IN:
+        const MessageTemplate(MessageKind.INVALID_AWAIT_FOR_IN,
+          "'await' is only supported in methods with an 'async' or "
+              "'async*' body modifier.",
+          howToFix: "Try adding 'async' or 'async*' to the method body or "
+              "removing the 'await' keyword.",
+          examples: const [
+            """
+main(o) sync* {
+  await for (var e in o) {}
+}"""]),
+
+      MessageKind.INVALID_AWAIT:
+        const MessageTemplate(MessageKind.INVALID_AWAIT,
+          "'await' is only supported in methods with an 'async' or "
+              "'async*' body modifier.",
+          howToFix: "Try adding 'async' or 'async*' to the method body.",
+          examples: const [
+          """
+main(o) sync* {
+  await null;
+}"""]),
+
+      MessageKind.INVALID_YIELD:
+        const MessageTemplate(MessageKind.INVALID_YIELD,
+          "'yield' is only supported in methods with a 'sync*' or "
+              "'async*' body modifier.",
+          howToFix: "Try adding 'sync*' or 'async*' to the method body.",
+          examples: const [
+            """
+main(o) async {
+  yield 0;
+}"""]),
+
       MessageKind.NOT_A_COMPILE_TIME_CONSTANT:
         const MessageTemplate(MessageKind.NOT_A_COMPILE_TIME_CONSTANT,
           "Not a compile-time constant."),
@@ -1953,6 +2002,22 @@ main() {}
 part of library;
 """}]),
 
+      MessageKind.IMPORT_PART_OF_HERE:
+        const MessageTemplate(MessageKind.IMPORT_PART_OF_HERE,
+          "The library is imported here."),
+
+      MessageKind.MAIN_HAS_PART_OF:
+        const MessageTemplate(MessageKind.MAIN_HAS_PART_OF,
+          "The main application file must not have a 'part-of' directive.",
+          howToFix:  "Try removing the 'part-of' directive or starting "
+              "compilation from another file.",
+          examples: const [const {
+'main.dart': """
+part of library;
+
+main() {}
+"""}]),
+
       MessageKind.LIBRARY_NAME_MISMATCH:
         const MessageTemplate(MessageKind.LIBRARY_NAME_MISMATCH,
           "Expected part of library name '#{libraryName}'.",
@@ -2056,6 +2121,16 @@ void main() {
                     "removing the 'final' modifier.",
           examples: const [
               "class C { static final field; } main() => C.field;"]),
+
+      MessageKind.CONST_LOOP_VARIABLE:
+        const MessageTemplate(MessageKind.CONST_LOOP_VARIABLE,
+          "A loop variable cannot be constant.",
+          howToFix: "Try remove the 'const' modifier or "
+                    "replacing it with a 'final' modifier.",
+          examples: const ["""
+void main() {
+  for (const c in []) {}
+}"""]),
 
       MessageKind.MEMBER_USES_CLASS_NAME:
         const MessageTemplate(MessageKind.MEMBER_USES_CLASS_NAME,
@@ -2850,6 +2925,31 @@ main() => new C();
           "The getter '#{name}' is implicitly declared by this field "
           "in class '#{class}'."),
 
+      MessageKind.INVALID_METADATA:
+        const MessageTemplate(MessageKind.INVALID_METADATA,
+          "A metadata annotation must be either a reference to a compile-time "
+          "constant variable or a call to a constant constructor.",
+          howToFix:
+            "Try using a different constant value or referencing it through a "
+            "constant variable.",
+          examples: const [
+'@Object main() {}',
+'@print main() {}']),
+
+      MessageKind.INVALID_METADATA_GENERIC:
+        const MessageTemplate(MessageKind.INVALID_METADATA_GENERIC,
+          "A metadata annotation using a constant constructor cannot use type "
+          "arguments.",
+          howToFix:
+            "Try removing the type arguments or referencing the constant "
+            "through a constant variable.",
+          examples: const ['''
+class C<T> {
+  const C();
+}
+@C<int>() main() {}
+''']),
+
       MessageKind.EQUAL_MAP_ENTRY_KEY:
         const MessageTemplate(MessageKind.EQUAL_MAP_ENTRY_KEY,
           "An entry with the same key already exists in the map.",
@@ -3142,7 +3242,6 @@ Please include the following information:
       MessageKind.INVALID_SYNC_MODIFIER:
         const MessageTemplate(MessageKind.INVALID_SYNC_MODIFIER,
           "Invalid modifier 'sync'.",
-          options: const ['--enable-async'],
           howToFix: "Try replacing 'sync' with 'sync*'.",
           examples: const [
             "main() sync {}"
@@ -3151,7 +3250,6 @@ Please include the following information:
       MessageKind.INVALID_AWAIT_FOR:
         const MessageTemplate(MessageKind.INVALID_AWAIT_FOR,
           "'await' is only supported on for-in loops.",
-          options: const ['--enable-async'],
           howToFix: "Try rewriting the loop as a for-in loop or removing the "
                     "'await' keyword.",
           examples: const ["""
@@ -3557,7 +3655,7 @@ $MIRRORS_NOT_SUPPORTED_BY_BACKEND_PADDING#{importChain}"""),
           "Unsupported version of package:lookup_map.",
           howToFix: DONT_KNOW_HOW_TO_FIX),
 
-  }; // End of TEMPLATES.
+  }); // End of TEMPLATES.
 
   /// Padding used before and between import chains in the message for
   /// [MessageKind.IMPORT_EXPERIMENTAL_MIRRORS].
@@ -3590,7 +3688,7 @@ class Message {
     assert(() { computeMessage(); return true; });
   }
 
-  MessageKind get kind => template.kind;
+  dynamic/*MessageKind | SharedMessageKind*/ get kind => template.kind;
 
   String computeMessage() {
     if (message == null) {

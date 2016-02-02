@@ -61,10 +61,10 @@ class RedundantPhiEliminator extends TrampolineRecursiveVisitor implements Pass 
     /// Returns the unique definition of parameter i if it exists and null
     /// otherwise. A definition is unique if it is the only value used to
     /// invoke the continuation, excluding feedback.
-    Definition uniqueDefinitionOf(int i) {
-      Definition value = null;
+    Primitive uniqueDefinitionOf(int i) {
+      Primitive value = null;
       for (InvokeContinuation invoke in invokes) {
-        Definition def = invoke.arguments[i].definition;
+        Primitive def = invoke.arguments[i].definition.effectiveDefinition;
 
         if (cont.parameters[i] == def) {
           // Invocation param == param in LetCont (i.e. a recursive call).
@@ -104,7 +104,7 @@ class RedundantPhiEliminator extends TrampolineRecursiveVisitor implements Pass 
     int dst = 0;
     for (int src = 0; src < cont.parameters.length; src++) {
       // Is the current phi redundant?
-      Definition uniqueDefinition = uniqueDefinitionOf(src);
+      Primitive uniqueDefinition = uniqueDefinitionOf(src);
       if (uniqueDefinition == null || !safeForHandlers(uniqueDefinition)) {
         // Reorganize parameters and arguments in case of deletions.
         if (src != dst) {
@@ -117,7 +117,7 @@ class RedundantPhiEliminator extends TrampolineRecursiveVisitor implements Pass 
         continue;
       }
 
-      Definition oldDefinition = cont.parameters[src];
+      Primitive oldDefinition = cont.parameters[src];
 
       // Add continuations of about-to-be modified invokes to worklist since
       // we might introduce new optimization opportunities.
@@ -138,7 +138,7 @@ class RedundantPhiEliminator extends TrampolineRecursiveVisitor implements Pass 
       // * and implicitly remove param from continuation signature and
       //   invocations by not incrementing `dst`. References of removed
       //   arguments are unlinked to keep definition usages up to date.
-      uniqueDefinition.substituteFor(oldDefinition);
+      oldDefinition.replaceUsesWith(uniqueDefinition);
       for (InvokeContinuation invoke in invokes) {
         invoke.arguments[src].unlink();
       }
@@ -191,7 +191,7 @@ void _moveIntoScopeOf(LetCont letCont, Definition definition) {
 
 /// Ensures [continuation] has its own LetCont binding by creating
 /// a new LetCont below its current binding, if necessary.
-/// 
+///
 /// Returns the LetCont that now binds [continuation].
 LetCont _makeUniqueBinding(Continuation continuation) {
   LetCont letCont = continuation.parent;

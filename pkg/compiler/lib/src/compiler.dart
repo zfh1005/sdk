@@ -84,6 +84,8 @@ import 'library_loader.dart' show
     LoadedLibraries;
 import 'mirrors_used.dart' show
     MirrorUsageAnalyzerTask;
+import 'common/names.dart' show
+    Selectors;
 import 'null_compiler_output.dart' show
     NullCompilerOutput,
     NullSink;
@@ -135,6 +137,7 @@ import 'universe/universe.dart' show
 import 'universe/use.dart' show
     StaticUse;
 import 'universe/world_impact.dart' show
+    ImpactStrategy,
     WorldImpact;
 import 'util/util.dart' show
     Link,
@@ -154,6 +157,8 @@ abstract class Compiler {
   _CompilerParsing _parsing;
 
   final CacheStrategy cacheStrategy;
+
+  ImpactStrategy impactStrategy = const ImpactStrategy();
 
   /**
    * Map from token to the first preceding comment token.
@@ -190,6 +195,7 @@ abstract class Compiler {
   final bool enableUserAssertions;
   final bool trustTypeAnnotations;
   final bool trustPrimitives;
+  final bool trustJSInteropTypeAnnotations;
   final bool disableTypeInferenceFlag;
   final Uri deferredMapUri;
   final bool dumpInfo;
@@ -320,6 +326,7 @@ abstract class Compiler {
   ClassElement symbolImplementationClass;
 
   // Initialized when symbolImplementationClass has been resolved.
+  // TODO(johnniwinther): Move this to [BackendHelpers].
   FunctionElement symbolValidatedConstructor;
 
   // Initialized when mirrorsUsedClass has been resolved.
@@ -424,6 +431,7 @@ abstract class Compiler {
             this.enableUserAssertions: false,
             this.trustTypeAnnotations: false,
             this.trustPrimitives: false,
+            this.trustJSInteropTypeAnnotations: false,
             bool disableTypeInferenceFlag: false,
             this.maxConcreteTypeSize: 5,
             this.enableMinification: false,
@@ -446,6 +454,7 @@ abstract class Compiler {
             this.deferredMapUri: null,
             this.dumpInfo: false,
             bool useStartupEmitter: false,
+            bool enableConditionalDirectives: false,
             this.useContentSecurityPolicy: false,
             bool hasIncrementalSupport: false,
             this.enableExperimentalMirrors: false,
@@ -507,9 +516,12 @@ abstract class Compiler {
       libraryLoader = new LibraryLoaderTask(this),
       serialization = new SerializationTask(this),
       scanner = new ScannerTask(this),
-      dietParser = new DietParserTask(this),
-      parser = new ParserTask(this),
-      patchParser = new PatchParserTask(this),
+      dietParser = new DietParserTask(
+          this, enableConditionalDirectives: enableConditionalDirectives),
+      parser = new ParserTask(
+          this, enableConditionalDirectives: enableConditionalDirectives),
+      patchParser = new PatchParserTask(
+          this, enableConditionalDirectives: enableConditionalDirectives),
       resolver = new ResolverTask(this, backend.constantCompilerTask),
       closureToClassMapper = new closureMapping.ClosureTask(this),
       checker = new TypeCheckerTask(this),
@@ -842,6 +854,13 @@ abstract class Compiler {
     StringToken.canonicalizedSubstrings.clear();
     Selector.canonicalizedValues.clear();
 
+    // The selector objects held in static fields must remain canonical.
+    for (Selector selector in Selectors.ALL) {
+      Selector.canonicalizedValues
+        .putIfAbsent(selector.hashCode, () => <Selector>[])
+        .add(selector);
+    }
+
     assert(uri != null || analyzeOnly || hasIncrementalSupport);
     return new Future.sync(() {
       if (librariesToAnalyzeWhenRun != null) {
@@ -943,11 +962,10 @@ abstract class Compiler {
       {bool skipLibraryWithPartOfTag: true}) {
     assert(analyzeMain);
     reporter.log('Analyzing $libraryUri ($buildId)');
-    return libraryLoader.loadLibrary(libraryUri).then((LibraryElement library) {
-      var compilationUnit = library.compilationUnit;
-      if (skipLibraryWithPartOfTag && compilationUnit.partTag != null) {
-        return null;
-      }
+    return libraryLoader.loadLibrary(
+        libraryUri, skipFileWithPartOfTag: true).then(
+            (LibraryElement library) {
+      if (library == null) return null;
       fullyEnqueueLibrary(library, enqueuer.resolution);
       emptyQueue(enqueuer.resolution);
       enqueuer.resolution.logSummary(reporter.log);
@@ -966,6 +984,9 @@ abstract class Compiler {
     // something to the resolution queue.  So we cannot wait with
     // this until after the resolution queue is processed.
     deferredLoadTask.beforeResolution(this);
+    impactStrategy = backend.createImpactStrategy(
+        supportDeferredLoad: deferredLoadTask.isProgramSplit,
+        supportDumpInfo: dumpInfo);
 
     phase = PHASE_RESOLVING;
     if (analyzeAll) {
@@ -1052,6 +1073,8 @@ abstract class Compiler {
       dumpInfoTask.dumpInfo();
     }
 
+    backend.sourceInformationStrategy.onComplete();
+
     checkQueues();
   }
 
@@ -1121,6 +1144,9 @@ abstract class Compiler {
     }
     emptyQueue(world);
     world.queueIsClosed = true;
+    // Notify the impact strategy impacts are no longer needed for this
+    // enqueuer.
+    impactStrategy.onImpactUsed(world.impactUse);
     backend.onQueueClosed();
     assert(compilationFailed || world.checkNoEnqueuedInvokedInstanceMethods());
   }
@@ -1223,6 +1249,32 @@ abstract class Compiler {
 
   void reportCrashInUserCode(String message, exception, stackTrace) {
     _reporter.onCrashInUserCode(message, exception, stackTrace);
+  }
+
+  /// Messages for which compile-time errors are reported but compilation
+  /// continues regardless.
+  static const List<MessageKind> BENIGN_ERRORS = const <MessageKind>[
+      MessageKind.INVALID_METADATA,
+      MessageKind.INVALID_METADATA_GENERIC,
+  ];
+
+  bool markCompilationAsFailed(DiagnosticMessage message, api.Diagnostic kind) {
+    if (testMode) {
+      // When in test mode, i.e. on the build-bot, we always stop compilation.
+      return true;
+    }
+    if (reporter.options.fatalWarnings) {
+      return true;
+    }
+    return !BENIGN_ERRORS.contains(message.message.kind);
+  }
+
+  void fatalDiagnosticReported(DiagnosticMessage message,
+                               List<DiagnosticMessage> infos,
+                               api.Diagnostic kind) {
+    if (markCompilationAsFailed(message, kind)) {
+      compilationFailed = true;
+    }
   }
 
   /**
@@ -1643,7 +1695,7 @@ class _CompilerDiagnosticReporter extends DiagnosticReporter {
   void reportDiagnosticInternal(DiagnosticMessage message,
                                 List<DiagnosticMessage> infos,
                                 api.Diagnostic kind) {
-    if (!options.showPackageWarnings &&
+    if (!options.showAllPackageWarnings &&
         message.spannable != NO_LOCATION_SPANNABLE) {
       switch (kind) {
       case api.Diagnostic.WARNING:
@@ -1651,6 +1703,10 @@ class _CompilerDiagnosticReporter extends DiagnosticReporter {
         Element element = elementFromSpannable(message.spannable);
         if (!compiler.inUserCode(element, assumeInUserCode: true)) {
           Uri uri = compiler.getCanonicalUri(element);
+          if (options.showPackageWarningsFor(uri)) {
+            reportDiagnostic(message, infos, kind);
+            return;
+          }
           SuppressionInfo info =
               suppressedWarnings.putIfAbsent(uri, () => new SuppressionInfo());
           if (kind == api.Diagnostic.WARNING) {
@@ -1676,13 +1732,13 @@ class _CompilerDiagnosticReporter extends DiagnosticReporter {
   void reportDiagnostic(DiagnosticMessage message,
                         List<DiagnosticMessage> infos,
                         api.Diagnostic kind) {
+    compiler.reportDiagnostic(message, infos, kind);
     if (kind == api.Diagnostic.ERROR ||
         kind == api.Diagnostic.CRASH ||
         (options.fatalWarnings &&
          kind == api.Diagnostic.WARNING)) {
-      compiler.compilationFailed = true;
+      compiler.fatalDiagnosticReported(message, infos, kind);
     }
-    compiler.reportDiagnostic(message, infos, kind);
   }
 
   /**
@@ -1737,6 +1793,67 @@ class _CompilerDiagnosticReporter extends DiagnosticReporter {
     }
     if (uri == null && currentElement != null) {
       uri = currentElement.compilationUnit.script.resourceUri;
+      assert(invariant(currentElement, () {
+
+        /// Check that [begin] and [end] can be found between [from] and [to].
+        validateToken(Token from, Token to) {
+          if (from == null || to == null) return true;
+          bool foundBegin = false;
+          bool foundEnd = false;
+          Token token = from;
+          while (true) {
+            if (token == begin) {
+              foundBegin = true;
+            }
+            if (token == end) {
+              foundEnd = true;
+            }
+            if (foundBegin && foundEnd) {
+              return true;
+            }
+            if (token == to || token == token.next || token.next == null) {
+              break;
+            }
+            token = token.next;
+          }
+
+          // Create a good message for when the tokens were not found.
+          StringBuffer sb = new StringBuffer();
+          sb.write('Invalid current element: $currentElement. ');
+          sb.write('Looking for ');
+          sb.write('[${begin} (${begin.hashCode}),');
+          sb.write('${end} (${end.hashCode})] in');
+
+          token = from;
+          while (true) {
+            sb.write('\n ${token} (${token.hashCode})');
+            if (token == to || token == token.next || token.next == null) {
+              break;
+            }
+            token = token.next;
+          }
+          return sb.toString();
+        }
+
+        if (currentElement.enclosingClass != null &&
+            currentElement.enclosingClass.isEnumClass) {
+          // Enums ASTs are synthesized (and give messed up messages).
+          return true;
+        }
+
+        if (currentElement is AstElement) {
+          AstElement astElement = currentElement;
+          if (astElement.hasNode) {
+            Token from = astElement.node.getBeginToken();
+            Token to = astElement.node.getEndToken();
+            if (astElement.metadata.isNotEmpty) {
+              from = astElement.metadata.first.beginToken;
+            }
+            return validateToken(from, to);
+          }
+        }
+        return true;
+      }, message: "Invalid current element: $currentElement [$begin,$end]."));
     }
     return new SourceSpan.fromTokens(uri, begin, end);
   }
@@ -1911,7 +2028,7 @@ class _CompilerDiagnosticReporter extends DiagnosticReporter {
   }
 
   void reportSuppressedMessagesSummary() {
-    if (!options.showPackageWarnings && !options.suppressWarnings) {
+    if (!options.showAllPackageWarnings && !options.suppressWarnings) {
       suppressedWarnings.forEach((Uri uri, SuppressionInfo info) {
         MessageKind kind = MessageKind.HIDDEN_WARNINGS_HINTS;
         if (info.warnings == 0) {
@@ -2007,6 +2124,20 @@ class _CompilerResolution implements Resolution {
               resolutionImpact);
       return worldImpact;
     });
+  }
+
+  @override
+  void uncacheWorldImpact(Element element) {
+    assert(invariant(element, _worldImpactCache[element] != null,
+        message: "WorldImpact not computed for $element."));
+    _worldImpactCache[element] = const WorldImpact();
+  }
+
+  @override
+  void emptyCache() {
+    for (Element element in _worldImpactCache.keys) {
+      _worldImpactCache[element] = const WorldImpact();
+    }
   }
 
   @override

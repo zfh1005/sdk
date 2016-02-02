@@ -23,11 +23,12 @@ const WEB_SOCKET_GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 const String HOST_NAME = 'localhost';
 
 String localFile(path) => Platform.script.resolve(path).toFilePath();
+List<int> readLocalFile(path) => (new File(localFile(path))).readAsBytesSync();
 
 SecurityContext serverContext = new SecurityContext()
-  ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-                  password: 'dartdart');
+  ..useCertificateChainBytes(readLocalFile('certificates/server_chain.pem'))
+  ..usePrivateKeyBytes(readLocalFile('certificates/server_key.pem'),
+                         password: 'dartdart');
 
 class SecurityConfiguration {
   final bool secure;
@@ -130,6 +131,43 @@ class SecurityConfiguration {
     });
   }
 
+  void testContextSupport({CompressionOptions serverOpts,
+    CompressionOptions clientOpts,
+    int messages}) {
+    asyncStart();
+
+    createServer().then((server) {
+      server.listen((request) {
+        Expect.isTrue(WebSocketTransformer.isUpgradeRequest(request));
+        WebSocketTransformer.upgrade(request, compression: serverOpts)
+                            .then((webSocket) {
+            webSocket.listen((message) {
+              Expect.equals("Hello World", message);
+              webSocket.add(message);
+            });
+        });
+      });
+
+      var url = '${secure ? "wss" : "ws"}://$HOST_NAME:${server.port}/';
+      WebSocket.connect(url, compression: clientOpts).then((websocket) {
+        var i = 1;
+        websocket.listen((message) {
+          Expect.equals("Hello World", message);
+          if (i == messages) {
+            websocket.close();
+            return;
+          }
+          websocket.add("Hello World");
+          i++;
+        }, onDone: () {
+          server.close();
+          asyncEnd();
+        });
+        websocket.add("Hello World");
+      });
+    });
+  }
+
   void testCompressionHeaders() {
     asyncStart();
     createServer().then((server) {
@@ -171,13 +209,15 @@ class SecurityConfiguration {
     });
   }
 
-  void testReturnHeaders(String headerValue, String expected) {
+  void testReturnHeaders(String headerValue, String expected, {
+    CompressionOptions serverCompression: CompressionOptions.DEFAULT}) {
     asyncStart();
     createServer().then((server) {
       server.listen((request) {
         // Stuff
         Expect.isTrue(WebSocketTransformer.isUpgradeRequest(request));
-        WebSocketTransformer.upgrade(request).then((webSocket) {
+        WebSocketTransformer.upgrade(request, compression: serverCompression)
+          .then((webSocket) {
             webSocket.listen((message) {
               Expect.equals("Hello World", message);
 
@@ -216,6 +256,47 @@ class SecurityConfiguration {
     }); // End createServer
   }
 
+  void testClientRequestHeaders(CompressionOptions compression) {
+    asyncStart();
+    createServer().then((server) {
+      server.listen((request) {
+        var extensionHeader = request.headers.value('Sec-WebSocket-Extensions');
+        var hv = HeaderValue.parse(extensionHeader);
+        Expect.equals(compression.serverNoContextTakeover,
+            hv.parameters.containsKey('server_no_context_takeover'));
+        Expect.equals(compression.clientNoContextTakeover,
+            hv.parameters.containsKey('client_no_context_takeover'));
+        Expect.equals(compression.serverMaxWindowBits?.toString(),
+            hv.parameters['server_max_window_bits']);
+        Expect.equals(compression.clientMaxWindowBits?.toString(),
+            hv.parameters['client_max_window_bits']);
+
+        WebSocketTransformer.upgrade(request).then((webSocket) {
+            webSocket.listen((message) {
+              Expect.equals('Hello World', message);
+
+              webSocket.add(message);
+              webSocket.close();
+            });
+        });
+      });
+
+      var url = '${secure ? "wss" : "ws"}://$HOST_NAME:${server.port}/';
+
+      WebSocket.connect(url, compression: compression).then((websocket) {
+        var future = websocket.listen((message) {
+          Expect.equals('Hello World', message);
+          websocket.close();
+        }).asFuture();
+        websocket.add('Hello World');
+        return future;
+      }).then((_) {
+        server.close();
+        asyncEnd();
+      });
+    });
+  }
+
   void runTests() {
     // No compression or takeover
     testCompressionSupport();
@@ -228,6 +309,31 @@ class SecurityConfiguration {
     // Compression on server but not client.
     testCompressionSupport(server: true);
 
+    // Test Multiple messages with various context takeover configurations.
+    // no context takeover on the server.
+    var serverComp = new CompressionOptions(serverNoContextTakeover: true);
+    testContextSupport(serverOpts: serverComp,
+      clientOpts: serverComp,
+      messages: 5);
+    // no contexttakeover on the client.
+    var clientComp = new CompressionOptions(clientNoContextTakeover: true);
+    testContextSupport(serverOpts: clientComp,
+      clientOpts: clientComp,
+      messages: 5);
+    // no context takeover enabled for both.
+    var compression = new CompressionOptions(serverNoContextTakeover: true,
+                      clientNoContextTakeover: true);
+    testContextSupport(serverOpts: compression,
+      clientOpts: compression,
+      messages: 5);
+    // no context take over for opposing configurations.
+    testContextSupport(serverOpts: serverComp,
+      clientOpts: clientComp,
+      messages: 5);
+    testContextSupport(serverOpts: clientComp,
+      clientOpts: serverComp,
+      messages: 5);
+
     testCompressionHeaders();
     // Chrome headers
     testReturnHeaders('permessage-deflate; client_max_window_bits',
@@ -237,9 +343,39 @@ class SecurityConfiguration {
                       "permessage-deflate; client_max_window_bits=15");
     // Ensure max_window_bits resize appropriately.
     testReturnHeaders('permessage-deflate; server_max_window_bits=10',
-                      "permessage-deflate;" 
+                      "permessage-deflate;"
                       " server_max_window_bits=10;"
                       " client_max_window_bits=10");
+    // Don't provider context takeover if requested but not enabled.
+    // Default is not enabled.
+    testReturnHeaders('permessage-deflate; client_max_window_bits;'
+                      'client_no_context_takeover',
+                      'permessage-deflate; client_max_window_bits=15');
+    // Enable context Takeover and provide if requested.
+    compression = new CompressionOptions(clientNoContextTakeover: true,
+        serverNoContextTakeover: true);
+    testReturnHeaders('permessage-deflate; client_max_window_bits; '
+                      'client_no_context_takeover',
+                      'permessage-deflate; client_no_context_takeover; '
+                      'client_max_window_bits=15',
+                      serverCompression: compression);
+    // Enable context takeover and don't provide if not requested
+    compression = new CompressionOptions(clientNoContextTakeover: true,
+        serverNoContextTakeover: true);
+    testReturnHeaders('permessage-deflate; client_max_window_bits; ',
+                      'permessage-deflate; client_max_window_bits=15',
+                      serverCompression: compression);
+
+    compression = CompressionOptions.DEFAULT;
+    testClientRequestHeaders(compression);
+    compression = new CompressionOptions(clientNoContextTakeover: true,
+        serverNoContextTakeover: true);
+    testClientRequestHeaders(compression);
+    compression = new CompressionOptions(clientNoContextTakeover: true,
+        serverNoContextTakeover: true,
+        clientMaxWindowBits: 8,
+        serverMaxWindowBits: 8);
+    testClientRequestHeaders(compression);
   }
 }
 

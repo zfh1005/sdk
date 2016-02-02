@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.utilities_test;
+library analyzer.test.generated.utilities_test;
 
 import 'dart:collection';
 
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/scanner.dart';
@@ -1506,8 +1507,8 @@ class AstClonerTest extends EngineTestCase {
   }
 
   void test_visitSwitchCase_noLabels() {
-    _assertClone(AstFactory.switchCase(
-        AstFactory.identifier3("a"), [AstFactory.block()]));
+    _assertClone(AstFactory
+        .switchCase(AstFactory.identifier3("a"), [AstFactory.block()]));
   }
 
   void test_visitSwitchCase_singleLabel() {
@@ -1531,8 +1532,8 @@ class AstClonerTest extends EngineTestCase {
   }
 
   void test_visitSwitchDefault_singleLabel() {
-    _assertClone(AstFactory.switchDefault(
-        [AstFactory.label2("l1")], [AstFactory.block()]));
+    _assertClone(AstFactory
+        .switchDefault([AstFactory.label2("l1")], [AstFactory.block()]));
   }
 
   void test_visitSwitchStatement() {
@@ -2107,6 +2108,12 @@ class Getter_NodeReplacerTest_test_assertStatement
     implements NodeReplacerTest_Getter {
   @override
   Expression get(AssertStatement node) => node.condition;
+}
+
+class Getter_NodeReplacerTest_test_assertStatement_2
+    implements NodeReplacerTest_Getter {
+  @override
+  Expression get(AssertStatement node) => node.message;
 }
 
 class Getter_NodeReplacerTest_test_assignmentExpression
@@ -3460,9 +3467,10 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_assertStatement() {
-    AssertStatement node =
-        AstFactory.assertStatement(AstFactory.booleanLiteral(true));
+    AssertStatement node = AstFactory.assertStatement(
+        AstFactory.booleanLiteral(true), AstFactory.string2('foo'));
     _assertReplace(node, new Getter_NodeReplacerTest_test_assertStatement());
+    _assertReplace(node, new Getter_NodeReplacerTest_test_assertStatement_2());
   }
 
   void test_assignmentExpression() {
@@ -3527,8 +3535,8 @@ class NodeReplacerTest extends EngineTestCase {
         AstFactory.extendsClause(AstFactory.typeName4("B")),
         AstFactory.withClause([AstFactory.typeName4("C")]),
         AstFactory.implementsClause([AstFactory.typeName4("D")]), [
-      AstFactory.fieldDeclaration2(
-          false, null, [AstFactory.variableDeclaration("f")])
+      AstFactory
+          .fieldDeclaration2(false, null, [AstFactory.variableDeclaration("f")])
     ]);
     node.documentationComment =
         Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
@@ -3974,8 +3982,8 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_labeledStatement() {
-    LabeledStatement node = AstFactory.labeledStatement(
-        [AstFactory.label2("l")], AstFactory.block());
+    LabeledStatement node = AstFactory
+        .labeledStatement([AstFactory.label2("l")], AstFactory.block());
     _assertReplace(
         node, new ListGetter_NodeReplacerTest_test_labeledStatement(0));
     _assertReplace(node, new Getter_NodeReplacerTest_test_labeledStatement());
@@ -4174,8 +4182,8 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_switchDefault() {
-    SwitchDefault node = AstFactory.switchDefault(
-        [AstFactory.label2("l")], [AstFactory.block()]);
+    SwitchDefault node = AstFactory
+        .switchDefault([AstFactory.label2("l")], [AstFactory.block()]);
     _testSwitchMember(node);
   }
 
@@ -4228,8 +4236,8 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_typeName() {
-    TypeName node = AstFactory.typeName4(
-        "T", [AstFactory.typeName4("E"), AstFactory.typeName4("F")]);
+    TypeName node = AstFactory
+        .typeName4("T", [AstFactory.typeName4("E"), AstFactory.typeName4("F")]);
     _assertReplace(node, new Getter_NodeReplacerTest_test_typeName_2());
     _assertReplace(node, new Getter_NodeReplacerTest_test_typeName());
   }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.static_warning_code_test;
+library analyzer.test.generated.static_warning_code_test;
 
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source_io.dart';
@@ -3615,5 +3615,23 @@ class S {
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [StaticWarningCode.VOID_RETURN_FOR_GETTER]);
+  }
+
+  void test_missingEnumConstantInSwitch() {
+    Source source = addSource(r'''
+enum E { ONE, TWO, THREE, FOUR }
+bool odd(E e) {
+  switch (e) {
+    case E.ONE:
+    case E.THREE: return true;
+  }
+  return false;
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [
+      StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
+      StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH
+    ]);
+    verify([source]);
   }
 }

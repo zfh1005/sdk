@@ -2,17 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.resolver.element_resolver;
+library analyzer.src.generated.element_resolver;
 
 import 'dart:collection';
 
-import 'ast.dart';
-import 'element.dart';
-import 'engine.dart';
-import 'error.dart';
-import 'resolver.dart';
-import 'scanner.dart' as sc;
-import 'utilities_dart.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart'
+    show ChildEntities, IdentifierImpl;
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/scanner.dart' as sc;
 
 /**
  * An object used by instances of [ResolverVisitor] to resolve references within
@@ -102,7 +107,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   /**
    * The type representing the type 'type'.
    */
-  DartType _typeType;
+  InterfaceType _typeType;
 
   /**
    * A utility class for the resolver to answer the question of "what are my
@@ -259,8 +264,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       if (element == null) {
 //        resolver.reportError(StaticWarningCode.UNDEFINED_IDENTIFIER, prefix, prefix.getName());
       } else {
+        prefix.staticElement = element;
         if (element is PrefixElement) {
-          prefix.staticElement = element;
           // TODO(brianwilkerson) Report this error?
           element = _resolver.nameScope.lookup(identifier, _definingLibrary);
           name.staticElement = element;
@@ -275,7 +280,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         } else if (library != _definingLibrary) {
           // TODO(brianwilkerson) Report this error.
         }
-        name.staticElement = element;
         if (node.newKeyword == null) {
           if (element is ClassElement) {
             Element memberElement =
@@ -425,17 +429,26 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   @override
   Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    // TODO(brianwilkerson) Can we ever resolve the function being invoked?
-    Expression expression = node.function;
-    if (expression is FunctionExpression) {
-      FunctionExpression functionExpression = expression;
-      ExecutableElement functionElement = functionExpression.element;
-      ArgumentList argumentList = node.argumentList;
-      List<ParameterElement> parameters =
-          _resolveArgumentsToFunction(false, argumentList, functionElement);
-      if (parameters != null) {
-        argumentList.correspondingStaticParameters = parameters;
-      }
+    Expression function = node.function;
+    DartType staticInvokeType = _instantiateGenericMethod(
+        function.staticType, node.typeArguments, node);
+    DartType propagatedInvokeType = _instantiateGenericMethod(
+        function.propagatedType, node.typeArguments, node);
+
+    node.staticInvokeType = staticInvokeType;
+    node.propagatedInvokeType =
+        _propagatedInvokeTypeIfBetter(propagatedInvokeType, staticInvokeType);
+
+    List<ParameterElement> parameters =
+        _computeCorrespondingParameters(node.argumentList, staticInvokeType);
+    if (parameters != null) {
+      node.argumentList.correspondingStaticParameters = parameters;
+    }
+
+    parameters = _computeCorrespondingParameters(
+        node.argumentList, propagatedInvokeType);
+    if (parameters != null) {
+      node.argumentList.correspondingPropagatedParameters = parameters;
     }
     return null;
   }
@@ -594,8 +607,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     }
     Element staticElement;
     Element propagatedElement;
-    DartType staticType = null;
-    DartType propagatedType = null;
     if (target == null) {
       staticElement = _resolveInvokedElement(methodName);
       propagatedElement = null;
@@ -608,11 +619,11 @@ class ElementResolver extends SimpleAstVisitor<Object> {
             [(target as SimpleIdentifier).name]);
       }
       LibraryElement importedLibrary = _getImportedLibrary(target);
-      methodName.staticElement = importedLibrary.loadLibraryFunction;
+      FunctionElement loadLibraryFunction = importedLibrary.loadLibraryFunction;
+      methodName.staticElement = loadLibraryFunction;
+      node.staticInvokeType = loadLibraryFunction.type;
       return null;
     } else {
-      staticType = _getStaticType(target);
-      propagatedType = _getPropagatedType(target);
       //
       // If this method invocation is of the form 'C.m' where 'C' is a class,
       // then we don't call resolveInvokedElement(...) which walks up the class
@@ -622,33 +633,75 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       bool isConditional = node.operator.type == sc.TokenType.QUESTION_PERIOD;
       ClassElementImpl typeReference = getTypeReference(target);
       if (typeReference != null) {
-        staticElement =
-            propagatedElement = _resolveElement(typeReference, methodName);
+        if (node.isCascaded) {
+          typeReference = _typeType.element;
+        }
+        staticElement = _resolveElement(typeReference, methodName);
       } else {
+        DartType staticType = _getStaticType(target);
+        DartType propagatedType = _getPropagatedType(target);
         staticElement = _resolveInvokedElementWithTarget(
             target, staticType, methodName, isConditional);
-        propagatedElement = _resolveInvokedElementWithTarget(
-            target, propagatedType, methodName, isConditional);
+        // If we have propagated type information use it (since it should
+        // not be redundant with the staticType).  Otherwise, don't produce
+        // a propagatedElement which duplicates the staticElement.
+        if (propagatedType is InterfaceType) {
+          propagatedElement = _resolveInvokedElementWithTarget(
+              target, propagatedType, methodName, isConditional);
+        }
       }
     }
+
     staticElement = _convertSetterToGetter(staticElement);
     propagatedElement = _convertSetterToGetter(propagatedElement);
+
+    //
+    // Given the elements, determine the type of the function we are invoking
+    //
+    DartType staticInvokeType = _getInvokeType(staticElement);
+    methodName.staticType = staticInvokeType;
+
+    DartType propagatedInvokeType = _getInvokeType(propagatedElement);
+    methodName.propagatedType =
+        _propagatedInvokeTypeIfBetter(propagatedInvokeType, staticInvokeType);
+
+    //
+    // Instantiate generic function or method if needed.
+    //
+    staticInvokeType = _instantiateGenericMethod(
+        staticInvokeType, node.typeArguments, node.methodName);
+    propagatedInvokeType = _instantiateGenericMethod(
+        propagatedInvokeType, node.typeArguments, node.methodName);
+
     //
     // Record the results.
     //
     methodName.staticElement = staticElement;
     methodName.propagatedElement = propagatedElement;
+
+    node.staticInvokeType = staticInvokeType;
+    //
+    // Store the propagated invoke type if it's more specific than the static
+    // type.
+    //
+    // We still need to record the propagated parameter elements however,
+    // as they are used in propagatedType downwards inference of lambda
+    // parameters. So we don't want to clear the propagatedInvokeType variable.
+    //
+    node.propagatedInvokeType =
+        _propagatedInvokeTypeIfBetter(propagatedInvokeType, staticInvokeType);
+
     ArgumentList argumentList = node.argumentList;
-    if (staticElement != null) {
+    if (staticInvokeType != null) {
       List<ParameterElement> parameters =
-          _computeCorrespondingParameters(argumentList, staticElement);
+          _computeCorrespondingParameters(argumentList, staticInvokeType);
       if (parameters != null) {
         argumentList.correspondingStaticParameters = parameters;
       }
     }
-    if (propagatedElement != null) {
+    if (propagatedInvokeType != null) {
       List<ParameterElement> parameters =
-          _computeCorrespondingParameters(argumentList, propagatedElement);
+          _computeCorrespondingParameters(argumentList, propagatedInvokeType);
       if (parameters != null) {
         argumentList.correspondingPropagatedParameters = parameters;
       }
@@ -729,17 +782,19 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 //          resolveArgumentsToParameters(node.getArgumentList(), invokedFunction);
           return null;
         }
-        ClassElementImpl typeReference = getTypeReference(target);
-        if (typeReference != null) {
-          ConstructorElement constructor =
-              typeReference.getNamedConstructor(methodName.name);
-          if (constructor != null) {
-            _recordUndefinedNode(
-                typeReference,
-                StaticTypeWarningCode.UNDEFINED_METHOD_WITH_CONSTRUCTOR,
-                methodName,
-                [methodName.name, typeReference.name]);
-            return null;
+        if (!node.isCascaded) {
+          ClassElementImpl typeReference = getTypeReference(target);
+          if (typeReference != null) {
+            ConstructorElement constructor =
+                typeReference.getNamedConstructor(methodName.name);
+            if (constructor != null) {
+              _recordUndefinedNode(
+                  typeReference,
+                  StaticTypeWarningCode.UNDEFINED_METHOD_WITH_CONSTRUCTOR,
+                  methodName,
+                  [methodName.name, typeReference.name]);
+              return null;
+            }
           }
         }
         targetTypeName = targetType == null ? null : targetType.displayName;
@@ -879,7 +934,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     // Otherwise, the prefix is really an expression that happens to be a simple
     // identifier and this is really equivalent to a property access node.
     //
-    _resolvePropertyAccess(prefix, identifier);
+    _resolvePropertyAccess(prefix, identifier, false);
     return null;
   }
 
@@ -935,7 +990,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       return null;
     }
     SimpleIdentifier propertyName = node.propertyName;
-    _resolvePropertyAccess(target, propertyName);
+    _resolvePropertyAccess(target, propertyName, node.isCascaded);
     return null;
   }
 
@@ -1286,44 +1341,16 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * arguments, or `null` if no correspondence could be computed.
    */
   List<ParameterElement> _computeCorrespondingParameters(
-      ArgumentList argumentList, Element element) {
-    if (element is PropertyAccessorElement) {
-      //
-      // This is an invocation of the call method defined on the value returned
-      // by the getter.
-      //
-      FunctionType getterType = element.type;
-      if (getterType != null) {
-        DartType getterReturnType = getterType.returnType;
-        if (getterReturnType is InterfaceType) {
-          MethodElement callMethod = getterReturnType.lookUpMethod(
-              FunctionElement.CALL_METHOD_NAME, _definingLibrary);
-          if (callMethod != null) {
-            return _resolveArgumentsToFunction(false, argumentList, callMethod);
-          }
-        } else if (getterReturnType is FunctionType) {
-          List<ParameterElement> parameters = getterReturnType.parameters;
-          return _resolveArgumentsToParameters(false, argumentList, parameters);
-        }
+      ArgumentList argumentList, DartType type) {
+    if (type is InterfaceType) {
+      MethodElement callMethod =
+          type.lookUpMethod(FunctionElement.CALL_METHOD_NAME, _definingLibrary);
+      if (callMethod != null) {
+        return _resolveArgumentsToFunction(false, argumentList, callMethod);
       }
-    } else if (element is ExecutableElement) {
-      return _resolveArgumentsToFunction(false, argumentList, element);
-    } else if (element is VariableElement) {
-      VariableElement variable = element;
-      DartType type = _promoteManager.getStaticType(variable);
-      if (type is FunctionType) {
-        FunctionType functionType = type;
-        List<ParameterElement> parameters = functionType.parameters;
-        return _resolveArgumentsToParameters(false, argumentList, parameters);
-      } else if (type is InterfaceType) {
-        // "call" invocation
-        MethodElement callMethod = type.lookUpMethod(
-            FunctionElement.CALL_METHOD_NAME, _definingLibrary);
-        if (callMethod != null) {
-          List<ParameterElement> parameters = callMethod.parameters;
-          return _resolveArgumentsToParameters(false, argumentList, parameters);
-        }
-      }
+    } else if (type is FunctionType) {
+      return _resolveArgumentsToParameters(
+          false, argumentList, type.parameters);
     }
     return null;
   }
@@ -1405,6 +1432,28 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
+   * Given an element, computes the type of the invocation.
+   *
+   * For executable elements (like methods, functions) this is just their type.
+   *
+   * For variables it is their type taking into account any type promotion.
+   *
+   * For calls to getters in Dart, we invoke the function that is returned by
+   * the getter, so the invoke type is the getter's returnType.
+   */
+  DartType _getInvokeType(Element element) {
+    DartType invokeType;
+    if (element is PropertyAccessorElement) {
+      invokeType = element.returnType;
+    } else if (element is ExecutableElement) {
+      invokeType = element.type;
+    } else if (element is VariableElement) {
+      invokeType = _promoteManager.getStaticType(element);
+    }
+    return invokeType ?? DynamicTypeImpl.instance;
+  }
+
+  /**
    * Return the name of the method invoked by the given postfix [expression].
    */
   String _getPostfixOperator(PostfixExpression expression) =>
@@ -1462,6 +1511,36 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       staticType = _resolver.typeProvider.functionType;
     }
     return staticType;
+  }
+
+  /**
+   * Check for a generic method & apply type arguments if any were passed.
+   */
+  DartType _instantiateGenericMethod(
+      DartType invokeType, TypeArgumentList typeArguments, AstNode node) {
+    // TODO(jmesserly): support generic "call" methods on InterfaceType.
+    if (invokeType is FunctionType) {
+      FunctionType type = invokeType;
+      List<TypeParameterElement> parameters = type.typeFormals;
+
+      NodeList<TypeName> arguments = typeArguments?.arguments;
+      if (arguments != null && arguments.length != parameters.length) {
+        // Wrong number of type arguments. Ignore them
+        arguments = null;
+        _resolver.reportErrorForNode(
+            StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
+            node,
+            [type, parameters.length, arguments?.length ?? 0]);
+      }
+      if (parameters.isNotEmpty) {
+        if (arguments == null) {
+          invokeType = _resolver.typeSystem.instantiateToBounds(type);
+        } else {
+          invokeType = type.instantiate(arguments.map((n) => n.type).toList());
+        }
+      }
+    }
+    return invokeType;
   }
 
   /**
@@ -1708,6 +1787,24 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
+   * Determines if the [propagatedType] of the invoke is better (more specific)
+   * than the [staticType]. If so it will be returned, otherwise returns null.
+   */
+  // TODO(jmesserly): can we refactor Resolver.recordPropagatedTypeIfBetter to
+  // get some code sharing? Right now, this method is to support
+  // `staticInvokeType` and `propagatedInvokeType`, and the one in Resolver is
+  // for `staticType` and `propagatedType` on Expression.
+  DartType _propagatedInvokeTypeIfBetter(
+      DartType propagatedType, DartType staticType) {
+    if (propagatedType != null &&
+        (staticType == null || propagatedType.isMoreSpecificThan(staticType))) {
+      return propagatedType;
+    } else {
+      return null;
+    }
+  }
+
+  /**
    * Record that the given [node] is undefined, causing an error to be reported
    * if appropriate. The [declaringElement] is the element inside which no
    * declaration was found. If this element is a proxy, no error will be
@@ -1898,102 +1995,35 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * Given an [argumentList] and the [executableElement] that will be invoked
    * using those argument, compute the list of parameters that correspond to the
    * list of arguments. An error will be reported if any of the arguments cannot
-   * be matched to a parameter. The flag [reportError] should be `true` if a
+   * be matched to a parameter. The flag [reportAsError] should be `true` if a
    * compile-time error should be reported; or `false` if a compile-time warning
    * should be reported. Return the parameters that correspond to the arguments,
    * or `null` if no correspondence could be computed.
    */
-  List<ParameterElement> _resolveArgumentsToFunction(bool reportError,
+  List<ParameterElement> _resolveArgumentsToFunction(bool reportAsError,
       ArgumentList argumentList, ExecutableElement executableElement) {
     if (executableElement == null) {
       return null;
     }
     List<ParameterElement> parameters = executableElement.parameters;
-    return _resolveArgumentsToParameters(reportError, argumentList, parameters);
+    return _resolveArgumentsToParameters(
+        reportAsError, argumentList, parameters);
   }
 
   /**
    * Given an [argumentList] and the [parameters] related to the element that
    * will be invoked using those arguments, compute the list of parameters that
    * correspond to the list of arguments. An error will be reported if any of
-   * the arguments cannot be matched to a parameter. The flag [reportError]
+   * the arguments cannot be matched to a parameter. The flag [reportAsError]
    * should be `true` if a compile-time error should be reported; or `false` if
    * a compile-time warning should be reported. Return the parameters that
    * correspond to the arguments.
    */
-  List<ParameterElement> _resolveArgumentsToParameters(bool reportError,
+  List<ParameterElement> _resolveArgumentsToParameters(bool reportAsError,
       ArgumentList argumentList, List<ParameterElement> parameters) {
-    List<ParameterElement> requiredParameters = new List<ParameterElement>();
-    List<ParameterElement> positionalParameters = new List<ParameterElement>();
-    HashMap<String, ParameterElement> namedParameters =
-        new HashMap<String, ParameterElement>();
-    for (ParameterElement parameter in parameters) {
-      ParameterKind kind = parameter.parameterKind;
-      if (kind == ParameterKind.REQUIRED) {
-        requiredParameters.add(parameter);
-      } else if (kind == ParameterKind.POSITIONAL) {
-        positionalParameters.add(parameter);
-      } else {
-        namedParameters[parameter.name] = parameter;
-      }
-    }
-    List<ParameterElement> unnamedParameters =
-        new List<ParameterElement>.from(requiredParameters);
-    unnamedParameters.addAll(positionalParameters);
-    int unnamedParameterCount = unnamedParameters.length;
-    int unnamedIndex = 0;
-    NodeList<Expression> arguments = argumentList.arguments;
-    int argumentCount = arguments.length;
-    List<ParameterElement> resolvedParameters =
-        new List<ParameterElement>(argumentCount);
-    int positionalArgumentCount = 0;
-    HashSet<String> usedNames = new HashSet<String>();
-    bool noBlankArguments = true;
-    for (int i = 0; i < argumentCount; i++) {
-      Expression argument = arguments[i];
-      if (argument is NamedExpression) {
-        SimpleIdentifier nameNode = argument.name.label;
-        String name = nameNode.name;
-        ParameterElement element = namedParameters[name];
-        if (element == null) {
-          ErrorCode errorCode = (reportError
-              ? CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER
-              : StaticWarningCode.UNDEFINED_NAMED_PARAMETER);
-          _resolver.reportErrorForNode(errorCode, nameNode, [name]);
-        } else {
-          resolvedParameters[i] = element;
-          nameNode.staticElement = element;
-        }
-        if (!usedNames.add(name)) {
-          _resolver.reportErrorForNode(
-              CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT, nameNode, [name]);
-        }
-      } else {
-        if (argument is SimpleIdentifier && argument.name.isEmpty) {
-          noBlankArguments = false;
-        }
-        positionalArgumentCount++;
-        if (unnamedIndex < unnamedParameterCount) {
-          resolvedParameters[i] = unnamedParameters[unnamedIndex++];
-        }
-      }
-    }
-    if (positionalArgumentCount < requiredParameters.length &&
-        noBlankArguments) {
-      ErrorCode errorCode = (reportError
-          ? CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS
-          : StaticWarningCode.NOT_ENOUGH_REQUIRED_ARGUMENTS);
-      _resolver.reportErrorForNode(errorCode, argumentList,
-          [requiredParameters.length, positionalArgumentCount]);
-    } else if (positionalArgumentCount > unnamedParameterCount &&
-        noBlankArguments) {
-      ErrorCode errorCode = (reportError
-          ? CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS
-          : StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS);
-      _resolver.reportErrorForNode(errorCode, argumentList,
-          [unnamedParameterCount, positionalArgumentCount]);
-    }
-    return resolvedParameters;
+    return ResolverVisitor.resolveArgumentsToParameters(
+        argumentList, parameters, _resolver.reportErrorForNode,
+        reportAsError: reportAsError);
   }
 
   void _resolveBinaryExpression(BinaryExpression node, String methodName) {
@@ -2079,7 +2109,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * given [propertyName], return the element that represents the property.
    */
   Element _resolveElement(
-      ClassElementImpl classElement, SimpleIdentifier propertyName) {
+      ClassElement classElement, SimpleIdentifier propertyName) {
     String name = propertyName.name;
     Element element = null;
     if (propertyName.inSetterContext()) {
@@ -2207,7 +2237,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   void _resolvePropertyAccess(
-      Expression target, SimpleIdentifier propertyName) {
+      Expression target, SimpleIdentifier propertyName, bool isCascaded) {
     DartType staticType = _getStaticType(target);
     DartType propagatedType = _getPropagatedType(target);
     Element staticElement = null;
@@ -2220,6 +2250,9 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     //
     ClassElementImpl typeReference = getTypeReference(target);
     if (typeReference != null) {
+      if (isCascaded) {
+        typeReference = _typeType.element;
+      }
       // TODO(brianwilkerson) Why are we setting the propagated element here?
       // It looks wrong.
       staticElement =
@@ -2543,7 +2576,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
  * AST when the parser could not distinguish between a method invocation and an
  * invocation of a top-level function imported with a prefix.
  */
-class SyntheticIdentifier extends Identifier {
+class SyntheticIdentifier extends IdentifierImpl {
   /**
    * The name of the synthetic identifier.
    */

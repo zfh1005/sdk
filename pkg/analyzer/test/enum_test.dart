@@ -2,21 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.enums;
+library analyzer.test.enum_test;
 
 import 'dart:mirrors';
 
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/html.dart' as html;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:unittest/unittest.dart';
 
-import 'generated/ast_test.dart';
 import 'reflective_tests.dart';
 import 'utils.dart';
 
@@ -29,12 +28,6 @@ void main() {
 class EnumTest {
   void test_AnalysisLevel() {
     new EnumTester<AnalysisLevel>()
-      ..check_getters()
-      ..check_explicit_values();
-  }
-
-  void test_AssignmentKind() {
-    new EnumTester<AssignmentKind>()
       ..check_getters()
       ..check_explicit_values();
   }
@@ -69,12 +62,6 @@ class EnumTest {
       ..check_explicit_values();
   }
 
-  void test_html_TokenType() {
-    new EnumTester<html.TokenType>()
-      ..check_getters()
-      ..check_explicit_values();
-  }
-
   void test_INIT_STATE() {
     new EnumTester<INIT_STATE>()
       ..check_getters()
@@ -99,32 +86,14 @@ class EnumTest {
       ..check_explicit_values();
   }
 
-  void test_RetentionPriority() {
-    new EnumTester<RetentionPriority>()
-      ..check_getters()
-      ..check_explicit_values();
-  }
-
   void test_SourceKind() {
     new EnumTester<SourceKind>()
       ..check_getters()
       ..check_explicit_values();
   }
 
-  void test_SourcePriority() {
-    new EnumTester<SourcePriority>()
-      ..check_getters()
-      ..check_explicit_values();
-  }
-
   void test_UriKind() {
     new EnumTester<UriKind>()
-      ..check_getters()
-      ..check_explicit_values();
-  }
-
-  void test_WrapperKind() {
-    new EnumTester<WrapperKind>()
       ..check_getters()
       ..check_explicit_values();
   }

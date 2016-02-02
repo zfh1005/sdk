@@ -126,7 +126,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   /// When visiting the type declaration of the variable in a [ForIn] loop,
   /// the initializer of the variable is implicit and we should not emit an
   /// error when verifying that all final variables are initialized.
-  bool allowFinalWithoutInitializer = false;
+  bool inLoopVariable = false;
 
   /// The nodes for which variable access and mutation must be registered in
   /// order to determine when the static type of variables types is promoted.
@@ -802,7 +802,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       registry.registerFeature(Feature.COMPILE_TIME_ERROR);
       return new StaticAccess.invalid(error);
     }
-    registry.registerSuperUse(node);
+    registry.registerSuperUse(reporter.spanFromSpannable(node));
     return null;
   }
 
@@ -3015,6 +3015,17 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     } else if (element.isTypeVariable) {
       // `T = b`, `T++`, or 'T += b` where 'T' is a type variable.
       return handleTypeVariableTypeLiteralUpdate(node, name, element);
+    } else if (element.isPrefix) {
+      // `p = b` where `p` is a prefix.
+      ErroneousElement error = reportAndCreateErroneousElement(
+           node,
+           name.text,
+           MessageKind.PREFIX_AS_EXPRESSION,
+           {'prefix': name},
+           isError: true);
+      registry.registerFeature(Feature.COMPILE_TIME_ERROR);
+      return handleUpdate(
+          node, name, new StaticAccess.invalid(error));
     } else if (element.isLocal) {
       return handleLocalUpdate(node, name, element);
     } else if (element.isStatic || element.isTopLevel) {
@@ -3350,13 +3361,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           registry.registerStaticUse(new StaticUse.superGet(semantics.getter));
           break;
         case AccessKind.SUPER_SETTER:
-          registry.registerStaticUse(new StaticUse.superSet(semantics.setter));
+          registry.registerStaticUse(
+              new StaticUse.superSetterSet(semantics.setter));
           break;
         case AccessKind.SUPER_FIELD:
           registry.registerStaticUse(
               new StaticUse.superGet(semantics.element));
           registry.registerStaticUse(
-              new StaticUse.superSet(semantics.element));
+              new StaticUse.superFieldSet(semantics.element));
           break;
         case AccessKind.SUPER_FINAL_FIELD:
           registry.registerStaticUse(
@@ -3365,22 +3377,27 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         case AccessKind.COMPOUND:
           CompoundAccessSemantics compoundSemantics = semantics;
           switch (compoundSemantics.compoundAccessKind) {
-            case CompoundAccessKind.SUPER_GETTER_SETTER:
             case CompoundAccessKind.SUPER_GETTER_FIELD:
-            case CompoundAccessKind.SUPER_FIELD_SETTER:
             case CompoundAccessKind.SUPER_FIELD_FIELD:
               registry.registerStaticUse(
                   new StaticUse.superGet(semantics.getter));
               registry.registerStaticUse(
-                  new StaticUse.superSet(semantics.setter));
+                  new StaticUse.superFieldSet(semantics.setter));
+              break;
+            case CompoundAccessKind.SUPER_FIELD_SETTER:
+            case CompoundAccessKind.SUPER_GETTER_SETTER:
+              registry.registerStaticUse(
+                  new StaticUse.superGet(semantics.getter));
+              registry.registerStaticUse(
+                  new StaticUse.superSetterSet(semantics.setter));
               break;
             case CompoundAccessKind.SUPER_METHOD_SETTER:
               registry.registerStaticUse(
-                  new StaticUse.superSet(semantics.setter));
+                  new StaticUse.superSetterSet(semantics.setter));
               break;
             case CompoundAccessKind.UNRESOLVED_SUPER_GETTER:
               registry.registerStaticUse(
-                  new StaticUse.superSet(semantics.setter));
+                  new StaticUse.superSetterSet(semantics.setter));
               break;
             case CompoundAccessKind.UNRESOLVED_SUPER_SETTER:
               registry.registerStaticUse(
@@ -3435,9 +3452,12 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
               registry.registerFeature(Feature.SUPER_NO_SUCH_METHOD);
               break;
             case AccessKind.SUPER_FIELD:
+              registry.registerStaticUse(
+                  new StaticUse.superFieldSet(semantics.setter));
+              break;
             case AccessKind.SUPER_SETTER:
               registry.registerStaticUse(
-                  new StaticUse.superSet(semantics.setter));
+                  new StaticUse.superSetterSet(semantics.setter));
               break;
             default:
               break;
@@ -3667,8 +3687,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitYield(Yield node) {
-    coreClasses.streamClass.ensureResolved(resolution);
-    coreClasses.iterableClass.ensureResolved(resolution);
+    if (!currentAsyncMarker.isYielding) {
+      reporter.reportErrorMessage(node, MessageKind.INVALID_YIELD);
+    }
+    if (currentAsyncMarker.isAsync) {
+      coreClasses.streamClass.ensureResolved(resolution);
+    } else {
+      coreClasses.iterableClass.ensureResolved(resolution);
+    }
     visit(node.expression);
     return const NoneResult();
   }
@@ -3805,6 +3831,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitAwait(Await node) {
+    if (!currentAsyncMarker.isAsync) {
+      reporter.reportErrorMessage(node, MessageKind.INVALID_AWAIT);
+    }
     coreClasses.futureClass.ensureResolved(resolution);
     visit(node.expression);
     return const NoneResult();
@@ -4330,6 +4359,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitAsyncForIn(AsyncForIn node) {
+    if (!currentAsyncMarker.isAsync) {
+      reporter.reportErrorMessage(
+          node.awaitToken, MessageKind.INVALID_AWAIT_FOR_IN);
+    }
     registry.registerFeature(Feature.ASYNC_FOR_IN);
     registry.registerDynamicUse(
         new DynamicUse(Selectors.current, null));
@@ -4367,10 +4400,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       Scope blockScope) {
     LibraryElement library = enclosingElement.library;
 
-    bool oldAllowFinalWithoutInitializer = allowFinalWithoutInitializer;
-    allowFinalWithoutInitializer = true;
+    bool oldAllowFinalWithoutInitializer = inLoopVariable;
+    inLoopVariable = true;
     visitIn(declaration, blockScope);
-    allowFinalWithoutInitializer = oldAllowFinalWithoutInitializer;
+    inLoopVariable = oldAllowFinalWithoutInitializer;
 
     Send send = declaration.asSend();
     VariableDefinitions variableDefinitions =

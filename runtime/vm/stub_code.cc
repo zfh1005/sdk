@@ -45,9 +45,13 @@ void StubEntry::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 
 void StubCode::InitOnce() {
+#if !defined(DART_PRECOMPILED_RUNTIME)
   // Generate all the stubs.
   Code& code = Code::Handle();
   VM_STUB_CODE_LIST(STUB_CODE_GENERATE);
+#else
+  UNREACHABLE();
+#endif  // DART_PRECOMPILED_RUNTIME
 }
 
 
@@ -116,7 +120,7 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
     Assembler assembler;
     const char* name = cls.ToCString();
     StubCode::GenerateAllocationStubForClass(&assembler, cls);
-    stub ^= Code::FinalizeCode(name, &assembler);
+    stub ^= Code::FinalizeCode(name, &assembler, false /* optimized */);
     stub.set_owner(cls);
     cls.set_allocation_stub(stub);
     if (FLAG_disassemble_stubs) {
@@ -153,7 +157,8 @@ RawCode* StubCode::Generate(const char* name,
                             void (*GenerateStub)(Assembler* assembler)) {
   Assembler assembler;
   GenerateStub(&assembler);
-  const Code& code = Code::Handle(Code::FinalizeCode(name, &assembler));
+  const Code& code = Code::Handle(
+      Code::FinalizeCode(name, &assembler, false /* optimized */));
   if (FLAG_disassemble_stubs) {
     LogBlock lb;
     THR_Print("Code for stub '%s': {\n", name);

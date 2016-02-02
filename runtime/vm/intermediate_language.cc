@@ -127,7 +127,7 @@ static int LowestFirst(const intptr_t* a, const intptr_t* b) {
 CheckClassInstr::CheckClassInstr(Value* value,
                                  intptr_t deopt_id,
                                  const ICData& unary_checks,
-                                 intptr_t token_pos)
+                                 TokenPosition token_pos)
     : TemplateInstruction(deopt_id),
       unary_checks_(unary_checks),
       cids_(unary_checks.NumberOfChecks()),
@@ -398,7 +398,8 @@ Instruction* InitStaticFieldInstr::Canonicalize(FlowGraph* flow_graph) {
 
 
 EffectSet LoadStaticFieldInstr::Dependencies() const {
-  return StaticField().is_final() ? EffectSet::None() : EffectSet::All();
+  return (StaticField().is_final() && !FLAG_fields_may_be_reset)
+      ? EffectSet::None() : EffectSet::All();
 }
 
 
@@ -419,7 +420,9 @@ const Field& LoadStaticFieldInstr::StaticField() const {
 }
 
 
-ConstantInstr::ConstantInstr(const Object& value) : value_(value) {
+ConstantInstr::ConstantInstr(const Object& value, TokenPosition token_pos)
+    : value_(value),
+      token_pos_(token_pos) {
   // Check that the value is not an incorrect Integer representation.
   ASSERT(!value.IsBigint() || !Bigint::Cast(value).FitsIntoSmi());
   ASSERT(!value.IsBigint() || !Bigint::Cast(value).FitsIntoInt64());
@@ -629,7 +632,7 @@ Instruction* Instruction::AppendInstruction(Instruction* tail) {
 }
 
 
-BlockEntryInstr* Instruction::GetBlock() const {
+BlockEntryInstr* Instruction::GetBlock() {
   // TODO(fschneider): Implement a faster way to get the block of an
   // instruction.
   ASSERT(previous() != NULL);
@@ -1734,6 +1737,19 @@ RawInteger* BinaryIntegerOpInstr::Evaluate(const Integer& left,
 }
 
 
+Definition* BinaryIntegerOpInstr::CreateConstantResult(FlowGraph* flow_graph,
+                                                       const Integer& result) {
+  Definition* result_defn = flow_graph->GetConstant(result);
+  if (representation() != kTagged) {
+    result_defn = UnboxInstr::Create(representation(),
+                                     new Value(result_defn),
+                                     GetDeoptId());
+    flow_graph->InsertBefore(this, result_defn, env(), FlowGraph::kValue);
+  }
+  return result_defn;
+}
+
+
 Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
   // If both operands are constants evaluate this expression. Might
   // occur due to load forwarding after constant propagation pass
@@ -1746,7 +1762,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
         Evaluate(Integer::Cast(left()->BoundConstant()),
                  Integer::Cast(right()->BoundConstant())));
     if (!result.IsNull()) {
-      return flow_graph->GetConstant(result);
+      return CreateConstantResult(flow_graph, result);
     }
   }
 
@@ -1871,7 +1887,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
         DeoptimizeInstr* deopt =
             new DeoptimizeInstr(ICData::kDeoptBinarySmiOp, GetDeoptId());
         flow_graph->InsertBefore(this, deopt, env(), FlowGraph::kEffect);
-        return flow_graph->GetConstant(Smi::Handle(Smi::New(0)));
+        return CreateConstantResult(flow_graph, Integer::Handle(Smi::New(0)));
       }
       break;
 
@@ -1885,7 +1901,7 @@ Definition* BinaryIntegerOpInstr::Canonicalize(FlowGraph* flow_graph) {
               new DeoptimizeInstr(ICData::kDeoptBinarySmiOp, GetDeoptId());
           flow_graph->InsertBefore(this, deopt, env(), FlowGraph::kEffect);
         }
-        return flow_graph->GetConstant(Smi::Handle(Smi::New(0)));
+        return CreateConstantResult(flow_graph, Integer::Handle(Smi::New(0)));
       }
       break;
     }
@@ -2201,11 +2217,13 @@ Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
   // Fold away UnboxInteger<rep_to>(BoxInteger<rep_from>(v)).
   BoxIntegerInstr* box_defn = value()->definition()->AsBoxInteger();
   if (box_defn != NULL) {
-    if (box_defn->value()->definition()->representation() == representation()) {
+    Representation from_representation =
+        box_defn->value()->definition()->representation();
+    if (from_representation == representation()) {
       return box_defn->value()->definition();
     } else {
       UnboxedIntConverterInstr* converter = new UnboxedIntConverterInstr(
-          box_defn->value()->definition()->representation(),
+          from_representation,
           representation(),
           box_defn->value()->CopyWithType(),
           (representation() == kUnboxedInt32) ?
@@ -2521,6 +2539,7 @@ Instruction* BranchInstr::Canonicalize(FlowGraph* flow_graph) {
 
 
 Definition* StrictCompareInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (!HasUses()) return NULL;
   bool negated = false;
   Definition* replacement = CanonicalizeStrictCompare(this, &negated);
   if (negated && replacement->IsComparison()) {
@@ -2715,7 +2734,7 @@ void JoinEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->is_optimizing()) {
     compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                                    GetDeoptId(),
-                                   Scanner::kNoSourcePos);
+                                   TokenPosition::kNoSource);
   }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -2741,7 +2760,7 @@ void TargetEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // code that matches backwards from the end of the pattern.
     compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                                    GetDeoptId(),
-                                   Scanner::kNoSourcePos);
+                                   TokenPosition::kNoSource);
   }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -2942,7 +2961,7 @@ void DropTempsInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-StrictCompareInstr::StrictCompareInstr(intptr_t token_pos,
+StrictCompareInstr::StrictCompareInstr(TokenPosition token_pos,
                                        Token::Kind kind,
                                        Value* left,
                                        Value* right,
@@ -3500,7 +3519,7 @@ InvokeMathCFunctionInstr::InvokeMathCFunctionInstr(
     ZoneGrowableArray<Value*>* inputs,
     intptr_t deopt_id,
     MethodRecognizer::Kind recognized_kind,
-    intptr_t token_pos)
+    TokenPosition token_pos)
     : PureDefinition(deopt_id),
       inputs_(inputs),
       recognized_kind_(recognized_kind),
@@ -3670,6 +3689,7 @@ void NativeCallInstr::SetupNative() {
     Report::MessageF(Report::kError,
                      Script::Handle(function().script()),
                      function().token_pos(),
+                     Report::AtLocation,
                      "native function '%s' (%" Pd " arguments) cannot be found",
                      native_name().ToCString(),
                      function().NumParameters());

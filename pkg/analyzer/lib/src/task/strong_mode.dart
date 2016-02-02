@@ -6,63 +6,31 @@ library analyzer.src.task.strong_mode;
 
 import 'dart:collection';
 
-import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/resolver.dart'
     show TypeProvider, InheritanceManager;
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
- * Set the type of the sole parameter of the given [element] to the given [type].
+ * Sets the type of the field. This is stored in the field itself, and the
+ * synthetic getter/setter types.
  */
-void setParameterType(PropertyAccessorElement element, DartType type) {
-  if (element is PropertyAccessorElementImpl) {
-    ParameterElement parameter = _getParameter(element);
-    if (parameter is ParameterElementImpl) {
-      //
-      // Update the type of the parameter.
-      //
-      parameter.type = type;
-      //
-      // Update the type of the setter to reflect the new parameter type.
-      //
-      FunctionType functionType = element.type;
-      if (functionType is FunctionTypeImpl) {
-        element.type =
-            new FunctionTypeImpl(element, functionType.prunedTypedefs)
-              ..typeArguments = functionType.typeArguments;
-      } else {
-        assert(false);
-      }
-    } else {
-      assert(false);
-    }
-  } else {
-    throw new StateError('element is an instance of ${element.runtimeType}');
-    assert(false);
+void setFieldType(VariableElement field, DartType newType) {
+  (field as VariableElementImpl).type = newType;
+  if (field.initializer != null) {
+    (field.initializer as ExecutableElementImpl).returnType = newType;
   }
-}
-
-/**
- * Set the return type of the given [element] to the given [type].
- */
-void setReturnType(ExecutableElement element, DartType type) {
-  if (element is ExecutableElementImpl) {
-    //
-    // Update the return type of the element, which is stored in two places:
-    // directly in the element and indirectly in the type of the element.
-    //
-    element.returnType = type;
-    FunctionType functionType = element.type;
-    if (functionType is FunctionTypeImpl) {
-      element.type = new FunctionTypeImpl(element, functionType.prunedTypedefs)
-        ..typeArguments = functionType.typeArguments;
-    } else {
-      assert(false);
+  if (field is PropertyInducingElementImpl) {
+    (field.getter as ExecutableElementImpl).returnType = newType;
+    if (!field.isFinal && !field.isConst) {
+      (field.setter.parameters[0] as ParameterElementImpl).type =
+          newType;
     }
-  } else {
-    assert(false);
   }
 }
 
@@ -133,6 +101,14 @@ class InstanceMemberInferrer {
         // types containing a circular reference from being inferred.
       }
     });
+  }
+
+  /**
+   * Return `true` if the list of [elements] contains only methods.
+   */
+  bool _allSameElementKind(
+      ExecutableElement element, List<ExecutableElement> elements) {
+    return elements.every((e) => e.kind == element.kind);
   }
 
   /**
@@ -212,7 +188,7 @@ class InstanceMemberInferrer {
       matchingParameter = methodParameters.lastWhere(
           (ParameterElement methodParameter) =>
               methodParameter.parameterKind == ParameterKind.NAMED &&
-                  methodParameter.name == parameter.name,
+              methodParameter.name == parameter.name,
           orElse: () => null);
     } else {
       //
@@ -277,51 +253,10 @@ class InstanceMemberInferrer {
     }
   }
 
-  /**
-   * If the given [fieldElement] represents a non-synthetic instance field for
-   * which no type was provided, infer the type of the field.
-   */
-  void _inferField(FieldElement fieldElement) {
-    if (!fieldElement.isSynthetic &&
-        !fieldElement.isStatic &&
-        fieldElement.hasImplicitType) {
-      //
-      // First look for overridden getters with the same name as the field.
-      //
-      List<ExecutableElement> overriddenGetters = inheritanceManager
-          .lookupOverrides(fieldElement.enclosingElement, fieldElement.name);
-      DartType newType = null;
-      if (overriddenGetters.isNotEmpty && _onlyGetters(overriddenGetters)) {
-        newType = _computeReturnType(overriddenGetters);
-        List<ExecutableElement> overriddenSetters = inheritanceManager
-            .lookupOverrides(
-                fieldElement.enclosingElement, fieldElement.name + '=');
-        if (!_isCompatible(newType, overriddenSetters)) {
-          newType = null;
-        }
-      }
-      //
-      // If there is no overridden getter or if the overridden getter's type is
-      // dynamic, then we can infer the type from the initialization expression
-      // without breaking subtype rules. We could potentially infer a consistent
-      // return type even if the overridden getter's type was not dynamic, but
-      // choose not to for simplicity. The field is required to be final to
-      // prevent choosing a type that is inconsistent with assignments we cannot
-      // analyze.
-      //
-      if (newType == null || newType.isDynamic) {
-        if (fieldElement.initializer != null &&
-            (fieldElement.isFinal || overriddenGetters.isEmpty)) {
-          newType = fieldElement.initializer.returnType;
-        }
-      }
-      if (newType == null || newType.isBottom) {
-        newType = typeProvider.dynamicType;
-      }
-      (fieldElement as FieldElementImpl).type = newType;
-      setReturnType(fieldElement.getter, newType);
-      if (!fieldElement.isFinal && !fieldElement.isConst) {
-        setParameterType(fieldElement.setter, newType);
+  void _inferConstructorFieldFormals(ConstructorElement element) {
+    for (ParameterElement p in element.parameters) {
+      if (p is FieldFormalParameterElement) {
+        _inferFieldFormalParameter(p);
       }
     }
   }
@@ -346,7 +281,8 @@ class InstanceMemberInferrer {
           !_allSameElementKind(element, overriddenMethods)) {
         return;
       }
-      setReturnType(element, _computeReturnType(overriddenMethods));
+      (element as ExecutableElementImpl).returnType =
+          _computeReturnType(overriddenMethods);
       if (element is PropertyAccessorElement) {
         _updateSyntheticVariableType(element);
       }
@@ -376,29 +312,54 @@ class InstanceMemberInferrer {
   }
 
   /**
-   * If the given [element] is a non-synthetic getter or setter, update its
-   * synthetic variable's type to match the getter's return type, or if no
-   * corresponding getter exists, use the setter's parameter type.
-   *
-   * In general, the type of the synthetic variable should not be used, because
-   * getters and setters are independent methods. But this logic matches what
-   * `TypeResolverVisitor.visitMethodDeclaration` would fill in there.
+   * If the given [fieldElement] represents a non-synthetic instance field for
+   * which no type was provided, infer the type of the field.
    */
-  void _updateSyntheticVariableType(PropertyAccessorElement element) {
-    assert(!element.isSynthetic);
-    PropertyAccessorElement getter = element;
-    if (element.isSetter) {
-      // See if we can find any getter.
-      getter = element.correspondingGetter;
+  void _inferField(FieldElement fieldElement) {
+    if (!fieldElement.isSynthetic &&
+        !fieldElement.isStatic &&
+        fieldElement.hasImplicitType) {
+      //
+      // First look for overridden getters with the same name as the field.
+      //
+      List<ExecutableElement> overriddenGetters = inheritanceManager
+          .lookupOverrides(fieldElement.enclosingElement, fieldElement.name);
+      DartType newType = null;
+      if (overriddenGetters.isNotEmpty && _onlyGetters(overriddenGetters)) {
+        newType = _computeReturnType(overriddenGetters);
+        List<ExecutableElement> overriddenSetters =
+            inheritanceManager.lookupOverrides(
+                fieldElement.enclosingElement, fieldElement.name + '=');
+        if (!_isCompatible(newType, overriddenSetters)) {
+          newType = null;
+        }
+      }
+      //
+      // If there is no overridden getter or if the overridden getter's type is
+      // dynamic, then we can infer the type from the initialization expression
+      // without breaking subtype rules. We could potentially infer a consistent
+      // return type even if the overridden getter's type was not dynamic, but
+      // choose not to for simplicity. The field is required to be final to
+      // prevent choosing a type that is inconsistent with assignments we cannot
+      // analyze.
+      //
+      if (newType == null || newType.isDynamic) {
+        if (fieldElement.initializer != null &&
+            (fieldElement.isFinal || overriddenGetters.isEmpty)) {
+          newType = fieldElement.initializer.returnType;
+        }
+      }
+      if (newType == null || newType.isBottom) {
+        newType = typeProvider.dynamicType;
+      }
+      setFieldType(fieldElement, newType);
     }
-    DartType newType;
-    if (getter != null) {
-      newType = getter.returnType;
-    } else if (element.isSetter && element.parameters.isNotEmpty) {
-      newType = element.parameters[0].type;
-    }
-    if (newType != null) {
-      (element.variable as VariableElementImpl).type = newType;
+  }
+
+  void _inferFieldFormalParameter(FieldFormalParameterElement element) {
+    FieldElement field = element.field;
+    if (field != null && element.hasImplicitType) {
+      (element as FieldFormalParameterElementImpl).type = field.type;
     }
   }
 
@@ -442,25 +403,29 @@ class InstanceMemberInferrer {
   }
 
   /**
-   * Return `true` if the list of [elements] contains only methods.
+   * If the given [element] is a non-synthetic getter or setter, update its
+   * synthetic variable's type to match the getter's return type, or if no
+   * corresponding getter exists, use the setter's parameter type.
+   *
+   * In general, the type of the synthetic variable should not be used, because
+   * getters and setters are independent methods. But this logic matches what
+   * `TypeResolverVisitor.visitMethodDeclaration` would fill in there.
    */
-  bool _allSameElementKind(
-      ExecutableElement element, List<ExecutableElement> elements) {
-    return elements.every((e) => e.kind == element.kind);
-  }
-
-  void _inferConstructorFieldFormals(ConstructorElement element) {
-    for (ParameterElement p in element.parameters) {
-      if (p is FieldFormalParameterElement) {
-        _inferFieldFormalParameter(p);
-      }
+  void _updateSyntheticVariableType(PropertyAccessorElement element) {
+    assert(!element.isSynthetic);
+    PropertyAccessorElement getter = element;
+    if (element.isSetter) {
+      // See if we can find any getter.
+      getter = element.correspondingGetter;
     }
-  }
-
-  void _inferFieldFormalParameter(FieldFormalParameterElement element) {
-    FieldElement field = element.field;
-    if (field != null && element.hasImplicitType) {
-      (element as FieldFormalParameterElementImpl).type = field.type;
+    DartType newType;
+    if (getter != null) {
+      newType = getter.returnType;
+    } else if (element.isSetter && element.parameters.isNotEmpty) {
+      newType = element.parameters[0].type;
+    }
+    if (newType != null) {
+      (element.variable as VariableElementImpl).type = newType;
     }
   }
 }

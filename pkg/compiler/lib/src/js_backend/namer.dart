@@ -356,6 +356,11 @@ class Namer {
   jsAst.Name _literalSetterPrefix;
   jsAst.Name _literalLazyGetterPrefix;
 
+  jsAst.Name _staticsPropertyName;
+
+  jsAst.Name get staticsPropertyName =>
+      _staticsPropertyName ??= new StringBackedName('static');
+
   // Name of property in a class description for the native dispatch metadata.
   final String nativeSpecProperty = '%';
 
@@ -1888,6 +1893,8 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
 
   @override
   int visitDeferred(DeferredConstantValue constant, [_]) {
+    // TODO(sra): Investigate that the use of hashCode here is probably a source
+    // of instability.
     int hash = constant.prefix.hashCode;
     return _combine(hash, _visit(constant.referenced));
   }

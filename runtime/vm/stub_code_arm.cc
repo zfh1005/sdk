@@ -419,6 +419,9 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   __ eor(IP, IP, Operand(LR));
 
   // Set up the frame manually with return address now stored in IP.
+  COMPILE_ASSERT(PP < CODE_REG);
+  COMPILE_ASSERT(CODE_REG < FP);
+  COMPILE_ASSERT(FP < IP);
   __ EnterFrame((1 << PP) | (1 << CODE_REG) | (1 << FP) | (1 << IP), 0);
   __ LoadPoolPointer();
 
@@ -434,8 +437,11 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     if (i == CODE_REG) {
       // Save the original value of CODE_REG pushed before invoking this stub
       // instead of the value used to call this stub.
-      COMPILE_ASSERT(IP > CODE_REG);  // Assert IP is pushed first.
       __ ldr(IP, Address(FP, kCallerSpSlotFromFp * kWordSize));
+      __ Push(IP);
+    } else if (i == SP) {
+      // Push(SP) has unpredictable behavior.
+      __ mov(IP, Operand(SP));
       __ Push(IP);
     } else {
       __ Push(static_cast<Register>(i));
@@ -1798,8 +1804,12 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // R3: instance class id.
   // R4: instance type arguments.
   __ SmiTag(R3);
+  __ CompareImmediate(R3, Smi::RawValue(kClosureCid));
+  __ ldr(R3, FieldAddress(R0, Closure::function_offset()), EQ);
+  // R3: instance class id as Smi or function.
   __ Bind(&loop);
-  __ ldr(R9, Address(R2, kWordSize * SubtypeTestCache::kInstanceClassId));
+  __ ldr(R9,
+         Address(R2, kWordSize * SubtypeTestCache::kInstanceClassIdOrFunction));
   __ CompareObject(R9, Object::null_object());
   __ b(&not_found, EQ);
   __ cmp(R9, Operand(R3));

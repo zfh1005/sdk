@@ -2,14 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.incremental_resolver_test;
+library analyzer.test.generated.incremental_resolver_test;
 
-import 'package:analyzer/src/context/cache.dart' as task;
-import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/context/cache.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/incremental_logger.dart' as log;
+import 'package:analyzer/src/generated/incremental_logger.dart' as logging;
 import 'package:analyzer/src/generated/incremental_resolution_validator.dart';
 import 'package:analyzer/src/generated/incremental_resolver.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -19,11 +21,11 @@ import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
+import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
-import 'parser_test.dart';
 import 'resolver_test.dart';
 import 'test_support.dart';
 
@@ -494,6 +496,20 @@ class A {
 ''');
   }
 
+  void test_false_constructor_parameters_name() {
+    _assertDoesNotMatch(
+        r'''
+class A {
+  A(int a);
+}
+''',
+        r'''
+class A {
+  A(int b);
+}
+''');
+  }
+
   void test_false_constructor_parameters_type_edit() {
     _assertDoesNotMatch(
         r'''
@@ -830,6 +846,22 @@ class A {
 class A {
   final field;
   A(this.field(a));
+}
+''');
+  }
+
+  void test_false_fieldFormalParameter_changeName_wasUnresolvedField() {
+    _assertDoesNotMatch(
+        r'''
+class A {
+  final fff;
+  A(this.unresolved);
+}
+''',
+        r'''
+class A {
+  final fff;
+  A(this.fff);
 }
 ''');
   }
@@ -1545,6 +1577,34 @@ class A {
 ''');
   }
 
+  void test_false_method_getKeyword_add() {
+    _assertDoesNotMatchOK(
+        r'''
+class A {
+  void foo() {}
+}
+''',
+        r'''
+class A {
+  void get foo {}
+}
+''');
+  }
+
+  void test_false_method_getKeyword_remove() {
+    _assertDoesNotMatchOK(
+        r'''
+class A {
+  void get foo {}
+}
+''',
+        r'''
+class A {
+  void foo() {}
+}
+''');
+  }
+
   void test_false_method_list_add() {
     _assertDoesNotMatchOK(
         r'''
@@ -1635,6 +1695,34 @@ class A {
         r'''
 class A {
   String m() {}
+}
+''');
+  }
+
+  void test_false_method_setKeyword_add() {
+    _assertDoesNotMatchOK(
+        r'''
+class A {
+  void foo(x) {}
+}
+''',
+        r'''
+class A {
+  void set foo(x) {}
+}
+''');
+  }
+
+  void test_false_method_setKeyword_remove() {
+    _assertDoesNotMatchOK(
+        r'''
+class A {
+  void set foo(x) {}
+}
+''',
+        r'''
+class A {
+  void foo(x) {}
 }
 ''');
   }
@@ -2449,22 +2537,6 @@ class A {
 ''');
   }
 
-  void test_true_fieldFormalParameter_changeName_wasUnresolvedField() {
-    _assertMatches(
-        r'''
-class A {
-  final fff;
-  A(this.unresolved);
-}
-''',
-        r'''
-class A {
-  final fff;
-  A(this.fff);
-}
-''');
-  }
-
   void test_true_fieldFormalParameter_function() {
     _assertMatches(
         r'''
@@ -3001,7 +3073,7 @@ class B extends Object with A {}
     LibraryElement library = resolve2(source);
     CompilationUnit oldUnit = resolveCompilationUnit(source, library);
     // parse
-    CompilationUnit newUnit = ParserTestCase.parseCompilationUnit(newContent);
+    CompilationUnit newUnit = IncrementalResolverTest._parseUnit(newContent);
     // build elements
     {
       ElementHolder holder = new ElementHolder();
@@ -3024,28 +3096,18 @@ class IncrementalResolverTest extends ResolverTestCase {
 
   @override
   void reset() {
-    if (AnalysisEngine.instance.useTaskModel) {
-      analysisContext2 = AnalysisContextFactory.contextWithCore();
-    } else {
-      analysisContext2 = AnalysisContextFactory.oldContextWithCore();
-    }
+    analysisContext2 = AnalysisContextFactory.contextWithCore();
   }
 
   @override
   void resetWithOptions(AnalysisOptions options) {
-    if (AnalysisEngine.instance.useTaskModel) {
-      analysisContext2 =
-          AnalysisContextFactory.contextWithCoreAndOptions(options);
-    } else {
-      analysisContext2 =
-          AnalysisContextFactory.oldContextWithCoreAndOptions(options);
-    }
+    AnalysisContextFactory.contextWithCoreAndOptions(options);
   }
 
   void setUp() {
     super.setUp();
     test_resolveApiChanges = true;
-    log.logger = log.NULL_LOGGER;
+    logging.logger = logging.NULL_LOGGER;
   }
 
   void test_classMemberAccessor_body() {
@@ -3121,15 +3183,6 @@ class B extends A {
 }
 ''');
     _resolve(_editString('+', '*'), _isExpression);
-  }
-
-  void test_fieldFormalParameter() {
-    _resolveUnit(r'''
-class A {
-  int xy;
-  A(this.x);
-}''');
-    _resolve(_editString('this.x', 'this.xy'), _isDeclaration);
   }
 
   void test_function_localFunction_add() {
@@ -3389,28 +3442,10 @@ class B {
     int updateEndOld = updateOffset + edit.length;
     int updateOldNew = updateOffset + edit.replacement.length;
     IncrementalResolver resolver;
-    if (AnalysisEngine.instance.useTaskModel) {
-      LibrarySpecificUnit lsu = new LibrarySpecificUnit(source, source);
-      task.AnalysisCache cache = analysisContext2.analysisCache;
-      resolver = new IncrementalResolver(
-          null,
-          cache.get(source),
-          cache.get(lsu),
-          unit.element,
-          updateOffset,
-          updateEndOld,
-          updateOldNew);
-    } else {
-      resolver = new IncrementalResolver(
-          (analysisContext2 as AnalysisContextImpl)
-              .getReadableSourceEntryOrNull(source),
-          null,
-          null,
-          unit.element,
-          updateOffset,
-          updateEndOld,
-          updateOldNew);
-    }
+    LibrarySpecificUnit lsu = new LibrarySpecificUnit(source, source);
+    AnalysisCache cache = analysisContext2.analysisCache;
+    resolver = new IncrementalResolver(cache.get(source), cache.get(lsu),
+        unit.element, updateOffset, updateEndOld, updateOldNew);
     bool success = resolver.resolve(newNode);
     expect(success, isTrue);
     List<AnalysisError> newErrors = analysisContext.computeErrors(source);
@@ -3494,6 +3529,8 @@ class B {
  */
 @reflectiveTest
 class PoorMansIncrementalResolutionTest extends ResolverTestCase {
+  final _TestLogger logger = new _TestLogger();
+
   Source source;
   String code;
   LibraryElement oldLibrary;
@@ -3519,15 +3556,8 @@ class A {
 
   @override
   void setUp() {
-    AnalysisEngine.instance.useTaskModel = true;
     super.setUp();
     _resetWithIncremental(true);
-  }
-
-  @override
-  void tearDown() {
-    super.tearDown();
-    AnalysisEngine.instance.useTaskModel = false;
   }
 
   void test_computeConstants() {
@@ -3778,23 +3808,6 @@ main() {
 ''');
   }
 
-  void test_endOfLineComment_localFunction_inTopLevelVariable() {
-    _resolveUnit(r'''
-typedef int Binary(one, two, three);
-
-int Global = f((a, b, c) {
-  return 0; // Some comment
-});
-''');
-    _updateAndValidate(r'''
-typedef int Binary(one, two, three);
-
-int Global = f((a, b, c) {
-  return 0; // Some  comment
-});
-''');
-  }
-
   void test_endOfLineComment_outBody_add() {
     _resolveUnit(r'''
 main() {
@@ -3864,6 +3877,25 @@ main() {
 ''');
   }
 
+  void test_endOfLineComment_toDartDoc() {
+    _resolveUnit(r'''
+class A {
+  // text
+  main() {
+    print(42);
+  }
+}''');
+    _updateAndValidate(
+        r'''
+class A {
+  /// text
+  main() {
+    print(42);
+  }
+}''',
+        expectedSuccess: false);
+  }
+
   void test_false_constConstructor_initializer() {
     _resolveUnit(r'''
 class C {
@@ -3889,6 +3921,74 @@ main() {
         expectedSuccess: false);
   }
 
+  void test_false_constructor_initializer_damage() {
+    _resolveUnit(r'''
+class Problem {
+  final Map location;
+  final String message;
+
+  Problem(Map json)
+      : location = json["location"],
+        message = json["message"];
+}''');
+    _updateAndValidate(
+        r'''
+class Problem {
+  final Map location;
+  final String message;
+
+  Problem(Map json)
+      : location = json["location],
+        message = json["message"];
+}''',
+        expectedSuccess: false);
+  }
+
+  void test_false_constructor_initializer_remove() {
+    _resolveUnit(r'''
+class Problem {
+  final String severity;
+  final Map location;
+  final String message;
+
+  Problem(Map json)
+      : severity = json["severity"],
+        location = json["location"],
+        message = json["message"];
+}''');
+    _updateAndValidate(
+        r'''
+class Problem {
+  final String severity;
+  final Map location;
+  final String message;
+
+  Problem(Map json)
+      : severity = json["severity"],
+        message = json["message"];
+}''',
+        expectedSuccess: false);
+  }
+
+  void test_false_endOfLineComment_localFunction_inTopLevelVariable() {
+    _resolveUnit(r'''
+typedef int Binary(one, two, three);
+
+int Global = f((a, b, c) {
+  return 0; // Some comment
+});
+''');
+    _updateAndValidate(
+        r'''
+typedef int Binary(one, two, three);
+
+int Global = f((a, b, c) {
+  return 0; // Some  comment
+});
+''',
+        expectedSuccess: false);
+  }
+
   void test_false_expressionBody() {
     _resolveUnit(r'''
 class A {
@@ -3900,6 +4000,44 @@ class A {
 class A {
   final f = (() => 2)();
 }
+''',
+        expectedSuccess: false);
+  }
+
+  void test_false_expressionBody2() {
+    _resolveUnit(r'''
+class A {
+  int m() => 10 * 10;
+}
+''');
+    _updateAndValidate(
+        r'''
+class A {
+  int m() => 10 * 100;
+}
+''',
+        expectedSuccess: false);
+  }
+
+  void test_false_inBody_functionExpression() {
+    _resolveUnit(r'''
+class C extends D {
+  static final f = () {
+    var x = 0;
+  }();
+}
+
+class D {}
+''');
+    _updateAndValidate(
+        r'''
+class C extends D {
+  static final f = () {
+    var x = 01;
+  }();
+}
+
+class D {}
 ''',
         expectedSuccess: false);
   }
@@ -3970,6 +4108,25 @@ class A {
     print(0123456789);
   }
 }''',
+        expectedSuccess: false);
+  }
+
+  void test_false_wholeConstructor() {
+    _resolveUnit(r'''
+class A {
+  A(int a) {
+    print(a);
+  }
+}
+''');
+    _updateAndValidate(
+        r'''
+class A {
+  A(int b) {
+    print(b);
+  }
+}
+''',
         expectedSuccess: false);
   }
 
@@ -4193,23 +4350,6 @@ foo() {
 ''');
     List<AnalysisError> newErrors = analysisContext.computeErrors(source);
     _assertEqualErrors(newErrors, oldErrors);
-  }
-
-  void test_true_wholeConstructor() {
-    _resolveUnit(r'''
-class A {
-  A(int a) {
-    print(a);
-  }
-}
-''');
-    _updateAndValidate(r'''
-class A {
-  A(int b) {
-    print(b);
-  }
-}
-''');
   }
 
   void test_true_wholeConstructor_addInitializer() {
@@ -4460,6 +4600,45 @@ foo(int p) {}
 ''');
   }
 
+  void test_updateErrors_invalidVerifyErrors() {
+    _resolveUnit(r'''
+main() {
+  foo('aaa');
+}
+main2() {
+  foo('bbb');
+}
+foo(int p) {}
+''');
+    // Complete analysis, e.g. compute VERIFY_ERRORS.
+    _runTasks();
+    // Invalidate VERIFY_ERRORS.
+    AnalysisCache cache = analysisContext2.analysisCache;
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    CacheEntry cacheEntry = cache.get(target);
+    expect(cacheEntry.getValue(VERIFY_ERRORS), hasLength(2));
+    cacheEntry.setState(VERIFY_ERRORS, CacheState.INVALID);
+    // Perform incremental resolution.
+    _resetWithIncremental(true);
+    analysisContext2.setContents(
+        source,
+        r'''
+main() {
+  foo(0);
+}
+main2() {
+  foo('bbb');
+}
+foo(int p) {}
+''');
+    // VERIFY_ERRORS is still invalid.
+    expect(cacheEntry.getState(VERIFY_ERRORS), CacheState.INVALID);
+    // Continue analysis - run tasks, so recompute VERIFY_ERRORS.
+    _runTasks();
+    expect(cacheEntry.getState(VERIFY_ERRORS), CacheState.VALID);
+    expect(cacheEntry.getValue(VERIFY_ERRORS), hasLength(1));
+  }
+
   void test_updateErrors_removeExisting_hint() {
     _resolveUnit(r'''
 int main() {
@@ -4522,6 +4701,47 @@ f3() {
 ''');
   }
 
+  void test_visibleRange() {
+    _resolveUnit(r'''
+class Test {
+  method1(p1) {
+    var v1;
+    f1() {}
+    return 1;
+  }
+  method2(p2) {
+    var v2;
+    f2() {}
+    return 2;
+  }
+  method3(p3) {
+    var v3;
+    f3() {}
+    return 3;
+  }
+}
+''');
+    _updateAndValidate(r'''
+class Test {
+  method1(p1) {
+    var v1;
+    f1() {}
+    return 1;
+  }
+  method2(p2) {
+    var v2;
+    f2() {}
+    return 2222;
+  }
+  method3(p3) {
+    var v3;
+    f3() {}
+    return 3;
+  }
+}
+''');
+  }
+
   void test_whitespace_getElementAt() {
     _resolveUnit(r'''
 class A {}
@@ -4574,8 +4794,7 @@ class B extends A {}
     AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
     analysisOptions.incremental = enable;
     analysisOptions.incrementalApi = enable;
-//    log.logger = log.PRINT_LOGGER;
-    log.logger = log.NULL_LOGGER;
+    logging.logger = logger;
     analysisContext2.analysisOptions = analysisOptions;
   }
 
@@ -4595,14 +4814,19 @@ class B extends A {}
   }
 
   void _updateAndValidate(String newCode,
-      {bool expectedSuccess: true, bool compareWithFull: true}) {
+      {bool expectedSuccess: true,
+      bool compareWithFull: true,
+      bool runTasksBeforeIncremental: true}) {
     // Run any pending tasks tasks.
-    _runTasks();
+    if (runTasksBeforeIncremental) {
+      _runTasks();
+    }
     // Update the source - currently this may cause incremental resolution.
     // Then request the updated resolved unit.
     _resetWithIncremental(true);
     analysisContext2.setContents(source, newCode);
     CompilationUnit newUnit = resolveCompilationUnit(source, oldLibrary);
+    expect(logger.hasError, isFalse);
     List<AnalysisError> newErrors = analysisContext.computeErrors(source);
     LineInfo newLineInfo = analysisContext.getLineInfo(source);
     // check for expected failure
@@ -4613,7 +4837,8 @@ class B extends A {}
     // The existing CompilationUnit[Element] should be updated.
     expect(newUnit, same(oldUnit));
     expect(newUnit.element, same(oldUnitElement));
-    expect(analysisContext.parseCompilationUnit(source), same(oldUnit));
+    expect(analysisContext.getResolvedCompilationUnit(source, oldLibrary),
+        same(oldUnit));
     // The only expected pending task should return the same resolved
     // "newUnit", so all clients will get it using the usual way.
     AnalysisResult analysisResult = analysisContext.performAnalysisTask();
@@ -4622,6 +4847,7 @@ class B extends A {}
     // Resolve "newCode" from scratch.
     if (compareWithFull) {
       _resetWithIncremental(false);
+      changeSource(source, '');
       changeSource(source, newCode);
       _runTasks();
       LibraryElement library = resolve2(source);
@@ -4892,4 +5118,27 @@ class _Edit {
   final int length;
   final String replacement;
   _Edit(this.offset, this.length, this.replacement);
+}
+
+class _TestLogger implements logging.Logger {
+  bool hasError = false;
+
+  @override
+  void enter(String name) {}
+
+  @override
+  void exit() {}
+
+  @override
+  void log(Object obj) {}
+
+  @override
+  void logException(Object exception, [Object stackTrace]) {
+    hasError = true;
+  }
+
+  @override
+  logging.LoggingTimer startTimer() {
+    return new logging.LoggingTimer(this);
+  }
 }

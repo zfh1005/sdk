@@ -1547,7 +1547,7 @@ The superinitializer that appears, explicitly or implicitly, in the initializer 
 Any expression that appears within the initializer list of a constant constructor must be a potentially constant expression, or a compile-time error occurs. 
 
 \LMHash{}
-A {\em potentially constant expression} is an expression $e$ that would be a valid constant expression if all formal parameters of $e$'s immediately enclosing constant constructor were treated as compile-time constants that were guaranteed to evaluate to an integer, boolean or string value as required by their immediately enclosing superexpression.
+A {\em potentially constant expression} is an expression $e$ that would be a valid constant expression if all formal parameters of $e$'s immediately enclosing constant constructor were treated as compile-time constants that were guaranteed to evaluate to an integer, boolean or string value as required by their immediately enclosing superexpression, <em>and</em> where $e$ is also a valid expression if all the formal parameters are treated as non-constant variables.
 
 \commentary{
 Note that a parameter that is not used in a superexpression that is restricted to certain types can be a constant of any type. For example}
@@ -2435,6 +2435,7 @@ A constant expression is one of the following:
 \item An expression of the form \code{$e_1 + e_2$} where $e_1$ and $e_2$ are constant expressions that evaluate to a numeric or string value or to \NULL{}.
 \item An expression of one of the forms \code{$-e$}, \code{$e_1$ - $e_2$}, \code{$e_1$ * $e_2$}, \code{$e_1$ / $e_2$,} \code{$e_1$ \~{}/ $e_2$},  \code{$e_1  >  e_2$}, \code{$e_1  <  e_2$}, \code{$e_1$ $>$= $e_2$}, \code{$e_1$ $<$= $e_2$} or \code{$e_1$ \% $e_2$},  where $e$, $e_1$ and $e_2$ are constant expressions that evaluate to a numeric value  or to \NULL{}.
 \item An expression of the form \code{$e_1$?$e_2$:$e3$} where $e_1$, $e_2$ and $e_3$ are constant expressions and $e_1$ evaluates to a boolean value.
+\item An expression of the form \code{$e_1 ?? e_2$} where $e_1$ and $e_2$ are constant expressions.
 \item An expression of the form \code{$e$.length} where $e$ is a constant expression that evaluates to a string value.
 \end{itemize}
 

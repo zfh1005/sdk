@@ -126,9 +126,9 @@ final htmlBlinkMap = {
   '_DOMWindowCrossFrame': () => _DOMWindowCrossFrame,
   // FIXME: Move these to better locations.
   'DateTime': () => DateTime,
-  'JsObject': () => js.JsObjectImpl,
-  'JsFunction': () => js.JsFunctionImpl,
-  'JsArray': () => js.JsArrayImpl,
+  'JsObject': () => js.JsObject,
+  'JsFunction': () => js.JsFunction,
+  'JsArray': () => js.JsArray,
   'AbstractWorker': () => AbstractWorker,
   'Animation': () => Animation,
   'AnimationEffectReadOnly': () => AnimationEffectReadOnly,
@@ -1224,7 +1224,7 @@ String _getCustomElementName(element) {
   } else if (runtimeType == TemplateElement) {
     // Data binding with a Dart class.
     tag = element.attributes['is'];
-  } else if (runtimeType == js.JsObjectImpl) {
+  } else if (runtimeType == js.JsObject) {
     // It's a Polymer core element (written in JS).
     // Make sure it's an element anything else we can ignore.
     if (element.hasProperty('nodeType') && element['nodeType'] == 1) {
@@ -1237,7 +1237,7 @@ String _getCustomElementName(element) {
       }
     }
   } else {
-    throw new UnsupportedError('Element is incorrect type. Got ${runtimeType}, expected HtmlElement/HtmlTemplate/JsObjectImpl.');
+    throw new UnsupportedError('Element is incorrect type. Got ${runtimeType}, expected HtmlElement/HtmlTemplate/JsObject.');
   }
 
   return tag;
@@ -1245,15 +1245,9 @@ String _getCustomElementName(element) {
 
 /// An abstract class for all DOM objects we wrap in dart:html and related
 ///  libraries.
-///
-/// ** Internal Use Only **
 @Deprecated("Internal Use Only")
-class DartHtmlDomObject {
-
-  /// The underlying JS DOM object.
-  @Deprecated("Internal Use Only")
-  js.JsObject blink_jsObject;
-
+class DartHtmlDomObject extends js.JSObject {
+  DartHtmlDomObject() : super.internal();
 }
 
 @Deprecated("Internal Use Only")
@@ -1267,24 +1261,6 @@ debug_or_assert(message, expression) {
   if (!expression) {
     throw new DebugAssertException("$message");
   }
-}
-
-// TODO(terry): Manage JS interop JsFunctions for each listener used for add/
-//              removeEventListener.  These JsFunctions will leak look at
-//              fixing with weak-refs in C++.  The key are the hashcodes of the
-//              user's this (this is needed for futures) and listener function.
-Map<int, Map<int, js.JsFunction>> _knownListeners = {};
-
-@Deprecated("Internal Use Only")
-js.JsFunction wrap_event_listener(theObject, Function listener) {
-  var thisHashCode = theObject.hashCode;
-  var listenerHashCode = identityHashCode(listener);
-
-  _knownListeners.putIfAbsent(thisHashCode, () => new Map<int, js.JsFunction>());
-  _knownListeners[thisHashCode].putIfAbsent(listenerHashCode, () =>
-    new js.JsFunction.withThis((theObject, event) => listener(wrap_jso(event))));
-
-  return _knownListeners[thisHashCode][listenerHashCode];
 }
 
 @Deprecated("Internal Use Only")
@@ -1375,9 +1351,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
     return new AnchorElement._internalWrap();
   }
 
-  factory AnchorElement._internalWrap() {
-    return new AnchorElement.internal_();
-  }
+  external factory AnchorElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   AnchorElement.internal_() : super.internal_();
@@ -1544,9 +1518,7 @@ class Animation extends EventTarget {
     return new Animation._internalWrap();
   }
 
-  factory Animation._internalWrap() {
-    return new Animation.internal_();
-  }
+  external factory Animation._internalWrap();
 
   @Deprecated("Internal Use Only")
   Animation.internal_() : super.internal_();
@@ -1682,7 +1654,73 @@ class AnimationEffectReadOnly extends DartHtmlDomObject {
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
   int get hashCode => unwrap_jso(this).hashCode;
 
+<<<<<<< HEAD
   @DomName('AnimationEffectReadOnly.computedTiming')
+||||||| merged common ancestors
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('WebKitAnimationEvent')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental()
+class AnimationEvent extends Event {
+  // To suppress missing implicit constructor warnings.
+  factory AnimationEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static AnimationEvent internalCreateAnimationEvent() {
+    return new AnimationEvent._internalWrap();
+  }
+
+  factory AnimationEvent._internalWrap() {
+    return new AnimationEvent.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  AnimationEvent.internal_() : super.internal_();
+
+
+  @DomName('WebKitAnimationEvent.animationName')
+=======
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('WebKitAnimationEvent')
+@SupportedBrowser(SupportedBrowser.CHROME)
+@SupportedBrowser(SupportedBrowser.SAFARI)
+@Experimental()
+class AnimationEvent extends Event {
+  // To suppress missing implicit constructor warnings.
+  factory AnimationEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static AnimationEvent internalCreateAnimationEvent() {
+    return new AnimationEvent._internalWrap();
+  }
+
+  external factory AnimationEvent._internalWrap();
+
+  @Deprecated("Internal Use Only")
+  AnimationEvent.internal_() : super.internal_();
+
+
+  @DomName('WebKitAnimationEvent.animationName')
+>>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
   @DocsEditable()
   @Experimental() // untriaged
   Map get computedTiming => wrap_jso(_blink.BlinkAnimationEffectReadOnly.instance.computedTiming_Getter_(unwrap_jso(this)));
@@ -1757,7 +1795,75 @@ class AnimationEffectTiming extends DartHtmlDomObject {
   @Experimental() // untriaged
   String get easing => _blink.BlinkAnimationEffectTiming.instance.easing_Getter_(unwrap_jso(this));
   
+<<<<<<< HEAD
   @DomName('AnimationEffectTiming.easing')
+||||||| merged common ancestors
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('AnimationPlayer')
+@Experimental() // untriaged
+class AnimationPlayer extends EventTarget {
+  // To suppress missing implicit constructor warnings.
+  factory AnimationPlayer._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static AnimationPlayer internalCreateAnimationPlayer() {
+    return new AnimationPlayer._internalWrap();
+  }
+
+  factory AnimationPlayer._internalWrap() {
+    return new AnimationPlayer.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  AnimationPlayer.internal_() : super.internal_();
+
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
+
+  @DomName('AnimationPlayer.currentTime')
+=======
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('AnimationPlayer')
+@Experimental() // untriaged
+class AnimationPlayer extends EventTarget {
+  // To suppress missing implicit constructor warnings.
+  factory AnimationPlayer._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static AnimationPlayer internalCreateAnimationPlayer() {
+    return new AnimationPlayer._internalWrap();
+  }
+
+  external factory AnimationPlayer._internalWrap();
+
+  @Deprecated("Internal Use Only")
+  AnimationPlayer.internal_() : super.internal_();
+
+
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
+
+  @DomName('AnimationPlayer.currentTime')
+>>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
   @DocsEditable()
   @Experimental() // untriaged
   set easing(String value) => _blink.BlinkAnimationEffectTiming.instance.easing_Setter_(unwrap_jso(this), value);
@@ -1892,9 +1998,7 @@ class AnimationPlayerEvent extends Event {
     return new AnimationPlayerEvent._internalWrap();
   }
 
-  factory AnimationPlayerEvent._internalWrap() {
-    return new AnimationPlayerEvent.internal_();
-  }
+  external factory AnimationPlayerEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   AnimationPlayerEvent.internal_() : super.internal_();
@@ -2119,9 +2223,7 @@ class ApplicationCache extends EventTarget {
     return new ApplicationCache._internalWrap();
   }
 
-  factory ApplicationCache._internalWrap() {
-    return new ApplicationCache.internal_();
-  }
+  external factory ApplicationCache._internalWrap();
 
   @Deprecated("Internal Use Only")
   ApplicationCache.internal_() : super.internal_();
@@ -2241,9 +2343,7 @@ class ApplicationCacheErrorEvent extends Event {
     return new ApplicationCacheErrorEvent._internalWrap();
   }
 
-  factory ApplicationCacheErrorEvent._internalWrap() {
-    return new ApplicationCacheErrorEvent.internal_();
-  }
+  external factory ApplicationCacheErrorEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   ApplicationCacheErrorEvent.internal_() : super.internal_();
@@ -2285,7 +2385,7 @@ class ApplicationCacheErrorEvent extends Event {
  *
  * See also:
  *
- * * [<area>](https://developer.mozilla.org/en-US/docs/HTML/Element/area)
+ * * [`<area>`](https://developer.mozilla.org/en-US/docs/HTML/Element/area)
  * on MDN.
  */
 @DomName('HTMLAreaElement')
@@ -2303,9 +2403,7 @@ class AreaElement extends HtmlElement implements UrlUtils {
     return new AreaElement._internalWrap();
   }
 
-  factory AreaElement._internalWrap() {
-    return new AreaElement.internal_();
-  }
+  external factory AreaElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   AreaElement.internal_() : super.internal_();
@@ -2465,9 +2563,7 @@ class AudioElement extends MediaElement {
     return new AudioElement._internalWrap();
   }
 
-  factory AudioElement._internalWrap() {
-    return new AudioElement.internal_();
-  }
+  external factory AudioElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   AudioElement.internal_() : super.internal_();
@@ -2571,9 +2667,7 @@ class AudioTrackList extends EventTarget {
     return new AudioTrackList._internalWrap();
   }
 
-  factory AudioTrackList._internalWrap() {
-    return new AudioTrackList.internal_();
-  }
+  external factory AudioTrackList._internalWrap();
 
   @Deprecated("Internal Use Only")
   AudioTrackList.internal_() : super.internal_();
@@ -2631,9 +2725,7 @@ class AutocompleteErrorEvent extends Event {
     return new AutocompleteErrorEvent._internalWrap();
   }
 
-  factory AutocompleteErrorEvent._internalWrap() {
-    return new AutocompleteErrorEvent.internal_();
-  }
+  external factory AutocompleteErrorEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   AutocompleteErrorEvent.internal_() : super.internal_();
@@ -2667,9 +2759,7 @@ class BRElement extends HtmlElement {
     return new BRElement._internalWrap();
   }
 
-  factory BRElement._internalWrap() {
-    return new BRElement.internal_();
-  }
+  external factory BRElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   BRElement.internal_() : super.internal_();
@@ -2740,9 +2830,7 @@ class BaseElement extends HtmlElement {
     return new BaseElement._internalWrap();
   }
 
-  factory BaseElement._internalWrap() {
-    return new BaseElement.internal_();
-  }
+  external factory BaseElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   BaseElement.internal_() : super.internal_();
@@ -2792,9 +2880,7 @@ class BatteryManager extends EventTarget {
     return new BatteryManager._internalWrap();
   }
 
-  factory BatteryManager._internalWrap() {
-    return new BatteryManager.internal_();
-  }
+  external factory BatteryManager._internalWrap();
 
   @Deprecated("Internal Use Only")
   BatteryManager.internal_() : super.internal_();
@@ -2890,9 +2976,7 @@ class BeforeUnloadEvent extends Event {
     return new BeforeUnloadEvent._internalWrap();
   }
 
-  factory BeforeUnloadEvent._internalWrap() {
-    return new BeforeUnloadEvent.internal_();
-  }
+  external factory BeforeUnloadEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   BeforeUnloadEvent.internal_() : super.internal_();
@@ -3436,9 +3520,7 @@ class BodyElement extends HtmlElement implements WindowEventHandlers {
     return new BodyElement._internalWrap();
   }
 
-  factory BodyElement._internalWrap() {
-    return new BodyElement.internal_();
-  }
+  external factory BodyElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   BodyElement.internal_() : super.internal_();
@@ -3539,9 +3621,7 @@ class ButtonElement extends HtmlElement {
     return new ButtonElement._internalWrap();
   }
 
-  factory ButtonElement._internalWrap() {
-    return new ButtonElement.internal_();
-  }
+  external factory ButtonElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   ButtonElement.internal_() : super.internal_();
@@ -3689,9 +3769,7 @@ class CDataSection extends Text {
     return new CDataSection._internalWrap();
   }
 
-  factory CDataSection._internalWrap() {
-    return new CDataSection.internal_();
-  }
+  external factory CDataSection._internalWrap();
 
   @Deprecated("Internal Use Only")
   CDataSection.internal_() : super.internal_();
@@ -3800,9 +3878,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
     return new CanvasElement._internalWrap();
   }
 
-  factory CanvasElement._internalWrap() {
-    return new CanvasElement.internal_();
-  }
+  external factory CanvasElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   CanvasElement.internal_() : super.internal_();
@@ -3875,10 +3951,9 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
    *
    * ## Other resources
    *
-   * * [WebGL fundamentals]
-   * (http://www.html5rocks.com/en/tutorials/webgl/webgl_fundamentals/) from
-   * HTML5Rocks.
-   * * [WebGL homepage] (http://get.webgl.org/).
+   * * [WebGL fundamentals](http://www.html5rocks.com/en/tutorials/webgl/webgl_fundamentals/)
+   *   from HTML5Rocks.
+   * * [WebGL homepage](http://get.webgl.org/).
    */
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.FIREFOX)
@@ -3979,7 +4054,8 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
  * See also:
  *
  * * [CanvasGradient](https://developer.mozilla.org/en-US/docs/DOM/CanvasGradient) from MDN.
- * * [CanvasGradient](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#canvasgradient) from whatwg.
+ * * [CanvasGradient](https://html.spec.whatwg.org/multipage/scripting.html#canvasgradient)
+ *   from WHATWG.
  * * [CanvasGradient](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvasgradient) from W3C.
  */
 @DomName('CanvasGradient')
@@ -4048,7 +4124,8 @@ class CanvasGradient extends DartHtmlDomObject {
  *
  * See also:
  * * [CanvasPattern](https://developer.mozilla.org/en-US/docs/DOM/CanvasPattern) from MDN.
- * * [CanvasPattern](http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#canvaspattern) from whatwg.
+ * * [CanvasPattern](https://html.spec.whatwg.org/multipage/scripting.html#canvaspattern)
+ *   from WHATWG.
  * * [CanvasPattern](http://www.w3.org/TR/2010/WD-2dcontext-20100304/#canvaspattern) from W3C.
  */
 @DomName('CanvasPattern')
@@ -4179,9 +4256,9 @@ class CanvasRenderingContext2D extends DartHtmlDomObject implements CanvasRender
    *
    * ## Other resources
    *
-   * * [Image smoothing]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#image-smoothing)
-   * from WHATWG.
+   * * [Image
+   *   smoothing](https://html.spec.whatwg.org/multipage/scripting.html#image-smoothing)
+   *   from WHATWG.
    */
   @DomName('CanvasRenderingContext2D.imageSmoothingEnabled')
   @DocsEditable()
@@ -4194,9 +4271,9 @@ class CanvasRenderingContext2D extends DartHtmlDomObject implements CanvasRender
    *
    * ## Other resources
    *
-   * * [Image smoothing]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#image-smoothing)
-   * from WHATWG.
+   * * [Image
+   *   smoothing](https://html.spec.whatwg.org/multipage/scripting.html#image-smoothing)
+   *   from WHATWG.
    */
   @DomName('CanvasRenderingContext2D.imageSmoothingEnabled')
   @DocsEditable()
@@ -4866,9 +4943,7 @@ class CharacterData extends Node implements NonDocumentTypeChildNode, ChildNode 
     return new CharacterData._internalWrap();
   }
 
-  factory CharacterData._internalWrap() {
-    return new CharacterData.internal_();
-  }
+  external factory CharacterData._internalWrap();
 
   @Deprecated("Internal Use Only")
   CharacterData.internal_() : super.internal_();
@@ -5097,9 +5172,7 @@ class CircularGeofencingRegion extends GeofencingRegion {
     return new CircularGeofencingRegion._internalWrap();
   }
 
-  factory CircularGeofencingRegion._internalWrap() {
-    return new CircularGeofencingRegion.internal_();
-  }
+  external factory CircularGeofencingRegion._internalWrap();
 
   @Deprecated("Internal Use Only")
   CircularGeofencingRegion.internal_() : super.internal_();
@@ -5295,9 +5368,7 @@ class CloseEvent extends Event {
     return new CloseEvent._internalWrap();
   }
 
-  factory CloseEvent._internalWrap() {
-    return new CloseEvent.internal_();
-  }
+  external factory CloseEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   CloseEvent.internal_() : super.internal_();
@@ -5342,9 +5413,7 @@ class Comment extends CharacterData {
     return new Comment._internalWrap();
   }
 
-  factory Comment._internalWrap() {
-    return new Comment.internal_();
-  }
+  external factory Comment._internalWrap();
 
   @Deprecated("Internal Use Only")
   Comment.internal_() : super.internal_();
@@ -5391,9 +5460,7 @@ class CompositionEvent extends UIEvent {
     return new CompositionEvent._internalWrap();
   }
 
-  factory CompositionEvent._internalWrap() {
-    return new CompositionEvent.internal_();
-  }
+  external factory CompositionEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   CompositionEvent.internal_() : super.internal_();
@@ -5640,9 +5707,7 @@ class Console extends ConsoleBase {
     return new Console._internalWrap();
   }
 
-  factory Console._internalWrap() {
-    return new Console.internal_();
-  }
+  external factory Console._internalWrap();
 
   @Deprecated("Internal Use Only")
   Console.internal_() : super.internal_();
@@ -5830,9 +5895,7 @@ class ContentElement extends HtmlElement {
     return new ContentElement._internalWrap();
   }
 
-  factory ContentElement._internalWrap() {
-    return new ContentElement.internal_();
-  }
+  external factory ContentElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   ContentElement.internal_() : super.internal_();
@@ -6264,9 +6327,17 @@ class CssFontFaceRule extends CssRule {
     return new CssFontFaceRule._internalWrap();
   }
 
+<<<<<<< HEAD
   factory CssFontFaceRule._internalWrap() {
     return new CssFontFaceRule.internal_();
   }
+||||||| merged common ancestors
+  factory CssCharsetRule._internalWrap() {
+    return new CssCharsetRule.internal_();
+  }
+=======
+  external factory CssCharsetRule._internalWrap();
+>>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
 
   @Deprecated("Internal Use Only")
   CssFontFaceRule.internal_() : super.internal_();
@@ -6297,9 +6368,17 @@ class CssGroupingRule extends CssRule {
     return new CssGroupingRule._internalWrap();
   }
 
+<<<<<<< HEAD
   factory CssGroupingRule._internalWrap() {
     return new CssGroupingRule.internal_();
   }
+||||||| merged common ancestors
+  factory CssFilterRule._internalWrap() {
+    return new CssFilterRule.internal_();
+  }
+=======
+  external factory CssFilterRule._internalWrap();
+>>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
 
   @Deprecated("Internal Use Only")
   CssGroupingRule.internal_() : super.internal_();
@@ -6310,7 +6389,67 @@ class CssGroupingRule extends CssRule {
   @Experimental() // untriaged
   List<CssRule> get cssRules => wrap_jso(_blink.BlinkCSSGroupingRule.instance.cssRules_Getter_(unwrap_jso(this)));
   
+<<<<<<< HEAD
   @DomName('CSSGroupingRule.deleteRule')
+||||||| merged common ancestors
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('CSSFontFaceRule')
+class CssFontFaceRule extends CssRule {
+  // To suppress missing implicit constructor warnings.
+  factory CssFontFaceRule._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static CssFontFaceRule internalCreateCssFontFaceRule() {
+    return new CssFontFaceRule._internalWrap();
+  }
+
+  factory CssFontFaceRule._internalWrap() {
+    return new CssFontFaceRule.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  CssFontFaceRule.internal_() : super.internal_();
+
+
+  @DomName('CSSFontFaceRule.style')
+=======
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('CSSFontFaceRule')
+class CssFontFaceRule extends CssRule {
+  // To suppress missing implicit constructor warnings.
+  factory CssFontFaceRule._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static CssFontFaceRule internalCreateCssFontFaceRule() {
+    return new CssFontFaceRule._internalWrap();
+  }
+
+  external factory CssFontFaceRule._internalWrap();
+
+  @Deprecated("Internal Use Only")
+  CssFontFaceRule.internal_() : super.internal_();
+
+
+  @DomName('CSSFontFaceRule.style')
+>>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
   @DocsEditable()
   @Experimental() // untriaged
   void deleteRule(int index) => _blink.BlinkCSSGroupingRule.instance.deleteRule_Callback_1_(unwrap_jso(this), index);
@@ -6340,9 +6479,7 @@ class CssImportRule extends CssRule {
     return new CssImportRule._internalWrap();
   }
 
-  factory CssImportRule._internalWrap() {
-    return new CssImportRule.internal_();
-  }
+  external factory CssImportRule._internalWrap();
 
   @Deprecated("Internal Use Only")
   CssImportRule.internal_() : super.internal_();
@@ -6381,9 +6518,7 @@ class CssKeyframeRule extends CssRule {
     return new CssKeyframeRule._internalWrap();
   }
 
-  factory CssKeyframeRule._internalWrap() {
-    return new CssKeyframeRule.internal_();
-  }
+  external factory CssKeyframeRule._internalWrap();
 
   @Deprecated("Internal Use Only")
   CssKeyframeRule.internal_() : super.internal_();
@@ -6425,9 +6560,7 @@ class CssKeyframesRule extends CssRule {
     return new CssKeyframesRule._internalWrap();
   }
 
-  factory CssKeyframesRule._internalWrap() {
-    return new CssKeyframesRule.internal_();
-  }
+  external factory CssKeyframesRule._internalWrap();
 
   @Deprecated("Internal Use Only")
   CssKeyframesRule.internal_() : super.internal_();
@@ -6488,9 +6621,7 @@ class CssMediaRule extends CssGroupingRule {
     return new CssMediaRule._internalWrap();
   }
 
-  factory CssMediaRule._internalWrap() {
-    return new CssMediaRule.internal_();
-  }
+  external factory CssMediaRule._internalWrap();
 
   @Deprecated("Internal Use Only")
   CssMediaRule.internal_() : super.internal_();
@@ -6520,9 +6651,7 @@ class CssPageRule extends CssRule {
     return new CssPageRule._internalWrap();
   }
 
-  factory CssPageRule._internalWrap() {
-    return new CssPageRule.internal_();
-  }
+  external factory CssPageRule._internalWrap();
 
   @Deprecated("Internal Use Only")
   CssPageRule.internal_() : super.internal_();
@@ -9951,9 +10080,7 @@ class CssStyleRule extends CssRule {
     return new CssStyleRule._internalWrap();
   }
 
-  factory CssStyleRule._internalWrap() {
-    return new CssStyleRule.internal_();
-  }
+  external factory CssStyleRule._internalWrap();
 
   @Deprecated("Internal Use Only")
   CssStyleRule.internal_() : super.internal_();
@@ -9991,9 +10118,7 @@ class CssStyleSheet extends StyleSheet {
     return new CssStyleSheet._internalWrap();
   }
 
-  factory CssStyleSheet._internalWrap() {
-    return new CssStyleSheet.internal_();
-  }
+  external factory CssStyleSheet._internalWrap();
 
   @Deprecated("Internal Use Only")
   CssStyleSheet.internal_() : super.internal_();
@@ -10055,9 +10180,7 @@ class CssSupportsRule extends CssRule {
     return new CssSupportsRule._internalWrap();
   }
 
-  factory CssSupportsRule._internalWrap() {
-    return new CssSupportsRule.internal_();
-  }
+  external factory CssSupportsRule._internalWrap();
 
   @Deprecated("Internal Use Only")
   CssSupportsRule.internal_() : super.internal_();
@@ -10100,9 +10223,7 @@ class CssViewportRule extends CssRule {
     return new CssViewportRule._internalWrap();
   }
 
-  factory CssViewportRule._internalWrap() {
-    return new CssViewportRule.internal_();
-  }
+  external factory CssViewportRule._internalWrap();
 
   @Deprecated("Internal Use Only")
   CssViewportRule.internal_() : super.internal_();
@@ -10176,9 +10297,7 @@ class CustomEvent extends Event {
     return new CustomEvent._internalWrap();
   }
 
-  factory CustomEvent._internalWrap() {
-    return new CustomEvent.internal_();
-  }
+  external factory CustomEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   CustomEvent.internal_() : super.internal_();
@@ -10216,9 +10335,7 @@ class DListElement extends HtmlElement {
     return new DListElement._internalWrap();
   }
 
-  factory DListElement._internalWrap() {
-    return new DListElement.internal_();
-  }
+  external factory DListElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   DListElement.internal_() : super.internal_();
@@ -10258,9 +10375,7 @@ class DataListElement extends HtmlElement {
     return new DataListElement._internalWrap();
   }
 
-  factory DataListElement._internalWrap() {
-    return new DataListElement.internal_();
-  }
+  external factory DataListElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   DataListElement.internal_() : super.internal_();
@@ -10544,14 +10659,13 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
     return new DedicatedWorkerGlobalScope._internalWrap();
   }
 
-  factory DedicatedWorkerGlobalScope._internalWrap() {
-    return new DedicatedWorkerGlobalScope.internal_();
-  }
+  external factory DedicatedWorkerGlobalScope._internalWrap();
 
   @Deprecated("Internal Use Only")
   DedicatedWorkerGlobalScope.internal_() : super.internal_();
 
 
+<<<<<<< HEAD
   void postMessage(Object message, [List<MessagePort> transfer]) {
     if (transfer != null) {
       _blink.BlinkDedicatedWorkerGlobalScope.instance.postMessage_Callback_2_(unwrap_jso(this), message, transfer);
@@ -10561,6 +10675,19 @@ class DedicatedWorkerGlobalScope extends WorkerGlobalScope {
     return;
   }
 
+||||||| merged common ancestors
+  @DomName('DedicatedWorkerGlobalScope.postMessage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void postMessage(Object message, [List<MessagePort> transfer]) => _blink.BlinkDedicatedWorkerGlobalScope.instance.postMessage_Callback_2_(unwrap_jso(this), message, transfer);
+  
+=======
+  @DomName('DedicatedWorkerGlobalScope.postMessage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void postMessage(Object message, [List<MessagePort> transfer]) => _blink.BlinkDedicatedWorkerGlobalScope.instance.postMessage_Callback_2_(unwrap_jso(this), convertDartToNative_SerializedScriptValue(message), transfer);
+  
+>>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
   /// Stream of `message` events handled by this [DedicatedWorkerGlobalScope].
   @DomName('DedicatedWorkerGlobalScope.onmessage')
   @DocsEditable()
@@ -10756,9 +10883,7 @@ class DetailsElement extends HtmlElement {
     return new DetailsElement._internalWrap();
   }
 
-  factory DetailsElement._internalWrap() {
-    return new DetailsElement.internal_();
-  }
+  external factory DetailsElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   DetailsElement.internal_() : super.internal_();
@@ -10855,9 +10980,7 @@ class DeviceLightEvent extends Event {
     return new DeviceLightEvent._internalWrap();
   }
 
-  factory DeviceLightEvent._internalWrap() {
-    return new DeviceLightEvent.internal_();
-  }
+  external factory DeviceLightEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   DeviceLightEvent.internal_() : super.internal_();
@@ -10890,9 +11013,7 @@ class DeviceMotionEvent extends Event {
     return new DeviceMotionEvent._internalWrap();
   }
 
-  factory DeviceMotionEvent._internalWrap() {
-    return new DeviceMotionEvent.internal_();
-  }
+  external factory DeviceMotionEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   DeviceMotionEvent.internal_() : super.internal_();
@@ -10947,9 +11068,7 @@ class DeviceOrientationEvent extends Event {
     return new DeviceOrientationEvent._internalWrap();
   }
 
-  factory DeviceOrientationEvent._internalWrap() {
-    return new DeviceOrientationEvent.internal_();
-  }
+  external factory DeviceOrientationEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   DeviceOrientationEvent.internal_() : super.internal_();
@@ -11039,9 +11158,7 @@ class DialogElement extends HtmlElement {
     return new DialogElement._internalWrap();
   }
 
-  factory DialogElement._internalWrap() {
-    return new DialogElement.internal_();
-  }
+  external factory DialogElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   DialogElement.internal_() : super.internal_();
@@ -11139,9 +11256,7 @@ class DirectoryEntry extends Entry {
     return new DirectoryEntry._internalWrap();
   }
 
-  factory DirectoryEntry._internalWrap() {
-    return new DirectoryEntry.internal_();
-  }
+  external factory DirectoryEntry._internalWrap();
 
   @Deprecated("Internal Use Only")
   DirectoryEntry.internal_() : super.internal_();
@@ -11293,7 +11408,7 @@ class DirectoryReader extends DartHtmlDomObject {
  *
  * See also:
  *
- * * [HTML <div> element](http://www.w3.org/TR/html-markup/div.html) from W3C.
+ * * [HTML `<div>` element](http://www.w3.org/TR/html-markup/div.html) from W3C.
  * * [Block-level element](http://www.w3.org/TR/CSS2/visuren.html#block-boxes) from W3C.
  * * [Inline-level element](http://www.w3.org/TR/CSS2/visuren.html#inline-boxes) from W3C.
  */
@@ -11312,9 +11427,7 @@ class DivElement extends HtmlElement {
     return new DivElement._internalWrap();
   }
 
-  factory DivElement._internalWrap() {
-    return new DivElement.internal_();
-  }
+  external factory DivElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   DivElement.internal_() : super.internal_();
@@ -11397,9 +11510,7 @@ class Document extends Node
     return new Document._internalWrap();
   }
 
-  factory Document._internalWrap() {
-    return new Document.internal_();
-  }
+  external factory Document._internalWrap();
 
   @Deprecated("Internal Use Only")
   Document.internal_() : super.internal_();
@@ -12367,9 +12478,7 @@ class DocumentFragment extends Node implements NonElementParentNode, ParentNode 
     return new DocumentFragment._internalWrap();
   }
 
-  factory DocumentFragment._internalWrap() {
-    return new DocumentFragment.internal_();
-  }
+  external factory DocumentFragment._internalWrap();
 
   @Deprecated("Internal Use Only")
   DocumentFragment.internal_() : super.internal_();
@@ -12509,12 +12618,7 @@ class DomException extends DartHtmlDomObject {
     return new DomException._internalWrap();
   }
 
-  @Deprecated("Internal Use Only")
-  js.JsObject blink_jsObject;
-
-  factory DomException._internalWrap() {
-    return new DomException.internal_();
-  }
+  external factory DomException._internalWrap();
 
   @Deprecated("Internal Use Only")
   DomException.internal_() { }
@@ -12658,9 +12762,7 @@ class DomMatrix extends DomMatrixReadOnly {
     return new DomMatrix._internalWrap();
   }
 
-  factory DomMatrix._internalWrap() {
-    return new DomMatrix.internal_();
-  }
+  external factory DomMatrix._internalWrap();
 
   @Deprecated("Internal Use Only")
   DomMatrix.internal_() : super.internal_();
@@ -13244,9 +13346,7 @@ class DomPoint extends DomPointReadOnly {
     return new DomPoint._internalWrap();
   }
 
-  factory DomPoint._internalWrap() {
-    return new DomPoint.internal_();
-  }
+  external factory DomPoint._internalWrap();
 
   @Deprecated("Internal Use Only")
   DomPoint.internal_() : super.internal_();
@@ -13533,9 +13633,7 @@ class DomSettableTokenList extends DomTokenList {
     return new DomSettableTokenList._internalWrap();
   }
 
-  factory DomSettableTokenList._internalWrap() {
-    return new DomSettableTokenList.internal_();
-  }
+  external factory DomSettableTokenList._internalWrap();
 
   @Deprecated("Internal Use Only")
   DomSettableTokenList.internal_() : super.internal_();
@@ -14109,13 +14207,13 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondrag')
   @DocsEditable()
@@ -14127,13 +14225,13 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragend')
   @DocsEditable()
@@ -14145,13 +14243,13 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragenter')
   @DocsEditable()
@@ -14163,13 +14261,13 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragleave')
   @DocsEditable()
@@ -14181,13 +14279,13 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragover')
   @DocsEditable()
@@ -14199,13 +14297,13 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragstart')
   @DocsEditable()
@@ -14217,13 +14315,13 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondrop')
   @DocsEditable()
@@ -14645,13 +14743,13 @@ class _FrozenElementList extends ListBase
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondrag')
   @DocsEditable()
@@ -14663,13 +14761,13 @@ class _FrozenElementList extends ListBase
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragend')
   @DocsEditable()
@@ -14681,13 +14779,13 @@ class _FrozenElementList extends ListBase
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragenter')
   @DocsEditable()
@@ -14699,13 +14797,13 @@ class _FrozenElementList extends ListBase
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragleave')
   @DocsEditable()
@@ -14717,13 +14815,13 @@ class _FrozenElementList extends ListBase
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragover')
   @DocsEditable()
@@ -14735,13 +14833,13 @@ class _FrozenElementList extends ListBase
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragstart')
   @DocsEditable()
@@ -14753,13 +14851,13 @@ class _FrozenElementList extends ListBase
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondrop')
   @DocsEditable()
@@ -15377,7 +15475,8 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    *
    * See also:
    *
-   * * [Custom data attributes](http://www.w3.org/TR/html5/global-attributes.html#custom-data-attribute)
+   * * [Custom data
+   *   attributes](http://dev.w3.org/html5/spec-preview/global-attributes.html#custom-data-attribute)
    */
   Map<String, String> get dataset =>
     new _DataAttributeMap(attributes);
@@ -15584,8 +15683,8 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    *
    * ## Other resources
    *
-   * * [Node.namespaceURI]
-   * (http://www.w3.org/TR/DOM-Level-3-Core/core.html#ID-NodeNSname) from W3C.
+   * * [Node.namespaceURI](http://www.w3.org/TR/DOM-Level-3-Core/core.html#ID-NodeNSname)
+   *   from W3C.
    */
   @DomName('Element.namespaceUri')
   String get namespaceUri => _namespaceUri;
@@ -16206,13 +16305,13 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.dragEvent')
   @DocsEditable()
@@ -16224,13 +16323,13 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.dragendEvent')
   @DocsEditable()
@@ -16242,13 +16341,13 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.dragenterEvent')
   @DocsEditable()
@@ -16260,13 +16359,13 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.dragleaveEvent')
   @DocsEditable()
@@ -16278,13 +16377,13 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.dragoverEvent')
   @DocsEditable()
@@ -16295,13 +16394,13 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.dragstartEvent')
   @DocsEditable()
@@ -16313,13 +16412,13 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.dropEvent')
   @DocsEditable()
@@ -16751,9 +16850,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
     return new Element._internalWrap();
   }
 
-  factory Element._internalWrap() {
-    return new Element.internal_();
-  }
+  external factory Element._internalWrap();
 
   @Deprecated("Internal Use Only")
   Element.internal_() : super.internal_();
@@ -16955,12 +17052,11 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    *
    * ## Other resources
    *
-   * * [Element.getBoundingClientRect]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Element.getBoundingClientRect)
-   * from MDN.
-   * * [The getBoundingClientRect() method]
-   * (http://www.w3.org/TR/cssom-view/#the-getclientrects-and-getboundingclientrect-methods)
-   * from W3C.
+   * * [Element.getBoundingClientRect](https://developer.mozilla.org/en-US/docs/Web/API/Element.getBoundingClientRect)
+   *   from MDN.
+   * * [The getBoundingClientRect()
+   *   method](http://www.w3.org/TR/cssom-view/#the-getclientrects()-and-getboundingclientrect()-methods)
+   *   from W3C.
    */
   @DomName('Element.getBoundingClientRect')
   @DocsEditable()
@@ -16972,12 +17068,11 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    *
    * ## Other resources
    *
-   * * [Element.getClientRects]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Element.getClientRects)
-   * from MDN.
-   * * [The getClientRects() method]
-   * (http://www.w3.org/TR/cssom-view/#the-getclientrects-and-getboundingclientrect-methods)
-   * from W3C.
+   * * [Element.getClientRects](https://developer.mozilla.org/en-US/docs/Web/API/Element.getClientRects)
+   *   from MDN.
+   * * [The getClientRects()
+   *   method](http://www.w3.org/TR/cssom-view/#the-getclientrects()-and-getboundingclientrect()-methods)
+   *   from W3C.
    */
   @DomName('Element.getClientRects')
   @DocsEditable()
@@ -16989,9 +17084,9 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    *
    * ## Other resources
    *
-   * * [Shadow DOM specification]
-   * (https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html)
-   * from W3C.
+   * * [Shadow DOM
+   *   specification](https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html)
+   *   from W3C.
    */
   @DomName('Element.getDestinationInsertionPoints')
   @DocsEditable()
@@ -17003,11 +17098,9 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    *
    * ## Other resources
    *
-   * * [getElementsByClassName]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/document.getElementsByClassName)
-   * from MDN.
-   * * [DOM specification]
-   * (http://www.w3.org/TR/domcore/) from W3C.
+   * * [getElementsByClassName](https://developer.mozilla.org/en-US/docs/Web/API/document.getElementsByClassName)
+   *   from MDN.
+   * * [DOM specification](http://www.w3.org/TR/domcore/) from W3C.
    */
   @DomName('Element.getElementsByClassName')
   @DocsEditable()
@@ -17288,13 +17381,13 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondrag')
   @DocsEditable()
@@ -17306,13 +17399,13 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragend')
   @DocsEditable()
@@ -17324,13 +17417,13 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragenter')
   @DocsEditable()
@@ -17342,13 +17435,13 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragleave')
   @DocsEditable()
@@ -17360,13 +17453,13 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragover')
   @DocsEditable()
@@ -17378,13 +17471,13 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondragstart')
   @DocsEditable()
@@ -17396,13 +17489,13 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    *
    * ## Other resources
    *
-   * * [Drag and drop sample]
-   * (https://github.com/dart-lang/dart-samples/tree/master/web/html5/dnd/basics)
-   * based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
-   * from HTML5Rocks.
-   * * [Drag and drop specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/dnd.html#dnd)
-   * from WHATWG.
+   * * [Drag and drop
+   *   sample](https://github.com/dart-lang/dart-samples/tree/master/html5/web/dnd/basics)
+   *   based on [the tutorial](http://www.html5rocks.com/en/tutorials/dnd/basics/)
+   *   from HTML5Rocks.
+   * * [Drag and drop
+   *   specification](https://html.spec.whatwg.org/multipage/interaction.html#dnd)
+   *   from WHATWG.
    */
   @DomName('Element.ondrop')
   @DocsEditable()
@@ -17733,9 +17826,7 @@ class EmbedElement extends HtmlElement {
     return new EmbedElement._internalWrap();
   }
 
-  factory EmbedElement._internalWrap() {
-    return new EmbedElement.internal_();
-  }
+  external factory EmbedElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   EmbedElement.internal_() : super.internal_();
@@ -18022,9 +18113,7 @@ class ErrorEvent extends Event {
     return new ErrorEvent._internalWrap();
   }
 
-  factory ErrorEvent._internalWrap() {
-    return new ErrorEvent.internal_();
-  }
+  external factory ErrorEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   ErrorEvent.internal_() : super.internal_();
@@ -18144,8 +18233,8 @@ class Event extends DartHtmlDomObject {
    *
    * ## Other resources
    *
-   * * [Target phase] (http://www.w3.org/TR/DOM-Level-3-Events/#target-phase)
-   * from W3C.
+   * * [Target phase](http://www.w3.org/TR/DOM-Level-3-Events/#target-phase)
+   *   from W3C.
    */
   @DomName('Event.AT_TARGET')
   @DocsEditable()
@@ -18156,8 +18245,8 @@ class Event extends DartHtmlDomObject {
    *
    * ## Other resources
    *
-   * * [Bubble phase] (http://www.w3.org/TR/DOM-Level-3-Events/#bubble-phase)
-   * from W3C.
+   * * [Bubble phase](http://www.w3.org/TR/DOM-Level-3-Events/#bubble-phase)
+   *   from W3C.
    */
   @DomName('Event.BUBBLING_PHASE')
   @DocsEditable()
@@ -18169,8 +18258,8 @@ class Event extends DartHtmlDomObject {
    *
    * ## Other resources
    *
-   * * [Bubble phase] (http://www.w3.org/TR/DOM-Level-3-Events/#bubble-phase)
-   * from W3C.
+   * * [Bubble phase](http://www.w3.org/TR/DOM-Level-3-Events/#bubble-phase)
+   *   from W3C.
    */
   @DomName('Event.CAPTURING_PHASE')
   @DocsEditable()
@@ -18184,6 +18273,46 @@ class Event extends DartHtmlDomObject {
   @DocsEditable()
   bool get cancelable => _blink.BlinkEvent.instance.cancelable_Getter_(unwrap_jso(this));
   
+<<<<<<< HEAD
+||||||| merged common ancestors
+  /**
+   * Access to the system's clipboard data during copy, cut, and paste events.
+   *
+   * ## Other resources
+   *
+   * * [clipboardData specification]
+   * (http://www.w3.org/TR/clipboard-apis/#attributes) from W3C.
+   */
+  @DomName('Event.clipboardData')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
+  // Part of copy/paste
+  @Experimental() // nonstandard
+  DataTransfer get clipboardData => wrap_jso(_blink.BlinkEvent.instance.clipboardData_Getter_(unwrap_jso(this)));
+  
+=======
+  /**
+   * Access to the system's clipboard data during copy, cut, and paste events.
+   *
+   * ## Other resources
+   *
+   * * [clipboardData specification](http://www.w3.org/TR/clipboard-apis/#attributes)
+   *   from W3C.
+   */
+  @DomName('Event.clipboardData')
+  @DocsEditable()
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.FIREFOX)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
+  // Part of copy/paste
+  @Experimental() // nonstandard
+  DataTransfer get clipboardData => wrap_jso(_blink.BlinkEvent.instance.clipboardData_Getter_(unwrap_jso(this)));
+  
+>>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
   @DomName('Event.currentTarget')
   @DocsEditable()
   EventTarget get currentTarget => wrap_jso(_blink.BlinkEvent.instance.currentTarget_Getter_(unwrap_jso(this)));
@@ -18201,9 +18330,9 @@ class Event extends DartHtmlDomObject {
    *
    * ## Other resources
    *
-   * * [Shadow DOM extensions to Event]
-   * (http://w3c.github.io/webcomponents/spec/shadow/#extensions-to-event) from
-   * W3C.
+   * * [Shadow DOM extensions to
+   *   Event](http://w3c.github.io/webcomponents/spec/shadow/#extensions-to-event)
+   *   from W3C.
    */
   @DomName('Event.path')
   @DocsEditable()
@@ -18304,9 +18433,7 @@ class EventSource extends EventTarget {
     return new EventSource._internalWrap();
   }
 
-  factory EventSource._internalWrap() {
-    return new EventSource.internal_();
-  }
+  external factory EventSource._internalWrap();
 
   @Deprecated("Internal Use Only")
   EventSource.internal_() : super.internal_();
@@ -18499,18 +18626,94 @@ class EventTarget extends DartHtmlDomObject {
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
   int get hashCode => unwrap_jso(this).hashCode;
 
+<<<<<<< HEAD
   @DomName('EventTarget.addEventListener')
   @DocsEditable()
   void _addEventListener(String type, EventListener listener, [bool capture]) => _blink.BlinkEventTarget.instance.addEventListener_Callback_3_(unwrap_jso(this), type, wrap_event_listener(this, listener), capture);
   
+||||||| merged common ancestors
+  void _addEventListener([String type, EventListener listener, bool useCapture]) {
+    if (useCapture != null) {
+      _blink.BlinkEventTarget.instance.addEventListener_Callback_3_(unwrap_jso(this), type, wrap_event_listener(this, listener), useCapture);
+      return;
+    }
+    if (listener != null) {
+      _blink.BlinkEventTarget.instance.addEventListener_Callback_2_(unwrap_jso(this), type, wrap_event_listener(this, listener));
+      return;
+    }
+    if (type != null) {
+      _blink.BlinkEventTarget.instance.addEventListener_Callback_1_(unwrap_jso(this), type);
+      return;
+    }
+    _blink.BlinkEventTarget.instance.addEventListener_Callback_0_(unwrap_jso(this));
+    return;
+  }
+
+=======
+  void _addEventListener([String type, EventListener listener, bool useCapture]) {
+    if (useCapture != null) {
+      _blink.BlinkEventTarget.instance.addEventListener_Callback_3_(unwrap_jso(this), type, unwrap_jso(js.allowInterop(listener)), useCapture);
+      return;
+    }
+    if (listener != null) {
+      _blink.BlinkEventTarget.instance.addEventListener_Callback_2_(unwrap_jso(this), type, unwrap_jso(js.allowInterop(listener)));
+      return;
+    }
+    if (type != null) {
+      _blink.BlinkEventTarget.instance.addEventListener_Callback_1_(unwrap_jso(this), type);
+      return;
+    }
+    _blink.BlinkEventTarget.instance.addEventListener_Callback_0_(unwrap_jso(this));
+    return;
+  }
+
+>>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
   @DomName('EventTarget.dispatchEvent')
   @DocsEditable()
   bool dispatchEvent(Event event) => _blink.BlinkEventTarget.instance.dispatchEvent_Callback_1_(unwrap_jso(this), unwrap_jso(event));
   
+<<<<<<< HEAD
   @DomName('EventTarget.removeEventListener')
   @DocsEditable()
   void _removeEventListener(String type, EventListener listener, [bool capture]) => _blink.BlinkEventTarget.instance.removeEventListener_Callback_3_(unwrap_jso(this), type, _knownListeners[this.hashCode][identityHashCode(listener)], capture);
   
+||||||| merged common ancestors
+  void _removeEventListener([String type, EventListener listener, bool useCapture]) {
+    if (useCapture != null) {
+      _blink.BlinkEventTarget.instance.removeEventListener_Callback_3_(unwrap_jso(this), type, _knownListeners[this.hashCode][identityHashCode(listener)], useCapture);
+      return;
+    }
+    if (listener != null) {
+      _blink.BlinkEventTarget.instance.removeEventListener_Callback_2_(unwrap_jso(this), type, _knownListeners[this.hashCode][identityHashCode(listener)]);
+      return;
+    }
+    if (type != null) {
+      _blink.BlinkEventTarget.instance.removeEventListener_Callback_1_(unwrap_jso(this), type);
+      return;
+    }
+    _blink.BlinkEventTarget.instance.removeEventListener_Callback_0_(unwrap_jso(this));
+    return;
+  }
+
+=======
+  void _removeEventListener([String type, EventListener listener, bool useCapture]) {
+    if (useCapture != null) {
+      _blink.BlinkEventTarget.instance.removeEventListener_Callback_3_(unwrap_jso(this), type, unwrap_jso(js.allowInterop(listener)), useCapture);
+      return;
+    }
+    if (listener != null) {
+      _blink.BlinkEventTarget.instance.removeEventListener_Callback_2_(unwrap_jso(this), type, unwrap_jso(js.allowInterop(listener)));
+      return;
+    }
+    if (type != null) {
+      _blink.BlinkEventTarget.instance.removeEventListener_Callback_1_(unwrap_jso(this), type);
+      return;
+    }
+    _blink.BlinkEventTarget.instance.removeEventListener_Callback_0_(unwrap_jso(this));
+    return;
+  }
+
+>>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18542,9 +18745,7 @@ class ExtendableEvent extends Event {
     return new ExtendableEvent._internalWrap();
   }
 
-  factory ExtendableEvent._internalWrap() {
-    return new ExtendableEvent.internal_();
-  }
+  external factory ExtendableEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   ExtendableEvent.internal_() : super.internal_();
@@ -18583,9 +18784,7 @@ class FederatedCredential extends Credential {
     return new FederatedCredential._internalWrap();
   }
 
-  factory FederatedCredential._internalWrap() {
-    return new FederatedCredential.internal_();
-  }
+  external factory FederatedCredential._internalWrap();
 
   @Deprecated("Internal Use Only")
   FederatedCredential.internal_() : super.internal_();
@@ -18632,9 +18831,7 @@ class FetchEvent extends ExtendableEvent {
     return new FetchEvent._internalWrap();
   }
 
-  factory FetchEvent._internalWrap() {
-    return new FetchEvent.internal_();
-  }
+  external factory FetchEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   FetchEvent.internal_() : super.internal_();
@@ -18680,9 +18877,7 @@ class FieldSetElement extends HtmlElement {
     return new FieldSetElement._internalWrap();
   }
 
-  factory FieldSetElement._internalWrap() {
-    return new FieldSetElement.internal_();
-  }
+  external factory FieldSetElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FieldSetElement.internal_() : super.internal_();
@@ -18777,9 +18972,7 @@ class File extends Blob {
     return new File._internalWrap();
   }
 
-  factory File._internalWrap() {
-    return new File.internal_();
-  }
+  external factory File._internalWrap();
 
   @Deprecated("Internal Use Only")
   File.internal_() : super.internal_();
@@ -18839,9 +19032,7 @@ class FileEntry extends Entry {
     return new FileEntry._internalWrap();
   }
 
-  factory FileEntry._internalWrap() {
-    return new FileEntry.internal_();
-  }
+  external factory FileEntry._internalWrap();
 
   @Deprecated("Internal Use Only")
   FileEntry.internal_() : super.internal_();
@@ -18903,9 +19094,7 @@ class FileError extends DomError {
     return new FileError._internalWrap();
   }
 
-  factory FileError._internalWrap() {
-    return new FileError.internal_();
-  }
+  external factory FileError._internalWrap();
 
   @Deprecated("Internal Use Only")
   FileError.internal_() : super.internal_();
@@ -19141,9 +19330,7 @@ class FileReader extends EventTarget {
     return new FileReader._internalWrap();
   }
 
-  factory FileReader._internalWrap() {
-    return new FileReader.internal_();
-  }
+  external factory FileReader._internalWrap();
 
   @Deprecated("Internal Use Only")
   FileReader.internal_() : super.internal_();
@@ -19391,9 +19578,7 @@ class FileWriter extends EventTarget {
     return new FileWriter._internalWrap();
   }
 
-  factory FileWriter._internalWrap() {
-    return new FileWriter.internal_();
-  }
+  external factory FileWriter._internalWrap();
 
   @Deprecated("Internal Use Only")
   FileWriter.internal_() : super.internal_();
@@ -19514,9 +19699,7 @@ class FocusEvent extends UIEvent {
     return new FocusEvent._internalWrap();
   }
 
-  factory FocusEvent._internalWrap() {
-    return new FocusEvent.internal_();
-  }
+  external factory FocusEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   FocusEvent.internal_() : super.internal_();
@@ -19672,9 +19855,7 @@ class FontFaceSet extends EventTarget {
     return new FontFaceSet._internalWrap();
   }
 
-  factory FontFaceSet._internalWrap() {
-    return new FontFaceSet.internal_();
-  }
+  external factory FontFaceSet._internalWrap();
 
   @Deprecated("Internal Use Only")
   FontFaceSet.internal_() : super.internal_();
@@ -19757,9 +19938,7 @@ class FontFaceSetLoadEvent extends Event {
     return new FontFaceSetLoadEvent._internalWrap();
   }
 
-  factory FontFaceSetLoadEvent._internalWrap() {
-    return new FontFaceSetLoadEvent.internal_();
-  }
+  external factory FontFaceSetLoadEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   FontFaceSetLoadEvent.internal_() : super.internal_();
@@ -19881,9 +20060,7 @@ class FormElement extends HtmlElement {
     return new FormElement._internalWrap();
   }
 
-  factory FormElement._internalWrap() {
-    return new FormElement.internal_();
-  }
+  external factory FormElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FormElement.internal_() : super.internal_();
@@ -20149,9 +20326,7 @@ class GamepadEvent extends Event {
     return new GamepadEvent._internalWrap();
   }
 
-  factory GamepadEvent._internalWrap() {
-    return new GamepadEvent.internal_();
-  }
+  external factory GamepadEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   GamepadEvent.internal_() : super.internal_();
@@ -20451,10 +20626,19 @@ class Geoposition extends DartHtmlDomObject {
 // BSD-style license that can be found in the LICENSE file.
 
 
+// We implement EventTarget and have stubs for its methods because it's tricky to
+// convince the scripts to make our instance methods abstract, and the bodies that
+// get generated require `this` to be an EventTarget.
 @DocsEditable()
 @DomName('GlobalEventHandlers')
 @Experimental() // untriaged
-abstract class GlobalEventHandlers extends EventTarget {
+abstract class GlobalEventHandlers implements EventTarget {
+
+  void addEventListener(String type, dynamic listener(Event event), [bool useCapture]);
+  bool dispatchEvent(Event event);
+  void removeEventListener(String type, dynamic listener(Event event), [bool useCapture]);
+  Events get on;
+
   // To suppress missing implicit constructor warnings.
   factory GlobalEventHandlers._() { throw new UnsupportedError("Not supported"); }
 
@@ -21004,9 +21188,7 @@ class HRElement extends HtmlElement {
     return new HRElement._internalWrap();
   }
 
-  factory HRElement._internalWrap() {
-    return new HRElement.internal_();
-  }
+  external factory HRElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   HRElement.internal_() : super.internal_();
@@ -21044,10 +21226,14 @@ class HashChangeEvent extends Event {
   factory HashChangeEvent(String type,
       {bool canBubble: true, bool cancelable: true, String oldUrl,
       String newUrl}) {
+
+    // TODO(alanknight): This is required while we're on Dartium 39, but will need
+    // to look like dart2js with later versions when initHashChange is removed.
     var event = document._createEvent("HashChangeEvent");
     event._initHashChangeEvent(type, canBubble, cancelable, oldUrl, newUrl);
     return event;
   }
+
   // To suppress missing implicit constructor warnings.
   factory HashChangeEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -21067,9 +21253,7 @@ class HashChangeEvent extends Event {
     return new HashChangeEvent._internalWrap();
   }
 
-  factory HashChangeEvent._internalWrap() {
-    return new HashChangeEvent.internal_();
-  }
+  external factory HashChangeEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   HashChangeEvent.internal_() : super.internal_();
@@ -21114,9 +21298,7 @@ class HeadElement extends HtmlElement {
     return new HeadElement._internalWrap();
   }
 
-  factory HeadElement._internalWrap() {
-    return new HeadElement.internal_();
-  }
+  external factory HeadElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   HeadElement.internal_() : super.internal_();
@@ -21221,9 +21403,7 @@ class HeadingElement extends HtmlElement {
     return new HeadingElement._internalWrap();
   }
 
-  factory HeadingElement._internalWrap() {
-    return new HeadingElement.internal_();
-  }
+  external factory HeadingElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   HeadingElement.internal_() : super.internal_();
@@ -21472,9 +21652,7 @@ class HtmlDocument extends Document {
     return new HtmlDocument._internalWrap();
   }
 
-  factory HtmlDocument._internalWrap() {
-    return new HtmlDocument.internal_();
-  }
+  external factory HtmlDocument._internalWrap();
 
   @Deprecated("Internal Use Only")
   HtmlDocument.internal_() : super.internal_();
@@ -21489,7 +21667,9 @@ class HtmlDocument extends Document {
     _body = value;
   }
 
+  /// UNSTABLE: Chrome-only - create a Range from the given point.
   @DomName('Document.caretRangeFromPoint')
+  @Unstable()
   Range caretRangeFromPoint(int x, int y) {
     return _caretRangeFromPoint(x, y);
   }
@@ -21574,11 +21754,10 @@ class HtmlDocument extends Document {
    *
    * ## Other resources
    *
-   * * [Using the fullscreen API]
-   * (http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api) from
-   * WebPlatform.org.
-   * * [Fullscreen specification]
-   * (http://www.w3.org/TR/fullscreen/) from W3C.
+   * * [Using the fullscreen
+   *   API](http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)
+   *   from WebPlatform.org.
+   * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
    */
   @DomName('Document.webkitExitFullscreen')
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -21602,11 +21781,10 @@ class HtmlDocument extends Document {
    *
    * ## Other resources
    *
-   * * [Using the fullscreen API]
-   * (http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api) from
-   * WebPlatform.org.
-   * * [Fullscreen specification]
-   * (http://www.w3.org/TR/fullscreen/) from W3C.
+   * * [Using the fullscreen
+   *   API](http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)
+   *   from WebPlatform.org.
+   * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
    */
   @DomName('Document.webkitFullscreenElement')
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -21619,11 +21797,10 @@ class HtmlDocument extends Document {
    *
    * ## Other resources
    *
-   * * [Using the fullscreen API]
-   * (http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api) from
-   * WebPlatform.org.
-   * * [Fullscreen specification]
-   * (http://www.w3.org/TR/fullscreen/) from W3C.
+   * * [Using the fullscreen
+   *   API](http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)
+   *   from WebPlatform.org.
+   * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
    */
   @DomName('Document.webkitFullscreenEnabled')
   @SupportedBrowser(SupportedBrowser.CHROME)
@@ -21753,16 +21930,9 @@ class HtmlDocument extends Document {
             createdParametersValid = createdParametersValid && parameter.isOptional;
           });
         }
-
-        // Get the created constructor source and look at the initializer;
-        // Must call super.created() if not its as an error.
-        var createdSource = methodMirror.source;
-        superCreatedCalled = createdSource.contains("super.created(");
       }
 
-      if (!superCreatedCalled) {
-        throw new DomException.jsInterop('created constructor initializer must call super.created()');
-      } else if (!createdParametersValid) {
+      if (!createdParametersValid) {
         throw new DomException.jsInterop('created constructor must have no parameters');
       }
 
@@ -22282,9 +22452,7 @@ class HtmlElement extends Element implements GlobalEventHandlers {
     return new HtmlElement._internalWrap();
   }
 
-  factory HtmlElement._internalWrap() {
-    return new HtmlElement.internal_();
-  }
+  external factory HtmlElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   HtmlElement.internal_() : super.internal_();
@@ -22738,9 +22906,7 @@ class HtmlFormControlsCollection extends HtmlCollection {
     return new HtmlFormControlsCollection._internalWrap();
   }
 
-  factory HtmlFormControlsCollection._internalWrap() {
-    return new HtmlFormControlsCollection.internal_();
-  }
+  external factory HtmlFormControlsCollection._internalWrap();
 
   @Deprecated("Internal Use Only")
   HtmlFormControlsCollection.internal_() : super.internal_();
@@ -22775,9 +22941,7 @@ class HtmlHtmlElement extends HtmlElement {
     return new HtmlHtmlElement._internalWrap();
   }
 
-  factory HtmlHtmlElement._internalWrap() {
-    return new HtmlHtmlElement.internal_();
-  }
+  external factory HtmlHtmlElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   HtmlHtmlElement.internal_() : super.internal_();
@@ -22809,9 +22973,7 @@ class HtmlOptionsCollection extends HtmlCollection {
     return new HtmlOptionsCollection._internalWrap();
   }
 
-  factory HtmlOptionsCollection._internalWrap() {
-    return new HtmlOptionsCollection.internal_();
-  }
+  external factory HtmlOptionsCollection._internalWrap();
 
   @Deprecated("Internal Use Only")
   HtmlOptionsCollection.internal_() : super.internal_();
@@ -23225,9 +23387,7 @@ class HttpRequest extends HttpRequestEventTarget {
     return new HttpRequest._internalWrap();
   }
 
-  factory HttpRequest._internalWrap() {
-    return new HttpRequest.internal_();
-  }
+  external factory HttpRequest._internalWrap();
 
   @Deprecated("Internal Use Only")
   HttpRequest.internal_() : super.internal_();
@@ -23319,7 +23479,8 @@ class HttpRequest extends HttpRequestEventTarget {
    * 'text'. Some newer browsers will throw NS_ERROR_DOM_INVALID_ACCESS_ERR if
    * `responseType` is set while performing a synchronous request.
    *
-   * See also: [MDN responseType](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#responseType)
+   * See also: [MDN
+   * responseType](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#xmlhttprequest-responsetype)
    */
   @DomName('XMLHttpRequest.responseType')
   @DocsEditable()
@@ -23333,7 +23494,8 @@ class HttpRequest extends HttpRequestEventTarget {
    * 'text'. Some newer browsers will throw NS_ERROR_DOM_INVALID_ACCESS_ERR if
    * `responseType` is set while performing a synchronous request.
    *
-   * See also: [MDN responseType](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#responseType)
+   * See also: [MDN
+   * responseType](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#xmlhttprequest-responsetype)
    */
   @DomName('XMLHttpRequest.responseType')
   @DocsEditable()
@@ -23356,8 +23518,8 @@ class HttpRequest extends HttpRequestEventTarget {
   Document get responseXml => wrap_jso(_blink.BlinkXMLHttpRequest.instance.responseXML_Getter_(unwrap_jso(this)));
   
   /**
-   * The http result code from the request (200, 404, etc).
-   * See also: [Http Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
+   * The HTTP result code from the request (200, 404, etc).
+   * See also: [HTTP Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
    */
   @DomName('XMLHttpRequest.status')
   @DocsEditable()
@@ -23365,7 +23527,7 @@ class HttpRequest extends HttpRequestEventTarget {
   
   /**
    * The request response string (such as \"200 OK\").
-   * See also: [Http Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
+   * See also: [HTTP Status Codes](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes)
    */
   @DomName('XMLHttpRequest.statusText')
   @DocsEditable()
@@ -23380,12 +23542,10 @@ class HttpRequest extends HttpRequestEventTarget {
    *
    * ## Other resources
    *
-   * * [XMLHttpRequest.timeout]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#timeout)
-   * from MDN.
-   * * [The timeout attribute]
-   * (http://www.w3.org/TR/XMLHttpRequest/#the-timeout-attribute)
-   * from W3C.
+   * * [XMLHttpRequest.timeout](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#xmlhttprequest-timeout)
+   *   from MDN.
+   * * [The timeout attribute](http://www.w3.org/TR/XMLHttpRequest/#the-timeout-attribute)
+   *   from W3C.
    */
   @DomName('XMLHttpRequest.timeout')
   @DocsEditable()
@@ -23401,12 +23561,10 @@ class HttpRequest extends HttpRequestEventTarget {
    *
    * ## Other resources
    *
-   * * [XMLHttpRequest.timeout]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#timeout)
-   * from MDN.
-   * * [The timeout attribute]
-   * (http://www.w3.org/TR/XMLHttpRequest/#the-timeout-attribute)
-   * from W3C.
+   * * [XMLHttpRequest.timeout](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#xmlhttprequest-timeout)
+   *   from MDN.
+   * * [The timeout attribute](http://www.w3.org/TR/XMLHttpRequest/#the-timeout-attribute)
+   *   from W3C.
    */
   @DomName('XMLHttpRequest.timeout')
   @DocsEditable()
@@ -23460,7 +23618,8 @@ class HttpRequest extends HttpRequestEventTarget {
    * `getAllResponseHeaders` will return the response headers for the current
    * part of the request.
    *
-   * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)
+   * See also [HTTP response
+   * headers](https://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Response_fields)
    * for a list of common response headers.
    */
   @DomName('XMLHttpRequest.getAllResponseHeaders')
@@ -23471,7 +23630,8 @@ class HttpRequest extends HttpRequestEventTarget {
   /**
    * Return the response header named `header`, or null if not found.
    *
-   * See also [HTTP response headers](http://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Responses)
+   * See also [HTTP response
+   * headers](https://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Response_fields)
    * for a list of common response headers.
    */
   @DomName('XMLHttpRequest.getResponseHeader')
@@ -23484,7 +23644,7 @@ class HttpRequest extends HttpRequestEventTarget {
    * response.
    *
    * This value must be set before the request has been sent. See also the list
-   * of [common MIME types](http://en.wikipedia.org/wiki/Internet_media_type#List_of_common_media_types)
+   * of [IANA Official MIME types](https://www.iana.org/assignments/media-types/media-types.xhtml)
    */
   @DomName('XMLHttpRequest.overrideMimeType')
   @DocsEditable()
@@ -23503,9 +23663,8 @@ class HttpRequest extends HttpRequestEventTarget {
    *
    * ## Other resources
    *
-   * * [XMLHttpRequest.send]
-   * (https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send%28%29)
-   * from MDN.
+   * * [XMLHttpRequest.send](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send%28%29)
+   *   from MDN.
    */
   @DomName('XMLHttpRequest.send')
   @DocsEditable()
@@ -23522,12 +23681,11 @@ class HttpRequest extends HttpRequestEventTarget {
    *
    * ## Other resources
    *
-   * * [XMLHttpRequest.setRequestHeader]
-   * (https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#send%28%29)
-   * from MDN.
-   * * [The setRequestHeader() method]
-   * (http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method) from
-   * W3C.
+   * * [XMLHttpRequest.setRequestHeader](https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest#setRequestHeader())
+   *   from MDN.
+   * * [The setRequestHeader()
+   *   method](http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method)
+   *   from W3C.
    */
   @DomName('XMLHttpRequest.setRequestHeader')
   @DocsEditable()
@@ -23640,9 +23798,7 @@ class HttpRequestEventTarget extends EventTarget {
     return new HttpRequestEventTarget._internalWrap();
   }
 
-  factory HttpRequestEventTarget._internalWrap() {
-    return new HttpRequestEventTarget.internal_();
-  }
+  external factory HttpRequestEventTarget._internalWrap();
 
   @Deprecated("Internal Use Only")
   HttpRequestEventTarget.internal_() : super.internal_();
@@ -23720,9 +23876,7 @@ class HttpRequestUpload extends HttpRequestEventTarget {
     return new HttpRequestUpload._internalWrap();
   }
 
-  factory HttpRequestUpload._internalWrap() {
-    return new HttpRequestUpload.internal_();
-  }
+  external factory HttpRequestUpload._internalWrap();
 
   @Deprecated("Internal Use Only")
   HttpRequestUpload.internal_() : super.internal_();
@@ -23752,9 +23906,7 @@ class IFrameElement extends HtmlElement {
     return new IFrameElement._internalWrap();
   }
 
-  factory IFrameElement._internalWrap() {
-    return new IFrameElement.internal_();
-  }
+  external factory IFrameElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   IFrameElement.internal_() : super.internal_();
@@ -23948,9 +24100,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
     return new ImageElement._internalWrap();
   }
 
-  factory ImageElement._internalWrap() {
-    return new ImageElement.internal_();
-  }
+  external factory ImageElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   ImageElement.internal_() : super.internal_();
@@ -24185,9 +24335,7 @@ class InputElement extends HtmlElement implements
     return new InputElement._internalWrap();
   }
 
-  factory InputElement._internalWrap() {
-    return new InputElement.internal_();
-  }
+  external factory InputElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   InputElement.internal_() : super.internal_();
@@ -25215,6 +25363,190 @@ abstract class ButtonInputElement implements InputElementBase {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+<<<<<<< HEAD
+||||||| merged common ancestors
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('InputMethodContext')
+// http://www.w3.org/TR/ime-api/#idl-def-InputMethodContext
+@Experimental()
+class InputMethodContext extends EventTarget {
+  // To suppress missing implicit constructor warnings.
+  factory InputMethodContext._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static InputMethodContext internalCreateInputMethodContext() {
+    return new InputMethodContext._internalWrap();
+  }
+
+  factory InputMethodContext._internalWrap() {
+    return new InputMethodContext.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  InputMethodContext.internal_() : super.internal_();
+
+
+  @DomName('InputMethodContext.compositionEndOffset')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int get compositionEndOffset => _blink.BlinkInputMethodContext.instance.compositionEndOffset_Getter_(unwrap_jso(this));
+  
+  @DomName('InputMethodContext.compositionStartOffset')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int get compositionStartOffset => _blink.BlinkInputMethodContext.instance.compositionStartOffset_Getter_(unwrap_jso(this));
+  
+  @DomName('InputMethodContext.locale')
+  @DocsEditable()
+  String get locale => _blink.BlinkInputMethodContext.instance.locale_Getter_(unwrap_jso(this));
+  
+  @DomName('InputMethodContext.target')
+  @DocsEditable()
+  @Experimental() // untriaged
+  HtmlElement get target => wrap_jso(_blink.BlinkInputMethodContext.instance.target_Getter_(unwrap_jso(this)));
+  
+  @DomName('InputMethodContext.confirmComposition')
+  @DocsEditable()
+  void confirmComposition() => _blink.BlinkInputMethodContext.instance.confirmComposition_Callback_0_(unwrap_jso(this));
+  
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('InstallEvent')
+@Experimental() // untriaged
+class InstallEvent extends ExtendableEvent {
+  // To suppress missing implicit constructor warnings.
+  factory InstallEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static InstallEvent internalCreateInstallEvent() {
+    return new InstallEvent._internalWrap();
+  }
+
+  factory InstallEvent._internalWrap() {
+    return new InstallEvent.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  InstallEvent.internal_() : super.internal_();
+
+
+  @DomName('InstallEvent.reloadAll')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future reloadAll() => wrap_jso(_blink.BlinkInstallEvent.instance.reloadAll_Callback_0_(unwrap_jso(this)));
+  
+  @DomName('InstallEvent.replace')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void replace() => _blink.BlinkInstallEvent.instance.replace_Callback_0_(unwrap_jso(this));
+  
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+=======
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('InputMethodContext')
+// http://www.w3.org/TR/ime-api/#idl-def-InputMethodContext
+@Experimental()
+class InputMethodContext extends EventTarget {
+  // To suppress missing implicit constructor warnings.
+  factory InputMethodContext._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static InputMethodContext internalCreateInputMethodContext() {
+    return new InputMethodContext._internalWrap();
+  }
+
+  external factory InputMethodContext._internalWrap();
+
+  @Deprecated("Internal Use Only")
+  InputMethodContext.internal_() : super.internal_();
+
+
+  @DomName('InputMethodContext.compositionEndOffset')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int get compositionEndOffset => _blink.BlinkInputMethodContext.instance.compositionEndOffset_Getter_(unwrap_jso(this));
+  
+  @DomName('InputMethodContext.compositionStartOffset')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int get compositionStartOffset => _blink.BlinkInputMethodContext.instance.compositionStartOffset_Getter_(unwrap_jso(this));
+  
+  @DomName('InputMethodContext.locale')
+  @DocsEditable()
+  String get locale => _blink.BlinkInputMethodContext.instance.locale_Getter_(unwrap_jso(this));
+  
+  @DomName('InputMethodContext.target')
+  @DocsEditable()
+  @Experimental() // untriaged
+  HtmlElement get target => wrap_jso(_blink.BlinkInputMethodContext.instance.target_Getter_(unwrap_jso(this)));
+  
+  @DomName('InputMethodContext.confirmComposition')
+  @DocsEditable()
+  void confirmComposition() => _blink.BlinkInputMethodContext.instance.confirmComposition_Callback_0_(unwrap_jso(this));
+  
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('InstallEvent')
+@Experimental() // untriaged
+class InstallEvent extends ExtendableEvent {
+  // To suppress missing implicit constructor warnings.
+  factory InstallEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static InstallEvent internalCreateInstallEvent() {
+    return new InstallEvent._internalWrap();
+  }
+
+  external factory InstallEvent._internalWrap();
+
+  @Deprecated("Internal Use Only")
+  InstallEvent.internal_() : super.internal_();
+
+
+  @DomName('InstallEvent.reloadAll')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future reloadAll() => wrap_jso(_blink.BlinkInstallEvent.instance.reloadAll_Callback_0_(unwrap_jso(this)));
+  
+  @DomName('InstallEvent.replace')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void replace() => _blink.BlinkInstallEvent.instance.replace_Callback_0_(unwrap_jso(this));
+  
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+>>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
 
 @DomName('KeyboardEvent')
 class KeyboardEvent extends UIEvent {
@@ -25256,9 +25588,7 @@ class KeyboardEvent extends UIEvent {
     return new KeyboardEvent._internalWrap();
   }
 
-  factory KeyboardEvent._internalWrap() {
-    return new KeyboardEvent.internal_();
-  }
+  external factory KeyboardEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   KeyboardEvent.internal_() : super.internal_();
@@ -25427,9 +25757,7 @@ class KeygenElement extends HtmlElement {
     return new KeygenElement._internalWrap();
   }
 
-  factory KeygenElement._internalWrap() {
-    return new KeygenElement.internal_();
-  }
+  external factory KeygenElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   KeygenElement.internal_() : super.internal_();
@@ -25546,9 +25874,7 @@ class LIElement extends HtmlElement {
     return new LIElement._internalWrap();
   }
 
-  factory LIElement._internalWrap() {
-    return new LIElement.internal_();
-  }
+  external factory LIElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   LIElement.internal_() : super.internal_();
@@ -25592,9 +25918,7 @@ class LabelElement extends HtmlElement {
     return new LabelElement._internalWrap();
   }
 
-  factory LabelElement._internalWrap() {
-    return new LabelElement.internal_();
-  }
+  external factory LabelElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   LabelElement.internal_() : super.internal_();
@@ -25646,9 +25970,7 @@ class LegendElement extends HtmlElement {
     return new LegendElement._internalWrap();
   }
 
-  factory LegendElement._internalWrap() {
-    return new LegendElement.internal_();
-  }
+  external factory LegendElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   LegendElement.internal_() : super.internal_();
@@ -25686,9 +26008,7 @@ class LinkElement extends HtmlElement {
     return new LinkElement._internalWrap();
   }
 
-  factory LinkElement._internalWrap() {
-    return new LinkElement.internal_();
-  }
+  external factory LinkElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   LinkElement.internal_() : super.internal_();
@@ -25788,6 +26108,88 @@ class LinkElement extends HtmlElement {
     return true;
   }
 }
+<<<<<<< HEAD
+||||||| merged common ancestors
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('LocalCredential')
+@Experimental() // untriaged
+class LocalCredential extends Credential {
+  // To suppress missing implicit constructor warnings.
+  factory LocalCredential._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('LocalCredential.LocalCredential')
+  @DocsEditable()
+  factory LocalCredential(String id, String name, String avatarURL, String password) {
+    return wrap_jso(_blink.BlinkLocalCredential.instance.constructorCallback_4_(id, name, avatarURL, password));
+  }
+
+
+  @Deprecated("Internal Use Only")
+  static LocalCredential internalCreateLocalCredential() {
+    return new LocalCredential._internalWrap();
+  }
+
+  factory LocalCredential._internalWrap() {
+    return new LocalCredential.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  LocalCredential.internal_() : super.internal_();
+
+
+  @DomName('LocalCredential.password')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get password => _blink.BlinkLocalCredential.instance.password_Getter_(unwrap_jso(this));
+  
+}
+=======
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('LocalCredential')
+@Experimental() // untriaged
+class LocalCredential extends Credential {
+  // To suppress missing implicit constructor warnings.
+  factory LocalCredential._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('LocalCredential.LocalCredential')
+  @DocsEditable()
+  factory LocalCredential(String id, String name, String avatarURL, String password) {
+    return wrap_jso(_blink.BlinkLocalCredential.instance.constructorCallback_4_(id, name, avatarURL, password));
+  }
+
+
+  @Deprecated("Internal Use Only")
+  static LocalCredential internalCreateLocalCredential() {
+    return new LocalCredential._internalWrap();
+  }
+
+  external factory LocalCredential._internalWrap();
+
+  @Deprecated("Internal Use Only")
+  LocalCredential.internal_() : super.internal_();
+
+
+  @DomName('LocalCredential.password')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get password => _blink.BlinkLocalCredential.instance.password_Getter_(unwrap_jso(this));
+  
+}
+>>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -25931,9 +26333,7 @@ class MapElement extends HtmlElement {
     return new MapElement._internalWrap();
   }
 
-  factory MapElement._internalWrap() {
-    return new MapElement.internal_();
-  }
+  external factory MapElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   MapElement.internal_() : super.internal_();
@@ -25985,9 +26385,7 @@ class MediaController extends EventTarget {
     return new MediaController._internalWrap();
   }
 
-  factory MediaController._internalWrap() {
-    return new MediaController.internal_();
-  }
+  external factory MediaController._internalWrap();
 
   @Deprecated("Internal Use Only")
   MediaController.internal_() : super.internal_();
@@ -26236,9 +26634,7 @@ class MediaElement extends HtmlElement {
     return new MediaElement._internalWrap();
   }
 
-  factory MediaElement._internalWrap() {
-    return new MediaElement.internal_();
-  }
+  external factory MediaElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   MediaElement.internal_() : super.internal_();
@@ -26791,9 +27187,7 @@ class MediaKeyEvent extends Event {
     return new MediaKeyEvent._internalWrap();
   }
 
-  factory MediaKeyEvent._internalWrap() {
-    return new MediaKeyEvent.internal_();
-  }
+  external factory MediaKeyEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   MediaKeyEvent.internal_() : super.internal_();
@@ -26859,9 +27253,7 @@ class MediaKeyMessageEvent extends Event {
     return new MediaKeyMessageEvent._internalWrap();
   }
 
-  factory MediaKeyMessageEvent._internalWrap() {
-    return new MediaKeyMessageEvent.internal_();
-  }
+  external factory MediaKeyMessageEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   MediaKeyMessageEvent.internal_() : super.internal_();
@@ -26871,7 +27263,71 @@ class MediaKeyMessageEvent extends Event {
   @DocsEditable()
   ByteBuffer get message => wrap_jso(_blink.BlinkMediaKeyMessageEvent.instance.message_Getter_(unwrap_jso(this)));
   
+<<<<<<< HEAD
   @DomName('MediaKeyMessageEvent.messageType')
+||||||| merged common ancestors
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('MediaKeyNeededEvent')
+// https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-mediakeyneededevent
+@Experimental()
+class MediaKeyNeededEvent extends Event {
+  // To suppress missing implicit constructor warnings.
+  factory MediaKeyNeededEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static MediaKeyNeededEvent internalCreateMediaKeyNeededEvent() {
+    return new MediaKeyNeededEvent._internalWrap();
+  }
+
+  factory MediaKeyNeededEvent._internalWrap() {
+    return new MediaKeyNeededEvent.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  MediaKeyNeededEvent.internal_() : super.internal_();
+
+
+  @DomName('MediaKeyNeededEvent.contentType')
+=======
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('MediaKeyNeededEvent')
+// https://dvcs.w3.org/hg/html-media/raw-file/eme-v0.1/encrypted-media/encrypted-media.html#dom-mediakeyneededevent
+@Experimental()
+class MediaKeyNeededEvent extends Event {
+  // To suppress missing implicit constructor warnings.
+  factory MediaKeyNeededEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static MediaKeyNeededEvent internalCreateMediaKeyNeededEvent() {
+    return new MediaKeyNeededEvent._internalWrap();
+  }
+
+  external factory MediaKeyNeededEvent._internalWrap();
+
+  @Deprecated("Internal Use Only")
+  MediaKeyNeededEvent.internal_() : super.internal_();
+
+
+  @DomName('MediaKeyNeededEvent.contentType')
+>>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
   @DocsEditable()
   @Experimental() // untriaged
   String get messageType => _blink.BlinkMediaKeyMessageEvent.instance.messageType_Getter_(unwrap_jso(this));
@@ -26898,9 +27354,7 @@ class MediaKeySession extends EventTarget {
     return new MediaKeySession._internalWrap();
   }
 
-  factory MediaKeySession._internalWrap() {
-    return new MediaKeySession.internal_();
-  }
+  external factory MediaKeySession._internalWrap();
 
   @Deprecated("Internal Use Only")
   MediaKeySession.internal_() : super.internal_();
@@ -27151,9 +27605,7 @@ class MediaQueryList extends EventTarget {
     return new MediaQueryList._internalWrap();
   }
 
-  factory MediaQueryList._internalWrap() {
-    return new MediaQueryList.internal_();
-  }
+  external factory MediaQueryList._internalWrap();
 
   @Deprecated("Internal Use Only")
   MediaQueryList.internal_() : super.internal_();
@@ -27211,9 +27663,7 @@ class MediaQueryListEvent extends Event {
     return new MediaQueryListEvent._internalWrap();
   }
 
-  factory MediaQueryListEvent._internalWrap() {
-    return new MediaQueryListEvent.internal_();
-  }
+  external factory MediaQueryListEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   MediaQueryListEvent.internal_() : super.internal_();
@@ -27305,9 +27755,7 @@ class MediaSource extends EventTarget {
     return new MediaSource._internalWrap();
   }
 
-  factory MediaSource._internalWrap() {
-    return new MediaSource.internal_();
-  }
+  external factory MediaSource._internalWrap();
 
   @Deprecated("Internal Use Only")
   MediaSource.internal_() : super.internal_();
@@ -27422,9 +27870,7 @@ class MediaStream extends EventTarget {
     return new MediaStream._internalWrap();
   }
 
-  factory MediaStream._internalWrap() {
-    return new MediaStream.internal_();
-  }
+  external factory MediaStream._internalWrap();
 
   @Deprecated("Internal Use Only")
   MediaStream.internal_() : super.internal_();
@@ -27539,9 +27985,7 @@ class MediaStreamEvent extends Event {
     return new MediaStreamEvent._internalWrap();
   }
 
-  factory MediaStreamEvent._internalWrap() {
-    return new MediaStreamEvent.internal_();
-  }
+  external factory MediaStreamEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   MediaStreamEvent.internal_() : super.internal_();
@@ -27607,9 +28051,7 @@ class MediaStreamTrack extends EventTarget {
     return new MediaStreamTrack._internalWrap();
   }
 
-  factory MediaStreamTrack._internalWrap() {
-    return new MediaStreamTrack.internal_();
-  }
+  external factory MediaStreamTrack._internalWrap();
 
   @Deprecated("Internal Use Only")
   MediaStreamTrack.internal_() : super.internal_();
@@ -27704,9 +28146,7 @@ class MediaStreamTrackEvent extends Event {
     return new MediaStreamTrackEvent._internalWrap();
   }
 
-  factory MediaStreamTrackEvent._internalWrap() {
-    return new MediaStreamTrackEvent.internal_();
-  }
+  external factory MediaStreamTrackEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   MediaStreamTrackEvent.internal_() : super.internal_();
@@ -27805,9 +28245,7 @@ class MenuElement extends HtmlElement {
     return new MenuElement._internalWrap();
   }
 
-  factory MenuElement._internalWrap() {
-    return new MenuElement.internal_();
-  }
+  external factory MenuElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   MenuElement.internal_() : super.internal_();
@@ -27860,9 +28298,7 @@ class MenuItemElement extends HtmlElement {
     return new MenuItemElement._internalWrap();
   }
 
-  factory MenuItemElement._internalWrap() {
-    return new MenuItemElement.internal_();
-  }
+  external factory MenuItemElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   MenuItemElement.internal_() : super.internal_();
@@ -28023,9 +28459,7 @@ class MessageEvent extends Event {
     return new MessageEvent._internalWrap();
   }
 
-  factory MessageEvent._internalWrap() {
-    return new MessageEvent.internal_();
-  }
+  external factory MessageEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   MessageEvent.internal_() : super.internal_();
@@ -28083,9 +28517,7 @@ class MessagePort extends EventTarget {
     return new MessagePort._internalWrap();
   }
 
-  factory MessagePort._internalWrap() {
-    return new MessagePort.internal_();
-  }
+  external factory MessagePort._internalWrap();
 
   @Deprecated("Internal Use Only")
   MessagePort.internal_() : super.internal_();
@@ -28137,9 +28569,7 @@ class MetaElement extends HtmlElement {
     return new MetaElement._internalWrap();
   }
 
-  factory MetaElement._internalWrap() {
-    return new MetaElement.internal_();
-  }
+  external factory MetaElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   MetaElement.internal_() : super.internal_();
@@ -28253,9 +28683,7 @@ class MeterElement extends HtmlElement {
     return new MeterElement._internalWrap();
   }
 
-  factory MeterElement._internalWrap() {
-    return new MeterElement.internal_();
-  }
+  external factory MeterElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   MeterElement.internal_() : super.internal_();
@@ -28345,9 +28773,7 @@ class MidiAccess extends EventTarget {
     return new MidiAccess._internalWrap();
   }
 
-  factory MidiAccess._internalWrap() {
-    return new MidiAccess.internal_();
-  }
+  external factory MidiAccess._internalWrap();
 
   @Deprecated("Internal Use Only")
   MidiAccess.internal_() : super.internal_();
@@ -28398,9 +28824,7 @@ class MidiConnectionEvent extends Event {
     return new MidiConnectionEvent._internalWrap();
   }
 
-  factory MidiConnectionEvent._internalWrap() {
-    return new MidiConnectionEvent.internal_();
-  }
+  external factory MidiConnectionEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   MidiConnectionEvent.internal_() : super.internal_();
@@ -28442,9 +28866,7 @@ class MidiInput extends MidiPort {
     return new MidiInput._internalWrap();
   }
 
-  factory MidiInput._internalWrap() {
-    return new MidiInput.internal_();
-  }
+  external factory MidiInput._internalWrap();
 
   @Deprecated("Internal Use Only")
   MidiInput.internal_() : super.internal_();
@@ -28522,9 +28944,7 @@ class MidiMessageEvent extends Event {
     return new MidiMessageEvent._internalWrap();
   }
 
-  factory MidiMessageEvent._internalWrap() {
-    return new MidiMessageEvent.internal_();
-  }
+  external factory MidiMessageEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   MidiMessageEvent.internal_() : super.internal_();
@@ -28560,9 +28980,7 @@ class MidiOutput extends MidiPort {
     return new MidiOutput._internalWrap();
   }
 
-  factory MidiOutput._internalWrap() {
-    return new MidiOutput.internal_();
-  }
+  external factory MidiOutput._internalWrap();
 
   @Deprecated("Internal Use Only")
   MidiOutput.internal_() : super.internal_();
@@ -28634,9 +29052,7 @@ class MidiPort extends EventTarget {
     return new MidiPort._internalWrap();
   }
 
-  factory MidiPort._internalWrap() {
-    return new MidiPort.internal_();
-  }
+  external factory MidiPort._internalWrap();
 
   @Deprecated("Internal Use Only")
   MidiPort.internal_() : super.internal_();
@@ -28843,9 +29259,7 @@ class ModElement extends HtmlElement {
     return new ModElement._internalWrap();
   }
 
-  factory ModElement._internalWrap() {
-    return new ModElement.internal_();
-  }
+  external factory ModElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   ModElement.internal_() : super.internal_();
@@ -28917,9 +29331,7 @@ class MouseEvent extends UIEvent {
     return new MouseEvent._internalWrap();
   }
 
-  factory MouseEvent._internalWrap() {
-    return new MouseEvent.internal_();
-  }
+  external factory MouseEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   MouseEvent.internal_() : super.internal_();
@@ -29817,9 +30229,7 @@ class NetworkInformation extends EventTarget {
     return new NetworkInformation._internalWrap();
   }
 
-  factory NetworkInformation._internalWrap() {
-    return new NetworkInformation.internal_();
-  }
+  external factory NetworkInformation._internalWrap();
 
   @Deprecated("Internal Use Only")
   NetworkInformation.internal_() : super.internal_();
@@ -30104,9 +30514,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.childNodes]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.childNodes)
-   * from MDN.
+   * * [Node.childNodes](https://developer.mozilla.org/en-US/docs/Web/API/Node.childNodes)
+   *   from MDN.
    */
   @DomName('Node.childNodes')
   @DocsEditable()
@@ -30120,9 +30529,7 @@ class Node extends EventTarget {
     return new Node._internalWrap();
   }
 
-  factory Node._internalWrap() {
-    return new Node.internal_();
-  }
+  external factory Node._internalWrap();
 
   @Deprecated("Internal Use Only")
   Node.internal_() : super.internal_();
@@ -30185,9 +30592,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.firstChild]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.firstChild)
-   * from MDN.
+   * * [Node.firstChild](https://developer.mozilla.org/en-US/docs/Web/API/Node.firstChild)
+   *   from MDN.
    */
   @DomName('Node.firstChild')
   @DocsEditable()
@@ -30198,9 +30604,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.lastChild]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.lastChild)
-   * from MDN.
+   * * [Node.lastChild](https://developer.mozilla.org/en-US/docs/Web/API/Node.lastChild)
+   *   from MDN.
    */
   @DomName('Node.lastChild')
   @DocsEditable()
@@ -30219,9 +30624,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.nextSibling]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.nextSibling)
-   * from MDN.
+   * * [Node.nextSibling](https://developer.mozilla.org/en-US/docs/Web/API/Node.nextSibling)
+   *   from MDN.
    */
   @DomName('Node.nextSibling')
   @DocsEditable()
@@ -30234,10 +30638,9 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.nodeName]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.nodeName)
-   * from MDN. This page contains a table of [nodeName] values for each
-   * [nodeType].
+   * * [Node.nodeName](https://developer.mozilla.org/en-US/docs/Web/API/Node.nodeName)
+   *   from MDN. This page contains a table of [nodeName] values for each
+   *   [nodeType].
    */
   @DomName('Node.nodeName')
   @DocsEditable()
@@ -30263,8 +30666,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.nodeType]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.nodeType) from MDN.
+   * * [Node.nodeType](https://developer.mozilla.org/en-US/docs/Web/API/Node.nodeType)
+   *   from MDN.
    */
   @DomName('Node.nodeType')
   @DocsEditable()
@@ -30277,10 +30680,9 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.nodeValue]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.nodeValue)
-   * from MDN. This page contains a table of [nodeValue] values for each
-   * [nodeType].
+   * * [Node.nodeValue](https://developer.mozilla.org/en-US/docs/Web/API/Node.nodeValue)
+   *   from MDN. This page contains a table of [nodeValue] values for each
+   *   [nodeType].
    */
   @DomName('Node.nodeValue')
   @DocsEditable()
@@ -30293,9 +30695,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.ownerDocument]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.ownerDocument) from
-   * MDN.
+   * * [Node.ownerDocument](https://developer.mozilla.org/en-US/docs/Web/API/Node.ownerDocument)
+   *   from MDN.
    */
   @DomName('Node.ownerDocument')
   @DocsEditable()
@@ -30309,9 +30710,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.parentElement]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.parentElement) from
-   * W3C.
+   * * [Node.parentElement](https://developer.mozilla.org/en-US/docs/Web/API/Node.parentElement)
+   *   from W3C.
    */
   @DomName('Node.parentElement')
   @DocsEditable()
@@ -30322,9 +30722,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.parentNode]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.parentNode) from
-   * MDN.
+   * * [Node.parentNode](https://developer.mozilla.org/en-US/docs/Web/API/Node.parentNode)
+   *   from MDN.
    */
   @DomName('Node.parentNode')
   @DocsEditable()
@@ -30335,9 +30734,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.previousSibling]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.previousSibling)
-   * from MDN.
+   * * [Node.previousSibling](https://developer.mozilla.org/en-US/docs/Web/API/Node.previousSibling)
+   *   from MDN.
    */
   @DomName('Node.previousSibling')
   @DocsEditable()
@@ -30348,9 +30746,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.textContent]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.textContent) from
-   * MDN.
+   * * [Node.textContent](https://developer.mozilla.org/en-US/docs/Web/API/Node.textContent)
+   *   from MDN.
    */
   @DomName('Node.textContent')
   @DocsEditable()
@@ -30361,9 +30758,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.textContent]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.textContent) from
-   * MDN.
+   * * [Node.textContent](https://developer.mozilla.org/en-US/docs/Web/API/Node.textContent)
+   *   from MDN.
    */
   @DomName('Node.textContent')
   @DocsEditable()
@@ -30390,9 +30786,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.cloneNode]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.cloneNode) from
-   * MDN.
+   * * [Node.cloneNode](https://developer.mozilla.org/en-US/docs/Web/API/Node.cloneNode)
+   *   from MDN.
    */
   @DomName('Node.cloneNode')
   @DocsEditable()
@@ -30403,8 +30798,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.contains]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.contains) from MDN.
+   * * [Node.contains](https://developer.mozilla.org/en-US/docs/Web/API/Node.contains)
+   *   from MDN.
    */
   @DomName('Node.contains')
   @DocsEditable()
@@ -30415,9 +30810,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.hasChildNodes]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.hasChildNodes) from
-   * MDN.
+   * * [Node.hasChildNodes](https://developer.mozilla.org/en-US/docs/Web/API/Node.hasChildNodes)
+   *   from MDN.
    */
   @DomName('Node.hasChildNodes')
   @DocsEditable()
@@ -30428,9 +30822,8 @@ class Node extends EventTarget {
    *
    * ## Other resources
    *
-   * * [Node.insertBefore]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.insertBefore) from
-   * MDN.
+   * * [Node.insertBefore](https://developer.mozilla.org/en-US/docs/Web/API/Node.insertBefore)
+   *   from MDN.
    */
   @DomName('Node.insertBefore')
   @DocsEditable()
@@ -30815,9 +31208,7 @@ class Notification extends EventTarget {
     return new Notification._internalWrap();
   }
 
-  factory Notification._internalWrap() {
-    return new Notification.internal_();
-  }
+  external factory Notification._internalWrap();
 
   @Deprecated("Internal Use Only")
   Notification.internal_() : super.internal_();
@@ -30994,9 +31385,7 @@ class OListElement extends HtmlElement {
     return new OListElement._internalWrap();
   }
 
-  factory OListElement._internalWrap() {
-    return new OListElement.internal_();
-  }
+  external factory OListElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   OListElement.internal_() : super.internal_();
@@ -31060,9 +31449,7 @@ class ObjectElement extends HtmlElement {
     return new ObjectElement._internalWrap();
   }
 
-  factory ObjectElement._internalWrap() {
-    return new ObjectElement.internal_();
-  }
+  external factory ObjectElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   ObjectElement.internal_() : super.internal_();
@@ -31186,9 +31573,7 @@ class OptGroupElement extends HtmlElement {
     return new OptGroupElement._internalWrap();
   }
 
-  factory OptGroupElement._internalWrap() {
-    return new OptGroupElement.internal_();
-  }
+  external factory OptGroupElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   OptGroupElement.internal_() : super.internal_();
@@ -31246,9 +31631,7 @@ class OptionElement extends HtmlElement {
     return new OptionElement._internalWrap();
   }
 
-  factory OptionElement._internalWrap() {
-    return new OptionElement.internal_();
-  }
+  external factory OptionElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   OptionElement.internal_() : super.internal_();
@@ -31335,9 +31718,7 @@ class OutputElement extends HtmlElement {
     return new OutputElement._internalWrap();
   }
 
-  factory OutputElement._internalWrap() {
-    return new OutputElement.internal_();
-  }
+  external factory OutputElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   OutputElement.internal_() : super.internal_();
@@ -31411,8 +31792,110 @@ class OutputElement extends HtmlElement {
   
   @DomName('HTMLOutputElement.reportValidity')
   @DocsEditable()
+<<<<<<< HEAD
   @Experimental() // untriaged
   bool reportValidity() => _blink.BlinkHTMLOutputElement.instance.reportValidity_Callback_0_(unwrap_jso(this));
+||||||| merged common ancestors
+  void setCustomValidity(String error) => _blink.BlinkHTMLOutputElement.instance.setCustomValidity_Callback_1_(unwrap_jso(this), error);
+  
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('OverflowEvent')
+@Experimental() // nonstandard
+class OverflowEvent extends Event {
+  // To suppress missing implicit constructor warnings.
+  factory OverflowEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static OverflowEvent internalCreateOverflowEvent() {
+    return new OverflowEvent._internalWrap();
+  }
+
+  factory OverflowEvent._internalWrap() {
+    return new OverflowEvent.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  OverflowEvent.internal_() : super.internal_();
+
+
+  @DomName('OverflowEvent.BOTH')
+  @DocsEditable()
+  static const int BOTH = 2;
+
+  @DomName('OverflowEvent.HORIZONTAL')
+  @DocsEditable()
+  static const int HORIZONTAL = 0;
+
+  @DomName('OverflowEvent.VERTICAL')
+  @DocsEditable()
+  static const int VERTICAL = 1;
+
+  @DomName('OverflowEvent.horizontalOverflow')
+  @DocsEditable()
+  bool get horizontalOverflow => _blink.BlinkOverflowEvent.instance.horizontalOverflow_Getter_(unwrap_jso(this));
+  
+  @DomName('OverflowEvent.orient')
+  @DocsEditable()
+  int get orient => _blink.BlinkOverflowEvent.instance.orient_Getter_(unwrap_jso(this));
+=======
+  void setCustomValidity(String error) => _blink.BlinkHTMLOutputElement.instance.setCustomValidity_Callback_1_(unwrap_jso(this), error);
+  
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('OverflowEvent')
+@Experimental() // nonstandard
+class OverflowEvent extends Event {
+  // To suppress missing implicit constructor warnings.
+  factory OverflowEvent._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static OverflowEvent internalCreateOverflowEvent() {
+    return new OverflowEvent._internalWrap();
+  }
+
+  external factory OverflowEvent._internalWrap();
+
+  @Deprecated("Internal Use Only")
+  OverflowEvent.internal_() : super.internal_();
+
+
+  @DomName('OverflowEvent.BOTH')
+  @DocsEditable()
+  static const int BOTH = 2;
+
+  @DomName('OverflowEvent.HORIZONTAL')
+  @DocsEditable()
+  static const int HORIZONTAL = 0;
+
+  @DomName('OverflowEvent.VERTICAL')
+  @DocsEditable()
+  static const int VERTICAL = 1;
+
+  @DomName('OverflowEvent.horizontalOverflow')
+  @DocsEditable()
+  bool get horizontalOverflow => _blink.BlinkOverflowEvent.instance.horizontalOverflow_Getter_(unwrap_jso(this));
+  
+  @DomName('OverflowEvent.orient')
+  @DocsEditable()
+  int get orient => _blink.BlinkOverflowEvent.instance.orient_Getter_(unwrap_jso(this));
+>>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
   
   @DomName('HTMLOutputElement.setCustomValidity')
   @DocsEditable()
@@ -31450,9 +31933,7 @@ class PageTransitionEvent extends Event {
     return new PageTransitionEvent._internalWrap();
   }
 
-  factory PageTransitionEvent._internalWrap() {
-    return new PageTransitionEvent.internal_();
-  }
+  external factory PageTransitionEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   PageTransitionEvent.internal_() : super.internal_();
@@ -31486,9 +31967,7 @@ class ParagraphElement extends HtmlElement {
     return new ParagraphElement._internalWrap();
   }
 
-  factory ParagraphElement._internalWrap() {
-    return new ParagraphElement.internal_();
-  }
+  external factory ParagraphElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   ParagraphElement.internal_() : super.internal_();
@@ -31525,9 +32004,7 @@ class ParamElement extends HtmlElement {
     return new ParamElement._internalWrap();
   }
 
-  factory ParamElement._internalWrap() {
-    return new ParamElement.internal_();
-  }
+  external factory ParamElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   ParamElement.internal_() : super.internal_();
@@ -31797,9 +32274,7 @@ class Performance extends EventTarget {
     return new Performance._internalWrap();
   }
 
-  factory Performance._internalWrap() {
-    return new Performance.internal_();
-  }
+  external factory Performance._internalWrap();
 
   @Deprecated("Internal Use Only")
   Performance.internal_() : super.internal_();
@@ -31973,9 +32448,7 @@ class PerformanceMark extends PerformanceEntry {
     return new PerformanceMark._internalWrap();
   }
 
-  factory PerformanceMark._internalWrap() {
-    return new PerformanceMark.internal_();
-  }
+  external factory PerformanceMark._internalWrap();
 
   @Deprecated("Internal Use Only")
   PerformanceMark.internal_() : super.internal_();
@@ -32003,9 +32476,7 @@ class PerformanceMeasure extends PerformanceEntry {
     return new PerformanceMeasure._internalWrap();
   }
 
-  factory PerformanceMeasure._internalWrap() {
-    return new PerformanceMeasure.internal_();
-  }
+  external factory PerformanceMeasure._internalWrap();
 
   @Deprecated("Internal Use Only")
   PerformanceMeasure.internal_() : super.internal_();
@@ -32121,9 +32592,7 @@ class PerformanceResourceTiming extends PerformanceEntry {
     return new PerformanceResourceTiming._internalWrap();
   }
 
-  factory PerformanceResourceTiming._internalWrap() {
-    return new PerformanceResourceTiming.internal_();
-  }
+  external factory PerformanceResourceTiming._internalWrap();
 
   @Deprecated("Internal Use Only")
   PerformanceResourceTiming.internal_() : super.internal_();
@@ -32505,9 +32974,7 @@ class PictureElement extends HtmlElement {
     return new PictureElement._internalWrap();
   }
 
-  factory PictureElement._internalWrap() {
-    return new PictureElement.internal_();
-  }
+  external factory PictureElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   PictureElement.internal_() : super.internal_();
@@ -32698,9 +33165,7 @@ class PluginPlaceholderElement extends DivElement {
     return new PluginPlaceholderElement._internalWrap();
   }
 
-  factory PluginPlaceholderElement._internalWrap() {
-    return new PluginPlaceholderElement.internal_();
-  }
+  external factory PluginPlaceholderElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   PluginPlaceholderElement.internal_() : super.internal_();
@@ -32850,9 +33315,7 @@ class PopStateEvent extends Event {
     return new PopStateEvent._internalWrap();
   }
 
-  factory PopStateEvent._internalWrap() {
-    return new PopStateEvent.internal_();
-  }
+  external factory PopStateEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   PopStateEvent.internal_() : super.internal_();
@@ -33000,9 +33463,7 @@ class PreElement extends HtmlElement {
     return new PreElement._internalWrap();
   }
 
-  factory PreElement._internalWrap() {
-    return new PreElement.internal_();
-  }
+  external factory PreElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   PreElement.internal_() : super.internal_();
@@ -33035,9 +33496,7 @@ class Presentation extends EventTarget {
     return new Presentation._internalWrap();
   }
 
-  factory Presentation._internalWrap() {
-    return new Presentation.internal_();
-  }
+  external factory Presentation._internalWrap();
 
   @Deprecated("Internal Use Only")
   Presentation.internal_() : super.internal_();
@@ -33212,9 +33671,7 @@ class ProcessingInstruction extends CharacterData {
     return new ProcessingInstruction._internalWrap();
   }
 
-  factory ProcessingInstruction._internalWrap() {
-    return new ProcessingInstruction.internal_();
-  }
+  external factory ProcessingInstruction._internalWrap();
 
   @Deprecated("Internal Use Only")
   ProcessingInstruction.internal_() : super.internal_();
@@ -33257,9 +33714,7 @@ class ProgressElement extends HtmlElement {
     return new ProgressElement._internalWrap();
   }
 
-  factory ProgressElement._internalWrap() {
-    return new ProgressElement.internal_();
-  }
+  external factory ProgressElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   ProgressElement.internal_() : super.internal_();
@@ -33329,9 +33784,7 @@ class ProgressEvent extends Event {
     return new ProgressEvent._internalWrap();
   }
 
-  factory ProgressEvent._internalWrap() {
-    return new ProgressEvent.internal_();
-  }
+  external factory ProgressEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   ProgressEvent.internal_() : super.internal_();
@@ -33429,9 +33882,7 @@ class PushEvent extends ExtendableEvent {
     return new PushEvent._internalWrap();
   }
 
-  factory PushEvent._internalWrap() {
-    return new PushEvent.internal_();
-  }
+  external factory PushEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   PushEvent.internal_() : super.internal_();
@@ -33606,9 +34057,7 @@ class QuoteElement extends HtmlElement {
     return new QuoteElement._internalWrap();
   }
 
-  factory QuoteElement._internalWrap() {
-    return new QuoteElement.internal_();
-  }
+  external factory QuoteElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   QuoteElement.internal_() : super.internal_();
@@ -34061,9 +34510,7 @@ class RelatedEvent extends Event {
     return new RelatedEvent._internalWrap();
   }
 
-  factory RelatedEvent._internalWrap() {
-    return new RelatedEvent.internal_();
-  }
+  external factory RelatedEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   RelatedEvent.internal_() : super.internal_();
@@ -34096,9 +34543,7 @@ class ResourceProgressEvent extends ProgressEvent {
     return new ResourceProgressEvent._internalWrap();
   }
 
-  factory ResourceProgressEvent._internalWrap() {
-    return new ResourceProgressEvent.internal_();
-  }
+  external factory ResourceProgressEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   ResourceProgressEvent.internal_() : super.internal_();
@@ -34170,9 +34615,7 @@ class RtcDataChannel extends EventTarget {
     return new RtcDataChannel._internalWrap();
   }
 
-  factory RtcDataChannel._internalWrap() {
-    return new RtcDataChannel.internal_();
-  }
+  external factory RtcDataChannel._internalWrap();
 
   @Deprecated("Internal Use Only")
   RtcDataChannel.internal_() : super.internal_();
@@ -34314,9 +34757,7 @@ class RtcDataChannelEvent extends Event {
     return new RtcDataChannelEvent._internalWrap();
   }
 
-  factory RtcDataChannelEvent._internalWrap() {
-    return new RtcDataChannelEvent.internal_();
-  }
+  external factory RtcDataChannelEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   RtcDataChannelEvent.internal_() : super.internal_();
@@ -34358,9 +34799,7 @@ class RtcDtmfSender extends EventTarget {
     return new RtcDtmfSender._internalWrap();
   }
 
-  factory RtcDtmfSender._internalWrap() {
-    return new RtcDtmfSender.internal_();
-  }
+  external factory RtcDtmfSender._internalWrap();
 
   @Deprecated("Internal Use Only")
   RtcDtmfSender.internal_() : super.internal_();
@@ -34433,9 +34872,7 @@ class RtcDtmfToneChangeEvent extends Event {
     return new RtcDtmfToneChangeEvent._internalWrap();
   }
 
-  factory RtcDtmfToneChangeEvent._internalWrap() {
-    return new RtcDtmfToneChangeEvent.internal_();
-  }
+  external factory RtcDtmfToneChangeEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   RtcDtmfToneChangeEvent.internal_() : super.internal_();
@@ -34530,9 +34967,7 @@ class RtcIceCandidateEvent extends Event {
     return new RtcIceCandidateEvent._internalWrap();
   }
 
-  factory RtcIceCandidateEvent._internalWrap() {
-    return new RtcIceCandidateEvent.internal_();
-  }
+  external factory RtcIceCandidateEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   RtcIceCandidateEvent.internal_() : super.internal_();
@@ -34672,9 +35107,7 @@ class RtcPeerConnection extends EventTarget {
     return new RtcPeerConnection._internalWrap();
   }
 
-  factory RtcPeerConnection._internalWrap() {
-    return new RtcPeerConnection.internal_();
-  }
+  external factory RtcPeerConnection._internalWrap();
 
   @Deprecated("Internal Use Only")
   RtcPeerConnection.internal_() : super.internal_();
@@ -35090,9 +35523,7 @@ class ScreenOrientation extends EventTarget {
     return new ScreenOrientation._internalWrap();
   }
 
-  factory ScreenOrientation._internalWrap() {
-    return new ScreenOrientation.internal_();
-  }
+  external factory ScreenOrientation._internalWrap();
 
   @Deprecated("Internal Use Only")
   ScreenOrientation.internal_() : super.internal_();
@@ -35147,9 +35578,7 @@ class ScriptElement extends HtmlElement {
     return new ScriptElement._internalWrap();
   }
 
-  factory ScriptElement._internalWrap() {
-    return new ScriptElement.internal_();
-  }
+  external factory ScriptElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   ScriptElement.internal_() : super.internal_();
@@ -35382,9 +35811,7 @@ class SecurityPolicyViolationEvent extends Event {
     return new SecurityPolicyViolationEvent._internalWrap();
   }
 
-  factory SecurityPolicyViolationEvent._internalWrap() {
-    return new SecurityPolicyViolationEvent.internal_();
-  }
+  external factory SecurityPolicyViolationEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   SecurityPolicyViolationEvent.internal_() : super.internal_();
@@ -35452,9 +35879,7 @@ class SelectElement extends HtmlElement {
     return new SelectElement._internalWrap();
   }
 
-  factory SelectElement._internalWrap() {
-    return new SelectElement.internal_();
-  }
+  external factory SelectElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   SelectElement.internal_() : super.internal_();
@@ -35797,7 +36222,13 @@ class ServicePort extends DartHtmlDomObject {
   @DomName('ServicePort.name')
   @DocsEditable()
   @Experimental() // untriaged
+<<<<<<< HEAD
   String get name => _blink.BlinkServicePort.instance.name_Getter_(unwrap_jso(this));
+||||||| merged common ancestors
+  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) => _blink.BlinkServiceWorkerClient.instance.postMessage_Callback_2_(unwrap_jso(this), message, transfer);
+=======
+  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) => _blink.BlinkServiceWorkerClient.instance.postMessage_Callback_2_(unwrap_jso(this), convertDartToNative_SerializedScriptValue(message), transfer);
+>>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
   
   @DomName('ServicePort.targetURL')
   @DocsEditable()
@@ -36024,9 +36455,7 @@ class ServiceWorkerGlobalScope extends WorkerGlobalScope {
     return new ServiceWorkerGlobalScope._internalWrap();
   }
 
-  factory ServiceWorkerGlobalScope._internalWrap() {
-    return new ServiceWorkerGlobalScope.internal_();
-  }
+  external factory ServiceWorkerGlobalScope._internalWrap();
 
   @Deprecated("Internal Use Only")
   ServiceWorkerGlobalScope.internal_() : super.internal_();
@@ -36149,9 +36578,7 @@ class ServiceWorkerRegistration extends EventTarget {
     return new ServiceWorkerRegistration._internalWrap();
   }
 
-  factory ServiceWorkerRegistration._internalWrap() {
-    return new ServiceWorkerRegistration.internal_();
-  }
+  external factory ServiceWorkerRegistration._internalWrap();
 
   @Deprecated("Internal Use Only")
   ServiceWorkerRegistration.internal_() : super.internal_();
@@ -36248,9 +36675,7 @@ class ShadowElement extends HtmlElement {
     return new ShadowElement._internalWrap();
   }
 
-  factory ShadowElement._internalWrap() {
-    return new ShadowElement.internal_();
-  }
+  external factory ShadowElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   ShadowElement.internal_() : super.internal_();
@@ -36292,9 +36717,7 @@ class ShadowRoot extends DocumentFragment {
     return new ShadowRoot._internalWrap();
   }
 
-  factory ShadowRoot._internalWrap() {
-    return new ShadowRoot.internal_();
-  }
+  external factory ShadowRoot._internalWrap();
 
   @Deprecated("Internal Use Only")
   ShadowRoot.internal_() : super.internal_();
@@ -36453,9 +36876,7 @@ class SharedWorker extends EventTarget implements AbstractWorker {
     return new SharedWorker._internalWrap();
   }
 
-  factory SharedWorker._internalWrap() {
-    return new SharedWorker.internal_();
-  }
+  external factory SharedWorker._internalWrap();
 
   @Deprecated("Internal Use Only")
   SharedWorker.internal_() : super.internal_();
@@ -36502,9 +36923,7 @@ class SharedWorkerGlobalScope extends WorkerGlobalScope {
     return new SharedWorkerGlobalScope._internalWrap();
   }
 
-  factory SharedWorkerGlobalScope._internalWrap() {
-    return new SharedWorkerGlobalScope.internal_();
-  }
+  external factory SharedWorkerGlobalScope._internalWrap();
 
   @Deprecated("Internal Use Only")
   SharedWorkerGlobalScope.internal_() : super.internal_();
@@ -36543,9 +36962,7 @@ class SourceBuffer extends EventTarget {
     return new SourceBuffer._internalWrap();
   }
 
-  factory SourceBuffer._internalWrap() {
-    return new SourceBuffer.internal_();
-  }
+  external factory SourceBuffer._internalWrap();
 
   @Deprecated("Internal Use Only")
   SourceBuffer.internal_() : super.internal_();
@@ -36658,9 +37075,7 @@ class SourceBufferList extends EventTarget with ListMixin<SourceBuffer>, Immutab
     return new SourceBufferList._internalWrap();
   }
 
-  factory SourceBufferList._internalWrap() {
-    return new SourceBufferList.internal_();
-  }
+  external factory SourceBufferList._internalWrap();
 
   @Deprecated("Internal Use Only")
   SourceBufferList.internal_() : super.internal_();
@@ -36744,9 +37159,7 @@ class SourceElement extends HtmlElement {
     return new SourceElement._internalWrap();
   }
 
-  factory SourceElement._internalWrap() {
-    return new SourceElement.internal_();
-  }
+  external factory SourceElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   SourceElement.internal_() : super.internal_();
@@ -36876,9 +37289,7 @@ class SpanElement extends HtmlElement {
     return new SpanElement._internalWrap();
   }
 
-  factory SpanElement._internalWrap() {
-    return new SpanElement.internal_();
-  }
+  external factory SpanElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   SpanElement.internal_() : super.internal_();
@@ -37191,9 +37602,7 @@ class SpeechRecognition extends EventTarget {
     return new SpeechRecognition._internalWrap();
   }
 
-  factory SpeechRecognition._internalWrap() {
-    return new SpeechRecognition.internal_();
-  }
+  external factory SpeechRecognition._internalWrap();
 
   @Deprecated("Internal Use Only")
   SpeechRecognition.internal_() : super.internal_();
@@ -37402,9 +37811,7 @@ class SpeechRecognitionError extends Event {
     return new SpeechRecognitionError._internalWrap();
   }
 
-  factory SpeechRecognitionError._internalWrap() {
-    return new SpeechRecognitionError.internal_();
-  }
+  external factory SpeechRecognitionError._internalWrap();
 
   @Deprecated("Internal Use Only")
   SpeechRecognitionError.internal_() : super.internal_();
@@ -37451,9 +37858,7 @@ class SpeechRecognitionEvent extends Event {
     return new SpeechRecognitionEvent._internalWrap();
   }
 
-  factory SpeechRecognitionEvent._internalWrap() {
-    return new SpeechRecognitionEvent.internal_();
-  }
+  external factory SpeechRecognitionEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   SpeechRecognitionEvent.internal_() : super.internal_();
@@ -37541,9 +37946,7 @@ class SpeechSynthesis extends EventTarget {
     return new SpeechSynthesis._internalWrap();
   }
 
-  factory SpeechSynthesis._internalWrap() {
-    return new SpeechSynthesis.internal_();
-  }
+  external factory SpeechSynthesis._internalWrap();
 
   @Deprecated("Internal Use Only")
   SpeechSynthesis.internal_() : super.internal_();
@@ -37603,9 +38006,7 @@ class SpeechSynthesisEvent extends Event {
     return new SpeechSynthesisEvent._internalWrap();
   }
 
-  factory SpeechSynthesisEvent._internalWrap() {
-    return new SpeechSynthesisEvent.internal_();
-  }
+  external factory SpeechSynthesisEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   SpeechSynthesisEvent.internal_() : super.internal_();
@@ -37726,9 +38127,7 @@ class SpeechSynthesisUtterance extends EventTarget {
     return new SpeechSynthesisUtterance._internalWrap();
   }
 
-  factory SpeechSynthesisUtterance._internalWrap() {
-    return new SpeechSynthesisUtterance.internal_();
-  }
+  external factory SpeechSynthesisUtterance._internalWrap();
 
   @Deprecated("Internal Use Only")
   SpeechSynthesisUtterance.internal_() : super.internal_();
@@ -38158,9 +38557,7 @@ class StorageEvent extends Event {
     return new StorageEvent._internalWrap();
   }
 
-  factory StorageEvent._internalWrap() {
-    return new StorageEvent.internal_();
-  }
+  external factory StorageEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   StorageEvent.internal_() : super.internal_();
@@ -38334,9 +38731,7 @@ class StyleElement extends HtmlElement {
     return new StyleElement._internalWrap();
   }
 
-  factory StyleElement._internalWrap() {
-    return new StyleElement.internal_();
-  }
+  external factory StyleElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   StyleElement.internal_() : super.internal_();
@@ -38633,9 +39028,7 @@ class TableCaptionElement extends HtmlElement {
     return new TableCaptionElement._internalWrap();
   }
 
-  factory TableCaptionElement._internalWrap() {
-    return new TableCaptionElement.internal_();
-  }
+  external factory TableCaptionElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   TableCaptionElement.internal_() : super.internal_();
@@ -38671,9 +39064,7 @@ class TableCellElement extends HtmlElement {
     return new TableCellElement._internalWrap();
   }
 
-  factory TableCellElement._internalWrap() {
-    return new TableCellElement.internal_();
-  }
+  external factory TableCellElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   TableCellElement.internal_() : super.internal_();
@@ -38737,9 +39128,7 @@ class TableColElement extends HtmlElement {
     return new TableColElement._internalWrap();
   }
 
-  factory TableColElement._internalWrap() {
-    return new TableColElement.internal_();
-  }
+  external factory TableColElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   TableColElement.internal_() : super.internal_();
@@ -38801,9 +39190,7 @@ class TableElement extends HtmlElement {
     return new TableElement._internalWrap();
   }
 
-  factory TableElement._internalWrap() {
-    return new TableElement.internal_();
-  }
+  external factory TableElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   TableElement.internal_() : super.internal_();
@@ -38919,9 +39306,7 @@ class TableRowElement extends HtmlElement {
     return new TableRowElement._internalWrap();
   }
 
-  factory TableRowElement._internalWrap() {
-    return new TableRowElement.internal_();
-  }
+  external factory TableRowElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   TableRowElement.internal_() : super.internal_();
@@ -38985,9 +39370,7 @@ class TableSectionElement extends HtmlElement {
     return new TableSectionElement._internalWrap();
   }
 
-  factory TableSectionElement._internalWrap() {
-    return new TableSectionElement.internal_();
-  }
+  external factory TableSectionElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   TableSectionElement.internal_() : super.internal_();
@@ -39040,9 +39423,7 @@ class TemplateElement extends HtmlElement {
     return new TemplateElement._internalWrap();
   }
 
-  factory TemplateElement._internalWrap() {
-    return new TemplateElement.internal_();
-  }
+  external factory TemplateElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   TemplateElement.internal_() : super.internal_();
@@ -39097,9 +39478,7 @@ class Text extends CharacterData {
     return new Text._internalWrap();
   }
 
-  factory Text._internalWrap() {
-    return new Text.internal_();
-  }
+  external factory Text._internalWrap();
 
   @Deprecated("Internal Use Only")
   Text.internal_() : super.internal_();
@@ -39142,9 +39521,7 @@ class TextAreaElement extends HtmlElement {
     return new TextAreaElement._internalWrap();
   }
 
-  factory TextAreaElement._internalWrap() {
-    return new TextAreaElement.internal_();
-  }
+  external factory TextAreaElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   TextAreaElement.internal_() : super.internal_();
@@ -39414,9 +39791,7 @@ class TextEvent extends UIEvent {
     return new TextEvent._internalWrap();
   }
 
-  factory TextEvent._internalWrap() {
-    return new TextEvent.internal_();
-  }
+  external factory TextEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   TextEvent.internal_() : super.internal_();
@@ -39550,9 +39925,7 @@ class TextTrack extends EventTarget {
     return new TextTrack._internalWrap();
   }
 
-  factory TextTrack._internalWrap() {
-    return new TextTrack.internal_();
-  }
+  external factory TextTrack._internalWrap();
 
   @Deprecated("Internal Use Only")
   TextTrack.internal_() : super.internal_();
@@ -39661,9 +40034,7 @@ class TextTrackCue extends EventTarget {
     return new TextTrackCue._internalWrap();
   }
 
-  factory TextTrackCue._internalWrap() {
-    return new TextTrackCue.internal_();
-  }
+  external factory TextTrackCue._internalWrap();
 
   @Deprecated("Internal Use Only")
   TextTrackCue.internal_() : super.internal_();
@@ -39841,9 +40212,7 @@ class TextTrackList extends EventTarget with ListMixin<TextTrack>, ImmutableList
     return new TextTrackList._internalWrap();
   }
 
-  factory TextTrackList._internalWrap() {
-    return new TextTrackList.internal_();
-  }
+  external factory TextTrackList._internalWrap();
 
   @Deprecated("Internal Use Only")
   TextTrackList.internal_() : super.internal_();
@@ -39993,9 +40362,7 @@ class TitleElement extends HtmlElement {
     return new TitleElement._internalWrap();
   }
 
-  factory TitleElement._internalWrap() {
-    return new TitleElement.internal_();
-  }
+  external factory TitleElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   TitleElement.internal_() : super.internal_();
@@ -40167,9 +40534,7 @@ class TouchEvent extends UIEvent {
     return new TouchEvent._internalWrap();
   }
 
-  factory TouchEvent._internalWrap() {
-    return new TouchEvent.internal_();
-  }
+  external factory TouchEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   TouchEvent.internal_() : super.internal_();
@@ -40451,9 +40816,7 @@ class TrackElement extends HtmlElement {
     return new TrackElement._internalWrap();
   }
 
-  factory TrackElement._internalWrap() {
-    return new TrackElement.internal_();
-  }
+  external factory TrackElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   TrackElement.internal_() : super.internal_();
@@ -40563,9 +40926,7 @@ class TrackEvent extends Event {
     return new TrackEvent._internalWrap();
   }
 
-  factory TrackEvent._internalWrap() {
-    return new TrackEvent.internal_();
-  }
+  external factory TrackEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   TrackEvent.internal_() : super.internal_();
@@ -40601,9 +40962,7 @@ class TransitionEvent extends Event {
     return new TransitionEvent._internalWrap();
   }
 
-  factory TransitionEvent._internalWrap() {
-    return new TransitionEvent.internal_();
-  }
+  external factory TransitionEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   TransitionEvent.internal_() : super.internal_();
@@ -40744,9 +41103,7 @@ class UIEvent extends Event {
     return new UIEvent._internalWrap();
   }
 
-  factory UIEvent._internalWrap() {
-    return new UIEvent.internal_();
-  }
+  external factory UIEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   UIEvent.internal_() : super.internal_();
@@ -40816,9 +41173,7 @@ class UListElement extends HtmlElement {
     return new UListElement._internalWrap();
   }
 
-  factory UListElement._internalWrap() {
-    return new UListElement.internal_();
-  }
+  external factory UListElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   UListElement.internal_() : super.internal_();
@@ -40850,9 +41205,7 @@ class UnknownElement extends HtmlElement {
     return new UnknownElement._internalWrap();
   }
 
-  factory UnknownElement._internalWrap() {
-    return new UnknownElement.internal_();
-  }
+  external factory UnknownElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   UnknownElement.internal_() : super.internal_();
@@ -40897,10 +41250,10 @@ class Url extends DartHtmlDomObject implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -41567,9 +41920,7 @@ class VideoElement extends MediaElement implements CanvasImageSource {
     return new VideoElement._internalWrap();
   }
 
-  factory VideoElement._internalWrap() {
-    return new VideoElement.internal_();
-  }
+  external factory VideoElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   VideoElement.internal_() : super.internal_();
@@ -41784,9 +42135,7 @@ class VideoTrackList extends EventTarget {
     return new VideoTrackList._internalWrap();
   }
 
-  factory VideoTrackList._internalWrap() {
-    return new VideoTrackList.internal_();
-  }
+  external factory VideoTrackList._internalWrap();
 
   @Deprecated("Internal Use Only")
   VideoTrackList.internal_() : super.internal_();
@@ -41855,9 +42204,7 @@ class VttCue extends TextTrackCue {
     return new VttCue._internalWrap();
   }
 
-  factory VttCue._internalWrap() {
-    return new VttCue.internal_();
-  }
+  external factory VttCue._internalWrap();
 
   @Deprecated("Internal Use Only")
   VttCue.internal_() : super.internal_();
@@ -42222,9 +42569,7 @@ class WebSocket extends EventTarget {
     return new WebSocket._internalWrap();
   }
 
-  factory WebSocket._internalWrap() {
-    return new WebSocket.internal_();
-  }
+  external factory WebSocket._internalWrap();
 
   @Deprecated("Internal Use Only")
   WebSocket.internal_() : super.internal_();
@@ -42406,9 +42751,7 @@ class WheelEvent extends MouseEvent {
     return new WheelEvent._internalWrap();
   }
 
-  factory WheelEvent._internalWrap() {
-    return new WheelEvent.internal_();
-  }
+  external factory WheelEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   WheelEvent.internal_() : super.internal_();
@@ -42748,9 +43091,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
     return new Window._internalWrap();
   }
 
-  factory Window._internalWrap() {
-    return new Window.internal_();
-  }
+  external factory Window._internalWrap();
 
   @Deprecated("Internal Use Only")
   Window.internal_() : super.internal_();
@@ -42762,10 +43103,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Exploring the FileSystem APIs]
-   * (http://www.html5rocks.com/en/tutorials/file/filesystem/) from HTML5Rocks.
-   * * [File API]
-   * (http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem) from W3C.
+   * * [Exploring the FileSystem
+   *   APIs](http://www.html5rocks.com/en/tutorials/file/filesystem/)
+   *   from HTML5Rocks.
+   * * [File API](http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem)
+   *   from W3C.
    */
   @DomName('Window.PERSISTENT')
   @DocsEditable()
@@ -42778,10 +43120,10 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Exploring the FileSystem APIs]
-   * (http://www.html5rocks.com/en/tutorials/file/filesystem/) from HTML5Rocks.
-   * * [File API]
-   * (http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem) from W3C.
+   * * [Exploring the FileSystem
+   *   APIs](http://www.html5rocks.com/en/tutorials/file/filesystem/) from HTML5Rocks.
+   * * [File API](http://www.w3.org/TR/file-system-api/#idl-def-LocalFileSystem)
+   *   from W3C.
    */
   @DomName('Window.TEMPORARY')
   @DocsEditable()
@@ -42794,11 +43136,12 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [A beginner's guide to using the application cache]
-   * (http://www.html5rocks.com/en/tutorials/appcache/beginner) from HTML5Rocks.
-   * * [Application cache API]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/offline.html#application-cache-api)
-   * from WHATWG.
+   * * [A beginner's guide to using the application
+   *   cache](http://www.html5rocks.com/en/tutorials/appcache/beginner)
+   *   from HTML5Rocks.
+   * * [Application cache
+   *   API](https://html.spec.whatwg.org/multipage/browsers.html#application-cache-api)
+   *   from WHATWG.
    */
   @DomName('Window.applicationCache')
   @DocsEditable()
@@ -42859,12 +43202,10 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [devicePixelRatio]
-   * (http://www.quirksmode.org/blog/archives/2012/06/devicepixelrati.html) from
-   * quirksmode.
-   * * [More about devicePixelRatio]
-   * (http://www.quirksmode.org/blog/archives/2012/07/more_about_devi.html) from
-   * quirksmode.
+   * * [devicePixelRatio](http://www.quirksmode.org/blog/archives/2012/06/devicepixelrati.html)
+   *   from quirksmode.
+   * * [More about devicePixelRatio](http://www.quirksmode.org/blog/archives/2012/07/more_about_devi.html)
+   *   from quirksmode.
    */
   @DomName('Window.devicePixelRatio')
   @DocsEditable()
@@ -42881,9 +43222,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Loading web pages]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html)
-   * from WHATWG.
+   * * [Loading web pages](https://html.spec.whatwg.org/multipage/browsers.html)
+   *   from WHATWG.
    */
   @DomName('Window.history')
   @DocsEditable()
@@ -42902,9 +43242,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [innerHeight]
-   * (http://docs.webplatform.org/wiki/css/cssom/properties/innerHeight) from
-   * WebPlatform.org.
+   * * [innerHeight](http://docs.webplatform.org/wiki/css/cssom/properties/innerHeight)
+   *   from WebPlatform.org.
    */
   @DomName('Window.innerHeight')
   @DocsEditable()
@@ -42915,9 +43254,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [innerWidth]
-   * (http://docs.webplatform.org/wiki/css/cssom/properties/innerWidth) from
-   * WebPlatform.org.
+   * * [innerWidth](http://docs.webplatform.org/wiki/css/cssom/properties/innerWidth)
+   *   from WebPlatform.org.
    */
   @DomName('Window.innerWidth')
   @DocsEditable()
@@ -42928,13 +43266,12 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [DOM storage guide]
-   * (https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Storage) from
-   * MDN.
-   * * [The past, present & future of local storage for web applications]
-   * (http://diveintohtml5.info/storage.html) from Dive Into HTML5.
-   * * [Local storage specification]
-   * (http://www.w3.org/TR/webstorage/#the-localstorage-attribute) from W3C.
+   * * [DOM storage guide](https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Storage)
+   *   from MDN.
+   * * [The past, present & future of local storage for web
+   *   applications](http://diveintohtml5.info/storage.html) from Dive Into HTML5.
+   * * [Local storage specification](http://www.w3.org/TR/webstorage/#the-localstorage-attribute)
+   *   from W3C.
    */
   @DomName('Window.localStorage')
   @DocsEditable()
@@ -42949,9 +43286,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Browser interface elements]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)
-   * from WHATWG.
+   * * [Browser interface
+   *   elements](https://html.spec.whatwg.org/multipage/browsers.html#browser-interface-elements)
+   *   from WHATWG.
    */
   @DomName('Window.locationbar')
   @DocsEditable()
@@ -42962,9 +43299,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Browser interface elements]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)
-   * from WHATWG.
+   * * [Browser interface
+   *   elements](https://html.spec.whatwg.org/multipage/browsers.html#browser-interface-elements)
+   *   from WHATWG.
    */
   @DomName('Window.menubar')
   @DocsEditable()
@@ -42975,9 +43312,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window name]
-   * (http://docs.webplatform.org/wiki/html/attributes/name_(window)) from
-   * WebPlatform.org.
+   * * [Window name](http://docs.webplatform.org/wiki/html/attributes/name_(window))
+   *   from WebPlatform.org.
    */
   @DomName('Window.name')
   @DocsEditable()
@@ -42988,9 +43324,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window name]
-   * (http://docs.webplatform.org/wiki/html/attributes/name_(window)) from
-   * WebPlatform.org.
+   * * [Window name](http://docs.webplatform.org/wiki/html/attributes/name_(window))
+   *   from WebPlatform.org.
    */
   @DomName('Window.name')
   @DocsEditable()
@@ -43001,9 +43336,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [The navigator object]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/timers.html#the-navigator-object)
-   * from WHATWG.
+   * * [The navigator
+   *   object](https://html.spec.whatwg.org/multipage/webappapis.html#the-navigator-object)
+   *   from WHATWG.
    */
   @DomName('Window.navigator')
   @DocsEditable()
@@ -43014,9 +43349,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [offscreenBuffering]
-   * (http://docs.webplatform.org/wiki/dom/properties/offscreenBuffering) from
-   * WebPlatform.org.
+   * * [offscreenBuffering](http://docs.webplatform.org/wiki/dom/properties/offscreenBuffering)
+   *   from WebPlatform.org.
    */
   @DomName('Window.offscreenBuffering')
   @DocsEditable()
@@ -43041,9 +43375,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [outerHeight]
-   * (http://docs.webplatform.org/wiki/css/cssom/properties/outerHeight) from
-   * WebPlatform.org.
+   * * [outerHeight](http://docs.webplatform.org/wiki/css/cssom/properties/outerHeight)
+   *   from WebPlatform.org.
    */
   @DomName('Window.outerHeight')
   @DocsEditable()
@@ -43054,9 +43387,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [outerWidth]
-   * (http://docs.webplatform.org/wiki/css/cssom/properties/outerWidth) from
-   * WebPlatform.org.
+   * * [outerWidth](http://docs.webplatform.org/wiki/css/cssom/properties/outerWidth)
+   *   from WebPlatform.org.
    */
   @DomName('Window.outerWidth')
   @DocsEditable()
@@ -43069,10 +43401,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [The Screen interface specification]
-   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
-   * * [scrollX and pageXOffset]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX) from MDN.
+   * * [The Screen interface
+   *   specification](http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [scrollX and
+   *   pageXOffset](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollX)
+   *   from MDN.
    */
   @DomName('Window.pageXOffset')
   @DocsEditable()
@@ -43085,10 +43418,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [The Screen interface specification]
-   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
-   * * [scrollY and pageYOffset]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY) from MDN.
+   * * [The Screen interface
+   *   specification](http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [scrollY and
+   *   pageYOffset](https://developer.mozilla.org/en-US/docs/Web/API/Window.scrollY)
+   *   from MDN.
    */
   @DomName('Window.pageYOffset')
   @DocsEditable()
@@ -43103,11 +43437,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Measuring page load speed with navigation timeing]
-   * (http://www.html5rocks.com/en/tutorials/webperformance/basics/) from
-   * HTML5Rocks.
-   * * [Navigation timing specification]
-   * (http://www.w3.org/TR/navigation-timing/) from W3C.
+   * * [Measuring page load speed with navigation
+   *   timeing](http://www.html5rocks.com/en/tutorials/webperformance/basics/)
+   *   from HTML5Rocks.
+   * * [Navigation timing
+   *   specification](http://www.w3.org/TR/navigation-timing/) from W3C.
    */
   @DomName('Window.performance')
   @DocsEditable()
@@ -43121,8 +43455,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [The Screen interface specification]
-   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [The Screen interface specification](http://www.w3.org/TR/cssom-view/#screen)
+   *   from W3C.
    */
   @DomName('Window.screen')
   @DocsEditable()
@@ -43134,8 +43468,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [The Screen interface specification]
-   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [The Screen interface specification](http://www.w3.org/TR/cssom-view/#screen)
+   *   from W3C.
    */
   @DomName('Window.screenLeft')
   @DocsEditable()
@@ -43146,8 +43480,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [The Screen interface specification]
-   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [The Screen interface specification](http://www.w3.org/TR/cssom-view/#screen)
+   *   from W3C.
    */
   @DomName('Window.screenTop')
   @DocsEditable()
@@ -43158,8 +43492,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [The Screen interface specification]
-   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [The Screen interface specification](http://www.w3.org/TR/cssom-view/#screen)
+   *   from W3C.
    */
   @DomName('Window.screenX')
   @DocsEditable()
@@ -43170,8 +43504,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [The Screen interface specification]
-   * (http://www.w3.org/TR/cssom-view/#screen) from W3C.
+   * * [The Screen interface specification](http://www.w3.org/TR/cssom-view/#screen)
+   *   from W3C.
    */
   @DomName('Window.screenY')
   @DocsEditable()
@@ -43190,9 +43524,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Browser interface elements]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)
-   * from WHATWG.
+   * * [Browser interface
+   *   elements](https://html.spec.whatwg.org/multipage/browsers.html#browser-interface-elements)
+   *   from WHATWG.
    */
   @DomName('Window.scrollbars')
   @DocsEditable()
@@ -43203,8 +43537,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window.self]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.self) from MDN.
+   * * [Window.self](https://developer.mozilla.org/en-US/docs/Web/API/Window.self)
+   *   from MDN.
    */
   @DomName('Window.self')
   @DocsEditable()
@@ -43215,13 +43549,13 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [DOM storage guide]
-   * (https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Storage) from
-   * MDN.
-   * * [The past, present & future of local storage for web applications]
-   * (http://diveintohtml5.info/storage.html) from Dive Into HTML5.
-   * * [Local storage specification]
-   * (http://www.w3.org/TR/webstorage/#dom-sessionstorage) from W3C.
+   * * [DOM storage
+   *   guide](https://developer.mozilla.org/en-US/docs/Web/Guide/API/DOM/Storage)
+   *   from MDN.
+   * * [The past, present & future of local storage for web
+   *   applications](http://diveintohtml5.info/storage.html) from Dive Into HTML5.
+   * * [Local storage
+   *   specification](http://www.w3.org/TR/webstorage/#dom-sessionstorage) from W3C.
    */
   @DomName('Window.sessionStorage')
   @DocsEditable()
@@ -43232,9 +43566,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Web speech specification]
-   * (https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section)
-   * from W3C.
+   * * [Web speech
+   *   specification](https://dvcs.w3.org/hg/speech-api/raw-file/tip/speechapi.html#tts-section)
+   *   from W3C.
    */
   @DomName('Window.speechSynthesis')
   @DocsEditable()
@@ -43257,9 +43591,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Browser interface elements]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)
-   * from WHATWG.
+   * * [Browser interface
+   *   elements](https://html.spec.whatwg.org/multipage/browsers.html#browser-interface-elements)
+   *   from WHATWG.
    */
   @DomName('Window.statusbar')
   @DocsEditable()
@@ -43270,9 +43604,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [StyleMedia class reference]
-   * (https://developer.apple.com/library/safari/documentation/SafariDOMAdditions/Reference/StyleMedia/StyleMedia/StyleMedia.html)
-   * from Safari Developer Library.
+   * * [StyleMedia class
+   *   reference](https://developer.apple.com/library/safari/documentation/SafariDOMAdditions/Reference/StyleMedia/)
+   *   from Safari Developer Library.
    */
   @DomName('Window.styleMedia')
   @DocsEditable()
@@ -43285,9 +43619,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Browser interface elements]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/browsers.html#browser-interface-elements)
-   * from WHATWG.
+   * * [Browser interface
+   *   elements](https://html.spec.whatwg.org/multipage/browsers.html#browser-interface-elements)
+   *   from WHATWG.
    */
   @DomName('Window.toolbar')
   @DocsEditable()
@@ -43302,8 +43636,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window.window]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.window) from MDN.
+   * * [Window.window](https://developer.mozilla.org/en-US/docs/Web/API/Window.window)
+   *   from MDN.
    */
   @DomName('Window.window')
   @DocsEditable()
@@ -43355,8 +43689,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window.find]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.find) from MDN.
+   * * [Window.find](https://developer.mozilla.org/en-US/docs/Web/API/Window.find)
+   *   from MDN.
    */
   @DomName('Window.find')
   @DocsEditable()
@@ -43380,9 +43714,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window.getSelection]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.getSelection)
-   * from MDN.
+   * * [Window.getSelection](https://developer.mozilla.org/en-US/docs/Web/API/Window.getSelection)
+   *   from MDN.
    */
   @DomName('Window.getSelection')
   @DocsEditable()
@@ -43393,11 +43726,11 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Testing media queries]
-   * (https://developer.mozilla.org/en-US/docs/Web/Guide/CSS/Testing_media_queries)
-   * from MDN.
-   * * [The MediaQueryList specification]
-   * (http://www.w3.org/TR/cssom-view/#the-mediaquerylist-interface) from W3C.
+   * * [Testing media
+   *   queries](https://developer.mozilla.org/en-US/docs/Web/Guide/CSS/Testing_media_queries)
+   *   from MDN.
+   * * [The MediaQueryList
+   *   specification](http://www.w3.org/TR/cssom-view/#the-mediaquerylist-interface) from W3C.
    */
   @DomName('Window.matchMedia')
   @DocsEditable()
@@ -43410,10 +43743,9 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window.moveBy]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.moveBy) from MDN.
-   * * [Window.moveBy]
-   * (http://dev.w3.org/csswg/cssom-view/#dom-window-moveby) from W3C.
+   * * [Window.moveBy](https://developer.mozilla.org/en-US/docs/Web/API/Window.moveBy)
+   *   from MDN.
+   * * [Window.moveBy](http://dev.w3.org/csswg/cssom-view/#dom-window-moveby) from W3C.
    */
   @DomName('Window.moveBy')
   @DocsEditable()
@@ -43443,8 +43775,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window.print]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.print) from MDN.
+   * * [Window.print](https://developer.mozilla.org/en-US/docs/Web/API/Window.print)
+   *   from MDN.
    */
   @DomName('Window.print')
   @DocsEditable()
@@ -43459,8 +43791,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window resizeBy] (http://docs.webplatform.org/wiki/dom/methods/resizeBy)
-   * from WebPlatform.org.
+   * * [Window resizeBy](http://docs.webplatform.org/wiki/dom/methods/resizeBy)
+   *   from WebPlatform.org.
    */
   @DomName('Window.resizeBy')
   @DocsEditable()
@@ -43471,8 +43803,8 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window resizeTo] (http://docs.webplatform.org/wiki/dom/methods/resizeTo)
-   * from WebPlatform.org.
+   * * [Window resizeTo](http://docs.webplatform.org/wiki/dom/methods/resizeTo)
+   *   from WebPlatform.org.
    */
   @DomName('Window.resizeTo')
   @DocsEditable()
@@ -43551,13 +43883,43 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   }
 
   /**
+<<<<<<< HEAD
+||||||| merged common ancestors
+   * Opens a new page as a modal dialog.
+   *
+   * ## Other resources
+   *
+   * * [Dialogs implemented using separate documents]
+   * (http://www.w3.org/html/wg/drafts/html/master/webappapis.html#dialogs-implemented-using-separate-documents)
+   * from W3C.
+   */
+  @DomName('Window.showModalDialog')
+  @DocsEditable()
+  Object showModalDialog(String url, [Object dialogArgs, String featureArgs]) => wrap_jso(_blink.BlinkWindow.instance.showModalDialog_Callback_3_(unwrap_jso(this), url, dialogArgs, featureArgs));
+  
+  /**
+=======
+   * Opens a new page as a modal dialog.
+   *
+   * ## Other resources
+   *
+   * * [Dialogs implemented using separate
+   *   documents](http://www.w3.org/html/wg/drafts/html/master/webappapis.html#dialogs-implemented-using-separate-documents)
+   *   from W3C.
+   */
+  @DomName('Window.showModalDialog')
+  @DocsEditable()
+  Object showModalDialog(String url, [Object dialogArgs, String featureArgs]) => wrap_jso(_blink.BlinkWindow.instance.showModalDialog_Callback_3_(unwrap_jso(this), url, dialogArgs, featureArgs));
+  
+  /**
+>>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
    * Stops the window from loading.
    *
    * ## Other resources
    *
-   * * [The Window object]
-   * (http://www.w3.org/html/wg/drafts/html/master/browsers.html#the-window-object)
-   * from W3C.
+   * * [The Window
+   *   object](http://www.w3.org/html/wg/drafts/html/master/browsers.html#the-window-object)
+   *   from W3C.
    */
   @DomName('Window.stop')
   @DocsEditable()
@@ -44033,10 +44395,10 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    *
    * ## Other resources
    *
-   * * [Window.moveTo]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.moveTo) from MDN.
-   * * [Window.moveTo]
-   * (http://dev.w3.org/csswg/cssom-view/#dom-window-moveto) from W3C.
+   * * [Window.moveTo](https://developer.mozilla.org/en-US/docs/Web/API/Window.moveTo)
+   *   from MDN.
+   * * [Window.moveTo](http://dev.w3.org/csswg/cssom-view/#dom-window-moveto)
+   *   from W3C.
    */
   void moveTo(Point p) {
     _moveTo(p.x, p.y);
@@ -44287,9 +44649,7 @@ class Worker extends EventTarget implements AbstractWorker {
     return new Worker._internalWrap();
   }
 
-  factory Worker._internalWrap() {
-    return new Worker.internal_();
-  }
+  external factory Worker._internalWrap();
 
   @Deprecated("Internal Use Only")
   Worker.internal_() : super.internal_();
@@ -44298,6 +44658,7 @@ class Worker extends EventTarget implements AbstractWorker {
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
+<<<<<<< HEAD
   void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) {
     if (transfer != null) {
       _blink.BlinkWorker.instance.postMessage_Callback_2_(unwrap_jso(this), message, transfer);
@@ -44307,6 +44668,17 @@ class Worker extends EventTarget implements AbstractWorker {
     return;
   }
 
+||||||| merged common ancestors
+  @DomName('Worker.postMessage')
+  @DocsEditable()
+  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) => _blink.BlinkWorker.instance.postMessage_Callback_2_(unwrap_jso(this), message, transfer);
+  
+=======
+  @DomName('Worker.postMessage')
+  @DocsEditable()
+  void postMessage(/*SerializedScriptValue*/ message, [List<MessagePort> transfer]) => _blink.BlinkWorker.instance.postMessage_Callback_2_(unwrap_jso(this), convertDartToNative_SerializedScriptValue(message), transfer);
+  
+>>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
   @DomName('Worker.terminate')
   @DocsEditable()
   void terminate() => _blink.BlinkWorker.instance.terminate_Callback_0_(unwrap_jso(this));
@@ -44343,9 +44715,7 @@ class WorkerConsole extends ConsoleBase {
     return new WorkerConsole._internalWrap();
   }
 
-  factory WorkerConsole._internalWrap() {
-    return new WorkerConsole.internal_();
-  }
+  external factory WorkerConsole._internalWrap();
 
   @Deprecated("Internal Use Only")
   WorkerConsole.internal_() : super.internal_();
@@ -44383,9 +44753,7 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
     return new WorkerGlobalScope._internalWrap();
   }
 
-  factory WorkerGlobalScope._internalWrap() {
-    return new WorkerGlobalScope.internal_();
-  }
+  external factory WorkerGlobalScope._internalWrap();
 
   @Deprecated("Internal Use Only")
   WorkerGlobalScope.internal_() : super.internal_();
@@ -44883,9 +45251,7 @@ class XmlDocument extends Document {
     return new XmlDocument._internalWrap();
   }
 
-  factory XmlDocument._internalWrap() {
-    return new XmlDocument.internal_();
-  }
+  external factory XmlDocument._internalWrap();
 
   @Deprecated("Internal Use Only")
   XmlDocument.internal_() : super.internal_();
@@ -45026,9 +45392,7 @@ class _Attr extends Node {
     return new _Attr._internalWrap();
   }
 
-  factory _Attr._internalWrap() {
-    return new _Attr.internal_();
-  }
+  external factory _Attr._internalWrap();
 
   @Deprecated("Internal Use Only")
   _Attr.internal_() : super.internal_();
@@ -45080,6 +45444,188 @@ class _Attr extends Node {
 
 
 @DocsEditable()
+<<<<<<< HEAD
+||||||| merged common ancestors
+@DomName('CSSPrimitiveValue')
+// http://dev.w3.org/csswg/cssom/#the-cssstyledeclaration-interface
+@deprecated // deprecated
+class _CSSPrimitiveValue extends _CSSValue {
+  // To suppress missing implicit constructor warnings.
+  factory _CSSPrimitiveValue._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static _CSSPrimitiveValue internalCreate_CSSPrimitiveValue() {
+    return new _CSSPrimitiveValue._internalWrap();
+  }
+
+  factory _CSSPrimitiveValue._internalWrap() {
+    return new _CSSPrimitiveValue.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  _CSSPrimitiveValue.internal_() : super.internal_();
+
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('CSSUnknownRule')
+// http://dev.w3.org/csswg/cssom/#the-cssstylesheet-interface
+@deprecated // deprecated
+class _CSSUnknownRule extends CssRule {
+  // To suppress missing implicit constructor warnings.
+  factory _CSSUnknownRule._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static _CSSUnknownRule internalCreate_CSSUnknownRule() {
+    return new _CSSUnknownRule._internalWrap();
+  }
+
+  factory _CSSUnknownRule._internalWrap() {
+    return new _CSSUnknownRule.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  _CSSUnknownRule.internal_() : super.internal_();
+
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('CSSValue')
+// http://dev.w3.org/csswg/cssom/
+@deprecated // deprecated
+class _CSSValue extends DartHtmlDomObject {
+  // To suppress missing implicit constructor warnings.
+  factory _CSSValue._() { throw new UnsupportedError("Not supported"); }
+
+  @Deprecated("Internal Use Only")
+  static _CSSValue internalCreate_CSSValue() {
+    return new _CSSValue._internalWrap();
+  }
+
+  factory _CSSValue._internalWrap() {
+    return new _CSSValue.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  _CSSValue.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+=======
+@DomName('CSSPrimitiveValue')
+// http://dev.w3.org/csswg/cssom/#the-cssstyledeclaration-interface
+@deprecated // deprecated
+class _CSSPrimitiveValue extends _CSSValue {
+  // To suppress missing implicit constructor warnings.
+  factory _CSSPrimitiveValue._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static _CSSPrimitiveValue internalCreate_CSSPrimitiveValue() {
+    return new _CSSPrimitiveValue._internalWrap();
+  }
+
+  external factory _CSSPrimitiveValue._internalWrap();
+
+  @Deprecated("Internal Use Only")
+  _CSSPrimitiveValue.internal_() : super.internal_();
+
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('CSSUnknownRule')
+// http://dev.w3.org/csswg/cssom/#the-cssstylesheet-interface
+@deprecated // deprecated
+class _CSSUnknownRule extends CssRule {
+  // To suppress missing implicit constructor warnings.
+  factory _CSSUnknownRule._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static _CSSUnknownRule internalCreate_CSSUnknownRule() {
+    return new _CSSUnknownRule._internalWrap();
+  }
+
+  external factory _CSSUnknownRule._internalWrap();
+
+  @Deprecated("Internal Use Only")
+  _CSSUnknownRule.internal_() : super.internal_();
+
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('CSSValue')
+// http://dev.w3.org/csswg/cssom/
+@deprecated // deprecated
+class _CSSValue extends DartHtmlDomObject {
+  // To suppress missing implicit constructor warnings.
+  factory _CSSValue._() { throw new UnsupportedError("Not supported"); }
+
+  @Deprecated("Internal Use Only")
+  static _CSSValue internalCreate_CSSValue() {
+    return new _CSSValue._internalWrap();
+  }
+
+  factory _CSSValue._internalWrap() {
+    return new _CSSValue.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  _CSSValue.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+>>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
 @DomName('Cache')
 @Experimental() // untriaged
 class _Cache extends DartHtmlDomObject {
@@ -45471,6 +46017,176 @@ class _CssRuleList extends DartHtmlDomObject with ListMixin<CssRule>, ImmutableL
 
 
 @DocsEditable()
+<<<<<<< HEAD
+||||||| merged common ancestors
+@DomName('CSSValueList')
+// http://dev.w3.org/csswg/cssom/
+@deprecated // deprecated
+class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMixin<_CSSValue> implements List<_CSSValue> {
+  // To suppress missing implicit constructor warnings.
+  factory _CssValueList._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static _CssValueList internalCreate_CssValueList() {
+    return new _CssValueList._internalWrap();
+  }
+
+  factory _CssValueList._internalWrap() {
+    return new _CssValueList.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  _CssValueList.internal_() : super.internal_();
+
+
+  @DomName('CSSValueList.length')
+  @DocsEditable()
+  int get length => _blink.BlinkCSSValueList.instance.length_Getter_(unwrap_jso(this));
+  
+  _CSSValue operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.index(index, this);
+    return wrap_jso(_blink.BlinkCSSValueList.instance.item_Callback_1_(unwrap_jso(this), index));
+  }
+
+  _CSSValue _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkCSSValueList.instance.item_Callback_1_(unwrap_jso(this), index));
+
+  void operator[]=(int index, _CSSValue value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<_CSSValue> mixins.
+  // _CSSValue is the element type.
+
+
+  set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  _CSSValue get first {
+    if (this.length > 0) {
+      return _nativeIndexedGetter(0);
+    }
+    throw new StateError("No elements");
+  }
+
+  _CSSValue get last {
+    int len = this.length;
+    if (len > 0) {
+      return _nativeIndexedGetter(len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  _CSSValue get single {
+    int len = this.length;
+    if (len == 1) {
+      return _nativeIndexedGetter(0);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  _CSSValue elementAt(int index) => this[index];
+  // -- end List<_CSSValue> mixins.
+
+  @DomName('CSSValueList.item')
+  @DocsEditable()
+  _CSSValue item(int index) => wrap_jso(_blink.BlinkCSSValueList.instance.item_Callback_1_(unwrap_jso(this), index));
+  
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+=======
+@DomName('CSSValueList')
+// http://dev.w3.org/csswg/cssom/
+@deprecated // deprecated
+class _CssValueList extends _CSSValue with ListMixin<_CSSValue>, ImmutableListMixin<_CSSValue> implements List<_CSSValue> {
+  // To suppress missing implicit constructor warnings.
+  factory _CssValueList._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static _CssValueList internalCreate_CssValueList() {
+    return new _CssValueList._internalWrap();
+  }
+
+  external factory _CssValueList._internalWrap();
+
+  @Deprecated("Internal Use Only")
+  _CssValueList.internal_() : super.internal_();
+
+
+  @DomName('CSSValueList.length')
+  @DocsEditable()
+  int get length => _blink.BlinkCSSValueList.instance.length_Getter_(unwrap_jso(this));
+  
+  _CSSValue operator[](int index) {
+    if (index < 0 || index >= length)
+      throw new RangeError.index(index, this);
+    return wrap_jso(_blink.BlinkCSSValueList.instance.item_Callback_1_(unwrap_jso(this), index));
+  }
+
+  _CSSValue _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkCSSValueList.instance.item_Callback_1_(unwrap_jso(this), index));
+
+  void operator[]=(int index, _CSSValue value) {
+    throw new UnsupportedError("Cannot assign element of immutable List.");
+  }
+  // -- start List<_CSSValue> mixins.
+  // _CSSValue is the element type.
+
+
+  set length(int value) {
+    throw new UnsupportedError("Cannot resize immutable List.");
+  }
+
+  _CSSValue get first {
+    if (this.length > 0) {
+      return _nativeIndexedGetter(0);
+    }
+    throw new StateError("No elements");
+  }
+
+  _CSSValue get last {
+    int len = this.length;
+    if (len > 0) {
+      return _nativeIndexedGetter(len - 1);
+    }
+    throw new StateError("No elements");
+  }
+
+  _CSSValue get single {
+    int len = this.length;
+    if (len == 1) {
+      return _nativeIndexedGetter(0);
+    }
+    if (len == 0) throw new StateError("No elements");
+    throw new StateError("More than one element");
+  }
+
+  _CSSValue elementAt(int index) => this[index];
+  // -- end List<_CSSValue> mixins.
+
+  @DomName('CSSValueList.item')
+  @DocsEditable()
+  _CSSValue item(int index) => wrap_jso(_blink.BlinkCSSValueList.instance.item_Callback_1_(unwrap_jso(this), index));
+  
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+>>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
 @DomName('DOMFileSystemSync')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @Experimental()
@@ -45516,9 +46232,7 @@ class _DirectoryEntrySync extends _EntrySync {
     return new _DirectoryEntrySync._internalWrap();
   }
 
-  factory _DirectoryEntrySync._internalWrap() {
-    return new _DirectoryEntrySync.internal_();
-  }
+  external factory _DirectoryEntrySync._internalWrap();
 
   @Deprecated("Internal Use Only")
   _DirectoryEntrySync.internal_() : super.internal_();
@@ -45575,9 +46289,7 @@ class _DocumentType extends Node implements ChildNode {
     return new _DocumentType._internalWrap();
   }
 
-  factory _DocumentType._internalWrap() {
-    return new _DocumentType.internal_();
-  }
+  external factory _DocumentType._internalWrap();
 
   @Deprecated("Internal Use Only")
   _DocumentType.internal_() : super.internal_();
@@ -45626,9 +46338,7 @@ class _DomRect extends DomRectReadOnly {
     return new _DomRect._internalWrap();
   }
 
-  factory _DomRect._internalWrap() {
-    return new _DomRect.internal_();
-  }
+  external factory _DomRect._internalWrap();
 
   @Deprecated("Internal Use Only")
   _DomRect.internal_() : super.internal_();
@@ -45727,9 +46437,7 @@ class _FileEntrySync extends _EntrySync {
     return new _FileEntrySync._internalWrap();
   }
 
-  factory _FileEntrySync._internalWrap() {
-    return new _FileEntrySync.internal_();
-  }
+  external factory _FileEntrySync._internalWrap();
 
   @Deprecated("Internal Use Only")
   _FileEntrySync.internal_() : super.internal_();
@@ -45951,9 +46659,7 @@ class _HTMLAppletElement extends HtmlElement {
     return new _HTMLAppletElement._internalWrap();
   }
 
-  factory _HTMLAppletElement._internalWrap() {
-    return new _HTMLAppletElement.internal_();
-  }
+  external factory _HTMLAppletElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   _HTMLAppletElement.internal_() : super.internal_();
@@ -45987,9 +46693,7 @@ class _HTMLDirectoryElement extends HtmlElement {
     return new _HTMLDirectoryElement._internalWrap();
   }
 
-  factory _HTMLDirectoryElement._internalWrap() {
-    return new _HTMLDirectoryElement.internal_();
-  }
+  external factory _HTMLDirectoryElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   _HTMLDirectoryElement.internal_() : super.internal_();
@@ -46023,9 +46727,7 @@ class _HTMLFontElement extends HtmlElement {
     return new _HTMLFontElement._internalWrap();
   }
 
-  factory _HTMLFontElement._internalWrap() {
-    return new _HTMLFontElement.internal_();
-  }
+  external factory _HTMLFontElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   _HTMLFontElement.internal_() : super.internal_();
@@ -46059,9 +46761,7 @@ class _HTMLFrameElement extends HtmlElement {
     return new _HTMLFrameElement._internalWrap();
   }
 
-  factory _HTMLFrameElement._internalWrap() {
-    return new _HTMLFrameElement.internal_();
-  }
+  external factory _HTMLFrameElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   _HTMLFrameElement.internal_() : super.internal_();
@@ -46093,9 +46793,7 @@ class _HTMLFrameSetElement extends HtmlElement implements WindowEventHandlers {
     return new _HTMLFrameSetElement._internalWrap();
   }
 
-  factory _HTMLFrameSetElement._internalWrap() {
-    return new _HTMLFrameSetElement.internal_();
-  }
+  external factory _HTMLFrameSetElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   _HTMLFrameSetElement.internal_() : super.internal_();
@@ -46138,9 +46836,7 @@ class _HTMLMarqueeElement extends HtmlElement {
     return new _HTMLMarqueeElement._internalWrap();
   }
 
-  factory _HTMLMarqueeElement._internalWrap() {
-    return new _HTMLMarqueeElement.internal_();
-  }
+  external factory _HTMLMarqueeElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   _HTMLMarqueeElement.internal_() : super.internal_();
@@ -46180,9 +46876,7 @@ class _MutationEvent extends Event {
     return new _MutationEvent._internalWrap();
   }
 
-  factory _MutationEvent._internalWrap() {
-    return new _MutationEvent.internal_();
-  }
+  external factory _MutationEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   _MutationEvent.internal_() : super.internal_();
@@ -46350,9 +47044,7 @@ class _RadioNodeList extends NodeList {
     return new _RadioNodeList._internalWrap();
   }
 
-  factory _RadioNodeList._internalWrap() {
-    return new _RadioNodeList.internal_();
-  }
+  external factory _RadioNodeList._internalWrap();
 
   @Deprecated("Internal Use Only")
   _RadioNodeList.internal_() : super.internal_();
@@ -46394,9 +47086,7 @@ class _Request extends Body {
     return new _Request._internalWrap();
   }
 
-  factory _Request._internalWrap() {
-    return new _Request.internal_();
-  }
+  external factory _Request._internalWrap();
 
   @Deprecated("Internal Use Only")
   _Request.internal_() : super.internal_();
@@ -46471,9 +47161,7 @@ class _Response extends Body {
     return new _Response._internalWrap();
   }
 
-  factory _Response._internalWrap() {
-    return new _Response.internal_();
-  }
+  external factory _Response._internalWrap();
 
   @Deprecated("Internal Use Only")
   _Response.internal_() : super.internal_();
@@ -46498,9 +47186,7 @@ class _ServiceWorker extends EventTarget implements AbstractWorker {
     return new _ServiceWorker._internalWrap();
   }
 
-  factory _ServiceWorker._internalWrap() {
-    return new _ServiceWorker.internal_();
-  }
+  external factory _ServiceWorker._internalWrap();
 
   @Deprecated("Internal Use Only")
   _ServiceWorker.internal_() : super.internal_();
@@ -46720,6 +47406,68 @@ class _SubtleCrypto extends DartHtmlDomObject {
 
 
 @DocsEditable()
+<<<<<<< HEAD
+||||||| merged common ancestors
+@DomName('WebKitCSSFilterValue')
+// http://dev.w3.org/csswg/cssom/
+@deprecated // deprecated
+class _WebKitCSSFilterValue extends _CssValueList {
+  // To suppress missing implicit constructor warnings.
+  factory _WebKitCSSFilterValue._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static _WebKitCSSFilterValue internalCreate_WebKitCSSFilterValue() {
+    return new _WebKitCSSFilterValue._internalWrap();
+  }
+
+  factory _WebKitCSSFilterValue._internalWrap() {
+    return new _WebKitCSSFilterValue.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  _WebKitCSSFilterValue.internal_() : super.internal_();
+
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+=======
+@DomName('WebKitCSSFilterValue')
+// http://dev.w3.org/csswg/cssom/
+@deprecated // deprecated
+class _WebKitCSSFilterValue extends _CssValueList {
+  // To suppress missing implicit constructor warnings.
+  factory _WebKitCSSFilterValue._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static _WebKitCSSFilterValue internalCreate_WebKitCSSFilterValue() {
+    return new _WebKitCSSFilterValue._internalWrap();
+  }
+
+  external factory _WebKitCSSFilterValue._internalWrap();
+
+  @Deprecated("Internal Use Only")
+  _WebKitCSSFilterValue.internal_() : super.internal_();
+
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+>>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
 @DomName('WebKitCSSMatrix')
 @SupportedBrowser(SupportedBrowser.CHROME)
 @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -46760,6 +47508,68 @@ class _WebKitCSSMatrix extends DartHtmlDomObject {
 
 
 @DocsEditable()
+<<<<<<< HEAD
+||||||| merged common ancestors
+@DomName('WebKitCSSTransformValue')
+// http://dev.w3.org/csswg/cssom/
+@deprecated // deprecated
+class _WebKitCSSTransformValue extends _CssValueList {
+  // To suppress missing implicit constructor warnings.
+  factory _WebKitCSSTransformValue._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static _WebKitCSSTransformValue internalCreate_WebKitCSSTransformValue() {
+    return new _WebKitCSSTransformValue._internalWrap();
+  }
+
+  factory _WebKitCSSTransformValue._internalWrap() {
+    return new _WebKitCSSTransformValue.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  _WebKitCSSTransformValue.internal_() : super.internal_();
+
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+=======
+@DomName('WebKitCSSTransformValue')
+// http://dev.w3.org/csswg/cssom/
+@deprecated // deprecated
+class _WebKitCSSTransformValue extends _CssValueList {
+  // To suppress missing implicit constructor warnings.
+  factory _WebKitCSSTransformValue._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static _WebKitCSSTransformValue internalCreate_WebKitCSSTransformValue() {
+    return new _WebKitCSSTransformValue._internalWrap();
+  }
+
+  external factory _WebKitCSSTransformValue._internalWrap();
+
+  @Deprecated("Internal Use Only")
+  _WebKitCSSTransformValue.internal_() : super.internal_();
+
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+>>>>>>> 8f356bf87ef2fa85559f821a4842b85a31d1cfeb
 @DomName('WindowTimers')
 @Experimental() // untriaged
 abstract class _WindowTimers extends DartHtmlDomObject {
@@ -46899,9 +47709,7 @@ class _XMLHttpRequestProgressEvent extends ProgressEvent {
     return new _XMLHttpRequestProgressEvent._internalWrap();
   }
 
-  factory _XMLHttpRequestProgressEvent._internalWrap() {
-    return new _XMLHttpRequestProgressEvent.internal_();
-  }
+  external factory _XMLHttpRequestProgressEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   _XMLHttpRequestProgressEvent.internal_() : super.internal_();
@@ -47208,12 +48016,11 @@ class _DataAttributeMap implements Map<String, String> {
  *
  * ## Other resources
  *
- * * [Image sources for 2D rendering contexts]
- * (http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#image-sources-for-2d-rendering-contexts)
- * from WHATWG.
- * * [Drawing images]
- * (http://www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html#dom-context-2d-drawimage)
- * from WHATWG.
+ * * [Image sources for 2D rendering
+ *   contexts](https://html.spec.whatwg.org/multipage/scripting.html#image-sources-for-2d-rendering-contexts)
+ *   from WHATWG.
+ * * [Drawing images](https://html.spec.whatwg.org/multipage/scripting.html#dom-context-2d-drawimage)
+ *   from WHATWG.
  */
 abstract class CanvasImageSource {}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -47256,9 +48063,9 @@ abstract class WindowBase implements EventTarget {
    *
    * ## Other resources
    *
-   * * [Session history and navigation specification]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/history.html)
-   * from WHATWG.
+   * * [Session history and navigation
+   *   specification](https://html.spec.whatwg.org/multipage/browsers.html#history)
+   *   from WHATWG.
    */
   HistoryBase get history;
 
@@ -47351,12 +48158,10 @@ abstract class WindowBase implements EventTarget {
    *
    * ## Other resources
    *
-   * * [window.postMessage]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Window.postMessage) from
-   * MDN.
-   * * [Cross-document messaging]
-   * (http://www.whatwg.org/specs/web-apps/current-work/multipage/web-messaging.html)
-   * from WHATWG.
+   * * [window.postMessage](https://developer.mozilla.org/en-US/docs/Web/API/Window.postMessage)
+   *   from MDN.
+   * * [Cross-document messaging](https://html.spec.whatwg.org/multipage/comms.html#web-messaging)
+   *   from WHATWG.
    */
   void postMessage(var message, String targetOrigin, [List messagePorts]);
 }
@@ -48031,9 +48836,8 @@ abstract class ElementStream<T extends Event> implements Stream<T> {
    *
    * ## Other resources
    *
-   * * [Event Capture]
-   * (http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture)
-   * from the W3C DOM Events specification.
+   * * [Event Capture](http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture)
+   *   from the W3C DOM Events specification.
    */
   StreamSubscription<T> capture(void onData(T event));
 }
@@ -48591,6 +49395,7 @@ class _Html5NodeValidator implements NodeValidator {
     'INPUT::align',
     'INPUT::alt',
     'INPUT::autocomplete',
+    'INPUT::autofocus',
     'INPUT::checked',
     'INPUT::disabled',
     'INPUT::inputmode',
@@ -51087,7 +51892,7 @@ class _VMElementUpgrader implements ElementUpgrader {
         throw new UnsupportedError('$tag is not registered.');
       }
       jsObject = unwrap_jso(element);
-    } else if (element.runtimeType == js.JsObjectImpl) {
+    } else if (element.runtimeType == js.JsObject) {
       // It's a Polymer core element (written in JS).
       jsObject = element;
     } else if (isNativeElementExtension) {
@@ -51099,7 +51904,7 @@ class _VMElementUpgrader implements ElementUpgrader {
     } else if (tag != null && element.localName != tag) {
       throw new UnsupportedError('Element is incorrect type. Got ${element.runtimeType}, expected native Html or Svg element to extend.');
     } else if (tag == null) {
-      throw new UnsupportedError('Element is incorrect type. Got ${element.runtimeType}, expected HtmlElement/JsObjectImpl.');
+      throw new UnsupportedError('Element is incorrect type. Got ${element.runtimeType}, expected HtmlElement/JsObject.');
     }
 
     // Remember Dart class to tagName for any upgrading done in wrap_jso.
@@ -51431,9 +52236,9 @@ class _WrappedEvent implements Event {
    *
    * ## Other resources
    *
-   * * [Shadow DOM extensions to Event]
-   * (http://w3c.github.io/webcomponents/spec/shadow/#extensions-to-event) from
-   * W3C.
+   * * [Shadow DOM extensions to
+   *   Event](http://w3c.github.io/webcomponents/spec/shadow/#extensions-to-event)
+   *   from W3C.
    */
   // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/shadow/index.html#extensions-to-event
   @Experimental()

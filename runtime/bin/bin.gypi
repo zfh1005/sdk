@@ -503,6 +503,7 @@
             '--outer_namespace', 'dart',
             '--inner_namespace', 'bin',
             '--name', 'observatory_assets_archive',
+            '--compress',
             '--client_root', '<(PRODUCT_DIR)/observatory/deployed/web/',
           ],
           'message': 'Generating ''<(observatory_assets_cc_file)'' file.'
@@ -514,7 +515,7 @@
       'type': 'none',
       'toolsets':['host'],
       'includes': [
-        'resources_sources.gypi',
+        'vmservice/vmservice_sources.gypi',
       ],
       'actions': [
         {
@@ -545,7 +546,7 @@
       'type': 'none',
       'toolsets':['host'],
       'includes': [
-        'resources_sources.gypi',
+        'vmservice/vmservice_sources.gypi',
       ],
       'actions': [
         {
@@ -587,6 +588,7 @@
       ],
       'include_dirs': [
         '..',
+        '../../third_party/', # Zlib
       ],
       'sources': [
         'main.cc',
@@ -626,6 +628,50 @@
       },
     },
     {
+      # dart binary for running precompiled snapshots without the compiler.
+      'target_name': 'dart_precompiled_runtime',
+      'type': 'executable',
+      'dependencies': [
+        'libdart_precompiled_runtime',
+        'libdart_builtin',
+        'libdart_io',
+        'build_observatory#host',
+        'generate_resources_cc_file#host',
+        'generate_observatory_assets_cc_file#host',
+      ],
+      'include_dirs': [
+        '..',
+        '../../third_party/', # Zlib
+      ],
+      'sources': [
+        'main.cc',
+        'builtin_common.cc',
+        'builtin_natives.cc',
+        'builtin_nolib.cc',
+        'builtin.h',
+        'io_natives.h',
+        'vmservice_impl.cc',
+        'vmservice_impl.h',
+        'snapshot_empty.cc',
+        '<(resources_cc_file)',
+        '<(observatory_assets_cc_file)',
+      ],
+      'conditions': [
+        ['OS=="win"', {
+          'link_settings': {
+            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib', '-lwinmm.lib' ],
+          },
+          # Generate an import library on Windows, by exporting a function.
+          # Extensions use this import library to link to the API in dart.exe.
+          'msvs_settings': {
+            'VCLinkerTool': {
+              'AdditionalOptions': [ '/EXPORT:Dart_True' ],
+            },
+          },
+        }],
+      ],
+    },
+    {
       # dart binary built for the host. It does not use a snapshot
       # and does not include Observatory.
       'target_name': 'dart_bootstrap',
@@ -639,6 +685,7 @@
       ],
       'include_dirs': [
         '..',
+        '../../third_party/', # Zlib
       ],
       'sources': [
         'main.cc',
@@ -694,6 +741,7 @@
       ],
       'include_dirs': [
         '..',
+        '../../third_party/', # Zlib
       ],
       'sources': [
         'main.cc',

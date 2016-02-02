@@ -21,6 +21,7 @@ import '../../js_backend/js_backend.dart' show
     ConstantEmitter;
 
 import '../js_emitter.dart' show NativeEmitter;
+import '../constant_ordering.dart' show deepCompareConstants;
 
 import 'package:js_runtime/shared/embedded_names.dart' show
     CREATE_NEW_ISOLATE,
@@ -108,9 +109,9 @@ class ModelEmitter {
     // which compresses a tiny bit better.
     int r = namer.constantLongName(a).compareTo(namer.constantLongName(b));
     if (r != 0) return r;
-    // Resolve collisions in the long name by using the constant name (i.e. JS
-    // name) which is unique.
-    return namer.constantName(a).compareTo(namer.constantName(b));
+
+    // Resolve collisions in the long name by using a structural order.
+    return deepCompareConstants(a, b);
   }
 
   js.Expression generateStaticClosureAccess(FunctionElement element) {
@@ -158,15 +159,16 @@ class ModelEmitter {
 
     program.finalizers.forEach((js.TokenFinalizer f) => f.finalizeTokens());
 
+    // TODO(johnnniwinther): Support source maps in this emitter.
     for (int i = 0; i < fragmentsCode.length; ++i) {
-      String code = js.prettyPrint(fragmentsCode[i], compiler).getText();
+      String code = js.createCodeBuffer(fragmentsCode[i], compiler).getText();
       totalSize += code.length;
       compiler.outputProvider(fragments[i+1].outputFileName, deferredExtension)
         ..add(code)
         ..close();
     }
 
-    String mainCode = js.prettyPrint(mainAst, compiler).getText();
+    String mainCode = js.createCodeBuffer(mainAst, compiler).getText();
     compiler.outputProvider(mainFragment.outputFileName, 'js')
         ..add(buildGeneratedBy(compiler))
         ..add(mainCode)

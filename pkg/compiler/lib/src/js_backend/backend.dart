@@ -502,7 +502,7 @@ class JavaScriptBackend extends Backend {
 
   bool enabledNoSuchMethod = false;
 
-  final SourceInformationStrategy sourceInformationStrategy;
+  SourceInformationStrategy sourceInformationStrategy;
 
   final BackendHelpers helpers;
   final BackendImpacts impacts;
@@ -520,7 +520,7 @@ class JavaScriptBackend extends Backend {
         this.sourceInformationStrategy =
             generateSourceMap
                 ? (useNewSourceInfo
-                     ? const PositionSourceInformationStrategy()
+                     ? new PositionSourceInformationStrategy()
                      : const StartEndSourceInformationStrategy())
                 : const JavaScriptSourceInformationStrategy(),
         helpers = new BackendHelpers(compiler),
@@ -579,6 +579,52 @@ class JavaScriptBackend extends Backend {
             new FrequencyBasedNamer(compiler) :
             new MinifyNamer(compiler) :
         new Namer(compiler);
+  }
+
+  /// The backend must *always* call this method when enqueuing an
+  /// element. Calls done by the backend are not seen by global
+  /// optimizations, so they would make these optimizations unsound.
+  /// Therefore we need to collect the list of helpers the backend may
+  /// use.
+  // TODO(johnniwinther): Replace this with a more precise modelling; type
+  // inference of these elements is disabled.
+  Element registerBackendUse(Element element) {
+    if (element != null) {
+      bool registerUse = false;
+      if (element == helpers.streamIteratorConstructor ||
+          element == helpers.compiler.symbolConstructor ||
+          element == helpers.compiler.symbolValidatedConstructor ||
+          element == helpers.syncCompleterConstructor ||
+          element == coreClasses.symbolClass ||
+          element == helpers.objectNoSuchMethod) {
+        // TODO(johnniwinther): These are valid but we could be more precise.
+        registerUse = true;
+      } else if (element.implementationLibrary.isPatch ||
+                 element.library == helpers.jsHelperLibrary ||
+                 element.library == helpers.interceptorsLibrary ||
+                 element.library == helpers.isolateHelperLibrary) {
+        // TODO(johnniwinther): We should be more precise about these.
+        registerUse = true;
+      } else if (element == coreClasses.listClass ||
+                 element == helpers.mapLiteralClass ||
+                 element == coreClasses.functionClass ||
+                 element == coreClasses.stringClass) {
+        // TODO(johnniwinther): Avoid these.
+        registerUse = true;
+      }
+      if (!registerUse) {
+        assert(invariant(element, false,
+            message: "Backend use of $element is not allowed."));
+        return element;
+      }
+      helpersUsed.add(element.declaration);
+      if (element.isClass && element.isPatched) {
+        // Both declaration and implementation may declare fields, so we
+        // add both to the list of helpers.
+        helpersUsed.add(element.implementation);
+      }
+    }
+    return element;
   }
 
   bool usedByBackend(Element element) {
@@ -894,14 +940,14 @@ class JavaScriptBackend extends Backend {
 
   final Map<String, Set<ClassElement>> interceptedClassesCache =
       new Map<String, Set<ClassElement>>();
+  final Set<ClassElement> _noClasses = new Set<ClassElement>();
 
-  /**
-   * Returns a set of interceptor classes that contain a member named
-   * [name]. Returns [:null:] if there is no class.
-   */
+  /// Returns a set of interceptor classes that contain a member named [name]
+  ///
+  /// Returns an empty set if there is no class. Do not modify the returned set.
   Set<ClassElement> getInterceptedClassesOn(String name) {
     Set<Element> intercepted = interceptedElements[name];
-    if (intercepted == null) return null;
+    if (intercepted == null) return _noClasses;
     return interceptedClassesCache.putIfAbsent(name, () {
       // Populate the cache by running through all the elements and
       // determine if the given selector applies to them.
@@ -928,13 +974,12 @@ class JavaScriptBackend extends Backend {
     Iterable<MixinApplicationElement> uses = classWorld.mixinUsesOf(mixin);
     Set<ClassElement> result = null;
     for (MixinApplicationElement use in uses) {
-      Iterable<ClassElement> subclasses = classWorld.strictSubclassesOf(use);
-      for (ClassElement subclass in subclasses) {
+      classWorld.forEachStrictSubclassOf(use, (ClassElement subclass) {
         if (isNativeOrExtendsNative(subclass)) {
           if (result == null) result = new Set<ClassElement>();
           result.add(subclass);
         }
-      }
+      });
     }
     return result;
   }
@@ -1205,6 +1250,10 @@ class JavaScriptBackend extends Backend {
       addInterceptors(helpers.jsFixedArrayClass, enqueuer, registry);
       addInterceptors(helpers.jsExtendableArrayClass, enqueuer, registry);
       addInterceptors(helpers.jsUnmodifiableArrayClass, enqueuer, registry);
+      // Literal lists can be translated into calls to these functions:
+      enqueueInResolution(helpers.jsArrayTypedConstructor, registry);
+      enqueueInResolution(helpers.setRuntimeTypeInfo, registry);
+      enqueueInResolution(helpers.getTypeArgumentByIndex, registry);
     } else if (cls == coreClasses.intClass ||
                cls == helpers.jsIntClass) {
       addInterceptors(helpers.jsIntClass, enqueuer, registry);
@@ -1479,23 +1528,6 @@ class JavaScriptBackend extends Backend {
            compiler.enabledRuntimeType;
   }
 
-  /// The backend must *always* call this method when enqueuing an
-  /// element. Calls done by the backend are not seen by global
-  /// optimizations, so they would make these optimizations unsound.
-  /// Therefore we need to collect the list of helpers the backend may
-  /// use.
-  Element registerBackendUse(Element element) {
-    if (element != null) {
-      helpersUsed.add(element.declaration);
-      if (element.isClass && element.isPatched) {
-        // Both declaration and implementation may declare fields, so we
-        // add both to the list of helpers.
-        helpersUsed.add(element.implementation);
-      }
-    }
-    return element;
-  }
-
   /// Enqueue [e] in [enqueuer].
   ///
   /// This method calls [registerBackendUse].
@@ -1601,8 +1633,16 @@ class JavaScriptBackend extends Backend {
       }
     }
 
-    generatedCode[element] = functionCompiler.compile(work);
-    return impactTransformer.transformCodegenImpact(work.registry.worldImpact);
+    jsAst.Fun function = functionCompiler.compile(work);
+    if (function.sourceInformation == null) {
+      function = function.withSourceInformation(
+          sourceInformationStrategy.buildSourceMappedMarker());
+    }
+    generatedCode[element] = function;
+    WorldImpact worldImpact =
+        impactTransformer.transformCodegenImpact(work.registry.worldImpact);
+    compiler.dumpInfoTask.registerImpact(element, worldImpact);
+    return worldImpact;
   }
 
   native.NativeEnqueuer nativeResolutionEnqueuer(Enqueuer world) {
@@ -1629,7 +1669,7 @@ class JavaScriptBackend extends Backend {
    */
   String getGeneratedCode(Element element) {
     assert(invariant(element, element.isDeclaration));
-    return jsAst.prettyPrint(generatedCode[element], compiler).getText();
+    return jsAst.prettyPrint(generatedCode[element], compiler);
   }
 
   int assembleProgram() {
@@ -2159,7 +2199,7 @@ class JavaScriptBackend extends Backend {
         });
         // 4) all overriding members of subclasses/subtypes (should be resolved)
         if (compiler.world.hasAnyStrictSubtype(cls)) {
-          for (ClassElement subcls in compiler.world.strictSubtypesOf(cls)) {
+          compiler.world.forEachStrictSubtypeOf(cls, (ClassElement subcls) {
             subcls.forEachClassMember((Member member) {
               if (memberNames.contains(member.name)) {
                 // TODO(20993): find out why this assertion fails.
@@ -2170,7 +2210,7 @@ class JavaScriptBackend extends Backend {
                 }
               }
             });
-          }
+          });
         }
         // 5) all its closures
         List<LocalFunctionElement> closures = closureMap[cls];
@@ -2393,6 +2433,12 @@ class JavaScriptBackend extends Backend {
   }
 
   void onElementResolved(Element element, TreeElements elements) {
+    if (element.isMalformed) {
+      // Elements that are marker as malformed during parsing or resolution
+      // might be registered here. These should just be ignored.
+      return;
+    }
+
     if ((element.isFunction || element.isConstructor) &&
         annotations.noInline(element)) {
       inlineCache.markAsNonInlinable(element);
@@ -2471,13 +2517,13 @@ class JavaScriptBackend extends Backend {
       compiler.enabledInvokeOn = true;
     }
   }
-
+/*
   CodeBuffer codeOf(Element element) {
     return generatedCode.containsKey(element)
         ? jsAst.prettyPrint(generatedCode[element], compiler)
         : null;
   }
-
+*/
   FunctionElement helperForBadMain() => helpers.badMain;
 
   FunctionElement helperForMissingMain() => helpers.missingMain;
@@ -2610,6 +2656,17 @@ class JavaScriptBackend extends Backend {
     String patchLocation = _patchLocations[libraryName];
     if (patchLocation == null) return null;
     return platformConfigUri.resolve(patchLocation);
+  }
+
+  @override
+  ImpactStrategy createImpactStrategy(
+      {bool supportDeferredLoad: true,
+       bool supportDumpInfo: true}) {
+    return new JavaScriptImpactStrategy(
+        resolution,
+        compiler.dumpInfoTask,
+        supportDeferredLoad: supportDeferredLoad,
+        supportDumpInfo: supportDumpInfo);
   }
 }
 
@@ -3078,4 +3135,47 @@ class Dependency {
   final Element annotatedElement;
 
   const Dependency(this.constant, this.annotatedElement);
+}
+
+class JavaScriptImpactStrategy extends ImpactStrategy {
+  final Resolution resolution;
+  final DumpInfoTask dumpInfoTask;
+  final bool supportDeferredLoad;
+  final bool supportDumpInfo;
+
+  JavaScriptImpactStrategy(this.resolution,
+                           this.dumpInfoTask,
+                           {this.supportDeferredLoad,
+                            this.supportDumpInfo});
+
+  @override
+  void visitImpact(Element element,
+                   WorldImpact impact,
+                   WorldImpactVisitor visitor,
+                   ImpactUseCase impactUse) {
+    // TODO(johnniwinther): Compute the application strategy once for each use.
+    if (impactUse == ResolutionEnqueuer.IMPACT_USE) {
+      if (supportDeferredLoad) {
+        impact.apply(visitor);
+      } else {
+        impact.apply(visitor);
+        resolution.uncacheWorldImpact(element);
+      }
+    } else if (impactUse == DeferredLoadTask.IMPACT_USE) {
+      impact.apply(visitor);
+      // Impacts are uncached globally in [onImpactUsed].
+    } else if (impactUse == DumpInfoTask.IMPACT_USE) {
+      impact.apply(visitor);
+      dumpInfoTask.unregisterImpact(element);
+    } else {
+      impact.apply(visitor);
+    }
+  }
+
+  @override
+  void onImpactUsed(ImpactUseCase impactUse) {
+    if (impactUse == DeferredLoadTask.IMPACT_USE) {
+      resolution.emptyCache();
+    }
+  }
 }

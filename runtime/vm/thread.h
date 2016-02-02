@@ -5,6 +5,10 @@
 #ifndef VM_THREAD_H_
 #define VM_THREAD_H_
 
+#include "include/dart_api.h"
+#include "platform/assert.h"
+#include "vm/atomic.h"
+#include "vm/bitfield.h"
 #include "vm/globals.h"
 #include "vm/handles.h"
 #include "vm/os_thread.h"
@@ -14,6 +18,7 @@
 namespace dart {
 
 class AbstractType;
+class ApiLocalScope;
 class Array;
 class CHA;
 class Class;
@@ -28,9 +33,9 @@ class Heap;
 class Instance;
 class Isolate;
 class Library;
-class Log;
 class LongJumpScope;
 class Object;
+class OSThread;
 class PcDescriptors;
 class RawBool;
 class RawObject;
@@ -40,7 +45,6 @@ class RawString;
 class RuntimeEntry;
 class StackResource;
 class String;
-class TimelineEventBlock;
 class TypeArguments;
 class TypeParameter;
 class Zone;
@@ -78,7 +82,6 @@ class Zone;
   V(RawCode*, invoke_dart_code_stub_,                                          \
     StubCode::InvokeDartCode_entry()->code(), NULL)                            \
 
-
 #define CACHED_ADDRESSES_LIST(V)                                               \
   V(uword, update_store_buffer_entry_point_,                                   \
     StubCode::UpdateStoreBuffer_entry()->EntryPoint(), 0)                      \
@@ -86,29 +89,43 @@ class Zone;
     NativeEntry::NativeCallWrapperEntry(), 0)                                  \
   V(RawString**, predefined_symbols_address_,                                  \
     Symbols::PredefinedAddress(), NULL)                                        \
+  V(uword, double_negate_address_,                                             \
+    reinterpret_cast<uword>(&double_negate_constant), 0)                       \
+  V(uword, double_abs_address_,                                                \
+    reinterpret_cast<uword>(&double_abs_constant), 0)                          \
+  V(uword, float_not_address_,                                                 \
+    reinterpret_cast<uword>(&float_not_constant), 0)                           \
+  V(uword, float_negate_address_,                                              \
+    reinterpret_cast<uword>(&float_negate_constant), 0)                        \
+  V(uword, float_absolute_address_,                                            \
+    reinterpret_cast<uword>(&float_absolute_constant), 0)                      \
+  V(uword, float_zerow_address_,                                               \
+    reinterpret_cast<uword>(&float_zerow_constant), 0)                         \
 
 #define CACHED_CONSTANTS_LIST(V)                                               \
   CACHED_VM_OBJECTS_LIST(V)                                                    \
   CACHED_ADDRESSES_LIST(V)                                                     \
-
 
 // A VM thread; may be executing Dart code or performing helper tasks like
 // garbage collection or compilation. The Thread structure associated with
 // a thread is allocated by EnsureInit before entering an isolate, and destroyed
 // automatically when the underlying OS thread exits. NOTE: On Windows, CleanUp
 // must currently be called manually (issue 23474).
-class Thread {
+class Thread : public BaseThread {
  public:
+  ~Thread();
+
   // The currently executing thread, or NULL if not yet initialized.
   static Thread* Current() {
-    return reinterpret_cast<Thread*>(OSThread::GetThreadLocal(thread_key_));
+    BaseThread* thread = OSThread::GetCurrentTLS();
+    if (thread == NULL || thread->is_os_thread()) {
+      return NULL;
+    }
+    return reinterpret_cast<Thread*>(thread);
   }
 
-  // Initializes the current thread as a VM thread, if not already done.
-  static void EnsureInit();
-
   // Makes the current thread enter 'isolate'.
-  static void EnterIsolate(Isolate* isolate);
+  static bool EnterIsolate(Isolate* isolate);
   // Makes the current thread exit its isolate.
   static void ExitIsolate();
 
@@ -116,25 +133,36 @@ class Thread {
   // "helper" to gain limited concurrent access to the isolate. One example is
   // SweeperTask (which uses the class table, which is copy-on-write).
   // TODO(koda): Properly synchronize heap access to expand allowed operations.
-  static void EnterIsolateAsHelper(Isolate* isolate,
+  static bool EnterIsolateAsHelper(Isolate* isolate,
                                    bool bypass_safepoint = false);
   static void ExitIsolateAsHelper(bool bypass_safepoint = false);
 
-  // Called when the current thread transitions from mutator to collector.
   // Empties the store buffer block into the isolate.
-  // TODO(koda): Always run GC in separate thread.
-  static void PrepareForGC();
+  void PrepareForGC();
 
-  // Called at VM startup.
-  static void InitOnceBeforeIsolate();
-  static void InitOnceAfterObjectAndStubCode();
+  // OSThread corresponding to this thread.
+  OSThread* os_thread() const { return os_thread_; }
+  void set_os_thread(OSThread* os_thread) {
+    os_thread_ = os_thread;
+  }
 
-  // Called at VM shutdown
-  static void Shutdown();
-  ~Thread();
+  // Monitor corresponding to this thread.
+  Monitor* thread_lock() const { return thread_lock_; }
 
   // The topmost zone used for allocation in this thread.
-  Zone* zone() const { return state_.zone; }
+  Zone* zone() const { return zone_; }
+
+  // The reusable api local scope for this thread.
+  ApiLocalScope* api_reusable_scope() const { return api_reusable_scope_; }
+  void set_api_reusable_scope(ApiLocalScope* value) {
+    ASSERT(value == NULL || api_reusable_scope_ == NULL);
+    api_reusable_scope_ = value;
+  }
+
+  // The api local scope for this thread, this where all local handles
+  // are allocated.
+  ApiLocalScope* api_top_scope() const { return api_top_scope_; }
+  void set_api_top_scope(ApiLocalScope* value) { api_top_scope_ = value; }
 
   // The isolate that this thread is operating on, or NULL if none.
   Isolate* isolate() const { return isolate_; }
@@ -142,6 +170,7 @@ class Thread {
     return OFFSET_OF(Thread, isolate_);
   }
   bool IsMutatorThread() const;
+  bool CanCollectGarbage() const;
 
   // Is |this| executing Dart code?
   bool IsExecutingDartCode() const;
@@ -150,8 +179,15 @@ class Thread {
   bool HasExitedDartCode() const;
 
   // The (topmost) CHA for the compilation in this thread.
-  CHA* cha() const;
-  void set_cha(CHA* value);
+  CHA* cha() const {
+    ASSERT(isolate_ != NULL);
+    return cha_;
+  }
+
+  void set_cha(CHA* value) {
+    ASSERT(isolate_ != NULL);
+    cha_ = value;
+  }
 
   int32_t no_callback_scope_depth() const {
     return no_callback_scope_depth_;
@@ -179,26 +215,30 @@ class Thread {
     return OFFSET_OF(Thread, store_buffer_block_);
   }
 
-  uword top_exit_frame_info() const { return state_.top_exit_frame_info; }
+  uword top_exit_frame_info() const {
+    return top_exit_frame_info_;
+  }
   static intptr_t top_exit_frame_info_offset() {
-    return OFFSET_OF(Thread, state_) + OFFSET_OF(State, top_exit_frame_info);
+    return OFFSET_OF(Thread, top_exit_frame_info_);
   }
 
-  StackResource* top_resource() const { return state_.top_resource; }
+  StackResource* top_resource() const { return top_resource_; }
   void set_top_resource(StackResource* value) {
-    state_.top_resource = value;
+    top_resource_ = value;
   }
   static intptr_t top_resource_offset() {
-    return OFFSET_OF(Thread, state_) + OFFSET_OF(State, top_resource);
+    return OFFSET_OF(Thread, top_resource_);
   }
 
+  // Heap of the isolate that this thread is operating on.
+  Heap* heap() const { return heap_; }
   static intptr_t heap_offset() {
     return OFFSET_OF(Thread, heap_);
   }
 
   int32_t no_handle_scope_depth() const {
 #if defined(DEBUG)
-    return state_.no_handle_scope_depth;
+    return no_handle_scope_depth_;
 #else
     return 0;
 #endif
@@ -206,21 +246,21 @@ class Thread {
 
   void IncrementNoHandleScopeDepth() {
 #if defined(DEBUG)
-    ASSERT(state_.no_handle_scope_depth < INT_MAX);
-    state_.no_handle_scope_depth += 1;
+    ASSERT(no_handle_scope_depth_ < INT_MAX);
+    no_handle_scope_depth_ += 1;
 #endif
   }
 
   void DecrementNoHandleScopeDepth() {
 #if defined(DEBUG)
-    ASSERT(state_.no_handle_scope_depth > 0);
-    state_.no_handle_scope_depth -= 1;
+    ASSERT(no_handle_scope_depth_ > 0);
+    no_handle_scope_depth_ -= 1;
 #endif
   }
 
   HandleScope* top_handle_scope() const {
 #if defined(DEBUG)
-    return state_.top_handle_scope;
+    return top_handle_scope_;
 #else
     return 0;
 #endif
@@ -228,13 +268,13 @@ class Thread {
 
   void set_top_handle_scope(HandleScope* handle_scope) {
 #if defined(DEBUG)
-    state_.top_handle_scope = handle_scope;
+    top_handle_scope_ = handle_scope;
 #endif
   }
 
   int32_t no_safepoint_scope_depth() const {
 #if defined(DEBUG)
-    return state_.no_safepoint_scope_depth;
+    return no_safepoint_scope_depth_;
 #else
     return 0;
 #endif
@@ -242,31 +282,17 @@ class Thread {
 
   void IncrementNoSafepointScopeDepth() {
 #if defined(DEBUG)
-    ASSERT(state_.no_safepoint_scope_depth < INT_MAX);
-    state_.no_safepoint_scope_depth += 1;
+    ASSERT(no_safepoint_scope_depth_ < INT_MAX);
+    no_safepoint_scope_depth_ += 1;
 #endif
   }
 
   void DecrementNoSafepointScopeDepth() {
 #if defined(DEBUG)
-    ASSERT(state_.no_safepoint_scope_depth > 0);
-    state_.no_safepoint_scope_depth -= 1;
+    ASSERT(no_safepoint_scope_depth_ > 0);
+    no_safepoint_scope_depth_ -= 1;
 #endif
   }
-
-  // Collection of isolate-specific state of a thread that is saved/restored
-  // on isolate exit/re-entry.
-  struct State {
-    Zone* zone;
-    uword top_exit_frame_info;
-    StackResource* top_resource;
-    LongJumpScope* long_jump_base;
-#if defined(DEBUG)
-    HandleScope* top_handle_scope;
-    intptr_t no_handle_scope_depth;
-    int32_t no_safepoint_scope_depth;
-#endif
-  };
 
 #define DEFINE_OFFSET_METHOD(type_name, member_name, expr, default_init_value) \
   static intptr_t member_name##offset() {                                      \
@@ -293,22 +319,6 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   static intptr_t OffsetFromThread(const Object& object);
   static bool ObjectAtOffset(intptr_t offset, Object* object);
   static intptr_t OffsetFromThread(const RuntimeEntry* runtime_entry);
-
-  Mutex* timeline_block_lock() {
-    return &timeline_block_lock_;
-  }
-
-  // Only safe to access when holding |timeline_block_lock_|.
-  TimelineEventBlock* timeline_block() const {
-    return timeline_block_;
-  }
-
-  // Only safe to access when holding |timeline_block_lock_|.
-  void set_timeline_block(TimelineEventBlock* block) {
-    timeline_block_ = block;
-  }
-
-  class Log* log() const;
 
   static const intptr_t kNoDeoptId = -1;
   static const intptr_t kDeoptIdStep = 2;
@@ -339,9 +349,9 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
     return (deopt_id % kDeoptIdStep) == kDeoptIdAfterOffset;
   }
 
-  LongJumpScope* long_jump_base() const { return state_.long_jump_base; }
+  LongJumpScope* long_jump_base() const { return long_jump_base_; }
   void set_long_jump_base(LongJumpScope* value) {
-    state_.long_jump_base = value;
+    long_jump_base_ = value;
   }
 
   uword vm_tag() const {
@@ -354,35 +364,7 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
     return OFFSET_OF(Thread, vm_tag_);
   }
 
-  ThreadId id() const {
-    ASSERT(id_ != OSThread::kInvalidThreadId);
-    return id_;
-  }
-
-  ThreadId join_id() const {
-    ASSERT(join_id_ != OSThread::kInvalidThreadJoinId);
-    return join_id_;
-  }
-
-  ThreadId trace_id() const {
-    ASSERT(trace_id_ != OSThread::kInvalidThreadJoinId);
-    return trace_id_;
-  }
-
-  const char* name() const {
-    return name_;
-  }
-
-  void set_name(const char* name) {
-    ASSERT(Thread::Current() == this);
-    ASSERT(name_ == NULL);
-    name_ = name;
-  }
-
-  // Used to temporarily disable or enable thread interrupts.
-  void DisableThreadInterrupts();
-  void EnableThreadInterrupts();
-  bool ThreadInterruptsEnabled();
+  RawGrowableObjectArray* pending_functions();
 
 #if defined(DEBUG)
 #define REUSABLE_HANDLE_SCOPE_ACCESSORS(object)                                \
@@ -413,28 +395,160 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   REUSABLE_HANDLE_LIST(REUSABLE_HANDLE)
 #undef REUSABLE_HANDLE
 
-  RawGrowableObjectArray* pending_functions();
+  /*
+   * Fields used to support safepointing a thread.
+   *
+   * - Bit 0 of the safepoint_state_ field is used to indicate if the thread is
+   *   already at a safepoint,
+   * - Bit 1 of the safepoint_state_ field is used to indicate if a safepoint
+   *   operation is requested for this thread.
+   * - Bit 2 of the safepoint_state_ field is used to indicate that the thread
+   *   is blocked for the safepoint operation to complete.
+   *
+   * The safepoint execution state (described above) for a thread is stored in
+   * in the execution_state_ field.
+   * Potential execution states a thread could be in:
+   *   kThreadInGenerated - The thread is running jitted dart/stub code.
+   *   kThreadInVM - The thread is running VM code.
+   *   kThreadInNative - The thread is running native code.
+   *   kThreadInBlockedState - The thread is blocked waiting for a resource.
+   */
+  static intptr_t safepoint_state_offset() {
+    return OFFSET_OF(Thread, safepoint_state_);
+  }
+  static bool IsAtSafepoint(uint32_t state) {
+    return AtSafepointField::decode(state);
+  }
+  bool IsAtSafepoint() const {
+    return AtSafepointField::decode(safepoint_state_);
+  }
+  static uint32_t SetAtSafepoint(bool value, uint32_t state) {
+    return AtSafepointField::update(value, state);
+  }
+  void SetAtSafepoint(bool value) {
+    ASSERT(thread_lock()->IsOwnedByCurrentThread());
+    safepoint_state_ = AtSafepointField::update(value, safepoint_state_);
+  }
+  bool IsSafepointRequested() const {
+    return SafepointRequestedField::decode(safepoint_state_);
+  }
+  static uint32_t SetSafepointRequested(bool value, uint32_t state) {
+    return SafepointRequestedField::update(value, state);
+  }
+  uint32_t SetSafepointRequested(bool value) {
+    ASSERT(thread_lock()->IsOwnedByCurrentThread());
+    uint32_t old_state;
+    uint32_t new_state;
+    do {
+      old_state = safepoint_state_;
+      new_state = SafepointRequestedField::update(value, old_state);
+    } while (AtomicOperations::CompareAndSwapUint32(&safepoint_state_,
+                                                    old_state,
+                                                    new_state) != old_state);
+    return old_state;
+  }
+  static bool IsBlockedForSafepoint(uint32_t state) {
+    return BlockedForSafepointField::decode(state);
+  }
+  bool IsBlockedForSafepoint() const {
+    return BlockedForSafepointField::decode(safepoint_state_);
+  }
+  void SetBlockedForSafepoint(bool value) {
+    ASSERT(thread_lock()->IsOwnedByCurrentThread());
+    safepoint_state_ =
+        BlockedForSafepointField::update(value, safepoint_state_);
+  }
 
+  enum ExecutionState {
+    kThreadInVM = 0,
+    kThreadInGenerated,
+    kThreadInNative,
+    kThreadInBlockedState
+  };
+
+  ExecutionState execution_state() const {
+    return static_cast<ExecutionState>(execution_state_);
+  }
+  void set_execution_state(ExecutionState state) {
+    execution_state_ = static_cast<uint32_t>(state);
+  }
+  static intptr_t execution_state_offset() {
+    return OFFSET_OF(Thread, execution_state_);
+  }
+
+  void EnterSafepoint() {
+    // First try a fast update of the thread state to indicate it is at a
+    // safepoint.
+    uint32_t new_state = SetAtSafepoint(true, 0);
+    uword addr = reinterpret_cast<uword>(this) + safepoint_state_offset();
+    if (AtomicOperations::CompareAndSwapUint32(
+            reinterpret_cast<uint32_t*>(addr), 0, new_state) != 0) {
+      // Fast update failed which means we could potentially be in the middle
+      // of a safepoint operation.
+      EnterSafepointUsingLock();
+    }
+  }
+
+  void ExitSafepoint() {
+    // First try a fast update of the thread state to indicate it is not at a
+    // safepoint anymore.
+    uint32_t old_state = SetAtSafepoint(true, 0);
+    uword addr = reinterpret_cast<uword>(this) + safepoint_state_offset();
+    if (AtomicOperations::CompareAndSwapUint32(
+            reinterpret_cast<uint32_t*>(addr), old_state, 0) != old_state) {
+      // Fast update failed which means we could potentially be in the middle
+      // of a safepoint operation.
+      ExitSafepointUsingLock();
+    }
+  }
+
+  void CheckForSafepoint() {
+    if (IsSafepointRequested()) {
+      BlockForSafepoint();
+    }
+  }
+
+  Thread* next() const { return next_; }
+
+  // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
-  static bool IsThreadInList(ThreadId join_id);
+  bool IsValidLocalHandle(Dart_Handle object) const;
+  int CountLocalHandles() const;
+  int ZoneSizeInBytes() const;
+  void UnwindScopes(uword stack_marker);
+
+  void InitVMConstants();
 
  private:
   template<class T> T* AllocateReusableHandle();
 
-  static ThreadLocalKey thread_key_;
-
-  const ThreadId id_;
-  const ThreadId join_id_;
-  const ThreadId trace_id_;
-  uintptr_t thread_interrupt_disabled_;
+  OSThread* os_thread_;
+  Monitor* thread_lock_;
   Isolate* isolate_;
   Heap* heap_;
-  State state_;
-  Mutex timeline_block_lock_;
-  TimelineEventBlock* timeline_block_;
+  Zone* zone_;
+  ApiLocalScope* api_reusable_scope_;
+  ApiLocalScope* api_top_scope_;
+  uword top_exit_frame_info_;
+  StackResource* top_resource_;
+  LongJumpScope* long_jump_base_;
   StoreBufferBlock* store_buffer_block_;
-  class Log* log_;
+  int32_t no_callback_scope_depth_;
+#if defined(DEBUG)
+  HandleScope* top_handle_scope_;
+  int32_t no_handle_scope_depth_;
+  int32_t no_safepoint_scope_depth_;
+#endif
+  VMHandles reusable_handles_;
+
+  // Compiler state:
+  CHA* cha_;
+  intptr_t deopt_id_;  // Compilation specific counter.
+  uword vm_tag_;
+  RawGrowableObjectArray* pending_functions_;
+
+  // State that is cached in the TLS for fast access in generated code.
 #define DECLARE_MEMBERS(type_name, member_name, expr, default_init_value)      \
   type_name member_name;
 CACHED_CONSTANTS_LIST(DECLARE_MEMBERS)
@@ -463,50 +577,38 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 #undef REUSABLE_HANDLE_SCOPE_VARIABLE
 #endif  // defined(DEBUG)
 
-  VMHandles reusable_handles_;
+  class AtSafepointField : public BitField<bool, 0, 1> {};
+  class SafepointRequestedField : public BitField<bool, 1, 1> {};
+  class BlockedForSafepointField : public BitField<bool, 2, 1> {};
+  uint32_t safepoint_state_;
+  uint32_t execution_state_;
 
-  // Compiler state:
-  CHA* cha_;
-  intptr_t deopt_id_;  // Compilation specific counter.
-  uword vm_tag_;
-  RawGrowableObjectArray* pending_functions_;
+  Thread* next_;  // Used to chain the thread structures in an isolate.
 
-  int32_t no_callback_scope_depth_;
-
-  // All |Thread|s are registered in the thread list.
-  Thread* thread_list_next_;
-
-  // A name for this thread.
-  const char* name_;
-
-  static Thread* thread_list_head_;
-  static Mutex* thread_list_lock_;
-
-  static void AddThreadToList(Thread* thread);
-  static void RemoveThreadFromList(Thread* thread);
-
-  explicit Thread(bool init_vm_constants = true);
-
-  void InitVMConstants();
-
-  void ClearState();
+  explicit Thread(Isolate* isolate);
 
   void StoreBufferRelease(
       StoreBuffer::ThresholdPolicy policy = StoreBuffer::kCheckThreshold);
   void StoreBufferAcquire();
 
   void set_zone(Zone* zone) {
-    state_.zone = zone;
+    zone_ = zone;
   }
 
   void set_top_exit_frame_info(uword top_exit_frame_info) {
-    state_.top_exit_frame_info = top_exit_frame_info;
+    top_exit_frame_info_ = top_exit_frame_info;
   }
 
-  static void SetCurrent(Thread* current);
+  void set_safepoint_state(uint32_t value) {
+    safepoint_state_ = value;
+  }
+  void EnterSafepointUsingLock();
+  void ExitSafepointUsingLock();
+  void BlockForSafepoint();
 
-  void Schedule(Isolate* isolate, bool bypass_safepoint = false);
-  void Unschedule(bool bypass_safepoint = false);
+  static void SetCurrent(Thread* current) {
+    OSThread::SetCurrentTLS(reinterpret_cast<uword>(current));
+  }
 
 #define REUSABLE_FRIEND_DECLARATION(name)                                      \
   friend class Reusable##name##HandleScope;
@@ -517,30 +619,11 @@ REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
   friend class Isolate;
   friend class Simulator;
   friend class StackZone;
-  friend class ThreadIterator;
-  friend class ThreadIteratorTestHelper;
   friend class ThreadRegistry;
 
   DISALLOW_COPY_AND_ASSIGN(Thread);
 };
 
-
-// Note that this takes the thread list lock, prohibiting threads from coming
-// on- or off-line.
-class ThreadIterator : public ValueObject {
- public:
-  ThreadIterator();
-  ~ThreadIterator();
-
-  // Returns false when there are no more threads left.
-  bool HasNext() const;
-
-  // Returns the current thread and moves forward.
-  Thread* Next();
-
- private:
-  Thread* next_;
-};
 
 #if defined(TARGET_OS_WINDOWS)
 // Clears the state of the current thread and frees the allocation.

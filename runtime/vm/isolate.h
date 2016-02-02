@@ -56,6 +56,7 @@ class RawError;
 class RawFloat32x4;
 class RawInt32x4;
 class RawUserTag;
+class SafepointHandler;
 class SampleBuffer;
 class SendPort;
 class ServiceIdZone;
@@ -121,17 +122,18 @@ class Isolate : public BaseIsolate {
 
   // Visit all object pointers.
   void IterateObjectPointers(ObjectPointerVisitor* visitor,
-                             bool visit_prologue_weak_persistent_handles,
                              bool validate_frames);
 
   // Visits weak object pointers.
-  void VisitWeakPersistentHandles(HandleVisitor* visitor,
-                                  bool visit_prologue_weak_persistent_handles);
-  void VisitPrologueWeakPersistentHandles(HandleVisitor* visitor);
+  void VisitWeakPersistentHandles(HandleVisitor* visitor);
+
+  // Prepares all threads in an isolate for Garbage Collection.
+  void PrepareForGC();
 
   StoreBuffer* store_buffer() { return store_buffer_; }
 
-  ThreadRegistry* thread_registry() { return thread_registry_; }
+  ThreadRegistry* thread_registry() const { return thread_registry_; }
+  SafepointHandler* safepoint_handler() const { return safepoint_handler_; }
 
   ClassTable* class_table() { return &class_table_; }
   static intptr_t class_table_offset() {
@@ -254,8 +256,6 @@ class Isolate : public BaseIsolate {
   // The true stack limit for this isolate.
   uword saved_stack_limit() const { return saved_stack_limit_; }
 
-  uword stack_base() const { return stack_base_; }
-
   // Stack overflow flags
   enum {
     kOsrRequest = 0x1,  // Current stack overflow caused by OSR request.
@@ -273,13 +273,6 @@ class Isolate : public BaseIsolate {
   // the generated code before the slow path runtime routine for a
   // stack overflow is called.
   uword GetAndClearStackOverflowFlags();
-
-  // Retrieve the stack address bounds for profiler.
-  bool GetProfilerStackBounds(uword* lower, uword* upper) const;
-
-  static uword GetSpecifiedStackSize();
-
-  static const intptr_t kStackSizeBuffer = (4 * KB * kWordSize);
 
   // Interrupt bits.
   enum {
@@ -360,17 +353,6 @@ class Isolate : public BaseIsolate {
 
   const Flags& flags() const { return flags_; }
 
-  // Set the checks in the compiler to the highest level. Statically and when
-  // executing generated code. Needs to be called before any code has been
-  // compiled.
-  void set_strict_compilation() {
-    ASSERT(!has_compiled_code());
-    flags_.type_checks_ = true;
-    flags_.asserts_ = true;
-    flags_.error_on_bad_type_ = true;
-    flags_.error_on_bad_override_ = true;
-  }
-
   // Requests that the debugger resume execution.
   void Resume() {
     resume_request_ = true;
@@ -435,26 +417,17 @@ class Isolate : public BaseIsolate {
     gc_epilogue_callback_ = callback;
   }
 
+  Monitor* spawn_count_monitor() const { return spawn_count_monitor_; }
+  intptr_t* spawn_count() { return &spawn_count_; }
+
+  void IncrementSpawnCount();
+  void WaitForOutstandingSpawns();
+
   static void SetCreateCallback(Dart_IsolateCreateCallback cb) {
     create_callback_ = cb;
   }
   static Dart_IsolateCreateCallback CreateCallback() {
     return create_callback_;
-  }
-
-  static void SetInterruptCallback(Dart_IsolateInterruptCallback cb) {
-    interrupt_callback_ = cb;
-  }
-  static Dart_IsolateInterruptCallback InterruptCallback() {
-    return interrupt_callback_;
-  }
-
-  static void SetUnhandledExceptionCallback(
-      Dart_IsolateUnhandledExceptionCallback cb) {
-    unhandled_exception_callback_ = cb;
-  }
-  static Dart_IsolateUnhandledExceptionCallback UnhandledExceptionCallback() {
-    return unhandled_exception_callback_;
   }
 
   static void SetShutdownCallback(Dart_IsolateShutdownCallback cb) {
@@ -665,6 +638,12 @@ class Isolate : public BaseIsolate {
   // Handle service messages until we are told to resume execution.
   void PauseEventHandler();
 
+  void AddClosureFunction(const Function& function) const;
+  RawFunction* LookupClosureFunction(const Function& parent,
+                                     TokenPosition token_pos) const;
+  intptr_t FindClosureIndex(const Function& needle) const;
+  RawFunction* ClosureFunctionFromIndex(intptr_t idx) const;
+
   bool is_service_isolate() const { return is_service_isolate_; }
 
   static void KillAllIsolates(LibMsgId msg_id);
@@ -691,15 +670,12 @@ class Isolate : public BaseIsolate {
   void Shutdown();
 
   void BuildName(const char* name_prefix);
-  void PrintInvokedFunctions();
 
   void ProfileIdle();
 
   // Visit all object pointers. Caller must ensure concurrent sweeper is not
   // running, and the visitor must not allocate.
-  void VisitObjectPointers(ObjectPointerVisitor* visitor,
-                           bool visit_prologue_weak_persistent_handles,
-                           bool validate_frames);
+  void VisitObjectPointers(ObjectPointerVisitor* visitor, bool validate_frames);
 
   void set_user_tag(uword tag) {
     user_tag_ = tag;
@@ -716,17 +692,10 @@ class Isolate : public BaseIsolate {
   void set_registered_service_extension_handlers(
       const GrowableObjectArray& value);
 
-  void ClearMutatorThread() {
-    mutator_thread_ = NULL;
-  }
-  void MakeCurrentThreadMutator(Thread* thread) {
-    ASSERT(thread == Thread::Current());
-    DEBUG_ASSERT(IsIsolateOf(thread));
-    mutator_thread_ = thread;
-  }
-#if defined(DEBUG)
-  bool IsIsolateOf(Thread* thread);
-#endif  // DEBUG
+  Monitor* threads_lock() const;
+  Thread* ScheduleThread(bool is_mutator, bool bypass_safepoint = false);
+  void UnscheduleThread(
+      Thread* thread, bool is_mutator, bool bypass_safepoint = false);
 
   // DEPRECATED: Use Thread's methods instead. During migration, these default
   // to using the mutator thread (which must also be the current thread).
@@ -736,6 +705,8 @@ class Isolate : public BaseIsolate {
   }
 
   // Accessed from generated code:
+  // TODO(asiva): Need to consider moving the stack_limit_ from isolate to
+  // being thread specific.
   uword stack_limit_;
   StoreBuffer* store_buffer_;
   Heap* heap_;
@@ -745,8 +716,10 @@ class Isolate : public BaseIsolate {
   RawCode* ic_miss_code_;
   ClassTable class_table_;
   bool single_step_;
+  bool skip_step_;  // skip the next single step.
 
   ThreadRegistry* thread_registry_;
+  SafepointHandler* safepoint_handler_;
   Dart_MessageNotifyCallback message_notify_callback_;
   char* name_;
   char* debugger_name_;
@@ -771,7 +744,6 @@ class Isolate : public BaseIsolate {
   Simulator* simulator_;
   Mutex* mutex_;  // protects stack_limit_, saved_stack_limit_, compiler stats.
   uword saved_stack_limit_;
-  uword stack_base_;
   uword stack_overflow_flags_;
   int32_t stack_overflow_count_;
   MessageHandler* message_handler_;
@@ -846,6 +818,11 @@ class Isolate : public BaseIsolate {
   uint32_t field_invalidation_gen_;
   uint32_t prefix_invalidation_gen_;
 
+  // This guards spawn_count_. An isolate cannot complete shutdown and be
+  // destroyed while there are child isolates in the midst of a spawn.
+  Monitor* spawn_count_monitor_;
+  intptr_t spawn_count_;
+
 #define ISOLATE_METRIC_VARIABLE(type, variable, name, unit)                    \
   type metric_##variable##_;
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
@@ -857,8 +834,6 @@ class Isolate : public BaseIsolate {
 #undef ISOLATE_TIMELINE_STREAM_VARIABLE
 
   static Dart_IsolateCreateCallback create_callback_;
-  static Dart_IsolateInterruptCallback interrupt_callback_;
-  static Dart_IsolateUnhandledExceptionCallback unhandled_exception_callback_;
   static Dart_IsolateShutdownCallback shutdown_callback_;
   static Dart_FileOpenCallback file_open_callback_;
   static Dart_FileReadCallback file_read_callback_;
@@ -884,6 +859,7 @@ REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
 #undef REUSABLE_FRIEND_DECLARATION
 
   friend class GCMarker;  // VisitObjectPointers
+  friend class SafepointHandler;
   friend class Scavenger;  // VisitObjectPointers
   friend class ServiceIsolate;
   friend class Thread;
@@ -908,7 +884,7 @@ class StartIsolateScope {
     if (saved_isolate_ != new_isolate_) {
       ASSERT(Isolate::Current() == NULL);
       // Ensure this is not a nested 'isolate enter' with prior state.
-      ASSERT(new_isolate_->stack_base() == 0);
+      ASSERT(new_isolate_->saved_stack_limit() == 0);
       Thread::EnterIsolate(new_isolate_);
     }
   }
@@ -922,7 +898,7 @@ class StartIsolateScope {
     if (saved_isolate_ != new_isolate_) {
       ASSERT(saved_isolate_ == NULL);
       // ASSERT that we have bottomed out of all Dart invocations.
-      ASSERT(new_isolate_->stack_base() == 0);
+      ASSERT(new_isolate_->saved_stack_limit() == 0);
       Thread::ExitIsolate();
     }
   }
@@ -938,18 +914,28 @@ class StartIsolateScope {
 class IsolateSpawnState {
  public:
   IsolateSpawnState(Dart_Port parent_port,
+                    Dart_Port origin_id,
+                    void* init_data,
+                    const char* script_url,
                     const Function& func,
                     const Instance& message,
+                    Monitor* spawn_count_monitor,
+                    intptr_t* spawn_count,
+                    const char* package_root,
+                    const char* package_config,
                     bool paused,
                     bool errorsAreFatal,
                     Dart_Port onExit,
                     Dart_Port onError);
   IsolateSpawnState(Dart_Port parent_port,
+                    void* init_data,
                     const char* script_url,
                     const char* package_root,
-                    const char** package_map,
+                    const char* package_config,
                     const Instance& args,
                     const Instance& message,
+                    Monitor* spawn_count_monitor,
+                    intptr_t* spawn_count,
                     bool paused,
                     bool errorsAreFatal,
                     Dart_Port onExit,
@@ -960,11 +946,13 @@ class IsolateSpawnState {
   void set_isolate(Isolate* value) { isolate_ = value; }
 
   Dart_Port parent_port() const { return parent_port_; }
+  Dart_Port origin_id() const { return origin_id_; }
+  void* init_data() const { return init_data_; }
   Dart_Port on_exit_port() const { return on_exit_port_; }
   Dart_Port on_error_port() const { return on_error_port_; }
   const char* script_url() const { return script_url_; }
   const char* package_root() const { return package_root_; }
-  const char** package_map() const { return package_map_; }
+  const char* package_config() const { return package_config_; }
   const char* library_url() const { return library_url_; }
   const char* class_name() const { return class_name_; }
   const char* function_name() const { return function_name_; }
@@ -977,14 +965,18 @@ class IsolateSpawnState {
   RawInstance* BuildArgs(Thread* thread);
   RawInstance* BuildMessage(Thread* thread);
 
+  void DecrementSpawnCount();
+
  private:
   Isolate* isolate_;
   Dart_Port parent_port_;
+  Dart_Port origin_id_;
+  void* init_data_;
   Dart_Port on_exit_port_;
   Dart_Port on_error_port_;
   const char* script_url_;
   const char* package_root_;
-  const char** package_map_;
+  const char* package_config_;
   const char* library_url_;
   const char* class_name_;
   const char* function_name_;
@@ -992,6 +984,12 @@ class IsolateSpawnState {
   intptr_t serialized_args_len_;
   uint8_t* serialized_message_;
   intptr_t serialized_message_len_;
+
+  // This counter tracks the number of outstanding calls to spawn by the parent
+  // isolate.
+  Monitor* spawn_count_monitor_;
+  intptr_t* spawn_count_;
+
   Isolate::Flags isolate_flags_;
   bool paused_;
   bool errors_are_fatal_;

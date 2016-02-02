@@ -27,6 +27,7 @@ DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 DECLARE_FLAG(bool, use_osr);
+DECLARE_FLAG(bool, precompilation);
 
 // Generic summary for call instructions that have all arguments pushed
 // on the stack and return the result in a fixed register RAX.
@@ -304,13 +305,12 @@ void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
-  const intptr_t kNumInputs = 3;
+  const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new(zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(RAX));  // Value.
-  summary->set_in(1, Location::RegisterLocation(RCX));  // Instantiator.
-  summary->set_in(2, Location::RegisterLocation(RDX));  // Type arguments.
+  summary->set_in(1, Location::RegisterLocation(RDX));  // Type arguments.
   summary->set_out(0, Location::RegisterLocation(RAX));
   return summary;
 }
@@ -329,7 +329,7 @@ LocationSummary* AssertBooleanInstr::MakeLocationSummary(Zone* zone,
 
 
 static void EmitAssertBoolean(Register reg,
-                              intptr_t token_pos,
+                              TokenPosition token_pos,
                               intptr_t deopt_id,
                               LocationSummary* locs,
                               FlowGraphCompiler* compiler) {
@@ -775,8 +775,6 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   SetupNative();
   Register result = locs()->out(0).reg();
   const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
-  const bool is_leaf_call =
-      (argc_tag & NativeArguments::AutoSetupScopeMask()) == 0;
 
   // Push the result place holder initialized to NULL.
   __ PushObject(Object::null_object());
@@ -794,9 +792,9 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     ExternalLabel label(NativeEntry::LinkNativeCallEntry());
     __ LoadNativeEntry(RBX, &label, kPatchable);
   } else {
-    stub_entry = (is_bootstrap_native() || is_leaf_call)
-        ? StubCode::CallBootstrapCFunction_entry()
-        : StubCode::CallNativeCFunction_entry();
+    stub_entry = (is_bootstrap_native()) ?
+        StubCode::CallBootstrapCFunction_entry() :
+        StubCode::CallNativeCFunction_entry();
     const ExternalLabel label(reinterpret_cast<uword>(native_c_function()));
     __ LoadNativeEntry(RBX, &label, kNotPatchable);
   }
@@ -1685,7 +1683,7 @@ class BoxAllocationSlowPath : public SlowPathCode {
     locs->live_registers()->Remove(Location::RegisterLocation(result_));
 
     compiler->SaveLiveRegisters(locs);
-    compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
+    compiler->GenerateCall(TokenPosition::kNoSource,  // No token position.
                            stub_entry,
                            RawPcDescriptors::kOther,
                            locs);
@@ -2012,13 +2010,12 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* InstanceOfInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
-  const intptr_t kNumInputs = 3;
+  const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new(zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(RAX));
-  summary->set_in(1, Location::RegisterLocation(RCX));
-  summary->set_in(2, Location::RegisterLocation(RDX));
+  summary->set_in(1, Location::RegisterLocation(RDX));
   summary->set_out(0, Location::RegisterLocation(RAX));
   return summary;
 }
@@ -2026,8 +2023,7 @@ LocationSummary* InstanceOfInstr::MakeLocationSummary(Zone* zone,
 
 void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(0).reg() == RAX);  // Value.
-  ASSERT(locs()->in(1).reg() == RCX);  // Instantiator.
-  ASSERT(locs()->in(2).reg() == RDX);  // Instantiator type arguments.
+  ASSERT(locs()->in(1).reg() == RDX);  // Instantiator type arguments.
 
   compiler->GenerateInstanceOf(token_pos(),
                                deopt_id(),
@@ -2117,6 +2113,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Label slow_path, done;
   if (compiler->is_optimizing() &&
+      !FLAG_precompilation &&
       num_elements()->BindsToConstant() &&
       num_elements()->BoundConstant().IsSmi()) {
     const intptr_t length = Smi::Cast(num_elements()->BoundConstant()).Value();
@@ -2629,7 +2626,7 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
       // In unoptimized code, record loop stack checks as possible OSR entries.
       compiler->AddCurrentDescriptor(RawPcDescriptors::kOsrEntry,
                                      instruction_->deopt_id(),
-                                     0);  // No token position.
+                                     TokenPosition::kNoSource);
     }
     compiler->pending_deoptimization_env_ = NULL;
     compiler->RestoreLiveRegisters(instruction_->locs());
@@ -6193,7 +6190,7 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // may be inserted before this instruction.
     compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                                    GetDeoptId(),
-                                   Scanner::kNoSourcePos);
+                                   TokenPosition::kNoSource);
   }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -6445,7 +6442,7 @@ void GrowRegExpStackInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register result = locs()->out(0).reg();
   __ PushObject(Object::null_object());
   __ pushq(typed_data);
-  compiler->GenerateRuntimeCall(Scanner::kNoSourcePos,  // No token position.
+  compiler->GenerateRuntimeCall(TokenPosition::kNoSource,
                                 deopt_id(),
                                 kGrowRegExpStackRuntimeEntry,
                                 1,

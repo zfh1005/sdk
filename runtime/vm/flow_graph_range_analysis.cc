@@ -14,6 +14,7 @@ DEFINE_FLAG(bool, array_bounds_check_elimination, true,
 DEFINE_FLAG(bool, trace_range_analysis, false, "Trace range analysis progress");
 DEFINE_FLAG(bool, trace_integer_ir_selection, false,
     "Print integer IR selection optimization pass.");
+DECLARE_FLAG(bool, precompilation);
 DECLARE_FLAG(bool, trace_constant_propagation);
 
 // Quick access to the locally defined isolate() and zone() methods.
@@ -1528,8 +1529,12 @@ class BoundsCheckGeneralizer {
 void RangeAnalysis::EliminateRedundantBoundsChecks() {
   if (FLAG_array_bounds_check_elimination) {
     const Function& function = flow_graph_->function();
+    // Generalization only if we have not deoptimized on a generalized
+    // check earlier, or we're compiling precompiled code (no
+    // optimistic hoisting of checks possible)
     const bool try_generalization =
-        function.allows_bounds_check_generalization();
+        function.allows_bounds_check_generalization() &&
+        !FLAG_precompilation;
 
     BoundsCheckGeneralizer generalizer(this, flow_graph_);
 
