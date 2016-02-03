@@ -13,7 +13,7 @@ vars.update({
   "dartium_chromium_commit": "3860d0b5fba353b393b752676c1e490502b22447",
   "chromium_base_revision": "338390",
   "dartium_webkit_branch": "/blink/branches/dart/2454_1",
-  "dartium_webkit_revision": "202766",
+  "dartium_webkit_revision": "202767",
 
   # We use mirrors of all github repos to guarantee reproducibility and
   # consistency between what users see and what the bots see.
@@ -76,11 +76,11 @@ vars.update({
 # def massage_deps(deps):
 #   for key, value in deps.items():
 #     if value is None: continue
-# 
+#
 #     if value.startswith('/trunk'):
 #       deps[key] = Var("chromium_url") + value
 #       continue
-# 
+#
 #     if value.startswith(Var("webkit_trunk")):
 #       path, revision = value.split('@') # and svn revision.
 #       path = path[len(Var("webkit_trunk")):]  # Strip WebKit repo.
@@ -88,7 +88,7 @@ vars.update({
 #                '@' + Var("dartium_webkit_revision"))
 #       deps[key] = value
 #       continue
-# 
+#
 # massage_deps(deps)
 # for os_deps in deps_os.values():
 #   massage_deps(os_deps)
