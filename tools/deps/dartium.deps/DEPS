@@ -68,7 +68,7 @@ vars.update({
   "yaml_rev": "@563a5ffd4a800a2897b8f4dd6b19f2a370df2f2b",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
   "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
-  "WebCore_rev": "@4f90b41b0165f23f412cecdba07b7d81d3fbb5b5",
+  "WebCore_rev": "@5ecb723fd9ffcc0d108f5e0e24d12b8b3df7b200",
 
   "co19_rev": "@3ed795ea02e022ef19c77cf1b6095b7c8f5584d0",
 })
