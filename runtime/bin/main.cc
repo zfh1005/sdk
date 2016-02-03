@@ -26,7 +26,7 @@
 #include "platform/globals.h"
 #include "platform/hashmap.h"
 #include "platform/text_buffer.h"
-#include "zlib/zlib.h"
+//#include "zlib/zlib.h"
 
 namespace dart {
 namespace bin {
@@ -1335,10 +1335,11 @@ void Decompress(const uint8_t* input, unsigned int input_len,
   ASSERT(output != NULL);
   ASSERT(output_length != NULL);
 
-  // Initialize output.
-  *output = NULL;
-  *output_length = 0;
-
+  // Just copy input.
+  *output = new uint8_t[input_len];
+  memcpy(output, input, input_len);
+  *output_length = input_len;
+/* XXX commented out
   const unsigned int kChunkSize = 256 * 1024;
   uint8_t chunk_out[kChunkSize];
   z_stream strm;
@@ -1386,6 +1387,7 @@ void Decompress(const uint8_t* input, unsigned int input_len,
   } while (ret != Z_STREAM_END);
 
   inflateEnd(&strm);
+  */
 }
 
 
