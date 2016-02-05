@@ -8,8 +8,6 @@ import 'dart:async' show
     EventSink,
     Future;
 
-import 'dart:developer' as developer;
-
 import '../compiler_new.dart' as api;
 import 'cache_strategy.dart' show
     CacheStrategy;
@@ -557,6 +555,12 @@ abstract class Compiler {
   int getNextFreeClassId() => nextFreeClassId++;
 
   void unimplemented(Spannable spannable, String methodName) {
+    try {
+      // Provoke a coredump if --abort-on-assertion-errors was passed to DartVM.
+      assert(false);
+    } catch (_) {
+      // Ignored.
+    }
     reporter.internalError(spannable, "$methodName not implemented.");
   }
 
@@ -1874,7 +1878,6 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
         createMessage(node, MessageKind.GENERIC, {'text': message}),
         const <DiagnosticMessage>[],
         api.Diagnostic.CRASH);
-    developer.dumpCore();
     throw 'Internal Error: $message';
   }
 

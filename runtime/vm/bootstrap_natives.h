@@ -73,7 +73,6 @@ namespace dart {
   V(Developer_lookupExtension, 1)                                              \
   V(Developer_registerExtension, 2)                                            \
   V(Developer_log, 8)                                                          \
-  V(Developer_dumpCore, 0)                                                     \
   V(Double_getIsNegative, 1)                                                   \
   V(Double_getIsInfinite, 1)                                                   \
   V(Double_getIsNaN, 1)                                                        \

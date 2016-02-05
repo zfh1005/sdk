@@ -88,6 +88,3 @@ void _reportTaskEvent(int start,
                       String argumentsAsJson) {
  // TODO.
 }
-
-@patch
-void dumpCore() => throw new Exception("No coredumping support in JS.");

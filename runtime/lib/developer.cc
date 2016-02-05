@@ -15,9 +15,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, enable_dumpcore, false,
-            "Makes dart:developer/dumpCore() call abort().");
-
 // Native implementations for the dart:developer library.
 
 DEFINE_NATIVE_ENTRY(Developer_debugger, 2) {
@@ -73,16 +70,6 @@ DEFINE_NATIVE_ENTRY(Developer_registerExtension, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, handler, arguments->NativeArgAt(1));
   isolate->RegisterServiceExtensionHandler(name, handler);
-  return Object::null();
-}
-
-
-DEFINE_NATIVE_ENTRY(Developer_dumpCore, 0) {
-  if (FLAG_enable_dumpcore) {
-    Instance& stacktrace = Instance::Handle(Exceptions::CurrentStacktrace());
-    OS::Print("abort()ing\n%s\n", stacktrace.ToCString());
-    abort();
-  }
   return Object::null();
 }
 
