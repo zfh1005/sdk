@@ -149,6 +149,11 @@ ATTRIBUTE_SETTER = '  %s_Setter_(mthis, __arg_0) => mthis["%s"] = __arg_0;\n\n'
 #(operation_name, operationName)
 OPERATION_0 = '  %s_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "%s", []);\n\n'
 
+# getter, setter, deleter and propertyQuery code
+OPERATION_1 = '  $%s_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "%s", [__arg_0]);\n\n'
+OPERATION_2 = '  $%s_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "%s", [__arg_0, __arg_1]);\n\n'
+OPERATION_PQ = '  $%s_Callback_1_(mthis, __arg_0) => mthis[__arg_0];\n\n'
+
 #(operation_name, argument_count, arguments, operation_name, arguments)
 ARGUMENT_NUM = "__arg_%s"
 OPERATION_ARGS = '  %s_Callback_%s_(mthis, %s) => Blink_JsNative_DomException.callMethod(mthis, "%s", [%s]);\n\n'
@@ -263,6 +268,25 @@ def _Emit_Blink_Operation(blink_file, interface, analyzeOperations):
   analyzed = AnalyzeOperation(interface, analyzeOperations)
   (arg_min_count, arg_max_count) = generate_parameter_entries(analyzed.param_infos)
   name = analyzed.js_name
+
+  operation = analyzeOperations[0]
+  if (name.startswith('__') and \
+      ('getter' in operation.specials or \
+       'setter' in operation.specials or \
+       'deleter' in operation.specials)):
+    if name == '__propertyQuery__':
+      blink_file.write(OPERATION_PQ % (name))
+    else:
+      arg_min_count = arg_max_count
+      if arg_max_count == 2:
+        blink_file.write(OPERATION_1 % (name, name))
+      elif arg_max_count == 3:
+        blink_file.write(OPERATION_2 % (name, name))
+      else:
+        print "FATAL ERROR: _blink emitter operator %s.%s" % (interface.id, name)
+        exit
+
+    return
 
   for callback_index in range(arg_min_count, arg_max_count):
     if callback_index == 0:

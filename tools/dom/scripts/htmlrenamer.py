@@ -136,6 +136,7 @@ _removed_html_interfaces = [
   'WebKitMediaSource',
   'WebKitNotification',
   'WebGLRenderingContextBase',
+  'WebGL2RenderingContextBase',
   'WebKitSourceBuffer',
   'WebKitSourceBufferList',
   'WorkerLocation', # Workers
@@ -177,9 +178,19 @@ convert_to_future_members = monitored.Set(
 # constructor for dispatch purposes.
 custom_html_constructors = monitored.Set(
     'htmlrenamer.custom_html_constructors', [
+  'CompositionEvent',       # 45 Roll hide default constructor use Dart's custom
+  'CustomEvent',            # 45 Roll hide default constructor use Dart's custom
+  'Event',                  # 45 Roll hide default constructor use Dart's custom
+  'HashChangeEvent',        # 45 Roll hide default constructor use Dart's custom
   'HTMLAudioElement',
   'HTMLOptionElement',
+  'KeyboardEvent',          # 45 Roll hide default constructor use Dart's custom
+  'MessageEvent',           # 45 Roll hide default constructor use Dart's custom
+  'MouseEvent',             # 45 Roll hide default constructor use Dart's custom
   'MutationObserver',
+  'StorageEvent',           # 45 Roll hide default constructor use Dart's custom
+  'UIEvent',                # 45 Roll hide default constructor use Dart's custom
+  'WheelEvent',             # 45 Roll hide default constructor use Dart's custom
 ])
 
 # Members from the standard dom that should not be exposed publicly in dart:html
@@ -253,14 +264,6 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Element.querySelectorAll',
   # TODO(vsm): These have been converted from int to double in Chrome 36.
   # Special case them so we run on 34, 35, and 36.
-  'Element.offsetLeft',
-  'Element.offsetTop',
-  'Element.offsetWidth',
-  'Element.offsetHeight',
-  'Element.clientLeft',
-  'Element.clientTop',
-  'Element.clientWidth',
-  'Element.clientHeight',
   'Element.scrollLeft',
   'Element.scrollTop',
   'Element.scrollWidth',
@@ -404,6 +407,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
 # Members from the standard dom that exist in the dart:html library with
 # identical functionality but with cleaner names.
 renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
+    'ConsoleBase.assert': 'assertCondition',
     'CSSKeyframesRule.insertRule': 'appendRule',
     'DirectoryEntry.getDirectory': '_getDirectory',
     'DirectoryEntry.getFile': '_getFile',
@@ -553,6 +557,8 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'CanvasRenderingContext2D.setMiterLimit',
     'CanvasRenderingContext2D.setShadow',
     'CanvasRenderingContext2D.setStrokeColor',
+    # Disable the webKit version, imageSmoothingEnabled is exposed.
+    'CanvasRenderingContext2D.webkitImageSmoothingEnabled',
     'CharacterData.remove',
     'Window.call:blur',
     'Window.call:focus',
@@ -649,6 +655,14 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'Element.getAttributeNodeNS',
     'Element.getElementsByTagNameNS',
     'Element.innerText',
+    # TODO(terry): All offset* attributes are in both HTMLElement and Element
+    #              (it's a Chrome bug with a FIXME note to correct - sometime).
+    #              Until corrected these Element attributes must be ignored.
+    'Element.offsetParent',
+    'Element.offsetTop',
+    'Element.offsetLeft',
+    'Element.offsetWidth',
+    'Element.offsetHeight',
     'Element.on:wheel',
     'Element.outerText',
     'Element.removeAttributeNode',
@@ -817,6 +831,7 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'Touch.get:webkitRadiusX',
     'Touch.get:webkitRadiusY',
     'Touch.get:webkitForce',
+    'Touch.get:webkitRotationAngle',
     'WheelEvent.wheelDelta',
     'WheelEvent.wheelDeltaX',
     'WheelEvent.wheelDeltaY',

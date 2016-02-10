@@ -2188,14 +2188,6 @@ class CanvasRenderingContext2D extends Interceptor implements CanvasRenderingCon
   @DocsEditable()
   String textBaseline;
 
-  @JSName('webkitImageSmoothingEnabled')
-  @DomName('CanvasRenderingContext2D.webkitImageSmoothingEnabled')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  bool imageSmoothingEnabled;
-
   @DomName('CanvasRenderingContext2D.addHitRegion')
   @DocsEditable()
   @Experimental() // untriaged
@@ -3131,12 +3123,10 @@ class CompositionEvent extends UIEvent {
     return e;
   }
 
-  // To suppress missing implicit constructor warnings.
-  factory CompositionEvent._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('CompositionEvent.CompositionEvent')
   @DocsEditable()
-  factory CompositionEvent(String type, [Map eventInitDict]) {
+  factory CompositionEvent._(String type, [Map eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return CompositionEvent._create_1(type, eventInitDict_1);
@@ -3412,10 +3402,11 @@ class ConsoleBase extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory ConsoleBase._() { throw new UnsupportedError("Not supported"); }
 
+  @JSName('assert')
   @DomName('ConsoleBase.assert')
   @DocsEditable()
   @Experimental() // untriaged
-  void assert(bool condition, Object arg) native;
+  void assertCondition(bool condition, Object arg) native;
 
   @DomName('ConsoleBase.timeline')
   @DocsEditable()
@@ -8847,12 +8838,10 @@ class CustomEvent extends Event {
     }
     return _detail;
   }
-  // To suppress missing implicit constructor warnings.
-  factory CustomEvent._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('CustomEvent.CustomEvent')
   @DocsEditable()
-  factory CustomEvent(String type, [Map eventInitDict]) {
+  factory CustomEvent._(String type, [Map eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return CustomEvent._create_1(type, eventInitDict_1);
@@ -14935,30 +14924,6 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
   @DocsEditable()
   String lang;
 
-  @JSName('offsetHeight')
-  @DomName('Element.offsetHeight')
-  @DocsEditable()
-  final int _offsetHeight;
-
-  @JSName('offsetLeft')
-  @DomName('Element.offsetLeft')
-  @DocsEditable()
-  final int _offsetLeft;
-
-  @DomName('Element.offsetParent')
-  @DocsEditable()
-  final Element offsetParent;
-
-  @JSName('offsetTop')
-  @DomName('Element.offsetTop')
-  @DocsEditable()
-  final int _offsetTop;
-
-  @JSName('offsetWidth')
-  @DomName('Element.offsetWidth')
-  @DocsEditable()
-  final int _offsetWidth;
-
   @DomName('Element.spellcheck')
   @DocsEditable()
   // http://blog.whatwg.org/the-road-to-html-5-spellchecking
@@ -15037,25 +15002,21 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
   @DocsEditable()
   String className;
 
-  @JSName('clientHeight')
   @DomName('Element.clientHeight')
   @DocsEditable()
-  final int _clientHeight;
+  final int clientHeight;
 
-  @JSName('clientLeft')
   @DomName('Element.clientLeft')
   @DocsEditable()
-  final int _clientLeft;
+  final int clientLeft;
 
-  @JSName('clientTop')
   @DomName('Element.clientTop')
   @DocsEditable()
-  final int _clientTop;
+  final int clientTop;
 
-  @JSName('clientWidth')
   @DomName('Element.clientWidth')
   @DocsEditable()
-  final int _clientWidth;
+  final int clientWidth;
 
   @DomName('Element.computedName')
   @DocsEditable()
@@ -15081,30 +15042,6 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
 
   // Use implementation from Node.
   // final String _namespaceUri;
-
-  @JSName('offsetHeight')
-  @DomName('Element.offsetHeight')
-  @DocsEditable()
-  final int _offsetHeight;
-
-  @JSName('offsetLeft')
-  @DomName('Element.offsetLeft')
-  @DocsEditable()
-  final int _offsetLeft;
-
-  @DomName('Element.offsetParent')
-  @DocsEditable()
-  final Element offsetParent;
-
-  @JSName('offsetTop')
-  @DomName('Element.offsetTop')
-  @DocsEditable()
-  final int _offsetTop;
-
-  @JSName('offsetWidth')
-  @DomName('Element.offsetWidth')
-  @DocsEditable()
-  final int _offsetWidth;
 
   @JSName('outerHTML')
   @DomName('Element.outerHTML')
@@ -16292,12 +16229,10 @@ class Event extends Interceptor {
     } while (target != null && target != currentTarget.parent);
     throw new StateError('No selector matched for populating matchedTarget.');
   }
-  // To suppress missing implicit constructor warnings.
-  factory Event._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('Event.Event')
   @DocsEditable()
-  factory Event(String type, [Map eventInitDict]) {
+  factory Event._(String type, [Map eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return Event._create_1(type, eventInitDict_1);
@@ -18760,12 +18695,10 @@ class HashChangeEvent extends Event {
         type, convertDartToNative_Dictionary(options));
   }
 
-  // To suppress missing implicit constructor warnings.
-  factory HashChangeEvent._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('HashChangeEvent.HashChangeEvent')
   @DocsEditable()
-  factory HashChangeEvent(String type, [Map eventInitDict]) {
+  factory HashChangeEvent._(String type, [Map eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return HashChangeEvent._create_1(type, eventInitDict_1);
@@ -21494,12 +21427,10 @@ class KeyboardEvent extends UIEvent {
 
   @DomName('KeyboardEvent.charCode')
   int get charCode => _charCode;
-  // To suppress missing implicit constructor warnings.
-  factory KeyboardEvent._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('KeyboardEvent.KeyboardEvent')
   @DocsEditable()
-  factory KeyboardEvent(String type, [Map eventInitDict]) {
+  factory KeyboardEvent._(String type, [Map eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return KeyboardEvent._create_1(type, eventInitDict_1);
@@ -23505,12 +23436,10 @@ class MessageEvent extends Event {
         lastEventId, source, messagePorts);
     return event;
   }
-  // To suppress missing implicit constructor warnings.
-  factory MessageEvent._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('MessageEvent.MessageEvent')
   @DocsEditable()
-  factory MessageEvent(String type, [Map eventInitDict]) {
+  factory MessageEvent._(String type, [Map eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return MessageEvent._create_1(type, eventInitDict_1);
@@ -24120,12 +24049,10 @@ class MouseEvent extends UIEvent {
         button, relatedTarget);
     return event;
   }
-  // To suppress missing implicit constructor warnings.
-  factory MouseEvent._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('MouseEvent.MouseEvent')
   @DocsEditable()
-  factory MouseEvent(String type, [Map eventInitDict]) {
+  factory MouseEvent._(String type, [Map eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return MouseEvent._create_1(type, eventInitDict_1);
@@ -31350,12 +31277,10 @@ class StorageEvent extends Event {
         newValue, url, storageArea);
     return e;
   }
-  // To suppress missing implicit constructor warnings.
-  factory StorageEvent._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('StorageEvent.StorageEvent')
   @DocsEditable()
-  factory StorageEvent(String type, [Map eventInitDict]) {
+  factory StorageEvent._(String type, [Map eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return StorageEvent._create_1(type, eventInitDict_1);
@@ -32816,14 +32741,6 @@ class Touch extends Interceptor {
   @Returns('Element|Document')
   final dynamic _get_target;
 
-  @JSName('webkitRotationAngle')
-  @DomName('Touch.webkitRotationAngle')
-  @DocsEditable()
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  final double rotationAngle;
-
 
 // As of Chrome 37, these all changed from long to double.  This code
 // preserves backwards compatability for the time being.
@@ -33316,12 +33233,10 @@ class UIEvent extends Event {
     e._initUIEvent(type, canBubble, cancelable, view, detail);
     return e;
   }
-  // To suppress missing implicit constructor warnings.
-  factory UIEvent._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('UIEvent.UIEvent')
   @DocsEditable()
-  factory UIEvent(String type, [Map eventInitDict]) {
+  factory UIEvent._(String type, [Map eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return UIEvent._create_1(type, eventInitDict_1);
@@ -34442,12 +34357,10 @@ class WheelEvent extends MouseEvent {
 
   }
 
-  // To suppress missing implicit constructor warnings.
-  factory WheelEvent._() { throw new UnsupportedError("Not supported"); }
 
   @DomName('WheelEvent.WheelEvent')
   @DocsEditable()
-  factory WheelEvent(String type, [Map eventInitDict]) {
+  factory WheelEvent._(String type, [Map eventInitDict]) {
     if (eventInitDict != null) {
       var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
       return WheelEvent._create_1(type, eventInitDict_1);

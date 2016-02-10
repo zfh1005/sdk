@@ -705,7 +705,7 @@ class HtmlDartInterfaceGenerator(object):
     merged_interface = self._interface_type_info.merged_interface()
     if merged_interface:
       self._backend.AddMembers(self._database.GetInterface(merged_interface),
-        not self._backend.ImplementsMergedMembers())
+                               not self._backend.ImplementsMergedMembers())
 
     self._backend.AddMembers(self._interface, False, self._options.dart_js_interop)
     self._backend.AddSecondaryMembers(self._interface)
