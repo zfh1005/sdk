@@ -11590,16 +11590,6 @@ class Document extends Node
   @DocsEditable()
   Element get _lastElementChild => wrap_jso(_blink.BlinkDocument.instance.lastElementChild_Getter_(unwrap_jso(this)));
   
-  @DomName('Document.append')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void append(Object nodes) => _blink.BlinkDocument.instance.append_Callback_1_(unwrap_jso(this), nodes);
-  
-  @DomName('Document.prepend')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void prepend(Object nodes) => _blink.BlinkDocument.instance.prepend_Callback_1_(unwrap_jso(this), nodes);
-  
   /**
    * Finds the first descendant element of this document that matches the
    * specified group of selectors.
@@ -16964,16 +16954,6 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
   @DomName('Element.lastElementChild')
   @DocsEditable()
   Element get _lastElementChild => wrap_jso(_blink.BlinkElement.instance.lastElementChild_Getter_(unwrap_jso(this)));
-  
-  @DomName('Element.append')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void append(Object nodes) => _blink.BlinkElement.instance.append_Callback_1_(unwrap_jso(this), nodes);
-  
-  @DomName('Element.prepend')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void prepend(Object nodes) => _blink.BlinkElement.instance.prepend_Callback_1_(unwrap_jso(this), nodes);
   
   /**
    * Finds the first descendant element of this element that matches the

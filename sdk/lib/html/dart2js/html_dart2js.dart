@@ -10132,16 +10132,6 @@ class Document extends Node
   @DocsEditable()
   final Element _lastElementChild;
 
-  @DomName('Document.append')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void append(Object nodes) native;
-
-  @DomName('Document.prepend')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void prepend(Object nodes) native;
-
   /**
    * Finds the first descendant element of this document that matches the
    * specified group of selectors.
@@ -15370,16 +15360,6 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
   @DomName('Element.lastElementChild')
   @DocsEditable()
   final Element _lastElementChild;
-
-  @DomName('Element.append')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void append(Object nodes) native;
-
-  @DomName('Element.prepend')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void prepend(Object nodes) native;
 
   /**
    * Finds the first descendant element of this element that matches the
