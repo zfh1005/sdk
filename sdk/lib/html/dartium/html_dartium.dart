@@ -4296,7 +4296,7 @@ class CanvasRenderingContext2D extends DartHtmlDomObject implements CanvasRender
   
   @DomName('CanvasRenderingContext2D.createPattern')
   @DocsEditable()
-  CanvasPattern createPatternFromImage(Object image, String repetitionType) => wrap_jso(_blink.BlinkCanvasRenderingContext2D.instance.createPattern_Callback_2_(unwrap_jso(this), image, repetitionType));
+  CanvasPattern createPattern(Object image, String repetitionType) => wrap_jso(_blink.BlinkCanvasRenderingContext2D.instance.createPattern_Callback_2_(unwrap_jso(this), image, repetitionType));
   
   @DomName('CanvasRenderingContext2D.createRadialGradient')
   @DocsEditable()
@@ -4580,6 +4580,10 @@ class CanvasRenderingContext2D extends DartHtmlDomObject implements CanvasRender
     // TODO(terry): This should not be needed: dartbug.com/20939.
     _arc(x, y, radius, startAngle, endAngle, anticlockwise);
   }
+
+  @DomName('CanvasRenderingContext2D.createPatternFromImage')
+  CanvasPattern createPatternFromImage(ImageElement image, String repetitionType) =>
+    createPattern(image, repetitionType);
 
   /**
    * Draws an image from a CanvasImageSource to an area of this canvas.

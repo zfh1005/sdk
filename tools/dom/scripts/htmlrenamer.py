@@ -407,7 +407,6 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
 # Members from the standard dom that exist in the dart:html library with
 # identical functionality but with cleaner names.
 renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
-    'CanvasRenderingContext2D.createPattern': 'createPatternFromImage',
     'ConsoleBase.assert': 'assertCondition',
     'CSSKeyframesRule.insertRule': 'appendRule',
     'DirectoryEntry.getDirectory': '_getDirectory',
@@ -439,8 +438,6 @@ renamed_overloads = monitored.Dict('htmldartgenerator.renamed_overloads', {
   'AudioContext.createBuffer(ArrayBuffer buffer, boolean mixToMono)':
       'createBufferFromBuffer',
   'CSS.supports(DOMString conditionText)': 'supportsCondition',
-  'CanvasRenderingContext2D.createPattern(HTMLImageElement image, '
-      'DOMString repetitionType)': 'createPatternFromImage',
   'DataTransferItemList.add(File file)': 'addFile',
   'DataTransferItemList.add(DOMString data, DOMString type)': 'addData',
   'FormData.append(DOMString name, Blob value, DOMString filename)':

@@ -2256,10 +2256,9 @@ class CanvasRenderingContext2D extends Interceptor implements CanvasRenderingCon
   @DocsEditable()
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native;
 
-  @JSName('createPattern')
   @DomName('CanvasRenderingContext2D.createPattern')
   @DocsEditable()
-  CanvasPattern createPatternFromImage(Object image, String repetitionType) native;
+  CanvasPattern createPattern(Object image, String repetitionType) native;
 
   @DomName('CanvasRenderingContext2D.createRadialGradient')
   @DocsEditable()
@@ -2485,6 +2484,10 @@ class CanvasRenderingContext2D extends Interceptor implements CanvasRenderingCon
     JS('void', '#.arc(#, #, #, #, #, #)', this, x, y, radius, startAngle,
        endAngle, anticlockwise);
   }
+
+  @DomName('CanvasRenderingContext2D.createPatternFromImage')
+  CanvasPattern createPatternFromImage(ImageElement image, String repetitionType) =>
+    JS('CanvasPattern', '#.createPattern(#, #)', this, image, repetitionType);
 
   /**
    * Draws an image from a CanvasImageSource to an area of this canvas.
