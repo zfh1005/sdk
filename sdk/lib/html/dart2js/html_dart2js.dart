@@ -2256,9 +2256,10 @@ class CanvasRenderingContext2D extends Interceptor implements CanvasRenderingCon
   @DocsEditable()
   CanvasGradient createLinearGradient(num x0, num y0, num x1, num y1) native;
 
+  @JSName('createPattern')
   @DomName('CanvasRenderingContext2D.createPattern')
   @DocsEditable()
-  CanvasPattern createPattern(Object image, String repetitionType) native;
+  CanvasPattern createPatternFromImage(Object image, String repetitionType) native;
 
   @DomName('CanvasRenderingContext2D.createRadialGradient')
   @DocsEditable()
@@ -20327,6 +20328,12 @@ class ImageData extends Interceptor {
   static ImageData _create_1(data_OR_sw, sh_OR_sw) => JS('ImageData', 'new ImageData(#,#)', data_OR_sw, sh_OR_sw);
   static ImageData _create_2(data_OR_sw, sh_OR_sw) => JS('ImageData', 'new ImageData(#,#)', data_OR_sw, sh_OR_sw);
   static ImageData _create_3(data_OR_sw, sh_OR_sw, sh) => JS('ImageData', 'new ImageData(#,#,#)', data_OR_sw, sh_OR_sw, sh);
+
+  @DomName('ImageData.data')
+  @DocsEditable()
+  @Creates('NativeUint8ClampedList')
+  @Returns('NativeUint8ClampedList')
+  final Uint8ClampedList data;
 
   @DomName('ImageData.height')
   @DocsEditable()

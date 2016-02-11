@@ -4296,7 +4296,7 @@ class CanvasRenderingContext2D extends DartHtmlDomObject implements CanvasRender
   
   @DomName('CanvasRenderingContext2D.createPattern')
   @DocsEditable()
-  CanvasPattern createPattern(Object image, String repetitionType) => wrap_jso(_blink.BlinkCanvasRenderingContext2D.instance.createPattern_Callback_2_(unwrap_jso(this), image, repetitionType));
+  CanvasPattern createPatternFromImage(Object image, String repetitionType) => wrap_jso(_blink.BlinkCanvasRenderingContext2D.instance.createPattern_Callback_2_(unwrap_jso(this), image, repetitionType));
   
   @DomName('CanvasRenderingContext2D.createRadialGradient')
   @DocsEditable()
@@ -23588,6 +23588,10 @@ class ImageData extends DartHtmlDomObject {
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
   int get hashCode => unwrap_jso(this).hashCode;
 
+  @DomName('ImageData.data')
+  @DocsEditable()
+  Uint8ClampedList get _data => wrap_jso(_blink.BlinkImageData.instance.data_Getter_(unwrap_jso(this)));
+  
   @DomName('ImageData.height')
   @DocsEditable()
   int get height => _blink.BlinkImageData.instance.height_Getter_(unwrap_jso(this));

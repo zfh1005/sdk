@@ -9961,6 +9961,8 @@ class BlinkImageData {
 
   constructorCallback_3_(__arg_0, __arg_1, __arg_2) => new js.JsObject(Blink_JsNative_DomException.getProperty(js.context, "ImageData"), [__arg_0, __arg_1, __arg_2]);
 
+  data_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "data");
+
   height_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "height");
 
   width_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "width");
