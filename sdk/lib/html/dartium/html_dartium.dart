@@ -12233,16 +12233,6 @@ class DocumentFragment extends Node implements NonElementParentNode, ParentNode 
   @DocsEditable()
   Element get _lastElementChild => wrap_jso(_blink.BlinkDocumentFragment.instance.lastElementChild_Getter_(unwrap_jso(this)));
   
-  @DomName('DocumentFragment.append')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void append(Object nodes) => _blink.BlinkDocumentFragment.instance.append_Callback_1_(unwrap_jso(this), nodes);
-  
-  @DomName('DocumentFragment.prepend')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void prepend(Object nodes) => _blink.BlinkDocumentFragment.instance.prepend_Callback_1_(unwrap_jso(this), nodes);
-  
   /**
    * Finds the first descendant element of this document fragment that matches
    * the specified group of selectors.
@@ -31153,16 +31143,6 @@ abstract class ParentNode extends DartHtmlDomObject {
   @DocsEditable()
   @Experimental() // untriaged
   Element get _lastElementChild;
-
-  @DomName('ParentNode.append')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void append(Object nodes);
-
-  @DomName('ParentNode.prepend')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void prepend(Object nodes);
 
   @DomName('ParentNode.querySelector')
   @DocsEditable()

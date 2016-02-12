@@ -820,6 +820,8 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'NodeIterator.expandEntityReferences',
     'NodeIterator.filter',
     'NodeList.item',
+    'ParentNode.append',
+    'ParentNode.prepend',
     'Performance.webkitClearMarks',
     'Performance.webkitClearMeasures',
     'Performance.webkitGetEntries',

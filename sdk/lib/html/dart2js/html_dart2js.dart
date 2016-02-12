@@ -10770,16 +10770,6 @@ class DocumentFragment extends Node implements NonElementParentNode, ParentNode 
   @DocsEditable()
   final Element _lastElementChild;
 
-  @DomName('DocumentFragment.append')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void append(Object nodes) native;
-
-  @DomName('DocumentFragment.prepend')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void prepend(Object nodes) native;
-
   /**
    * Finds the first descendant element of this document fragment that matches
    * the specified group of selectors.
@@ -26283,10 +26273,6 @@ abstract class ParentNode extends Interceptor {
   final Element _firstElementChild;
 
   final Element _lastElementChild;
-
-  void append(Object nodes);
-
-  void prepend(Object nodes);
 
   Element querySelector(String selectors);
 
