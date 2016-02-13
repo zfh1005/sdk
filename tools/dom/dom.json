@@ -22137,6 +22137,12 @@
       },
       "Window": {},
       "__getter__": {},
+      "_setInterval_String": {
+        "support_level": "untriaged"
+      },
+      "_setTimeout_String": {
+        "support_level": "untriaged"
+      },
       "addEventListener": {},
       "alert": {},
       "applicationCache": {},
@@ -22548,6 +22554,12 @@
   },
   "WindowTimers": {
     "members": {
+      "_setInterval_String": {
+        "support_level": "untriaged"
+      },
+      "_setTimeout_String": {
+        "support_level": "untriaged"
+      },
       "clearInterval": {
         "support_level": "untriaged"
       },
@@ -22683,6 +22695,12 @@
         "support_level": "untriaged"
       },
       "TEMPORARY": {
+        "support_level": "untriaged"
+      },
+      "_setInterval_String": {
+        "support_level": "untriaged"
+      },
+      "_setTimeout_String": {
         "support_level": "untriaged"
       },
       "addEventListener": {

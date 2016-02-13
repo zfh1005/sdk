@@ -42951,6 +42951,20 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @DocsEditable()
   String btoa(String btoa) => _blink.BlinkWindow.instance.btoa_Callback_1_(unwrap_jso(this), btoa);
   
+  int _setInterval_String(String handler, [int timeout, Object arguments]) {
+    if (timeout != null) {
+      return _blink.BlinkWindow.instance.setInterval_Callback_3_(unwrap_jso(this), handler, timeout, arguments);
+    }
+    return _blink.BlinkWindow.instance.setInterval_Callback_1_(unwrap_jso(this), handler);
+  }
+
+  int _setTimeout_String(String handler, [int timeout, Object arguments]) {
+    if (timeout != null) {
+      return _blink.BlinkWindow.instance.setTimeout_Callback_3_(unwrap_jso(this), handler, timeout, arguments);
+    }
+    return _blink.BlinkWindow.instance.setTimeout_Callback_1_(unwrap_jso(this), handler);
+  }
+
   void _clearInterval([int handle]) {
     if (handle != null) {
       _blink.BlinkWindow.instance.clearInterval_Callback_1_(unwrap_jso(this), handle);
@@ -42969,16 +42983,16 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
     return;
   }
 
-  int _setInterval(String handler, [int timeout, Object arguments]) {
+  int _setInterval(Object handler, [int timeout]) {
     if (timeout != null) {
-      return _blink.BlinkWindow.instance.setInterval_Callback_3_(unwrap_jso(this), handler, timeout, arguments);
+      return _blink.BlinkWindow.instance.setInterval_Callback_2_(unwrap_jso(this), handler, timeout);
     }
     return _blink.BlinkWindow.instance.setInterval_Callback_1_(unwrap_jso(this), handler);
   }
 
-  int _setTimeout(String handler, [int timeout, Object arguments]) {
+  int _setTimeout(Object handler, [int timeout]) {
     if (timeout != null) {
-      return _blink.BlinkWindow.instance.setTimeout_Callback_3_(unwrap_jso(this), handler, timeout, arguments);
+      return _blink.BlinkWindow.instance.setTimeout_Callback_2_(unwrap_jso(this), handler, timeout);
     }
     return _blink.BlinkWindow.instance.setTimeout_Callback_1_(unwrap_jso(this), handler);
   }
@@ -43860,6 +43874,20 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   @Experimental() // untriaged
   String btoa(String btoa) => _blink.BlinkWorkerGlobalScope.instance.btoa_Callback_1_(unwrap_jso(this), btoa);
   
+  int _setInterval_String(String handler, [int timeout, Object arguments]) {
+    if (timeout != null) {
+      return _blink.BlinkWorkerGlobalScope.instance.setInterval_Callback_3_(unwrap_jso(this), handler, timeout, arguments);
+    }
+    return _blink.BlinkWorkerGlobalScope.instance.setInterval_Callback_1_(unwrap_jso(this), handler);
+  }
+
+  int _setTimeout_String(String handler, [int timeout, Object arguments]) {
+    if (timeout != null) {
+      return _blink.BlinkWorkerGlobalScope.instance.setTimeout_Callback_3_(unwrap_jso(this), handler, timeout, arguments);
+    }
+    return _blink.BlinkWorkerGlobalScope.instance.setTimeout_Callback_1_(unwrap_jso(this), handler);
+  }
+
   void _clearInterval([int handle]) {
     if (handle != null) {
       _blink.BlinkWorkerGlobalScope.instance.clearInterval_Callback_1_(unwrap_jso(this), handle);
@@ -43878,16 +43906,16 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
     return;
   }
 
-  int _setInterval(String handler, [int timeout, Object arguments]) {
+  int _setInterval(Object handler, [int timeout]) {
     if (timeout != null) {
-      return _blink.BlinkWorkerGlobalScope.instance.setInterval_Callback_3_(unwrap_jso(this), handler, timeout, arguments);
+      return _blink.BlinkWorkerGlobalScope.instance.setInterval_Callback_2_(unwrap_jso(this), handler, timeout);
     }
     return _blink.BlinkWorkerGlobalScope.instance.setInterval_Callback_1_(unwrap_jso(this), handler);
   }
 
-  int _setTimeout(String handler, [int timeout, Object arguments]) {
+  int _setTimeout(Object handler, [int timeout]) {
     if (timeout != null) {
-      return _blink.BlinkWorkerGlobalScope.instance.setTimeout_Callback_3_(unwrap_jso(this), handler, timeout, arguments);
+      return _blink.BlinkWorkerGlobalScope.instance.setTimeout_Callback_2_(unwrap_jso(this), handler, timeout);
     }
     return _blink.BlinkWorkerGlobalScope.instance.setTimeout_Callback_1_(unwrap_jso(this), handler);
   }
@@ -46068,6 +46096,20 @@ abstract class _WindowTimers extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory _WindowTimers._() { throw new UnsupportedError("Not supported"); }
 
+  int _setInterval_String(String handler, [int timeout, Object arguments]) {
+    if (timeout != null) {
+      return _blink.BlinkWindowTimers.instance.setInterval_Callback_3_(unwrap_jso(this), handler, timeout, arguments);
+    }
+    return _blink.BlinkWindowTimers.instance.setInterval_Callback_1_(unwrap_jso(this), handler);
+  }
+
+  int _setTimeout_String(String handler, [int timeout, Object arguments]) {
+    if (timeout != null) {
+      return _blink.BlinkWindowTimers.instance.setTimeout_Callback_3_(unwrap_jso(this), handler, timeout, arguments);
+    }
+    return _blink.BlinkWindowTimers.instance.setTimeout_Callback_1_(unwrap_jso(this), handler);
+  }
+
   void _clearInterval([int handle]) {
     if (handle != null) {
       _blink.BlinkWindowTimers.instance.clearInterval_Callback_1_(unwrap_jso(this), handle);
@@ -46086,16 +46128,16 @@ abstract class _WindowTimers extends DartHtmlDomObject {
     return;
   }
 
-  int _setInterval(String handler, [int timeout, Object arguments]) {
+  int _setInterval(Object handler, [int timeout]) {
     if (timeout != null) {
-      return _blink.BlinkWindowTimers.instance.setInterval_Callback_3_(unwrap_jso(this), handler, timeout, arguments);
+      return _blink.BlinkWindowTimers.instance.setInterval_Callback_2_(unwrap_jso(this), handler, timeout);
     }
     return _blink.BlinkWindowTimers.instance.setInterval_Callback_1_(unwrap_jso(this), handler);
   }
 
-  int _setTimeout(String handler, [int timeout, Object arguments]) {
+  int _setTimeout(Object handler, [int timeout]) {
     if (timeout != null) {
-      return _blink.BlinkWindowTimers.instance.setTimeout_Callback_3_(unwrap_jso(this), handler, timeout, arguments);
+      return _blink.BlinkWindowTimers.instance.setTimeout_Callback_2_(unwrap_jso(this), handler, timeout);
     }
     return _blink.BlinkWindowTimers.instance.setTimeout_Callback_1_(unwrap_jso(this), handler);
   }

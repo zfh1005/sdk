@@ -488,7 +488,11 @@ renamed_overloads = monitored.Dict('htmldartgenerator.renamed_overloads', {
   'WebSocket.send(ArrayBuffer data)': 'sendByteBuffer',
   'WebSocket.send(ArrayBufferView data)': 'sendTypedData',
   'WebSocket.send(DOMString data)': 'sendString',
-  'WebSocket.send(Blob data)': 'sendBlob'
+  'WebSocket.send(Blob data)': 'sendBlob',
+  'Window.setInterval(DOMString handler, long timeout, any arguments)': '_setInterval_String',
+  'Window.setTimeout(DOMString handler, long timeout, any arguments)': '_setTimeout_String',
+  'WindowTimers.setInterval(DOMString handler, long timeout, any arguments)': '_setInterval_String',
+  'WindowTimers.setTimeout(DOMString handler, long timeout, any arguments)': '_setTimeout_String',
 })
 
 # Members that have multiple definitions, but their types are identical (only

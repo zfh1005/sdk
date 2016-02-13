@@ -581,6 +581,10 @@ class IDLType(IDLNode):
         # TODO(terry): Handled USVString as a DOMString.
         type_name = type_name.replace('USVString', 'DOMString', 1)
 
+        # TODO(terry); WindowTimers setInterval/setTimeout overloads with a
+        #              Function type - map to any until the IDL uses union.
+        type_name = type_name.replace('Function', 'any', 1)
+
         self.id = type_name
       else:
         # IdlUnionType

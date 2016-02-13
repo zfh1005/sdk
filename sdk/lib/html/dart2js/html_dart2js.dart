@@ -36008,6 +36008,16 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
 
   // From WindowTimers
 
+  @JSName('setInterval')
+  @DomName('Window.setInterval')
+  @DocsEditable()
+  int _setInterval_String(String handler, [int timeout, Object arguments]) native;
+
+  @JSName('setTimeout')
+  @DomName('Window.setTimeout')
+  @DocsEditable()
+  int _setTimeout_String(String handler, [int timeout, Object arguments]) native;
+
   @JSName('clearInterval')
   @DomName('Window.clearInterval')
   @DocsEditable()
@@ -36021,12 +36031,12 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   @JSName('setInterval')
   @DomName('Window.setInterval')
   @DocsEditable()
-  int _setInterval(String handler, [int timeout, Object arguments]) native;
+  int _setInterval(Object handler, [int timeout]) native;
 
   @JSName('setTimeout')
   @DomName('Window.setTimeout')
   @DocsEditable()
-  int _setTimeout(String handler, [int timeout, Object arguments]) native;
+  int _setTimeout(Object handler, [int timeout]) native;
 
   /// Stream of `contentloaded` events handled by this [Window].
   @DomName('Window.onDOMContentLoaded')
@@ -36920,6 +36930,18 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
 
   // From WindowTimers
 
+  @JSName('setInterval')
+  @DomName('WorkerGlobalScope.setInterval')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int _setInterval_String(String handler, [int timeout, Object arguments]) native;
+
+  @JSName('setTimeout')
+  @DomName('WorkerGlobalScope.setTimeout')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int _setTimeout_String(String handler, [int timeout, Object arguments]) native;
+
   @JSName('clearInterval')
   @DomName('WorkerGlobalScope.clearInterval')
   @DocsEditable()
@@ -36936,13 +36958,13 @@ class WorkerGlobalScope extends EventTarget implements _WindowTimers, WindowBase
   @DomName('WorkerGlobalScope.setInterval')
   @DocsEditable()
   @Experimental() // untriaged
-  int _setInterval(String handler, [int timeout, Object arguments]) native;
+  int _setInterval(Object handler, [int timeout]) native;
 
   @JSName('setTimeout')
   @DomName('WorkerGlobalScope.setTimeout')
   @DocsEditable()
   @Experimental() // untriaged
-  int _setTimeout(String handler, [int timeout, Object arguments]) native;
+  int _setTimeout(Object handler, [int timeout]) native;
 
   /// Stream of `error` events handled by this [WorkerGlobalScope].
   @DomName('WorkerGlobalScope.onerror')
@@ -38440,13 +38462,17 @@ abstract class _WindowTimers extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory _WindowTimers._() { throw new UnsupportedError("Not supported"); }
 
+  int _setInterval_String(String handler, [int timeout, Object arguments]);
+
+  int _setTimeout_String(String handler, [int timeout, Object arguments]);
+
   void _clearInterval([int handle]);
 
   void _clearTimeout([int handle]);
 
-  int _setInterval(String handler, [int timeout, Object arguments]);
+  int _setInterval(Object handler, [int timeout]);
 
-  int _setTimeout(String handler, [int timeout, Object arguments]);
+  int _setTimeout(Object handler, [int timeout]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
