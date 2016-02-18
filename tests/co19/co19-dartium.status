@@ -468,8 +468,6 @@ LayoutTests/fast/media/mq-parsing_t01: Pass, RuntimeError # False passes on Fire
 LayoutTests/fast/mediastream/RTCPeerConnection-AddRemoveStream_t01: Skip # Issue 22111
 LayoutTests/fast/mediastream/RTCPeerConnection-AddRemoveStream_t01: Skip # Passes on Safari, Issue 23475 # co19 issue 11.
 LayoutTests/fast/mediastream/getusermedia_t01: Skip # co19 issue 738
-LayoutTests/fast/multicol/balance-short-trailing-empty-block_t01: RuntimeError # co19-roll r801: Please triage this failure.
-LayoutTests/fast/multicol/balance-trailing-border_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/balance-trailing-border_t02: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/balance-unbreakable_t01: Pass, RuntimeError # co19 issue 11.
 LayoutTests/fast/multicol/break-after-always-bottom-margin_t01: RuntimeError # co19-roll r801: Please triage this failure.
@@ -513,7 +511,6 @@ LayoutTests/fast/multicol/vertical-rl/float-truncation_t01: RuntimeError # co19-
 LayoutTests/fast/multicol/vertical-rl/image-inside-nested-blocks-with-border_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/widows_t01: Pass, RuntimeError # co19 issue 11.
 LayoutTests/fast/multicol/widows_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
-LayoutTests/fast/multicol/widows_t02: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/multicol/zeroColumnCount_t01: RuntimeError # co19 issue 11.
 LayoutTests/fast/overflow/child-100percent-height-inside-fixed-container-with-overflow-auto_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/overflow/child-100percent-height-inside-fixed-container-with-overflow-auto_t01: RuntimeError # co19 issue 11.
@@ -708,7 +705,6 @@ LayoutTests/fast/xpath/ambiguous-operators_t01: RuntimeError # co19-roll r761: P
 LayoutTests/fast/xpath/attr-namespace_t02: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/xpath/ensure-null-namespace_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/xpath/implicit-node-args_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/xpath/invalid-resolver_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/xpath/node-name-case-sensitivity_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/xpath/node-name-case-sensitivity_t02: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/xpath/position_t01: RuntimeError # co19-roll r761: Please triage this failure.
@@ -737,7 +733,6 @@ LibTest/html/Element/dataset_A02_t01: RuntimeError # co19-roll r706.  Please tri
 LibTest/html/Element/focus_A01_t01: Skip # co19-roll r706.  Please triage this failure.
 LibTest/html/Element/getAttributeNS_A01_t01: RuntimeError # co19-roll r706.  Issue 16395
 LibTest/html/Element/getAttributeNS_A01_t02: RuntimeError # Please triage this failure.
-LibTest/html/Element/getClientRects_A01_t02: RuntimeError # co19-roll r706.  Issue 16575
 LibTest/html/Element/getNamespacedAttributes_A01_t01: RuntimeError # co19-roll r706.  Issue 16395
 LibTest/html/Element/isContentEditable_A01_t01: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/Element/isContentEditable_A02_t01: RuntimeError # co19-roll r706.  Please triage this failure.
@@ -769,7 +764,6 @@ LibTest/html/IFrameElement/createFragment_A01_t03: RuntimeError # co19-roll r706
 LibTest/html/IFrameElement/createShadowRoot_A01_t01: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/IFrameElement/enteredView_A01_t01: Skip # co19-roll r706.  Please triage this failure.
 LibTest/html/IFrameElement/focus_A01_t01: Skip # co19-roll r706.  Please triage this failure.
-LibTest/html/IFrameElement/getClientRects_A01_t02: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/IFrameElement/getNamespacedAttributes_A01_t01: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/IFrameElement/innerHtml_A01_t01: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/IFrameElement/isContentEditable_A01_t01: RuntimeError # co19-roll r706.  Please triage this failure.
@@ -786,7 +780,6 @@ LibTest/html/Node/nodes_A01_t01: RuntimeError # co19-roll r722: Please triage th
 LibTest/html/Node/nodes_A01_t02: RuntimeError # co19-roll r722: Please triage this failure.
 LibTest/html/Node/parent_A01_t01: RuntimeError # co19-roll r722: Please triage this failure.
 LibTest/html/Node/previousNode_A01_t01: RuntimeError # co19-roll r722: Please triage this failure.
-LibTest/html/Window/close_A01_t01: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/Window/find_A01_t01: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/Window/find_A03_t01: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/Window/find_A06_t01: RuntimeError # co19-roll r706.  Please triage this failure.
@@ -1056,43 +1049,45 @@ WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocume
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-009_t01: RuntimeError # Please triage this failure.
 WebPlatformTest/webstorage/event_constructor_t01: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/webstorage/event_constructor_t02: RuntimeError # co19-roll r761: Please triage this failure.
-WebPlatformTest/webstorage/event_local_key_t01: RuntimeError # co19-roll r761: Please triage this failure.
-WebPlatformTest/webstorage/event_session_key_t01: RuntimeError # co19-roll r761: Please triage this failure.
 WebPlatformTest/webstorage/storage_local_setitem_quotaexceedederr_t01: Skip # Times out flakily. co19-roll r761: Please triage this failure.
 WebPlatformTest/webstorage/storage_session_setitem_quotaexceedederr_t01: Skip # Times out flakily. co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/aspect-ratio-inheritance_t01: Skip # 45 Roll No longer supported.
 LayoutTests/fast/css/aspect-ratio-parsing-tests_t01: Skip # 45 Roll No longer supported.
-LayoutTests/fast/css/auto-min-size_t01: RuntimeError #  45 Roll co19 test to rewrite.
-LayoutTests/fast/css/background-position-serialize_t01: RuntimeError #  45 Roll co19 test to rewrite.
-LayoutTests/fast/css/content-language-case-insensitivity_t01: RuntimeError #  45 Roll co19 test to rewrite.
-LayoutTests/fast/css/content-language-dynamically-added_t01: RuntimeError #  45 Roll co19 test to rewrite.
-LayoutTests/fast/css/content-language-dynamically-removed_t01: RuntimeError #  45 Roll co19 test to rewrite.
-LayoutTests/fast/css/content-language-mapped-to-webkit-locale_t01: RuntimeError #  45 Roll co19 test to rewrite.
-LayoutTests/fast/css/content-language-multiple_t01: RuntimeError #  45 Roll co19 test to rewrite.
-LayoutTests/fast/css/content-language-no-content_t01: RuntimeError #  45 Roll co19 test to rewrite.
-LayoutTests/fast/css/counters/counter-cssText_t01: RuntimeError #  45 Roll co19 test to rewrite.
-LayoutTests/fast/css/cssText-shorthand_t01: RuntimeError #  45 Roll co19 test to rewrite.
-LayoutTests/fast/css/csstext-of-content-string_t01: RuntimeError #  45 Roll co19 test to rewrite.
-LayoutTests/fast/css/ex-unit-with-no-x-height_t01: RuntimeError #  45 Roll co19 test to rewrite.
-LayoutTests/fast/css/font-shorthand-from-longhands_t01: RuntimeError #  45 Roll co19 test to rewrite.
-LayoutTests/fast/css/getComputedStyle/computed-style-font_t01: RuntimeError #  45 Roll co19 test to rewrite.
-LayoutTests/fast/css/getComputedStyle/computed-style-properties_t01: RuntimeError #  45 Roll co19 test to rewrite.
-LayoutTests/fast/css/getComputedStyle/counterIncrement-without-counter_t01: RuntimeError #  45 Roll co19 test to rewrite.
-LayoutTests/fast/css/getPropertyValue-columns_t01: RuntimeError #  45 Roll co19 test to rewrite.
-LayoutTests/fast/css/image-set-setting_t01: RuntimeError #  45 Roll co19 test to rewrite.
-LayoutTests/fast/css/important-js-override_t01: RuntimeError #  45 Roll co19 test to rewrite.
-LayoutTests/fast/css/MarqueeLayoutTest_t01: RuntimeError #  45 Roll co19 test to rewrite.
-LayoutTests/fast/css/nested-at-rules_t01: RuntimeError #  45 Roll co19 test to rewrite.
-LayoutTests/fast/css/parse-color-int-or-percent-crash_t01: RuntimeError #  45 Roll co19 test to rewrite.
-LayoutTests/fast/css/parsing-css-allowed-string-characters_t01: RuntimeError #  45 Roll co19 test to rewrite.
-LayoutTests/fast/css/parsing-css-nth-child_t01: RuntimeError #  45 Roll co19 test to rewrite.
-LayoutTests/fast/css/parsing-text-rendering_t01: RuntimeError #  45 Roll co19 test to rewrite.
-LayoutTests/fast/css/pseudo-valid-unapplied_t01: RuntimeError #  45 Roll co19 test to rewrite.
-LayoutTests/fast/css/string-quote-binary_t01: RuntimeError #  45 Roll co19 test to rewrite.
-LayoutTests/fast/css/transform-origin-parsing_t01: RuntimeError #  45 Roll co19 test to rewrite.
-LayoutTests/fast/dom/background-shorthand-csstext_t01: RuntimeError #  45 Roll co19 test to rewrite.
-LayoutTests/fast/dom/css-selectorText_t01: RuntimeError #  45 Roll co19 test to rewrite.
+LayoutTests/fast/css/auto-min-size_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/css/background-position-serialize_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/css/content-language-case-insensitivity_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/css/content-language-dynamically-added_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/css/content-language-dynamically-removed_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/css/content-language-mapped-to-webkit-locale_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/css/content-language-multiple_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/css/content-language-no-content_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/css/counters/counter-cssText_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/css/cssText-shorthand_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/css/csstext-of-content-string_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/css/ex-unit-with-no-x-height_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/css/font-shorthand-from-longhands_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/css/getComputedStyle/computed-style-font_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/css/getComputedStyle/computed-style-properties_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/css/getComputedStyle/counterIncrement-without-counter_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/css/getPropertyValue-columns_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/css/image-set-setting_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/css/important-js-override_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/css/MarqueeLayoutTest_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/css/nested-at-rules_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/css/parse-color-int-or-percent-crash_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/css/parsing-css-allowed-string-characters_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/css/parsing-css-nth-child_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/css/parsing-text-rendering_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/css/pseudo-valid-unapplied_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/css/string-quote-binary_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/css/transform-origin-parsing_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/dom/background-shorthand-csstext_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/dom/css-selectorText_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/dom/shadow/content-reprojection-fallback-crash_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/dom/shadow/shadow-root-js-api_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
 LayoutTests/fast/events/overflowchanged-event-raf-timing_t01: Skip #  45 Roll No longer supported.
+WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-005_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/dom-tree-accessors-002_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid ) && $checked ]
 Language/Errors_and_Warnings/static_warning_t01: RuntimeError # Please triage this failure.
@@ -1323,12 +1318,10 @@ LayoutTests/fast/canvas/webgl/uninitialized-test_t01: RuntimeError # Issue 22026
 LayoutTests/fast/canvas/webgl/viewport-unchanged-upon-resize_t01: RuntimeError # Issue 22026
 LayoutTests/fast/canvas/webgl/webgl-composite-modes-repaint_t01: RuntimeError # Issue 22026
 LayoutTests/fast/canvas/webgl/webgl-composite-modes_t01: RuntimeError # Issue 22026
-LayoutTests/fast/canvas/webgl/webgl-exceptions_t01: RuntimeError # Issue 22026
 LayoutTests/fast/canvas/webgl/webgl-large-texture_t01: RuntimeError # Issue 22026
 LayoutTests/fast/canvas/webgl/webgl-layer-update_t01: RuntimeError # Issue 22026
 LayoutTests/fast/canvas/webgl/webgl-specific_t01: RuntimeError # Issue 22026
 LayoutTests/fast/canvas/webgl/webgl-texture-binding-preserved_t01: RuntimeError # Issue 22026
-LayoutTests/fast/canvas/webgl/webgl-unprefixed-context-id_t01: RuntimeError # Issue 22026
 LayoutTests/fast/canvas/webgl/webgl-viewport-parameters-preserved_t01: RuntimeError # Issue 22026
 LayoutTests/fast/css/fontfaceset-events_t01: Pass, RuntimeError # Issue 23433
 LayoutTests/fast/events/clipboard-dataTransferItemList-remove_t01: RuntimeError # Issue 22532
