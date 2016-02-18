@@ -4843,11 +4843,6 @@ class CharacterData extends Node implements NonDocumentTypeChildNode, ChildNode 
   @Experimental() // untriaged
   void before(Object nodes) => _blink.BlinkCharacterData.instance.before_Callback_1_(unwrap_jso(this), nodes);
   
-  @DomName('CharacterData.replaceWith')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void replaceWith(Object nodes) => _blink.BlinkCharacterData.instance.replaceWith_Callback_1_(unwrap_jso(this), nodes);
-  
   @DomName('CharacterData.nextElementSibling')
   @DocsEditable()
   Element get nextElementSibling => wrap_jso(_blink.BlinkCharacterData.instance.nextElementSibling_Getter_(unwrap_jso(this)));
@@ -4885,11 +4880,6 @@ abstract class ChildNode extends DartHtmlDomObject {
   @DocsEditable()
   @Experimental() // untriaged
   void remove();
-
-  @DomName('ChildNode.replaceWith')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void replaceWith(Object nodes);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -15839,6 +15829,10 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
   bool get isContentEditable => _blink.BlinkHTMLElement.instance.isContentEditable_Getter_(unwrap_jso(this));
   void click() => _blink.BlinkHTMLElement.instance.click_Callback_0_(unwrap_jso(this));
 
+  @DomName('Element.offsetParent')
+  @DocsEditable()
+  Element get offsetParent => wrap_jso(_blink.BlinkElement.instance.offsetParent_Getter_(unwrap_jso(this)));
+
   @DomName('Element.offsetHeight')
   @DocsEditable()
   int get offsetHeight => _blink.BlinkElement.instance.offsetHeight_Getter_(unwrap_jso(this));
@@ -16919,11 +16913,6 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
   @DomName('Element.remove')
   @DocsEditable()
   void remove() => _blink.BlinkElement.instance.remove_Callback_0_(unwrap_jso(this));
-  
-  @DomName('Element.replaceWith')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void replaceWith(Object nodes) => _blink.BlinkElement.instance.replaceWith_Callback_1_(unwrap_jso(this), nodes);
   
   @DomName('Element.nextElementSibling')
   @DocsEditable()

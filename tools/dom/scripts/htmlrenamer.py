@@ -562,6 +562,7 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     # Disable the webKit version, imageSmoothingEnabled is exposed.
     'CanvasRenderingContext2D.webkitImageSmoothingEnabled',
     'CharacterData.remove',
+    'ChildNode.replaceWith',
     'Window.call:blur',
     'Window.call:focus',
     'Window.clientInformation',

@@ -1520,6 +1520,10 @@ $endif
   }
 
 $if DART2JS
+  @DomName('Element.offsetParent')
+  @DocsEditable()
+  final Element offsetParent;
+
   @DomName('Element.offsetHeight')
   @DocsEditable()
   int get offsetHeight => JS('num', '#.offsetHeight', this).round();
@@ -1584,6 +1588,10 @@ $else
   // Need to explicitly delegate because Element is no longer abstract for Dartium.
   bool get isContentEditable => _blink.BlinkHTMLElement.instance.isContentEditable_Getter_(unwrap_jso(this));
   void click() => _blink.BlinkHTMLElement.instance.click_Callback_0_(unwrap_jso(this));
+
+  @DomName('Element.offsetParent')
+  @DocsEditable()
+  Element get offsetParent => wrap_jso(_blink.BlinkElement.instance.offsetParent_Getter_(unwrap_jso(this)));
 
   @DomName('Element.offsetHeight')
   @DocsEditable()

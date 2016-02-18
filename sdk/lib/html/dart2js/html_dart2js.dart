@@ -2790,11 +2790,6 @@ class CharacterData extends Node implements NonDocumentTypeChildNode, ChildNode 
   @Experimental() // untriaged
   void before(Object nodes) native;
 
-  @DomName('CharacterData.replaceWith')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void replaceWith(Object nodes) native;
-
   // From NonDocumentTypeChildNode
 
   @DomName('CharacterData.nextElementSibling')
@@ -2822,8 +2817,6 @@ abstract class ChildNode extends Interceptor {
   void before(Object nodes);
 
   void remove();
-
-  void replaceWith(Object nodes);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -14135,6 +14128,10 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
     return result;
   }
 
+  @DomName('Element.offsetParent')
+  @DocsEditable()
+  final Element offsetParent;
+
   @DomName('Element.offsetHeight')
   @DocsEditable()
   int get offsetHeight => JS('num', '#.offsetHeight', this).round();
@@ -15315,11 +15312,6 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
   @DocsEditable()
   @Experimental() // untriaged
   void before(Object nodes) native;
-
-  @DomName('Element.replaceWith')
-  @DocsEditable()
-  @Experimental() // untriaged
-  void replaceWith(Object nodes) native;
 
   // From NonDocumentTypeChildNode
 
