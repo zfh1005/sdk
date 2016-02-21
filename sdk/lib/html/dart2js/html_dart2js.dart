@@ -19300,6 +19300,10 @@ class HtmlFormControlsCollection extends HtmlCollection {
   @DocsEditable()
   @Experimental() // untriaged
   Node item(int index) native;
+
+  @DomName('HTMLFormControlsCollection.namedItem')
+  @DocsEditable()
+  Object namedItem(String name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20014,7 +20018,7 @@ class HttpRequest extends HttpRequestEventTarget {
    */
   @DomName('XMLHttpRequest.send')
   @DocsEditable()
-  void send([data]) native;
+  void send([body_OR_data]) native;
 
   /**
    * Sets the value of an HTTP requst header.
@@ -24630,6 +24634,11 @@ class Navigator extends Interceptor implements NavigatorStorageUtils, NavigatorC
   @DocsEditable()
   @Experimental() // untriaged
   Future requestMediaKeySystemAccess(String keySystem, List<MediaKeySystemConfiguration> supportedConfigurations) native;
+
+  @DomName('Navigator.sendBeacon')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool sendBeacon(String url, Object data) native;
 
   // From NavigatorCPU
 
@@ -29252,6 +29261,11 @@ class SelectElement extends HtmlElement {
   @DocsEditable()
   void __setter__(int index, OptionElement option) native;
 
+  @DomName('HTMLSelectElement.add')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void add(Object element, Object before) native;
+
   @DomName('HTMLSelectElement.checkValidity')
   @DocsEditable()
   bool checkValidity() native;
@@ -29723,6 +29737,11 @@ class ServiceWorkerMessageEvent extends Event {
   @DocsEditable()
   @Experimental() // untriaged
   final List<MessagePort> ports;
+
+  @DomName('ServiceWorkerMessageEvent.source')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final Object source;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33078,6 +33097,11 @@ class TrackEvent extends Event {
   }
   static TrackEvent _create_1(type, eventInitDict) => JS('TrackEvent', 'new TrackEvent(#,#)', type, eventInitDict);
   static TrackEvent _create_2(type) => JS('TrackEvent', 'new TrackEvent(#)', type);
+
+  @DomName('TrackEvent.track')
+  @DocsEditable()
+  @Creates('Null')
+  final Object track;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

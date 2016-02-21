@@ -177,6 +177,13 @@ def generate_parameter_entries(param_infos):
     lb = min_arg_count - 2 if min_arg_count > 2 else 0
     return (lb, arg_count + 1)
 
+constructor_renames = {
+    'RTCPeerConnection': 'webkitRTCPeerConnection',
+}
+
+def rename_constructor(name):
+  return constructor_renames[name] if name in constructor_renames else name
+
 def Generate_Blink(output_dir, database, type_registry):
   blink_filename = os.path.join(output_dir, '_blink_dartium.dart')
   blink_file = open(blink_filename, 'w')
@@ -206,7 +213,7 @@ def Generate_Blink(output_dir, database, type_registry):
       _Emit_Blink_Constructors(blink_file, analyzed_constructors)
     elif 'Constructor' in interface.ext_attrs:
       # Zero parameter constructor.
-      blink_file.write(CONSTRUCTOR_0 % name)
+      blink_file.write(CONSTRUCTOR_0 % rename_constructor(name))
 
     _Process_Attributes(blink_file, interface.attributes)
     _Process_Operations(blink_file, interface, interface.operations)
@@ -230,13 +237,13 @@ def _Emit_Blink_Constructors(blink_file, analyzed_constructors):
 
   for callback_index in range(arg_min_count, arg_max_count):
     if callback_index == 0:
-      blink_file.write(CONSTRUCTOR_0 % (name))
+      blink_file.write(CONSTRUCTOR_0 % (rename_constructor(name)))
     else:
       arguments = []
       for i in range(0, callback_index):
         arguments.append(ARGUMENT_NUM % i)
       argument_list = ', '.join(arguments)
-      blink_file.write(CONSTRUCTOR_ARGS % (callback_index, argument_list, name, argument_list))
+      blink_file.write(CONSTRUCTOR_ARGS % (callback_index, argument_list, rename_constructor(name), argument_list))
 
 def _Process_Attributes(blink_file, attributes):
   # Emit an interface's attributes and operations.

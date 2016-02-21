@@ -1081,13 +1081,22 @@ LayoutTests/fast/css/parsing-text-rendering_t01: RuntimeError #  45 Roll co19 te
 LayoutTests/fast/css/pseudo-valid-unapplied_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
 LayoutTests/fast/css/string-quote-binary_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
 LayoutTests/fast/css/transform-origin-parsing_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/dom/custom/element-names_t01: RuntimeError # 45 Roll issue dart-lang/co19/issues/25
 LayoutTests/fast/dom/background-shorthand-csstext_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
 LayoutTests/fast/dom/css-selectorText_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
 LayoutTests/fast/dom/shadow/content-reprojection-fallback-crash_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/dom/shadow/event-path_t01: RuntimeError # 45 roll issue https://github.com/dart-lang/co19/issues/26
 LayoutTests/fast/dom/shadow/shadow-root-js-api_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/dom/shadow/shadow-disable_t01: RuntimeError # 45 roll issue https://github.com/dart-lang/co19/issues/27
 LayoutTests/fast/events/overflowchanged-event-raf-timing_t01: Skip #  45 Roll No longer supported.
+LayoutTests/fast/forms/validationMessage_t01: RuntimeError # 45 roll issue https://github.com/dart-lang/co19/issues/28
+LayoutTests/fast/forms/ValidityState-customError_t01: RuntimeError # 45 roll issue https://github.com/dart-lang/co19/issues/29
+LayoutTests/fast/multicol/columns-shorthand-parsing_t02: RuntimeError # 45 roll issue https://github.com/dart-lang/co19/issues/30
+LayoutTests/fast/xmlhttprequest/xmlhttprequest-get_t01: RuntimeError # 45 roll issue https://github.com/dart-lang/co19/issues/31
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-005_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/dom-tree-accessors-002_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-event-interface/event-path-001_t01: RuntimeError # 45 roll issue https://github.com/dart-lang/co19/issues/32
+WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-002_t01: RuntimeError # 45 roll issue https://github.com/dart-lang/co19/issues/33
 
 [ $compiler == none && ($runtime == dartium || $runtime == ContentShellOnAndroid ) && $checked ]
 Language/Errors_and_Warnings/static_warning_t01: RuntimeError # Please triage this failure.

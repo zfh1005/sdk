@@ -3040,7 +3040,7 @@ class RenderingContext extends DartHtmlDomObject implements CanvasRenderingConte
   
   @DomName('WebGLRenderingContext.getContextAttributes')
   @DocsEditable()
-  Map getContextAttributes() => wrap_jso(_blink.BlinkWebGLRenderingContext.instance.getContextAttributes_Callback_0_(unwrap_jso(this)));
+   getContextAttributes() => convertNativeDictionaryToDartDictionary(wrap_jso(_blink.BlinkWebGLRenderingContext.instance.getContextAttributes_Callback_0_(unwrap_jso(this))));
   
   @DomName('WebGLRenderingContext.getError')
   @DocsEditable()
@@ -5039,7 +5039,7 @@ class RenderingContext2 extends DartHtmlDomObject implements _WebGL2RenderingCon
   @DomName('WebGL2RenderingContext.getContextAttributes')
   @DocsEditable()
   @Experimental() // untriaged
-  Map getContextAttributes() => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.getContextAttributes_Callback_0_(unwrap_jso(this)));
+   getContextAttributes() => convertNativeDictionaryToDartDictionary(wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.getContextAttributes_Callback_0_(unwrap_jso(this))));
   
   @DomName('WebGL2RenderingContext.getError')
   @DocsEditable()

@@ -904,7 +904,14 @@ class DartiumBackend(HtmlDartGenerator):
     if self._interface.id == 'ImageData' and html_name == 'data':
       html_name = '_data'
     type_info = self._TypeInfo(attr.type.id)
+
     return_type = self.SecureOutputType(attr.type.id, False, False if self._dart_use_blink else True)
+    dictionary_returned = False
+    # Return type for dictionary is any (untyped).
+    if attr.type.id == 'Dictionary':
+      return_type = '';
+      dictionary_returned = True;
+
     parameters = []
     dart_declaration = '%s get %s' % (return_type, html_name)
     is_custom = _IsCustom(attr) and (_IsCustomValue(attr, None) or
@@ -936,7 +943,7 @@ class DartiumBackend(HtmlDartGenerator):
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 1,
         dart_declaration, attr.is_static, return_type, parameters,
         native_suffix, is_custom, auto_scope_setup, native_entry=native_entry,
-        wrap_unwrap_list=wrap_unwrap_list)
+        wrap_unwrap_list=wrap_unwrap_list, dictionary_return=dictionary_returned)
     if is_custom:
       return
 
@@ -1166,13 +1173,20 @@ class DartiumBackend(HtmlDartGenerator):
                                                   self._type_registry if self._dart_use_blink else None,
                                                   dart_js_interop,
                                                   self)
+
+    operation = info.operations[0]
+
+    dictionary_returned = False
+    # Return type for dictionary is any (untyped).
+    if operation.type.id == 'Dictionary':
+      return_type = '';
+      dictionary_returned = True;
+
     dart_declaration = '%s%s %s(%s)' % (
         'static ' if info.IsStatic() else '',
         return_type,
         html_name,
         formals)
-
-    operation = info.operations[0]
 
     is_custom = _IsCustom(operation)
     has_optional_arguments = any(IsOptional(argument) for argument in operation.arguments)
@@ -1215,7 +1229,8 @@ class DartiumBackend(HtmlDartGenerator):
         info.IsStatic(), return_type, parameters,
         native_suffix, is_custom, auto_scope_setup,
         native_entry=native_entry,
-        wrap_unwrap_list=wrap_unwrap_list)
+        wrap_unwrap_list=wrap_unwrap_list,
+        dictionary_return=dictionary_returned)
       if not is_custom:
         self._GenerateOperationNativeCallback(operation, operation.arguments, cpp_callback_name, auto_scope_setup)
     else:
@@ -1290,7 +1305,7 @@ class DartiumBackend(HtmlDartGenerator):
   def _GenerateNativeBinding(self, idl_name, argument_count, dart_declaration,
       static, return_type, parameters, native_suffix, is_custom,
       auto_scope_setup=True, emit_metadata=True, emit_to_native=False,
-      native_entry=None, wrap_unwrap_list=[]):
+      native_entry=None, wrap_unwrap_list=[], dictionary_return=False):
     metadata = []
     if emit_metadata:
       metadata = self._metadata.GetFormattedMetadata(
@@ -1333,14 +1348,19 @@ class DartiumBackend(HtmlDartGenerator):
   $METADATA$DART_DECLARATION => $DART_NAME($ACTUALS);
   '''
             if wrap_unwrap_list and wrap_unwrap_list[0]:
-                emit_jso_template = '''
-  $METADATA$DART_DECLARATION => %s($DART_NAME($ACTUALS));
-  '''
                 if return_type == 'Rectangle':
                     jso_util_method = 'make_dart_rectangle'
                 elif wrap_unwrap_list[0]:
                     jso_util_method = 'wrap_jso'
 
+                if dictionary_return:
+                  emit_jso_template = '''
+  $METADATA$DART_DECLARATION => convertNativeDictionaryToDartDictionary(%s($DART_NAME($ACTUALS)));
+  '''
+                else:
+                  emit_jso_template = '''
+  $METADATA$DART_DECLARATION => %s($DART_NAME($ACTUALS));
+  '''
                 emit_template = emit_jso_template % jso_util_method
 
             if caller_emitter:
