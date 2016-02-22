@@ -15184,7 +15184,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
       _scroll_1();
       return;
     }
-    if ((options_OR_x is Map) && y == null) {
+    if ((options_OR_x is Map || options_OR_x is js.JsObject) && y == null) {
       var options_1 = convertDartToNative_Dictionary(options_OR_x);
       _scroll_2(options_1);
       return;
@@ -15219,7 +15219,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
       _scrollBy_1();
       return;
     }
-    if ((options_OR_x is Map) && y == null) {
+    if ((options_OR_x is Map || options_OR_x is js.JsObject) && y == null) {
       var options_1 = convertDartToNative_Dictionary(options_OR_x);
       _scrollBy_2(options_1);
       return;
@@ -15266,7 +15266,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
       _scrollTo_1();
       return;
     }
-    if ((options_OR_x is Map) && y == null) {
+    if ((options_OR_x is Map || options_OR_x is js.JsObject) && y == null) {
       var options_1 = convertDartToNative_Dictionary(options_OR_x);
       _scrollTo_2(options_1);
       return;
@@ -18737,7 +18737,7 @@ class Headers extends Interceptor {
     if ((input is Headers)) {
       return Headers._create_2(input);
     }
-    if ((input is Map)) {
+    if ((input is Map || input is js.JsObject)) {
       var input_1 = convertDartToNative_Dictionary(input);
       return Headers._create_3(input_1);
     }
@@ -21520,7 +21520,7 @@ class KeyframeEffect extends AnimationEffectReadOnly {
     if ((timing is num) && (keyframes is List<Map>) && (target is Element || target == null)) {
       return KeyframeEffect._create_2(target, keyframes, timing);
     }
-    if ((timing is Map) && (keyframes is List<Map>) && (target is Element || target == null)) {
+    if ((timing is Map || timing is js.JsObject) && (keyframes is List<Map>) && (target is Element || target == null)) {
       var timing_1 = convertDartToNative_Dictionary(timing);
       return KeyframeEffect._create_3(target, keyframes, timing_1);
     }
@@ -35642,7 +35642,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       _scroll_1();
       return;
     }
-    if ((options_OR_x is Map) && y == null && scrollOptions == null) {
+    if ((options_OR_x is Map || options_OR_x is js.JsObject) && y == null && scrollOptions == null) {
       var options_1 = convertDartToNative_Dictionary(options_OR_x);
       _scroll_2(options_1);
       return;
@@ -35748,7 +35748,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       _scrollBy_1();
       return;
     }
-    if ((options_OR_x is Map) && y == null && scrollOptions == null) {
+    if ((options_OR_x is Map || options_OR_x is js.JsObject) && y == null && scrollOptions == null) {
       var options_1 = convertDartToNative_Dictionary(options_OR_x);
       _scrollBy_2(options_1);
       return;
@@ -35846,7 +35846,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       _scrollTo_1();
       return;
     }
-    if ((options_OR_x is Map) && y == null && scrollOptions == null) {
+    if ((options_OR_x is Map || options_OR_x is js.JsObject) && y == null && scrollOptions == null) {
       var options_1 = convertDartToNative_Dictionary(options_OR_x);
       _scrollTo_2(options_1);
       return;
