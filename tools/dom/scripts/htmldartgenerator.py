@@ -417,14 +417,8 @@ class HtmlDartGenerator(object):
             checks.append('(%s is %s || %s == null)' % (
                 parameter_name, test_type, parameter_name))
           else:
-            if test_type == 'Map':
-              # Need to handle case where a Map has already been converted to a
-              # js.JsObject.
-              checks.append('(%s is %s || %s is js.JsObject)' % (
-                  parameter_name, test_type, parameter_name))
-            else:
-              checks.append('(%s is %s)' % (
-                  parameter_name, test_type))
+            checks.append('(%s is %s)' % (
+                parameter_name, test_type))
         elif i >= number_of_required_in_dart:
           checks.append('%s != null' % parameter_name)
 

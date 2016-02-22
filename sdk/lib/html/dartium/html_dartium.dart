@@ -1524,6 +1524,9 @@ class Animation extends EventTarget {
   Animation.internal_() : super.internal_();
 
 
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => true;
+
   @DomName('Animation.currentTime')
   @DocsEditable()
   @Experimental() // untriaged
@@ -15317,7 +15320,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    * on which the method is called, and calls the play() method of the
    * AnimationTimeline object of the document timeline of the node document
    * of the element, passing the newly created AnimationEffect as the argument
-   * to the method. Returns an AnimationPlayer for the effect.
+   * to the method. Returns an Animation for the effect.
    *
    * Examples
    *
@@ -15336,7 +15339,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
   **/
   @Experimental()
   @SupportedBrowser(SupportedBrowser.CHROME, '36')
-  AnimationPlayer animate(Iterable<Map<String, dynamic>> frames, [timing]) {
+  Animation animate(Iterable<Map<String, dynamic>> frames, [timing]) {
     if (frames is! Iterable || !(frames.every((x) => x is Map))) {
       throw new ArgumentError("The frames parameter should be a List of Maps "
           "with frame information");
@@ -16693,7 +16696,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
     if ((timing is num) && effect != null) {
       return wrap_jso(_blink.BlinkElement.instance.animate_Callback_2_(unwrap_jso(this), effect, unwrap_jso(timing)));
     }
-    if ((timing is Map || timing is js.JsObject) && effect != null) {
+    if (timing != null && effect != null) {
       return wrap_jso(_blink.BlinkElement.instance.animate_Callback_2_(unwrap_jso(this), effect, unwrap_jso(timing)));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -16708,7 +16711,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
     if (shadowRootInitDict == null) {
       return wrap_jso(_blink.BlinkElement.instance.createShadowRoot_Callback_0_(unwrap_jso(this)));
     }
-    if ((shadowRootInitDict is Map || shadowRootInitDict is js.JsObject)) {
+    if ((shadowRootInitDict is Map)) {
       return wrap_jso(_blink.BlinkElement.instance.createShadowRoot_Callback_1_(unwrap_jso(this), convertDartToNative_Dictionary(shadowRootInitDict)));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -16844,7 +16847,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
       _blink.BlinkElement.instance.scroll_Callback_0_(unwrap_jso(this));
       return;
     }
-    if ((options_OR_x is Map || options_OR_x is js.JsObject) && y == null) {
+    if ((options_OR_x is Map) && y == null) {
       _blink.BlinkElement.instance.scroll_Callback_1_(unwrap_jso(this), unwrap_jso(options_OR_x));
       return;
     }
@@ -16860,7 +16863,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
       _blink.BlinkElement.instance.scrollBy_Callback_0_(unwrap_jso(this));
       return;
     }
-    if ((options_OR_x is Map || options_OR_x is js.JsObject) && y == null) {
+    if ((options_OR_x is Map) && y == null) {
       _blink.BlinkElement.instance.scrollBy_Callback_1_(unwrap_jso(this), unwrap_jso(options_OR_x));
       return;
     }
@@ -16894,7 +16897,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
       _blink.BlinkElement.instance.scrollTo_Callback_0_(unwrap_jso(this));
       return;
     }
-    if ((options_OR_x is Map || options_OR_x is js.JsObject) && y == null) {
+    if ((options_OR_x is Map) && y == null) {
       _blink.BlinkElement.instance.scrollTo_Callback_1_(unwrap_jso(this), unwrap_jso(options_OR_x));
       return;
     }
@@ -20884,7 +20887,7 @@ class Headers extends DartHtmlDomObject {
     if ((input is Headers)) {
       return wrap_jso(_blink.BlinkHeaders.instance.constructorCallback_1_(input));
     }
-    if ((input is Map || input is js.JsObject)) {
+    if ((input is Map)) {
       var input_1 = convertDartToNative_Dictionary(input);
       return wrap_jso(_blink.BlinkHeaders.instance.constructorCallback_1_(input_1));
     }
@@ -25072,7 +25075,7 @@ class KeyframeEffect extends AnimationEffectReadOnly {
     if ((timing is num) && (keyframes is List<Map>) && (target is Element || target == null)) {
       return wrap_jso(_blink.BlinkKeyframeEffect.instance.constructorCallback_3_(target, keyframes, timing));
     }
-    if ((timing is Map || timing is js.JsObject) && (keyframes is List<Map>) && (target is Element || target == null)) {
+    if ((timing is Map) && (keyframes is List<Map>) && (target is Element || target == null)) {
       var timing_1 = convertDartToNative_Dictionary(timing);
       return wrap_jso(_blink.BlinkKeyframeEffect.instance.constructorCallback_3_(target, keyframes, timing_1));
     }
@@ -42877,7 +42880,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       _blink.BlinkWindow.instance.scroll_Callback_0_(unwrap_jso(this));
       return;
     }
-    if ((options_OR_x is Map || options_OR_x is js.JsObject) && y == null && scrollOptions == null) {
+    if ((options_OR_x is Map) && y == null && scrollOptions == null) {
       _blink.BlinkWindow.instance.scroll_Callback_1_(unwrap_jso(this), unwrap_jso(options_OR_x));
       return;
     }
@@ -42889,7 +42892,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       _blink.BlinkWindow.instance.scroll_Callback_2_(unwrap_jso(this), unwrap_jso(options_OR_x), unwrap_jso(y));
       return;
     }
-    if ((scrollOptions is Map || scrollOptions is js.JsObject) && (y is int) && (options_OR_x is int)) {
+    if ((scrollOptions is Map) && (y is int) && (options_OR_x is int)) {
       _blink.BlinkWindow.instance.scroll_Callback_3_(unwrap_jso(this), unwrap_jso(options_OR_x), unwrap_jso(y), convertDartToNative_Dictionary(scrollOptions));
       return;
     }
@@ -42901,7 +42904,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       _blink.BlinkWindow.instance.scrollBy_Callback_0_(unwrap_jso(this));
       return;
     }
-    if ((options_OR_x is Map || options_OR_x is js.JsObject) && y == null && scrollOptions == null) {
+    if ((options_OR_x is Map) && y == null && scrollOptions == null) {
       _blink.BlinkWindow.instance.scrollBy_Callback_1_(unwrap_jso(this), unwrap_jso(options_OR_x));
       return;
     }
@@ -42913,7 +42916,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       _blink.BlinkWindow.instance.scrollBy_Callback_2_(unwrap_jso(this), unwrap_jso(options_OR_x), unwrap_jso(y));
       return;
     }
-    if ((scrollOptions is Map || scrollOptions is js.JsObject) && (y is int) && (options_OR_x is int)) {
+    if ((scrollOptions is Map) && (y is int) && (options_OR_x is int)) {
       _blink.BlinkWindow.instance.scrollBy_Callback_3_(unwrap_jso(this), unwrap_jso(options_OR_x), unwrap_jso(y), convertDartToNative_Dictionary(scrollOptions));
       return;
     }
@@ -42925,7 +42928,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       _blink.BlinkWindow.instance.scrollTo_Callback_0_(unwrap_jso(this));
       return;
     }
-    if ((options_OR_x is Map || options_OR_x is js.JsObject) && y == null && scrollOptions == null) {
+    if ((options_OR_x is Map) && y == null && scrollOptions == null) {
       _blink.BlinkWindow.instance.scrollTo_Callback_1_(unwrap_jso(this), unwrap_jso(options_OR_x));
       return;
     }
@@ -42937,7 +42940,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       _blink.BlinkWindow.instance.scrollTo_Callback_2_(unwrap_jso(this), unwrap_jso(options_OR_x), unwrap_jso(y));
       return;
     }
-    if ((scrollOptions is Map || scrollOptions is js.JsObject) && (y is int) && (options_OR_x is int)) {
+    if ((scrollOptions is Map) && (y is int) && (options_OR_x is int)) {
       _blink.BlinkWindow.instance.scrollTo_Callback_3_(unwrap_jso(this), unwrap_jso(options_OR_x), unwrap_jso(y), convertDartToNative_Dictionary(scrollOptions));
       return;
     }

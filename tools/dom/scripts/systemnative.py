@@ -763,13 +763,28 @@ class DartiumBackend(HtmlDartGenerator):
       dart_declaration, False, return_type, parameters,
       'Callback', True, False)
 
+  def _ChangePrivateOpMapArgToAny(self, operations):
+    # TODO(terry): Hack to map any operations marked as private to not
+    #              handle converting Map to native (JsObject) the public
+    #              members that call the private method will have done
+    #              conversions.
+    for operation in operations:
+      for arg in operation.arguments:
+        type = arg.type
+        if type.id == 'Dictionary':
+          type.id = 'any'
+
   def EmitOperation(self, info, html_name, dart_js_interop=False):
     """
     Arguments:
       info: An OperationInfo object.
     """
-    if self._interface.id == 'Element' and info.operations[0].id == 'animate':
-      print '>>>>> STOP'
+    if self._renamer.isPrivate(self._interface, info.operations[0].id):
+      # Any private operations with Maps parameters changed to any type.
+      # The public method that delegates to this private operation has already
+      # converted from Map to native (JsObject) e.g., Element.animate.
+      self._ChangePrivateOpMapArgToAny(info.operations)
+
     return_type = self.SecureOutputType(info.type_name, False, False if dart_js_interop else True)
 
     formals = info.ParametersAsDeclaration(self._DartType)

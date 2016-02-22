@@ -893,6 +893,8 @@ class HtmlRenamer(object):
       return html_interface_renames[interface_id]
     return None;
 
+  def isPrivate(self, interface, member):
+    return self._FindMatch(interface, member, '', private_html_members)
 
   def RenameMember(self, interface_name, member_node, member, member_prefix='',
       dartify_name=True):

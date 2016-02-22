@@ -267,6 +267,9 @@ class Animation extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory Animation._() { throw new UnsupportedError("Not supported"); }
 
+  /// Checks if this type is supported on the current platform.
+  static bool get supported => JS('bool', '!!(document.body.animate)');
+
   @DomName('Animation.currentTime')
   @DocsEditable()
   @Experimental() // untriaged
@@ -13467,7 +13470,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    * on which the method is called, and calls the play() method of the
    * AnimationTimeline object of the document timeline of the node document
    * of the element, passing the newly created AnimationEffect as the argument
-   * to the method. Returns an AnimationPlayer for the effect.
+   * to the method. Returns an Animation for the effect.
    *
    * Examples
    *
@@ -13486,7 +13489,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
   **/
   @Experimental()
   @SupportedBrowser(SupportedBrowser.CHROME, '36')
-  AnimationPlayer animate(Iterable<Map<String, dynamic>> frames, [timing]) {
+  Animation animate(Iterable<Map<String, dynamic>> frames, [timing]) {
     if (frames is! Iterable || !(frames.every((x) => x is Map))) {
       throw new ArgumentError("The frames parameter should be a List of Maps "
           "with frame information");
@@ -13507,7 +13510,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
   @DomName('Element.animate')
   @JSName('animate')
   @Experimental() // untriaged
-  AnimationPlayer _animate(Object effect, [timing]) native;
+  Animation _animate(Object effect, [timing]) native;
   /**
    * Called by the DOM whenever an attribute on this has been changed.
    */
@@ -15184,7 +15187,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
       _scroll_1();
       return;
     }
-    if ((options_OR_x is Map || options_OR_x is js.JsObject) && y == null) {
+    if ((options_OR_x is Map) && y == null) {
       var options_1 = convertDartToNative_Dictionary(options_OR_x);
       _scroll_2(options_1);
       return;
@@ -15219,7 +15222,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
       _scrollBy_1();
       return;
     }
-    if ((options_OR_x is Map || options_OR_x is js.JsObject) && y == null) {
+    if ((options_OR_x is Map) && y == null) {
       var options_1 = convertDartToNative_Dictionary(options_OR_x);
       _scrollBy_2(options_1);
       return;
@@ -15266,7 +15269,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
       _scrollTo_1();
       return;
     }
-    if ((options_OR_x is Map || options_OR_x is js.JsObject) && y == null) {
+    if ((options_OR_x is Map) && y == null) {
       var options_1 = convertDartToNative_Dictionary(options_OR_x);
       _scrollTo_2(options_1);
       return;
@@ -18737,7 +18740,7 @@ class Headers extends Interceptor {
     if ((input is Headers)) {
       return Headers._create_2(input);
     }
-    if ((input is Map || input is js.JsObject)) {
+    if ((input is Map)) {
       var input_1 = convertDartToNative_Dictionary(input);
       return Headers._create_3(input_1);
     }
@@ -21520,7 +21523,7 @@ class KeyframeEffect extends AnimationEffectReadOnly {
     if ((timing is num) && (keyframes is List<Map>) && (target is Element || target == null)) {
       return KeyframeEffect._create_2(target, keyframes, timing);
     }
-    if ((timing is Map || timing is js.JsObject) && (keyframes is List<Map>) && (target is Element || target == null)) {
+    if ((timing is Map) && (keyframes is List<Map>) && (target is Element || target == null)) {
       var timing_1 = convertDartToNative_Dictionary(timing);
       return KeyframeEffect._create_3(target, keyframes, timing_1);
     }
@@ -35642,7 +35645,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       _scroll_1();
       return;
     }
-    if ((options_OR_x is Map || options_OR_x is js.JsObject) && y == null && scrollOptions == null) {
+    if ((options_OR_x is Map) && y == null && scrollOptions == null) {
       var options_1 = convertDartToNative_Dictionary(options_OR_x);
       _scroll_2(options_1);
       return;
@@ -35748,7 +35751,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       _scrollBy_1();
       return;
     }
-    if ((options_OR_x is Map || options_OR_x is js.JsObject) && y == null && scrollOptions == null) {
+    if ((options_OR_x is Map) && y == null && scrollOptions == null) {
       var options_1 = convertDartToNative_Dictionary(options_OR_x);
       _scrollBy_2(options_1);
       return;
@@ -35846,7 +35849,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       _scrollTo_1();
       return;
     }
-    if ((options_OR_x is Map || options_OR_x is js.JsObject) && y == null && scrollOptions == null) {
+    if ((options_OR_x is Map) && y == null && scrollOptions == null) {
       var options_1 = convertDartToNative_Dictionary(options_OR_x);
       _scrollTo_2(options_1);
       return;
