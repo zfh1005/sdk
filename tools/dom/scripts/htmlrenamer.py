@@ -268,6 +268,10 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Element.scrollTop',
   'Element.scrollWidth',
   'Element.scrollHeight',
+  'Element.clientLeft',
+  'Element.clientTop',
+  'Element.clientWidth',
+  'Element.clientHeight',
 
   'Event.initEvent',
   'EventTarget.addEventListener',
@@ -795,6 +799,7 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'HTMLUListElement.type',
     'IDBDatabase.transaction', # We do this in a template without the generated implementation at all.
     'Location.valueOf',
+    'MessageEvent.data',
     'MessageEvent.ports',
     'MessageEvent.webkitInitMessageEvent',
     'MouseEvent.x',

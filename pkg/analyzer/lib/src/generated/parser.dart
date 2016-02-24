@@ -8,15 +8,20 @@ import 'dart:collection';
 import "dart:math" as math;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/scanner/reader.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/generated/shared_messages.dart'
+    as shared_messages;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart' show TokenMap;
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -3946,6 +3951,8 @@ class Parser {
           String comment = t.lexeme.substring(prefixLen, t.lexeme.length - 2);
           Token list = _scanGenericMethodComment(comment, t.offset + prefixLen);
           if (list != null) {
+            // Remove the token from the comment stream.
+            t.remove();
             // Insert the tokens into the stream.
             _injectTokenList(list);
             return true;
@@ -4169,7 +4176,7 @@ class Parser {
     return false;
   }
 
-  bool _isLikelyParameterList() {
+  bool _isLikelyArgumentList() {
     if (_matches(TokenType.OPEN_PAREN)) {
       return true;
     }
@@ -4237,7 +4244,7 @@ class Parser {
     if (!parseGenericMethods) {
       return false;
     }
-    Token token = _skipTypeArgumentList(_peek());
+    Token token = _skipTypeParameterList(_peek());
     return token != null && _tokenMatches(token, TokenType.OPEN_PAREN);
   }
 
@@ -4457,7 +4464,7 @@ class Parser {
     Expression expression = _parsePrimaryExpression();
     bool isOptional = primaryAllowed || expression is SimpleIdentifier;
     while (true) {
-      while (_isLikelyParameterList()) {
+      while (_isLikelyArgumentList()) {
         TypeArgumentList typeArguments = _parseOptionalTypeArguments();
         ArgumentList argumentList = parseArgumentList();
         if (expression is SimpleIdentifier) {
@@ -4665,8 +4672,8 @@ class Parser {
     }
     assert((expression == null && functionName != null) ||
         (expression != null && functionName == null));
-    if (_isLikelyParameterList()) {
-      while (_isLikelyParameterList()) {
+    if (_isLikelyArgumentList()) {
+      while (_isLikelyArgumentList()) {
         TypeArgumentList typeArguments = _parseOptionalTypeArguments();
         if (functionName != null) {
           expression = new MethodInvocation(expression, period, functionName,
@@ -4694,7 +4701,7 @@ class Parser {
       if (!identical(selector, expression)) {
         expression = selector;
         progress = true;
-        while (_isLikelyParameterList()) {
+        while (_isLikelyArgumentList()) {
           TypeArgumentList typeArguments = _parseOptionalTypeArguments();
           if (expression is PropertyAccess) {
             PropertyAccess propertyAccess = expression as PropertyAccess;
@@ -5452,9 +5459,12 @@ class Parser {
         if (constKeyword != null) {
           _reportErrorForNode(
               ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, body);
-        } else if (!bodyAllowed) {
+        } else if (externalKeyword != null) {
           _reportErrorForNode(
               ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY, body);
+        } else if (!bodyAllowed) {
+          _reportErrorForNode(
+              ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY, body);
         }
       }
     }
@@ -7047,7 +7057,8 @@ class Parser {
             _peek().matchesAny([
               TokenType.OPEN_PAREN,
               TokenType.OPEN_CURLY_BRACKET,
-              TokenType.FUNCTION
+              TokenType.FUNCTION,
+              TokenType.LT
             ])) {
           return _parseFunctionDeclarationStatementAfterReturnType(
               commentAndMetadata, returnType);
@@ -7302,7 +7313,7 @@ class Parser {
         _matches(TokenType.OPEN_PAREN) ||
         (parseGenericMethods && _matches(TokenType.LT))) {
       do {
-        if (_isLikelyParameterList()) {
+        if (_isLikelyArgumentList()) {
           TypeArgumentList typeArguments = _parseOptionalTypeArguments();
           ArgumentList argumentList = parseArgumentList();
           if (operand is PropertyAccess) {
@@ -9392,44 +9403,31 @@ class ParserErrorCode extends ErrorCode {
       'BREAK_OUTSIDE_OF_LOOP',
       "A break statement cannot be used outside of a loop or switch statement");
 
-  static const ParserErrorCode CLASS_IN_CLASS = const ParserErrorCode(
-      'CLASS_IN_CLASS', "Classes cannot be declared inside other classes");
+  static const ParserErrorCode CLASS_IN_CLASS = shared_messages.CLASS_IN_CLASS;
 
   static const ParserErrorCode COLON_IN_PLACE_OF_IN = const ParserErrorCode(
       'COLON_IN_PLACE_OF_IN', "For-in loops use 'in' rather than a colon");
 
-  static const ParserErrorCode CONST_AND_FINAL = const ParserErrorCode(
-      'CONST_AND_FINAL',
-      "Members cannot be declared to be both 'const' and 'final'");
+  static const ParserErrorCode CONST_AND_FINAL =
+      shared_messages.CONST_AND_FINAL;
 
-  static const ParserErrorCode CONST_AND_VAR = const ParserErrorCode(
-      'CONST_AND_VAR',
-      "Members cannot be declared to be both 'const' and 'var'");
+  static const ParserErrorCode CONST_AND_VAR = shared_messages.CONST_AND_VAR;
 
-  static const ParserErrorCode CONST_CLASS = const ParserErrorCode(
-      'CONST_CLASS', "Classes cannot be declared to be 'const'");
+  static const ParserErrorCode CONST_CLASS = shared_messages.CONST_CLASS;
 
   static const ParserErrorCode CONST_CONSTRUCTOR_WITH_BODY =
-      const ParserErrorCode('CONST_CONSTRUCTOR_WITH_BODY',
-          "'const' constructors cannot have a body");
+      shared_messages.CONST_CONSTRUCTOR_WITH_BODY;
 
-  static const ParserErrorCode CONST_ENUM = const ParserErrorCode(
-      'CONST_ENUM', "Enums cannot be declared to be 'const'");
+  static const ParserErrorCode CONST_ENUM = shared_messages.CONST_ENUM;
 
-  static const ParserErrorCode CONST_FACTORY = const ParserErrorCode(
-      'CONST_FACTORY',
-      "Only redirecting factory constructors can be declared to be 'const'");
+  static const ParserErrorCode CONST_FACTORY = shared_messages.CONST_FACTORY;
 
-  static const ParserErrorCode CONST_METHOD = const ParserErrorCode(
-      'CONST_METHOD',
-      "Getters, setters and methods cannot be declared to be 'const'");
+  static const ParserErrorCode CONST_METHOD = shared_messages.CONST_METHOD;
 
-  static const ParserErrorCode CONST_TYPEDEF = const ParserErrorCode(
-      'CONST_TYPEDEF', "Type aliases cannot be declared to be 'const'");
+  static const ParserErrorCode CONST_TYPEDEF = shared_messages.CONST_TYPEDEF;
 
   static const ParserErrorCode CONSTRUCTOR_WITH_RETURN_TYPE =
-      const ParserErrorCode('CONSTRUCTOR_WITH_RETURN_TYPE',
-          "Constructors cannot have a return type");
+      shared_messages.CONSTRUCTOR_WITH_RETURN_TYPE;
 
   static const ParserErrorCode CONTINUE_OUTSIDE_OF_LOOP = const ParserErrorCode(
       'CONTINUE_OUTSIDE_OF_LOOP',
@@ -9689,8 +9687,7 @@ class ParserErrorCode extends ErrorCode {
           "Expected an expression after the assignment operator");
 
   static const ParserErrorCode MISSING_EXPRESSION_IN_THROW =
-      const ParserErrorCode('MISSING_EXPRESSION_IN_THROW',
-          "Throw expressions must compute the object to be thrown");
+      shared_messages.MISSING_EXPRESSION_IN_THROW;
 
   static const ParserErrorCode MISSING_FUNCTION_BODY = const ParserErrorCode(
       'MISSING_FUNCTION_BODY', "A function body must be provided");
@@ -9834,6 +9831,10 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode POSITIONAL_PARAMETER_OUTSIDE_GROUP =
       const ParserErrorCode('POSITIONAL_PARAMETER_OUTSIDE_GROUP',
           "Positional parameters must be enclosed in square brackets ('[' and ']')");
+
+  static const ParserErrorCode REDIRECTING_CONSTRUCTOR_WITH_BODY =
+      const ParserErrorCode('REDIRECTING_CONSTRUCTOR_WITH_BODY',
+          "Redirecting constructors cannot have a body");
 
   static const ParserErrorCode REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR =
       const ParserErrorCode('REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR',

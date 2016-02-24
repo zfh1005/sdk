@@ -113,11 +113,6 @@ class FlowGraphBuilder : public ValueObject {
     return ic_data_array_;
   }
 
-  // Return true if a Javascript compatibility warning should be emitted at
-  // runtime for this type test.
-  bool WarnOnJSIntegralNumTypeTest(AstNode* node,
-                                   const AbstractType& type) const;
-
   void Bailout(const char* reason) const;
 
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }
@@ -157,10 +152,6 @@ class FlowGraphBuilder : public ValueObject {
 
   bool IsInlining() const { return (exit_collector_ != NULL); }
   InlineExitCollector* exit_collector() const { return exit_collector_; }
-
-  ZoneGrowableArray<const Field*>* guarded_fields() const {
-    return parsed_function_.guarded_fields();
-  }
 
   ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes() const {
     return parsed_function_.deferred_prefixes();

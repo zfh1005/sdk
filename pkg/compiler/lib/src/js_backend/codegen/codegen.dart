@@ -1031,7 +1031,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   @override
-  visitNullCheck(tree_ir.NullCheck node) {
+  visitReceiverCheck(tree_ir.ReceiverCheck node) {
     js.Expression value = visitExpression(node.value);
     // TODO(sra): Try to use the selector even when [useSelector] is false. The
     // reason we use 'toString' is that it is always defined so avoids a slow
@@ -1041,9 +1041,12 @@ class CodeGenerator extends tree_ir.StatementVisitor
     // hook for that selector. We don't know these things here, but the decision
     // could be deferred by creating a deferred property that was resolved after
     // codegen.
-    js.Expression access = node.selector != null && node.useSelector
+    js.Expression access = node.useSelector
         ? js.js('#.#', [value, glue.invocationName(node.selector)])
         : js.js('#.toString', [value]);
+    if (node.useInvoke) {
+      access = new js.Call(access, []);
+    }
     if (node.condition != null) {
       js.Expression condition = visitExpression(node.condition);
       js.Statement body = isNullReturn(node.next)
@@ -1120,8 +1123,14 @@ class CodeGenerator extends tree_ir.StatementVisitor
         return js.js('typeof # !== "number"', args);
       case BuiltinOperator.IsFloor:
         return js.js('Math.floor(#) === #', args);
-      case BuiltinOperator.IsNumberAndFloor:
+      case BuiltinOperator.IsInteger:
         return js.js('typeof # === "number" && Math.floor(#) === #', args);
+      case BuiltinOperator.IsNotInteger:
+        return js.js('typeof # !== "number" || Math.floor(#) !== #', args);
+      case BuiltinOperator.IsUnsigned32BitInteger:
+        return js.js('# >>> 0 === #', args);
+      case BuiltinOperator.IsNotUnsigned32BitInteger:
+        return js.js('# >>> 0 !== #', args);
       case BuiltinOperator.IsFixedLengthJSArray:
         // TODO(sra): Remove boolify (i.e. !!).
         return js.js(r'!!#.fixed$length', args);

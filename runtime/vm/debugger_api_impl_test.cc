@@ -14,6 +14,9 @@ namespace dart {
 DECLARE_FLAG(bool, background_compilation);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, use_osr);
+DECLARE_FLAG(bool, trace_shutdown);
+
+#ifndef PRODUCT
 
 static bool breakpoint_hit = false;
 static int  breakpoint_hit_counter = 0;
@@ -1511,6 +1514,8 @@ static void InterruptIsolateRun(uword unused) {
 
 
 TEST_CASE(Debug_InterruptIsolate) {
+  bool saved_flag = FLAG_trace_shutdown;
+  FLAG_trace_shutdown = true;
   sync = new Monitor();
   Dart_SetIsolateEventHandler(&TestInterruptIsolate);
   EXPECT(interrupt_isolate_id == ILLEGAL_ISOLATE_ID);
@@ -1520,6 +1525,7 @@ TEST_CASE(Debug_InterruptIsolate) {
 
   // Wait for the test isolate to be created.
   {
+    OS::PrintErr("Waiting for isolate to be created\n");
     MonitorLocker ml(sync);
     while (interrupt_isolate_id == ILLEGAL_ISOLATE_ID) {
       ml.Wait();
@@ -1533,6 +1539,7 @@ TEST_CASE(Debug_InterruptIsolate) {
 
   // Wait for the test isolate to be interrupted.
   {
+    OS::PrintErr("Waiting for isolate to be interrupted\n");
     MonitorLocker ml(sync);
     while (!isolate_interrupted || !pause_event_handled) {
       ml.Wait();
@@ -1543,12 +1550,15 @@ TEST_CASE(Debug_InterruptIsolate) {
 
   // Wait for the test isolate to shutdown.
   {
+    OS::PrintErr("Waiting for isolate to be shut down\n");
     MonitorLocker ml(sync);
     while (interrupt_isolate_id != ILLEGAL_ISOLATE_ID) {
       ml.Wait();
     }
   }
   EXPECT(interrupt_isolate_id == ILLEGAL_ISOLATE_ID);
+  OS::PrintErr("Complete\n");
+  FLAG_trace_shutdown = saved_flag;
 }
 
 
@@ -2326,5 +2336,7 @@ TEST_CASE(Debug_ScriptGetTokenInfo_MultiLineInterpolation) {
       " null, 9, 29, 1]",
       tokens_cstr);
 }
+
+#endif
 
 }  // namespace dart

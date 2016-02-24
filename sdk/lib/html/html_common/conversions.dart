@@ -266,9 +266,7 @@ abstract class _AcceptStructuredClone {
 // Conversions for ContextAttributes.
 //
 // On Firefox, the returned ContextAttributes is a plain object.
-// TODO(terry): Roll 45 ContextAttributes is a Dictionary (Map).
-//class _TypedContextAttributes implements gl.ContextAttributes {
-class _TypedContextAttributes {
+class ContextAttributes {
   bool alpha;
   bool antialias;
   bool depth;
@@ -277,25 +275,16 @@ class _TypedContextAttributes {
   bool stencil;
   bool failIfMajorPerformanceCaveat;
 
-  _TypedContextAttributes(this.alpha, this.antialias, this.depth,
+  ContextAttributes(this.alpha, this.antialias, this.depth,
       this.failIfMajorPerformanceCaveat, this.premultipliedAlpha,
       this.preserveDrawingBuffer, this.stencil);
 }
 
-// TODO(terry): Roll 45 ContextAttributes is a Dictionary (Map).
-//gl.ContextAttributes convertNativeToDart_ContextAttributes(
-convertNativeToDart_ContextAttributes(
-    nativeContextAttributes) {
-// TODO(terry): Roll 45 ContextAttributes is a Dictionary (Map).
-//  if (nativeContextAttributes is gl.ContextAttributes) {
-  if (nativeContextAttributes is  _TypedContextAttributes) {
-    return nativeContextAttributes;
-  }
-
+convertNativeToDart_ContextAttributes(nativeContextAttributes) {
   // On Firefox the above test fails because ContextAttributes is a plain
   // object so we create a _TypedContextAttributes.
 
-  return new _TypedContextAttributes(
+  return new ContextAttributes(
       JS('var', '#.alpha', nativeContextAttributes),
       JS('var', '#.antialias', nativeContextAttributes),
       JS('var', '#.depth', nativeContextAttributes),

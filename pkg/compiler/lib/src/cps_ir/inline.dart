@@ -18,6 +18,7 @@ import '../types/types.dart' show
     FlatTypeMask, ForwardingTypeMask, TypeMask, UnionTypeMask;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
+import 'package:js_ast/js_ast.dart' as js;
 
 /// Inlining stack entries.
 ///
@@ -246,16 +247,44 @@ class SizeVisitor extends TrampolineRecursiveVisitor {
   // Inlining a function incurs a cost equal to the number of primitives and
   // non-jump tail expressions.
   // TODO(kmillikin): Tune the size computation and size bound.
-  processLetPrim(LetPrim node) {
-    if (node.primitive is! Refinement) {
-      ++size;
-    }
-  }
+  processLetPrim(LetPrim node) => ++size;
   processLetMutable(LetMutable node) => ++size;
   processBranch(Branch node) => ++size;
   processThrow(Throw nose) => ++size;
   processRethrow(Rethrow node) => ++size;
+
+  // Discount primitives that do not generate code.
+  processRefinement(Refinement node) => --size;
+  processBoundsCheck(BoundsCheck node) {
+    if (node.hasNoChecks) {
+      --size;
+    }
+  }
+
+  processForeignCode(ForeignCode node) {
+    // Count the number of nodes in the JS fragment, and discount the size
+    // originally added by LetPrim.
+    JsSizeVisitor visitor = new JsSizeVisitor();
+    node.codeTemplate.ast.accept(visitor);
+    size += visitor.size - 1;
+  }
 }
+
+class JsSizeVisitor extends js.BaseVisitor {
+  int size = 0;
+
+  visitNode(js.Node node) {
+    ++size;
+    return super.visitNode(node);
+  }
+
+  visitInterpolatedExpression(js.InterpolatedExpression node) {
+    // Suppress call to visitNode.  Placeholders should not be counted, because
+    // the argument has already been counted, and will in most cases be inserted
+    // directly in the placeholder.
+  }
+}
+
 
 class InliningVisitor extends TrampolineRecursiveVisitor {
   final Inliner _inliner;
@@ -370,6 +399,7 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
     Primitive result = cps.invokeMethod(thisParameter, newSelector, node.mask,
         arguments, node.callingConvention);
     result.type = typeSystem.getInvokeReturnType(node.selector, node.mask);
+    returnContinuation.parameters.single.type = result.type;
     cps.invokeContinuation(returnContinuation, <Primitive>[result]);
     return new FunctionDefinition(target, thisParameter, parameters,
         returnContinuation,
@@ -390,6 +420,7 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
     // AST node, targets that are asynchronous or generator functions, or
     // targets containing a try statement.
     if (!target.hasNode) return null;
+    if (backend.isJsInterop(target)) return null;
     if (target.asyncMarker != AsyncMarker.SYNC) return null;
     // V8 does not optimize functions containing a try statement.  Inlining
     // code containing a try statement will make the optimizable calling code
@@ -402,6 +433,14 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
     // that throw an exception.
     if (invoke.type.isEmpty && !invoke.type.isNullable) {
       // TODO(sra): It would be ok to inline if doing so was shrinking.
+      return null;
+    }
+
+    if (isBlacklisted(target)) return null;
+
+    if (invoke.callingConvention == CallingConvention.OneShotIntercepted) {
+      // One-shot interceptor calls with a known target are only inserted on
+      // uncommon code paths, so they should not be inlined.
       return null;
     }
 
@@ -512,7 +551,9 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
                               CpsFragment fragment,
                               Primitive dartReceiver,
                               TypeMask abstractReceiver) {
-    Selector selector = invoke is InvokeMethod ? invoke.selector : null;
+    if (invoke is! InvokeMethod) return dartReceiver;
+    InvokeMethod invokeMethod = invoke;
+    Selector selector = invokeMethod.selector;
     if (typeSystem.isDefinitelyNum(abstractReceiver, allowNull: true)) {
       Primitive condition = _fragment.letPrim(
           new ApplyBuiltinOperator(BuiltinOperator.IsNotNumber,
@@ -520,15 +561,16 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
                                    invoke.sourceInformation));
       condition.type = typeSystem.boolType;
       Primitive check = _fragment.letPrim(
-          new NullCheck.guarded(
-              condition, dartReceiver, selector, invoke.sourceInformation));
+          new ReceiverCheck.nullCheck(dartReceiver, selector,
+              invoke.sourceInformation,
+              condition: condition));
       check.type = abstractReceiver.nonNullable();
       return check;
     }
 
     Primitive check = _fragment.letPrim(
-        new NullCheck(dartReceiver, invoke.sourceInformation,
-                      selector: selector));
+        new ReceiverCheck.nullCheck(dartReceiver, selector,
+            invoke.sourceInformation));
     check.type = abstractReceiver.nonNullable();
     return check;
   }
@@ -570,5 +612,18 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
       if (generic.typeArguments.any((DartType t) => !t.isDynamic)) return null;
     }
     return tryInlining(node, node.target, null);
+  }
+
+  bool isBlacklisted(FunctionElement target) {
+    ClassElement enclosingClass = target.enclosingClass;
+    if (target.isOperator &&
+        (enclosingClass == backend.helpers.jsNumberClass ||
+         enclosingClass == backend.helpers.jsDoubleClass ||
+         enclosingClass == backend.helpers.jsIntClass)) {
+      // These should be handled by operator specialization.
+      return true;
+    }
+    if (target == backend.helpers.stringInterpolationHelper) return true;
+    return false;
   }
 }

@@ -74,8 +74,6 @@ import 'spannable.dart' show
 
 import 'generated/shared_messages.dart' as shared_messages;
 
-export 'generated/shared_messages.dart' show SharedMessageKind;
-
 const DONT_KNOW_HOW_TO_FIX = "Computer says no!";
 
 /// Keys for the [MessageTemplate]s.
@@ -138,7 +136,7 @@ enum MessageKind {
   CANNOT_RESOLVE_IN_INITIALIZER,
   CANNOT_RESOLVE_SETTER,
   CANNOT_RESOLVE_TYPE,
-  CANNOT_RETURN_FROM_CONSTRUCTOR,
+  RETURN_IN_GENERATIVE_CONSTRUCTOR,
   CLASS_NAME_EXPECTED,
   COMPILER_CRASHED,
   COMPLEX_RETURNING_NSM,
@@ -146,7 +144,7 @@ enum MessageKind {
   CONSIDER_ANALYZE_ALL,
   CONST_CALLS_NON_CONST,
   CONST_CALLS_NON_CONST_FOR_IMPLICIT,
-  CONST_CONSTRUCTOR_HAS_BODY,
+  CONST_CONSTRUCTOR_OR_FACTORY_WITH_BODY,
   CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS,
   CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_CONSTRUCTOR,
   CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD,
@@ -290,8 +288,9 @@ enum MessageKind {
   INVALID_YIELD,
   JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS,
   JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
-  JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
+  JS_INTEROP_INDEX_NOT_SUPPORTED,
   JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS,
+  JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
   JS_PLACEHOLDER_CAPTURE,
   LIBRARY_NAME_MISMATCH,
   LIBRARY_NOT_FOUND,
@@ -429,7 +428,7 @@ enum MessageKind {
   THIS_IS_THE_METHOD,
   THIS_IS_THE_PART_OF_TAG,
   THIS_PROPERTY,
-  THROW_WITHOUT_EXPRESSION,
+  RETHROW_OUTSIDE_CATCH,
   TOP_LEVEL_VARIABLE_DECLARED_STATIC,
   TYPE_ARGUMENT_COUNT_MISMATCH,
   TYPE_VARIABLE_IN_CONSTANT,
@@ -454,7 +453,7 @@ enum MessageKind {
   UNSUPPORTED_EQ_EQ_EQ,
   UNSUPPORTED_LITERAL_SYMBOL,
   UNSUPPORTED_PREFIX_PLUS,
-  UNSUPPORTED_THROW_WITHOUT_EXP,
+  MISSING_EXPRESSION_IN_THROW,
   UNTERMINATED_COMMENT,
   UNTERMINATED_STRING,
   UNTERMINATED_TOKEN,
@@ -477,7 +476,7 @@ enum MessageKind {
 // TODO(johnnniwinther): For Infos, consider adding a reference to the
 // error/warning/hint that they belong to.
 class MessageTemplate {
-  final dynamic/*MessageKind | SharedMessageKind*/ kind;
+  final MessageKind kind;
 
   /// Should describe what is wrong and why.
   final String template;
@@ -979,17 +978,6 @@ main() {}"""},
         const MessageTemplate(MessageKind.REDIRECTING_CONSTRUCTOR_HAS_BODY,
           "Redirecting constructor can't have a body."),
 
-      MessageKind.CONST_CONSTRUCTOR_HAS_BODY:
-        const MessageTemplate(MessageKind.CONST_CONSTRUCTOR_HAS_BODY,
-          "Const constructor or factory can't have a body.",
-          howToFix: "Remove the 'const' keyword or the body",
-          examples: const ["""
-class C {
-  const C() {}
-}
-
-main() => new C();"""]),
-
       MessageKind.REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER:
         const MessageTemplate(
           MessageKind.REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER,
@@ -1160,11 +1148,6 @@ main() => new C(0);"""]),
       MessageKind.OPTIONAL_PARAMETER_IN_CATCH:
         const MessageTemplate(MessageKind.OPTIONAL_PARAMETER_IN_CATCH,
           "Cannot use optional parameters in catch."),
-
-      MessageKind.THROW_WITHOUT_EXPRESSION:
-        const MessageTemplate(MessageKind.THROW_WITHOUT_EXPRESSION,
-          "Cannot use re-throw outside of catch block "
-          "(expression expected after 'throw')."),
 
       MessageKind.UNBOUND_LABEL:
         const MessageTemplate(MessageKind.UNBOUND_LABEL,
@@ -1859,23 +1842,6 @@ main() {
         const MessageTemplate(MessageKind.OPERATOR_NAMED_PARAMETERS,
           "Operator '#{operatorName}' cannot have named parameters."),
 
-      MessageKind.CONSTRUCTOR_WITH_RETURN_TYPE:
-        const MessageTemplate(MessageKind.CONSTRUCTOR_WITH_RETURN_TYPE,
-          "Cannot have return type for constructor."),
-
-      MessageKind.CANNOT_RETURN_FROM_CONSTRUCTOR:
-        const MessageTemplate(MessageKind.CANNOT_RETURN_FROM_CONSTRUCTOR,
-          "Constructors can't return values.",
-          howToFix: "Remove the return statement or use a factory constructor.",
-          examples: const ["""
-class C {
-  C() {
-    return 1;
-  }
-}
-
-main() => new C();"""]),
-
       MessageKind.ILLEGAL_FINAL_METHOD_MODIFIER:
         const MessageTemplate(MessageKind.ILLEGAL_FINAL_METHOD_MODIFIER,
           "Cannot have final modifier on method."),
@@ -2336,6 +2302,36 @@ main() => A.A = 1;
                 new Foo().bar(4, baz: 5);
               }
               """]),
+      MessageKind.JS_INTEROP_INDEX_NOT_SUPPORTED:
+        const MessageTemplate(
+           MessageKind.JS_INTEROP_INDEX_NOT_SUPPORTED,
+           "Js-interop does not support [] and []= operator methods.",
+           howToFix: "Try replacing [] and []= operator methods with normal "
+                     "methods.",
+           examples: const [
+               """
+        import 'package:js/js.dart';
+
+        @JS()
+        class Foo {
+          external operator [](arg);
+        }
+
+        main() {
+          new Foo()[0];
+        }
+        """, """
+        import 'package:js/js.dart';
+
+        @JS()
+        class Foo {
+          external operator []=(arg, value);
+        }
+
+        main() {
+          new Foo()[0] = 1;
+        }
+        """]),
 
       MessageKind.JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS:
         const MessageTemplate(
@@ -2395,11 +2391,6 @@ main() => A.A = 1;
           examples: const [
               "main() => +2;  // No longer a valid way to write '2'"
           ]),
-
-      MessageKind.UNSUPPORTED_THROW_WITHOUT_EXP:
-        const MessageTemplate(MessageKind.UNSUPPORTED_THROW_WITHOUT_EXP,
-          "No expression after 'throw'. "
-          "Did you mean 'rethrow'?"),
 
       MessageKind.DEPRECATED_TYPEDEF_MIXIN_SYNTAX:
         const MessageTemplate(MessageKind.DEPRECATED_TYPEDEF_MIXIN_SYNTAX,
@@ -2575,42 +2566,6 @@ main() {}
           "#{exception}",
           // Don't know how to fix since the underlying error is unknown.
           howToFix: DONT_KNOW_HOW_TO_FIX),
-
-      MessageKind.EXTRANEOUS_MODIFIER:
-        const MessageTemplate(MessageKind.EXTRANEOUS_MODIFIER,
-          "Can't have modifier '#{modifier}' here.",
-          howToFix: "Try removing '#{modifier}'.",
-          examples: const [
-              "var String foo; main(){}",
-              // "var get foo; main(){}",
-              "var set foo; main(){}",
-              "var final foo; main(){}",
-              "var var foo; main(){}",
-              "var const foo; main(){}",
-              "var abstract foo; main(){}",
-              "var static foo; main(){}",
-              "var external foo; main(){}",
-              "get var foo; main(){}",
-              "set var foo; main(){}",
-              "final var foo; main(){}",
-              "var var foo; main(){}",
-              "const var foo; main(){}",
-              "abstract var foo; main(){}",
-              "static var foo; main(){}",
-              "external var foo; main(){}"]),
-
-      MessageKind.EXTRANEOUS_MODIFIER_REPLACE:
-        const MessageTemplate(MessageKind.EXTRANEOUS_MODIFIER_REPLACE,
-          "Can't have modifier '#{modifier}' here.",
-          howToFix:
-            "Try replacing modifier '#{modifier}' with 'var', 'final', "
-            "or a type.",
-          examples: const [
-              // "get foo; main(){}",
-              "set foo; main(){}",
-              "abstract foo; main(){}",
-              "static foo; main(){}",
-              "external foo; main(){}"]),
 
       MessageKind.ABSTRACT_CLASS_INSTANTIATION:
         const MessageTemplate(MessageKind.ABSTRACT_CLASS_INSTANTIATION,
@@ -3336,23 +3291,6 @@ main() sync* {
  var yield;
 }"""]),
 
-      MessageKind.RETURN_IN_GENERATOR:
-        const MessageTemplate(MessageKind.RETURN_IN_GENERATOR,
-          "'return' with a value is not allowed in a method body using the "
-          "'#{modifier}' modifier.",
-          howToFix: "Try removing the value, replacing 'return' with 'yield' "
-                    "or changing the method body modifier.",
-          examples: const [
-"""
-foo() async* { return 0; }
-main() => foo();
-""",
-
-"""
-foo() sync* { return 0; }
-main() => foo();
-"""]),
-
       MessageKind.NATIVE_NOT_SUPPORTED:
         const MessageTemplate(MessageKind.NATIVE_NOT_SUPPORTED,
           "'native' modifier is not supported.",
@@ -3688,7 +3626,7 @@ class Message {
     assert(() { computeMessage(); return true; });
   }
 
-  dynamic/*MessageKind | SharedMessageKind*/ get kind => template.kind;
+  MessageKind get kind => template.kind;
 
   String computeMessage() {
     if (message == null) {

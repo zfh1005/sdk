@@ -10,6 +10,8 @@
 #include "vm/os.h"
 #include "vm/parser.h"
 
+#if !defined(PRODUCT)
+
 namespace dart {
 
 AstPrinter::AstPrinter() : indent_(0) { }
@@ -575,3 +577,5 @@ void AstPrinter::PrintFunctionNodes(const ParsedFunction& parsed_function) {
 }
 
 }  // namespace dart
+
+#endif  // !defined(PRODUCT)

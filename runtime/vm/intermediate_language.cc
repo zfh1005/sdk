@@ -13,7 +13,6 @@
 #include "vm/flow_graph_allocator.h"
 #include "vm/flow_graph_builder.h"
 #include "vm/flow_graph_compiler.h"
-#include "vm/flow_graph_optimizer.h"
 #include "vm/flow_graph_range_analysis.h"
 #include "vm/locations.h"
 #include "vm/method_recognizer.h"
@@ -42,8 +41,6 @@ DEFINE_FLAG(bool, unbox_numeric_fields, true,
 DEFINE_FLAG(bool, fields_may_be_reset, false,
             "Don't optimize away static field initialization");
 DECLARE_FLAG(bool, eliminate_type_checks);
-DECLARE_FLAG(bool, trace_optimization);
-DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 
 Definition::Definition(intptr_t deopt_id)
     : Instruction(deopt_id),
@@ -1323,11 +1320,6 @@ bool BinaryInt32OpInstr::CanDeoptimize() const {
 
 
 bool BinarySmiOpInstr::CanDeoptimize() const {
-  if (FLAG_throw_on_javascript_int_overflow && (Smi::kBits > 32)) {
-    // If Smi's are bigger than 32-bits, then the instruction could deoptimize
-    // if the result is too big.
-    return true;
-  }
   switch (op_kind()) {
     case Token::kBIT_AND:
     case Token::kBIT_OR:
@@ -2055,19 +2047,25 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
     const TypeArguments& instantiator_type_args =
         TypeArguments::Cast(constant_type_args->value());
     Error& bound_error = Error::Handle();
-    const AbstractType& new_dst_type = AbstractType::Handle(
+    AbstractType& new_dst_type = AbstractType::Handle(
         dst_type().InstantiateFrom(
-            instantiator_type_args, &bound_error, NULL, Heap::kOld));
-    // If dst_type is instantiated to dynamic or Object, skip the test.
-    if (!new_dst_type.IsMalformedOrMalbounded() && bound_error.IsNull() &&
-        (new_dst_type.IsDynamicType() || new_dst_type.IsObjectType())) {
+            instantiator_type_args, &bound_error, NULL, NULL, Heap::kOld));
+    if (new_dst_type.IsMalformedOrMalbounded() || !bound_error.IsNull()) {
+      return this;
+    }
+    if (new_dst_type.IsTypeRef()) {
+      new_dst_type = TypeRef::Cast(new_dst_type).type();
+    }
+    new_dst_type = new_dst_type.Canonicalize();
+    set_dst_type(new_dst_type);
+
+    if (new_dst_type.IsDynamicType() ||
+        new_dst_type.IsObjectType() ||
+        (FLAG_eliminate_type_checks &&
+         value()->Type()->IsAssignableTo(new_dst_type))) {
       return value()->definition();
     }
-    set_dst_type(AbstractType::ZoneHandle(new_dst_type.Canonicalize()));
-    if (FLAG_eliminate_type_checks &&
-        value()->Type()->IsAssignableTo(dst_type())) {
-      return value()->definition();
-    }
+
     ConstantInstr* null_constant = flow_graph->constant_null();
     instantiator_type_arguments()->BindTo(null_constant);
   }
@@ -2344,7 +2342,7 @@ static bool MayBeBoxableNumber(intptr_t cid) {
 
 static bool MaybeNumber(CompileType* type) {
   ASSERT(Type::Handle(Type::Number()).IsMoreSpecificThan(
-         Type::Handle(Type::Number()), NULL, Heap::kOld));
+             Type::Handle(Type::Number()), NULL, NULL, Heap::kOld));
   return type->ToAbstractType()->IsDynamicType()
       || type->ToAbstractType()->IsObjectType()
       || type->ToAbstractType()->IsTypeParameter()
@@ -3543,9 +3541,14 @@ intptr_t InvokeMathCFunctionInstr::ArgumentCountFor(
       return 1;
     }
     case MethodRecognizer::kDoubleRound:
+    case MethodRecognizer::kMathAtan:
+    case MethodRecognizer::kMathTan:
+    case MethodRecognizer::kMathAcos:
+    case MethodRecognizer::kMathAsin:
       return 1;
     case MethodRecognizer::kDoubleMod:
     case MethodRecognizer::kMathDoublePow:
+    case MethodRecognizer::kMathAtan2:
       return 2;
     default:
       UNREACHABLE();
@@ -3565,6 +3568,10 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(DartModulo, 2, true /* is_float */,
     reinterpret_cast<RuntimeFunction>(
         static_cast<BinaryMathCFunction>(&DartModulo)));
 
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcAtan2, 2, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<BinaryMathCFunction>(&atan2_ieee)));
+
 DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcFloor, 1, true /* is_float */,
     reinterpret_cast<RuntimeFunction>(
         static_cast<UnaryMathCFunction>(&floor)));
@@ -3581,6 +3588,30 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcRound, 1, true /* is_float */,
     reinterpret_cast<RuntimeFunction>(
         static_cast<UnaryMathCFunction>(&round)));
 
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcCos, 1, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&cos)));
+
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcSin, 1, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&sin)));
+
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcAsin, 1, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&asin)));
+
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcAcos, 1, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&acos)));
+
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcTan, 1, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&tan)));
+
+DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcAtan, 1, true /* is_float */,
+    reinterpret_cast<RuntimeFunction>(
+        static_cast<UnaryMathCFunction>(&atan)));
+
 
 const RuntimeEntry& InvokeMathCFunctionInstr::TargetFunction() const {
   switch (recognized_kind_) {
@@ -3596,20 +3627,21 @@ const RuntimeEntry& InvokeMathCFunctionInstr::TargetFunction() const {
       return kLibcPowRuntimeEntry;
     case MethodRecognizer::kDoubleMod:
       return kDartModuloRuntimeEntry;
+    case MethodRecognizer::kMathTan:
+      return kLibcTanRuntimeEntry;
+    case MethodRecognizer::kMathAsin:
+      return kLibcAsinRuntimeEntry;
+    case MethodRecognizer::kMathAcos:
+      return kLibcAcosRuntimeEntry;
+    case MethodRecognizer::kMathAtan:
+      return kLibcAtanRuntimeEntry;
+    case MethodRecognizer::kMathAtan2:
+      return kLibcAtan2RuntimeEntry;
     default:
       UNREACHABLE();
   }
   return kLibcPowRuntimeEntry;
 }
-
-
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcCos, 1, true /* is_float */,
-    reinterpret_cast<RuntimeFunction>(
-        static_cast<UnaryMathCFunction>(&cos)));
-
-DEFINE_RAW_LEAF_RUNTIME_ENTRY(LibcSin, 1, true /* is_float */,
-    reinterpret_cast<RuntimeFunction>(
-        static_cast<UnaryMathCFunction>(&sin)));
 
 
 const RuntimeEntry& MathUnaryInstr::TargetFunction() const {

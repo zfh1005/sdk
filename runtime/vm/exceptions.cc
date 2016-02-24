@@ -19,8 +19,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, abort_on_assertion_errors, false,
-            "Abort on assertion and typecheck failures");
 DEFINE_FLAG(bool, print_stacktrace_at_throw, false,
             "Prints a stack trace everytime a throw occurs.");
 
@@ -459,7 +457,7 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
 
   // Type errors in the core library may be difficult to diagnose.
   // Print type error information before throwing the error when debugging.
-  if (FLAG_print_stacktrace_at_throw || FLAG_abort_on_assertion_errors) {
+  if (FLAG_print_stacktrace_at_throw) {
     if (!error_msg.IsNull()) {
       OS::Print("%s\n", error_msg.ToCString());
     }
@@ -475,10 +473,6 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
     }
   }
 
-  if (FLAG_abort_on_assertion_errors) {
-    PrintStackTraceAndAbort("a type error");
-  }
-
   // Throw TypeError or CastError instance.
   Exceptions::ThrowByType(exception_type, args);
   UNREACHABLE();
@@ -489,10 +483,12 @@ void Exceptions::Throw(Thread* thread, const Instance& exception) {
   // Do not notify debugger on stack overflow and out of memory exceptions.
   // The VM would crash when the debugger calls back into the VM to
   // get values of variables.
-  Isolate* isolate = thread->isolate();
-  if (exception.raw() != isolate->object_store()->out_of_memory() &&
-      exception.raw() != isolate->object_store()->stack_overflow()) {
-    isolate->debugger()->SignalExceptionThrown(exception);
+  if (FLAG_support_debugger) {
+    Isolate* isolate = thread->isolate();
+    if (exception.raw() != isolate->object_store()->out_of_memory() &&
+        exception.raw() != isolate->object_store()->stack_overflow()) {
+      isolate->debugger()->SignalExceptionThrown(exception);
+    }
   }
   // Null object is a valid exception object.
   ThrowExceptionHelper(thread, exception,
@@ -631,14 +627,6 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
       library = Library::IsolateLibrary();
       class_name = &Symbols::IsolateSpawnException();
       break;
-    case kJavascriptIntegerOverflowError:
-      library = Library::CoreLibrary();
-      class_name = &Symbols::JavascriptIntegerOverflowError();
-      break;
-    case kJavascriptCompatibilityError:
-      library = Library::CoreLibrary();
-      class_name = &Symbols::JavascriptCompatibilityError();
-      break;
     case kAssertion:
       library = Library::CoreLibrary();
       class_name = &Symbols::AssertionError();
@@ -675,23 +663,5 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
                                           arguments);
 }
 
-
-// Throw JavascriptCompatibilityError exception.
-void Exceptions::ThrowJavascriptCompatibilityError(const char* msg) {
-  const Array& exc_args = Array::Handle(Array::New(1));
-  const String& msg_str = String::Handle(String::New(msg));
-  exc_args.SetAt(0, msg_str);
-  Exceptions::ThrowByType(Exceptions::kJavascriptCompatibilityError, exc_args);
-}
-
-
-void Exceptions::PrintStackTraceAndAbort(const char* reason) {
-  const Instance& stacktrace = Instance::Handle(CurrentStacktrace());
-
-  OS::PrintErr("\n\n\nAborting due to %s. Stacktrace:\n%s\n",
-               reason,
-               stacktrace.ToCString());
-  OS::Abort();
-}
 
 }  // namespace dart

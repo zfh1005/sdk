@@ -24,6 +24,15 @@ namespace dart {
 Thread::~Thread() {
   // We should cleanly exit any isolate before destruction.
   ASSERT(isolate_ == NULL);
+  // There should be no top api scopes at this point.
+  ASSERT(api_top_scope() == NULL);
+  // Delete the resusable api scope if there is one.
+  if (api_reusable_scope_) {
+    delete api_reusable_scope_;
+    api_reusable_scope_ = NULL;
+  }
+  delete thread_lock_;
+  thread_lock_ = NULL;
 }
 
 
@@ -62,6 +71,7 @@ Thread::Thread(Isolate* isolate)
       deopt_id_(0),
       vm_tag_(0),
       pending_functions_(GrowableObjectArray::null()),
+      sticky_error_(Error::null()),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
       safepoint_state_(0),
@@ -172,6 +182,27 @@ RawGrowableObjectArray* Thread::pending_functions() {
     pending_functions_ = GrowableObjectArray::New(Heap::kOld);
   }
   return pending_functions_;
+}
+
+
+void Thread::clear_pending_functions() {
+  pending_functions_ = GrowableObjectArray::null();
+}
+
+
+RawError* Thread::sticky_error() const {
+  return sticky_error_;
+}
+
+
+void Thread::set_sticky_error(const Error& value) {
+  ASSERT(!value.IsNull());
+  sticky_error_ = value.raw();
+}
+
+
+void Thread::clear_sticky_error() {
+  sticky_error_ = Error::null();
 }
 
 
@@ -332,11 +363,10 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   // Visit objects in thread specific handles area.
   reusable_handles_.VisitObjectPointers(visitor);
 
-  // Visit the pending functions.
-  if (pending_functions_ != GrowableObjectArray::null()) {
-    visitor->VisitPointer(
-        reinterpret_cast<RawObject**>(&pending_functions_));
-  }
+  visitor->VisitPointer(
+      reinterpret_cast<RawObject**>(&pending_functions_));
+  visitor->VisitPointer(
+      reinterpret_cast<RawObject**>(&sticky_error_));
 
   // Visit the api local scope as it has all the api local handles.
   ApiLocalScope* scope = api_top_scope_;

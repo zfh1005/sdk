@@ -4,16 +4,22 @@
 
 library serialization.elements;
 
+import 'dart:convert';
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/name_filter.dart';
 import 'package:analyzer/src/summary/summarize_const_expr.dart';
+import 'package:crypto/crypto.dart';
 
 /**
  * Serialize all the elements in [lib] to a summary using [ctx] as the context
@@ -21,10 +27,11 @@ import 'package:analyzer/src/summary/summarize_const_expr.dart';
  */
 LibrarySerializationResult serializeLibrary(
     LibraryElement lib, TypeProvider typeProvider, bool strongMode) {
-  var serializer = new _LibrarySerializer(lib, typeProvider, strongMode);
+  _LibrarySerializer serializer =
+      new _LibrarySerializer(lib, typeProvider, strongMode);
   LinkedLibraryBuilder linked = serializer.serializeLibrary();
-  return new LibrarySerializationResult(
-      linked, serializer.unlinkedUnits, serializer.unitUris);
+  return new LibrarySerializationResult(linked, serializer.unlinkedUnits,
+      serializer.unitUris, serializer.unitSources);
 }
 
 ReferenceKind _getReferenceKind(Element element) {
@@ -35,7 +42,10 @@ ReferenceKind _getReferenceKind(Element element) {
   } else if (element is ConstructorElement) {
     return ReferenceKind.constructor;
   } else if (element is FunctionElement) {
-    return ReferenceKind.topLevelFunction;
+    if (element.enclosingElement is CompilationUnitElement) {
+      return ReferenceKind.topLevelFunction;
+    }
+    return ReferenceKind.function;
   } else if (element is FunctionTypeAliasElement) {
     return ReferenceKind.typedef;
   } else if (element is PropertyAccessorElement) {
@@ -45,6 +55,16 @@ ReferenceKind _getReferenceKind(Element element) {
     return ReferenceKind.topLevelPropertyAccessor;
   } else if (element is MethodElement) {
     return ReferenceKind.method;
+  } else if (element is TopLevelVariableElement) {
+    // Summaries don't need to distinguish between references to a variable and
+    // references to its getter.
+    return ReferenceKind.topLevelPropertyAccessor;
+  } else if (element is LocalVariableElement) {
+    return ReferenceKind.variable;
+  } else if (element is FieldElement) {
+    // Summaries don't need to distinguish between references to a field and
+    // references to its getter.
+    return ReferenceKind.propertyAccessor;
   } else {
     throw new Exception('Unexpected element kind: ${element.runtimeType}');
   }
@@ -79,7 +99,65 @@ class LibrarySerializationResult {
    */
   final List<String> unitUris;
 
-  LibrarySerializationResult(this.linked, this.unlinkedUnits, this.unitUris);
+  /**
+   * Source object corresponding to each compilation unit appearing in the
+   * library.
+   */
+  final List<Source> unitSources;
+
+  LibrarySerializationResult(
+      this.linked, this.unlinkedUnits, this.unitUris, this.unitSources);
+}
+
+/**
+ * Object that gathers information uses it to assemble a new
+ * [PackageBundleBuilder].
+ */
+class PackageBundleAssembler {
+  final List<String> _linkedLibraryUris = <String>[];
+  final List<LinkedLibraryBuilder> _linkedLibraries = <LinkedLibraryBuilder>[];
+  final List<String> _unlinkedUnitUris = <String>[];
+  final List<UnlinkedUnitBuilder> _unlinkedUnits = <UnlinkedUnitBuilder>[];
+  final List<String> _unlinkedUnitHashes = <String>[];
+
+  /**
+   * Assemble a new [PackageBundleBuilder] using the gathered information.
+   */
+  PackageBundleBuilder assemble() {
+    return new PackageBundleBuilder(
+        linkedLibraryUris: _linkedLibraryUris,
+        linkedLibraries: _linkedLibraries,
+        unlinkedUnitUris: _unlinkedUnitUris,
+        unlinkedUnits: _unlinkedUnits,
+        unlinkedUnitHashes: _unlinkedUnitHashes);
+  }
+
+  /**
+   * Serialize the library with the given [element].
+   */
+  void serializeLibraryElement(LibraryElement element) {
+    String uri = element.source.uri.toString();
+    LibrarySerializationResult libraryResult = serializeLibrary(
+        element,
+        element.context.typeProvider,
+        element.context.analysisOptions.strongMode);
+    _linkedLibraryUris.add(uri);
+    _linkedLibraries.add(libraryResult.linked);
+    _unlinkedUnitUris.addAll(libraryResult.unitUris);
+    _unlinkedUnits.addAll(libraryResult.unlinkedUnits);
+    for (Source source in libraryResult.unitSources) {
+      _unlinkedUnitHashes.add(_hash(source.contents.data));
+    }
+  }
+
+  /**
+   * Compute a hash of the given file contents.
+   */
+  String _hash(String contents) {
+    MD5 md5 = new MD5();
+    md5.add(UTF8.encode(contents));
+    return CryptoUtils.bytesToHex(md5.close());
+  }
 }
 
 /**
@@ -114,9 +192,9 @@ class _CompilationUnitSerializer {
    */
   final UnlinkedUnitBuilder unlinkedUnit = new UnlinkedUnitBuilder();
 
-/**
- * Absolute URI of the compilation unit.
- */
+  /**
+   * Absolute URI of the compilation unit.
+   */
   String unitUri;
 
   /**
@@ -155,8 +233,20 @@ class _CompilationUnitSerializer {
    */
   int unresolvedReferenceIndex = null;
 
+  /**
+   * Index into the "references table" representing the "bottom" type, if such
+   * an index exists.  `null` if no such entry has been made in the references
+   * table yet.
+   */
+  int bottomReferenceIndex = null;
+
   _CompilationUnitSerializer(
       this.librarySerializer, this.compilationUnit, this.unitNum);
+
+  /**
+   * Source object for the compilation unit.
+   */
+  Source get unitSource => compilationUnit.source;
 
   /**
    * Add all classes, enums, typedefs, executables, and top level variables
@@ -186,7 +276,7 @@ class _CompilationUnitSerializer {
             kind: ReferenceKind.classOrEnum,
             name: cls.name,
             numTypeParameters: cls.typeParameters.length,
-            constMembers: serializeClassConstMembers(cls)));
+            members: serializeClassConstMembers(cls)));
       }
     }
     for (ClassElement enm in compilationUnit.enums) {
@@ -221,6 +311,7 @@ class _CompilationUnitSerializer {
         unlinkedUnit.libraryNameLength = libraryElement.nameLength;
         unlinkedUnit.libraryDocumentationComment =
             serializeDocumentation(libraryElement);
+        unlinkedUnit.libraryAnnotations = serializeAnnotations(libraryElement);
       }
       unlinkedUnit.publicNamespace = new UnlinkedPublicNamespaceBuilder(
           exports: libraryElement.exports.map(serializeExportPublic).toList(),
@@ -233,8 +324,10 @@ class _CompilationUnitSerializer {
       unlinkedUnit.imports =
           libraryElement.imports.map(serializeImport).toList();
       unlinkedUnit.parts = libraryElement.parts
-          .map((CompilationUnitElement e) =>
-              new UnlinkedPartBuilder(uriOffset: e.uriOffset, uriEnd: e.uriEnd))
+          .map((CompilationUnitElement e) => new UnlinkedPartBuilder(
+              uriOffset: e.uriOffset,
+              uriEnd: e.uriEnd,
+              annotations: serializeAnnotations(e)))
           .toList();
     } else {
       // TODO(paulberry): we need to figure out a way to record library, part,
@@ -289,6 +382,7 @@ class _CompilationUnitSerializer {
    * parameter [type].
    */
   int findTypeParameterIndex(TypeParameterType type, Element context) {
+    Element originalContext = context;
     int index = 0;
     while (context != null) {
       List<TypeParameterElement> typeParameters;
@@ -310,7 +404,8 @@ class _CompilationUnitSerializer {
       }
       context = context.enclosingElement;
     }
-    throw new StateError('Unbound type parameter $type');
+    throw new StateError(
+        'Unbound type parameter $type (${originalContext?.location})');
   }
 
   /**
@@ -328,6 +423,38 @@ class _CompilationUnitSerializer {
     } else {
       return null;
     }
+  }
+
+  /**
+   * Serialize annotations from the given [element].  If [element] has no
+   * annotations, the empty list is returned.
+   */
+  List<UnlinkedConstBuilder> serializeAnnotations(Element element) {
+    if (element.metadata.isEmpty) {
+      return const <UnlinkedConstBuilder>[];
+    }
+    return element.metadata.map((ElementAnnotationImpl a) {
+      _ConstExprSerializer serializer = new _ConstExprSerializer(this, null);
+      serializer.serializeAnnotation(a.annotationAst);
+      return serializer.toBuilder();
+    }).toList();
+  }
+
+  /**
+   * Return the index of the entry in the references table
+   * ([LinkedLibrary.references]) used for the "bottom" type.  A new entry is
+   * added to the table if necessary to satisfy the request.
+   */
+  int serializeBottomReference() {
+    if (bottomReferenceIndex == null) {
+      // References to the "bottom" type are always implicit, since there is no
+      // way to explicitly refer to the "bottom" type.  Therefore they should
+      // be stored only in the linked references table.
+      bottomReferenceIndex = linkedReferences.length;
+      linkedReferences.add(new LinkedReferenceBuilder(
+          name: '*bottom*', kind: ReferenceKind.classOrEnum));
+    }
+    return bottomReferenceIndex;
   }
 
   /**
@@ -375,6 +502,7 @@ class _CompilationUnitSerializer {
     b.isAbstract = classElement.isAbstract;
     b.isMixinApplication = classElement.isMixinApplication;
     b.documentationComment = serializeDocumentation(classElement);
+    b.annotations = serializeAnnotations(classElement);
     return b;
   }
 
@@ -384,6 +512,12 @@ class _CompilationUnitSerializer {
    * Otherwise return `null`.
    */
   List<UnlinkedPublicNameBuilder> serializeClassConstMembers(ClassElement cls) {
+    if (cls.isMixinApplication) {
+      // Mixin application members can't be determined directly from the AST so
+      // we can't store them in UnlinkedPublicName.
+      // TODO(paulberry): find somewhere else to store them.
+      return null;
+    }
     if (cls.kind == ElementKind.CLASS) {
       List<UnlinkedPublicNameBuilder> bs = <UnlinkedPublicNameBuilder>[];
       for (FieldElement field in cls.fields) {
@@ -405,7 +539,7 @@ class _CompilationUnitSerializer {
         }
       }
       for (ConstructorElement constructor in cls.constructors) {
-        if (constructor.isConst && constructor.isPublic) {
+        if (constructor.isPublic && constructor.name.isNotEmpty) {
           // TODO(paulberry): should numTypeParameters include class params?
           bs.add(new UnlinkedPublicNameBuilder(
               name: constructor.name,
@@ -426,6 +560,8 @@ class _CompilationUnitSerializer {
     UnlinkedCombinatorBuilder b = new UnlinkedCombinatorBuilder();
     if (combinator is ShowElementCombinator) {
       b.shows = combinator.shownNames;
+      b.offset = combinator.offset;
+      b.end = combinator.end;
     } else if (combinator is HideElementCombinator) {
       b.hides = combinator.hiddenNames;
     }
@@ -435,8 +571,10 @@ class _CompilationUnitSerializer {
   /**
    * Serialize the given [expression], creating an [UnlinkedConstBuilder].
    */
-  UnlinkedConstBuilder serializeConstExpr(Expression expression) {
-    _ConstExprSerializer serializer = new _ConstExprSerializer(this);
+  UnlinkedConstBuilder serializeConstExpr(Expression expression,
+      [Set<String> constructorParameterNames]) {
+    _ConstExprSerializer serializer =
+        new _ConstExprSerializer(this, constructorParameterNames);
     serializer.serialize(expression);
     return serializer.toBuilder();
   }
@@ -475,6 +613,7 @@ class _CompilationUnitSerializer {
     }
     b.values = values;
     b.documentationComment = serializeDocumentation(enumElement);
+    b.annotations = serializeAnnotations(enumElement);
     return b;
   }
 
@@ -486,7 +625,12 @@ class _CompilationUnitSerializer {
     UnlinkedExecutableBuilder b = new UnlinkedExecutableBuilder();
     b.name = executableElement.name;
     b.nameOffset = executableElement.nameOffset;
-    if (executableElement is! ConstructorElement) {
+    if (executableElement is ConstructorElement) {
+      if (executableElement.name.isNotEmpty) {
+        b.nameEnd = executableElement.nameEnd;
+        b.periodOffset = executableElement.periodOffset;
+      }
+    } else {
       if (!executableElement.hasImplicitReturnType) {
         b.returnType = serializeTypeRef(
             executableElement.type.returnType, executableElement);
@@ -505,10 +649,48 @@ class _CompilationUnitSerializer {
       } else {
         b.kind = UnlinkedExecutableKind.setter;
       }
-    } else if (executableElement is ConstructorElement) {
+    } else if (executableElement is ConstructorElementImpl) {
       b.kind = UnlinkedExecutableKind.constructor;
       b.isConst = executableElement.isConst;
       b.isFactory = executableElement.isFactory;
+      ConstructorElement redirectedConstructor =
+          executableElement.redirectedConstructor;
+      if (redirectedConstructor != null) {
+        b.isRedirectedConstructor = true;
+        if (executableElement.isFactory) {
+          InterfaceType returnType = redirectedConstructor is ConstructorMember
+              ? redirectedConstructor.definingType
+              : redirectedConstructor.enclosingElement.type;
+          EntityRefBuilder typeRef =
+              serializeTypeRef(returnType, executableElement);
+          if (redirectedConstructor.name.isNotEmpty) {
+            String name = redirectedConstructor.name;
+            int typeId = typeRef.reference;
+            LinkedReference typeLinkedRef = linkedReferences[typeId];
+            int refId = serializeUnlinkedReference(
+                name, ReferenceKind.constructor,
+                unit: typeLinkedRef.unit, prefixReference: typeId);
+            b.redirectedConstructor = new EntityRefBuilder(
+                reference: refId, typeArguments: typeRef.typeArguments);
+          } else {
+            b.redirectedConstructor = typeRef;
+          }
+        } else {
+          b.redirectedConstructorName = redirectedConstructor.name;
+        }
+      }
+      if (executableElement.isConst &&
+          executableElement.constantInitializers != null) {
+        Set<String> constructorParameterNames =
+            executableElement.parameters.map((p) => p.name).toSet();
+        b.constantInitializers = executableElement.constantInitializers
+            .map((ConstructorInitializer initializer) =>
+                serializeConstructorInitializer(
+                    initializer,
+                    (expr) =>
+                        serializeConstExpr(expr, constructorParameterNames)))
+            .toList();
+      }
     } else {
       b.kind = UnlinkedExecutableKind.functionOrMethod;
     }
@@ -517,6 +699,19 @@ class _CompilationUnitSerializer {
         executableElement.enclosingElement is ClassElement;
     b.isExternal = executableElement.isExternal;
     b.documentationComment = serializeDocumentation(executableElement);
+    b.annotations = serializeAnnotations(executableElement);
+    if (executableElement is FunctionElement) {
+      SourceRange visibleRange = executableElement.visibleRange;
+      if (visibleRange != null) {
+        b.visibleOffset = visibleRange.offset;
+        b.visibleLength = visibleRange.length;
+      }
+    }
+    b.localFunctions =
+        executableElement.functions.map(serializeExecutable).toList();
+    b.localLabels = executableElement.labels.map(serializeLabel).toList();
+    b.localVariables =
+        executableElement.localVariables.map(serializeVariable).toList();
     return b;
   }
 
@@ -529,6 +724,7 @@ class _CompilationUnitSerializer {
     b.offset = exportElement.nameOffset;
     b.uriOffset = exportElement.uriOffset;
     b.uriEnd = exportElement.uriEnd;
+    b.annotations = serializeAnnotations(exportElement);
     return b;
   }
 
@@ -549,6 +745,7 @@ class _CompilationUnitSerializer {
    */
   UnlinkedImportBuilder serializeImport(ImportElement importElement) {
     UnlinkedImportBuilder b = new UnlinkedImportBuilder();
+    b.annotations = serializeAnnotations(importElement);
     b.isDeferred = importElement.isDeferred;
     b.combinators = importElement.combinators.map(serializeCombinator).toList();
     if (importElement.prefix != null) {
@@ -563,6 +760,18 @@ class _CompilationUnitSerializer {
       b.uriOffset = importElement.uriOffset;
       b.uriEnd = importElement.uriEnd;
     }
+    return b;
+  }
+
+  /**
+   * Serialize the given [label], creating an [UnlinkedLabelBuilder].
+   */
+  UnlinkedLabelBuilder serializeLabel(LabelElementImpl label) {
+    UnlinkedLabelBuilder b = new UnlinkedLabelBuilder();
+    b.name = label.name;
+    b.nameOffset = label.nameOffset;
+    b.isOnSwitchMember = label.isOnSwitchMember;
+    b.isOnSwitchStatement = label.isOnSwitchStatement;
     return b;
   }
 
@@ -586,6 +795,7 @@ class _CompilationUnitSerializer {
         b.kind = UnlinkedParamKind.named;
         break;
     }
+    b.annotations = serializeAnnotations(parameter);
     b.isInitializingFormal = parameter.isInitializingFormal;
     DartType type = parameter.type;
     if (parameter.hasImplicitType) {
@@ -597,7 +807,7 @@ class _CompilationUnitSerializer {
         b.inferredTypeSlot = storeInferredType(type, context);
       }
     } else {
-      if (type is FunctionType) {
+      if (type is FunctionType && type.element.isSynthetic) {
         b.isFunctionTyped = true;
         b.type = serializeTypeRef(type.returnType, parameter);
         b.parameters = type.parameters
@@ -607,6 +817,25 @@ class _CompilationUnitSerializer {
         b.type = serializeTypeRef(type, context);
       }
     }
+    if (parameter is ConstVariableElement) {
+      ConstVariableElement constParameter = parameter as ConstVariableElement;
+      Expression initializer = constParameter.constantInitializer;
+      if (initializer != null) {
+        b.defaultValue = serializeConstExpr(initializer);
+        b.defaultValueCode = parameter.defaultValueCode;
+      }
+    }
+    // TODO(scheglov) VariableMember.initializer is not implemented
+    if (parameter is! VariableMember && parameter.initializer != null) {
+      b.initializer = serializeExecutable(parameter.initializer);
+    }
+    {
+      SourceRange visibleRange = parameter.visibleRange;
+      if (visibleRange != null) {
+        b.visibleOffset = visibleRange.offset;
+        b.visibleLength = visibleRange.length;
+      }
+    }
     return b;
   }
 
@@ -614,14 +843,8 @@ class _CompilationUnitSerializer {
    * Serialize the given [prefix] into an index into the references table.
    */
   int serializePrefix(PrefixElement element) {
-    return referenceMap.putIfAbsent(element, () {
-      assert(unlinkedReferences.length == linkedReferences.length);
-      int index = unlinkedReferences.length;
-      unlinkedReferences.add(new UnlinkedReferenceBuilder(name: element.name));
-      linkedReferences
-          .add(new LinkedReferenceBuilder(kind: ReferenceKind.prefix));
-      return index;
-    });
+    return referenceMap.putIfAbsent(element,
+        () => serializeUnlinkedReference(element.name, ReferenceKind.prefix));
   }
 
   /**
@@ -634,6 +857,13 @@ class _CompilationUnitSerializer {
     Element element = type.element;
     LibraryElement dependentLibrary = element?.library;
     if (dependentLibrary == null) {
+      if (type.isBottom) {
+        // References to the "bottom" type are always implicit, since there is
+        // no way to explicitly refer to the "bottom" type.  Therefore they
+        // should always be linked.
+        assert(linked);
+        return serializeBottomReference();
+      }
       assert(type.isDynamic || type.isVoid);
       if (type is UndefinedTypeImpl) {
         return serializeUnresolvedReference();
@@ -657,6 +887,7 @@ class _CompilationUnitSerializer {
     b.returnType = serializeTypeRef(typedefElement.returnType, typedefElement);
     b.parameters = typedefElement.parameters.map(serializeParam).toList();
     b.documentationComment = serializeDocumentation(typedefElement);
+    b.annotations = serializeAnnotations(typedefElement);
     return b;
   }
 
@@ -671,6 +902,7 @@ class _CompilationUnitSerializer {
     if (typeParameter.bound != null) {
       b.bound = serializeTypeRef(typeParameter.bound, typeParameter);
     }
+    b.annotations = serializeAnnotations(typeParameter);
     return b;
   }
 
@@ -741,6 +973,23 @@ class _CompilationUnitSerializer {
   }
 
   /**
+   * Create a new entry in the references table ([UnlinkedLibrary.references]
+   * and [LinkedLibrary.references]) representing an entity having the given
+   * [name] and [kind].  If [unit] is given, it is the index of the compilation
+   * unit containing the entity being referred to.  If [prefixReference] is
+   * given, it indicates the entry in the references table for the prefix.
+   */
+  int serializeUnlinkedReference(String name, ReferenceKind kind,
+      {int unit: 0, int prefixReference: 0}) {
+    assert(unlinkedReferences.length == linkedReferences.length);
+    int index = unlinkedReferences.length;
+    unlinkedReferences.add(new UnlinkedReferenceBuilder(
+        name: name, prefixReference: prefixReference));
+    linkedReferences.add(new LinkedReferenceBuilder(kind: kind, unit: unit));
+    return index;
+  }
+
+  /**
    * Return the index of the entry in the references table
    * ([UnlinkedLibrary.references] and [LinkedLibrary.references]) used for
    * unresolved references.  A new entry is added to the table if necessary to
@@ -752,12 +1001,8 @@ class _CompilationUnitSerializer {
     // the element model.  For the moment we use a name that can't possibly
     // ever exist.
     if (unresolvedReferenceIndex == null) {
-      assert(unlinkedReferences.length == linkedReferences.length);
-      unresolvedReferenceIndex = unlinkedReferences.length;
-      unlinkedReferences
-          .add(new UnlinkedReferenceBuilder(name: '*unresolved*'));
-      linkedReferences
-          .add(new LinkedReferenceBuilder(kind: ReferenceKind.unresolved));
+      unresolvedReferenceIndex =
+          serializeUnlinkedReference('*unresolved*', ReferenceKind.unresolved);
     }
     return unresolvedReferenceIndex;
   }
@@ -765,7 +1010,7 @@ class _CompilationUnitSerializer {
   /**
    * Serialize the given [variable], creating an [UnlinkedVariable].
    */
-  UnlinkedVariableBuilder serializeVariable(PropertyInducingElement variable) {
+  UnlinkedVariableBuilder serializeVariable(VariableElement variable) {
     UnlinkedVariableBuilder b = new UnlinkedVariableBuilder();
     b.name = variable.name;
     b.nameOffset = variable.nameOffset;
@@ -776,38 +1021,52 @@ class _CompilationUnitSerializer {
     b.isFinal = variable.isFinal;
     b.isConst = variable.isConst;
     b.documentationComment = serializeDocumentation(variable);
-    if (variable.isConst && variable is ConstVariableElement) {
+    b.annotations = serializeAnnotations(variable);
+    if (variable is ConstVariableElement) {
       ConstVariableElement constVariable = variable as ConstVariableElement;
       Expression initializer = constVariable.constantInitializer;
       if (initializer != null) {
         b.constExpr = serializeConstExpr(initializer);
       }
     }
-    if (b.isFinal || b.isConst) {
-      b.propagatedTypeSlot = storeLinkedType(variable.propagatedType, variable);
-    } else {
-      // Variable is not propagable.
-      assert(variable.propagatedType == null);
+    if (variable is PropertyInducingElement) {
+      if (b.isFinal || b.isConst) {
+        b.propagatedTypeSlot =
+            storeLinkedType(variable.propagatedType, variable);
+      } else {
+        // Variable is not propagable.
+        assert(variable.propagatedType == null);
+      }
     }
     if (variable.hasImplicitType &&
         (variable.initializer != null || !variable.isStatic)) {
       b.inferredTypeSlot = storeInferredType(variable.type, variable);
+    }
+    if (variable is LocalVariableElement) {
+      SourceRange visibleRange = variable.visibleRange;
+      if (visibleRange != null) {
+        b.visibleOffset = visibleRange.offset;
+        b.visibleLength = visibleRange.length;
+      }
+    }
+    // TODO(scheglov) VariableMember.initializer is not implemented
+    if (variable is! VariableMember && variable.initializer != null) {
+      b.initializer = serializeExecutable(variable.initializer);
     }
     return b;
   }
 
   /**
    * Create a slot id for the given [type] (which is an inferred type).  If
-   * strong mode is enabled and [type] is not `dynamic`, it is stored in
-   * [linkedTypes] so that once the compilation unit has been fully visited, it
-   * will be serialized into [LinkedUnit.types].
+   * [type] is not `dynamic`, it is stored in [linkedTypes] so that once the
+   * compilation unit has been fully visited, it will be serialized into
+   * [LinkedUnit.types].
    *
    * [context] is the element within which the slot id will appear; this is
    * used to serialize type parameters.
    */
   int storeInferredType(DartType type, Element context) {
-    return storeLinkedType(
-        librarySerializer.strongMode && !type.isDynamic ? type : null, context);
+    return storeLinkedType(type.isDynamic ? null : type, context);
   }
 
   /**
@@ -830,35 +1089,52 @@ class _CompilationUnitSerializer {
 
   int _getElementReferenceId(Element element, {bool linked: false}) {
     return referenceMap.putIfAbsent(element, () {
-      LibraryElement dependentLibrary = element?.library;
-      int unit;
-      if (dependentLibrary == null) {
-        assert(element == librarySerializer.typeProvider.dynamicType.element ||
-            element == null);
-        unit = 0;
-        dependentLibrary = librarySerializer.libraryElement;
-      } else {
-        CompilationUnitElement unitElement =
-            element.getAncestor((Element e) => e is CompilationUnitElement);
-        unit = dependentLibrary.units.indexOf(unitElement);
-        assert(unit != -1);
-      }
-      LinkedReferenceBuilder linkedReference = new LinkedReferenceBuilder(
-          dependency: librarySerializer.serializeDependency(dependentLibrary),
-          kind: _getReferenceKind(element),
-          unit: unit);
-      if (element is TypeParameterizedElement) {
-        linkedReference.numTypeParameters = element.typeParameters.length;
-      }
-      String name = element == null ? 'void' : element.name;
-      if (linked) {
-        linkedReference.name = name;
-        Element enclosing = element?.enclosingElement;
-        if (enclosing is ClassElement) {
-          linkedReference.containingReference =
-              _getElementReferenceId(enclosing, linked: linked);
-          linkedReference.numTypeParameters += enclosing.typeParameters.length;
+      LibraryElement dependentLibrary = librarySerializer.libraryElement;
+      int unit = 0;
+      Element enclosingElement;
+      if (element != null) {
+        enclosingElement = element.enclosingElement;
+        if (enclosingElement is CompilationUnitElement) {
+          dependentLibrary = enclosingElement.library;
+          unit = dependentLibrary.units.indexOf(enclosingElement);
+          assert(unit != -1);
         }
+      }
+      ReferenceKind kind = _getReferenceKind(element);
+      String name = element == null ? 'void' : element.name;
+      int index;
+      LinkedReferenceBuilder linkedReference;
+      if (linked) {
+        linkedReference =
+            new LinkedReferenceBuilder(kind: kind, unit: unit, name: name);
+        if (enclosingElement != null &&
+            enclosingElement is! CompilationUnitElement) {
+          linkedReference.containingReference =
+              _getElementReferenceId(enclosingElement, linked: linked);
+          if (enclosingElement is ClassElement) {
+            // Nothing to do.
+          } else if (enclosingElement is ExecutableElement) {
+            if (element is FunctionElement) {
+              assert(enclosingElement.functions.contains(element));
+              linkedReference.localIndex =
+                  enclosingElement.functions.indexOf(element);
+            } else if (element is LocalVariableElement) {
+              assert(enclosingElement.localVariables.contains(element));
+              linkedReference.localIndex =
+                  enclosingElement.localVariables.indexOf(element);
+            } else {
+              throw new StateError(
+                  'Unexpected enclosed element type: ${element.runtimeType}');
+            }
+          } else if (enclosingElement is VariableElement) {
+            assert(identical(enclosingElement.initializer, element));
+          } else {
+            throw new StateError(
+                'Unexpected enclosing element type: ${enclosingElement.runtimeType}');
+          }
+        }
+        index = linkedReferences.length;
+        linkedReferences.add(linkedReference);
       } else {
         assert(unlinkedReferences.length == linkedReferences.length);
         int prefixReference = 0;
@@ -876,24 +1152,22 @@ class _CompilationUnitSerializer {
         } else {
           prefixReference = _getElementReferenceId(enclosing, linked: linked);
         }
-        unlinkedReferences.add(new UnlinkedReferenceBuilder(
-            name: name, prefixReference: prefixReference));
+        index = serializeUnlinkedReference(name, kind,
+            prefixReference: prefixReference, unit: unit);
+        linkedReference = linkedReferences[index];
       }
-      int index = linkedReferences.length;
-      linkedReferences.add(linkedReference);
+      linkedReference.dependency =
+          librarySerializer.serializeDependency(dependentLibrary);
+      if (element is TypeParameterizedElement) {
+        linkedReference.numTypeParameters += element.typeParameters.length;
+      }
       return index;
     });
   }
 
   int _getLengthPropertyReference(int prefix) {
-    assert(unlinkedReferences.length == linkedReferences.length);
-    int index = linkedReferences.length;
-    unlinkedReferences.add(
-        new UnlinkedReferenceBuilder(name: 'length', prefixReference: prefix));
-    LinkedReferenceBuilder linkedReference =
-        new LinkedReferenceBuilder(kind: ReferenceKind.length);
-    linkedReferences.add(linkedReference);
-    return index;
+    return serializeUnlinkedReference('length', ReferenceKind.length,
+        prefixReference: prefix);
   }
 }
 
@@ -904,41 +1178,98 @@ class _CompilationUnitSerializer {
 class _ConstExprSerializer extends AbstractConstExprSerializer {
   final _CompilationUnitSerializer serializer;
 
-  _ConstExprSerializer(this.serializer);
+  /**
+   * If a constructor initializer expression is being serialized, the names of
+   * the constructor parameters.  Otherwise `null`.
+   */
+  final Set<String> constructorParameterNames;
+
+  _ConstExprSerializer(this.serializer, this.constructorParameterNames);
 
   @override
-  EntityRefBuilder serializeConstructorName(ConstructorName constructor) {
-    DartType type = constructor.type.type;
-    EntityRefBuilder typeRef = serializer.serializeTypeRef(type, null);
-    if (constructor.name == null) {
+  bool isConstructorParameterName(String name) {
+    return constructorParameterNames?.contains(name) ?? false;
+  }
+
+  @override
+  void serializeAnnotation(Annotation annotation) {
+    if (annotation.arguments == null) {
+      assert(annotation.constructorName == null);
+      serialize(annotation.name);
+    } else {
+      Identifier name = annotation.name;
+      Element nameElement = name.staticElement;
+      EntityRefBuilder constructor;
+      if (nameElement is ConstructorElement && name is PrefixedIdentifier) {
+        assert(annotation.constructorName == null);
+        constructor = serializeConstructorName(
+            new TypeName(name.prefix, null)..type = nameElement.returnType,
+            name.identifier);
+      } else if (nameElement is TypeDefiningElement) {
+        constructor = serializeConstructorName(
+            new TypeName(annotation.name, null)..type = nameElement.type,
+            annotation.constructorName);
+      } else {
+        throw new StateError('Unexpected annotation nameElement type:'
+            ' ${nameElement.runtimeType}');
+      }
+      serializeInstanceCreation(constructor, annotation.arguments);
+    }
+  }
+
+  @override
+  EntityRefBuilder serializeConstructorName(
+      TypeName type, SimpleIdentifier name) {
+    EntityRefBuilder typeRef = serializeType(type);
+    if (name == null) {
       return typeRef;
     } else {
-      int typeId = typeRef.reference;
-      LinkedReference typeLinkedRef = serializer.linkedReferences[typeId];
-      serializer.unlinkedReferences.add(new UnlinkedReferenceBuilder(
-          name: constructor.name.name, prefixReference: typeId));
-      int refId = serializer.linkedReferences.length;
-      serializer.linkedReferences.add(new LinkedReferenceBuilder(
-          kind: ReferenceKind.constructor,
-          dependency: typeLinkedRef.dependency,
-          unit: typeLinkedRef.unit));
+      LinkedReference typeLinkedRef =
+          serializer.linkedReferences[typeRef.reference];
+      int refId = serializer.serializeUnlinkedReference(
+          name.name,
+          name.staticElement != null
+              ? ReferenceKind.constructor
+              : ReferenceKind.unresolved,
+          prefixReference: typeRef.reference,
+          unit: typeLinkedRef.unit);
       return new EntityRefBuilder(
           reference: refId, typeArguments: typeRef.typeArguments);
     }
   }
 
-  EntityRefBuilder serializeIdentifier(Identifier identifier) {
+  EntityRefBuilder serializeIdentifier(Identifier identifier,
+      {int prefixReference: 0}) {
     Element element = identifier.staticElement;
-    assert(element != null);
+    // Unresolved identifier.
+    if (element == null) {
+      int reference;
+      if (identifier is PrefixedIdentifier) {
+        int prefix = serializeIdentifier(identifier.prefix).reference;
+        reference = serializer.serializeUnlinkedReference(
+            identifier.identifier.name, ReferenceKind.unresolved,
+            prefixReference: prefix);
+      } else {
+        reference = serializer.serializeUnlinkedReference(
+            identifier.name, ReferenceKind.unresolved,
+            prefixReference: prefixReference);
+      }
+      return new EntityRefBuilder(reference: reference);
+    }
     // The only supported instance property accessor - `length`.
     if (identifier is PrefixedIdentifier &&
         element is PropertyAccessorElement &&
         !element.isStatic) {
-      assert(element.name == 'length');
+      if (element.name != 'length') {
+        throw new StateError('Only "length" property is allowed in constants.');
+      }
       Element prefixElement = identifier.prefix.staticElement;
       int prefixRef = serializer._getElementReferenceId(prefixElement);
       int lengthRef = serializer._getLengthPropertyReference(prefixRef);
       return new EntityRefBuilder(reference: lengthRef);
+    }
+    if (element is TypeParameterElement) {
+      throw new StateError('Constants may not refer to type parameters.');
     }
     return new EntityRefBuilder(
         reference: serializer._getElementReferenceId(element));
@@ -947,7 +1278,19 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
   @override
   EntityRefBuilder serializePropertyAccess(PropertyAccess access) {
     Element element = access.propertyName.staticElement;
-    assert(element != null);
+    // Unresolved property access.
+    if (element == null) {
+      Expression target = access.target;
+      if (target is Identifier) {
+        EntityRefBuilder targetRef = serializeIdentifier(target);
+        EntityRefBuilder propertyRef = serializeIdentifier(access.propertyName,
+            prefixReference: targetRef.reference);
+        return new EntityRefBuilder(reference: propertyRef.reference);
+      } else {
+        // TODO(scheglov) should we handle other targets in malformed constants?
+        throw new StateError('Unexpected target type: ${target.runtimeType}');
+      }
+    }
     // The only supported instance property accessor - `length`.
     Expression target = access.target;
     if (target is Identifier &&
@@ -965,6 +1308,12 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
 
   @override
   EntityRefBuilder serializeType(TypeName typeName) {
+    if (typeName != null) {
+      DartType type = typeName.type;
+      if (type == null || type.isUndefined) {
+        return serializeIdentifier(typeName.name);
+      }
+    }
     DartType type = typeName != null ? typeName.type : DynamicTypeImpl.instance;
     return serializer.serializeTypeRef(type, null);
   }
@@ -1033,6 +1382,13 @@ class _LibrarySerializer {
     dependencies.add(new LinkedDependencyBuilder());
     dependencyMap[libraryElement] = 0;
   }
+
+  /**
+   * Retrieve a list of the Sources for the compilation units in the library.
+   */
+  List<Source> get unitSources => compilationUnitSerializers
+      .map((_CompilationUnitSerializer s) => s.unitSource)
+      .toList();
 
   /**
    * Retrieve a list of the URIs for the compilation units in the library.

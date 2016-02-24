@@ -107,8 +107,7 @@ abstract class DownCast extends CoercionInfo {
 
   // Factory to create correct DownCast variant.
   static StaticInfo create(
-      StrongTypeSystemImpl rules, Expression expression, Cast cast,
-      {String reason}) {
+      StrongTypeSystemImpl rules, Expression expression, Cast cast) {
     final fromT = cast.fromType;
     final toT = cast.toType;
 
@@ -127,15 +126,20 @@ abstract class DownCast extends CoercionInfo {
     if (expression is Literal || expression is FunctionExpression) {
       // fromT should be an exact type - this will almost certainly fail at
       // runtime.
-      return new StaticTypeError(rules, expression, toT, reason: reason);
+      return new StaticTypeError(rules, expression, toT);
     }
+
     if (expression is InstanceCreationExpression) {
       ConstructorElement e = expression.staticElement;
       if (e == null || !e.isFactory) {
         // fromT should be an exact type - this will almost certainly fail at
         // runtime.
-        return new StaticTypeError(rules, expression, toT, reason: reason);
+        return new StaticTypeError(rules, expression, toT);
       }
+    }
+
+    if (StaticInfo.isKnownFunction(expression)) {
+      return new StaticTypeError(rules, expression, toT);
     }
 
     // TODO(vsm): Change this to an assert when we have generic methods and
@@ -538,24 +542,33 @@ abstract class StaticInfo {
   // TODO(jmesserly): review the usage of error codes. We probably want our own,
   // as well as some DDC specific [ErrorType]s.
   ErrorCode toErrorCode();
+
+  static bool isKnownFunction(Expression expression) {
+    Element element = null;
+    if (expression is PropertyAccess) {
+      element = expression.propertyName.staticElement;
+    } else if (expression is Identifier) {
+      element = expression.staticElement;
+    }
+    // First class functions and static methods, where we know the original
+    // declaration, will have an exact type, so we know a downcast will fail.
+    return element is FunctionElement ||
+        element is MethodElement && element.isStatic;
+  }
 }
 
 class StaticTypeError extends StaticError {
   final DartType baseType;
   final DartType expectedType;
-  String reason = null;
 
-  StaticTypeError(TypeSystem rules, Expression expression, this.expectedType,
-      {this.reason})
+  StaticTypeError(TypeSystem rules, Expression expression, this.expectedType)
       : baseType = expression.staticType ?? DynamicTypeImpl.instance,
         super(expression);
 
   @override
   List<Object> get arguments => [node, baseType, expectedType];
   @override
-  String get message =>
-      'Type check failed: {0} ({1}) is not of type {2}' +
-      ((reason == null) ? '' : ' because $reason');
+  String get message => 'Type check failed: {0} ({1}) is not of type {2}';
 
   @override
   String get name => 'STRONG_MODE_STATIC_TYPE_ERROR';

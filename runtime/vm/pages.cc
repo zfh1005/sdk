@@ -59,7 +59,7 @@ HeapPage* HeapPage::Initialize(VirtualMemory* memory, PageType type) {
   ASSERT(result != NULL);
   result->memory_ = memory;
   result->next_ = NULL;
-  result->executable_ = is_executable;
+  result->type_ = type;
   return result;
 }
 
@@ -132,7 +132,7 @@ RawObject* HeapPage::FindObject(FindObjectVisitor* visitor) const {
 void HeapPage::WriteProtect(bool read_only) {
   VirtualMemory::Protection prot;
   if (read_only) {
-    if (executable_) {
+    if (type_ == kExecutable) {
       prot = VirtualMemory::kReadExecute;
     } else {
       prot = VirtualMemory::kReadOnly;
@@ -346,8 +346,8 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
     // Start of the newly allocated page is the allocated object.
     result = page->object_start();
     // Note: usage_.capacity_in_words is increased by AllocatePage.
-    AtomicOperations::FetchAndIncrementBy(&(usage_.used_in_words),
-                                          (size >> kWordSizeLog2));
+    AtomicOperations::IncrementBy(&(usage_.used_in_words),
+                                  (size >> kWordSizeLog2));
     // Enqueue the remainder in the free list.
     uword free_start = result + size;
     intptr_t free_size = page->object_end() - free_start;
@@ -384,8 +384,8 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
       result = TryAllocateInFreshPage(size, type, growth_policy, is_locked);
       // usage_ is updated by the call above.
     } else {
-      AtomicOperations::FetchAndIncrementBy(&(usage_.used_in_words),
-                                            (size >> kWordSizeLog2));
+      AtomicOperations::IncrementBy(&(usage_.used_in_words),
+                                    (size >> kWordSizeLog2));
     }
   } else {
     // Large page allocation.
@@ -404,8 +404,8 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
       if (page != NULL) {
         result = page->object_start();
         // Note: usage_.capacity_in_words is increased by AllocateLargePage.
-        AtomicOperations::FetchAndIncrementBy(&(usage_.used_in_words),
-                                              (size >> kWordSizeLog2));
+        AtomicOperations::IncrementBy(&(usage_.used_in_words),
+                                      (size >> kWordSizeLog2));
       }
     }
   }
@@ -434,16 +434,14 @@ uword PageSpace::TryAllocateInternal(intptr_t size,
 
 void PageSpace::AllocateExternal(intptr_t size) {
   intptr_t size_in_words = size >> kWordSizeLog2;
-  AtomicOperations::FetchAndIncrementBy(&(usage_.external_in_words),
-                                        size_in_words);
+  AtomicOperations::IncrementBy(&(usage_.external_in_words), size_in_words);
   // TODO(koda): Control growth.
 }
 
 
 void PageSpace::FreeExternal(intptr_t size) {
   intptr_t size_in_words = size >> kWordSizeLog2;
-  AtomicOperations::FetchAndDecrementBy(&(usage_.external_in_words),
-                                        size_in_words);
+  AtomicOperations::DecrementBy(&(usage_.external_in_words), size_in_words);
 }
 
 
@@ -667,7 +665,9 @@ void PageSpace::WriteProtect(bool read_only, bool include_code_pages) {
     AbandonBumpAllocation();
   }
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
-    if ((it.page()->type() != HeapPage::kExecutable) || include_code_pages) {
+    HeapPage::PageType page_type = it.page()->type();
+    if ((page_type != HeapPage::kReadOnlyData) &&
+        ((page_type != HeapPage::kExecutable) || include_code_pages)) {
       it.page()->WriteProtect(read_only);
     }
   }
@@ -675,6 +675,9 @@ void PageSpace::WriteProtect(bool read_only, bool include_code_pages) {
 
 
 void PageSpace::PrintToJSONObject(JSONObject* object) const {
+  if (!FLAG_support_service) {
+    return;
+  }
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   JSONObject space(object, "old");
@@ -715,6 +718,9 @@ class HeapMapAsJSONVisitor : public ObjectVisitor {
 
 void PageSpace::PrintHeapMapToJSONStream(
     Isolate* isolate, JSONStream* stream) const {
+  if (!FLAG_support_service) {
+    return;
+  }
   JSONObject heap_map(stream);
   heap_map.AddProperty("type", "HeapMap");
   heap_map.AddProperty("freeClassId",
@@ -1009,8 +1015,8 @@ uword PageSpace::TryAllocateDataBumpInternal(intptr_t size,
   ASSERT(remaining >= size);
   uword result = bump_top_;
   bump_top_ += size;
-  AtomicOperations::FetchAndIncrementBy(&(usage_.used_in_words),
-                                        (size >> kWordSizeLog2));
+  AtomicOperations::IncrementBy(&(usage_.used_in_words),
+                                (size >> kWordSizeLog2));
   // Note: Remaining block is unwalkable until MakeIterable is called.
 #ifdef DEBUG
   if (bump_top_ < bump_end_) {
@@ -1040,8 +1046,8 @@ uword PageSpace::TryAllocatePromoLocked(intptr_t size,
   FreeList* freelist = &freelist_[HeapPage::kData];
   uword result = freelist->TryAllocateSmallLocked(size);
   if (result != 0) {
-    AtomicOperations::FetchAndIncrementBy(&(usage_.used_in_words),
-                                          (size >> kWordSizeLog2));
+    AtomicOperations::IncrementBy(&(usage_.used_in_words),
+                                  (size >> kWordSizeLog2));
     return result;
   }
   result = TryAllocateDataBumpLocked(size, growth_policy);
@@ -1067,7 +1073,9 @@ uword PageSpace::TryAllocateSmiInitializedLocked(intptr_t size,
 }
 
 
-void PageSpace::SetupInstructionsSnapshotPage(void* pointer, uword size) {
+void PageSpace::SetupExternalPage(void* pointer,
+                                  uword size,
+                                  bool is_executable) {
   // Setup a HeapPage so precompiled Instructions can be traversed.
   // Instructions are contiguous at [pointer, pointer + size). HeapPage
   // expects to find objects at [memory->start() + ObjectStartOffset,
@@ -1076,23 +1084,31 @@ void PageSpace::SetupInstructionsSnapshotPage(void* pointer, uword size) {
   pointer = reinterpret_cast<void*>(reinterpret_cast<uword>(pointer) - offset);
   size += offset;
 
-  ASSERT(Utils::IsAligned(pointer, OS::PreferredCodeAlignment()));
-
-  VirtualMemory* memory = VirtualMemory::ForInstructionsSnapshot(pointer, size);
+  VirtualMemory* memory = VirtualMemory::ForExternalPage(pointer, size);
   ASSERT(memory != NULL);
   HeapPage* page = reinterpret_cast<HeapPage*>(malloc(sizeof(HeapPage)));
   page->memory_ = memory;
   page->next_ = NULL;
   page->object_end_ = memory->end();
-  page->executable_ = true;
 
   MutexLocker ml(pages_lock_);
-  if (exec_pages_ == NULL) {
-    exec_pages_ = page;
+  HeapPage** first, **tail;
+  if (is_executable) {
+    ASSERT(Utils::IsAligned(pointer, OS::PreferredCodeAlignment()));
+    page->type_ = HeapPage::kExecutable;
+    first = &exec_pages_;
+    tail = &exec_pages_tail_;
   } else {
-    exec_pages_tail_->set_next(page);
+    page->type_ = HeapPage::kReadOnlyData;
+    first = &pages_;
+    tail = &pages_tail_;
   }
-  exec_pages_tail_ = page;
+  if (*first == NULL) {
+    *first = page;
+  } else {
+    (*tail)->set_next(page);
+  }
+  (*tail) = page;
 }
 
 

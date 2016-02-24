@@ -6,7 +6,9 @@ library analyzer.test.generated.static_type_warning_code_test;
 
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/java_core.dart' show formatList;
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
 import '../utils.dart';
@@ -15,6 +17,7 @@ import 'resolver_test.dart';
 main() {
   initializeTestEnvironment();
   runReflectiveTests(StaticTypeWarningCodeTest);
+  runReflectiveTests(StrongModeStaticTypeWarningCodeTest);
 }
 
 @reflectiveTest
@@ -694,6 +697,16 @@ f() {
     Source source = addSource(r'''
 f() {
   do {} while (3);
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [StaticTypeWarningCode.NON_BOOL_CONDITION]);
+    verify([source]);
+  }
+
+  void test_nonBoolCondition_for() {
+    Source source = addSource(r'''
+f() {
+  for (;3;) {}
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [StaticTypeWarningCode.NON_BOOL_CONDITION]);
@@ -2150,6 +2163,36 @@ Stream<int> f() sync* {
       StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
       StaticTypeWarningCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE
     ]);
+    verify([source]);
+  }
+}
+
+@reflectiveTest
+class StrongModeStaticTypeWarningCodeTest extends ResolverTestCase {
+  void setUp() {
+    super.setUp();
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.strongMode = true;
+    resetWithOptions(options);
+  }
+
+  void test_genericMethodWrongNumberOfTypeArguments() {
+    Source source = addSource('''
+f() {}
+main() {
+  f/*<int>*/();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source, [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
+    for (AnalysisError error in analysisContext2.computeErrors(source)) {
+      if (error.errorCode ==
+          StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS) {
+        expect(error.message,
+            formatList(error.errorCode.message, ['() → dynamic', 0, 1]));
+      }
+    }
     verify([source]);
   }
 }

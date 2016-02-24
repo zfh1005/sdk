@@ -1810,7 +1810,7 @@ class ObservatoryDebugger extends Debugger {
   Future smartNext() async {
     if (isolatePaused()) {
       var event = isolate.pauseEvent;
-      if (event.atAsyncJump) {
+      if (event.atAsyncSuspension) {
         return asyncNext();
       } else {
         return syncNext();
@@ -1823,10 +1823,10 @@ class ObservatoryDebugger extends Debugger {
   Future asyncNext() async {
     if (isolatePaused()) {
       var event = isolate.pauseEvent;
-      if (event.asyncContinuation == null) {
+      if (!event.atAsyncSuspension) {
         console.print("No async continuation at this location");
       } else {
-        return isolate.asyncStepOver()[Isolate.kFirstResume];
+        return isolate.stepOverAsyncSuspension();
       }
     } else {
       console.print('The program is already running');

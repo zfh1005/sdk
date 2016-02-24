@@ -1109,6 +1109,8 @@ class SsaBuilder extends ast.Visitor
     sourceElementStack.add(target);
     sourceInformationBuilder = sourceInformationFactory.createBuilderForContext(
             target);
+    graph.sourceInformation =
+        sourceInformationBuilder.buildVariableDeclaration();
   }
 
   BackendHelpers get helpers => backend.helpers;
@@ -4551,7 +4553,10 @@ class SsaBuilder extends ast.Visitor
     String name = selector.name;
 
     ClassElement cls = currentNonClosureClass;
-    Element element = cls.lookupSuperMember(Identifiers.noSuchMethod_);
+    MethodElement element = cls.lookupSuperMember(Identifiers.noSuchMethod_);
+    if (!Selectors.noSuchMethod_.signatureApplies(element)) {
+      element = coreClasses.objectClass.lookupMember(Identifiers.noSuchMethod_);
+    }
     if (compiler.enabledInvokeOn && !element.enclosingClass.isObject) {
       // Register the call as dynamic if [noSuchMethod] on the super
       // class is _not_ the default implementation from [Object], in
@@ -4688,6 +4693,15 @@ class SsaBuilder extends ast.Visitor
       Element element,
       _) {
     handleUnresolvedSuperInvoke(node);
+  }
+
+  @override
+  void visitUnresolvedSuperSet(
+      ast.Send node,
+      Element element,
+      ast.Node rhs,
+      _) {
+    handleSuperSendSet(node);
   }
 
   @override
@@ -6809,14 +6823,8 @@ class SsaBuilder extends ast.Visitor
       Element element,
       ast.Node rhs,
       _) {
-    if (node.isSuperCall) {
-      // TODO(johnniwinther): Remove this when final super field assignment is
-      // not an unresolved set.
-      handleSuperSendSet(node);
-    } else {
-      generateIsDeferredLoadedCheckOfSend(node);
-      generateNonInstanceSetter(node, element, visitAndPop(rhs));
-    }
+    generateIsDeferredLoadedCheckOfSend(node);
+    generateNonInstanceSetter(node, element, visitAndPop(rhs));
   }
 
   @override
@@ -7527,7 +7535,10 @@ class SsaBuilder extends ast.Visitor
     TypeMask mask = elements.getIteratorTypeMask(node);
 
     ClassWorld classWorld = compiler.world;
-    if (mask != null && mask.satisfies(helpers.jsIndexableClass, classWorld)) {
+    if (mask != null &&
+        mask.satisfies(helpers.jsIndexableClass, classWorld) &&
+        // String is indexable but not iterable.
+        !mask.satisfies(helpers.jsStringClass, classWorld)) {
       return buildSyncForInIndexable(node, mask);
     }
     buildSyncForInIterator(node);

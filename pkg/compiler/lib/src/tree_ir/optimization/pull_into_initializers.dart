@@ -168,7 +168,7 @@ class PullIntoInitializers extends RecursiveTransformer
     return node;
   }
 
-  Statement visitNullCheck(NullCheck node) {
+  Statement visitReceiverCheck(ReceiverCheck node) {
     if (node.condition != null) {
       node.condition = visitExpression(node.condition);
       // The value occurs in conditional context, so don't pull from that.
@@ -261,6 +261,12 @@ class PullIntoInitializers extends RecursiveTransformer
 
   Expression visitOneShotInterceptor(OneShotInterceptor node) {
     super.visitOneShotInterceptor(node);
+    ++impureCounter;
+    return node;
+  }
+
+  Expression visitAwait(Await node) {
+    super.visitAwait(node);
     ++impureCounter;
     return node;
   }

@@ -137,24 +137,49 @@ class _SecurityContext
   static final SecurityContext defaultContext =
       new _SecurityContext().._trustBuiltinRoots();
 
-  Future usePrivateKey(String keyFile, {String password}) {
-    return (new File(keyFile)).readAsBytes().then((bytes) {
-      usePrivateKeyBytes(bytes, password: password);
-    });
+  void usePrivateKey(String keyFile, {String password}) {
+    usePrivateKeySync(keyFile, password: password);
+  }
+  void usePrivateKeySync(String keyFile, {String password}) {
+    List<int> bytes = (new File(keyFile)).readAsBytesSync();
+    usePrivateKeyBytes(bytes, password: password);
   }
   void usePrivateKeyBytes(List<int> keyBytes, {String password})
       native "SecurityContext_UsePrivateKeyBytes";
-  void setTrustedCertificates({String file, String directory})
-      native "SecurityContext_SetTrustedCertificates";
-  Future useCertificateChain(String chainFile) {
-    return (new File(chainFile)).readAsBytes().then((bytes) {
-      useCertificateChainBytes(bytes);
-    });
+
+  void setTrustedCertificates(String file, {String password}) {
+    setTrustedCertificatesSync(file, password: password);
   }
-  void useCertificateChainBytes(List<int> chainBytes)
+  void setTrustedCertificatesSync(String file, {String password}) {
+    List<int> bytes = (new File(file)).readAsBytesSync();
+    setTrustedCertificatesBytes(bytes, password: password);
+  }
+  void setTrustedCertificatesBytes(List<int> certBytes, {String password})
+      native "SecurityContext_SetTrustedCertificatesBytes";
+
+  void useCertificateChain({String file, String directory, String password}) {
+    if (directory != null) {
+      throw new UnsupportedError(
+          "The directory argument to useCertificateChain is not supported.");
+    }
+    useCertificateChainSync(file, password: password);
+  }
+  void useCertificateChainSync(String chainFile, {String password}) {
+    List<int> bytes = (new File(chainFile)).readAsBytesSync();
+    useCertificateChainBytes(bytes, password: password);
+  }
+  void useCertificateChainBytes(List<int> chainBytes, {String password})
       native "SecurityContext_UseCertificateChainBytes";
-  void setClientAuthorities(String file)
-      native "SecurityContext_SetClientAuthorities";
+
+  void setClientAuthorities(String file, {String password}) {
+    setClientAuthoritiesSync(file, password: password);
+  }
+  void setClientAuthoritiesSync(String file, {String password}) {
+    List<int> bytes = (new File(file)).readAsBytesSync();
+    setClientAuthoritiesBytes(bytes, password: password);
+  }
+  void setClientAuthoritiesBytes(List<int> authCertBytes, {String password})
+      native "SecurityContext_SetClientAuthoritiesBytes";
   void setAlpnProtocols(List<String> protocols, bool isServer) {
     Uint8List encodedProtocols =
         SecurityContext._protocolsToLengthEncoding(protocols);

@@ -19,6 +19,7 @@ import 'package:analysis_server/starter.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/file_instrumentation.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/plugin/embedded_resolver_provider.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/incremental_logger.dart';
@@ -297,6 +298,12 @@ class Driver implements ServerStarter {
   InstrumentationServer instrumentationServer;
 
   /**
+   * The embedded library URI resolver provider used to override the way
+   * embedded library URI's are resolved in some contexts.
+   */
+  EmbeddedResolverProvider embeddedUriResolverProvider;
+
+  /**
    * The package resolver provider used to override the way package URI's are
    * resolved in some contexts.
    */
@@ -368,14 +375,20 @@ class Driver implements ServerStarter {
 
     _initIncrementalLogger(results[INCREMENTAL_RESOLUTION_LOG]);
 
-    DartSdk defaultSdk;
+    JavaFile defaultSdkDirectory;
     if (results[SDK_OPTION] != null) {
-      defaultSdk = new DirectoryBasedDartSdk(new JavaFile(results[SDK_OPTION]));
+      defaultSdkDirectory = new JavaFile(results[SDK_OPTION]);
     } else {
-      // No path to the SDK provided; use DirectoryBasedDartSdk.defaultSdk,
-      // which will make a guess.
-      defaultSdk = DirectoryBasedDartSdk.defaultSdk;
+      // No path to the SDK was provided.
+      // Use DirectoryBasedDartSdk.defaultSdkDirectory, which will make a guess.
+      defaultSdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
     }
+    SdkCreator defaultSdkCreator =
+        () => new DirectoryBasedDartSdk(defaultSdkDirectory);
+    // TODO(brianwilkerson) It would be nice to avoid creating an SDK that
+    // cannot be re-used, but the SDK is needed to create a package map provider
+    // in the case where we need to run `pub` in order to get the package map.
+    DirectoryBasedDartSdk defaultSdk = defaultSdkCreator();
     //
     // Initialize the instrumentation service.
     //
@@ -413,8 +426,14 @@ class Driver implements ServerStarter {
     //
     // Create the sockets and start listening for requests.
     //
-    socketServer = new SocketServer(analysisServerOptions, defaultSdk, service,
-        serverPlugin, packageResolverProvider);
+    socketServer = new SocketServer(
+        analysisServerOptions,
+        defaultSdkCreator,
+        defaultSdk,
+        service,
+        serverPlugin,
+        packageResolverProvider,
+        embeddedUriResolverProvider);
     httpServer = new HttpAnalysisServer(socketServer);
     stdioServer = new StdioAnalysisServer(socketServer);
     socketServer.userDefinedPlugins = _userDefinedPlugins;

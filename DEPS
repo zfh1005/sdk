@@ -38,7 +38,7 @@ vars = {
   "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
   "csslib_tag" : "@0.12.0",
   "dart2js_info_rev" : "@0a221eaf16aec3879c45719de656680ccb80d8a1",
-  "dartdoc_tag" : "@v0.8.5",
+  "dartdoc_tag" : "@v0.9.0",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag": "@0.2.4",
   "dev_compiler_rev": "@0.1.9",
@@ -52,7 +52,7 @@ vars = {
   "intl_rev": "@a8b480b9c436f6c0ec16730804c914bdb4e30d53",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@1.1.1",
-  "linter_rev": "@5a599fd32d3b6ef00ffa7c330d1f32bbad287228",
+  "linter_rev": "@ce7aa0ec03ee738f4d314138228e0b4742845810",
   "logging_rev": "@85d83e002670545e9039ad3985f0018ab640e597",
   "markdown_rev": "@4aaadf3d940bb172e1f6285af4d2b1710d309982",
   "matcher_tag": "@0.12.0",
@@ -67,10 +67,11 @@ vars = {
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "plugin_tag": "@0.1.0",
   "pool_tag": "@1.2.1",
-  "pub_rev": "@57a17f2567d1ff3325960d0960f939fa243b5fd7",
+  "pub_rev": "@bd5c77abcb609d95340632b96344b59035e70376",
   "pub_cache_tag": "@v0.1.0",
   "pub_semver_tag": "@1.2.1",
   "quiver_tag": "@0.21.4",
+  "resource_rev":"@a49101ba2deb29c728acba6fb86000a8f730f4b1",
   "root_certificates_rev": "@c3a41df63afacec62fcb8135196177e35fe72f71",
   "scheduled_test_tag": "@0.12.4+2",
   "shelf_tag": "@0.6.4+3",
@@ -224,6 +225,8 @@ deps = {
       Var("chromium_git")
       + "/external/github.com/google/quiver-dart.git"
       + Var("quiver_tag"),
+  Var("dart_root") + "/third_party/pkg/resource":
+    "https://github.com/dart-lang/resource.git" + Var("resource_rev"),
   Var("dart_root") + "/third_party/pkg/scheduled_test":
       (Var("github_mirror") % "scheduled_test") + Var("scheduled_test_tag"),
   Var("dart_root") + "/third_party/pkg/shelf":
@@ -291,20 +294,6 @@ hooks = [
   {
     "pattern": ".",
     "action": ["python", Var("dart_root") + "/tools/gyp_dart.py"],
-  },
-  {
-    'name': 'checked_in_dart_binaries',
-    'pattern': '.',
-    'action': [
-      'download_from_google_storage',
-      '--no_auth',
-      '--no_resume',
-      '--bucket',
-      'dart-dependencies',
-      '--recursive',
-      '--directory',
-      Var('dart_root') + '/tools/testing/bin',
-    ],
   },
   {
     'name': 'd8_testing_binaries',

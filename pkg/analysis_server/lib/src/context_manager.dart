@@ -12,6 +12,7 @@ import 'dart:core' hide Resource;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/plugin/embedded_resolver_provider.dart';
 import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
@@ -22,6 +23,7 @@ import 'package:analyzer/source/path_filter.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/source/sdk_ext.dart';
 import 'package:analyzer/src/context/context.dart' as context;
+import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
@@ -305,10 +307,18 @@ abstract class ContextManager {
  */
 abstract class ContextManagerCallbacks {
   /**
-   * Create and return a new analysis context, allowing [disposition] to govern
-   * details of how the context is to be created.
+   * Return the default analysis options to be used when creating an analysis
+   * context.
    */
-  AnalysisContext addContext(Folder folder, FolderDisposition disposition);
+  AnalysisOptions get defaultAnalysisOptions;
+
+  /**
+   * Create and return a new analysis context rooted at the given [folder], with
+   * the given analysis [options], allowing [disposition] to govern details of
+   * how the context is to be created.
+   */
+  AnalysisContext addContext(
+      Folder folder, AnalysisOptions options, FolderDisposition disposition);
 
   /**
    * Called when the set of files associated with a context have changed (or
@@ -399,6 +409,13 @@ class ContextManagerImpl implements ContextManager {
   pathos.Context pathContext;
 
   /**
+   * A function that will return a [UriResolver] that can be used to resolve
+   * URI's for embedded libraries within a given folder, or `null` if we should
+   * fall back to the standard URI resolver.
+   */
+  final EmbeddedResolverProvider embeddedUriResolverProvider;
+
+  /**
    * The list of excluded paths (folders and files) most recently passed to
    * [setRoots].
    */
@@ -459,8 +476,12 @@ class ContextManagerImpl implements ContextManager {
   final Map<Folder, StreamSubscription<WatchEvent>> changeSubscriptions =
       <Folder, StreamSubscription<WatchEvent>>{};
 
-  ContextManagerImpl(this.resourceProvider, this.packageResolverProvider,
-      this._packageMapProvider, this._instrumentationService) {
+  ContextManagerImpl(
+      this.resourceProvider,
+      this.packageResolverProvider,
+      this.embeddedUriResolverProvider,
+      this._packageMapProvider,
+      this._instrumentationService) {
     absolutePathContext = resourceProvider.absolutePathContext;
     pathContext = resourceProvider.pathContext;
   }
@@ -537,15 +558,8 @@ class ContextManagerImpl implements ContextManager {
   /**
    * Process [options] for the given context [info].
    */
-  void processOptionsForContext(ContextInfo info, Folder folder,
+  void processOptionsForContext(ContextInfo info, Map<String, Object> options,
       {bool optionsRemoved: false}) {
-    Map<String, Object> options;
-    try {
-      options = analysisOptionsProvider.getOptions(folder);
-    } catch (_) {
-      // Parse errors are reported by GenerateOptionsErrorsTask.
-    }
-
     if (options == null && !optionsRemoved) {
       return;
     }
@@ -598,6 +612,20 @@ class ContextManagerImpl implements ContextManager {
     if (exclude != null) {
       setIgnorePatternsForContext(info, exclude);
     }
+  }
+
+  /**
+   * Return the options from the analysis options file in the given [folder], or
+   * `null` if there is no file in the folder or if the contents of the file are
+   * not valid YAML.
+   */
+  Map<String, Object> readOptions(Folder folder) {
+    try {
+      return analysisOptionsProvider.getOptions(folder);
+    } catch (_) {
+      // Parse errors are reported by GenerateOptionsErrorsTask.
+    }
+    return null;
   }
 
   @override
@@ -822,7 +850,11 @@ class ContextManagerImpl implements ContextManager {
     if (AnalysisEngine.isAnalysisOptionsFileName(path, pathContext)) {
       var analysisContext = info.context;
       if (analysisContext is context.AnalysisContextImpl) {
-        processOptionsForContext(info, info.folder,
+        // TODO(brianwilkerson) This doesn't correctly update the source factory
+        // if the changes necessitate it (such as by changing the setting of the
+        // strong-mode option).
+        Map<String, Object> options = readOptions(info.folder);
+        processOptionsForContext(info, options,
             optionsRemoved: changeType == ChangeType.REMOVE);
         analysisContext.invalidateCachedResults();
         callbacks.applyChangesToContext(info.folder, new ChangeSet());
@@ -834,14 +866,57 @@ class ContextManagerImpl implements ContextManager {
       String path, ContextInfo info, Folder folder) {
     // Check to see if this is the .packages file for this context and if so,
     // update the context's source factory.
-    if (absolutePathContext.basename(path) == PACKAGE_SPEC_NAME &&
-        info.isPathToPackageDescription(path)) {
+    if (absolutePathContext.basename(path) == PACKAGE_SPEC_NAME) {
       File packagespec = resourceProvider.getFile(path);
       if (packagespec.exists) {
-        Packages packages = _readPackagespec(packagespec);
-        if (packages != null) {
-          callbacks.updateContextPackageUriResolver(
-              folder, new PackagesFileDisposition(packages));
+        // Locate embedder yamls for this .packages file.
+        // If any embedder libs are contributed and this context does not
+        // have an embedded URI resolver, we need to create a new context.
+
+        List<int> bytes = packagespec.readAsStringSync().codeUnits;
+        Map<String, Uri> packages =
+            pkgfile.parse(bytes, new Uri.file(packagespec.path));
+
+        Map<String, List<Folder>> packageMap =
+            new PackagesFileDisposition(new MapPackages(packages))
+                .buildPackageMap(resourceProvider);
+        Map<Folder, YamlMap> embedderYamls =
+            new EmbedderYamlLocator(packageMap).embedderYamls;
+
+        SourceFactory sourceFactory = info.context.sourceFactory;
+
+        // Check for library embedders.
+        if (embedderYamls.values.any(definesEmbeddedLibs)) {
+          // If there is no embedded URI resolver, a new source factory needs to
+          // be recreated.
+          if (sourceFactory is SourceFactoryImpl) {
+            if (!sourceFactory.resolvers
+                .any((UriResolver r) => r is EmbedderUriResolver)) {
+
+              // Get all but the dart: Uri resolver.
+              List<UriResolver> resolvers = sourceFactory.resolvers
+                  .where((r) => r is! DartUriResolver)
+                  .toList();
+              // Add an embedded URI resolver in its place.
+              resolvers.add(new EmbedderUriResolver(embedderYamls));
+
+              // Set a new source factory.
+              SourceFactoryImpl newFactory = sourceFactory.clone();
+              newFactory.resolvers.clear();
+              newFactory.resolvers.addAll(resolvers);
+              info.context.sourceFactory = newFactory;
+              return;
+            }
+          }
+        }
+
+        // Next check for package URI updates.
+        if (info.isPathToPackageDescription(path)) {
+          Packages packages = _readPackagespec(packagespec);
+          if (packages != null) {
+            callbacks.updateContextPackageUriResolver(
+                folder, new PackagesFileDisposition(packages));
+          }
         }
       }
     }
@@ -885,10 +960,10 @@ class ContextManagerImpl implements ContextManager {
     if (packageRoot != null) {
       // TODO(paulberry): We shouldn't be using JavaFile here because it
       // makes the code untestable (see dartbug.com/23909).
-      JavaFile packagesDir = new JavaFile(packageRoot);
+      JavaFile packagesDirOrFile = new JavaFile(packageRoot);
       Map<String, List<Folder>> packageMap = new Map<String, List<Folder>>();
-      if (packagesDir.isDirectory()) {
-        for (JavaFile file in packagesDir.listFiles()) {
+      if (packagesDirOrFile.isDirectory()) {
+        for (JavaFile file in packagesDirOrFile.listFiles()) {
           // Ensure symlinks in packages directory are canonicalized
           // to prevent 'type X cannot be assigned to type X' warnings
           String path;
@@ -905,6 +980,12 @@ class ContextManagerImpl implements ContextManager {
           }
         }
         return new PackageMapDisposition(packageMap, packageRoot: packageRoot);
+      } else if (packagesDirOrFile.isFile()) {
+        File packageSpecFile = resourceProvider.getFile(packageRoot);
+        Packages packages = _readPackagespec(packageSpecFile);
+        if (packages != null) {
+          return new PackagesFileDisposition(packages);
+        }
       }
       // The package root does not exist (or is not a folder).  Since
       // [setRoots] ignores any package roots that don't exist (or aren't
@@ -963,11 +1044,16 @@ class ContextManagerImpl implements ContextManager {
           _computeFolderDisposition(folder, dependencies.add, packagespecFile);
     }
 
+    Map<String, Object> optionMap = readOptions(info.folder);
+    AnalysisOptions options =
+        new AnalysisOptionsImpl.from(callbacks.defaultAnalysisOptions);
+    applyToAnalysisOptions(options, optionMap);
+
     info.setDependencies(dependencies);
-    info.context = callbacks.addContext(folder, disposition);
+    info.context = callbacks.addContext(folder, options, disposition);
     info.context.name = folder.path;
 
-    processOptionsForContext(info, folder);
+    processOptionsForContext(info, optionMap);
 
     return info;
   }

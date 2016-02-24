@@ -10,6 +10,7 @@
 #include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
+#include "vm/flags.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/port.h"
@@ -18,7 +19,7 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, lazy_dispatchers);
+#ifndef PRODUCT
 
 #define PROPAGATE_IF_MALFORMED(type)                                           \
   if (type.IsMalformed()) {                                                    \
@@ -783,7 +784,7 @@ static RawAbstractType* InstantiateType(const AbstractType& type,
       TypeArguments::Handle(instantiator.arguments());
   Error& bound_error = Error::Handle();
   AbstractType& result = AbstractType::Handle(
-      type.InstantiateFrom(type_args, &bound_error, NULL, Heap::kOld));
+      type.InstantiateFrom(type_args, &bound_error, NULL, NULL, Heap::kOld));
   if (!bound_error.IsNull()) {
     Exceptions::PropagateError(bound_error);
     UNREACHABLE();
@@ -1675,7 +1676,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
       // type arguments of the type reflected by the class mirror.
       Error& bound_error = Error::Handle();
       redirect_type ^= redirect_type.InstantiateFrom(
-          type_arguments, &bound_error, NULL, Heap::kOld);
+          type_arguments, &bound_error, NULL, NULL, Heap::kOld);
       if (!bound_error.IsNull()) {
         Exceptions::PropagateError(bound_error);
         UNREACHABLE();
@@ -2086,8 +2087,9 @@ DEFINE_NATIVE_ENTRY(VariableMirror_type, 2) {
 DEFINE_NATIVE_ENTRY(TypeMirror_subtypeTest, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, a, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, b, arguments->NativeArgAt(1));
-  return Bool::Get(a.IsSubtypeOf(b, NULL)).raw();
+  return Bool::Get(a.IsSubtypeOf(b, NULL, NULL, Heap::kNew)).raw();
 }
 
+#endif  // !PRODUCT
 
 }  // namespace dart

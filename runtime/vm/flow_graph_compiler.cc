@@ -13,6 +13,7 @@
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
 #include "vm/exceptions.h"
+#include "vm/flags.h"
 #include "vm/flow_graph_allocator.h"
 #include "vm/il_printer.h"
 #include "vm/intrinsifier.h"
@@ -39,9 +40,6 @@ DEFINE_FLAG(int, min_optimization_counter_threshold, 5000,
     "The minimum invocation count for a function.");
 DEFINE_FLAG(int, optimization_counter_scale, 2000,
     "The scale of invocation count, by size of the function.");
-DEFINE_FLAG(bool, polymorphic_with_deopt, true,
-    "Polymorphic calls can be generated so that failure either causes "
-    "deoptimization or falls through to a megamorphic call");
 DEFINE_FLAG(bool, source_lines, false, "Emit source line as assembly comment.");
 DEFINE_FLAG(bool, trace_inlining_intervals, false,
     "Inlining interval diagnostics");
@@ -53,11 +51,8 @@ DECLARE_FLAG(bool, collect_dynamic_function_names);
 DECLARE_FLAG(bool, deoptimize_alot);
 DECLARE_FLAG(int, deoptimize_every);
 DECLARE_FLAG(charp, deoptimize_filter);
-DECLARE_FLAG(bool, disassemble);
-DECLARE_FLAG(bool, disassemble_optimized);
 DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(bool, fields_may_be_reset);
-DECLARE_FLAG(bool, guess_icdata_cid);
 DECLARE_FLAG(bool, ic_range_profiling);
 DECLARE_FLAG(bool, intrinsify);
 DECLARE_FLAG(bool, load_deferred_eagerly);
@@ -67,15 +62,10 @@ DECLARE_FLAG(int, regexp_optimization_counter_threshold);
 DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(int, stacktrace_every);
 DECLARE_FLAG(charp, stacktrace_filter);
-DECLARE_FLAG(bool, support_debugger);
 DECLARE_FLAG(bool, use_field_guards);
-DECLARE_FLAG(bool, use_cha_deopt);
 DECLARE_FLAG(bool, use_osr);
-DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 DECLARE_FLAG(bool, print_stop_message);
-DECLARE_FLAG(bool, lazy_dispatchers);
 DECLARE_FLAG(bool, interpret_irregexp);
-DECLARE_FLAG(bool, enable_mirrors);
 DECLARE_FLAG(bool, link_natives_lazily);
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(int, inlining_hotness);
@@ -96,27 +86,26 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_precompilation = true;
 
     FLAG_always_megamorphic_calls = true;
-    FLAG_polymorphic_with_deopt = false;
     FLAG_optimization_counter_threshold = -1;
     FLAG_use_field_guards = false;
     FLAG_use_osr = false;
     FLAG_emit_edge_counters = false;
+#ifndef PRODUCT
     FLAG_support_debugger = false;
+#endif  // !PRODUCT
     FLAG_ic_range_profiling = false;
     FLAG_collect_code = false;
     FLAG_load_deferred_eagerly = true;
     FLAG_deoptimize_alot = false;  // Used in some tests.
     FLAG_deoptimize_every = 0;     // Used in some tests.
-    // Precompilation finalizes all classes and thus allows CHA optimizations.
-    // Do not require CHA triggered deoptimization.
-    FLAG_use_cha_deopt = false;
     // Calling the PrintStopMessage stub is not supported in precompiled code
     // since it is done at places where no pool pointer is loaded.
     FLAG_print_stop_message = false;
 
-    FLAG_lazy_dispatchers = false;
     FLAG_interpret_irregexp = true;
+#ifndef PRODUCT
     FLAG_enable_mirrors = false;
+#endif  // !PRODUCT
     FLAG_link_natives_lazily = true;
     FLAG_fields_may_be_reset = true;
     FLAG_allow_absolute_addresses = false;
@@ -139,6 +128,23 @@ static void PrecompilationModeHandler(bool value) {
     // while precompilation has only one.
     FLAG_background_compilation = false;
     FLAG_collect_dynamic_function_names = true;
+#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(PRODUCT)
+    FLAG_lazy_dispatchers = false;
+    FLAG_polymorphic_with_deopt = false;
+    // Precompilation finalizes all classes and thus allows CHA optimizations.
+    // Do not require CHA triggered deoptimization.
+    FLAG_use_cha_deopt = false;
+#elif defined(DART_PRECOMPILED_RUNTIME)
+    // Precompiled product and release mode.
+    COMPILE_ASSERT(!FLAG_lazy_dispatchers);
+    COMPILE_ASSERT(!FLAG_polymorphic_with_deopt);
+    COMPILE_ASSERT(!FLAG_use_cha_deopt);
+#elif defined(PRODUCT)
+    // Jit product and release mode.
+    COMPILE_ASSERT(FLAG_lazy_dispatchers);
+    COMPILE_ASSERT(FLAG_polymorphic_with_deopt);
+    COMPILE_ASSERT(FLAG_use_cha_deopt);
+#endif
   }
 }
 
@@ -269,9 +275,11 @@ bool FlowGraphCompiler::IsPotentialUnboxedField(const Field& field) {
 
 
 void FlowGraphCompiler::InitCompiler() {
+#ifndef PRODUCT
   TimelineDurationScope tds(thread(),
                             isolate()->GetCompilerStream(),
                             "InitCompiler");
+#endif  // !PRODUCT
   pc_descriptors_list_ = new(zone()) DescriptorList(64);
   exception_handlers_list_ = new(zone()) ExceptionHandlerList();
   block_info_.Clear();
@@ -934,7 +942,7 @@ Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
     return &intrinsic_slow_path_label_;
   }
 
-  // No deoptimization allowed when 'always_optimize' is set.
+  // No deoptimization allowed when 'FLAG_precompilation' is set.
   if (FLAG_precompilation) {
     if (FLAG_trace_compiler) {
       THR_Print(
@@ -982,7 +990,7 @@ void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
 
 
 RawArray* FlowGraphCompiler::CreateDeoptInfo(Assembler* assembler) {
-  // No deopt information if we 'always_optimize' (no deoptimization allowed).
+  // No deopt information if we precompile (no deoptimization allowed).
   if (FLAG_precompilation) {
     return Array::empty_array().raw();
   }
@@ -1097,7 +1105,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
       // Reading from a mutable double box requires allocating a fresh double.
       if (load_node.field().guarded_cid() == kDynamicCid) {
         GenerateInlinedGetter(load_node.field().Offset());
-        return true;
+        return !FLAG_use_field_guards;
       }
       return false;
     }
@@ -1112,7 +1120,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
           *sequence_node.NodeAt(0)->AsStoreInstanceFieldNode();
       if (store_node.field().guarded_cid() == kDynamicCid) {
         GenerateInlinedSetter(store_node.field().Offset());
-        return true;
+        return !FLAG_use_field_guards;
       }
     }
   }
@@ -1172,12 +1180,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
     return;
   }
 
-  if (is_optimizing() &&
-      // Do not make the instance call megamorphic if the callee needs to decode
-      // the calling code sequence to lookup the ic data and verify if a JS
-      // warning has already been issued or not.
-      (!FLAG_warn_on_javascript_compatibility ||
-       !ic_data.MayCheckForJSWarning())) {
+  if (is_optimizing()) {
     EmitMegamorphicInstanceCall(ic_data, argument_count,
                                 deopt_id, token_pos, locs);
     return;
@@ -1212,12 +1215,7 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
       ic_data.IsNull() ? ArgumentsDescriptor::New(argument_count,
                                                   argument_names)
                        : ic_data.arguments_descriptor());
-  // Proper reporting of Javascript incompatibilities requires icdata and
-  // may therefore prevent the optimization of some static calls.
-  if (is_optimizing() &&
-      !(FLAG_warn_on_javascript_compatibility &&
-        (MethodRecognizer::RecognizeKind(function) ==
-         MethodRecognizer::kObjectIdentical))) {
+  if (is_optimizing()) {
     EmitOptimizedStaticCall(function, arguments_descriptor,
                             argument_count, deopt_id, token_pos, locs);
   } else {
@@ -1282,10 +1280,15 @@ void FlowGraphCompiler::GenerateListTypeCheck(Register kClassIdReg,
 
 
 void FlowGraphCompiler::EmitComment(Instruction* instr) {
+  if (!FLAG_support_il_printer || !FLAG_support_disassembler) {
+    return;
+  }
+#ifndef PRODUCT
   char buffer[256];
   BufferFormatter f(buffer, sizeof(buffer));
   instr->PrintTo(&f);
   assembler()->Comment("%s", buffer);
+#endif
 }
 
 

@@ -19,7 +19,7 @@
 #include "vm/os_thread.h"
 #include "vm/timeline.h"
 #include "vm/timer.h"
-#include "vm/trace_buffer.h"
+#include "vm/token_position.h"
 
 namespace dart {
 
@@ -53,6 +53,7 @@ class RawMint;
 class RawObject;
 class RawInteger;
 class RawError;
+class RawField;
 class RawFloat32x4;
 class RawInt32x4;
 class RawUserTag;
@@ -78,6 +79,16 @@ class IsolateVisitor {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(IsolateVisitor);
+};
+
+
+// Disallow OOB message handling within this scope.
+class NoOOBMessageScope : public StackResource {
+ public:
+  explicit NoOOBMessageScope(Thread* thread);
+  ~NoOOBMessageScope();
+ private:
+  DISALLOW_COPY_AND_ASSIGN(NoOOBMessageScope);
 };
 
 
@@ -229,6 +240,8 @@ class Isolate : public BaseIsolate {
 
   void SetupInstructionsSnapshotPage(
       const uint8_t* instructions_snapshot_buffer);
+  void SetupDataSnapshotPage(
+      const uint8_t* instructions_snapshot_buffer);
 
   // Returns true if any of the interrupts specified by 'interrupt_bits' are
   // currently scheduled for this isolate, but leaves them unchanged.
@@ -263,6 +276,9 @@ class Isolate : public BaseIsolate {
 
   uword stack_overflow_flags_address() const {
     return reinterpret_cast<uword>(&stack_overflow_flags_);
+  }
+  static intptr_t stack_overflow_flags_offset() {
+    return OFFSET_OF(Isolate, stack_overflow_flags_);
   }
 
   int32_t IncrementAndGetStackOverflowCount() {
@@ -302,8 +318,12 @@ class Isolate : public BaseIsolate {
   void set_spawn_state(IsolateSpawnState* value) { spawn_state_ = value; }
 
   Mutex* mutex() const { return mutex_; }
+  Mutex* symbols_mutex() const { return symbols_mutex_; }
 
   Debugger* debugger() const {
+    if (!FLAG_support_debugger) {
+      return NULL;
+    }
     ASSERT(debugger_ != NULL);
     return debugger_;
   }
@@ -353,8 +373,8 @@ class Isolate : public BaseIsolate {
 
   const Flags& flags() const { return flags_; }
 
-  // Requests that the debugger resume execution.
-  void Resume() {
+  // Lets the embedder know that a service message resulted in a resume request.
+  void SetResumeRequest() {
     resume_request_ = true;
     set_last_resume_timestamp();
   }
@@ -474,13 +494,6 @@ class Isolate : public BaseIsolate {
     return object_id_ring_;
   }
 
-  void set_trace_buffer(TraceBuffer* buffer) {
-    trace_buffer_ = buffer;
-  }
-  TraceBuffer* trace_buffer() {
-    return trace_buffer_;
-  }
-
   DeoptContext* deopt_context() const { return deopt_context_; }
   void set_deopt_context(DeoptContext* value) {
     ASSERT(value == NULL || deopt_context_ == NULL);
@@ -554,10 +567,17 @@ class Isolate : public BaseIsolate {
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_ACCESSOR);
 #undef ISOLATE_METRIC_ACCESSOR
 
+#ifndef PRODUCT
 #define ISOLATE_TIMELINE_STREAM_ACCESSOR(name, not_used)                       \
   TimelineStream* Get##name##Stream() { return &stream_##name##_; }
   ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_ACCESSOR)
 #undef ISOLATE_TIMELINE_STREAM_ACCESSOR
+#else
+#define ISOLATE_TIMELINE_STREAM_ACCESSOR(name, not_used)                       \
+  TimelineStream* Get##name##Stream() { return NULL; }
+  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_ACCESSOR)
+#undef ISOLATE_TIMELINE_STREAM_ACCESSOR
+#endif  // !PRODUCT
 
   static intptr_t IsolateListLength();
 
@@ -622,6 +642,12 @@ class Isolate : public BaseIsolate {
   void ResetPrefixInvalidationGen() { prefix_invalidation_gen_ = kInvalidGen; }
   uint32_t prefix_invalidation_gen() const { return prefix_invalidation_gen_; }
 
+  // Used by background compiler which field became boxed and must trigger
+  // deoptimization in the mutator thread.
+  void AddDeoptimizingBoxedField(const Field& field);
+  // Returns Field::null() if none available in the list.
+  RawField* GetDeoptimizingBoxedField();
+
   RawObject* InvokePendingServiceExtensionCalls();
   void AppendServiceExtensionCall(const Instance& closure,
                            const String& method_name,
@@ -655,6 +681,7 @@ class Isolate : public BaseIsolate {
  private:
   friend class Dart;  // Init, InitOnce, Shutdown.
   friend class IsolateKillerVisitor;  // Kill().
+  friend class NoOOBMessageScope;
 
   explicit Isolate(const Dart_IsolateFlags& api_flags);
 
@@ -680,6 +707,9 @@ class Isolate : public BaseIsolate {
   void set_user_tag(uword tag) {
     user_tag_ = tag;
   }
+
+  void DeferOOBMessageInterrupts();
+  void RestoreOOBMessageInterrupts();
 
   RawGrowableObjectArray* GetAndClearPendingServiceExtensionCalls();
   RawGrowableObjectArray* pending_service_extension_calls() const {
@@ -743,7 +773,10 @@ class Isolate : public BaseIsolate {
   Random random_;
   Simulator* simulator_;
   Mutex* mutex_;  // protects stack_limit_, saved_stack_limit_, compiler stats.
+  Mutex* symbols_mutex_;  // Protects concurrent access to teh symbol table.
   uword saved_stack_limit_;
+  uword deferred_interrupts_mask_;
+  uword deferred_interrupts_;
   uword stack_overflow_flags_;
   int32_t stack_overflow_count_;
   MessageHandler* message_handler_;
@@ -768,9 +801,6 @@ class Isolate : public BaseIsolate {
 
   // Ring buffer of objects assigned an id.
   ObjectIdRing* object_id_ring_;
-
-  // Trace buffer support.
-  TraceBuffer* trace_buffer_;
 
   VMTagCounters vm_tag_counters_;
   RawGrowableObjectArray* tag_table_;
@@ -818,6 +848,11 @@ class Isolate : public BaseIsolate {
   uint32_t field_invalidation_gen_;
   uint32_t prefix_invalidation_gen_;
 
+  // Protect access to boxed_field_list_.
+  Monitor* boxed_field_list_monitor_;
+  // List of fields that became boxed and that trigger deoptimization.
+  RawGrowableObjectArray* boxed_field_list_;
+
   // This guards spawn_count_. An isolate cannot complete shutdown and be
   // destroyed while there are child isolates in the midst of a spawn.
   Monitor* spawn_count_monitor_;
@@ -828,10 +863,12 @@ class Isolate : public BaseIsolate {
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
 #undef ISOLATE_METRIC_VARIABLE
 
+#ifndef PRODUCT
 #define ISOLATE_TIMELINE_STREAM_VARIABLE(name, not_used)                       \
   TimelineStream stream_##name##_;
   ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_VARIABLE)
 #undef ISOLATE_TIMELINE_STREAM_VARIABLE
+#endif  // !PRODUCT
 
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateShutdownCallback shutdown_callback_;
@@ -864,6 +901,7 @@ REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
   friend class ServiceIsolate;
   friend class Thread;
   friend class Timeline;
+  friend class IsolateTestHelper;
 
   DISALLOW_COPY_AND_ASSIGN(Isolate);
 };

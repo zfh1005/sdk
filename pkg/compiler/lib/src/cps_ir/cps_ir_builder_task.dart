@@ -7,6 +7,7 @@ library dart2js.ir_builder_task;
 import '../closure.dart' as closure;
 import '../common.dart';
 import '../common/names.dart' show
+    Identifiers,
     Names,
     Selectors;
 import '../common/tasks.dart' show
@@ -430,7 +431,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
 
       /// Maps each field from this class or a superclass to its initial value.
       Map<FieldElement, ir.Primitive> fieldValues =
-      <FieldElement, ir.Primitive>{};
+          <FieldElement, ir.Primitive>{};
 
       // -- Evaluate field initializers ---
       // Evaluate field initializers in constructor and super constructors.
@@ -795,7 +796,10 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
 
   /// Creates a primitive for the default value of [parameter].
   ir.Primitive translateDefaultValue(ParameterElement parameter) {
-    if (parameter.initializer == null) {
+    if (parameter.initializer == null ||
+        // TODO(sigmund): JS doesn't support default values, so this should be
+        // reported as an error earlier (Issue #25759).
+        backend.isJsInterop(parameter.functionDeclaration)) {
       return irBuilder.buildNullConstant();
     } else {
       return inlineConstant(parameter.executableContext, parameter.initializer);
@@ -1110,8 +1114,105 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   visitAsyncForIn(ast.AsyncForIn node) {
-    // await for is not yet implemented.
-    return giveup(node, 'await for');
+    // Translate await for into a loop over a StreamIterator.  The source
+    // statement:
+    //
+    // await for (<decl> in <stream>) <body>
+    //
+    // is translated as if it were:
+    //
+    // var iterator = new StreamIterator(<stream>);
+    // try {
+    //   while (await iterator.hasNext()) {
+    //     <decl> = await iterator.current;
+    //     <body>
+    //   }
+    // } finally {
+    //   await iterator.cancel();
+    // }
+    ir.Primitive stream = visit(node.expression);
+    ir.Primitive dummyTypeArgument = irBuilder.buildNullConstant();
+    ConstructorElement constructor = helpers.streamIteratorConstructor;
+    ir.Primitive iterator = irBuilder.addPrimitive(new ir.InvokeConstructor(
+        constructor.enclosingClass.thisType,
+        constructor,
+        new Selector.callConstructor(constructor.memberName, 1),
+        <ir.Primitive>[stream, dummyTypeArgument],
+        sourceInformationBuilder.buildGeneric(node)));
+
+    ir.Node buildTryBody(IrBuilder builder) {
+      ir.Node buildLoopCondition(IrBuilder builder) {
+        ir.Primitive moveNext = builder.buildDynamicInvocation(
+            iterator,
+            Selectors.moveNext,
+            elements.getMoveNextTypeMask(node),
+            <ir.Primitive>[]);
+        return builder.addPrimitive(new ir.Await(moveNext));
+      }
+
+      ir.Node buildLoopBody(IrBuilder builder) {
+        return withBuilder(builder, () {
+          ir.Primitive current = irBuilder.buildDynamicInvocation(
+              iterator,
+              Selectors.current,
+              elements.getCurrentTypeMask(node),
+              <ir.Primitive>[]);
+          Element variable = elements.getForInVariable(node);
+          if (Elements.isLocal(variable)) {
+            if (node.declaredIdentifier.asVariableDefinitions() != null) {
+              irBuilder.declareLocalVariable(variable);
+            }
+            irBuilder.buildLocalVariableSet(variable, current);
+          } else if (Elements.isError(variable) ||
+                     Elements.isMalformed(variable)) {
+            Selector selector =
+                new Selector.setter(new Name(variable.name, variable.library));
+            List<ir.Primitive> args = <ir.Primitive>[current];
+            // Note the comparison below.  It can be the case that an element
+            // isError and isMalformed.
+            if (Elements.isError(variable)) {
+              irBuilder.buildStaticNoSuchMethod(selector, args);
+            } else {
+              irBuilder.buildErroneousInvocation(variable, selector, args);
+            }
+          } else if (Elements.isStaticOrTopLevel(variable)) {
+            if (variable.isField) {
+              irBuilder.addPrimitive(new ir.SetStatic(variable, current));
+            } else {
+              irBuilder.buildStaticSetterSet(variable, current);
+            }
+          } else {
+            ir.Primitive receiver = irBuilder.buildThis();
+            ast.Node identifier = node.declaredIdentifier;
+            irBuilder.buildDynamicSet(
+                receiver,
+                elements.getSelector(identifier),
+                elements.getTypeMask(identifier),
+                current);
+          }
+          visit(node.body);
+        });
+      }
+
+      builder.buildWhile(
+          buildCondition: buildLoopCondition,
+          buildBody: buildLoopBody,
+          target: elements.getTargetDefinition(node),
+          closureScope: getClosureScopeForNode(node));
+    }
+
+    ir.Node buildFinallyBody(IrBuilder builder) {
+      ir.Primitive cancellation = builder.buildDynamicInvocation(
+          iterator,
+          Selectors.cancel,
+          backend.dynamicType,
+          <ir.Primitive>[],
+          sourceInformation: sourceInformationBuilder.buildGeneric(node));
+      return builder.addPrimitive(new ir.Await(cancellation));
+    }
+
+    irBuilder.buildTryFinally(new TryStatementInfo(), buildTryBody,
+        buildFinallyBody);
   }
 
   visitAwait(ast.Await node) {
@@ -1894,8 +1995,17 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive visitUnresolvedSuperGet(
       ast.Send node,
       Element element, _) {
-    return buildInstanceNoSuchMethod(
+    return buildSuperNoSuchMethod(
         elements.getSelector(node), elements.getTypeMask(node), []);
+  }
+
+  @override
+  ir.Primitive visitUnresolvedSuperSet(
+      ast.Send node,
+      Element element,
+      ast.Node rhs, _) {
+    return buildSuperNoSuchMethod(
+        elements.getSelector(node), elements.getTypeMask(node), [visit(rhs)]);
   }
 
   @override
@@ -2428,7 +2538,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     List<ir.Primitive> normalizedArguments = <ir.Primitive>[];
     CallStructure normalizedCallStructure =
       translateDynamicArguments(arguments, callStructure, normalizedArguments);
-    return buildInstanceNoSuchMethod(
+    return buildSuperNoSuchMethod(
         new Selector.call(method.memberName, normalizedCallStructure),
         elements.getTypeMask(node),
         normalizedArguments);
@@ -2445,7 +2555,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         argumentsNode, selector.callStructure, arguments);
     // TODO(johnniwinther): Supply a member name to the visit function instead
     // of looking it up in elements.
-    return buildInstanceNoSuchMethod(
+    return buildSuperNoSuchMethod(
         new Selector.call(elements.getSelector(node).memberName, callStructure),
         elements.getTypeMask(node),
         arguments);
@@ -2856,7 +2966,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   ir.Primitive buildSuperNoSuchGetter(Element element, TypeMask mask) {
-    return buildInstanceNoSuchMethod(
+    return buildSuperNoSuchMethod(
         new Selector.getter(new Name(element.name, element.library)),
         mask,
         const <ir.Primitive>[]);
@@ -2865,7 +2975,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive buildSuperNoSuchSetter(Element element,
                                       TypeMask mask,
                                       ir.Primitive value) {
-    return buildInstanceNoSuchMethod(
+    return buildSuperNoSuchMethod(
         new Selector.setter(new Name(element.name, element.library)),
         mask,
         <ir.Primitive>[value]);
@@ -3018,7 +3128,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return translateCompounds(node, () {
       return isGetterValid
           ? irBuilder.buildSuperIndex(indexFunction, indexValue)
-          : buildInstanceNoSuchMethod(
+          : buildSuperNoSuchMethod(
               new Selector.index(),
               elements.getGetterTypeMaskInComplexSendSet(node),
               <ir.Primitive>[indexValue]);
@@ -3026,7 +3136,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       if (isSetterValid) {
         irBuilder.buildSuperIndexSet(indexSetFunction, indexValue, result);
       } else {
-        buildInstanceNoSuchMethod(
+        buildSuperNoSuchMethod(
             new Selector.indexSet(),
             elements.getTypeMask(node),
             <ir.Primitive>[indexValue, result]);
@@ -3327,13 +3437,18 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return irBuilder.buildNonTailThrow(visit(node.expression));
   }
 
-  ir.Primitive buildInstanceNoSuchMethod(Selector selector,
+  ir.Primitive buildSuperNoSuchMethod(Selector selector,
       TypeMask mask,
       List<ir.Primitive> arguments) {
-    return irBuilder.buildDynamicInvocation(
-        irBuilder.buildThis(),
-        Selectors.noSuchMethod_,
-        mask,
+    ClassElement cls = elements.analyzedElement.enclosingClass;
+    MethodElement element = cls.lookupSuperMember(Identifiers.noSuchMethod_);
+    if (!Selectors.noSuchMethod_.signatureApplies(element)) {
+      element = compiler.coreClasses.objectClass.lookupMember(
+          Identifiers.noSuchMethod_);
+    }
+    return irBuilder.buildSuperMethodInvocation(
+        element,
+        Selectors.noSuchMethod_.callStructure,
         [irBuilder.buildInvocationMirror(selector, arguments)]);
   }
 
@@ -3442,7 +3557,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       Element function,
       ast.Node index, _) {
     // Assume the index getter is missing.
-    return buildInstanceNoSuchMethod(
+    return buildSuperNoSuchMethod(
         new Selector.index(), elements.getTypeMask(node), [visit(index)]);
   }
 
@@ -3452,7 +3567,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       Element element,
       op.BinaryOperator operator,
       ast.Node argument, _) {
-    return buildInstanceNoSuchMethod(
+    return buildSuperNoSuchMethod(
         elements.getSelector(node),
         elements.getTypeMask(node),
         [visit(argument)]);
@@ -3463,7 +3578,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.Send node,
       op.UnaryOperator operator,
       Element element, _) {
-    return buildInstanceNoSuchMethod(
+    return buildSuperNoSuchMethod(
         elements.getSelector(node), elements.getTypeMask(node), []);
   }
 
@@ -3550,7 +3665,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.SendSet node,
       FieldElement field,
       ast.Node rhs, _) {
-    return buildInstanceNoSuchMethod(
+    return buildSuperNoSuchMethod(
         new Selector.setter(field.memberName),
         elements.getTypeMask(node),
         [visit(rhs)]);
@@ -3617,7 +3732,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       GetterElement getter,
       ast.Node rhs,
       _) {
-    return buildInstanceNoSuchMethod(
+    return buildSuperNoSuchMethod(
         new Selector.setter(getter.memberName),
         elements.getTypeMask(node),
         [visit(rhs)]);
@@ -3629,7 +3744,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       MethodElement method,
       ast.Node rhs,
       _) {
-    return buildInstanceNoSuchMethod(
+    return buildSuperNoSuchMethod(
         new Selector.setter(method.memberName),
         elements.getTypeMask(node),
         [visit(rhs)]);
@@ -3639,7 +3754,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive visitSuperSetterGet(
       ast.Send node,
       SetterElement setter, _) {
-    return buildInstanceNoSuchMethod(
+    return buildSuperNoSuchMethod(
         new Selector.setter(setter.memberName),
         elements.getTypeMask(node),
         []);
@@ -3654,7 +3769,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     List<ir.Primitive> arguments = <ir.Primitive>[];
     callStructure =
         translateDynamicArguments(argumentsNode, callStructure, arguments);
-    return buildInstanceNoSuchMethod(
+    return buildSuperNoSuchMethod(
         new Selector.call(setter.memberName, callStructure),
         elements.getTypeMask(node),
         arguments);
@@ -3906,4 +4021,22 @@ class GlobalProgramInformation {
   void addNativeMethod(FunctionElement function) {
     _backend.emitter.nativeEmitter.nativeMethods.add(function);
   }
+
+  bool get trustJSInteropTypeAnnotations =>
+      _compiler.trustJSInteropTypeAnnotations;
+
+  bool isNative(ClassElement element) => _backend.isNative(element);
+
+  bool isJsInterop(FunctionElement element) => _backend.isJsInterop(element);
+
+  bool isJsInteropAnonymous(FunctionElement element) =>
+    _backend.jsInteropAnalysis.hasAnonymousAnnotation(element.contextClass);
+
+  String getJsInteropTargetPath(FunctionElement element) {
+    return '${_backend.namer.fixedBackendPath(element)}.'
+      '${_backend.getFixedBackendName(element)}';
+  }
+
+  DartType get jsJavascriptObjectType =>
+    _backend.helpers.jsJavaScriptObjectClass.thisType;
 }

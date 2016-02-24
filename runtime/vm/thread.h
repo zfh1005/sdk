@@ -40,6 +40,7 @@ class PcDescriptors;
 class RawBool;
 class RawObject;
 class RawCode;
+class RawError;
 class RawGrowableObjectArray;
 class RawString;
 class RuntimeEntry;
@@ -365,6 +366,11 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   }
 
   RawGrowableObjectArray* pending_functions();
+  void clear_pending_functions();
+
+  RawError* sticky_error() const;
+  void set_sticky_error(const Error& value);
+  void clear_sticky_error();
 
 #if defined(DEBUG)
 #define REUSABLE_HANDLE_SCOPE_ACCESSORS(object)                                \
@@ -548,6 +554,8 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   uword vm_tag_;
   RawGrowableObjectArray* pending_functions_;
 
+  RawError* sticky_error_;
+
   // State that is cached in the TLS for fast access in generated code.
 #define DECLARE_MEMBERS(type_name, member_name, expr, default_init_value)      \
   type_name member_name;
@@ -577,9 +585,9 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
 #undef REUSABLE_HANDLE_SCOPE_VARIABLE
 #endif  // defined(DEBUG)
 
-  class AtSafepointField : public BitField<bool, 0, 1> {};
-  class SafepointRequestedField : public BitField<bool, 1, 1> {};
-  class BlockedForSafepointField : public BitField<bool, 2, 1> {};
+  class AtSafepointField : public BitField<uint32_t, bool, 0, 1> {};
+  class SafepointRequestedField : public BitField<uint32_t, bool, 1, 1> {};
+  class BlockedForSafepointField : public BitField<uint32_t, bool, 2, 1> {};
   uint32_t safepoint_state_;
   uint32_t execution_state_;
 

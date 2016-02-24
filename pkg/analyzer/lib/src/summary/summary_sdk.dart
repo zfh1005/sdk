@@ -8,36 +8,23 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/context/cache.dart' show CacheEntry;
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart'
     show DartUriResolver, Source, SourceFactory, SourceKind;
-import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
-import 'package:analyzer/src/task/dart.dart'
-    show
-        CONSTANT_VALUE,
-        LIBRARY_ELEMENT1,
-        LIBRARY_ELEMENT2,
-        LIBRARY_ELEMENT3,
-        LIBRARY_ELEMENT4,
-        LIBRARY_ELEMENT5,
-        LIBRARY_ELEMENT6,
-        LIBRARY_ELEMENT7,
-        LIBRARY_ELEMENT8,
-        READY_LIBRARY_ELEMENT2,
-        READY_LIBRARY_ELEMENT5,
-        READY_LIBRARY_ELEMENT6,
-        TYPE_PROVIDER;
+import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart'
     show AnalysisTarget, ResultDescriptor, TargetedResult;
 
 class SdkSummaryResultProvider implements SummaryResultProvider {
   final InternalAnalysisContext context;
-  final SdkBundle bundle;
+  final PackageBundle bundle;
   final SummaryTypeProvider typeProvider = new SummaryTypeProvider();
 
   @override
@@ -55,20 +42,21 @@ class SdkSummaryResultProvider implements SummaryResultProvider {
   @override
   bool compute(CacheEntry entry, ResultDescriptor result) {
     if (result == TYPE_PROVIDER) {
-//      print('SummarySdkAnalysisContext: $result');
       entry.setValue(result, typeProvider, TargetedResult.EMPTY_LIST);
       return true;
     }
     AnalysisTarget target = entry.target;
-    // TODO(scheglov) we don't actually update "evaluationResult" yet
-    if (result == CONSTANT_VALUE) {
-      if (target.source != null && target.source.isInSystemLibrary) {
-        entry.setValue(result, target, TargetedResult.EMPTY_LIST);
-        return true;
-      }
+    // Only SDK sources after this point.
+    if (target.source == null || !target.source.isInSystemLibrary) {
+      return false;
     }
-    if (target is Source && target.isInSystemLibrary) {
-//      print('SummarySdkAnalysisContext: $result of $target');
+    // Constant expressions are always resolved in summaries.
+    if (result == CONSTANT_EXPRESSION_RESOLVED &&
+        target is ConstantEvaluationTarget) {
+      entry.setValue(result, true, TargetedResult.EMPTY_LIST);
+      return true;
+    }
+    if (target is Source) {
       if (result == LIBRARY_ELEMENT1 ||
           result == LIBRARY_ELEMENT2 ||
           result == LIBRARY_ELEMENT3 ||
@@ -99,6 +87,21 @@ class SdkSummaryResultProvider implements SummaryResultProvider {
         return false;
       } else {
 //        throw new UnimplementedError('$result of $target');
+      }
+    }
+    if (target is LibrarySpecificUnit) {
+      if (target.library == null || !target.library.isInSystemLibrary) {
+        return false;
+      }
+      if (result == COMPILATION_UNIT_ELEMENT) {
+        String libraryUri = target.library.uri.toString();
+        String unitUri = target.unit.uri.toString();
+        CompilationUnitElement unit = resynthesizer.getElement(
+            new ElementLocationImpl.con3(<String>[libraryUri, unitUri]));
+        if (unit != null) {
+          entry.setValue(result, unit, TargetedResult.EMPTY_LIST);
+          return true;
+        }
       }
     }
     return false;
@@ -132,7 +135,7 @@ class SdkSummaryResultProvider implements SummaryResultProvider {
  * The implementation of [SummaryResynthesizer] for Dart SDK.
  */
 class SdkSummaryResynthesizer extends SummaryResynthesizer {
-  final SdkBundle bundle;
+  final PackageBundle bundle;
   final Map<String, UnlinkedUnit> unlinkedSummaries = <String, UnlinkedUnit>{};
   final Map<String, LinkedLibrary> linkedSummaries = <String, LinkedLibrary>{};
 

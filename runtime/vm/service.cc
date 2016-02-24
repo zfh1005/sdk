@@ -51,6 +51,7 @@ DEFINE_FLAG(bool, warn_on_pause_with_no_debugger, false,
             "Print a message when an isolate is paused but there is no "
             "debugger attached.");
 
+#ifndef PRODUCT
 // The name of this of this vm as reported by the VM service protocol.
 static char* vm_name = NULL;
 
@@ -646,7 +647,6 @@ class EnumListParameter : public MethodParameter {
   // Returns number of elements in the list.  -1 on parse error.
   intptr_t ElementCount(const char* value) const {
     const char* kJsonWhitespaceChars = " \t\r\n";
-
     if (value == NULL) {
       return -1;
     }
@@ -2407,13 +2407,9 @@ static const char* const report_enum_names[] = {
 };
 
 
-static const EnumListParameter* reports_parameter =
-    new EnumListParameter("reports", true, report_enum_names);
-
-
 static const MethodParameter* get_source_report_params[] = {
   RUNNABLE_ISOLATE_PARAMETER,
-  reports_parameter,
+  new EnumListParameter("reports", true, report_enum_names),
   new IdParameter("scriptId", false),
   new UIntParameter("tokenPos", false),
   new UIntParameter("endTokenPos", false),
@@ -2423,7 +2419,14 @@ static const MethodParameter* get_source_report_params[] = {
 
 
 static bool GetSourceReport(Thread* thread, JSONStream* js) {
+  if (!thread->isolate()->compilation_allowed()) {
+    js->PrintError(kFeatureDisabled,
+        "Cannot get source report when running a precompiled program.");
+    return true;
+  }
   const char* reports_str = js->LookupParam("reports");
+  const EnumListParameter* reports_parameter =
+      static_cast<const EnumListParameter*>(get_source_report_params[1]);
   const char** reports = reports_parameter->Parse(thread->zone(), reports_str);
   intptr_t report_set = 0;
   while (*reports != NULL) {
@@ -2631,7 +2634,7 @@ static bool AddBreakpointAtActivation(Thread* thread, JSONStream* js) {
   }
   const Instance& closure = Instance::Cast(obj);
   Breakpoint* bpt =
-      thread->isolate()->debugger()->SetBreakpointAtActivation(closure);
+      thread->isolate()->debugger()->SetBreakpointAtActivation(closure, false);
   if (bpt == NULL) {
     js->PrintError(kCannotAddBreakpoint,
                    "%s: Cannot add breakpoint at activation",
@@ -2859,27 +2862,58 @@ static bool GetVMMetric(Thread* thread, JSONStream* js) {
   return false;
 }
 
+static const char* const timeline_streams_enum_names[] = {
+  "all",
+#define DEFINE_NAME(name, unused)                                              \
+  #name,
+ISOLATE_TIMELINE_STREAM_LIST(DEFINE_NAME)
+#undef DEFINE_NAME
+  "VM",
+  NULL
+};
 
-static const MethodParameter* set_vm_timeline_flag_params[] = {
+static const MethodParameter* set_vm_timeline_flags_params[] = {
   NO_ISOLATE_PARAMETER,
-  new MethodParameter("_record", true),
+  new EnumListParameter("recordedStreams",
+                        false,
+                        timeline_streams_enum_names),
   NULL,
 };
 
 
-static bool SetVMTimelineFlag(Thread* thread, JSONStream* js) {
+static bool HasStream(const char** recorded_streams, const char* stream) {
+  while (*recorded_streams != NULL) {
+    if ((strstr(*recorded_streams, "all") != NULL) ||
+        (strstr(*recorded_streams, stream) != NULL)) {
+      return true;
+    }
+    recorded_streams++;
+  }
+  return false;
+}
+
+
+static bool SetVMTimelineFlags(Thread* thread, JSONStream* js) {
+  if (!FLAG_support_timeline) {
+    PrintSuccess(js);
+    return true;
+  }
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   StackZone zone(thread);
 
-  bool recording = strcmp(js->LookupParam("_record"), "all") == 0;
-  Timeline::SetStreamAPIEnabled(recording);
-  Timeline::SetStreamCompilerEnabled(recording);
-  Timeline::SetStreamDartEnabled(recording);
-  Timeline::SetStreamDebuggerEnabled(recording);
-  Timeline::SetStreamEmbedderEnabled(recording);
-  Timeline::SetStreamGCEnabled(recording);
-  Timeline::SetStreamIsolateEnabled(recording);
+  const EnumListParameter* recorded_streams_param =
+      static_cast<const EnumListParameter*>(set_vm_timeline_flags_params[1]);
+
+  const char* recorded_streams_str = js->LookupParam("recordedStreams");
+  const char** recorded_streams =
+      recorded_streams_param->Parse(thread->zone(), recorded_streams_str);
+
+#define SET_ENABLE_STREAM(name, unused)                                        \
+  Timeline::SetStream##name##Enabled(HasStream(recorded_streams, #name));
+ISOLATE_TIMELINE_STREAM_LIST(SET_ENABLE_STREAM);
+#undef SET_ENABLE_STREAM
+  Timeline::SetVMStreamEnabled(HasStream(recorded_streams, "VM"));
 
   PrintSuccess(js);
 
@@ -2887,19 +2921,22 @@ static bool SetVMTimelineFlag(Thread* thread, JSONStream* js) {
 }
 
 
-static const MethodParameter* get_vm_timeline_flag_params[] = {
+static const MethodParameter* get_vm_timeline_flags_params[] = {
   NO_ISOLATE_PARAMETER,
-  new MethodParameter("_record", false),
   NULL,
 };
 
 
-static bool GetVMTimelineFlag(Thread* thread, JSONStream* js) {
+static bool GetVMTimelineFlags(Thread* thread, JSONStream* js) {
+  if (!FLAG_support_timeline) {
+    JSONObject obj(js);
+    obj.AddProperty("type", "TimelineFlags");
+    return true;
+  }
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   StackZone zone(thread);
-
-  js->PrintError(kFeatureDisabled, "TODO(johnmccutchan)");
+  Timeline::PrintFlagsToJSON(js);
   return true;
 }
 
@@ -2958,14 +2995,14 @@ static const MethodParameter* resume_params[] = {
 static bool Resume(Thread* thread, JSONStream* js) {
   const char* step_param = js->LookupParam("step");
   Isolate* isolate = thread->isolate();
-  if (isolate->message_handler()->paused_on_start()) {
+  if (isolate->message_handler()->is_paused_on_start()) {
     // If the user is issuing a 'Over' or an 'Out' step, that is the
     // same as a regular resume request.
     if ((step_param != NULL) && (strcmp(step_param, "Into") == 0)) {
       isolate->debugger()->EnterSingleStepMode();
     }
-    isolate->message_handler()->set_pause_on_start(false);
-    isolate->set_last_resume_timestamp();
+    isolate->message_handler()->set_should_pause_on_start(false);
+    isolate->SetResumeRequest();
     if (Service::debug_stream.enabled()) {
       ServiceEvent event(isolate, ServiceEvent::kResume);
       Service::HandleEvent(&event);
@@ -2973,8 +3010,9 @@ static bool Resume(Thread* thread, JSONStream* js) {
     PrintSuccess(js);
     return true;
   }
-  if (isolate->message_handler()->paused_on_exit()) {
-    isolate->message_handler()->set_pause_on_exit(false);
+  if (isolate->message_handler()->is_paused_on_exit()) {
+    isolate->message_handler()->set_should_pause_on_exit(false);
+    isolate->SetResumeRequest();
     // We don't send a resume event because we will be exiting.
     PrintSuccess(js);
     return true;
@@ -2987,12 +3025,18 @@ static bool Resume(Thread* thread, JSONStream* js) {
         isolate->debugger()->SetStepOver();
       } else if (strcmp(step_param, "Out") == 0) {
         isolate->debugger()->SetStepOut();
+      } else if (strcmp(step_param, "OverAsyncSuspension") == 0) {
+        if (!isolate->debugger()->SetupStepOverAsyncSuspension()) {
+          js->PrintError(kInvalidParams,
+                         "Isolate must be paused at an async suspension point");
+          return true;
+        }
       } else {
         PrintInvalidParamError(js, "step");
         return true;
       }
     }
-    isolate->Resume();
+    isolate->SetResumeRequest();
     PrintSuccess(js);
     return true;
   }
@@ -3572,7 +3616,7 @@ static bool GetVersion(Thread* thread, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Version");
   jsobj.AddProperty("major", static_cast<intptr_t>(3));
-  jsobj.AddProperty("minor", static_cast<intptr_t>(1));
+  jsobj.AddProperty("minor", static_cast<intptr_t>(3));
   jsobj.AddProperty("_privateMajor", static_cast<intptr_t>(0));
   jsobj.AddProperty("_privateMinor", static_cast<intptr_t>(0));
   return true;
@@ -3916,8 +3960,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_vm_metric_list_params },
   { "_getVMTimeline", GetVMTimeline,
     get_vm_timeline_params },
-  { "_getVMTimelineFlag", GetVMTimelineFlag,
-    get_vm_timeline_flag_params },
+  { "_getVMTimelineFlags", GetVMTimelineFlags,
+    get_vm_timeline_flags_params },
   { "pause", Pause,
     pause_params },
   { "removeBreakpoint", RemoveBreakpoint,
@@ -3940,8 +3984,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     set_trace_class_allocation_params },
   { "setVMName", SetVMName,
     set_vm_name_params },
-  { "_setVMTimelineFlag", SetVMTimelineFlag,
-    set_vm_timeline_flag_params },
+  { "_setVMTimelineFlags", SetVMTimelineFlags,
+    set_vm_timeline_flags_params },
 };
 
 
@@ -3957,5 +4001,6 @@ const ServiceMethodDescriptor* FindMethod(const char* method_name) {
   return NULL;
 }
 
+#endif  // !PRODUCT
 
 }  // namespace dart

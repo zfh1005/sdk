@@ -26,28 +26,13 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, disable_alloc_stubs_after_gc, false, "Stress testing flag.");
-DEFINE_FLAG(bool, gc_at_alloc, false, "GC at every allocation.");
-DEFINE_FLAG(int, new_gen_ext_limit, 64,
-            "maximum total external size (MB) in new gen before triggering GC");
-DEFINE_FLAG(int, pretenure_interval, 10,
-            "Back off pretenuring after this many cycles.");
-DEFINE_FLAG(int, pretenure_threshold, 98,
-            "Trigger pretenuring when this many percent are promoted.");
-DEFINE_FLAG(bool, verbose_gc, false, "Enables verbose GC.");
-DEFINE_FLAG(int, verbose_gc_hdr, 40, "Print verbose GC header interval.");
-DEFINE_FLAG(bool, verify_after_gc, false,
-            "Enables heap verification after GC.");
-DEFINE_FLAG(bool, verify_before_gc, false,
-            "Enables heap verification before GC.");
-DEFINE_FLAG(bool, pretenure_all, false, "Global pretenuring (for testing).");
-
-
 Heap::Heap(Isolate* isolate,
            intptr_t max_new_gen_semi_words,
            intptr_t max_old_gen_words,
            intptr_t max_external_words)
     : isolate_(isolate),
+      barrier_(new Monitor()),
+      barrier_done_(new Monitor()),
       new_space_(this, max_new_gen_semi_words, kNewObjectAlignmentOffset),
       old_space_(this, max_old_gen_words, max_external_words),
       read_only_(false),
@@ -65,6 +50,9 @@ Heap::Heap(Isolate* isolate,
 
 
 Heap::~Heap() {
+  delete barrier_;
+  delete barrier_done_;
+
   for (int sel = 0;
        sel < kNumWeakSelectors;
        sel++) {
@@ -379,9 +367,11 @@ void Heap::CollectNewSpaceGarbage(Thread* thread,
     bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
     RecordBeforeGC(kNew, reason);
     VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
+#ifndef PRODUCT
     TimelineDurationScope tds(thread,
                               isolate()->GetGCStream(),
                               "CollectNewGeneration");
+#endif  // !PRODUCT
     UpdateClassHeapStatsBeforeGC(kNew);
     new_space_.Scavenge(invoke_api_callbacks);
     isolate()->class_table()->UpdatePromoted();
@@ -404,9 +394,11 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
     bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
     RecordBeforeGC(kOld, reason);
     VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId);
+#ifndef PRODUCT
     TimelineDurationScope tds(thread,
                               isolate()->GetGCStream(),
                               "CollectOldGeneration");
+#endif  // !PRODUCT
     UpdateClassHeapStatsBeforeGC(kOld);
     old_space_.MarkSweep(invoke_api_callbacks);
     RecordAfterGC(kOld);
@@ -762,7 +754,7 @@ void Heap::RecordAfterGC(Space space) {
   stats_.after_.old_ = old_space_.GetCurrentUsage();
   ASSERT((space == kNew && gc_new_space_in_progress_) ||
          (space == kOld && gc_old_space_in_progress_));
-  if (Service::gc_stream.enabled()) {
+  if (FLAG_support_service && Service::gc_stream.enabled()) {
     ServiceEvent event(Isolate::Current(), ServiceEvent::kGC);
     event.set_gc_stats(&stats_);
     Service::HandleEvent(&event);

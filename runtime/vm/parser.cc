@@ -28,7 +28,6 @@
 #include "vm/object_store.h"
 #include "vm/os.h"
 #include "vm/regexp_assembler.h"
-#include "vm/report.h"
 #include "vm/resolver.h"
 #include "vm/safepoint.h"
 #include "vm/scanner.h"
@@ -42,8 +41,6 @@
 namespace dart {
 
 DEFINE_FLAG(bool, enable_debug_break, false, "Allow use of break \"message\".");
-DEFINE_FLAG(bool, enable_mirrors, true,
-    "Disable to make importing dart:mirrors an error.");
 DEFINE_FLAG(bool, load_deferred_eagerly, false,
     "Load deferred libraries eagerly.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
@@ -56,11 +53,8 @@ DEFINE_FLAG(bool, warn_super, false,
 DEFINE_FLAG(bool, await_is_keyword, false,
     "await and yield are treated as proper keywords in synchronous code.");
 
-DECLARE_FLAG(bool, lazy_dispatchers);
 DECLARE_FLAG(bool, load_deferred_eagerly);
 DECLARE_FLAG(bool, profile_vm);
-DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
-DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 
 // Quick access to the current thread, isolate and zone.
 #define T (thread())
@@ -159,6 +153,20 @@ static RawTypeArguments* NewTypeArguments(
   // Cannot canonicalize TypeArgument yet as its types may not have been
   // finalized yet.
   return a.raw();
+}
+
+
+void ParsedFunction::AddToGuardedFields(const Field* field) const {
+  if ((field->guarded_cid() == kDynamicCid) ||
+      (field->guarded_cid() == kIllegalCid)) {
+    return;
+  }
+  for (intptr_t j = 0; j < guarded_fields_->length(); j++) {
+    if ((*guarded_fields_)[j]->raw() == field->raw()) {
+      return;
+    }
+  }
+  guarded_fields_->Add(field);
 }
 
 
@@ -423,6 +431,7 @@ Parser::~Parser() {
   if (unregister_pending_function_) {
     const GrowableObjectArray& pending_functions =
         GrowableObjectArray::Handle(T->pending_functions());
+    ASSERT(!pending_functions.IsNull());
     ASSERT(pending_functions.Length() > 0);
     ASSERT(pending_functions.At(pending_functions.Length() - 1) ==
         current_function().raw());
@@ -490,6 +499,7 @@ void Parser::ParseCompilationUnit(const Library& library,
   ASSERT(thread->long_jump_base()->IsSafeToJump());
   CSTAT_TIMER_SCOPE(thread, parser_timer);
   VMTagScope tagScope(thread, VMTag::kCompileTopLevelTagId);
+#ifndef PRODUCT
   TimelineDurationScope tds(thread,
                             thread->isolate()->GetCompilerStream(),
                             "CompileTopLevel");
@@ -497,6 +507,7 @@ void Parser::ParseCompilationUnit(const Library& library,
     tds.SetNumArguments(1);
     tds.CopyArgument(0, "script", String::Handle(script.url()).ToCString());
   }
+#endif
 
   Parser parser(script, library, TokenPosition::kMinSource);
   parser.ParseTopLevel();
@@ -535,14 +546,6 @@ RawInteger* Parser::CurrentIntegerLiteral() const {
   literal_token_ ^= tokens_iterator_.CurrentToken();
   ASSERT(literal_token_.kind() == Token::kINTEGER);
   RawInteger* ri = Integer::RawCast(literal_token_.value());
-  if (FLAG_throw_on_javascript_int_overflow) {
-    const Integer& i = Integer::Handle(Z, ri);
-    if (i.CheckJavascriptIntegerOverflow()) {
-      ReportError(TokenPos(),
-                  "Integer literal does not fit in a Javascript integer: %s.",
-                  i.ToCString());
-    }
-  }
   return ri;
 }
 
@@ -854,6 +857,7 @@ void Parser::ParseClass(const Class& cls) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const int64_t num_tokes_before = STAT_VALUE(thread, num_tokens_consumed);
+#ifndef PRODUCT
   TimelineDurationScope tds(thread,
                             thread->isolate()->GetCompilerStream(),
                             "ParseClass");
@@ -861,6 +865,7 @@ void Parser::ParseClass(const Class& cls) {
     tds.SetNumArguments(1);
     tds.CopyArgument(0, "class", String::Handle(cls.Name()).ToCString());
   }
+#endif
   if (!cls.is_synthesized_class()) {
     ASSERT(thread->long_jump_base()->IsSafeToJump());
     CSTAT_TIMER_SCOPE(thread, parser_timer);
@@ -919,10 +924,9 @@ RawObject* Parser::ParseFunctionParameters(const Function& func) {
     return param_descriptor.raw();
   } else {
     Thread* thread = Thread::Current();
-    Isolate* isolate = thread->isolate();
     Error& error = Error::Handle();
-    error = isolate->object_store()->sticky_error();
-    isolate->object_store()->clear_sticky_error();
+    error = thread->sticky_error();
+    thread->clear_sticky_error();
     return error.raw();
   }
   UNREACHABLE();
@@ -953,7 +957,7 @@ bool Parser::ParseFormalParameters(const Function& func, ParamList* params) {
     parser.ParseFormalParameterList(true, true, params);
     return true;
   } else {
-    Thread::Current()->isolate()->object_store()->clear_sticky_error();
+    Thread::Current()->clear_sticky_error();
     params->Clear();
     return false;
   }
@@ -970,18 +974,22 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   INC_STAT(thread, num_functions_parsed, 1);
   VMTagScope tagScope(thread, VMTag::kCompileParseFunctionTagId,
                       FLAG_profile_vm);
+#ifndef PRODUCT
   TimelineDurationScope tds(thread,
                             thread->isolate()->GetCompilerStream(),
                             "ParseFunction");
+#endif  // !PRODUCT
   ASSERT(thread->long_jump_base()->IsSafeToJump());
   ASSERT(parsed_function != NULL);
   const Function& func = parsed_function->function();
   const Script& script = Script::Handle(zone, func.script());
   Parser parser(script, parsed_function, func.token_pos());
+#ifndef PRODUCT
   if (tds.enabled()) {
     tds.SetNumArguments(1);
     tds.CopyArgument(0, "function", String::Handle(func.name()).ToCString());
   }
+#endif  // !PRODUCT
   SequenceNode* node_sequence = NULL;
   switch (func.kind()) {
     case RawFunction::kClosureFunction:
@@ -1101,12 +1109,11 @@ RawObject* Parser::ParseMetadata(const Field& meta_data) {
     return metadata;
   } else {
     Thread* thread = Thread::Current();
-    Isolate* isolate = thread->isolate();
     StackZone stack_zone(thread);
     Zone* zone = stack_zone.GetZone();
     Error& error = Error::Handle(zone);
-    error = isolate->object_store()->sticky_error();
-    isolate->object_store()->clear_sticky_error();
+    error = thread->sticky_error();
+    thread->clear_sticky_error();
     return error.raw();
   }
   UNREACHABLE();
@@ -2955,6 +2962,7 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
 void Parser::CheckRecursiveInvocation() {
   const GrowableObjectArray& pending_functions =
       GrowableObjectArray::Handle(Z, T->pending_functions());
+  ASSERT(!pending_functions.IsNull());
   for (int i = 0; i < pending_functions.Length(); i++) {
     if (pending_functions.At(i) == current_function().raw()) {
       const String& fname =
@@ -2963,7 +2971,7 @@ void Parser::CheckRecursiveInvocation() {
     }
   }
   ASSERT(!unregister_pending_function_);
-  pending_functions.Add(current_function());
+  pending_functions.Add(current_function(), Heap::kOld);
   unregister_pending_function_ = true;
 }
 
@@ -8719,7 +8727,7 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
       outer_try->try_index() : CatchClauseNode::kInvalidTryIndex;
 
   // The finally block contains a call to cancel the stream.
-  // :for-in-iter.cancel()
+  // :for-in-iter.cancel();
 
   // Inline the finally block to the exit points in the try block.
   intptr_t node_index = 0;
@@ -8729,6 +8737,17 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
   }
   do {
     OpenBlock();
+
+    // Restore the saved try context of the enclosing try block if one
+    // exists.
+    if (outer_saved_try_ctx != NULL) {
+      current_block_->statements->Add(new (Z) StoreLocalNode(
+          TokenPosition::kNoSource,
+          outer_saved_try_ctx,
+          new (Z) LoadLocalNode(TokenPosition::kNoSource,
+                                outer_async_saved_try_ctx)));
+    }
+    // :for-in-iter.cancel();
     ArgumentListNode* no_args =
         new(Z) ArgumentListNode(TokenPosition::kNoSource);
     current_block_->statements->Add(
@@ -8737,6 +8756,7 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
             Symbols::Cancel(),
             no_args));
     finally_clause = CloseBlock();
+
     AstNode* node_to_inline = try_statement->GetNodeToInlineFinally(node_index);
     if (node_to_inline != NULL) {
       InlinedFinallyNode* node =
@@ -9127,7 +9147,7 @@ SequenceNode* Parser::EnsureFinallyClause(
   if (try_stack_ != NULL) {
     try_stack_->enter_finally();
   }
-  // In case of async closures we need to restore the saved try index of an
+  // In case of async closures we need to restore the saved try context of an
   // outer try block (if it exists).  The current try block has already been
   // removed from the stack of try blocks.
   if (is_async) {
@@ -9785,7 +9805,8 @@ AstNode* Parser::ParseYieldStatement() {
     AstNode* store_current =
         new(Z) InstanceSetterNode(TokenPosition::kNoSource,
                                   iterator,
-                                  String::ZoneHandle(Symbols::Current().raw()),
+                                  Library::PrivateCoreLibName(
+                                      Symbols::_current()),
                                   expr);
     yield->AddNode(store_current);
     if (is_yield_each) {
@@ -11096,36 +11117,32 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
       (cls.library() == Library::CoreLibrary()) &&
       (func.name() == Symbols::Identical().raw())) {
     // This is the predefined toplevel function identical(a,b).
-    // Create a comparison node instead of a static call to the function, unless
-    // javascript warnings are desired and identical is not invoked from a patch
-    // source.
-    if (!FLAG_warn_on_javascript_compatibility || is_patch_source()) {
-      ASSERT(num_arguments == 2);
+    // Create a comparison node instead of a static call to the function.
+    ASSERT(num_arguments == 2);
 
-      // If both arguments are constant expressions of type string,
-      // evaluate and canonicalize them.
-      // This guarantees that identical("ab", "a"+"b") is true.
-      // An alternative way to guarantee this would be to introduce
-      // an AST node that canonicalizes a value.
-      AstNode* arg0 = arguments->NodeAt(0);
-      const Instance* val0 = arg0->EvalConstExpr();
-      if ((val0 != NULL) && (val0->IsString())) {
-        AstNode* arg1 = arguments->NodeAt(1);
-        const Instance* val1 = arg1->EvalConstExpr();
-        if ((val1 != NULL) && (val1->IsString())) {
-          arguments->SetNodeAt(0,
-              new(Z) LiteralNode(arg0->token_pos(),
-                                 EvaluateConstExpr(arg0->token_pos(), arg0)));
-          arguments->SetNodeAt(1,
-              new(Z) LiteralNode(arg1->token_pos(),
-                                 EvaluateConstExpr(arg1->token_pos(), arg1)));
-        }
+    // If both arguments are constant expressions of type string,
+    // evaluate and canonicalize them.
+    // This guarantees that identical("ab", "a"+"b") is true.
+    // An alternative way to guarantee this would be to introduce
+    // an AST node that canonicalizes a value.
+    AstNode* arg0 = arguments->NodeAt(0);
+    const Instance* val0 = arg0->EvalConstExpr();
+    if ((val0 != NULL) && (val0->IsString())) {
+      AstNode* arg1 = arguments->NodeAt(1);
+      const Instance* val1 = arg1->EvalConstExpr();
+      if ((val1 != NULL) && (val1->IsString())) {
+        arguments->SetNodeAt(0,
+            new(Z) LiteralNode(arg0->token_pos(),
+                               EvaluateConstExpr(arg0->token_pos(), arg0)));
+        arguments->SetNodeAt(1,
+            new(Z) LiteralNode(arg1->token_pos(),
+                               EvaluateConstExpr(arg1->token_pos(), arg1)));
       }
-      return new(Z) ComparisonNode(ident_pos,
-                                   Token::kEQ_STRICT,
-                                   arguments->NodeAt(0),
-                                   arguments->NodeAt(1));
     }
+    return new(Z) ComparisonNode(ident_pos,
+                                 Token::kEQ_STRICT,
+                                 arguments->NodeAt(0),
+                                 arguments->NodeAt(1));
   }
   return new(Z) StaticCallNode(ident_pos, func, arguments);
 }
@@ -13211,7 +13228,11 @@ void Parser::ParseConstructorClosurization(Function* constructor,
       ASSERT(!type.IsMalformedOrMalbounded());
       if (!type.IsInstantiated()) {
         Error& error = Error::Handle(Z);
-        type ^= type.InstantiateFrom(*type_arguments, &error, NULL, Heap::kOld);
+        type ^= type.InstantiateFrom(*type_arguments,
+                                     &error,
+                                     NULL,  // instantiation_trail
+                                     NULL,  // bound_trail
+                                     Heap::kOld);
         ASSERT(error.IsNull());
       }
       *type_arguments = type.arguments();
@@ -13375,7 +13396,8 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
         redirect_type ^= redirect_type.InstantiateFrom(
             type_arguments,
             &error,
-            NULL,  // trail
+            NULL,  // instantiation_trail
+            NULL,  // bound_trail
             Heap::kOld);
         if (!error.IsNull()) {
           redirect_type = ClassFinalizer::NewFinalizedMalformedType(
@@ -13415,7 +13437,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
         return ThrowTypeError(redirect_type.token_pos(), redirect_type);
       }
       if (I->flags().type_checks() &&
-              !redirect_type.IsSubtypeOf(type, NULL, Heap::kOld)) {
+              !redirect_type.IsSubtypeOf(type, NULL, NULL, Heap::kOld)) {
         // Additional type checking of the result is necessary.
         type_bound = type.raw();
       }
@@ -14323,11 +14345,15 @@ void Parser::SkipQualIdent() {
 
 namespace dart {
 
-DEFINE_FLAG(bool, enable_mirrors, true,
-    "Disable to make importing dart:mirrors an error.");
 DEFINE_FLAG(bool, load_deferred_eagerly, false,
     "Load deferred libraries eagerly.");
 DEFINE_FLAG(bool, link_natives_lazily, false, "Link native calls lazily");
+
+
+void ParsedFunction::AddToGuardedFields(const Field* field) const {
+  UNREACHABLE();
+}
+
 
 LocalVariable* ParsedFunction::EnsureExpressionTemp() {
   UNREACHABLE();

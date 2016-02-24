@@ -212,6 +212,21 @@ abstract class TestSuite {
     return dartExecutable;
   }
 
+  String get dartVmNooptBinaryFileName {
+    // Controlled by user with the option "--dart".
+    String dartExecutable = configuration['dart'];
+
+    if (dartExecutable == '') {
+      String suffix = executableBinarySuffix;
+      dartExecutable = useSdk
+          ? '$buildDir/dart-sdk/bin/dart_noopt$suffix'
+          : '$buildDir/dart_noopt$suffix';
+    }
+
+    TestUtils.ensureExists(dartExecutable, configuration);
+    return dartExecutable;
+  }
+
   String get dartPrecompiledBinaryFileName {
     // Controlled by user with the option "--dart_precompiled".
     String dartExecutable = configuration['dart_precompiled'];
@@ -219,6 +234,21 @@ abstract class TestSuite {
     if (dartExecutable == null || dartExecutable == '') {
       String suffix = executableBinarySuffix;
       dartExecutable = '$buildDir/dart_precompiled_runtime$suffix';
+    }
+
+    TestUtils.ensureExists(dartExecutable, configuration);
+    return dartExecutable;
+  }
+
+  String get dartVmProductBinaryFileName {
+    // Controlled by user with the option "--dart".
+    String dartExecutable = configuration['dart'];
+
+    if (dartExecutable == '') {
+      String suffix = executableBinarySuffix;
+      dartExecutable = useSdk
+          ? '$buildDir/dart-sdk/bin/dart_product$suffix'
+          : '$buildDir/dart_product$suffix';
     }
 
     TestUtils.ensureExists(dartExecutable, configuration);
@@ -1792,8 +1822,9 @@ class StandardTestSuite extends TestSuite {
   }
 
   List<List<String>> getVmOptions(Map optionsFromFile) {
-    var COMPILERS = const ['none', 'precompiler'];
-    var RUNTIMES = const ['none', 'dart_precompiled', 'vm', 'drt', 'dartium',
+    var COMPILERS = const ['none', 'precompiler', 'dart2app'];
+    var RUNTIMES = const ['none', 'dart_precompiled', 'dart_product', 'vm',
+                          'drt', 'dartium',
                           'ContentShellOnAndroid', 'DartiumOnAndroid'];
     var needsVmOptions = COMPILERS.contains(configuration['compiler']) &&
                          RUNTIMES.contains(configuration['runtime']);
@@ -2325,7 +2356,20 @@ class TestUtils {
     // is an X in front of the arch. We don't allow both a cross compiled
     // and a normal version to be present (except if you specifically pass
     // in the build_directory).
-    var mode = (configuration['mode'] == 'debug') ? 'Debug' : 'Release';
+    var mode;
+    switch (configuration['mode']) {
+      case 'debug':
+        mode = 'Debug';
+        break;
+      case 'release':
+        mode = 'Release';
+        break;
+      case 'product':
+        mode = 'Product';
+        break;
+      default:
+        throw 'Unrecognized mode configuration: ${configuration['mode']}';
+    }
     var arch = configuration['arch'].toUpperCase();
     var normal = '$mode$arch';
     var cross = '${mode}X$arch';
@@ -2340,19 +2384,6 @@ class TestUtils {
       return cross;
     }
     return normal;
-  }
-
-  /**
-   * Returns the path to the dart binary checked into the repo, used for
-   * bootstrapping test.dart.
-   */
-  static Path get dartTestExecutable {
-    var path = '$dartDir/tools/testing/bin/'
-        '${Platform.operatingSystem}/dart';
-    if (Platform.operatingSystem == 'windows') {
-      path = '$path.exe';
-    }
-    return new Path(path);
   }
 
   /**

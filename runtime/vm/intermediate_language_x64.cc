@@ -7,6 +7,7 @@
 
 #include "vm/intermediate_language.h"
 
+#include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/flow_graph.h"
 #include "vm/flow_graph_compiler.h"
@@ -25,7 +26,6 @@ namespace dart {
 DECLARE_FLAG(bool, allow_absolute_addresses);
 DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(int, optimization_counter_threshold);
-DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 DECLARE_FLAG(bool, use_osr);
 DECLARE_FLAG(bool, precompilation);
 
@@ -1457,6 +1457,10 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t nullability = field().is_nullable() ? kNullCid : kIllegalCid;
 
   if (field_cid == kDynamicCid) {
+    if (Compiler::IsBackgroundCompilation()) {
+      // Field state changed while compiling.
+      Compiler::AbortBackgroundCompilation(deopt_id());
+    }
     ASSERT(!compiler->is_optimizing());
     return;  // Nothing to emit.
   }
@@ -1598,6 +1602,10 @@ LocationSummary* GuardFieldLengthInstr::MakeLocationSummary(Zone* zone,
 
 void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (field().guarded_list_length() == Field::kNoFixedLength) {
+    if (Compiler::IsBackgroundCompilation()) {
+      // Field state changed while compiling.
+      Compiler::AbortBackgroundCompilation(deopt_id());
+    }
     ASSERT(!compiler->is_optimizing());
     return;  // Nothing to emit.
   }
@@ -2604,9 +2612,14 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
       Register temp = instruction_->locs()->temp(0).reg();
       __ Comment("CheckStackOverflowSlowPathOsr");
       __ Bind(osr_entry_label());
-      ASSERT(FLAG_allow_absolute_addresses);
-      __ LoadImmediate(temp, Immediate(flags_address));
-      __ movq(Address(temp, 0), Immediate(Isolate::kOsrRequest));
+      if (FLAG_allow_absolute_addresses) {
+        __ LoadImmediate(temp, Immediate(flags_address));
+        __ movq(Address(temp, 0), Immediate(Isolate::kOsrRequest));
+      } else {
+        __ LoadIsolate(TMP);
+        __ movq(Address(TMP, Isolate::stack_overflow_flags_offset()),
+                Immediate(Isolate::kOsrRequest));
+      }
     }
     __ Comment("CheckStackOverflowSlowPath");
     __ Bind(entry_label());
@@ -2678,22 +2691,6 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-static void EmitJavascriptOverflowCheck(FlowGraphCompiler* compiler,
-                                        Range* range,
-                                        Label* overflow,
-                                        Register result) {
-  if (!RangeUtils::IsWithin(range, -0x20000000000000LL, 0x20000000000000LL)) {
-    ASSERT(overflow != NULL);
-    // TODO(zra): This can be tightened to one compare/branch using:
-    // overflow = (result + 2^52) > 2^53 with an unsigned comparison.
-    __ CompareImmediate(result, Immediate(-0x20000000000000LL));
-    __ j(LESS, overflow);
-    __ CompareImmediate(result, Immediate(0x20000000000000LL));
-    __ j(GREATER, overflow);
-  }
-}
-
-
 static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
                              BinarySmiOpInstr* shift_left) {
   const LocationSummary& locs = *shift_left->locs();
@@ -2721,9 +2718,6 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     }
     // Shift for result now we know there is no overflow.
     __ shlq(left, Immediate(value));
-    if (FLAG_throw_on_javascript_int_overflow) {
-      EmitJavascriptOverflowCheck(compiler, shift_left->range(), deopt, result);
-    }
     return;
   }
 
@@ -2751,9 +2745,6 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
       }
       __ SmiUntag(right);
       __ shlq(left, right);
-    }
-    if (FLAG_throw_on_javascript_int_overflow) {
-      EmitJavascriptOverflowCheck(compiler, shift_left->range(), deopt, result);
     }
     return;
   }
@@ -2803,9 +2794,6 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     __ j(NOT_EQUAL, deopt);  // Overflow.
     // Shift for result now we know there is no overflow.
     __ shlq(left, right);
-  }
-  if (FLAG_throw_on_javascript_int_overflow) {
-    EmitJavascriptOverflowCheck(compiler, shift_left->range(), deopt, result);
   }
 }
 
@@ -2987,9 +2975,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         UNREACHABLE();
         break;
     }
-    if (FLAG_throw_on_javascript_int_overflow) {
-      EmitJavascriptOverflowCheck(compiler, range(), deopt, result);
-    }
     return;
   }  // locs()->in(1).IsConstant().
 
@@ -3031,9 +3016,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       default:
         UNREACHABLE();
         break;
-    }
-    if (FLAG_throw_on_javascript_int_overflow) {
-      EmitJavascriptOverflowCheck(compiler, range(), deopt, result);
     }
     return;
   }  // locs()->in(1).IsStackSlot().
@@ -3230,9 +3212,6 @@ void BinarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     default:
       UNREACHABLE();
       break;
-  }
-  if (FLAG_throw_on_javascript_int_overflow) {
-    EmitJavascriptOverflowCheck(compiler, range(), deopt, result);
   }
 }
 
@@ -4723,9 +4702,6 @@ void UnarySmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptUnaryOp);
       __ negq(value);
       __ j(OVERFLOW, deopt);
-      if (FLAG_throw_on_javascript_int_overflow) {
-        EmitJavascriptOverflowCheck(compiler, range(), deopt, value);
-      }
       break;
     }
     case Token::kBIT_NOT:
@@ -4929,9 +4905,6 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ shlq(temp, Immediate(1));
   __ j(OVERFLOW, &do_call, Assembler::kNearJump);
   __ SmiTag(result);
-  if (FLAG_throw_on_javascript_int_overflow) {
-    EmitJavascriptOverflowCheck(compiler, range(), &do_call, result);
-  }
   __ jmp(&done);
   __ Bind(&do_call);
   ASSERT(instance_call()->HasICData());
@@ -4979,9 +4952,6 @@ void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ shlq(temp, Immediate(1));
   __ j(OVERFLOW, deopt);
   __ SmiTag(result);
-  if (FLAG_throw_on_javascript_int_overflow) {
-    EmitJavascriptOverflowCheck(compiler, range(), deopt, result);
-  }
 }
 
 
@@ -5414,7 +5384,6 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     __ SmiTag(RAX);
     __ SmiTag(RDX);
-    // FLAG_throw_on_javascript_int_overflow: not needed.
     // Note that the result of an integer division/modulo of two
     // in-range arguments, cannot create out-of-range result.
     return;
@@ -5719,10 +5688,6 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   EmitInt64Arithmetic(compiler, op_kind(), left, right, deopt);
-
-  if (FLAG_throw_on_javascript_int_overflow) {
-    EmitJavascriptOverflowCheck(compiler, range(), deopt, out);
-  }
 }
 
 
@@ -5743,17 +5708,7 @@ void UnaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register left = locs()->in(0).reg();
   const Register out = locs()->out(0).reg();
   ASSERT(out == left);
-
-  Label* deopt = NULL;
-  if (FLAG_throw_on_javascript_int_overflow) {
-    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptUnaryMintOp);
-  }
-
   __ notq(left);
-
-  if (FLAG_throw_on_javascript_int_overflow) {
-    EmitJavascriptOverflowCheck(compiler, range(), deopt, out);
-  }
 }
 
 
@@ -5849,9 +5804,6 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       default:
         UNREACHABLE();
     }
-  }
-  if (FLAG_throw_on_javascript_int_overflow) {
-    EmitJavascriptOverflowCheck(compiler, range(), deopt, out);
   }
 }
 

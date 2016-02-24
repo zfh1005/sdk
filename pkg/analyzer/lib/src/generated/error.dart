@@ -7,13 +7,15 @@ library analyzer.src.generated.error;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart' show AstNode;
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart' show ScannerErrorCode;
+import 'package:analyzer/src/generated/generated/shared_messages.dart'
+    as shared_messages;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
-import 'package:analyzer/src/generated/scanner.dart'
-    show ScannerErrorCode, Token;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/task/model.dart';
@@ -2220,24 +2222,21 @@ class CompileTimeErrorCode extends ErrorCode {
    * <i>rethrow;</i> is not enclosed within a on-catch clause.
    */
   static const CompileTimeErrorCode RETHROW_OUTSIDE_CATCH =
-      const CompileTimeErrorCode(
-          'RETHROW_OUTSIDE_CATCH', "rethrow must be inside of a catch clause");
+      shared_messages.RETHROW_OUTSIDE_CATCH;
 
   /**
    * 13.12 Return: It is a compile-time error if a return statement of the form
    * <i>return e;</i> appears in a generative constructor.
    */
   static const CompileTimeErrorCode RETURN_IN_GENERATIVE_CONSTRUCTOR =
-      const CompileTimeErrorCode('RETURN_IN_GENERATIVE_CONSTRUCTOR',
-          "Constructors cannot return a value");
+      shared_messages.RETURN_IN_GENERATIVE_CONSTRUCTOR;
 
   /**
    * 13.12 Return: It is a compile-time error if a return statement of the form
    * <i>return e;</i> appears in a generator function.
    */
   static const CompileTimeErrorCode RETURN_IN_GENERATOR =
-      const CompileTimeErrorCode('RETURN_IN_GENERATOR',
-          "Cannot return a value from a generator function (one marked with either 'async*' or 'sync*')");
+      shared_messages.RETURN_IN_GENERATOR;
 
   /**
    * 14.1 Imports: It is a compile-time error if a prefix used in a deferred
@@ -2961,6 +2960,7 @@ abstract class ErrorCode {
     ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS,
     ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT,
     ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP,
+    ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY,
     ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR,
     ParserErrorCode.SETTER_IN_FUNCTION,
     ParserErrorCode.STATIC_AFTER_CONST,
@@ -5640,7 +5640,8 @@ class StaticWarningCode extends ErrorCode {
    * 0: the name of the constant that is missing
    */
   static const StaticWarningCode MISSING_ENUM_CONSTANT_IN_SWITCH =
-      const StaticWarningCode('MISSING_ENUM_CONSTANT_IN_SWITCH',
+      const StaticWarningCode(
+          'MISSING_ENUM_CONSTANT_IN_SWITCH',
           "Missing case clause for '{0}'",
           "Add a case clause for the missing constant or add a default clause.");
 

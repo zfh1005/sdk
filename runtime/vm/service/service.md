@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.1
+# Dart VM Service Protocol 3.3
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.1_ of the Dart VM Service Protocol. This
+This document describes of _version 3.3_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -919,6 +919,10 @@ class Breakpoint extends Object {
   // Has this breakpoint been assigned to a specific program location?
   bool resolved;
 
+  // Is this a breakpoint that was added synthetically as part of a step
+  // OverAsyncSuspension resume command?
+  bool isSyntheticAsyncContinuation [optional];
+
   // SourceLocation when breakpoint is resolved, UnresolvedSourceLocation
   // when a breakpoint is not resolved.
   SourceLocation|UnresolvedSourceLocation location;
@@ -1208,6 +1212,13 @@ class Event extends Response {
   //
   // This is provided for the Extension event.
   ExtensionData extensionData [optional];
+
+  // Is the isolate paused at an await, yield, or yield* statement?
+  //
+  // This is provided for the event kinds:
+  //   PauseBreakpoint
+  //   PauseInterrupted
+  bool atAsyncSuspension [optional];
 }
 ```
 
@@ -1881,6 +1892,9 @@ class Isolate extends Response {
   // Suitable to pass to DateTime.fromMillisecondsSinceEpoch.
   int startTime;
 
+  // Is the isolate in a runnable state?
+  bool runnable;
+
   // The number of live ports for this isolate.
   int livePorts;
 
@@ -1910,8 +1924,9 @@ class Isolate extends Response {
   // The current pause on exception mode for this isolate.
   ExceptionPauseMode exceptionPauseMode;
 
-  // The list of service extension RPCs that are registered for this isolate.
-  string[] extensionRPCs;
+  // The list of service extension RPCs that are registered for this isolate,
+  // if any.
+  string[] extensionRPCs [optional];
 }
 ```
 
@@ -2291,7 +2306,7 @@ class SourceReportRange {
   // sorted list of token positions.  Provided only when the when the
   // PossibleBreakpoint report has been requested and the range has been
   // compiled.
-  int possibleBreakpoints[] [optional];
+  int[] possibleBreakpoints [optional];
 }
 ```
 
@@ -2330,6 +2345,7 @@ is thrown.
 enum StepOption {
   Into,
   Over,
+  OverAsyncSuspension,
   Out
 }
 ```
@@ -2471,6 +2487,7 @@ version | comments
 2.0 | Describe protocol version 2.0.
 3.0 | Describe protocol version 3.0.  Added UnresolvedSourceLocation.  Added Sentinel return to getIsolate.  Add AddedBreakpointWithScriptUri.  Removed Isolate.entry. The type of VM.pid was changed from string to int.  Added VMUpdate events.  Add offset and count parameters to getObject() and offset and count fields to Instance. Added ServiceExtensionAdded event.
 3.1 | Add the getSourceReport RPC.  The getObject RPC now accepts offset and count for string objects.  String objects now contain length, offset, and count properties.
-
+3.2 | Isolate objects now include the runnable bit and many debugger related RPCs will return an error if executed on an isolate before it is runnable.
+3.3 | Pause event now indicates if the isolate is paused at an await, yield, or yield* suspension point via the 'atAsyncSuspension' field. Resume command now supports the step parameter 'OverAsyncSuspension'. A Breakpoint added synthetically by an 'OverAsyncSuspension' resume command identifies itself as such via the 'isSyntheticAsyncContinuation' field.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

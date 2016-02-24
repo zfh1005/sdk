@@ -13,11 +13,11 @@
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
 #include "vm/exceptions.h"
+#include "vm/flags.h"
 #include "vm/object_store.h"
 #include "vm/message.h"
 #include "vm/message_handler.h"
 #include "vm/parser.h"
-#include "vm/report.h"
 #include "vm/resolver.h"
 #include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
@@ -39,6 +39,10 @@ DEFINE_FLAG(int, optimization_counter_threshold, 30000,
 DEFINE_FLAG(int, regexp_optimization_counter_threshold, 1000,
     "RegExp's usage-counter value before it is optimized, -1 means never");
 DEFINE_FLAG(charp, optimization_filter, NULL, "Optimize only named function");
+// TODO(srdjan): Remove this flag once background compilation of regular
+// expressions is possible.
+DEFINE_FLAG(bool, regexp_opt_in_background, false,
+    "Optimize reg-exp functions in background");
 DEFINE_FLAG(int, reoptimization_counter_threshold, 4000,
     "Counter threshold before a function gets reoptimized.");
 DEFINE_FLAG(bool, stop_on_excessive_deoptimization, false,
@@ -61,7 +65,6 @@ DECLARE_FLAG(int, max_deoptimization_counter_threshold);
 DECLARE_FLAG(bool, enable_inlining_annotations);
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, trace_optimizing_compiler);
-DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 DECLARE_FLAG(int, max_polymorphic_checks);
 DECLARE_FLAG(bool, precompilation);
 
@@ -76,7 +79,6 @@ DEFINE_FLAG(int, deoptimize_every, 0,
             "Deoptimize on every N stack overflow checks");
 DEFINE_FLAG(charp, deoptimize_filter, NULL,
             "Deoptimize in named function on stack overflow checks");
-DEFINE_FLAG(bool, lazy_dispatchers, true, "Lazily generate dispatchers");
 
 #ifdef DEBUG
 DEFINE_FLAG(charp, gc_at_instance_allocation, NULL,
@@ -205,7 +207,8 @@ DEFINE_RUNTIME_ENTRY(InstantiateType, 2) {
   ASSERT(!type.IsNull() && !type.IsInstantiated());
   ASSERT(instantiator.IsNull() || instantiator.IsInstantiated());
   Error& bound_error = Error::Handle();
-  type = type.InstantiateFrom(instantiator, &bound_error, NULL, Heap::kOld);
+  type =
+      type.InstantiateFrom(instantiator, &bound_error, NULL, NULL, Heap::kOld);
   if (!bound_error.IsNull()) {
     // Throw a dynamic type error.
     const TokenPosition location = GetCallerLocation();
@@ -316,7 +319,8 @@ static void PrintTypeCheck(
     // Instantiate type before printing.
     Error& bound_error = Error::Handle();
     const AbstractType& instantiated_type = AbstractType::Handle(
-        type.InstantiateFrom(instantiator_type_arguments, &bound_error));
+        type.InstantiateFrom(instantiator_type_arguments, &bound_error,
+                             NULL, NULL, Heap::kOld));
     OS::PrintErr("%s: '%s' %s '%s' instantiated from '%s' (pc: %#" Px ").\n",
                  message,
                  String::Handle(instance_type.Name()).ToCString(),
@@ -416,7 +420,8 @@ static void UpdateTypeTestCache(
     if (!test_type.IsInstantiated()) {
       Error& bound_error = Error::Handle();
       test_type = type.InstantiateFrom(instantiator_type_arguments,
-                                       &bound_error);
+                                       &bound_error,
+                                       NULL, NULL, Heap::kNew);
       ASSERT(bound_error.IsNull());  // Malbounded types are not optimized.
     }
     OS::PrintErr("  Updated test cache %p ix: %" Pd " with "
@@ -531,7 +536,8 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
     if (!dst_type.IsInstantiated()) {
       // Instantiate dst_type before reporting the error.
       const AbstractType& instantiated_dst_type = AbstractType::Handle(
-          dst_type.InstantiateFrom(instantiator_type_arguments, NULL));
+          dst_type.InstantiateFrom(instantiator_type_arguments, NULL,
+                                   NULL, NULL, Heap::kNew));
       // Note that instantiated_dst_type may be malbounded.
       dst_type_name = instantiated_dst_type.UserVisibleName();
       dst_type_lib =
@@ -705,6 +711,10 @@ static void CheckResultError(const Object& result) {
 // Gets called from debug stub when code reaches a breakpoint
 // set on a runtime stub call.
 DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
+  if (!FLAG_support_debugger) {
+    UNREACHABLE();
+    return;
+  }
   DartFrameIterator iterator;
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
@@ -720,6 +730,10 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
 
 
 DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
+  if (!FLAG_support_debugger) {
+    UNREACHABLE();
+    return;
+  }
   const Error& error =
       Error::Handle(isolate->debugger()->DebuggerStepCallback());
   if (!error.IsNull()) {
@@ -875,18 +889,6 @@ DEFINE_RUNTIME_ENTRY(InlineCacheMissHandlerOneArg, 2) {
   const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
   GrowableArray<const Instance*> args(1);
   args.Add(&receiver);
-  if (FLAG_warn_on_javascript_compatibility) {
-    if (receiver.IsDouble() &&
-        String::Handle(ic_data.target_name()).Equals(Symbols::toString())) {
-      const double value = Double::Cast(receiver).value();
-      if (floor(value) == value) {
-        Report::JSWarningFromIC(ic_data,
-                                "string representation of an integral value "
-                                "of type 'double' has no decimal mark and "
-                                "no fractional part");
-      }
-    }
-  }
   const Function& result =
       Function::Handle(InlineCacheMissHandler(args, ic_data));
   arguments.SetReturn(result);
@@ -1242,13 +1244,15 @@ DEFINE_RUNTIME_ENTRY(InvokeClosureNoSuchMethod, 3) {
 
 
 static bool CanOptimizeFunction(const Function& function, Thread* thread) {
-  Isolate* isolate = thread->isolate();
-  if (isolate->debugger()->IsStepping() ||
-      isolate->debugger()->HasBreakpoint(function, thread->zone())) {
-    // We cannot set breakpoints and single step in optimized code,
-    // so do not optimize the function.
-    function.set_usage_counter(0);
-    return false;
+  if (FLAG_support_debugger) {
+    Isolate* isolate = thread->isolate();
+    if (isolate->debugger()->IsStepping() ||
+        isolate->debugger()->HasBreakpoint(function, thread->zone())) {
+      // We cannot set breakpoints and single step in optimized code,
+      // so do not optimize the function.
+      function.set_usage_counter(0);
+      return false;
+    }
   }
   if (function.deoptimization_counter() >=
       FLAG_max_deoptimization_counter_threshold) {
@@ -1371,7 +1375,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     // TODO(turnidge): Consider using DeoptimizeAt instead.
     DeoptimizeFunctionsOnStack();
   }
-  if (do_stacktrace) {
+  if (FLAG_support_debugger && do_stacktrace) {
     String& var_name = String::Handle();
     Instance& var_value = Instance::Handle();
     DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
@@ -1479,6 +1483,20 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
 
   if (CanOptimizeFunction(function, thread)) {
     if (FLAG_background_compilation) {
+      Field& field = Field::Handle(zone, isolate->GetDeoptimizingBoxedField());
+      while (!field.IsNull()) {
+        if (FLAG_trace_optimization || FLAG_trace_field_guards) {
+          THR_Print("Lazy disabling unboxing of %s\n", field.ToCString());
+        }
+        field.set_is_unboxing_candidate(false);
+        field.DeoptimizeDependentCode();
+        // Get next field.
+        field = isolate->GetDeoptimizingBoxedField();
+      }
+    }
+    // TODO(srdjan): Fix background compilation of regular expressions.
+    if (FLAG_background_compilation &&
+        (!function.IsIrregexpFunction() || FLAG_regexp_opt_in_background)) {
       if (FLAG_enable_inlining_annotations) {
         FATAL("Cannot enable inlining annotations and background compilation");
       }

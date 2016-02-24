@@ -6,6 +6,7 @@ library analyzer.src.summary.public_namespace_visitor;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/idl.dart';
 
 /**
  * Compute the public namespace portion of the summary for the given [unit],
@@ -31,7 +32,10 @@ class _CombinatorEncoder extends SimpleAstVisitor<UnlinkedCombinatorBuilder> {
 
   @override
   UnlinkedCombinatorBuilder visitShowCombinator(ShowCombinator node) {
-    return new UnlinkedCombinatorBuilder(shows: encodeNames(node.shownNames));
+    return new UnlinkedCombinatorBuilder(
+        shows: encodeNames(node.shownNames),
+        offset: node.offset,
+        end: node.end);
   }
 }
 
@@ -70,7 +74,7 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
           for (VariableDeclaration field in member.fields.variables) {
             String name = field.name.name;
             if (isPublic(name)) {
-              cls.constMembers.add(new UnlinkedPublicNameBuilder(
+              cls.members.add(new UnlinkedPublicNameBuilder(
                   name: name,
                   kind: ReferenceKind.propertyAccessor,
                   numTypeParameters: 0));
@@ -84,17 +88,17 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
             !member.isOperator) {
           String name = member.name.name;
           if (isPublic(name)) {
-            cls.constMembers.add(new UnlinkedPublicNameBuilder(
+            cls.members.add(new UnlinkedPublicNameBuilder(
                 name: name,
                 kind: ReferenceKind.method,
                 numTypeParameters:
                     member.typeParameters?.typeParameters?.length ?? 0));
           }
         }
-        if (member is ConstructorDeclaration && member.constKeyword != null) {
-          String name = member.name != null ? member.name.name : '';
+        if (member is ConstructorDeclaration && member.name != null) {
+          String name = member.name.name;
           if (isPublic(name)) {
-            cls.constMembers.add(new UnlinkedPublicNameBuilder(
+            cls.members.add(new UnlinkedPublicNameBuilder(
                 name: name,
                 kind: ReferenceKind.constructor,
                 numTypeParameters: 0));

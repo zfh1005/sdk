@@ -2,15 +2,46 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/**
+ * Defines the AST model. The AST (Abstract Syntax Tree) model describes the
+ * syntactic (as opposed to semantic) structure of Dart code. The semantic
+ * structure of the code is modeled by the
+ * [element model](../element/element.dart).
+ *
+ * An AST consists of nodes (instances of a subclass of [AstNode]). The nodes
+ * are organized in a tree structure in which the children of a node are the
+ * smaller syntactic units from which the node is composed. For example, a
+ * binary expression consists of two sub-expressions (the operands) and an
+ * operator. The two expressions are represented as nodes. The operator is not
+ * represented as a node.
+ *
+ * The AST is constructed by the parser based on the sequence of tokens produced
+ * by the scanner. Most nodes provide direct access to the tokens used to build
+ * the node. For example, the token for the operator in a binary expression can
+ * be accessed from the node representing the binary expression.
+ *
+ * While any node can theoretically be the root of an AST structure, almost all
+ * of the AST structures known to the analyzer have a [CompilationUnit] as the
+ * root of the structure. A compilation unit represents all of the Dart code in
+ * a single file.
+ *
+ * An AST can be either unresolved or resolved. When an AST is unresolved
+ * certain properties will not have been computed and the accessors for those
+ * properties will return `null`. The documentation for those getters should
+ * describe that this is a possibility.
+ *
+ * When an AST is resolved, the identifiers in the AST will be associated with
+ * the elements that they refer to and every expression in the AST will have a
+ * type associated with it.
+ */
 library analyzer.dart.ast.ast;
 
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart' show AuxiliaryElements;
-import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -3749,6 +3780,32 @@ abstract class FunctionBody extends AstNode {
    * is no star.
    */
   Token get star;
+
+  /**
+   * If [variable] is a local variable or parameter declared anywhere within
+   * the top level function or method containing this [FunctionBody], return a
+   * boolean indicating whether [variable] is potentially mutated within a
+   * local function other than the function in which it is declared.
+   *
+   * If [variable] is not a local variable or parameter declared within the top
+   * level function or method containing this [FunctionBody], return `false`.
+   *
+   * Throws an exception if resolution has not yet been performed.
+   */
+  bool isPotentiallyMutatedInClosure(VariableElement variable);
+
+  /**
+   * If [variable] is a local variable or parameter declared anywhere within
+   * the top level function or method containing this [FunctionBody], return a
+   * boolean indicating whether [variable] is potentially mutated within the
+   * scope of its declaration.
+   *
+   * If [variable] is not a local variable or parameter declared within the top
+   * level function or method containing this [FunctionBody], return `false`.
+   *
+   * Throws an exception if resolution has not yet been performed.
+   */
+  bool isPotentiallyMutatedInScope(VariableElement variable);
 }
 
 /**
@@ -3937,7 +3994,7 @@ abstract class FunctionExpression extends Expression {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class FunctionExpressionInvocation extends Expression {
+abstract class FunctionExpressionInvocation extends InvocationExpression {
   /**
    * Initialize a newly created function expression invocation.
    */
@@ -3945,11 +4002,6 @@ abstract class FunctionExpressionInvocation extends Expression {
       Expression function,
       TypeArgumentList typeArguments,
       ArgumentList argumentList) = FunctionExpressionInvocationImpl;
-
-  /**
-   * Return the list of arguments to the method.
-   */
-  ArgumentList get argumentList;
 
   /**
    * Set the list of arguments to the method to the given [argumentList].
@@ -4035,12 +4087,6 @@ abstract class FunctionExpressionInvocation extends Expression {
    * information to the given [type].
    */
   void set staticInvokeType(DartType type);
-
-  /**
-   * Return the type arguments to be applied to the method being invoked, or
-   * `null` if no type arguments were provided.
-   */
-  TypeArgumentList get typeArguments;
 
   /**
    * Set the type arguments to be applied to the method being invoked to the
@@ -4468,10 +4514,10 @@ abstract class ImportDirective extends NamespaceDirective {
       return allShows1.length - allShows2.length;
     }
     // next ensure that the lists are equivalent
-    if (!javaCollectionContainsAll(allHides1, allHides2)) {
+    if (!allHides1.toSet().containsAll(allHides2)) {
       return -1;
     }
-    if (!javaCollectionContainsAll(allShows1, allShows2)) {
+    if (!allShows1.toSet().containsAll(allShows2)) {
       return -1;
     }
     return 0;
@@ -4918,6 +4964,73 @@ abstract class InterpolationString extends InterpolationElement {
    * Set the value of the literal to the given [value].
    */
   void set value(String value);
+}
+
+/**
+ * The invocation of a function or method; either a
+ * [FunctionExpressionInvocation] or a [MethodInvocation].
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+abstract class InvocationExpression extends Expression {
+  /**
+   * Return the list of arguments to the method.
+   */
+  ArgumentList get argumentList;
+
+  /**
+   * The expression that identifies the function or method being invoked.
+   * For example:
+   *
+   *     (o.m)<TArgs>(args); // target will be `o.m`
+   *     o.m<TArgs>(args);   // target will be `m`
+   *
+   * In either case, the [function.staticType] will be the
+   * [staticInvokeType] before applying type arguments `TArgs`. Similarly,
+   * [function.propagatedType] will be the [propagatedInvokeType]
+   * before applying type arguments `TArgs`.
+   */
+  Expression get function;
+
+  /**
+   * Return the function type of the invocation based on the propagated type
+   * information, or `null` if the AST structure has not been resolved, or if
+   * the invoke could not be resolved.
+   *
+   * This will usually be a [FunctionType], but it can also be an
+   * [InterfaceType] with a `call` method, `dynamic`, `Function`, or a `@proxy`
+   * interface type that implements `Function`.
+   */
+  DartType get propagatedInvokeType;
+
+  /**
+   * Sets the function type of the invocation based on the propagated type
+   * information.
+   */
+  void set propagatedInvokeType(DartType value);
+
+  /**
+   * Return the function type of the invocation based on the static type
+   * information, or `null` if the AST structure has not been resolved, or if
+   * the invoke could not be resolved.
+   *
+   * This will usually be a [FunctionType], but it can also be an
+   * [InterfaceType] with a `call` method, `dynamic`, `Function`, or a `@proxy`
+   * interface type that implements `Function`.
+   */
+  DartType get staticInvokeType;
+
+  /**
+   * Sets the function type of the invocation based on the static type
+   * information.
+   */
+  void set staticInvokeType(DartType value);
+
+  /**
+   * Return the type arguments to be applied to the method being invoked, or
+   * `null` if no type arguments were provided.
+   */
+  TypeArgumentList get typeArguments;
 }
 
 /**
@@ -5462,7 +5575,7 @@ abstract class MethodDeclaration extends ClassMember {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class MethodInvocation extends Expression {
+abstract class MethodInvocation extends InvocationExpression {
   /**
    * Initialize a newly created method invocation. The [target] and [operator]
    * can be `null` if there is no target.
@@ -5473,11 +5586,6 @@ abstract class MethodInvocation extends Expression {
       SimpleIdentifier methodName,
       TypeArgumentList typeArguments,
       ArgumentList argumentList) = MethodInvocationImpl;
-
-  /**
-   * Return the list of arguments to the method.
-   */
-  ArgumentList get argumentList;
 
   /**
    * Set the list of arguments to the method to the given [argumentList].
@@ -5572,12 +5680,6 @@ abstract class MethodInvocation extends Expression {
    * the given [expression].
    */
   void set target(Expression expression);
-
-  /**
-   * Return the type arguments to be applied to the method being invoked, or
-   * `null` if no type arguments were provided.
-   */
-  TypeArgumentList get typeArguments;
 
   /**
    * Set the type arguments to be applied to the method being invoked to the

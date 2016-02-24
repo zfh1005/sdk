@@ -49,6 +49,8 @@ DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
 DECLARE_FLAG(bool, precompilation);
 
 
+#ifndef PRODUCT
+
 Debugger::EventHandler* Debugger::event_handler_ = NULL;
 
 
@@ -216,6 +218,9 @@ void Breakpoint::PrintJSON(JSONStream* stream) {
 
   jsobj.AddFixedServiceId("breakpoints/%" Pd "", id());
   jsobj.AddProperty("breakpointNumber", id());
+  if (is_synthetic_async()) {
+    jsobj.AddProperty("isSyntheticAsyncContinuation", is_synthetic_async());
+  }
   jsobj.AddProperty("resolved", bpt_location_->IsResolved());
   if (bpt_location_->IsResolved()) {
     jsobj.AddLocation(bpt_location_);
@@ -324,7 +329,7 @@ void Debugger::InvokeEventHandler(DebuggerEvent* event) {
   if (ServiceNeedsDebuggerEvent(event->type()) && event->IsPauseEvent()) {
     // If we were paused, notify the service that we have resumed.
     const Error& error =
-        Error::Handle(isolate_->object_store()->sticky_error());
+        Error::Handle(Thread::Current()->sticky_error());
     ASSERT(error.IsNull() || error.IsUnwindError());
 
     // Only send a resume event when the isolate is not unwinding.
@@ -365,10 +370,9 @@ RawError* Debugger::SignalIsolateInterrupted() {
   }
 
   // If any error occurred while in the debug message loop, return it here.
-  const Error& error =
-      Error::Handle(isolate_->object_store()->sticky_error());
+  const Error& error = Error::Handle(Thread::Current()->sticky_error());
   ASSERT(error.IsNull() || error.IsUnwindError());
-  isolate_->object_store()->clear_sticky_error();
+  Thread::Current()->clear_sticky_error();
   return error.raw();
 }
 
@@ -429,7 +433,8 @@ Breakpoint* BreakpointLocation::AddSingleShot(Debugger* dbg) {
 
 
 Breakpoint* BreakpointLocation::AddPerClosure(Debugger* dbg,
-                                              const Instance& closure) {
+                                              const Instance& closure,
+                                              bool for_over_await) {
   Breakpoint* bpt = breakpoints();
   while (bpt != NULL) {
     if (bpt->IsPerClosure() && bpt->closure() == closure.raw()) break;
@@ -438,6 +443,7 @@ Breakpoint* BreakpointLocation::AddPerClosure(Debugger* dbg,
   if (bpt == NULL) {
     bpt = new Breakpoint(dbg->nextId(), this);
     bpt->SetIsPerClosure(closure);
+    bpt->set_is_synthetic_async(for_over_await);
     AddBreakpoint(bpt, dbg);
   }
   return bpt;
@@ -1267,6 +1273,7 @@ Debugger::Debugger()
       stack_trace_(NULL),
       stepping_fp_(0),
       skip_next_step_(false),
+      synthetic_async_breakpoint_(NULL),
       exc_pause_info_(kNoPauseOnExceptions) {
 }
 
@@ -1279,6 +1286,7 @@ Debugger::~Debugger() {
   ASSERT(code_breakpoints_ == NULL);
   ASSERT(stack_trace_ == NULL);
   ASSERT(obj_cache_ == NULL);
+  ASSERT(synthetic_async_breakpoint_ == NULL);
 }
 
 
@@ -1322,6 +1330,25 @@ static RawFunction* ResolveLibraryFunction(
     return Function::Cast(object).raw();
   }
   return Function::null();
+}
+
+
+bool Debugger::SetupStepOverAsyncSuspension() {
+  ActivationFrame* top_frame = TopDartFrame();
+  if (!IsAtAsyncJump(top_frame)) {
+    // Not at an async operation.
+    return false;
+  }
+  Object& closure = Object::Handle(top_frame->GetAsyncOperation());
+  ASSERT(!closure.IsNull());
+  ASSERT(closure.IsInstance());
+  ASSERT(Instance::Cast(closure).IsClosure());
+  Breakpoint* bpt = SetBreakpointAtActivation(Instance::Cast(closure), true);
+  if (bpt == NULL) {
+    // Unable to set the breakpoint.
+    return false;
+  }
+  return true;
 }
 
 
@@ -2129,7 +2156,7 @@ RawError* Debugger::OneTimeBreakAtEntry(const Function& target_function) {
     SetBreakpointAtEntry(target_function, true);
     return Error::null();
   } else {
-    return isolate_->object_store()->sticky_error();
+    return Thread::Current()->sticky_error();
   }
 }
 
@@ -2154,7 +2181,8 @@ Breakpoint* Debugger::SetBreakpointAtEntry(const Function& target_function,
 }
 
 
-Breakpoint* Debugger::SetBreakpointAtActivation(const Instance& closure) {
+Breakpoint* Debugger::SetBreakpointAtActivation(
+    const Instance& closure, bool for_over_await) {
   if (!closure.IsClosure()) {
     return NULL;
   }
@@ -2164,7 +2192,7 @@ Breakpoint* Debugger::SetBreakpointAtActivation(const Instance& closure) {
                                                    func.token_pos(),
                                                    func.end_token_pos(),
                                                    -1, -1 /* no line/col */);
-  return bpt_location->AddPerClosure(this, closure);
+  return bpt_location->AddPerClosure(this, closure, for_over_await);
 }
 
 
@@ -2323,7 +2351,7 @@ RawObject* Debugger::GetInstanceField(const Class& cls,
     args.SetAt(0, object);
     result = DartEntry::InvokeFunction(getter_func, args);
   } else {
-    result = isolate_->object_store()->sticky_error();
+    result = Thread::Current()->sticky_error();
   }
   ignore_breakpoints_ = saved_ignore_flag;
   return result.raw();
@@ -2357,7 +2385,7 @@ RawObject* Debugger::GetStaticField(const Class& cls,
   if (setjmp(*jump.Set()) == 0) {
     result = DartEntry::InvokeFunction(getter_func, Object::empty_array());
   } else {
-    result = isolate_->object_store()->sticky_error();
+    result = Thread::Current()->sticky_error();
   }
   ignore_breakpoints_ = saved_ignore_flag;
   return result.raw();
@@ -2616,23 +2644,27 @@ void Debugger::SignalPausedEvent(ActivationFrame* top_frame,
   DebuggerEvent event(isolate_, DebuggerEvent::kBreakpointReached);
   event.set_top_frame(top_frame);
   event.set_breakpoint(bpt);
+  event.set_at_async_jump(IsAtAsyncJump(top_frame));
+  Pause(&event);
+}
+
+
+bool Debugger::IsAtAsyncJump(ActivationFrame* top_frame) {
   Object& closure_or_null = Object::Handle(top_frame->GetAsyncOperation());
   if (!closure_or_null.IsNull()) {
     ASSERT(closure_or_null.IsInstance());
     ASSERT(Instance::Cast(closure_or_null).IsClosure());
-    event.set_async_continuation(&closure_or_null);
     const Script& script = Script::Handle(top_frame->SourceScript());
     const TokenStream& tokens = TokenStream::Handle(script.tokens());
     TokenStream::Iterator iter(tokens, top_frame->TokenPos());
     if ((iter.CurrentTokenKind() == Token::kIDENT) &&
         ((iter.CurrentLiteral() == Symbols::Await().raw()) ||
          (iter.CurrentLiteral() == Symbols::YieldKw().raw()))) {
-      event.set_at_async_jump(true);
+      return true;
     }
   }
-  Pause(&event);
+  return false;
 }
-
 
 RawError* Debugger::DebuggerStepCallback() {
   ASSERT(isolate_->single_step());
@@ -2690,14 +2722,20 @@ RawError* Debugger::DebuggerStepCallback() {
 
   ASSERT(stack_trace_ == NULL);
   stack_trace_ = CollectStackTrace();
-  SignalPausedEvent(frame, NULL);
+  // If this step callback is part of stepping over an await statement,
+  // we saved the synthetic async breakpoint in SignalBpReached. We report
+  // that we are paused at that breakpoint and then delete it after continuing.
+  SignalPausedEvent(frame, synthetic_async_breakpoint_);
+  if (synthetic_async_breakpoint_ != NULL) {
+    RemoveBreakpoint(synthetic_async_breakpoint_->id());
+    synthetic_async_breakpoint_ = NULL;
+  }
   HandleSteppingRequest(stack_trace_);
   stack_trace_ = NULL;
 
   // If any error occurred while in the debug message loop, return it here.
-  const Error& error =
-      Error::Handle(isolate_->object_store()->sticky_error());
-  isolate_->object_store()->clear_sticky_error();
+  const Error& error = Error::Handle(Thread::Current()->sticky_error());
+  Thread::Current()->clear_sticky_error();
   return error.raw();
 }
 
@@ -2764,6 +2802,36 @@ RawError* Debugger::SignalBpReached() {
     return Error::null();
   }
 
+  if (bpt_hit->is_synthetic_async()) {
+    DebuggerStackTrace* stack_trace = CollectStackTrace();
+    ASSERT(stack_trace->Length() > 0);
+    ASSERT(stack_trace_ == NULL);
+    stack_trace_ = stack_trace;
+
+    // Hit a synthetic async breakpoint.
+    if (FLAG_verbose_debug) {
+      OS::Print(">>> hit synthetic breakpoint at %s:%" Pd " "
+                "(token %s) (address %#" Px ")\n",
+                String::Handle(cbpt->SourceUrl()).ToCString(),
+                cbpt->LineNumber(),
+                cbpt->token_pos().ToCString(),
+                top_frame->pc());
+    }
+
+    ASSERT(synthetic_async_breakpoint_ == NULL);
+    synthetic_async_breakpoint_ = bpt_hit;
+    bpt_hit = NULL;
+
+    // We are at the entry of an async function.
+    // We issue a step over to resume at the point after the await statement.
+    SetStepOver();
+    // When we single step from a user breakpoint, our next stepping
+    // point will be at the exact same pc.  Skip it.
+    HandleSteppingRequest(stack_trace_, true /* skip next step */);
+    stack_trace_ = NULL;
+    return Error::null();
+  }
+
   if (FLAG_verbose_debug) {
     OS::Print(">>> hit %s breakpoint at %s:%" Pd " "
               "(token %s) (address %#" Px ")\n",
@@ -2786,9 +2854,8 @@ RawError* Debugger::SignalBpReached() {
   }
 
   // If any error occurred while in the debug message loop, return it here.
-  const Error& error =
-      Error::Handle(isolate_->object_store()->sticky_error());
-  isolate_->object_store()->clear_sticky_error();
+  const Error& error = Error::Handle(Thread::Current()->sticky_error());
+  Thread::Current()->clear_sticky_error();
   return error.raw();
 }
 
@@ -3278,5 +3345,7 @@ void Debugger::RegisterCodeBreakpoint(CodeBreakpoint* bpt) {
   bpt->set_next(code_breakpoints_);
   code_breakpoints_ = bpt;
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

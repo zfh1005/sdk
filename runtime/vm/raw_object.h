@@ -285,7 +285,8 @@ class RawObject {
 
    private:
     // The actual unscaled bit field used within the tag field.
-    class SizeBits : public BitField<intptr_t, kSizeTagPos, kSizeTagSize> {};
+    class SizeBits :
+        public BitField<uword, intptr_t, kSizeTagPos, kSizeTagSize> {};
 
     static intptr_t SizeToTagValue(intptr_t size) {
       ASSERT(Utils::IsAligned(size, kObjectAlignment));
@@ -297,7 +298,7 @@ class RawObject {
   };
 
   class ClassIdTag :
-      public BitField<intptr_t, kClassIdTagPos, kClassIdTagSize> {};  // NOLINT
+      public BitField<uword, intptr_t, kClassIdTagPos, kClassIdTagSize> {};
 
   bool IsWellFormed() const {
     uword value = reinterpret_cast<uword>(this);
@@ -435,6 +436,15 @@ class RawObject {
   bool IsString() {
     return IsStringClassId(GetClassId());
   }
+  bool IsStackmap() {
+    return ((GetClassId() == kStackmapCid));
+  }
+  bool IsPcDescriptors() {
+    return ((GetClassId() == kPcDescriptorsCid));
+  }
+  bool IsOneByteString() {
+    return ((GetClassId() == kOneByteStringCid));
+  }
 
   intptr_t Size() const {
     uword tags = ptr()->tags_;
@@ -497,18 +507,18 @@ class RawObject {
  private:
   uword tags_;  // Various object tags (bits).
 
-  class WatchedBit : public BitField<bool, kWatchedBit, 1> {};
+  class WatchedBit : public BitField<uword, bool, kWatchedBit, 1> {};
 
-  class MarkBit : public BitField<bool, kMarkBit, 1> {};
+  class MarkBit : public BitField<uword, bool, kMarkBit, 1> {};
 
-  class RememberedBit : public BitField<bool, kRememberedBit, 1> {};
+  class RememberedBit : public BitField<uword, bool, kRememberedBit, 1> {};
 
-  class CanonicalObjectTag : public BitField<bool, kCanonicalBit, 1> {};
+  class CanonicalObjectTag : public BitField<uword, bool, kCanonicalBit, 1> {};
 
-  class VMHeapObjectTag : public BitField<bool, kVMHeapObjectBit, 1> {};
+  class VMHeapObjectTag : public BitField<uword, bool, kVMHeapObjectBit, 1> {};
 
   class ReservedBits : public
-      BitField<intptr_t, kReservedTagPos, kReservedTagSize> {};  // NOLINT
+      BitField<uword, intptr_t, kReservedTagPos, kReservedTagSize> {};
 
   // TODO(koda): After handling tags_, return const*, like Object::raw_ptr().
   RawObject* ptr() const {
@@ -636,6 +646,7 @@ class RawObject {
   friend class Instance;  // StorePointer
   friend class StackFrame;  // GetCodeObject assertion.
   friend class CodeLookupTableBuilder;  // profiler
+  friend class NativeEntry;  // GetClassId
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);
@@ -655,13 +666,12 @@ class RawClass : public RawObject {
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   RawString* name_;
-  RawString* user_name_;
+  NOT_IN_PRODUCT(RawString* user_name_);
   RawArray* functions_;
   RawArray* functions_hash_table_;
   RawArray* fields_;
   RawArray* offset_in_words_to_field_;
   RawArray* interfaces_;  // Array of AbstractType.
-  RawGrowableObjectArray* direct_subclasses_;  // Array of Class.
   RawScript* script_;
   RawLibrary* library_;
   RawTypeArguments* type_parameters_;  // Array of TypeParameter.
@@ -672,10 +682,11 @@ class RawClass : public RawObject {
   RawObject* canonical_types_;  // An array of canonicalized types of this class
                                 // or the canonical type.
   RawArray* invocation_dispatcher_cache_;  // Cache for dispatcher functions.
-  RawArray* cha_codes_;  // CHA optimized codes.
   RawCode* allocation_stub_;  // Stub code for allocation of instances.
+  RawGrowableObjectArray* direct_subclasses_;  // Array of Class.
+  RawArray* cha_codes_;  // CHA optimized codes.
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->allocation_stub_);
+    return reinterpret_cast<RawObject**>(&ptr()->cha_codes_);
   }
 
   cpp_vtable handle_vtable_;
@@ -1274,8 +1285,8 @@ class RawLocalVarDescriptors : public RawObject {
     kMaxIndex = (1 << (kIndexSize - 1)) - 1,
   };
 
-  class IndexBits : public BitField<int32_t, kIndexPos, kIndexSize> {};
-  class KindBits : public BitField<int8_t, kKindPos, kKindSize>{};
+  class IndexBits : public BitField<int32_t, int32_t, kIndexPos, kIndexSize> {};
+  class KindBits : public BitField<int32_t, int8_t, kKindPos, kKindSize>{};
 
   struct VarInfo {
     int32_t index_kind;  // Bitfield for slot index on stack or in context,
@@ -1426,14 +1437,17 @@ class RawICData : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ICData);
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->owner_);
+    return reinterpret_cast<RawObject**>(&ptr()->ic_data_);
   }
-  RawObject* owner_;  // Parent/calling function or original IC of cloned IC.
+  RawArray* ic_data_;  // Contains class-ids, target and count.
   RawString* target_name_;  // Name of target function.
   RawArray* args_descriptor_;  // Arguments descriptor.
-  RawArray* ic_data_;  // Contains class-ids, target and count.
+  RawObject** to_precompiled_snapshot() {
+    return reinterpret_cast<RawObject**>(&ptr()->args_descriptor_);
+  }
+  RawObject* owner_;  // Parent/calling function or original IC of cloned IC.
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->ic_data_);
+    return reinterpret_cast<RawObject**>(&ptr()->owner_);
   }
   int32_t deopt_id_;     // Deoptimization id corresponding to this IC.
   uint32_t state_bits_;  // Number of arguments tested in IC, deopt reasons,
@@ -1541,8 +1555,11 @@ class RawLibraryPrefix : public RawInstance {
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   RawString* name_;               // Library prefix name.
-  RawArray* imports_;             // Libraries imported with this prefix.
   RawLibrary* importer_;          // Library which declares this prefix.
+  RawObject** to_precompiled_snapshot() {
+    return reinterpret_cast<RawObject**>(&ptr()->importer_);
+  }
+  RawArray* imports_;             // Libraries imported with this prefix.
   RawArray* dependent_code_;      // Code that refers to deferred, unloaded
                                   // library prefix.
   RawObject** to() {

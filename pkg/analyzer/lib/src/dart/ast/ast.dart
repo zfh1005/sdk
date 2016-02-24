@@ -7,8 +7,10 @@ library analyzer.src.dart.ast.ast;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -16,7 +18,6 @@ import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -1955,6 +1956,14 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   @override
   ClassElement get element =>
       _name != null ? (_name.staticElement as ClassElement) : null;
+
+  @override
+  Token get firstTokenAfterCommentAndMetadata {
+    if (abstractKeyword != null) {
+      return abstractKeyword;
+    }
+    return typedefKeyword;
+  }
 
   @override
   ImplementsClause get implementsClause => _implementsClause;
@@ -4713,6 +4722,13 @@ class ForStatementImpl extends StatementImpl implements ForStatement {
  */
 abstract class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
   /**
+   * Additional information about local variables and parameters that are
+   * declared within this function body or any enclosing function body.  `null`
+   * if resolution has not yet been performed.
+   */
+  LocalVariableInfo localVariableInfo;
+
+  /**
    * Return `true` if this function body is asynchronous.
    */
   bool get isAsynchronous => false;
@@ -4738,6 +4754,22 @@ abstract class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
    * is no star.
    */
   Token get star => null;
+
+  @override
+  bool isPotentiallyMutatedInClosure(VariableElement variable) {
+    if (localVariableInfo == null) {
+      throw new StateError('Resolution has not yet been performed');
+    }
+    return localVariableInfo.potentiallyMutatedInClosure.contains(variable);
+  }
+
+  @override
+  bool isPotentiallyMutatedInScope(VariableElement variable) {
+    if (localVariableInfo == null) {
+      throw new StateError('Resolution has not yet been performed');
+    }
+    return localVariableInfo.potentiallyMutatedInScope.contains(variable);
+  }
 }
 
 /**
@@ -5022,23 +5054,12 @@ class FunctionExpressionImpl extends ExpressionImpl
  * > functionExpressionInvocation ::=
  * >     [Expression] [TypeArgumentList]? [ArgumentList]
  */
-class FunctionExpressionInvocationImpl extends ExpressionImpl
+class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
     implements FunctionExpressionInvocation {
   /**
    * The expression producing the function being invoked.
    */
   Expression _function;
-
-  /**
-   * The type arguments to be applied to the method being invoked, or `null` if
-   * no type arguments were provided.
-   */
-  TypeArgumentList _typeArguments;
-
-  /**
-   * The list of arguments to the function.
-   */
-  ArgumentList _argumentList;
 
   /**
    * The element associated with the function being invoked based on static type
@@ -5048,16 +5069,6 @@ class FunctionExpressionInvocationImpl extends ExpressionImpl
   ExecutableElement staticElement;
 
   /**
-   * The function type of the method invocation, or `null` if the AST
-   * structure has not been resolved, or if the invoke could not be resolved.
-   *
-   * This will usually be a [FunctionType], but it can also be an
-   * [InterfaceType] with a `call` method, `dynamic`, `Function`, or a `@proxy`
-   * interface type that implements `Function`.
-   */
-  DartType staticInvokeType;
-
-  /**
    * The element associated with the function being invoked based on propagated
    * type information, or `null` if the AST structure has not been resolved or
    * the function could not be resolved.
@@ -5065,26 +5076,12 @@ class FunctionExpressionInvocationImpl extends ExpressionImpl
   ExecutableElement propagatedElement;
 
   /**
-   * Like [staticInvokeType], but reflects propagated type information.
-   */
-  DartType propagatedInvokeType;
-
-  /**
    * Initialize a newly created function expression invocation.
    */
   FunctionExpressionInvocationImpl(Expression function,
-      TypeArgumentList typeArguments, ArgumentList argumentList) {
+      TypeArgumentList typeArguments, ArgumentList argumentList)
+      : super(typeArguments, argumentList) {
     _function = _becomeParentOf(function);
-    _typeArguments = _becomeParentOf(typeArguments);
-    _argumentList = _becomeParentOf(argumentList);
-  }
-
-  @override
-  ArgumentList get argumentList => _argumentList;
-
-  @override
-  void set argumentList(ArgumentList argumentList) {
-    _argumentList = _becomeParentOf(argumentList);
   }
 
   @override
@@ -5116,14 +5113,6 @@ class FunctionExpressionInvocationImpl extends ExpressionImpl
 
   @override
   int get precedence => 15;
-
-  @override
-  TypeArgumentList get typeArguments => _typeArguments;
-
-  @override
-  void set typeArguments(TypeArgumentList typeArguments) {
-    _typeArguments = _becomeParentOf(typeArguments);
-  }
 
   @override
   accept(AstVisitor visitor) => visitor.visitFunctionExpressionInvocation(this);
@@ -6135,6 +6124,55 @@ class InterpolationStringImpl extends InterpolationElementImpl
 }
 
 /**
+ * Common base class for [FunctionExpressionInvocationImpl] and
+ * [MethodInvocationImpl].
+ */
+abstract class InvocationExpressionImpl extends ExpressionImpl
+    implements InvocationExpression {
+  /**
+   * The list of arguments to the function.
+   */
+  ArgumentList _argumentList;
+
+  /**
+   * The type arguments to be applied to the method being invoked, or `null` if
+   * no type arguments were provided.
+   */
+  TypeArgumentList _typeArguments;
+
+  @override
+  DartType propagatedInvokeType;
+
+  @override
+  DartType staticInvokeType;
+
+  /**
+   * Initialize a newly created invocation.
+   */
+  InvocationExpressionImpl(
+      TypeArgumentList typeArguments, ArgumentList argumentList) {
+    _typeArguments = _becomeParentOf(typeArguments);
+    _argumentList = _becomeParentOf(argumentList);
+  }
+
+  @override
+  ArgumentList get argumentList => _argumentList;
+
+  @override
+  void set argumentList(ArgumentList argumentList) {
+    _argumentList = _becomeParentOf(argumentList);
+  }
+
+  @override
+  TypeArgumentList get typeArguments => _typeArguments;
+
+  @override
+  void set typeArguments(TypeArgumentList typeArguments) {
+    _typeArguments = _becomeParentOf(typeArguments);
+  }
+}
+
+/**
  * An is expression.
  *
  * > isExpression ::=
@@ -6548,6 +6586,26 @@ abstract class LiteralImpl extends ExpressionImpl implements Literal {
 }
 
 /**
+ * Additional information about local variables within a function or method
+ * produced at resolution time.
+ */
+class LocalVariableInfo {
+  /**
+   * The set of local variables and parameters that are potentially mutated
+   * within a local function other than the function in which they are declared.
+   */
+  final Set<VariableElement> potentiallyMutatedInClosure =
+      new Set<VariableElement>();
+
+  /**
+   * The set of local variables and parameters that are potentiall mutated
+   * within the scope of their declarations.
+   */
+  final Set<VariableElement> potentiallyMutatedInScope =
+      new Set<VariableElement>();
+}
+
+/**
  * A single key/value pair in a map literal.
  *
  * > mapLiteralEntry ::=
@@ -6907,7 +6965,8 @@ class MethodDeclarationImpl extends ClassMemberImpl
  * > methodInvocation ::=
  * >     ([Expression] '.')? [SimpleIdentifier] [TypeArgumentList]? [ArgumentList]
  */
-class MethodInvocationImpl extends ExpressionImpl implements MethodInvocation {
+class MethodInvocationImpl extends InvocationExpressionImpl
+    implements MethodInvocation {
   /**
    * The expression producing the object on which the method is defined, or
    * `null` if there is no target (that is, the target is implicitly `this`).
@@ -6928,32 +6987,6 @@ class MethodInvocationImpl extends ExpressionImpl implements MethodInvocation {
   SimpleIdentifier _methodName;
 
   /**
-   * The type arguments to be applied to the method being invoked, or `null` if
-   * no type arguments were provided.
-   */
-  TypeArgumentList _typeArguments;
-
-  /**
-   * The list of arguments to the method.
-   */
-  ArgumentList _argumentList;
-
-  /**
-   * The function type of the method invocation, or `null` if the AST
-   * structure has not been resolved, or if the invoke could not be resolved.
-   *
-   * This will usually be a [FunctionType], but it can also be an
-   * [InterfaceType] with a `call` method, `dynamic`, `Function`, or a `@proxy`
-   * interface type that implements `Function`.
-   */
-  DartType staticInvokeType;
-
-  /**
-   * Like [staticInvokeType], but reflects propagated type information.
-   */
-  DartType propagatedInvokeType;
-
-  /**
    * Initialize a newly created method invocation. The [target] and [operator]
    * can be `null` if there is no target.
    */
@@ -6962,19 +6995,10 @@ class MethodInvocationImpl extends ExpressionImpl implements MethodInvocation {
       this.operator,
       SimpleIdentifier methodName,
       TypeArgumentList typeArguments,
-      ArgumentList argumentList) {
+      ArgumentList argumentList)
+      : super(typeArguments, argumentList) {
     _target = _becomeParentOf(target);
     _methodName = _becomeParentOf(methodName);
-    _typeArguments = _becomeParentOf(typeArguments);
-    _argumentList = _becomeParentOf(argumentList);
-  }
-
-  @override
-  ArgumentList get argumentList => _argumentList;
-
-  @override
-  void set argumentList(ArgumentList argumentList) {
-    _argumentList = _becomeParentOf(argumentList);
   }
 
   @override
@@ -6996,6 +7020,9 @@ class MethodInvocationImpl extends ExpressionImpl implements MethodInvocation {
 
   @override
   Token get endToken => _argumentList.endToken;
+
+  @override
+  Expression get function => methodName;
 
   @override
   bool get isCascaded =>
@@ -7033,14 +7060,6 @@ class MethodInvocationImpl extends ExpressionImpl implements MethodInvocation {
   @override
   void set target(Expression expression) {
     _target = _becomeParentOf(expression);
-  }
-
-  @override
-  TypeArgumentList get typeArguments => _typeArguments;
-
-  @override
-  void set typeArguments(TypeArgumentList typeArguments) {
-    _typeArguments = _becomeParentOf(typeArguments);
   }
 
   @override

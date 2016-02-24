@@ -36,9 +36,6 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_LITERAL)
 #undef DEFINE_KEYWORD_SYMBOL_INDEX
 };
 
-DEFINE_FLAG(bool, dump_symbol_stats, false, "Dump symbol table statistics");
-
-
 RawString* StringFrom(const uint8_t* data, intptr_t len, Heap::Space space) {
   return String::FromLatin1(data, len, space);
 }
@@ -567,6 +564,7 @@ RawString* Symbols::NewSymbol(const StringType& str) {
     table.Release();
   }
   if (symbol.IsNull()) {
+    SafepointMutexLocker ml(isolate->symbols_mutex());
     SymbolTable table(zone, isolate->object_store()->symbol_table());
     symbol ^= table.InsertNewOrGet(str);
     isolate->object_store()->set_symbol_table(table.Release());
@@ -590,6 +588,7 @@ RawString* Symbols::Lookup(const StringType& str) {
     table.Release();
   }
   if (symbol.IsNull()) {
+    SafepointMutexLocker ml(isolate->symbols_mutex());
     SymbolTable table(zone, isolate->object_store()->symbol_table());
     symbol ^= table.GetOrNull(str);
     table.Release();

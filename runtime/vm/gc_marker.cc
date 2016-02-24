@@ -562,6 +562,9 @@ class ObjectIdRingClearPointerVisitor : public ObjectPointerVisitor {
 
 
 void GCMarker::ProcessObjectIdTable(Isolate* isolate) {
+  if (!FLAG_support_service) {
+    return;
+  }
   ObjectIdRingClearPointerVisitor visitor(isolate);
   ObjectIdRing* ring = isolate->object_id_ring();
   ASSERT(ring != NULL);
@@ -710,7 +713,9 @@ void GCMarker::MarkObjects(Isolate* isolate,
       // All marking done; detach code, etc.
       FinalizeResultsFrom(&mark);
     } else {
-      ThreadBarrier barrier(num_tasks + 1);
+      ThreadBarrier barrier(num_tasks + 1,
+                            heap_->barrier(),
+                            heap_->barrier_done());
       // Used to coordinate draining among tasks; all start out as 'busy'.
       uintptr_t num_busy = num_tasks;
       // Phase 1: Iterate over roots and drain marking stack in tasks.

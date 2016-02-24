@@ -61,7 +61,6 @@ abstract class CompilerConfiguration {
     bool useSdk = configuration['use_sdk'];
     bool isCsp = configuration['csp'];
     bool useCps = configuration['cps_ir'];
-    bool useNoopt = configuration['noopt'];
 
     switch (compiler) {
       case 'dart2analyzer':
@@ -74,13 +73,16 @@ abstract class CompilerConfiguration {
             isHostChecked: isHostChecked, useCps: useCps, useSdk: useSdk,
             isCsp: isCsp, extraDart2jsOptions:
                 TestUtils.getExtraOptions(configuration, 'dart2js_options'));
+      case 'dart2app':
+        return new Dart2AppSnapshotCompilerConfiguration(
+            isDebug: isDebug, isChecked: isChecked);
       case 'precompiler':
         return new PrecompilerCompilerConfiguration(
             isDebug: isDebug, isChecked: isChecked);
       case 'none':
         return new NoneCompilerConfiguration(
             isDebug: isDebug, isChecked: isChecked,
-            isHostChecked: isHostChecked, useSdk: useSdk, useNoopt: useNoopt);
+            isHostChecked: isHostChecked, useSdk: useSdk);
       default:
         throw "Unknown compiler '$compiler'";
     }
@@ -142,17 +144,15 @@ abstract class CompilerConfiguration {
 
 /// The "none" compiler.
 class NoneCompilerConfiguration extends CompilerConfiguration {
-  final bool useNoopt;
 
   NoneCompilerConfiguration({
       bool isDebug,
       bool isChecked,
       bool isHostChecked,
-      bool useSdk,
-      bool useNoopt})
+      bool useSdk})
       : super._subclass(
           isDebug: isDebug, isChecked: isChecked,
-          isHostChecked: isHostChecked, useSdk: useSdk), useNoopt = useNoopt;
+          isHostChecked: isHostChecked, useSdk: useSdk);
 
   bool get hasCompiler => false;
 
@@ -168,9 +168,6 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
     if (isChecked) {
       args.add('--enable_asserts');
       args.add('--enable_type_checks');
-    }
-    if (useNoopt) {
-      args.add('--noopt');
     }
     return args
         ..addAll(vmOptions)
@@ -350,6 +347,93 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
 
     return commandBuilder.getCompilationCommand(
         'precompiler.dart', tempDir, !useSdk,
+        bootstrapDependencies(buildDir),
+        exec, args, environmentOverrides);
+  }
+
+  List<String> computeCompilerArguments(vmOptions,
+                                        sharedOptions,
+                                        originalArguments) {
+    List<String> args = [];
+    if (isChecked) {
+      args.add('--enable_asserts');
+      args.add('--enable_type_checks');
+    }
+    return args
+        ..addAll(vmOptions)
+        ..addAll(sharedOptions)
+        ..addAll(originalArguments);
+  }
+
+  List<String> computeRuntimeArguments(
+      RuntimeConfiguration runtimeConfiguration,
+      String buildDir,
+      TestInformation info,
+      List<String> vmOptions,
+      List<String> sharedOptions,
+      List<String> originalArguments,
+      CommandArtifact artifact) {
+    List<String> args = [];
+    if (isChecked) {
+      args.add('--enable_asserts');
+      args.add('--enable_type_checks');
+    }
+    return args
+        ..addAll(vmOptions)
+        ..addAll(sharedOptions)
+        ..addAll(originalArguments);
+  }
+}
+
+
+class Dart2AppSnapshotCompilerConfiguration extends CompilerConfiguration {
+  Dart2AppSnapshotCompilerConfiguration({
+      bool isDebug,
+      bool isChecked})
+      : super._subclass(isDebug: isDebug, isChecked: isChecked);
+
+  int computeTimeoutMultiplier() {
+    int multiplier = 2;
+    if (isDebug) multiplier *= 4;
+    if (isChecked) multiplier *= 2;
+    return multiplier;
+  }
+
+  CommandArtifact computeCompilationArtifact(
+      String buildDir,
+      String tempDir,
+      CommandBuilder commandBuilder,
+      List arguments,
+      Map<String, String> environmentOverrides) {
+    return new CommandArtifact(
+        <Command>[
+            this.computeCompilationCommand(
+                tempDir,
+                buildDir,
+                CommandBuilder.instance,
+                arguments,
+                environmentOverrides)],
+        computeOutputName(tempDir),
+        'application/dart-snapshot');
+  }
+
+  String computeOutputName(String tempDir) {
+    return '$tempDir/test.snapshot';
+  }
+
+  CompilationCommand computeCompilationCommand(
+      String tempDir,
+      String buildDir,
+      CommandBuilder commandBuilder,
+      List arguments,
+      Map<String, String> environmentOverrides) {
+    var exec = "$buildDir/dart_no_snapshot";
+    var args = new List();
+    args.add("--full-snapshot-after-run=${computeOutputName(tempDir)}");
+    args.addAll(arguments);
+
+    return commandBuilder.getCompilationCommand(
+        'dart2snapshot', computeOutputName(tempDir), !useSdk,
         bootstrapDependencies(buildDir),
         exec, args, environmentOverrides);
   }

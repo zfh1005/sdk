@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
+import 'dart:io' as io;
 
 import '../lib/shared_messages.dart';
 
@@ -35,11 +35,11 @@ void markAsReadonly(String path) {
 
 void emitJson() {
   var input = MESSAGES;
-  var outPath = Platform.script.resolve(jsonPath).toFilePath();
+  var outPath = io.Platform.script.resolve(jsonPath).toFilePath();
   print("Emitting JSON:");
   print("  Input: ${input.length} entries");
   print("  Output: $outPath");
-  new File(outPath).writeAsStringSync(messagesAsJson);
+  new io.File(outPath).writeAsStringSync(messagesAsJson);
   print("Emitting JSON done.");
 }
 
@@ -82,30 +82,24 @@ String escapeString(String str) {
 ///     };
 void emitDart2js() {
   var input = MESSAGES;
-  var outPath = Platform.script.resolve(dart2jsPath).toFilePath();
+  var outPath = io.Platform.script.resolve(dart2jsPath).toFilePath();
   print("Emitting dart2js:");
   print("  Input: ${input.length} entries");
   print("  Output: $outPath");
 
-  var enumIds = input.keys.toList();
-
   StringBuffer out = new StringBuffer();
   out.writeln(copyrightHeader);
   out.writeln(dontEditWarning);
-  out.writeln("import '../messages.dart' show MessageTemplate;");
+  out.writeln("import '../messages.dart' show MessageKind, MessageTemplate;");
   out.writeln();
-  out.write(("enum SharedMessageKind {\n  "));
-  // We generate on one line on purpose, so that users are less likely to
-  // modify the generated file.
-  out.writeln(enumIds.join(",\n  "));
-  out.writeln("}");
-  out.writeln();
-  out.writeln("const Map<SharedMessageKind, MessageTemplate> TEMPLATES = "
-      "const <SharedMessageKind, MessageTemplate>{ ");
+  out.writeln("const Map<MessageKind, MessageTemplate> TEMPLATES = "
+      "const <MessageKind, MessageTemplate>{ ");
   input.forEach((name, message) {
-    out.writeln("  SharedMessageKind.$name: const MessageTemplate(");
+    if (!message.usedBy.contains(Platform.dart2js)) return;
+
+    out.writeln("  MessageKind.$name: const MessageTemplate(");
     // TODO(floitsch): include id.
-    out.writeln("    SharedMessageKind.$name,");
+    out.writeln("    MessageKind.$name,");
     out.write("    ");
     out.write(escapeString(message.template));
     if (message.howToFix != null) {
@@ -118,17 +112,25 @@ void emitDart2js() {
     }
     if (message.examples != null) {
       out.writeln(",\n    examples: const [");
+
+      String escapeExampleContent(String content) {
+        if (content.contains("\n") || content.contains('"')) {
+          return 'r"""\n$content"""';
+        } else if (content.contains("\\")) {
+          return 'r"$content"';
+        }
+        return '"$content"';
+      }
       for (var example in message.examples) {
         if (example is String) {
-          out.writeln("      r'''");
-          out.write(example);
-          out.write("'''");
+          out.write("      ");
+          out.write(escapeExampleContent(example));
         } else if (example is Map) {
           out.writeln("      const {");
           example.forEach((String fileName, String content) {
-            out.writeln("      '$fileName': r'''");
-            out.write(content);
-            out.writeln("''',");
+            out.writeln("      '$fileName': ");
+            out.write(escapeExampleContent(content));
+            out.writeln(",");
           });
           out.write("      }");
         }
@@ -140,7 +142,7 @@ void emitDart2js() {
   });
   out.writeln("};");
 
-  new File(outPath).writeAsStringSync(out.toString());
+  new io.File(outPath).writeAsStringSync(out.toString());
   print("Emitting dart2js done.");
 }
 
@@ -153,9 +155,12 @@ String convertToAnalyzerTemplate(String template, holeOrder) {
     }
   }
   int seenHoles = 0;
-  return template.replaceAllMapped(new RegExp(r"#\w+"), (Match match) {
+  return template.replaceAllMapped(new RegExp(r"#\w+|#{\w+}"), (Match match) {
     if (holeMap != null) {
-      String holeName = match[0].substring(1);
+      String matchedString = match[0];
+      String holeName = matchedString.startsWith("#{")
+          ? matchedString.substring(2, matchedString.length - 1)
+          : matchedString.substring(1);
       int index = holeMap[holeName];
       if (index == null) {
         throw "Couldn't find hole-position for $holeName $holeMap";
@@ -182,7 +187,7 @@ String convertToAnalyzerTemplate(String template, holeOrder) {
 ///         "Just don't do it");
 void emitAnalyzer() {
   var input = MESSAGES;
-  var outPath = Platform.script.resolve(analyzerPath).toFilePath();
+  var outPath = io.Platform.script.resolve(analyzerPath).toFilePath();
   print("Emitting analyzer:");
   print("  Input: ${input.length} entries");
   print("  Output: $outPath");
@@ -191,10 +196,14 @@ void emitAnalyzer() {
   out.writeln(copyrightHeader);
   out.writeln(dontEditWarning);
   out.writeln("import 'package:analyzer/src/generated/error.dart';");
-  out.writeln();
+  out.writeln("import 'package:analyzer/src/generated/parser.dart' "
+      "show ParserErrorCode;");
   input.forEach((name, message) {
+    if (!message.usedBy.contains(Platform.analyzer)) return;
+
     Category category = message.category;
     String className = category.name + "Code";
+    out.writeln();
     out.writeln("const $className $name = const $className(");
     out.writeln("    '$name',");
 
@@ -208,7 +217,7 @@ void emitAnalyzer() {
     out.writeln(");  // Generated. Don't edit.");
   });
 
-  new File(outPath).writeAsStringSync(out.toString());
+  new io.File(outPath).writeAsStringSync(out.toString());
   print("Emitting analyzer done.");
 }
 

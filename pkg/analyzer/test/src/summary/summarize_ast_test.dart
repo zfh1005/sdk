@@ -6,10 +6,12 @@ library analyzer.test.src.summary.summarize_ast_test;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/scanner/reader.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer/src/generated/scanner.dart';
-import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/prelink.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:unittest/unittest.dart';
@@ -92,6 +94,7 @@ class UnlinkedSummarizeAstTest extends Object with SummaryTest {
     }
     linked = new LinkedLibrary.fromBuffer(
         prelink(definingUnit, getPart, getImport).toBuffer());
+    validateLinkedLibrary(linked);
     unlinkedUnits = <UnlinkedUnit>[definingUnit];
     for (String relativeUri in definingUnit.publicNamespace.parts) {
       UnlinkedUnit unit = uriToUnit[resolveToAbsoluteUri(relativeUri)];

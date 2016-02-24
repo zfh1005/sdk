@@ -1577,69 +1577,12 @@ class Isolate extends ServiceObjectOwner {
     return invokeRpc('resume', {'step': 'Over'});
   }
 
-  Future stepOut() {
-    return invokeRpc('resume', {'step': 'Out'});
+  Future stepOverAsyncSuspension() {
+    return invokeRpc('resume', {'step': 'OverAsyncSuspension'});
   }
 
-
-  static const int kFirstResume = 0;
-  static const int kSecondResume = 1;
-  /// result[kFirstResume] completes after the inital resume. The UI should
-  /// wait on this future because some other breakpoint may be hit before the
-  /// async continuation.
-  /// result[kSecondResume] completes after the second resume. Tests should
-  /// wait on this future to avoid confusing the pause event at the
-  /// state-machine switch with the pause event after the state-machine switch.
-  List<Future> asyncStepOver() {
-    Completer firstResume = new Completer();
-    Completer secondResume = new Completer();
-    var subscription;
-
-    handleError(error) {
-      if (subscription != null) {
-        subscription.cancel();
-        subscription = null;
-      }
-      firstResume.completeError(error);
-      secondResume.completeError(error);
-    }
-
-    if ((pauseEvent == null) ||
-        (pauseEvent.kind != ServiceEvent.kPauseBreakpoint) ||
-        (pauseEvent.asyncContinuation == null)) {
-      handleError(new Exception("No async continuation available"));
-    } else {
-      Instance continuation = pauseEvent.asyncContinuation;
-      assert(continuation.isClosure);
-      addBreakOnActivation(continuation).then((Breakpoint continuationBpt) {
-        vm.getEventStream(VM.kDebugStream).then((stream) {
-          var onResume = firstResume;
-          subscription = stream.listen((ServiceEvent event) {
-            if ((event.kind == ServiceEvent.kPauseBreakpoint) &&
-                (event.breakpoint == continuationBpt)) {
-              // We are stopped before state-machine dispatch; step-over to
-              // reach user code.
-              removeBreakpoint(continuationBpt).then((_) {
-                onResume = secondResume;
-                stepOver().catchError(handleError);
-              });
-            } else if (event.kind == ServiceEvent.kResume) {
-              if (onResume == secondResume) {
-                subscription.cancel();
-                subscription = null;
-              }
-              if (onResume != null) {
-                onResume.complete(this);
-                onResume = null;
-              }
-            }
-          });
-          resume().catchError(handleError);
-        }).catchError(handleError);
-      }).catchError(handleError);
-    }
-
-    return [firstResume.future, secondResume.future];
+  Future stepOut() {
+    return invokeRpc('resume', {'step': 'Out'});
   }
 
   Future setName(String newName) {
@@ -1891,8 +1834,7 @@ class ServiceEvent extends ServiceObject {
   @observable Frame topFrame;
   @observable String extensionRPC;
   @observable Instance exception;
-  @observable Instance asyncContinuation;
-  @observable bool atAsyncJump;
+  @observable bool atAsyncSuspension;
   @observable ServiceObject inspectee;
   @observable ByteData data;
   @observable int count;
@@ -1941,12 +1883,7 @@ class ServiceEvent extends ServiceObject {
     if (map['exception'] != null) {
       exception = map['exception'];
     }
-    if (map['_asyncContinuation'] != null) {
-      asyncContinuation = map['_asyncContinuation'];
-      atAsyncJump = map['_atAsyncJump'];
-    } else {
-      atAsyncJump = false;
-    }
+    atAsyncSuspension = map['atAsyncSuspension'] != null;
     if (map['inspectee'] != null) {
       inspectee = map['inspectee'];
     }
@@ -2017,6 +1954,10 @@ class Breakpoint extends ServiceObject {
   // The breakpoint has been assigned to a final source location.
   @observable bool resolved;
 
+  // The breakpoint was synthetically created as part of an
+  // 'OverAsyncContinuation' resume request.
+  @observable bool isSyntheticAsyncContinuation;
+
   void _update(ObservableMap map, bool mapIsRef) {
     _loaded = true;
     _upgradeCollection(map, owner);
@@ -2043,6 +1984,8 @@ class Breakpoint extends ServiceObject {
       newScript._addBreakpoint(this);
     }
 
+    isSyntheticAsyncContinuation = map['isSyntheticAsyncContinuation'] != null;
+
     assert(resolved || location is UnresolvedSourceLocation);
   }
 
@@ -2058,7 +2001,11 @@ class Breakpoint extends ServiceObject {
 
   String toString() {
     if (number != null) {
-      return 'Breakpoint ${number} at ${location})';
+      if (isSyntheticAsyncContinuation) {
+        return 'Synthetic Async Continuation Breakpoint ${number}';
+      } else {
+        return 'Breakpoint ${number} at ${location}';
+      }
     } else {
       return 'Uninitialized breakpoint';
     }
@@ -2416,7 +2363,7 @@ class Instance extends HeapObject {
     elements = map['elements'];
     associations = map['associations'];
     if (map['bytes'] != null) {
-      var bytes = BASE64.decode(map['bytes']);
+      Uint8List bytes = BASE64.decode(map['bytes']);
       switch (map['kind']) {
         case "Uint8ClampedList":
           typedElements = bytes.buffer.asUint8ClampedList(); break;
@@ -3634,7 +3581,7 @@ class Code extends HeapObject {
 
   @observable bool hasDisassembly = false;
 
-  void _processDisassembly(List<String> disassembly){
+  void _processDisassembly(List disassembly) {
     assert(disassembly != null);
     instructions.clear();
     instructionsByAddressOffset = new List(endAddress - startAddress);

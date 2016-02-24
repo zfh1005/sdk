@@ -725,7 +725,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     LibraryElementImpl mockLib = new LibraryElementImpl.forNode(
         this, AstFactory.libraryIdentifier2(["dart.async"]));
     mockLib.definingCompilationUnit = asyncUnit;
-    mockLib.publicNamespace = new PublicNamespaceBuilder().build(mockLib);
+    mockLib.publicNamespace =
+        new NamespaceBuilder().createPublicNamespaceForLibrary(mockLib);
     return mockLib;
   }
 
@@ -1497,6 +1498,31 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Return a [CompilationUnit] for the given library and unit sources, which
+   * can be incrementally resolved.
+   */
+  CompilationUnit _getIncrementallyResolvableUnit(
+      Source librarySource, Source unitSource) {
+    LibrarySpecificUnit target =
+        new LibrarySpecificUnit(librarySource, unitSource);
+    for (ResultDescriptor result in [
+      RESOLVED_UNIT,
+      RESOLVED_UNIT11,
+      RESOLVED_UNIT10,
+      RESOLVED_UNIT9,
+      RESOLVED_UNIT8,
+      RESOLVED_UNIT7,
+      RESOLVED_UNIT6
+    ]) {
+      CompilationUnit unit = getResult(target, result);
+      if (unit != null) {
+        return unit;
+      }
+    }
+    return null;
+  }
+
+  /**
    * Return a list containing all of the sources known to this context that have
    * the given [kind].
    */
@@ -1843,7 +1869,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       incrementalResolutionValidation_lastUnitSource = null;
       incrementalResolutionValidation_lastLibrarySource = null;
       incrementalResolutionValidation_lastUnit = null;
-      // prepare the entry
+      // prepare the source entry
       CacheEntry sourceEntry = _cache.get(unitSource);
       if (sourceEntry == null) {
         return false;
@@ -1854,19 +1880,15 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         return false;
       }
       Source librarySource = librarySources[0];
+      // prepare the unit entry
       CacheEntry unitEntry =
           _cache.get(new LibrarySpecificUnit(librarySource, unitSource));
       if (unitEntry == null) {
         return false;
       }
-      // prepare the library element
-      LibraryElement libraryElement = getLibraryElement(librarySource);
-      if (libraryElement == null) {
-        return false;
-      }
       // prepare the existing unit
       CompilationUnit oldUnit =
-          getResolvedCompilationUnit2(unitSource, librarySource);
+          _getIncrementallyResolvableUnit(librarySource, unitSource);
       if (oldUnit == null) {
         return false;
       }
@@ -1875,6 +1897,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       PoorMansIncrementalResolver resolver = new PoorMansIncrementalResolver(
           typeProvider,
           unitSource,
+          _cache,
           sourceEntry,
           unitEntry,
           oldUnit,
