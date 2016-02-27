@@ -51,8 +51,6 @@ namespace dart {
 #define Z (T->zone())
 
 
-DECLARE_FLAG(bool, load_deferred_eagerly);
-DECLARE_FLAG(bool, precompilation);
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, verify_handles);
 #if defined(DART_NO_SNAPSHOT)
@@ -1147,7 +1145,7 @@ DART_EXPORT char* Dart_Initialize(
     Dart_FileCloseCallback file_close,
     Dart_EntropySource entropy_source,
     Dart_GetVMServiceAssetsArchive get_service_assets) {
-  if ((instructions_snapshot != NULL) && !FLAG_precompilation) {
+  if ((instructions_snapshot != NULL) && !FLAG_precompiled_mode) {
     return strdup("Flag --precompilation was not specified.");
   }
   if (interrupt != NULL) {
@@ -1242,8 +1240,7 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
   // Setup default flags in case none were passed.
   Dart_IsolateFlags api_flags;
   if (flags == NULL) {
-    Isolate::Flags vm_flags;
-    vm_flags.CopyTo(&api_flags);
+    Isolate::FlagsInitialize(&api_flags);
     flags = &api_flags;
   }
   Isolate* I = Dart::CreateIsolate(isolate_name, *flags);
@@ -4321,7 +4318,7 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
       getter = lib.LookupFunctionAllowPrivate(getter_name);
     } else if (!field.IsNull() && field.IsUninitialized()) {
       // A field was found.  Check for a getter in the field's owner classs.
-      const Class& cls = Class::Handle(Z, field.owner());
+      const Class& cls = Class::Handle(Z, field.Owner());
       const String& getter_name = String::Handle(Z,
           Field::GetterName(field_name));
       getter = cls.LookupStaticFunctionAllowPrivate(getter_name);
@@ -6100,7 +6097,7 @@ DART_EXPORT Dart_Handle Dart_Precompile(
     bool reset_fields) {
   API_TIMELINE_BEGIN_END;
   DARTSCOPE(Thread::Current());
-  if (!FLAG_precompilation) {
+  if (!FLAG_precompiled_mode) {
     return Dart_NewApiError("Flag --precompilation was not specified.");
   }
   Dart_Handle result = Api::CheckAndFinalizePendingClasses(T);

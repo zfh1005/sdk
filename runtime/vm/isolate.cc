@@ -77,18 +77,9 @@ DEFINE_FLAG(int, external_max_size, (kWordSize <= 4) ? 512 : 1024,
             "Max total size of external allocations in MB, or 0 for unlimited,"
             "e.g: --external_max_size=1024 allows up to 1024MB of externals");
 
-// TODO(iposva): Make these isolate specific flags inaccessible using the
-// regular FLAG_xyz pattern.
-// These flags are per-isolate and only influence the defaults.
-DEFINE_FLAG(bool, enable_asserts, false, "Enable assert statements.");
-DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
-DEFINE_FLAG(bool, error_on_bad_override, false,
-            "Report error for bad overrides.");
-DEFINE_FLAG(bool, error_on_bad_type, false,
-            "Report error for malformed types.");
-
 DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
 
+NOT_IN_PRODUCT(
 static void CheckedModeHandler(bool value) {
   FLAG_enable_asserts = value;
   FLAG_enable_type_checks = value;
@@ -103,6 +94,7 @@ DEFINE_FLAG_HANDLER(CheckedModeHandler,
 DEFINE_FLAG_HANDLER(CheckedModeHandler,
                     checked,
                     "Enable checked mode.");
+)
 
 
 // Quick access to the locally defined thread() and isolate() methods.
@@ -655,20 +647,6 @@ static MessageHandler::MessageStatus StoreError(Thread* thread,
 
 MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
     const Error& result) {
-  // Notify the debugger about specific unhandled exceptions which are withheld
-  // when being thrown.
-  if (result.IsUnhandledException()) {
-    const UnhandledException& error = UnhandledException::Cast(result);
-    RawInstance* exception = error.exception();
-    if ((exception == I->object_store()->out_of_memory()) ||
-        (exception == I->object_store()->stack_overflow())) {
-      // We didn't notify the debugger when the stack was full. Do it now.
-      if (FLAG_support_debugger) {
-        I->debugger()->SignalExceptionThrown(Instance::Handle(exception));
-      }
-    }
-  }
-
   // Generate the error and stacktrace strings for the error message.
   String& exc_str = String::Handle(T->zone());
   String& stacktrace_str = String::Handle(T->zone());
@@ -704,6 +682,21 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
       } else {
         T->set_sticky_error(result);
       }
+      // Notify the debugger about specific unhandled exceptions which are
+      // withheld when being thrown. Do this after setting the sticky error
+      // so the isolate has an error set when paused with the unhandled
+      // exception.
+      if (result.IsUnhandledException()) {
+        const UnhandledException& error = UnhandledException::Cast(result);
+        RawInstance* exception = error.exception();
+        if ((exception == I->object_store()->out_of_memory()) ||
+            (exception == I->object_store()->stack_overflow())) {
+          // We didn't notify the debugger when the stack was full. Do it now.
+          if (FLAG_support_debugger) {
+            I->debugger()->SignalExceptionThrown(Instance::Handle(exception));
+          }
+        }
+      }
       return kError;
     }
   }
@@ -711,31 +704,16 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
 }
 
 
-Isolate::Flags::Flags()
-  : type_checks_(FLAG_enable_type_checks),
-    asserts_(FLAG_enable_asserts),
-    error_on_bad_type_(FLAG_error_on_bad_type),
-    error_on_bad_override_(FLAG_error_on_bad_override) {}
-
-
-void Isolate::Flags::CopyFrom(const Flags& orig) {
-  type_checks_ = orig.type_checks();
-  asserts_ = orig.asserts();
-  error_on_bad_type_ = orig.error_on_bad_type();
-  error_on_bad_override_ = orig.error_on_bad_override();
+void Isolate::FlagsInitialize(Dart_IsolateFlags* api_flags) {
+  api_flags->version = DART_FLAGS_CURRENT_VERSION;
+  api_flags->enable_type_checks = FLAG_enable_type_checks;
+  api_flags->enable_asserts = FLAG_enable_asserts;
+  api_flags->enable_error_on_bad_type = FLAG_error_on_bad_type;
+  api_flags->enable_error_on_bad_override = FLAG_error_on_bad_override;
 }
 
 
-void Isolate::Flags::CopyFrom(const Dart_IsolateFlags& api_flags) {
-  type_checks_ = api_flags.enable_type_checks;
-  asserts_ = api_flags.enable_asserts;
-  error_on_bad_type_ = api_flags.enable_error_on_bad_type;
-  error_on_bad_override_ = api_flags.enable_error_on_bad_override;
-  // Leave others at defaults.
-}
-
-
-void Isolate::Flags::CopyTo(Dart_IsolateFlags* api_flags) const {
+void Isolate::FlagsCopyTo(Dart_IsolateFlags* api_flags) const {
   api_flags->version = DART_FLAGS_CURRENT_VERSION;
   api_flags->enable_type_checks = type_checks();
   api_flags->enable_asserts = asserts();
@@ -744,7 +722,17 @@ void Isolate::Flags::CopyTo(Dart_IsolateFlags* api_flags) const {
 }
 
 
-#if defined(DEBUG)
+NOT_IN_PRODUCT(
+void Isolate::FlagsCopyFrom(const Dart_IsolateFlags& api_flags) {
+  type_checks_ = api_flags.enable_type_checks;
+  asserts_ = api_flags.enable_asserts;
+  error_on_bad_type_ = api_flags.enable_error_on_bad_type;
+  error_on_bad_override_ = api_flags.enable_error_on_bad_override;
+  // Leave others at defaults.
+})
+
+
+DEBUG_ONLY(
 // static
 void BaseIsolate::AssertCurrent(BaseIsolate* isolate) {
   ASSERT(isolate == Isolate::Current());
@@ -754,7 +742,7 @@ void BaseIsolate::AssertCurrentThreadIsMutator() const {
   ASSERT(Isolate::Current() == this);
   ASSERT(Thread::Current()->IsMutatorThread());
 }
-#endif  // defined(DEBUG)
+)
 
 #if defined(DEBUG)
 #define REUSABLE_HANDLE_SCOPE_INIT(object)                                     \
@@ -798,7 +786,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       resume_request_(false),
       last_resume_timestamp_(OS::GetCurrentTimeMillis()),
       has_compiled_code_(false),
-      flags_(),
       random_(),
       simulator_(NULL),
       mutex_(new Mutex()),
@@ -839,7 +826,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       boxed_field_list_(GrowableObjectArray::null()),
       spawn_count_monitor_(new Monitor()),
       spawn_count_(0) {
-  flags_.CopyFrom(api_flags);
+  NOT_IN_PRODUCT(FlagsCopyFrom(api_flags));
   // TODO(asiva): A Thread is not available here, need to figure out
   // how the vm_tag (kEmbedderTagId) can be set, these tags need to
   // move to the OSThread structure.
@@ -2095,6 +2082,7 @@ void Isolate::set_registered_service_extension_handlers(
 
 
 void Isolate::AddDeoptimizingBoxedField(const Field& field) {
+  ASSERT(field.IsOriginal());
   MonitorLocker ml(boxed_field_list_monitor_);
   if (boxed_field_list_ == GrowableObjectArray::null()) {
     boxed_field_list_ = GrowableObjectArray::New(Heap::kOld);
@@ -2655,7 +2643,6 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       serialized_message_len_(0),
       spawn_count_monitor_(spawn_count_monitor),
       spawn_count_(spawn_count),
-      isolate_flags_(),
       paused_(paused),
       errors_are_fatal_(errors_are_fatal) {
   const Class& cls = Class::Handle(func.Owner());
@@ -2675,7 +2662,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                   &serialized_message_len_,
                   can_send_any_object);
   // Inherit flags from spawning isolate.
-  isolate_flags()->CopyFrom(Isolate::Current()->flags());
+  Isolate::Current()->FlagsCopyTo(isolate_flags());
 }
 
 
@@ -2725,7 +2712,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                   can_send_any_object);
   // By default inherit flags from spawning isolate. These can be overridden
   // from the calling code.
-  isolate_flags()->CopyFrom(Isolate::Current()->flags());
+  Isolate::Current()->FlagsCopyTo(isolate_flags());
 }
 
 

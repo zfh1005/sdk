@@ -38,27 +38,25 @@ import 'idl_model.dart' as idlModel;
 main() {
   String script = Platform.script.toFilePath(windows: Platform.isWindows);
   String pkgPath = normalize(join(dirname(script), '..', '..'));
-  GeneratedContent.generateAll(pkgPath, <GeneratedContent>[target]);
+  GeneratedContent.generateAll(pkgPath, allTargets);
 }
 
-final GeneratedFile target =
+final List<GeneratedContent> allTargets = <GeneratedContent>[
+  formatTarget,
+  schemaTarget
+];
+
+final GeneratedFile formatTarget =
     new GeneratedFile('lib/src/summary/format.dart', (String pkgPath) {
-  // Parse the input "IDL" file and pass it to the [_CodeGenerator].
-  PhysicalResourceProvider provider = new PhysicalResourceProvider(
-      PhysicalResourceProvider.NORMALIZE_EOL_ALWAYS);
-  String idlPath = join(pkgPath, 'lib', 'src', 'summary', 'idl.dart');
-  File idlFile = provider.getFile(idlPath);
-  Source idlSource = provider.getFile(idlPath).createSource();
-  String idlText = idlFile.readAsStringSync();
-  BooleanErrorListener errorListener = new BooleanErrorListener();
-  CharacterReader idlReader = new CharSequenceReader(idlText);
-  Scanner scanner = new Scanner(idlSource, idlReader, errorListener);
-  Token tokenStream = scanner.tokenize();
-  LineInfo lineInfo = new LineInfo(scanner.lineStarts);
-  Parser parser = new Parser(idlSource, new BooleanErrorListener());
-  CompilationUnit idlParsed = parser.parseCompilationUnit(tokenStream);
-  _CodeGenerator codeGenerator = new _CodeGenerator();
-  codeGenerator.processCompilationUnit(lineInfo, idlParsed);
+  _CodeGenerator codeGenerator = new _CodeGenerator(pkgPath);
+  codeGenerator.generateFormatCode();
+  return codeGenerator._outBuffer.toString();
+});
+
+final GeneratedFile schemaTarget =
+    new GeneratedFile('lib/src/summary/format.fbs', (String pkgPath) {
+  _CodeGenerator codeGenerator = new _CodeGenerator(pkgPath);
+  codeGenerator.generateFlatBufferSchema();
   return codeGenerator._outBuffer.toString();
 });
 
@@ -80,12 +78,43 @@ class _CodeGenerator {
    */
   idlModel.Idl _idl;
 
+  _CodeGenerator(String pkgPath) {
+    // Parse the input "IDL" file.
+    PhysicalResourceProvider provider = new PhysicalResourceProvider(
+        PhysicalResourceProvider.NORMALIZE_EOL_ALWAYS);
+    String idlPath = join(pkgPath, 'lib', 'src', 'summary', 'idl.dart');
+    File idlFile = provider.getFile(idlPath);
+    Source idlSource = provider.getFile(idlPath).createSource();
+    String idlText = idlFile.readAsStringSync();
+    BooleanErrorListener errorListener = new BooleanErrorListener();
+    CharacterReader idlReader = new CharSequenceReader(idlText);
+    Scanner scanner = new Scanner(idlSource, idlReader, errorListener);
+    Token tokenStream = scanner.tokenize();
+    LineInfo lineInfo = new LineInfo(scanner.lineStarts);
+    Parser parser = new Parser(idlSource, new BooleanErrorListener());
+    CompilationUnit idlParsed = parser.parseCompilationUnit(tokenStream);
+    // Extract a description of the IDL and make sure it is valid.
+    extractIdl(lineInfo, idlParsed);
+    checkIdl();
+  }
+
   /**
    * Perform basic sanity checking of the IDL (over and above that done by
    * [extractIdl]).
    */
   void checkIdl() {
     _idl.classes.forEach((String name, idlModel.ClassDeclaration cls) {
+      if (cls.fileIdentifier != null) {
+        if (cls.fileIdentifier.length != 4) {
+          throw new Exception('$name: file identifier must be 4 characters');
+        }
+        for (int i = 0; i < cls.fileIdentifier.length; i++) {
+          if (cls.fileIdentifier.codeUnitAt(i) >= 256) {
+            throw new Exception(
+                '$name: file identifier must be encodable as Latin-1');
+          }
+        }
+      }
       Map<int, String> idsUsed = <int, String>{};
       for (idlModel.FieldDeclaration field in cls.fields) {
         String fieldName = field.name;
@@ -190,25 +219,49 @@ class _CodeGenerator {
     for (CompilationUnitMember decl in idlParsed.declarations) {
       if (decl is ClassDeclaration) {
         bool isTopLevel = false;
+        String fileIdentifier;
+        String clsName = decl.name.name;
         for (Annotation annotation in decl.metadata) {
-          if (annotation.arguments == null &&
-              annotation.name.name == 'topLevel') {
+          if (annotation.arguments != null &&
+              annotation.name.name == 'TopLevel' &&
+              annotation.constructorName == null) {
             isTopLevel = true;
+            if (annotation.arguments == null) {
+              throw new Exception(
+                  'Class `$clsName`: TopLevel requires parenthesis');
+            }
+            if (annotation.constructorName != null) {
+              throw new Exception(
+                  "Class `$clsName`: TopLevel doesn't have named constructors");
+            }
+            if (annotation.arguments.arguments.length == 1) {
+              Expression arg = annotation.arguments.arguments[0];
+              if (arg is StringLiteral) {
+                fileIdentifier = arg.stringValue;
+              } else {
+                throw new Exception(
+                    'Class `$clsName`: TopLevel argument must be a string'
+                    ' literal');
+              }
+            } else if (annotation.arguments.arguments.length != 0) {
+              throw new Exception(
+                  'Class `$clsName`: TopLevel requires 0 or 1 arguments');
+            }
           }
         }
         String doc = _getNodeDoc(lineInfo, decl);
-        idlModel.ClassDeclaration cls =
-            new idlModel.ClassDeclaration(doc, decl.name.name, isTopLevel);
-        _idl.classes[cls.name] = cls;
+        idlModel.ClassDeclaration cls = new idlModel.ClassDeclaration(
+            doc, clsName, isTopLevel, fileIdentifier);
+        _idl.classes[clsName] = cls;
         String expectedBase = 'base.SummaryClass';
         if (decl.extendsClause == null ||
             decl.extendsClause.superclass.name.name != expectedBase) {
           throw new Exception(
-              'Class `${cls.name}` needs to extend `$expectedBase`');
+              'Class `$clsName` needs to extend `$expectedBase`');
         }
         for (ClassMember classMember in decl.members) {
           if (classMember is MethodDeclaration && classMember.isGetter) {
-            String desc = '${cls.name}.${classMember.name.name}';
+            String desc = '$clsName.${classMember.name.name}';
             TypeName type = classMember.returnType;
             if (type == null) {
               throw new Exception('Class member needs a type: $desc');
@@ -279,6 +332,117 @@ class _CodeGenerator {
   }
 
   /**
+   * Generate a string representing the FlatBuffer schema type which should be
+   * used to represent [type].
+   */
+  String fbsType(idlModel.FieldType type) {
+    String typeStr;
+    switch (type.typeName) {
+      case 'bool':
+        typeStr = 'bool';
+        break;
+      case 'double':
+        typeStr = 'double';
+        break;
+      case 'int':
+        typeStr = 'uint';
+        break;
+      case 'String':
+        typeStr = 'string';
+        break;
+      default:
+        typeStr = type.typeName;
+        break;
+    }
+    if (type.isList) {
+      return '[$typeStr]';
+    } else {
+      return typeStr;
+    }
+  }
+
+  /**
+   * Entry point to the code generator when generating the "format.fbs" file.
+   */
+  void generateFlatBufferSchema() {
+    outputHeader();
+    for (idlModel.EnumDeclaration enm in _idl.enums.values) {
+      out();
+      outDoc(enm.documentation);
+      out('enum ${enm.name} : byte {');
+      indent(() {
+        for (int i = 0; i < enm.values.length; i++) {
+          idlModel.EnumValueDeclaration value = enm.values[i];
+          if (i != 0) {
+            out();
+          }
+          String suffix = i < enm.values.length - 1 ? ',' : '';
+          outDoc(value.documentation);
+          out('${value.name}$suffix');
+        }
+      });
+      out('}');
+    }
+    for (idlModel.ClassDeclaration cls in _idl.classes.values) {
+      out();
+      outDoc(cls.documentation);
+      out('table ${cls.name} {');
+      indent(() {
+        for (int i = 0; i < cls.fields.length; i++) {
+          idlModel.FieldDeclaration field = cls.fields[i];
+          if (i != 0) {
+            out();
+          }
+          outDoc(field.documentation);
+          out('${field.name}:${fbsType(field.type)} (id: ${field.id});');
+        }
+      });
+      out('}');
+    }
+    out();
+    // Standard flatbuffers only support one root type.  We support multiple
+    // root types.  For now work around this by forcing PackageBundle to be the
+    // root type.  TODO(paulberry): come up with a better solution.
+    idlModel.ClassDeclaration rootType = _idl.classes['PackageBundle'];
+    out('root_type ${rootType.name};');
+    if (rootType.fileIdentifier != null) {
+      out();
+      out('file_identifier ${quoted(rootType.fileIdentifier)};');
+    }
+  }
+
+  /**
+   * Entry point to the code generator when generating the "format.dart" file.
+   */
+  void generateFormatCode() {
+    outputHeader();
+    out('library analyzer.src.summary.format;');
+    out();
+    out("import 'flat_buffers.dart' as fb;");
+    out("import 'idl.dart' as idl;");
+    out("import 'dart:convert' as convert;");
+    out();
+    for (idlModel.EnumDeclaration enm in _idl.enums.values) {
+      _generateEnumReader(enm);
+      out();
+    }
+    for (idlModel.ClassDeclaration cls in _idl.classes.values) {
+      _generateBuilder(cls);
+      out();
+      if (cls.isTopLevel) {
+        _generateReadFunction(cls);
+        out();
+      }
+      _generateReader(cls);
+      out();
+      _generateImpl(cls);
+      out();
+      _generateMixin(cls);
+      out();
+    }
+  }
+
+  /**
    * Add the prefix `idl.` to a type name, unless that type name is the name of
    * a built-in type.
    */
@@ -325,13 +489,7 @@ class _CodeGenerator {
     }
   }
 
-  /**
-   * Entry point to the code generator.  Interpret the AST in [idlParsed],
-   * generate code, and output it to [_outBuffer].
-   */
-  void processCompilationUnit(LineInfo lineInfo, CompilationUnit idlParsed) {
-    extractIdl(lineInfo, idlParsed);
-    checkIdl();
+  void outputHeader() {
     out('// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file');
     out('// for details. All rights reserved. Use of this source code is governed by a');
     out('// BSD-style license that can be found in the LICENSE file.');
@@ -339,30 +497,6 @@ class _CodeGenerator {
     out('// This file has been automatically generated.  Please do not edit it manually.');
     out('// To regenerate the file, use the script "pkg/analyzer/tool/generate_files".');
     out();
-    out('library analyzer.src.summary.format;');
-    out();
-    out("import 'flat_buffers.dart' as fb;");
-    out("import 'idl.dart' as idl;");
-    out("import 'dart:convert' as convert;");
-    out();
-    for (idlModel.EnumDeclaration enm in _idl.enums.values) {
-      _generateEnumReader(enm);
-      out();
-    }
-    for (idlModel.ClassDeclaration cls in _idl.classes.values) {
-      _generateBuilder(cls);
-      out();
-      if (cls.isTopLevel) {
-        _generateReadFunction(cls);
-        out();
-      }
-      _generateReader(cls);
-      out();
-      _generateImpl(cls);
-      out();
-      _generateMixin(cls);
-      out();
-    }
   }
 
   /**
@@ -434,7 +568,10 @@ class _CodeGenerator {
         out('List<int> toBuffer() {');
         indent(() {
           out('fb.Builder fbBuilder = new fb.Builder();');
-          out('return fbBuilder.finish(finish(fbBuilder));');
+          String fileId = cls.fileIdentifier == null
+              ? ''
+              : ', ${quoted(cls.fileIdentifier)}';
+          out('return fbBuilder.finish(finish(fbBuilder)$fileId);');
         });
         out('}');
       }

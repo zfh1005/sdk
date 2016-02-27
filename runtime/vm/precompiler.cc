@@ -49,9 +49,6 @@ namespace dart {
 #define Z (zone())
 
 
-DEFINE_FLAG(bool, collect_dynamic_function_names, false,
-    "In precompilation collects all dynamic function names in order to"
-    " identify unique targets");
 DEFINE_FLAG(bool, print_unique_targets, false, "Print unique dynaic targets");
 DEFINE_FLAG(bool, trace_precompiler, false, "Trace precompiler.");
 DEFINE_FLAG(int, max_speculative_inlining_attempts, 1,
@@ -69,9 +66,7 @@ DECLARE_FLAG(bool, trace_optimizing_compiler);
 DECLARE_FLAG(bool, trace_bailout);
 DECLARE_FLAG(bool, use_inlining);
 DECLARE_FLAG(bool, verify_compiler);
-DECLARE_FLAG(bool, precompilation);
 DECLARE_FLAG(bool, huge_method_cutoff_in_code_size);
-DECLARE_FLAG(bool, load_deferred_eagerly);
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
 DECLARE_FLAG(bool, trace_inlining_intervals);
 DECLARE_FLAG(bool, trace_irregexp);
@@ -1889,7 +1884,7 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
 // If optimized_result_code is not NULL then it is caller's responsibility
 // to install code.
 bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
-  ASSERT(FLAG_precompilation);
+  ASSERT(FLAG_precompiled_mode);
   const Function& function = parsed_function()->function();
   if (optimized() && !function.IsOptimizable()) {
     return false;
@@ -1971,6 +1966,8 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       // Maps inline_id_to_function[inline_id] -> function. Top scope
       // function has inline_id 0. The map is populated by the inliner.
       GrowableArray<const Function*> inline_id_to_function;
+      // Token position where inlining occured.
+      GrowableArray<TokenPosition> inline_id_to_token_pos;
       // For a given inlining-id(index) specifies the caller's inlining-id.
       GrowableArray<intptr_t> caller_inline_id;
       // Collect all instance fields that are loaded in the graph and
@@ -1983,6 +1980,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
                                   "OptimizationPasses");
 #endif  // !PRODUCT
         inline_id_to_function.Add(&function);
+        inline_id_to_token_pos.Add(function.token_pos());
         // Top scope function has no caller (-1).
         caller_inline_id.Add(-1);
         CSTAT_TIMER_SCOPE(thread(), graphoptimizer_timer);
@@ -2026,6 +2024,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
           FlowGraphInliner inliner(flow_graph,
                                    &inline_id_to_function,
+                                   &inline_id_to_token_pos,
                                    &caller_inline_id,
                                    use_speculative_inlining,
                                    &inlining_black_list);
@@ -2322,6 +2321,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       FlowGraphCompiler graph_compiler(&assembler, flow_graph,
                                        *parsed_function(), optimized(),
                                        inline_id_to_function,
+                                       inline_id_to_token_pos,
                                        caller_inline_id);
       {
         CSTAT_TIMER_SCOPE(thread(), graphcompiler_timer);
@@ -2404,7 +2404,7 @@ static RawError* PrecompileFunctionHelper(CompilationPipeline* pipeline,
                                           const Function& function,
                                           bool optimized) {
   // Check that we optimize, except if the function is not optimizable.
-  ASSERT(FLAG_precompilation);
+  ASSERT(FLAG_precompiled_mode);
   ASSERT(!function.IsOptimizable() || optimized);
   ASSERT(!function.HasCode());
   LongJumpScope jump;
@@ -2501,7 +2501,7 @@ RawError* Precompiler::CompileFunction(Thread* thread,
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
 
-  ASSERT(FLAG_precompilation);
+  ASSERT(FLAG_precompiled_mode);
   const bool optimized = function.IsOptimizable();  // False for natives.
   return PrecompileFunctionHelper(pipeline, function, optimized);
 }

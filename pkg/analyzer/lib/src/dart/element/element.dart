@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart'
     show DartObject, EvaluationResultImpl;
+import 'package:analyzer/src/generated/element_handle.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
 import 'package:analyzer/src/generated/java_core.dart';
@@ -1591,7 +1592,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
   Element element;
 
   /**
-   * The compliation unit in which this annotation appears.
+   * The compilation unit in which this annotation appears.
    */
   final CompilationUnitElementImpl compilationUnit;
 
@@ -1622,65 +1623,33 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   @override
   bool get isDeprecated {
-    if (element != null) {
-      LibraryElement library = element.library;
-      if (library != null && library.isDartCore) {
-        if (element is ConstructorElement) {
-          ConstructorElement constructorElement = element as ConstructorElement;
-          if (constructorElement.enclosingElement.name ==
-              _DEPRECATED_CLASS_NAME) {
-            return true;
-          }
-        } else if (element is PropertyAccessorElement &&
-            element.name == _DEPRECATED_VARIABLE_NAME) {
-          return true;
-        }
+    if (element?.library?.isDartCore == true) {
+      if (element is ConstructorElement) {
+        return element.enclosingElement.name == _DEPRECATED_CLASS_NAME;
+      } else if (element is PropertyAccessorElement) {
+        return element.name == _DEPRECATED_VARIABLE_NAME;
       }
     }
     return false;
   }
 
   @override
-  bool get isOverride {
-    if (element != null) {
-      LibraryElement library = element.library;
-      if (library != null && library.isDartCore) {
-        if (element is PropertyAccessorElement &&
-            element.name == _OVERRIDE_VARIABLE_NAME) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
+  bool get isOverride =>
+      element is PropertyAccessorElement &&
+      element.name == _OVERRIDE_VARIABLE_NAME &&
+      element.library?.isDartCore == true;
 
   @override
-  bool get isProtected {
-    if (element != null) {
-      LibraryElement library = element.library;
-      if (library != null && library.name == _META_LIB_NAME) {
-        if (element is PropertyAccessorElement &&
-            element.name == _PROTECTED_VARIABLE_NAME) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
+  bool get isProtected =>
+      element is PropertyAccessorElement &&
+      element.name == _PROTECTED_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
 
   @override
-  bool get isProxy {
-    if (element != null) {
-      LibraryElement library = element.library;
-      if (library != null && library.isDartCore) {
-        if (element is PropertyAccessorElement &&
-            element.name == PROXY_VARIABLE_NAME) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
+  bool get isProxy =>
+      element is PropertyAccessorElement &&
+      element.name == PROXY_VARIABLE_NAME &&
+      element.library?.isDartCore == true;
 
   /**
    * Get the library containing this annotation.
@@ -3276,6 +3245,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @override
   LibraryElement get library => this;
 
+  @override
   List<LibraryElement> get libraryCycle {
     if (_libraryCycle != null) {
       return _libraryCycle;
@@ -3297,6 +3267,17 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       indices[library] = index;
       active.add(library);
       stack.add(library);
+      LibraryElementImpl getActualLibrary(LibraryElement lib) {
+        // TODO(paulberry): this means that computing a library cycle will be
+        // expensive for libraries resynthesized from summaries, since it will
+        // require fully resynthesizing all the libraries in the cycle as well
+        // as any libraries they import or export.  Try to find a better way.
+        if (lib is LibraryElementHandle) {
+          return lib.actualElement;
+        } else {
+          return lib;
+        }
+      }
       void recurse(LibraryElementImpl child) {
         if (!indices.containsKey(child)) {
           // We haven't visited this child yet, so recurse on the child,
@@ -3314,9 +3295,11 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       // Recurse on all of the children in the import/export graph, filtering
       // out those for which library cycles have already been computed.
       library.exportedLibraries
+          .map(getActualLibrary)
           .where((l) => l._libraryCycle == null)
           .forEach(recurse);
       library.importedLibraries
+          .map(getActualLibrary)
           .where((l) => l._libraryCycle == null)
           .forEach(recurse);
 

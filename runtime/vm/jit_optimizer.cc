@@ -1262,7 +1262,7 @@ bool JitOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
 }
 
 
-// Using field class
+// Using field class.
 RawField* JitOptimizer::GetField(intptr_t class_id,
                                  const String& field_name) {
   Class& cls = Class::Handle(Z, isolate()->class_table()->At(class_id));
@@ -1270,7 +1270,12 @@ RawField* JitOptimizer::GetField(intptr_t class_id,
   while (!cls.IsNull()) {
     field = cls.LookupInstanceField(field_name);
     if (!field.IsNull()) {
-      return field.raw();
+      if (Compiler::IsBackgroundCompilation() ||
+          FLAG_force_clone_compiler_objects) {
+        return field.CloneFromOriginal();
+      } else {
+        return field.raw();
+      }
     }
     cls = cls.SuperClass();
   }
@@ -2988,9 +2993,9 @@ void JitOptimizer::VisitStoreInstanceField(
     // usage count of at least 1/kGetterSetterRatio of the getter usage count.
     // This is to avoid unboxing fields where the setter is never or rarely
     // executed.
-    const Field& field = Field::ZoneHandle(Z, instr->field().raw());
+    const Field& field = Field::ZoneHandle(Z, instr->field().Original());
     const String& field_name = String::Handle(Z, field.name());
-    const Class& owner = Class::Handle(Z, field.owner());
+    const Class& owner = Class::Handle(Z, field.Owner());
     const Function& getter =
         Function::Handle(Z, owner.LookupGetterFunction(field_name));
     const Function& setter =
@@ -3081,7 +3086,7 @@ bool JitOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
                                            const ICData& unary_ic_data) {
   ASSERT((unary_ic_data.NumberOfChecks() > 0) &&
       (unary_ic_data.NumArgsTested() == 1));
-  if (I->flags().type_checks()) {
+  if (I->type_checks()) {
     // Checked mode setters are inlined like normal methods by conventional
     // inlining.
     return false;
