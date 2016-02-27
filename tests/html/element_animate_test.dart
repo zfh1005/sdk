@@ -14,7 +14,7 @@ main() {
 
   group('animate_supported', () {
     test('supported', () {
-      expect(Animation.supported, isTrue);
+      expect(AnimationPlayer.supported, true);
     });
   });
 
@@ -24,7 +24,7 @@ main() {
       var opacity = num.parse(body.getComputedStyle().opacity);
       body.animate([{"opacity": 100}, {"opacity": 0}], 100);
       var newOpacity = num.parse(body.getComputedStyle().opacity);
-      expect(newOpacity == opacity, isTrue);
+      expect(newOpacity < opacity, isTrue);
     });
   });
 
@@ -39,8 +39,7 @@ main() {
       // Don't bother to parse to numbers, as long as it's changed that
       // indicates something is happening.
       expect(newFontSize == fontSize, isFalse);
-      player.on['finish'].list    test('supported', () {
-      en(expectAsync((_) => 'done'));
+      player.on['finish'].listen(expectAsync((_) => 'done'));
     });
   });
 
