@@ -390,6 +390,7 @@ LayoutTests/fast/css-grid-layout/percent-padding-margin-resolution-grid-item-upd
 LayoutTests/fast/css-grid-layout/percent-padding-margin-resolution-grid-item_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/css-grid-layout/percent-resolution-grid-item_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/css-grid-layout/place-cell-by-index_t01: RuntimeError # co19-roll r786: Please triage this failure.
+LayoutTests/fast/css-intrinsic-dimensions/intrinsic-sized-replaced-absolutes_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/css/add-remove-stylesheets-at-once-minimal-recalc-style_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/checked-pseudo-selector_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/css/collapsed-whitespace-reattach-in-style-recalc_t01: RuntimeError # co19-roll r761: Please triage this failure.
@@ -675,6 +676,7 @@ LayoutTests/fast/loader/about-blank-hash-kept_t01: Skip # Times out. co19-roll r
 LayoutTests/fast/loader/hashchange-event-properties_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/loader/loadInProgress_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/loader/onhashchange-attribute-listeners_t01: Skip # Times out. co19-roll r801: Please triage this failure.
+LayoutTests/fast/loader/onload-policy-ignore-for-frame_t01: Timeout # Dartium 45 roll
 LayoutTests/fast/loader/scroll-position-restored-on-back_t01: RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/loader/scroll-position-restored-on-reload-at-load-event_t01: Skip # Times out. co19-roll r801: Please triage this failure.
 LayoutTests/fast/loader/stateobjects/replacestate-in-onunload_t01: RuntimeError # co19-roll r801: Please triage this failure.
@@ -750,6 +752,8 @@ LayoutTests/fast/replaced/computed-image-width-with-percent-height-and-fixed-anc
 LayoutTests/fast/replaced/computed-image-width-with-percent-height-inside-table-cell-and-fixed-ancestor-vertical-lr_t01: RuntimeError, Pass # Spurious intermittent pass # co19 issue 11.
 LayoutTests/fast/replaced/computed-image-width-with-percent-height-inside-table-cell-and-fixed-ancestor_t01: RuntimeError, Pass # Spurious intermittent pass # co19 issue 11.
 LayoutTests/fast/replaced/container-width-zero_t01: RuntimeError # co19-roll r801: Please triage this failure.
+LayoutTests/fast/replaced/iframe-with-percentage-height-within-table-with-anonymous-table-cell_t01: RuntimeError, Pass, Timeout # Spurious intermittent pass. # co19 issue 11.
+LayoutTests/fast/replaced/iframe-with-percentage-height-within-table-with-table-cell-ignore-height_t01: RuntimeError, Pass, Timeout # co19-roll r801: Please triage this failure.
 LayoutTests/fast/replaced/preferred-widths_t01: Pass, RuntimeError # co19-roll r801: Please triage this failure.
 LayoutTests/fast/replaced/table-percent-height-text-controls_t01: RuntimeError # co19 issue 11.
 LayoutTests/fast/replaced/table-percent-height_t01: RuntimeError # co19-roll r801: Please triage this failure.
@@ -1184,6 +1188,7 @@ WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTr
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/mode_t01: RuntimeError # co19-roll r738: Please triage this failure.
 WebPlatformTest/html/semantics/forms/attributes-common-to-form-controls/formAction_document_address_t01: RuntimeError # co19-roll r738: Please triage this failure.
 WebPlatformTest/html/semantics/forms/attributes-common-to-form-controls/formaction_t01: RuntimeError # co19-roll r738: Please triage this failure.
+WebPlatformTest/html/semantics/forms/textfieldselection/selection_t01: RuntimeError # Dartium 45 roll
 WebPlatformTest/html/semantics/forms/textfieldselection/textfieldselection-setRangeText_t01: RuntimeError # co19-roll r738: Please triage this failure.
 WebPlatformTest/html/semantics/forms/textfieldselection/textfieldselection-setSelectionRange_t01: RuntimeError, Pass # co19-roll r738: Please triage this failure.  Pass on macos.
 WebPlatformTest/html/semantics/forms/the-button-element/button-validation_t01: RuntimeError # co19-roll r738: Please triage this failure.
