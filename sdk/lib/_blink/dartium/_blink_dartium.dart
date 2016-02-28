@@ -1611,6 +1611,8 @@ class BlinkBluetoothGATTService {
 
   isPrimary_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "isPrimary");
 
+  uuid_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "uuid");
+
   getCharacteristic_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getCharacteristic", []);
 
   getCharacteristic_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getCharacteristic", [__arg_0]);
@@ -11819,6 +11821,18 @@ class BlinkPerformance extends BlinkEventTarget {
 
   clearMeasures_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "clearMeasures", [__arg_0]);
 
+  getEntries_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getEntries", []);
+
+  getEntriesByName_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getEntriesByName", []);
+
+  getEntriesByName_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getEntriesByName", [__arg_0]);
+
+  getEntriesByName_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "getEntriesByName", [__arg_0, __arg_1]);
+
+  getEntriesByType_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getEntriesByType", []);
+
+  getEntriesByType_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getEntriesByType", [__arg_0]);
+
   mark_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "mark", []);
 
   mark_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "mark", [__arg_0]);
@@ -11828,6 +11842,8 @@ class BlinkPerformance extends BlinkEventTarget {
   measure_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "measure", [__arg_0, __arg_1]);
 
   measure_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "measure", [__arg_0, __arg_1, __arg_2]);
+
+  now_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "now", []);
 
   setFrameTimingBufferSize_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "setFrameTimingBufferSize", []);
 
@@ -11851,9 +11867,13 @@ class BlinkPerformanceCompositeTiming extends BlinkPerformanceEntry {
 class BlinkPerformanceEntry {
   static final instance = new BlinkPerformanceEntry();
 
+  duration_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "duration");
+
   entryType_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "entryType");
 
   name_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "name");
+
+  startTime_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "startTime");
 
 }
 
@@ -11886,7 +11906,31 @@ class BlinkPerformanceRenderTiming extends BlinkPerformanceEntry {
 class BlinkPerformanceResourceTiming extends BlinkPerformanceEntry {
   static final instance = new BlinkPerformanceResourceTiming();
 
+  connectEnd_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "connectEnd");
+
+  connectStart_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "connectStart");
+
+  domainLookupEnd_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "domainLookupEnd");
+
+  domainLookupStart_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "domainLookupStart");
+
+  fetchStart_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "fetchStart");
+
   initiatorType_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "initiatorType");
+
+  redirectEnd_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "redirectEnd");
+
+  redirectStart_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "redirectStart");
+
+  requestStart_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "requestStart");
+
+  responseEnd_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "responseEnd");
+
+  responseStart_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "responseStart");
+
+  secureConnectionStart_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "secureConnectionStart");
+
+  workerStart_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "workerStart");
 
 }
 
@@ -12286,6 +12330,8 @@ class BlinkPushMessageData {
   arrayBuffer_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "arrayBuffer", []);
 
   blob_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "blob", []);
+
+  json_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "json", []);
 
   text_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "text", []);
 
@@ -16167,6 +16213,8 @@ class BlinkSharedWorker extends BlinkEventTarget {
 
   port_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "port");
 
+  workerStart_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "workerStart");
+
   onerror_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "onerror");
 
   onerror_Setter_(mthis, __arg_0) => mthis["onerror"] = __arg_0;
@@ -18005,6 +18053,24 @@ class BlinkWebGL2RenderingContext {
 
   beginTransformFeedback_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "beginTransformFeedback", [__arg_0]);
 
+  bindBufferBase_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "bindBufferBase", [__arg_0]);
+
+  bindBufferBase_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "bindBufferBase", [__arg_0, __arg_1]);
+
+  bindBufferBase_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "bindBufferBase", [__arg_0, __arg_1, __arg_2]);
+
+  bindBufferRange_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "bindBufferRange", [__arg_0, __arg_1, __arg_2]);
+
+  bindBufferRange_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "bindBufferRange", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  bindBufferRange_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => Blink_JsNative_DomException.callMethod(mthis, "bindBufferRange", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4]);
+
+  bindSampler_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "bindSampler", []);
+
+  bindSampler_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "bindSampler", [__arg_0]);
+
+  bindSampler_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "bindSampler", [__arg_0, __arg_1]);
+
   bindTransformFeedback_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "bindTransformFeedback", []);
 
   bindTransformFeedback_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "bindTransformFeedback", [__arg_0]);
@@ -18014,6 +18080,66 @@ class BlinkWebGL2RenderingContext {
   bindVertexArray_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "bindVertexArray", []);
 
   bindVertexArray_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "bindVertexArray", [__arg_0]);
+
+  blitFramebuffer_Callback_8_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7) => Blink_JsNative_DomException.callMethod(mthis, "blitFramebuffer", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7]);
+
+  blitFramebuffer_Callback_9_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8) => Blink_JsNative_DomException.callMethod(mthis, "blitFramebuffer", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8]);
+
+  blitFramebuffer_Callback_10_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8, __arg_9) => Blink_JsNative_DomException.callMethod(mthis, "blitFramebuffer", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8, __arg_9]);
+
+  clearBufferfi_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "clearBufferfi", [__arg_0, __arg_1]);
+
+  clearBufferfi_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "clearBufferfi", [__arg_0, __arg_1, __arg_2]);
+
+  clearBufferfi_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "clearBufferfi", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  clearBufferfv_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "clearBufferfv", [__arg_0]);
+
+  clearBufferfv_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "clearBufferfv", [__arg_0, __arg_1]);
+
+  clearBufferfv_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "clearBufferfv", [__arg_0, __arg_1, __arg_2]);
+
+  clearBufferiv_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "clearBufferiv", [__arg_0]);
+
+  clearBufferiv_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "clearBufferiv", [__arg_0, __arg_1]);
+
+  clearBufferiv_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "clearBufferiv", [__arg_0, __arg_1, __arg_2]);
+
+  clearBufferuiv_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "clearBufferuiv", [__arg_0]);
+
+  clearBufferuiv_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "clearBufferuiv", [__arg_0, __arg_1]);
+
+  clearBufferuiv_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "clearBufferuiv", [__arg_0, __arg_1, __arg_2]);
+
+  clientWaitSync_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "clientWaitSync", [__arg_0]);
+
+  clientWaitSync_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "clientWaitSync", [__arg_0, __arg_1]);
+
+  clientWaitSync_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "clientWaitSync", [__arg_0, __arg_1, __arg_2]);
+
+  compressedTexImage3D_Callback_6_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5) => Blink_JsNative_DomException.callMethod(mthis, "compressedTexImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5]);
+
+  compressedTexImage3D_Callback_7_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6) => Blink_JsNative_DomException.callMethod(mthis, "compressedTexImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6]);
+
+  compressedTexImage3D_Callback_8_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7) => Blink_JsNative_DomException.callMethod(mthis, "compressedTexImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7]);
+
+  compressedTexSubImage3D_Callback_8_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7) => Blink_JsNative_DomException.callMethod(mthis, "compressedTexSubImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7]);
+
+  compressedTexSubImage3D_Callback_9_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8) => Blink_JsNative_DomException.callMethod(mthis, "compressedTexSubImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8]);
+
+  compressedTexSubImage3D_Callback_10_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8, __arg_9) => Blink_JsNative_DomException.callMethod(mthis, "compressedTexSubImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8, __arg_9]);
+
+  copyBufferSubData_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "copyBufferSubData", [__arg_0, __arg_1, __arg_2]);
+
+  copyBufferSubData_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "copyBufferSubData", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  copyBufferSubData_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => Blink_JsNative_DomException.callMethod(mthis, "copyBufferSubData", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4]);
+
+  copyTexSubImage3D_Callback_7_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6) => Blink_JsNative_DomException.callMethod(mthis, "copyTexSubImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6]);
+
+  copyTexSubImage3D_Callback_8_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7) => Blink_JsNative_DomException.callMethod(mthis, "copyTexSubImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7]);
+
+  copyTexSubImage3D_Callback_9_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8) => Blink_JsNative_DomException.callMethod(mthis, "copyTexSubImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8]);
 
   createQuery_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "createQuery", []);
 
@@ -18043,15 +18169,75 @@ class BlinkWebGL2RenderingContext {
 
   deleteVertexArray_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "deleteVertexArray", [__arg_0]);
 
+  drawArraysInstanced_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "drawArraysInstanced", [__arg_0, __arg_1]);
+
+  drawArraysInstanced_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "drawArraysInstanced", [__arg_0, __arg_1, __arg_2]);
+
+  drawArraysInstanced_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "drawArraysInstanced", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
   drawBuffers_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "drawBuffers", []);
 
   drawBuffers_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "drawBuffers", [__arg_0]);
+
+  drawElementsInstanced_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "drawElementsInstanced", [__arg_0, __arg_1, __arg_2]);
+
+  drawElementsInstanced_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "drawElementsInstanced", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  drawElementsInstanced_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => Blink_JsNative_DomException.callMethod(mthis, "drawElementsInstanced", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4]);
+
+  drawRangeElements_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "drawRangeElements", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  drawRangeElements_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => Blink_JsNative_DomException.callMethod(mthis, "drawRangeElements", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4]);
+
+  drawRangeElements_Callback_6_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5) => Blink_JsNative_DomException.callMethod(mthis, "drawRangeElements", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5]);
 
   endQuery_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "endQuery", []);
 
   endQuery_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "endQuery", [__arg_0]);
 
   endTransformFeedback_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "endTransformFeedback", []);
+
+  fenceSync_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "fenceSync", []);
+
+  fenceSync_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "fenceSync", [__arg_0]);
+
+  fenceSync_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "fenceSync", [__arg_0, __arg_1]);
+
+  framebufferTextureLayer_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "framebufferTextureLayer", [__arg_0, __arg_1, __arg_2]);
+
+  framebufferTextureLayer_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "framebufferTextureLayer", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  framebufferTextureLayer_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => Blink_JsNative_DomException.callMethod(mthis, "framebufferTextureLayer", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4]);
+
+  getActiveUniformBlockName_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getActiveUniformBlockName", []);
+
+  getActiveUniformBlockName_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getActiveUniformBlockName", [__arg_0]);
+
+  getActiveUniformBlockName_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "getActiveUniformBlockName", [__arg_0, __arg_1]);
+
+  getActiveUniformBlockParameter_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getActiveUniformBlockParameter", [__arg_0]);
+
+  getActiveUniformBlockParameter_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "getActiveUniformBlockParameter", [__arg_0, __arg_1]);
+
+  getActiveUniformBlockParameter_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "getActiveUniformBlockParameter", [__arg_0, __arg_1, __arg_2]);
+
+  getBufferSubData_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getBufferSubData", [__arg_0]);
+
+  getBufferSubData_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "getBufferSubData", [__arg_0, __arg_1]);
+
+  getBufferSubData_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "getBufferSubData", [__arg_0, __arg_1, __arg_2]);
+
+  getFragDataLocation_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getFragDataLocation", []);
+
+  getFragDataLocation_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getFragDataLocation", [__arg_0]);
+
+  getFragDataLocation_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "getFragDataLocation", [__arg_0, __arg_1]);
+
+  getIndexedParameter_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getIndexedParameter", []);
+
+  getIndexedParameter_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getIndexedParameter", [__arg_0]);
+
+  getIndexedParameter_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "getIndexedParameter", [__arg_0, __arg_1]);
 
   getInternalformatParameter_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getInternalformatParameter", [__arg_0]);
 
@@ -18083,11 +18269,49 @@ class BlinkWebGL2RenderingContext {
 
   getSyncParameter_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "getSyncParameter", [__arg_0, __arg_1]);
 
+  getTransformFeedbackVarying_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getTransformFeedbackVarying", []);
+
+  getTransformFeedbackVarying_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getTransformFeedbackVarying", [__arg_0]);
+
+  getTransformFeedbackVarying_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "getTransformFeedbackVarying", [__arg_0, __arg_1]);
+
+  getUniformBlockIndex_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getUniformBlockIndex", []);
+
+  getUniformBlockIndex_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getUniformBlockIndex", [__arg_0]);
+
+  getUniformBlockIndex_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "getUniformBlockIndex", [__arg_0, __arg_1]);
+
   invalidateFramebuffer_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "invalidateFramebuffer", []);
 
   invalidateFramebuffer_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "invalidateFramebuffer", [__arg_0]);
 
   invalidateFramebuffer_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "invalidateFramebuffer", [__arg_0, __arg_1]);
+
+  invalidateSubFramebuffer_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "invalidateSubFramebuffer", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  invalidateSubFramebuffer_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => Blink_JsNative_DomException.callMethod(mthis, "invalidateSubFramebuffer", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4]);
+
+  invalidateSubFramebuffer_Callback_6_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5) => Blink_JsNative_DomException.callMethod(mthis, "invalidateSubFramebuffer", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5]);
+
+  isQuery_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "isQuery", []);
+
+  isQuery_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "isQuery", [__arg_0]);
+
+  isSampler_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "isSampler", []);
+
+  isSampler_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "isSampler", [__arg_0]);
+
+  isSync_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "isSync", []);
+
+  isSync_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "isSync", [__arg_0]);
+
+  isTransformFeedback_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "isTransformFeedback", []);
+
+  isTransformFeedback_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "isTransformFeedback", [__arg_0]);
+
+  isVertexArray_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "isVertexArray", []);
+
+  isVertexArray_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "isVertexArray", [__arg_0]);
 
   pauseTransformFeedback_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "pauseTransformFeedback", []);
 
@@ -18095,13 +18319,157 @@ class BlinkWebGL2RenderingContext {
 
   readBuffer_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "readBuffer", [__arg_0]);
 
+  renderbufferStorageMultisample_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "renderbufferStorageMultisample", [__arg_0, __arg_1, __arg_2]);
+
+  renderbufferStorageMultisample_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "renderbufferStorageMultisample", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  renderbufferStorageMultisample_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => Blink_JsNative_DomException.callMethod(mthis, "renderbufferStorageMultisample", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4]);
+
   resumeTransformFeedback_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "resumeTransformFeedback", []);
+
+  samplerParameterf_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "samplerParameterf", [__arg_0]);
+
+  samplerParameterf_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "samplerParameterf", [__arg_0, __arg_1]);
+
+  samplerParameterf_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "samplerParameterf", [__arg_0, __arg_1, __arg_2]);
+
+  samplerParameteri_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "samplerParameteri", [__arg_0]);
+
+  samplerParameteri_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "samplerParameteri", [__arg_0, __arg_1]);
+
+  samplerParameteri_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "samplerParameteri", [__arg_0, __arg_1, __arg_2]);
+
+  texImage3D_Callback_8_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7) => Blink_JsNative_DomException.callMethod(mthis, "texImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7]);
+
+  texImage3D_Callback_9_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8) => Blink_JsNative_DomException.callMethod(mthis, "texImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8]);
+
+  texImage3D_Callback_10_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8, __arg_9) => Blink_JsNative_DomException.callMethod(mthis, "texImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8, __arg_9]);
+
+  texStorage2D_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "texStorage2D", [__arg_0, __arg_1, __arg_2]);
+
+  texStorage2D_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "texStorage2D", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  texStorage2D_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => Blink_JsNative_DomException.callMethod(mthis, "texStorage2D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4]);
+
+  texStorage3D_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "texStorage3D", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  texStorage3D_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => Blink_JsNative_DomException.callMethod(mthis, "texStorage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4]);
+
+  texStorage3D_Callback_6_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5) => Blink_JsNative_DomException.callMethod(mthis, "texStorage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5]);
+
+  texSubImage3D_Callback_6_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5) => Blink_JsNative_DomException.callMethod(mthis, "texSubImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5]);
+
+  texSubImage3D_Callback_7_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6) => Blink_JsNative_DomException.callMethod(mthis, "texSubImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6]);
+
+  texSubImage3D_Callback_8_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7) => Blink_JsNative_DomException.callMethod(mthis, "texSubImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7]);
+
+  texSubImage3D_Callback_9_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8) => Blink_JsNative_DomException.callMethod(mthis, "texSubImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8]);
+
+  texSubImage3D_Callback_10_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8, __arg_9) => Blink_JsNative_DomException.callMethod(mthis, "texSubImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8, __arg_9]);
+
+  texSubImage3D_Callback_11_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8, __arg_9, __arg_10) => Blink_JsNative_DomException.callMethod(mthis, "texSubImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8, __arg_9, __arg_10]);
 
   transformFeedbackVaryings_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "transformFeedbackVaryings", [__arg_0]);
 
   transformFeedbackVaryings_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "transformFeedbackVaryings", [__arg_0, __arg_1]);
 
   transformFeedbackVaryings_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "transformFeedbackVaryings", [__arg_0, __arg_1, __arg_2]);
+
+  uniform1ui_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "uniform1ui", []);
+
+  uniform1ui_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "uniform1ui", [__arg_0]);
+
+  uniform1ui_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "uniform1ui", [__arg_0, __arg_1]);
+
+  uniform2ui_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "uniform2ui", [__arg_0]);
+
+  uniform2ui_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "uniform2ui", [__arg_0, __arg_1]);
+
+  uniform2ui_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "uniform2ui", [__arg_0, __arg_1, __arg_2]);
+
+  uniform3ui_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "uniform3ui", [__arg_0, __arg_1]);
+
+  uniform3ui_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "uniform3ui", [__arg_0, __arg_1, __arg_2]);
+
+  uniform3ui_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "uniform3ui", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  uniform4ui_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "uniform4ui", [__arg_0, __arg_1, __arg_2]);
+
+  uniform4ui_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "uniform4ui", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  uniform4ui_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => Blink_JsNative_DomException.callMethod(mthis, "uniform4ui", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4]);
+
+  uniformBlockBinding_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "uniformBlockBinding", [__arg_0]);
+
+  uniformBlockBinding_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "uniformBlockBinding", [__arg_0, __arg_1]);
+
+  uniformBlockBinding_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "uniformBlockBinding", [__arg_0, __arg_1, __arg_2]);
+
+  uniformMatrix2x3fv_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix2x3fv", [__arg_0]);
+
+  uniformMatrix2x3fv_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix2x3fv", [__arg_0, __arg_1]);
+
+  uniformMatrix2x3fv_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix2x3fv", [__arg_0, __arg_1, __arg_2]);
+
+  uniformMatrix2x4fv_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix2x4fv", [__arg_0]);
+
+  uniformMatrix2x4fv_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix2x4fv", [__arg_0, __arg_1]);
+
+  uniformMatrix2x4fv_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix2x4fv", [__arg_0, __arg_1, __arg_2]);
+
+  uniformMatrix3x2fv_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix3x2fv", [__arg_0]);
+
+  uniformMatrix3x2fv_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix3x2fv", [__arg_0, __arg_1]);
+
+  uniformMatrix3x2fv_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix3x2fv", [__arg_0, __arg_1, __arg_2]);
+
+  uniformMatrix3x4fv_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix3x4fv", [__arg_0]);
+
+  uniformMatrix3x4fv_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix3x4fv", [__arg_0, __arg_1]);
+
+  uniformMatrix3x4fv_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix3x4fv", [__arg_0, __arg_1, __arg_2]);
+
+  uniformMatrix4x2fv_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix4x2fv", [__arg_0]);
+
+  uniformMatrix4x2fv_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix4x2fv", [__arg_0, __arg_1]);
+
+  uniformMatrix4x2fv_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix4x2fv", [__arg_0, __arg_1, __arg_2]);
+
+  uniformMatrix4x3fv_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix4x3fv", [__arg_0]);
+
+  uniformMatrix4x3fv_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix4x3fv", [__arg_0, __arg_1]);
+
+  uniformMatrix4x3fv_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix4x3fv", [__arg_0, __arg_1, __arg_2]);
+
+  vertexAttribDivisor_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "vertexAttribDivisor", []);
+
+  vertexAttribDivisor_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "vertexAttribDivisor", [__arg_0]);
+
+  vertexAttribDivisor_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "vertexAttribDivisor", [__arg_0, __arg_1]);
+
+  vertexAttribI4i_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "vertexAttribI4i", [__arg_0, __arg_1, __arg_2]);
+
+  vertexAttribI4i_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "vertexAttribI4i", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  vertexAttribI4i_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => Blink_JsNative_DomException.callMethod(mthis, "vertexAttribI4i", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4]);
+
+  vertexAttribI4ui_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "vertexAttribI4ui", [__arg_0, __arg_1, __arg_2]);
+
+  vertexAttribI4ui_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "vertexAttribI4ui", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  vertexAttribI4ui_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => Blink_JsNative_DomException.callMethod(mthis, "vertexAttribI4ui", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4]);
+
+  vertexAttribIPointer_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "vertexAttribIPointer", [__arg_0, __arg_1, __arg_2]);
+
+  vertexAttribIPointer_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "vertexAttribIPointer", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  vertexAttribIPointer_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => Blink_JsNative_DomException.callMethod(mthis, "vertexAttribIPointer", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4]);
+
+  waitSync_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "waitSync", [__arg_0]);
+
+  waitSync_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "waitSync", [__arg_0, __arg_1]);
+
+  waitSync_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "waitSync", [__arg_0, __arg_1, __arg_2]);
 
 }
 
@@ -18118,6 +18486,24 @@ class BlinkWebGL2RenderingContextBase {
 
   beginTransformFeedback_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "beginTransformFeedback", [__arg_0]);
 
+  bindBufferBase_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "bindBufferBase", [__arg_0]);
+
+  bindBufferBase_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "bindBufferBase", [__arg_0, __arg_1]);
+
+  bindBufferBase_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "bindBufferBase", [__arg_0, __arg_1, __arg_2]);
+
+  bindBufferRange_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "bindBufferRange", [__arg_0, __arg_1, __arg_2]);
+
+  bindBufferRange_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "bindBufferRange", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  bindBufferRange_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => Blink_JsNative_DomException.callMethod(mthis, "bindBufferRange", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4]);
+
+  bindSampler_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "bindSampler", []);
+
+  bindSampler_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "bindSampler", [__arg_0]);
+
+  bindSampler_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "bindSampler", [__arg_0, __arg_1]);
+
   bindTransformFeedback_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "bindTransformFeedback", []);
 
   bindTransformFeedback_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "bindTransformFeedback", [__arg_0]);
@@ -18127,6 +18513,66 @@ class BlinkWebGL2RenderingContextBase {
   bindVertexArray_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "bindVertexArray", []);
 
   bindVertexArray_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "bindVertexArray", [__arg_0]);
+
+  blitFramebuffer_Callback_8_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7) => Blink_JsNative_DomException.callMethod(mthis, "blitFramebuffer", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7]);
+
+  blitFramebuffer_Callback_9_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8) => Blink_JsNative_DomException.callMethod(mthis, "blitFramebuffer", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8]);
+
+  blitFramebuffer_Callback_10_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8, __arg_9) => Blink_JsNative_DomException.callMethod(mthis, "blitFramebuffer", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8, __arg_9]);
+
+  clearBufferfi_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "clearBufferfi", [__arg_0, __arg_1]);
+
+  clearBufferfi_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "clearBufferfi", [__arg_0, __arg_1, __arg_2]);
+
+  clearBufferfi_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "clearBufferfi", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  clearBufferfv_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "clearBufferfv", [__arg_0]);
+
+  clearBufferfv_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "clearBufferfv", [__arg_0, __arg_1]);
+
+  clearBufferfv_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "clearBufferfv", [__arg_0, __arg_1, __arg_2]);
+
+  clearBufferiv_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "clearBufferiv", [__arg_0]);
+
+  clearBufferiv_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "clearBufferiv", [__arg_0, __arg_1]);
+
+  clearBufferiv_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "clearBufferiv", [__arg_0, __arg_1, __arg_2]);
+
+  clearBufferuiv_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "clearBufferuiv", [__arg_0]);
+
+  clearBufferuiv_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "clearBufferuiv", [__arg_0, __arg_1]);
+
+  clearBufferuiv_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "clearBufferuiv", [__arg_0, __arg_1, __arg_2]);
+
+  clientWaitSync_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "clientWaitSync", [__arg_0]);
+
+  clientWaitSync_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "clientWaitSync", [__arg_0, __arg_1]);
+
+  clientWaitSync_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "clientWaitSync", [__arg_0, __arg_1, __arg_2]);
+
+  compressedTexImage3D_Callback_6_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5) => Blink_JsNative_DomException.callMethod(mthis, "compressedTexImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5]);
+
+  compressedTexImage3D_Callback_7_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6) => Blink_JsNative_DomException.callMethod(mthis, "compressedTexImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6]);
+
+  compressedTexImage3D_Callback_8_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7) => Blink_JsNative_DomException.callMethod(mthis, "compressedTexImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7]);
+
+  compressedTexSubImage3D_Callback_8_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7) => Blink_JsNative_DomException.callMethod(mthis, "compressedTexSubImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7]);
+
+  compressedTexSubImage3D_Callback_9_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8) => Blink_JsNative_DomException.callMethod(mthis, "compressedTexSubImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8]);
+
+  compressedTexSubImage3D_Callback_10_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8, __arg_9) => Blink_JsNative_DomException.callMethod(mthis, "compressedTexSubImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8, __arg_9]);
+
+  copyBufferSubData_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "copyBufferSubData", [__arg_0, __arg_1, __arg_2]);
+
+  copyBufferSubData_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "copyBufferSubData", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  copyBufferSubData_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => Blink_JsNative_DomException.callMethod(mthis, "copyBufferSubData", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4]);
+
+  copyTexSubImage3D_Callback_7_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6) => Blink_JsNative_DomException.callMethod(mthis, "copyTexSubImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6]);
+
+  copyTexSubImage3D_Callback_8_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7) => Blink_JsNative_DomException.callMethod(mthis, "copyTexSubImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7]);
+
+  copyTexSubImage3D_Callback_9_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8) => Blink_JsNative_DomException.callMethod(mthis, "copyTexSubImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8]);
 
   createQuery_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "createQuery", []);
 
@@ -18156,15 +18602,75 @@ class BlinkWebGL2RenderingContextBase {
 
   deleteVertexArray_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "deleteVertexArray", [__arg_0]);
 
+  drawArraysInstanced_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "drawArraysInstanced", [__arg_0, __arg_1]);
+
+  drawArraysInstanced_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "drawArraysInstanced", [__arg_0, __arg_1, __arg_2]);
+
+  drawArraysInstanced_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "drawArraysInstanced", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
   drawBuffers_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "drawBuffers", []);
 
   drawBuffers_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "drawBuffers", [__arg_0]);
+
+  drawElementsInstanced_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "drawElementsInstanced", [__arg_0, __arg_1, __arg_2]);
+
+  drawElementsInstanced_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "drawElementsInstanced", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  drawElementsInstanced_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => Blink_JsNative_DomException.callMethod(mthis, "drawElementsInstanced", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4]);
+
+  drawRangeElements_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "drawRangeElements", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  drawRangeElements_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => Blink_JsNative_DomException.callMethod(mthis, "drawRangeElements", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4]);
+
+  drawRangeElements_Callback_6_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5) => Blink_JsNative_DomException.callMethod(mthis, "drawRangeElements", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5]);
 
   endQuery_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "endQuery", []);
 
   endQuery_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "endQuery", [__arg_0]);
 
   endTransformFeedback_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "endTransformFeedback", []);
+
+  fenceSync_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "fenceSync", []);
+
+  fenceSync_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "fenceSync", [__arg_0]);
+
+  fenceSync_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "fenceSync", [__arg_0, __arg_1]);
+
+  framebufferTextureLayer_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "framebufferTextureLayer", [__arg_0, __arg_1, __arg_2]);
+
+  framebufferTextureLayer_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "framebufferTextureLayer", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  framebufferTextureLayer_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => Blink_JsNative_DomException.callMethod(mthis, "framebufferTextureLayer", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4]);
+
+  getActiveUniformBlockName_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getActiveUniformBlockName", []);
+
+  getActiveUniformBlockName_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getActiveUniformBlockName", [__arg_0]);
+
+  getActiveUniformBlockName_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "getActiveUniformBlockName", [__arg_0, __arg_1]);
+
+  getActiveUniformBlockParameter_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getActiveUniformBlockParameter", [__arg_0]);
+
+  getActiveUniformBlockParameter_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "getActiveUniformBlockParameter", [__arg_0, __arg_1]);
+
+  getActiveUniformBlockParameter_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "getActiveUniformBlockParameter", [__arg_0, __arg_1, __arg_2]);
+
+  getBufferSubData_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getBufferSubData", [__arg_0]);
+
+  getBufferSubData_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "getBufferSubData", [__arg_0, __arg_1]);
+
+  getBufferSubData_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "getBufferSubData", [__arg_0, __arg_1, __arg_2]);
+
+  getFragDataLocation_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getFragDataLocation", []);
+
+  getFragDataLocation_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getFragDataLocation", [__arg_0]);
+
+  getFragDataLocation_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "getFragDataLocation", [__arg_0, __arg_1]);
+
+  getIndexedParameter_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getIndexedParameter", []);
+
+  getIndexedParameter_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getIndexedParameter", [__arg_0]);
+
+  getIndexedParameter_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "getIndexedParameter", [__arg_0, __arg_1]);
 
   getInternalformatParameter_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getInternalformatParameter", [__arg_0]);
 
@@ -18196,11 +18702,49 @@ class BlinkWebGL2RenderingContextBase {
 
   getSyncParameter_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "getSyncParameter", [__arg_0, __arg_1]);
 
+  getTransformFeedbackVarying_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getTransformFeedbackVarying", []);
+
+  getTransformFeedbackVarying_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getTransformFeedbackVarying", [__arg_0]);
+
+  getTransformFeedbackVarying_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "getTransformFeedbackVarying", [__arg_0, __arg_1]);
+
+  getUniformBlockIndex_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getUniformBlockIndex", []);
+
+  getUniformBlockIndex_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getUniformBlockIndex", [__arg_0]);
+
+  getUniformBlockIndex_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "getUniformBlockIndex", [__arg_0, __arg_1]);
+
   invalidateFramebuffer_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "invalidateFramebuffer", []);
 
   invalidateFramebuffer_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "invalidateFramebuffer", [__arg_0]);
 
   invalidateFramebuffer_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "invalidateFramebuffer", [__arg_0, __arg_1]);
+
+  invalidateSubFramebuffer_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "invalidateSubFramebuffer", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  invalidateSubFramebuffer_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => Blink_JsNative_DomException.callMethod(mthis, "invalidateSubFramebuffer", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4]);
+
+  invalidateSubFramebuffer_Callback_6_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5) => Blink_JsNative_DomException.callMethod(mthis, "invalidateSubFramebuffer", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5]);
+
+  isQuery_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "isQuery", []);
+
+  isQuery_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "isQuery", [__arg_0]);
+
+  isSampler_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "isSampler", []);
+
+  isSampler_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "isSampler", [__arg_0]);
+
+  isSync_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "isSync", []);
+
+  isSync_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "isSync", [__arg_0]);
+
+  isTransformFeedback_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "isTransformFeedback", []);
+
+  isTransformFeedback_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "isTransformFeedback", [__arg_0]);
+
+  isVertexArray_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "isVertexArray", []);
+
+  isVertexArray_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "isVertexArray", [__arg_0]);
 
   pauseTransformFeedback_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "pauseTransformFeedback", []);
 
@@ -18208,13 +18752,157 @@ class BlinkWebGL2RenderingContextBase {
 
   readBuffer_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "readBuffer", [__arg_0]);
 
+  renderbufferStorageMultisample_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "renderbufferStorageMultisample", [__arg_0, __arg_1, __arg_2]);
+
+  renderbufferStorageMultisample_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "renderbufferStorageMultisample", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  renderbufferStorageMultisample_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => Blink_JsNative_DomException.callMethod(mthis, "renderbufferStorageMultisample", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4]);
+
   resumeTransformFeedback_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "resumeTransformFeedback", []);
+
+  samplerParameterf_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "samplerParameterf", [__arg_0]);
+
+  samplerParameterf_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "samplerParameterf", [__arg_0, __arg_1]);
+
+  samplerParameterf_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "samplerParameterf", [__arg_0, __arg_1, __arg_2]);
+
+  samplerParameteri_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "samplerParameteri", [__arg_0]);
+
+  samplerParameteri_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "samplerParameteri", [__arg_0, __arg_1]);
+
+  samplerParameteri_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "samplerParameteri", [__arg_0, __arg_1, __arg_2]);
+
+  texImage3D_Callback_8_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7) => Blink_JsNative_DomException.callMethod(mthis, "texImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7]);
+
+  texImage3D_Callback_9_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8) => Blink_JsNative_DomException.callMethod(mthis, "texImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8]);
+
+  texImage3D_Callback_10_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8, __arg_9) => Blink_JsNative_DomException.callMethod(mthis, "texImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8, __arg_9]);
+
+  texStorage2D_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "texStorage2D", [__arg_0, __arg_1, __arg_2]);
+
+  texStorage2D_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "texStorage2D", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  texStorage2D_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => Blink_JsNative_DomException.callMethod(mthis, "texStorage2D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4]);
+
+  texStorage3D_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "texStorage3D", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  texStorage3D_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => Blink_JsNative_DomException.callMethod(mthis, "texStorage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4]);
+
+  texStorage3D_Callback_6_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5) => Blink_JsNative_DomException.callMethod(mthis, "texStorage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5]);
+
+  texSubImage3D_Callback_6_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5) => Blink_JsNative_DomException.callMethod(mthis, "texSubImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5]);
+
+  texSubImage3D_Callback_7_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6) => Blink_JsNative_DomException.callMethod(mthis, "texSubImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6]);
+
+  texSubImage3D_Callback_8_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7) => Blink_JsNative_DomException.callMethod(mthis, "texSubImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7]);
+
+  texSubImage3D_Callback_9_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8) => Blink_JsNative_DomException.callMethod(mthis, "texSubImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8]);
+
+  texSubImage3D_Callback_10_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8, __arg_9) => Blink_JsNative_DomException.callMethod(mthis, "texSubImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8, __arg_9]);
+
+  texSubImage3D_Callback_11_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8, __arg_9, __arg_10) => Blink_JsNative_DomException.callMethod(mthis, "texSubImage3D", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4, __arg_5, __arg_6, __arg_7, __arg_8, __arg_9, __arg_10]);
 
   transformFeedbackVaryings_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "transformFeedbackVaryings", [__arg_0]);
 
   transformFeedbackVaryings_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "transformFeedbackVaryings", [__arg_0, __arg_1]);
 
   transformFeedbackVaryings_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "transformFeedbackVaryings", [__arg_0, __arg_1, __arg_2]);
+
+  uniform1ui_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "uniform1ui", []);
+
+  uniform1ui_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "uniform1ui", [__arg_0]);
+
+  uniform1ui_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "uniform1ui", [__arg_0, __arg_1]);
+
+  uniform2ui_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "uniform2ui", [__arg_0]);
+
+  uniform2ui_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "uniform2ui", [__arg_0, __arg_1]);
+
+  uniform2ui_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "uniform2ui", [__arg_0, __arg_1, __arg_2]);
+
+  uniform3ui_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "uniform3ui", [__arg_0, __arg_1]);
+
+  uniform3ui_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "uniform3ui", [__arg_0, __arg_1, __arg_2]);
+
+  uniform3ui_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "uniform3ui", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  uniform4ui_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "uniform4ui", [__arg_0, __arg_1, __arg_2]);
+
+  uniform4ui_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "uniform4ui", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  uniform4ui_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => Blink_JsNative_DomException.callMethod(mthis, "uniform4ui", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4]);
+
+  uniformBlockBinding_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "uniformBlockBinding", [__arg_0]);
+
+  uniformBlockBinding_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "uniformBlockBinding", [__arg_0, __arg_1]);
+
+  uniformBlockBinding_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "uniformBlockBinding", [__arg_0, __arg_1, __arg_2]);
+
+  uniformMatrix2x3fv_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix2x3fv", [__arg_0]);
+
+  uniformMatrix2x3fv_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix2x3fv", [__arg_0, __arg_1]);
+
+  uniformMatrix2x3fv_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix2x3fv", [__arg_0, __arg_1, __arg_2]);
+
+  uniformMatrix2x4fv_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix2x4fv", [__arg_0]);
+
+  uniformMatrix2x4fv_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix2x4fv", [__arg_0, __arg_1]);
+
+  uniformMatrix2x4fv_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix2x4fv", [__arg_0, __arg_1, __arg_2]);
+
+  uniformMatrix3x2fv_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix3x2fv", [__arg_0]);
+
+  uniformMatrix3x2fv_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix3x2fv", [__arg_0, __arg_1]);
+
+  uniformMatrix3x2fv_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix3x2fv", [__arg_0, __arg_1, __arg_2]);
+
+  uniformMatrix3x4fv_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix3x4fv", [__arg_0]);
+
+  uniformMatrix3x4fv_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix3x4fv", [__arg_0, __arg_1]);
+
+  uniformMatrix3x4fv_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix3x4fv", [__arg_0, __arg_1, __arg_2]);
+
+  uniformMatrix4x2fv_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix4x2fv", [__arg_0]);
+
+  uniformMatrix4x2fv_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix4x2fv", [__arg_0, __arg_1]);
+
+  uniformMatrix4x2fv_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix4x2fv", [__arg_0, __arg_1, __arg_2]);
+
+  uniformMatrix4x3fv_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix4x3fv", [__arg_0]);
+
+  uniformMatrix4x3fv_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix4x3fv", [__arg_0, __arg_1]);
+
+  uniformMatrix4x3fv_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "uniformMatrix4x3fv", [__arg_0, __arg_1, __arg_2]);
+
+  vertexAttribDivisor_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "vertexAttribDivisor", []);
+
+  vertexAttribDivisor_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "vertexAttribDivisor", [__arg_0]);
+
+  vertexAttribDivisor_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "vertexAttribDivisor", [__arg_0, __arg_1]);
+
+  vertexAttribI4i_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "vertexAttribI4i", [__arg_0, __arg_1, __arg_2]);
+
+  vertexAttribI4i_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "vertexAttribI4i", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  vertexAttribI4i_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => Blink_JsNative_DomException.callMethod(mthis, "vertexAttribI4i", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4]);
+
+  vertexAttribI4ui_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "vertexAttribI4ui", [__arg_0, __arg_1, __arg_2]);
+
+  vertexAttribI4ui_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "vertexAttribI4ui", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  vertexAttribI4ui_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => Blink_JsNative_DomException.callMethod(mthis, "vertexAttribI4ui", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4]);
+
+  vertexAttribIPointer_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "vertexAttribIPointer", [__arg_0, __arg_1, __arg_2]);
+
+  vertexAttribIPointer_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "vertexAttribIPointer", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  vertexAttribIPointer_Callback_5_(mthis, __arg_0, __arg_1, __arg_2, __arg_3, __arg_4) => Blink_JsNative_DomException.callMethod(mthis, "vertexAttribIPointer", [__arg_0, __arg_1, __arg_2, __arg_3, __arg_4]);
+
+  waitSync_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "waitSync", [__arg_0]);
+
+  waitSync_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "waitSync", [__arg_0, __arg_1]);
+
+  waitSync_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "waitSync", [__arg_0, __arg_1, __arg_2]);
 
   canvas_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "canvas");
 
@@ -20663,6 +21351,18 @@ class BlinkWorkerPerformance extends BlinkEventTarget {
 
   clearMeasures_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "clearMeasures", [__arg_0]);
 
+  getEntries_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getEntries", []);
+
+  getEntriesByName_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getEntriesByName", []);
+
+  getEntriesByName_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getEntriesByName", [__arg_0]);
+
+  getEntriesByName_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "getEntriesByName", [__arg_0, __arg_1]);
+
+  getEntriesByType_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getEntriesByType", []);
+
+  getEntriesByType_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getEntriesByType", [__arg_0]);
+
   mark_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "mark", []);
 
   mark_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "mark", [__arg_0]);
@@ -20672,6 +21372,8 @@ class BlinkWorkerPerformance extends BlinkEventTarget {
   measure_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "measure", [__arg_0, __arg_1]);
 
   measure_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "measure", [__arg_0, __arg_1, __arg_2]);
+
+  now_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "now", []);
 
   webkitClearResourceTimings_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "webkitClearResourceTimings", []);
 

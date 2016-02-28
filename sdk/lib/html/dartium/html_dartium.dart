@@ -3146,6 +3146,11 @@ class BluetoothGattService extends DartHtmlDomObject {
   @Experimental() // untriaged
   bool get isPrimary => _blink.BlinkBluetoothGATTService.instance.isPrimary_Getter_(unwrap_jso(this));
   
+  @DomName('BluetoothGATTService.uuid')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get uuid => _blink.BlinkBluetoothGATTService.instance.uuid_Getter_(unwrap_jso(this));
+  
   @DomName('BluetoothGATTService.getCharacteristic')
   @DocsEditable()
   @Experimental() // untriaged
@@ -31426,6 +31431,24 @@ class Performance extends EventTarget {
   @Experimental()
   void clearMeasures(String measureName) => _blink.BlinkPerformance.instance.clearMeasures_Callback_1_(unwrap_jso(this), measureName);
   
+  @DomName('Performance.getEntries')
+  @DocsEditable()
+  // http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute
+  @Experimental()
+  List<PerformanceEntry> getEntries() => wrap_jso(_blink.BlinkPerformance.instance.getEntries_Callback_0_(unwrap_jso(this)));
+  
+  @DomName('Performance.getEntriesByName')
+  @DocsEditable()
+  // http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute
+  @Experimental()
+  List<PerformanceEntry> getEntriesByName(String name, String entryType) => wrap_jso(_blink.BlinkPerformance.instance.getEntriesByName_Callback_2_(unwrap_jso(this), name, entryType));
+  
+  @DomName('Performance.getEntriesByType')
+  @DocsEditable()
+  // http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute
+  @Experimental()
+  List<PerformanceEntry> getEntriesByType(String entryType) => wrap_jso(_blink.BlinkPerformance.instance.getEntriesByType_Callback_1_(unwrap_jso(this), entryType));
+  
   @DomName('Performance.mark')
   @DocsEditable()
   // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/UserTiming/Overview.html#extensions-performance-interface
@@ -31437,6 +31460,10 @@ class Performance extends EventTarget {
   // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/UserTiming/Overview.html#extensions-performance-interface
   @Experimental()
   void measure(String measureName, String startMark, String endMark) => _blink.BlinkPerformance.instance.measure_Callback_3_(unwrap_jso(this), measureName, startMark, endMark);
+  
+  @DomName('Performance.now')
+  @DocsEditable()
+  num now() => _blink.BlinkPerformance.instance.now_Callback_0_(unwrap_jso(this));
   
   @DomName('Performance.setFrameTimingBufferSize')
   @DocsEditable()
@@ -31529,6 +31556,10 @@ class PerformanceEntry extends DartHtmlDomObject {
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
   int get hashCode => unwrap_jso(this).hashCode;
 
+  @DomName('PerformanceEntry.duration')
+  @DocsEditable()
+  num get duration => _blink.BlinkPerformanceEntry.instance.duration_Getter_(unwrap_jso(this));
+  
   @DomName('PerformanceEntry.entryType')
   @DocsEditable()
   String get entryType => _blink.BlinkPerformanceEntry.instance.entryType_Getter_(unwrap_jso(this));
@@ -31536,6 +31567,10 @@ class PerformanceEntry extends DartHtmlDomObject {
   @DomName('PerformanceEntry.name')
   @DocsEditable()
   String get name => _blink.BlinkPerformanceEntry.instance.name_Getter_(unwrap_jso(this));
+  
+  @DomName('PerformanceEntry.startTime')
+  @DocsEditable()
+  num get startTime => _blink.BlinkPerformanceEntry.instance.startTime_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -31707,9 +31742,61 @@ class PerformanceResourceTiming extends PerformanceEntry {
   PerformanceResourceTiming.internal_() : super.internal_();
 
 
+  @DomName('PerformanceResourceTiming.connectEnd')
+  @DocsEditable()
+  num get connectEnd => _blink.BlinkPerformanceResourceTiming.instance.connectEnd_Getter_(unwrap_jso(this));
+  
+  @DomName('PerformanceResourceTiming.connectStart')
+  @DocsEditable()
+  num get connectStart => _blink.BlinkPerformanceResourceTiming.instance.connectStart_Getter_(unwrap_jso(this));
+  
+  @DomName('PerformanceResourceTiming.domainLookupEnd')
+  @DocsEditable()
+  num get domainLookupEnd => _blink.BlinkPerformanceResourceTiming.instance.domainLookupEnd_Getter_(unwrap_jso(this));
+  
+  @DomName('PerformanceResourceTiming.domainLookupStart')
+  @DocsEditable()
+  num get domainLookupStart => _blink.BlinkPerformanceResourceTiming.instance.domainLookupStart_Getter_(unwrap_jso(this));
+  
+  @DomName('PerformanceResourceTiming.fetchStart')
+  @DocsEditable()
+  num get fetchStart => _blink.BlinkPerformanceResourceTiming.instance.fetchStart_Getter_(unwrap_jso(this));
+  
   @DomName('PerformanceResourceTiming.initiatorType')
   @DocsEditable()
   String get initiatorType => _blink.BlinkPerformanceResourceTiming.instance.initiatorType_Getter_(unwrap_jso(this));
+  
+  @DomName('PerformanceResourceTiming.redirectEnd')
+  @DocsEditable()
+  num get redirectEnd => _blink.BlinkPerformanceResourceTiming.instance.redirectEnd_Getter_(unwrap_jso(this));
+  
+  @DomName('PerformanceResourceTiming.redirectStart')
+  @DocsEditable()
+  num get redirectStart => _blink.BlinkPerformanceResourceTiming.instance.redirectStart_Getter_(unwrap_jso(this));
+  
+  @DomName('PerformanceResourceTiming.requestStart')
+  @DocsEditable()
+  @Experimental() // nonstandard
+  num get requestStart => _blink.BlinkPerformanceResourceTiming.instance.requestStart_Getter_(unwrap_jso(this));
+  
+  @DomName('PerformanceResourceTiming.responseEnd')
+  @DocsEditable()
+  @Experimental() // nonstandard
+  num get responseEnd => _blink.BlinkPerformanceResourceTiming.instance.responseEnd_Getter_(unwrap_jso(this));
+  
+  @DomName('PerformanceResourceTiming.responseStart')
+  @DocsEditable()
+  @Experimental() // nonstandard
+  num get responseStart => _blink.BlinkPerformanceResourceTiming.instance.responseStart_Getter_(unwrap_jso(this));
+  
+  @DomName('PerformanceResourceTiming.secureConnectionStart')
+  @DocsEditable()
+  num get secureConnectionStart => _blink.BlinkPerformanceResourceTiming.instance.secureConnectionStart_Getter_(unwrap_jso(this));
+  
+  @DomName('PerformanceResourceTiming.workerStart')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get workerStart => _blink.BlinkPerformanceResourceTiming.instance.workerStart_Getter_(unwrap_jso(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -33082,6 +33169,11 @@ class PushMessageData extends DartHtmlDomObject {
   @DocsEditable()
   @Experimental() // untriaged
   Blob blob() => wrap_jso(_blink.BlinkPushMessageData.instance.blob_Callback_0_(unwrap_jso(this)));
+  
+  @DomName('PushMessageData.json')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object json() => wrap_jso(_blink.BlinkPushMessageData.instance.json_Callback_0_(unwrap_jso(this)));
   
   @DomName('PushMessageData.text')
   @DocsEditable()
@@ -35976,6 +36068,11 @@ class SharedWorker extends EventTarget implements AbstractWorker {
   @DomName('SharedWorker.port')
   @DocsEditable()
   MessagePort get port => wrap_jso(_blink.BlinkSharedWorker.instance.port_Getter_(unwrap_jso(this)));
+  
+  @DomName('SharedWorker.workerStart')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num get workerStart => _blink.BlinkSharedWorker.instance.workerStart_Getter_(unwrap_jso(this));
   
   @DomName('SharedWorker.onerror')
   @DocsEditable()
@@ -44030,6 +44127,21 @@ class WorkerPerformance extends EventTarget {
   @Experimental() // untriaged
   void clearMeasures(String measureName) => _blink.BlinkWorkerPerformance.instance.clearMeasures_Callback_1_(unwrap_jso(this), measureName);
   
+  @DomName('WorkerPerformance.getEntries')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<PerformanceEntry> getEntries() => wrap_jso(_blink.BlinkWorkerPerformance.instance.getEntries_Callback_0_(unwrap_jso(this)));
+  
+  @DomName('WorkerPerformance.getEntriesByName')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<PerformanceEntry> getEntriesByName(String name, String entryType) => wrap_jso(_blink.BlinkWorkerPerformance.instance.getEntriesByName_Callback_2_(unwrap_jso(this), name, entryType));
+  
+  @DomName('WorkerPerformance.getEntriesByType')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<PerformanceEntry> getEntriesByType(String entryType) => wrap_jso(_blink.BlinkWorkerPerformance.instance.getEntriesByType_Callback_1_(unwrap_jso(this), entryType));
+  
   @DomName('WorkerPerformance.mark')
   @DocsEditable()
   @Experimental() // untriaged
@@ -44039,6 +44151,11 @@ class WorkerPerformance extends EventTarget {
   @DocsEditable()
   @Experimental() // untriaged
   void measure(String measureName, String startMark, String endMark) => _blink.BlinkWorkerPerformance.instance.measure_Callback_3_(unwrap_jso(this), measureName, startMark, endMark);
+  
+  @DomName('WorkerPerformance.now')
+  @DocsEditable()
+  @Experimental() // untriaged
+  num now() => _blink.BlinkWorkerPerformance.instance.now_Callback_0_(unwrap_jso(this));
   
   @DomName('WorkerPerformance.webkitClearResourceTimings')
   @DocsEditable()

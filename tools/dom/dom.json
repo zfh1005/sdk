@@ -791,6 +791,9 @@
       },
       "isPrimary": {
         "support_level": "untriaged"
+      },
+      "uuid": {
+        "support_level": "untriaged"
       }
     },
     "support_level": "untriaged"
@@ -9571,7 +9574,10 @@
         "dart_action": "experimental",
         "support_level": "nonstandard"
       },
-      "secureConnectionStart": {}
+      "secureConnectionStart": {},
+      "workerStart": {
+        "support_level": "untriaged"
+      }
     },
     "support_level": "experimental"
   },
@@ -10003,6 +10009,9 @@
         "support_level": "untriaged"
       },
       "blob": {
+        "support_level": "untriaged"
+      },
+      "json": {
         "support_level": "untriaged"
       },
       "text": {
@@ -16851,10 +16860,19 @@
       "bindBuffer": {
         "support_level": "untriaged"
       },
+      "bindBufferBase": {
+        "support_level": "untriaged"
+      },
+      "bindBufferRange": {
+        "support_level": "untriaged"
+      },
       "bindFramebuffer": {
         "support_level": "untriaged"
       },
       "bindRenderbuffer": {
+        "support_level": "untriaged"
+      },
+      "bindSampler": {
         "support_level": "untriaged"
       },
       "bindTexture": {
@@ -16878,6 +16896,9 @@
       "blendFuncSeparate": {
         "support_level": "untriaged"
       },
+      "blitFramebuffer": {
+        "support_level": "untriaged"
+      },
       "bufferData": {
         "support_level": "untriaged"
       },
@@ -16887,7 +16908,34 @@
       "checkFramebufferStatus": {
         "support_level": "untriaged"
       },
+      "clearBufferfi": {
+        "support_level": "untriaged"
+      },
+      "clearBufferfv": {
+        "support_level": "untriaged"
+      },
+      "clearBufferiv": {
+        "support_level": "untriaged"
+      },
+      "clearBufferuiv": {
+        "support_level": "untriaged"
+      },
+      "clientWaitSync": {
+        "support_level": "untriaged"
+      },
       "compileShader": {
+        "support_level": "untriaged"
+      },
+      "compressedTexImage3D": {
+        "support_level": "untriaged"
+      },
+      "compressedTexSubImage3D": {
+        "support_level": "untriaged"
+      },
+      "copyBufferSubData": {
+        "support_level": "untriaged"
+      },
+      "copyTexSubImage3D": {
         "support_level": "untriaged"
       },
       "createBuffer": {
@@ -16965,7 +17013,16 @@
       "disable": {
         "support_level": "untriaged"
       },
+      "drawArraysInstanced": {
+        "support_level": "untriaged"
+      },
       "drawBuffers": {
+        "support_level": "untriaged"
+      },
+      "drawElementsInstanced": {
+        "support_level": "untriaged"
+      },
+      "drawRangeElements": {
         "support_level": "untriaged"
       },
       "enable": {
@@ -16977,6 +17034,9 @@
       "endTransformFeedback": {
         "support_level": "untriaged"
       },
+      "fenceSync": {
+        "support_level": "untriaged"
+      },
       "finish": {
         "support_level": "untriaged"
       },
@@ -16986,16 +17046,28 @@
       "framebufferRenderbuffer": {
         "support_level": "untriaged"
       },
+      "framebufferTextureLayer": {
+        "support_level": "untriaged"
+      },
       "frontFace": {
         "support_level": "untriaged"
       },
       "generateMipmap": {
         "support_level": "untriaged"
       },
+      "getActiveUniformBlockName": {
+        "support_level": "untriaged"
+      },
+      "getActiveUniformBlockParameter": {
+        "support_level": "untriaged"
+      },
       "getAttachedShaders": {
         "support_level": "untriaged"
       },
       "getBufferParameter": {
+        "support_level": "untriaged"
+      },
+      "getBufferSubData": {
         "support_level": "untriaged"
       },
       "getContextAttributes": {
@@ -17007,7 +17079,13 @@
       "getExtension": {
         "support_level": "untriaged"
       },
+      "getFragDataLocation": {
+        "support_level": "untriaged"
+      },
       "getFramebufferAttachmentParameter": {
+        "support_level": "untriaged"
+      },
+      "getIndexedParameter": {
         "support_level": "untriaged"
       },
       "getInternalformatParameter": {
@@ -17055,7 +17133,13 @@
       "getTexParameter": {
         "support_level": "untriaged"
       },
+      "getTransformFeedbackVarying": {
+        "support_level": "untriaged"
+      },
       "getUniform": {
+        "support_level": "untriaged"
+      },
+      "getUniformBlockIndex": {
         "support_level": "untriaged"
       },
       "getUniformLocation": {
@@ -17067,6 +17151,24 @@
       "invalidateFramebuffer": {
         "support_level": "untriaged"
       },
+      "invalidateSubFramebuffer": {
+        "support_level": "untriaged"
+      },
+      "isQuery": {
+        "support_level": "untriaged"
+      },
+      "isSampler": {
+        "support_level": "untriaged"
+      },
+      "isSync": {
+        "support_level": "untriaged"
+      },
+      "isTransformFeedback": {
+        "support_level": "untriaged"
+      },
+      "isVertexArray": {
+        "support_level": "untriaged"
+      },
       "linkProgram": {
         "support_level": "untriaged"
       },
@@ -17076,7 +17178,16 @@
       "readBuffer": {
         "support_level": "untriaged"
       },
+      "renderbufferStorageMultisample": {
+        "support_level": "untriaged"
+      },
       "resumeTransformFeedback": {
+        "support_level": "untriaged"
+      },
+      "samplerParameterf": {
+        "support_level": "untriaged"
+      },
+      "samplerParameteri": {
         "support_level": "untriaged"
       },
       "shaderSource": {
@@ -17088,6 +17199,18 @@
       "stencilOpSeparate": {
         "support_level": "untriaged"
       },
+      "texImage3D": {
+        "support_level": "untriaged"
+      },
+      "texStorage2D": {
+        "support_level": "untriaged"
+      },
+      "texStorage3D": {
+        "support_level": "untriaged"
+      },
+      "texSubImage3D": {
+        "support_level": "untriaged"
+      },
       "transformFeedbackVaryings": {
         "support_level": "untriaged"
       },
@@ -17097,10 +17220,16 @@
       "uniform1iv": {
         "support_level": "untriaged"
       },
+      "uniform1ui": {
+        "support_level": "untriaged"
+      },
       "uniform2fv": {
         "support_level": "untriaged"
       },
       "uniform2iv": {
+        "support_level": "untriaged"
+      },
+      "uniform2ui": {
         "support_level": "untriaged"
       },
       "uniform3fv": {
@@ -17109,16 +17238,58 @@
       "uniform3iv": {
         "support_level": "untriaged"
       },
+      "uniform3ui": {
+        "support_level": "untriaged"
+      },
       "uniform4fv": {
         "support_level": "untriaged"
       },
       "uniform4iv": {
         "support_level": "untriaged"
       },
+      "uniform4ui": {
+        "support_level": "untriaged"
+      },
+      "uniformBlockBinding": {
+        "support_level": "untriaged"
+      },
+      "uniformMatrix2x3fv": {
+        "support_level": "untriaged"
+      },
+      "uniformMatrix2x4fv": {
+        "support_level": "untriaged"
+      },
+      "uniformMatrix3x2fv": {
+        "support_level": "untriaged"
+      },
+      "uniformMatrix3x4fv": {
+        "support_level": "untriaged"
+      },
+      "uniformMatrix4x2fv": {
+        "support_level": "untriaged"
+      },
+      "uniformMatrix4x3fv": {
+        "support_level": "untriaged"
+      },
       "useProgram": {
         "support_level": "untriaged"
       },
       "validateProgram": {
+        "support_level": "untriaged"
+      },
+      "vertexAttribDivisor": {
+        "support_level": "untriaged"
+      },
+      "vertexAttribI4i": {
+        "support_level": "untriaged"
+      },
+      "vertexAttribI4ui": {
+        "support_level": "untriaged"
+      },
+      "vertexAttribIPointer": {
+        "support_level": "untriaged"
+      },
+      "waitSync": {
         "support_level": "untriaged"
       }
     },
@@ -20157,6 +20328,15 @@
         "support_level": "untriaged"
       },
       "clearMeasures": {
+        "support_level": "untriaged"
+      },
+      "getEntries": {
+        "support_level": "untriaged"
+      },
+      "getEntriesByName": {
+        "support_level": "untriaged"
+      },
+      "getEntriesByType": {
         "support_level": "untriaged"
       },
       "mark": {

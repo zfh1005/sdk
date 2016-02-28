@@ -1370,6 +1370,11 @@ class BluetoothGattService extends Interceptor {
   @Experimental() // untriaged
   final bool isPrimary;
 
+  @DomName('BluetoothGATTService.uuid')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String uuid;
+
   @DomName('BluetoothGATTService.getCharacteristic')
   @DocsEditable()
   @Experimental() // untriaged
@@ -26556,6 +26561,24 @@ class Performance extends EventTarget {
   @Experimental()
   void clearMeasures(String measureName) native;
 
+  @DomName('Performance.getEntries')
+  @DocsEditable()
+  // http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute
+  @Experimental()
+  List<PerformanceEntry> getEntries() native;
+
+  @DomName('Performance.getEntriesByName')
+  @DocsEditable()
+  // http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute
+  @Experimental()
+  List<PerformanceEntry> getEntriesByName(String name, String entryType) native;
+
+  @DomName('Performance.getEntriesByType')
+  @DocsEditable()
+  // http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute
+  @Experimental()
+  List<PerformanceEntry> getEntriesByType(String entryType) native;
+
   @DomName('Performance.mark')
   @DocsEditable()
   // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/UserTiming/Overview.html#extensions-performance-interface
@@ -26567,6 +26590,10 @@ class Performance extends EventTarget {
   // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/UserTiming/Overview.html#extensions-performance-interface
   @Experimental()
   void measure(String measureName, String startMark, String endMark) native;
+
+  @DomName('Performance.now')
+  @DocsEditable()
+  double now() native;
 
   @DomName('Performance.setFrameTimingBufferSize')
   @DocsEditable()
@@ -26630,6 +26657,10 @@ class PerformanceEntry extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory PerformanceEntry._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('PerformanceEntry.duration')
+  @DocsEditable()
+  final double duration;
+
   @DomName('PerformanceEntry.entryType')
   @DocsEditable()
   final String entryType;
@@ -26637,6 +26668,10 @@ class PerformanceEntry extends Interceptor {
   @DomName('PerformanceEntry.name')
   @DocsEditable()
   final String name;
+
+  @DomName('PerformanceEntry.startTime')
+  @DocsEditable()
+  final double startTime;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26735,9 +26770,61 @@ class PerformanceResourceTiming extends PerformanceEntry {
   // To suppress missing implicit constructor warnings.
   factory PerformanceResourceTiming._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('PerformanceResourceTiming.connectEnd')
+  @DocsEditable()
+  final double connectEnd;
+
+  @DomName('PerformanceResourceTiming.connectStart')
+  @DocsEditable()
+  final double connectStart;
+
+  @DomName('PerformanceResourceTiming.domainLookupEnd')
+  @DocsEditable()
+  final double domainLookupEnd;
+
+  @DomName('PerformanceResourceTiming.domainLookupStart')
+  @DocsEditable()
+  final double domainLookupStart;
+
+  @DomName('PerformanceResourceTiming.fetchStart')
+  @DocsEditable()
+  final double fetchStart;
+
   @DomName('PerformanceResourceTiming.initiatorType')
   @DocsEditable()
   final String initiatorType;
+
+  @DomName('PerformanceResourceTiming.redirectEnd')
+  @DocsEditable()
+  final double redirectEnd;
+
+  @DomName('PerformanceResourceTiming.redirectStart')
+  @DocsEditable()
+  final double redirectStart;
+
+  @DomName('PerformanceResourceTiming.requestStart')
+  @DocsEditable()
+  @Experimental() // nonstandard
+  final double requestStart;
+
+  @DomName('PerformanceResourceTiming.responseEnd')
+  @DocsEditable()
+  @Experimental() // nonstandard
+  final double responseEnd;
+
+  @DomName('PerformanceResourceTiming.responseStart')
+  @DocsEditable()
+  @Experimental() // nonstandard
+  final double responseStart;
+
+  @DomName('PerformanceResourceTiming.secureConnectionStart')
+  @DocsEditable()
+  final double secureConnectionStart;
+
+  @DomName('PerformanceResourceTiming.workerStart')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final double workerStart;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27743,6 +27830,11 @@ class PushMessageData extends Interceptor {
   @DocsEditable()
   @Experimental() // untriaged
   Blob blob() native;
+
+  @DomName('PushMessageData.json')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object json() native;
 
   @DomName('PushMessageData.text')
   @DocsEditable()
@@ -30151,6 +30243,11 @@ class SharedWorker extends EventTarget implements AbstractWorker {
   @DomName('SharedWorker.port')
   @DocsEditable()
   final MessagePort port;
+
+  @DomName('SharedWorker.workerStart')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final double workerStart;
 
   @DomName('SharedWorker.onerror')
   @DocsEditable()
@@ -37146,6 +37243,21 @@ class WorkerPerformance extends EventTarget {
   @Experimental() // untriaged
   void clearMeasures(String measureName) native;
 
+  @DomName('WorkerPerformance.getEntries')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<PerformanceEntry> getEntries() native;
+
+  @DomName('WorkerPerformance.getEntriesByName')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<PerformanceEntry> getEntriesByName(String name, String entryType) native;
+
+  @DomName('WorkerPerformance.getEntriesByType')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<PerformanceEntry> getEntriesByType(String entryType) native;
+
   @DomName('WorkerPerformance.mark')
   @DocsEditable()
   @Experimental() // untriaged
@@ -37155,6 +37267,11 @@ class WorkerPerformance extends EventTarget {
   @DocsEditable()
   @Experimental() // untriaged
   void measure(String measureName, String startMark, String endMark) native;
+
+  @DomName('WorkerPerformance.now')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double now() native;
 
   @JSName('webkitClearResourceTimings')
   @DomName('WorkerPerformance.webkitClearResourceTimings')

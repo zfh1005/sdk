@@ -4719,6 +4719,21 @@ class RenderingContext2 extends DartHtmlDomObject implements _WebGL2RenderingCon
   @Experimental() // untriaged
   void beginTransformFeedback(int primitiveMode) => _blink.BlinkWebGL2RenderingContext.instance.beginTransformFeedback_Callback_1_(unwrap_jso(this), primitiveMode);
   
+  @DomName('WebGL2RenderingContext.bindBufferBase')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bindBufferBase(int target, int index, Buffer buffer) => _blink.BlinkWebGL2RenderingContext.instance.bindBufferBase_Callback_3_(unwrap_jso(this), target, index, unwrap_jso(buffer));
+  
+  @DomName('WebGL2RenderingContext.bindBufferRange')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bindBufferRange(int target, int index, Buffer buffer, int offset, int size) => _blink.BlinkWebGL2RenderingContext.instance.bindBufferRange_Callback_5_(unwrap_jso(this), target, index, unwrap_jso(buffer), offset, size);
+  
+  @DomName('WebGL2RenderingContext.bindSampler')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bindSampler(int unit, Sampler sampler) => _blink.BlinkWebGL2RenderingContext.instance.bindSampler_Callback_2_(unwrap_jso(this), unit, unwrap_jso(sampler));
+  
   @DomName('WebGL2RenderingContext.bindTransformFeedback')
   @DocsEditable()
   @Experimental() // untriaged
@@ -4728,6 +4743,56 @@ class RenderingContext2 extends DartHtmlDomObject implements _WebGL2RenderingCon
   @DocsEditable()
   @Experimental() // untriaged
   void bindVertexArray(VertexArrayObject vertexArray) => _blink.BlinkWebGL2RenderingContext.instance.bindVertexArray_Callback_1_(unwrap_jso(this), unwrap_jso(vertexArray));
+  
+  @DomName('WebGL2RenderingContext.blitFramebuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void blitFramebuffer(int srcX0, int srcY0, int srcX1, int srcY1, int dstX0, int dstY0, int dstX1, int dstY1, int mask, int filter) => _blink.BlinkWebGL2RenderingContext.instance.blitFramebuffer_Callback_10_(unwrap_jso(this), srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
+  
+  @DomName('WebGL2RenderingContext.clearBufferfi')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void clearBufferfi(int buffer, int drawbuffer, num depth, int stencil) => _blink.BlinkWebGL2RenderingContext.instance.clearBufferfi_Callback_4_(unwrap_jso(this), buffer, drawbuffer, depth, stencil);
+  
+  @DomName('WebGL2RenderingContext.clearBufferfv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void clearBufferfv(int buffer, int drawbuffer, Float32List value) => _blink.BlinkWebGL2RenderingContext.instance.clearBufferfv_Callback_3_(unwrap_jso(this), buffer, drawbuffer, unwrap_jso(value));
+  
+  @DomName('WebGL2RenderingContext.clearBufferiv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void clearBufferiv(int buffer, int drawbuffer, Int32List value) => _blink.BlinkWebGL2RenderingContext.instance.clearBufferiv_Callback_3_(unwrap_jso(this), buffer, drawbuffer, unwrap_jso(value));
+  
+  @DomName('WebGL2RenderingContext.clearBufferuiv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void clearBufferuiv(int buffer, int drawbuffer, Uint32List value) => _blink.BlinkWebGL2RenderingContext.instance.clearBufferuiv_Callback_3_(unwrap_jso(this), buffer, drawbuffer, unwrap_jso(value));
+  
+  @DomName('WebGL2RenderingContext.clientWaitSync')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int clientWaitSync(Sync sync, int flags, int timeout) => _blink.BlinkWebGL2RenderingContext.instance.clientWaitSync_Callback_3_(unwrap_jso(this), unwrap_jso(sync), flags, timeout);
+  
+  @DomName('WebGL2RenderingContext.compressedTexImage3D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void compressedTexImage3D(int target, int level, int internalformat, int width, int height, int depth, int border, TypedData data) => _blink.BlinkWebGL2RenderingContext.instance.compressedTexImage3D_Callback_8_(unwrap_jso(this), target, level, internalformat, width, height, depth, border, unwrap_jso(data));
+  
+  @DomName('WebGL2RenderingContext.compressedTexSubImage3D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void compressedTexSubImage3D(int target, int level, int xoffset, int yoffset, int zoffset, int width, int height, int depth, int format, TypedData data) => _blink.BlinkWebGL2RenderingContext.instance.compressedTexSubImage3D_Callback_10_(unwrap_jso(this), target, level, xoffset, yoffset, zoffset, width, height, depth, format, unwrap_jso(data));
+  
+  @DomName('WebGL2RenderingContext.copyBufferSubData')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void copyBufferSubData(int readTarget, int writeTarget, int readOffset, int writeOffset, int size) => _blink.BlinkWebGL2RenderingContext.instance.copyBufferSubData_Callback_5_(unwrap_jso(this), readTarget, writeTarget, readOffset, writeOffset, size);
+  
+  @DomName('WebGL2RenderingContext.copyTexSubImage3D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void copyTexSubImage3D(int target, int level, int xoffset, int yoffset, int zoffset, int x, int y, int width, int height) => _blink.BlinkWebGL2RenderingContext.instance.copyTexSubImage3D_Callback_9_(unwrap_jso(this), target, level, xoffset, yoffset, zoffset, x, y, width, height);
   
   @DomName('WebGL2RenderingContext.createQuery')
   @DocsEditable()
@@ -4774,10 +4839,25 @@ class RenderingContext2 extends DartHtmlDomObject implements _WebGL2RenderingCon
   @Experimental() // untriaged
   void deleteVertexArray(VertexArrayObject vertexArray) => _blink.BlinkWebGL2RenderingContext.instance.deleteVertexArray_Callback_1_(unwrap_jso(this), unwrap_jso(vertexArray));
   
+  @DomName('WebGL2RenderingContext.drawArraysInstanced')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void drawArraysInstanced(int mode, int first, int count, int instanceCount) => _blink.BlinkWebGL2RenderingContext.instance.drawArraysInstanced_Callback_4_(unwrap_jso(this), mode, first, count, instanceCount);
+  
   @DomName('WebGL2RenderingContext.drawBuffers')
   @DocsEditable()
   @Experimental() // untriaged
   void drawBuffers(List<int> buffers) => _blink.BlinkWebGL2RenderingContext.instance.drawBuffers_Callback_1_(unwrap_jso(this), buffers);
+  
+  @DomName('WebGL2RenderingContext.drawElementsInstanced')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void drawElementsInstanced(int mode, int count, int type, int offset, int instanceCount) => _blink.BlinkWebGL2RenderingContext.instance.drawElementsInstanced_Callback_5_(unwrap_jso(this), mode, count, type, offset, instanceCount);
+  
+  @DomName('WebGL2RenderingContext.drawRangeElements')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void drawRangeElements(int mode, int start, int end, int count, int type, int offset) => _blink.BlinkWebGL2RenderingContext.instance.drawRangeElements_Callback_6_(unwrap_jso(this), mode, start, end, count, type, offset);
   
   @DomName('WebGL2RenderingContext.endQuery')
   @DocsEditable()
@@ -4788,6 +4868,41 @@ class RenderingContext2 extends DartHtmlDomObject implements _WebGL2RenderingCon
   @DocsEditable()
   @Experimental() // untriaged
   void endTransformFeedback() => _blink.BlinkWebGL2RenderingContext.instance.endTransformFeedback_Callback_0_(unwrap_jso(this));
+  
+  @DomName('WebGL2RenderingContext.fenceSync')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Sync fenceSync(int condition, int flags) => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.fenceSync_Callback_2_(unwrap_jso(this), condition, flags));
+  
+  @DomName('WebGL2RenderingContext.framebufferTextureLayer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void framebufferTextureLayer(int target, int attachment, Texture texture, int level, int layer) => _blink.BlinkWebGL2RenderingContext.instance.framebufferTextureLayer_Callback_5_(unwrap_jso(this), target, attachment, unwrap_jso(texture), level, layer);
+  
+  @DomName('WebGL2RenderingContext.getActiveUniformBlockName')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String getActiveUniformBlockName(Program program, int uniformBlockIndex) => _blink.BlinkWebGL2RenderingContext.instance.getActiveUniformBlockName_Callback_2_(unwrap_jso(this), unwrap_jso(program), uniformBlockIndex);
+  
+  @DomName('WebGL2RenderingContext.getActiveUniformBlockParameter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getActiveUniformBlockParameter(Program program, int uniformBlockIndex, int pname) => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.getActiveUniformBlockParameter_Callback_3_(unwrap_jso(this), unwrap_jso(program), uniformBlockIndex, pname));
+  
+  @DomName('WebGL2RenderingContext.getBufferSubData')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void getBufferSubData(int target, int offset, ByteBuffer returnedData) => _blink.BlinkWebGL2RenderingContext.instance.getBufferSubData_Callback_3_(unwrap_jso(this), target, offset, unwrap_jso(returnedData));
+  
+  @DomName('WebGL2RenderingContext.getFragDataLocation')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int getFragDataLocation(Program program, String name) => _blink.BlinkWebGL2RenderingContext.instance.getFragDataLocation_Callback_2_(unwrap_jso(this), unwrap_jso(program), name);
+  
+  @DomName('WebGL2RenderingContext.getIndexedParameter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getIndexedParameter(int target, int index) => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.getIndexedParameter_Callback_2_(unwrap_jso(this), target, index));
   
   @DomName('WebGL2RenderingContext.getInternalformatParameter')
   @DocsEditable()
@@ -4814,10 +4929,50 @@ class RenderingContext2 extends DartHtmlDomObject implements _WebGL2RenderingCon
   @Experimental() // untriaged
   Object getSyncParameter(Sync sync, int pname) => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.getSyncParameter_Callback_2_(unwrap_jso(this), unwrap_jso(sync), pname));
   
+  @DomName('WebGL2RenderingContext.getTransformFeedbackVarying')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ActiveInfo getTransformFeedbackVarying(Program program, int index) => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.getTransformFeedbackVarying_Callback_2_(unwrap_jso(this), unwrap_jso(program), index));
+  
+  @DomName('WebGL2RenderingContext.getUniformBlockIndex')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int getUniformBlockIndex(Program program, String uniformBlockName) => _blink.BlinkWebGL2RenderingContext.instance.getUniformBlockIndex_Callback_2_(unwrap_jso(this), unwrap_jso(program), uniformBlockName);
+  
   @DomName('WebGL2RenderingContext.invalidateFramebuffer')
   @DocsEditable()
   @Experimental() // untriaged
   void invalidateFramebuffer(int target, List<int> attachments) => _blink.BlinkWebGL2RenderingContext.instance.invalidateFramebuffer_Callback_2_(unwrap_jso(this), target, attachments);
+  
+  @DomName('WebGL2RenderingContext.invalidateSubFramebuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void invalidateSubFramebuffer(int target, List<int> attachments, int x, int y, int width, int height) => _blink.BlinkWebGL2RenderingContext.instance.invalidateSubFramebuffer_Callback_6_(unwrap_jso(this), target, attachments, x, y, width, height);
+  
+  @DomName('WebGL2RenderingContext.isQuery')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isQuery(Query query) => _blink.BlinkWebGL2RenderingContext.instance.isQuery_Callback_1_(unwrap_jso(this), unwrap_jso(query));
+  
+  @DomName('WebGL2RenderingContext.isSampler')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isSampler(Sampler sampler) => _blink.BlinkWebGL2RenderingContext.instance.isSampler_Callback_1_(unwrap_jso(this), unwrap_jso(sampler));
+  
+  @DomName('WebGL2RenderingContext.isSync')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isSync(Sync sync) => _blink.BlinkWebGL2RenderingContext.instance.isSync_Callback_1_(unwrap_jso(this), unwrap_jso(sync));
+  
+  @DomName('WebGL2RenderingContext.isTransformFeedback')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isTransformFeedback(TransformFeedback feedback) => _blink.BlinkWebGL2RenderingContext.instance.isTransformFeedback_Callback_1_(unwrap_jso(this), unwrap_jso(feedback));
+  
+  @DomName('WebGL2RenderingContext.isVertexArray')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isVertexArray(VertexArrayObject vertexArray) => _blink.BlinkWebGL2RenderingContext.instance.isVertexArray_Callback_1_(unwrap_jso(this), unwrap_jso(vertexArray));
   
   @DomName('WebGL2RenderingContext.pauseTransformFeedback')
   @DocsEditable()
@@ -4829,15 +4984,149 @@ class RenderingContext2 extends DartHtmlDomObject implements _WebGL2RenderingCon
   @Experimental() // untriaged
   void readBuffer(int mode) => _blink.BlinkWebGL2RenderingContext.instance.readBuffer_Callback_1_(unwrap_jso(this), mode);
   
+  @DomName('WebGL2RenderingContext.renderbufferStorageMultisample')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void renderbufferStorageMultisample(int target, int samples, int internalformat, int width, int height) => _blink.BlinkWebGL2RenderingContext.instance.renderbufferStorageMultisample_Callback_5_(unwrap_jso(this), target, samples, internalformat, width, height);
+  
   @DomName('WebGL2RenderingContext.resumeTransformFeedback')
   @DocsEditable()
   @Experimental() // untriaged
   void resumeTransformFeedback() => _blink.BlinkWebGL2RenderingContext.instance.resumeTransformFeedback_Callback_0_(unwrap_jso(this));
   
+  @DomName('WebGL2RenderingContext.samplerParameterf')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void samplerParameterf(Sampler sampler, int pname, num param) => _blink.BlinkWebGL2RenderingContext.instance.samplerParameterf_Callback_3_(unwrap_jso(this), unwrap_jso(sampler), pname, param);
+  
+  @DomName('WebGL2RenderingContext.samplerParameteri')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void samplerParameteri(Sampler sampler, int pname, int param) => _blink.BlinkWebGL2RenderingContext.instance.samplerParameteri_Callback_3_(unwrap_jso(this), unwrap_jso(sampler), pname, param);
+  
+  @DomName('WebGL2RenderingContext.texImage3D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void texImage3D(int target, int level, int internalformat, int width, int height, int depth, int border, int format, int type, TypedData pixels) => _blink.BlinkWebGL2RenderingContext.instance.texImage3D_Callback_10_(unwrap_jso(this), target, level, internalformat, width, height, depth, border, format, type, unwrap_jso(pixels));
+  
+  @DomName('WebGL2RenderingContext.texStorage2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void texStorage2D(int target, int levels, int internalformat, int width, int height) => _blink.BlinkWebGL2RenderingContext.instance.texStorage2D_Callback_5_(unwrap_jso(this), target, levels, internalformat, width, height);
+  
+  @DomName('WebGL2RenderingContext.texStorage3D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void texStorage3D(int target, int levels, int internalformat, int width, int height, int depth) => _blink.BlinkWebGL2RenderingContext.instance.texStorage3D_Callback_6_(unwrap_jso(this), target, levels, internalformat, width, height, depth);
+  
+  void texSubImage3D(int target, int level, int xoffset, int yoffset, int zoffset, int format_OR_width, int height_OR_type, canvas_OR_data_OR_depth_OR_image_OR_video, [int format, int type, TypedData pixels]) {
+    if ((pixels is TypedData || pixels == null) && (type is int) && (format is int) && (canvas_OR_data_OR_depth_OR_image_OR_video is int) && (height_OR_type is int) && (format_OR_width is int) && (zoffset is int) && (yoffset is int) && (xoffset is int) && (level is int) && (target is int)) {
+      _blink.BlinkWebGL2RenderingContext.instance.texSubImage3D_Callback_11_(unwrap_jso(this), target, level, xoffset, yoffset, zoffset, format_OR_width, height_OR_type, unwrap_jso(canvas_OR_data_OR_depth_OR_image_OR_video), format, type, unwrap_jso(pixels));
+      return;
+    }
+    if ((canvas_OR_data_OR_depth_OR_image_OR_video is ImageData || canvas_OR_data_OR_depth_OR_image_OR_video == null) && (height_OR_type is int) && (format_OR_width is int) && (zoffset is int) && (yoffset is int) && (xoffset is int) && (level is int) && (target is int) && format == null && type == null && pixels == null) {
+      _blink.BlinkWebGL2RenderingContext.instance.texSubImage3D_Callback_8_(unwrap_jso(this), target, level, xoffset, yoffset, zoffset, format_OR_width, height_OR_type, unwrap_jso(canvas_OR_data_OR_depth_OR_image_OR_video));
+      return;
+    }
+    if ((canvas_OR_data_OR_depth_OR_image_OR_video is ImageElement || canvas_OR_data_OR_depth_OR_image_OR_video == null) && (height_OR_type is int) && (format_OR_width is int) && (zoffset is int) && (yoffset is int) && (xoffset is int) && (level is int) && (target is int) && format == null && type == null && pixels == null) {
+      _blink.BlinkWebGL2RenderingContext.instance.texSubImage3D_Callback_8_(unwrap_jso(this), target, level, xoffset, yoffset, zoffset, format_OR_width, height_OR_type, unwrap_jso(canvas_OR_data_OR_depth_OR_image_OR_video));
+      return;
+    }
+    if ((canvas_OR_data_OR_depth_OR_image_OR_video is CanvasElement || canvas_OR_data_OR_depth_OR_image_OR_video == null) && (height_OR_type is int) && (format_OR_width is int) && (zoffset is int) && (yoffset is int) && (xoffset is int) && (level is int) && (target is int) && format == null && type == null && pixels == null) {
+      _blink.BlinkWebGL2RenderingContext.instance.texSubImage3D_Callback_8_(unwrap_jso(this), target, level, xoffset, yoffset, zoffset, format_OR_width, height_OR_type, unwrap_jso(canvas_OR_data_OR_depth_OR_image_OR_video));
+      return;
+    }
+    if ((canvas_OR_data_OR_depth_OR_image_OR_video is VideoElement || canvas_OR_data_OR_depth_OR_image_OR_video == null) && (height_OR_type is int) && (format_OR_width is int) && (zoffset is int) && (yoffset is int) && (xoffset is int) && (level is int) && (target is int) && format == null && type == null && pixels == null) {
+      _blink.BlinkWebGL2RenderingContext.instance.texSubImage3D_Callback_8_(unwrap_jso(this), target, level, xoffset, yoffset, zoffset, format_OR_width, height_OR_type, unwrap_jso(canvas_OR_data_OR_depth_OR_image_OR_video));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
   @DomName('WebGL2RenderingContext.transformFeedbackVaryings')
   @DocsEditable()
   @Experimental() // untriaged
   void transformFeedbackVaryings(Program program, List<String> varyings, int bufferMode) => _blink.BlinkWebGL2RenderingContext.instance.transformFeedbackVaryings_Callback_3_(unwrap_jso(this), unwrap_jso(program), varyings, bufferMode);
+  
+  @DomName('WebGL2RenderingContext.uniform1ui')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform1ui(UniformLocation location, int v0) => _blink.BlinkWebGL2RenderingContext.instance.uniform1ui_Callback_2_(unwrap_jso(this), unwrap_jso(location), v0);
+  
+  @DomName('WebGL2RenderingContext.uniform2ui')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform2ui(UniformLocation location, int v0, int v1) => _blink.BlinkWebGL2RenderingContext.instance.uniform2ui_Callback_3_(unwrap_jso(this), unwrap_jso(location), v0, v1);
+  
+  @DomName('WebGL2RenderingContext.uniform3ui')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform3ui(UniformLocation location, int v0, int v1, int v2) => _blink.BlinkWebGL2RenderingContext.instance.uniform3ui_Callback_4_(unwrap_jso(this), unwrap_jso(location), v0, v1, v2);
+  
+  @DomName('WebGL2RenderingContext.uniform4ui')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform4ui(UniformLocation location, int v0, int v1, int v2, int v3) => _blink.BlinkWebGL2RenderingContext.instance.uniform4ui_Callback_5_(unwrap_jso(this), unwrap_jso(location), v0, v1, v2, v3);
+  
+  @DomName('WebGL2RenderingContext.uniformBlockBinding')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniformBlockBinding(Program program, int uniformBlockIndex, int uniformBlockBinding) => _blink.BlinkWebGL2RenderingContext.instance.uniformBlockBinding_Callback_3_(unwrap_jso(this), unwrap_jso(program), uniformBlockIndex, uniformBlockBinding);
+  
+  @DomName('WebGL2RenderingContext.uniformMatrix2x3fv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniformMatrix2x3fv(UniformLocation location, bool transpose, Float32List value) => _blink.BlinkWebGL2RenderingContext.instance.uniformMatrix2x3fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, unwrap_jso(value));
+  
+  @DomName('WebGL2RenderingContext.uniformMatrix2x4fv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniformMatrix2x4fv(UniformLocation location, bool transpose, Float32List value) => _blink.BlinkWebGL2RenderingContext.instance.uniformMatrix2x4fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, unwrap_jso(value));
+  
+  @DomName('WebGL2RenderingContext.uniformMatrix3x2fv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniformMatrix3x2fv(UniformLocation location, bool transpose, Float32List value) => _blink.BlinkWebGL2RenderingContext.instance.uniformMatrix3x2fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, unwrap_jso(value));
+  
+  @DomName('WebGL2RenderingContext.uniformMatrix3x4fv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniformMatrix3x4fv(UniformLocation location, bool transpose, Float32List value) => _blink.BlinkWebGL2RenderingContext.instance.uniformMatrix3x4fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, unwrap_jso(value));
+  
+  @DomName('WebGL2RenderingContext.uniformMatrix4x2fv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniformMatrix4x2fv(UniformLocation location, bool transpose, Float32List value) => _blink.BlinkWebGL2RenderingContext.instance.uniformMatrix4x2fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, unwrap_jso(value));
+  
+  @DomName('WebGL2RenderingContext.uniformMatrix4x3fv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniformMatrix4x3fv(UniformLocation location, bool transpose, Float32List value) => _blink.BlinkWebGL2RenderingContext.instance.uniformMatrix4x3fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, unwrap_jso(value));
+  
+  @DomName('WebGL2RenderingContext.vertexAttribDivisor')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void vertexAttribDivisor(int index, int divisor) => _blink.BlinkWebGL2RenderingContext.instance.vertexAttribDivisor_Callback_2_(unwrap_jso(this), index, divisor);
+  
+  @DomName('WebGL2RenderingContext.vertexAttribI4i')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void vertexAttribI4i(int index, int x, int y, int z, int w) => _blink.BlinkWebGL2RenderingContext.instance.vertexAttribI4i_Callback_5_(unwrap_jso(this), index, x, y, z, w);
+  
+  @DomName('WebGL2RenderingContext.vertexAttribI4ui')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void vertexAttribI4ui(int index, int x, int y, int z, int w) => _blink.BlinkWebGL2RenderingContext.instance.vertexAttribI4ui_Callback_5_(unwrap_jso(this), index, x, y, z, w);
+  
+  @DomName('WebGL2RenderingContext.vertexAttribIPointer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void vertexAttribIPointer(int index, int size, int type, int stride, int offset) => _blink.BlinkWebGL2RenderingContext.instance.vertexAttribIPointer_Callback_5_(unwrap_jso(this), index, size, type, stride, offset);
+  
+  @DomName('WebGL2RenderingContext.waitSync')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void waitSync(Sync sync, int flags, int timeout) => _blink.BlinkWebGL2RenderingContext.instance.waitSync_Callback_3_(unwrap_jso(this), unwrap_jso(sync), flags, timeout);
   
   @DomName('WebGL2RenderingContext.canvas')
   @DocsEditable()
