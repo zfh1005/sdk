@@ -2444,6 +2444,11 @@ class CanvasRenderingContext2D extends Interceptor implements CanvasRenderingCon
   void rect(num x, num y, num width, num height) native;
 
 
+  @DomName('CanvasRenderingContext2D.createImageDataFromImageData')
+  @DocsEditable()
+  ImageData createImageDataFromImageData(ImageData imagedata) =>
+    JS('ImageData', '#.createImageData(#, #)', this, imagedata);
+
   /**
    * Sets the color used inside shapes.
    * [r], [g], [b] are 0-255, [a] is 0-1.

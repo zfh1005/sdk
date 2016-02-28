@@ -4541,6 +4541,11 @@ class CanvasRenderingContext2D extends DartHtmlDomObject implements CanvasRender
   void rect(num x, num y, num width, num height) => _blink.BlinkCanvasRenderingContext2D.instance.rect_Callback_4_(unwrap_jso(this), x, y, width, height);
   
 
+  @DomName('CanvasRenderingContext2D.createImageDataFromImageData')
+  @DocsEditable()
+  ImageData createImageDataFromImageData(ImageData imagedata) =>
+    this.createImageData(imagedata);
+
   /**
    * Sets the color used inside shapes.
    * [r], [g], [b] are 0-255, [a] is 0-1.
