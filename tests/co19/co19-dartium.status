@@ -1324,13 +1324,16 @@ LayoutTests/fast/css/transform-origin-parsing_t01: RuntimeError #  45 Roll co19 
 LayoutTests/fast/dom/custom/element-names_t01: RuntimeError # 45 Roll issue dart-lang/co19/issues/25
 LayoutTests/fast/dom/background-shorthand-csstext_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
 LayoutTests/fast/dom/css-selectorText_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+co19/LayoutTests/fast/dom/fragment-activation-focuses-target_t01: RuntimeError #  45 Roll co19 issue https://github.com/dart-lang/co19/issues/36
 LayoutTests/fast/dom/shadow/content-reprojection-fallback-crash_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
 LayoutTests/fast/dom/shadow/event-path_t01: RuntimeError # 45 roll issue https://github.com/dart-lang/co19/issues/26
 LayoutTests/fast/dom/shadow/shadow-disable_t01: RuntimeError # 45 roll issue https://github.com/dart-lang/co19/issues/27
 LayoutTests/fast/dom/shadow/shadow-root-js-api_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
+LayoutTests/fast/encoding/css-charset-dom_t01: Skip #  45 Roll No longer supported see issue https://github.com/dart-lang/co19/issues/35
 LayoutTests/fast/events/overflowchanged-event-raf-timing_t01: Skip #  45 Roll No longer supported.
 LayoutTests/fast/forms/validationMessage_t01: RuntimeError # 45 roll issue https://github.com/dart-lang/co19/issues/28
 LayoutTests/fast/forms/ValidityState-customError_t01: RuntimeError # 45 roll issue https://github.com/dart-lang/co19/issues/29
+LayoutTests/fast/innerHTML/javascript-url_t01: RuntimeError # 45 roll issue https://github.com/dart-lang/co19/issues/34
 LayoutTests/fast/multicol/columns-shorthand-parsing_t02: RuntimeError # 45 roll issue https://github.com/dart-lang/co19/issues/30
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-get_t01: RuntimeError # 45 roll issue https://github.com/dart-lang/co19/issues/31
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-005_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
