@@ -16601,19 +16601,19 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
   
   @DomName('Element.clientHeight')
   @DocsEditable()
-  int get _clientHeight => _blink.BlinkElement.instance.clientHeight_Getter_(unwrap_jso(this));
+  int get clientHeight => _blink.BlinkElement.instance.clientHeight_Getter_(unwrap_jso(this));
   
   @DomName('Element.clientLeft')
   @DocsEditable()
-  int get _clientLeft => _blink.BlinkElement.instance.clientLeft_Getter_(unwrap_jso(this));
+  int get clientLeft => _blink.BlinkElement.instance.clientLeft_Getter_(unwrap_jso(this));
   
   @DomName('Element.clientTop')
   @DocsEditable()
-  int get _clientTop => _blink.BlinkElement.instance.clientTop_Getter_(unwrap_jso(this));
+  int get clientTop => _blink.BlinkElement.instance.clientTop_Getter_(unwrap_jso(this));
   
   @DomName('Element.clientWidth')
   @DocsEditable()
-  int get _clientWidth => _blink.BlinkElement.instance.clientWidth_Getter_(unwrap_jso(this));
+  int get clientWidth => _blink.BlinkElement.instance.clientWidth_Getter_(unwrap_jso(this));
   
   @DomName('Element.computedName')
   @DocsEditable()

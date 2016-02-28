@@ -15062,25 +15062,21 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
   @DocsEditable()
   String className;
 
-  @JSName('clientHeight')
   @DomName('Element.clientHeight')
   @DocsEditable()
-  final int _clientHeight;
+  final int clientHeight;
 
-  @JSName('clientLeft')
   @DomName('Element.clientLeft')
   @DocsEditable()
-  final int _clientLeft;
+  final int clientLeft;
 
-  @JSName('clientTop')
   @DomName('Element.clientTop')
   @DocsEditable()
-  final int _clientTop;
+  final int clientTop;
 
-  @JSName('clientWidth')
   @DomName('Element.clientWidth')
   @DocsEditable()
-  final int _clientWidth;
+  final int clientWidth;
 
   @DomName('Element.computedName')
   @DocsEditable()
