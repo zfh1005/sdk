@@ -23,6 +23,7 @@ import 'dart:js' as js;
 @Deprecated("Internal Use Only")
 final web_glBlinkMap = {
   'ANGLEInstancedArrays': () => AngleInstancedArrays,
+  'CHROMIUMSubscribeUniform': () => ChromiumSubscribeUniform,
   'EXTBlendMinMax': () => ExtBlendMinMax,
   'EXTFragDepth': () => ExtFragDepth,
   'EXTShaderTextureLOD': () => ExtShaderTextureLod,
@@ -71,6 +72,7 @@ final web_glBlinkMap = {
 @Deprecated("Internal Use Only")
 final web_glBlinkFunctionMap = {
   'ANGLEInstancedArrays': () => AngleInstancedArrays.internalCreateAngleInstancedArrays,
+  'CHROMIUMSubscribeUniform': () => ChromiumSubscribeUniform.internalCreateChromiumSubscribeUniform,
   'EXTBlendMinMax': () => ExtBlendMinMax.internalCreateExtBlendMinMax,
   'EXTFragDepth': () => ExtFragDepth.internalCreateExtFragDepth,
   'EXTShaderTextureLOD': () => ExtShaderTextureLod.internalCreateExtShaderTextureLod,
@@ -535,6 +537,81 @@ class Buffer extends DartHtmlDomObject {
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
   int get hashCode => unwrap_jso(this).hashCode;
 
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('CHROMIUMSubscribeUniform')
+@Experimental() // untriaged
+class ChromiumSubscribeUniform extends DartHtmlDomObject {
+  // To suppress missing implicit constructor warnings.
+  factory ChromiumSubscribeUniform._() { throw new UnsupportedError("Not supported"); }
+
+  @Deprecated("Internal Use Only")
+  static ChromiumSubscribeUniform internalCreateChromiumSubscribeUniform() {
+    return new ChromiumSubscribeUniform._internalWrap();
+  }
+
+  factory ChromiumSubscribeUniform._internalWrap() {
+    return new ChromiumSubscribeUniform.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  ChromiumSubscribeUniform.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
+  @DomName('CHROMIUMSubscribeUniform.MOUSE_POSITION_CHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MOUSE_POSITION_CHROMIUM = 0x924C;
+
+  @DomName('CHROMIUMSubscribeUniform.SUBSCRIBED_VALUES_BUFFER_CHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SUBSCRIBED_VALUES_BUFFER_CHROMIUM = 0x924B;
+
+  @DomName('CHROMIUMSubscribeUniform.bindValuebufferCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bindValuebufferChromium(int target, ChromiumValuebuffer buffer) => _blink.BlinkCHROMIUMSubscribeUniform.instance.bindValuebufferCHROMIUM_Callback_2_(unwrap_jso(this), target, unwrap_jso(buffer));
+  
+  @DomName('CHROMIUMSubscribeUniform.createValuebufferCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ChromiumValuebuffer createValuebufferChromium() => wrap_jso(_blink.BlinkCHROMIUMSubscribeUniform.instance.createValuebufferCHROMIUM_Callback_0_(unwrap_jso(this)));
+  
+  @DomName('CHROMIUMSubscribeUniform.deleteValuebufferCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deleteValuebufferChromium(ChromiumValuebuffer buffer) => _blink.BlinkCHROMIUMSubscribeUniform.instance.deleteValuebufferCHROMIUM_Callback_1_(unwrap_jso(this), unwrap_jso(buffer));
+  
+  @DomName('CHROMIUMSubscribeUniform.isValuebufferCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isValuebufferChromium(ChromiumValuebuffer buffer) => _blink.BlinkCHROMIUMSubscribeUniform.instance.isValuebufferCHROMIUM_Callback_1_(unwrap_jso(this), unwrap_jso(buffer));
+  
+  @DomName('CHROMIUMSubscribeUniform.populateSubscribedValuesCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void populateSubscribedValuesChromium(int target) => _blink.BlinkCHROMIUMSubscribeUniform.instance.populateSubscribedValuesCHROMIUM_Callback_1_(unwrap_jso(this), target);
+  
+  @DomName('CHROMIUMSubscribeUniform.subscribeValueCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void subscribeValueChromium(int target, int subscriptions) => _blink.BlinkCHROMIUMSubscribeUniform.instance.subscribeValueCHROMIUM_Callback_2_(unwrap_jso(this), target, subscriptions);
+  
+  @DomName('CHROMIUMSubscribeUniform.uniformValuebufferCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniformValuebufferChromium(UniformLocation location, int target, int subscription) => _blink.BlinkCHROMIUMSubscribeUniform.instance.uniformValuebufferCHROMIUM_Callback_3_(unwrap_jso(this), unwrap_jso(location), target, subscription);
+  
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
