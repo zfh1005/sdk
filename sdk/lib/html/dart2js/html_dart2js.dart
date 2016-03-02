@@ -14237,22 +14237,6 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
   @DocsEditable()
   int get offsetWidth => JS('num', '#.offsetWidth', this).round();
 
-  @DomName('Element.clientHeight')
-  @DocsEditable()
-  int get clientHeight => JS('num', '#.clientHeight', this).round();
-
-  @DomName('Element.clientLeft')
-  @DocsEditable()
-  int get clientLeft => JS('num', '#.clientLeft', this).round();
-
-  @DomName('Element.clientTop')
-  @DocsEditable()
-  int get clientTop => JS('num', '#.clientTop', this).round();
-
-  @DomName('Element.clientWidth')
-  @DocsEditable()
-  int get clientWidth => JS('num', '#.clientWidth', this).round();
-
   @DomName('Element.scrollHeight')
   @DocsEditable()
   int get scrollHeight => JS('num', '#.scrollHeight', this).round();
@@ -24732,7 +24716,7 @@ class Navigator extends Interceptor implements NavigatorStorageUtils, NavigatorC
   @DomName('Navigator.requestMediaKeySystemAccess')
   @DocsEditable()
   @Experimental() // untriaged
-  Future requestMediaKeySystemAccess(String keySystem, List<MediaKeySystemConfiguration> supportedConfigurations) native;
+  Future requestMediaKeySystemAccess(String keySystem, List<Map> supportedConfigurations) native;
 
   @DomName('Navigator.sendBeacon')
   @DocsEditable()

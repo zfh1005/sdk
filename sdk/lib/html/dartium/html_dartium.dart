@@ -29148,7 +29148,7 @@ class Navigator extends DartHtmlDomObject implements NavigatorStorageUtils, Navi
   @DomName('Navigator.requestMediaKeySystemAccess')
   @DocsEditable()
   @Experimental() // untriaged
-  Future requestMediaKeySystemAccess(String keySystem, List<MediaKeySystemConfiguration> supportedConfigurations) => wrap_jso(_blink.BlinkNavigator.instance.requestMediaKeySystemAccess_Callback_2_(unwrap_jso(this), keySystem, supportedConfigurations));
+  Future requestMediaKeySystemAccess(String keySystem, List<Map> supportedConfigurations) => wrap_jso(_blink.BlinkNavigator.instance.requestMediaKeySystemAccess_Callback_2_(unwrap_jso(this), keySystem, supportedConfigurations));
   
   @DomName('Navigator.sendBeacon')
   @DocsEditable()
