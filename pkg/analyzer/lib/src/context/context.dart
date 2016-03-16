@@ -72,6 +72,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * A client-provided name used to identify this context, or `null` if the
    * client has not provided a name.
    */
+  @override
   String name;
 
   /**
@@ -129,6 +130,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   /**
    * A list of all [WorkManager]s used by this context.
    */
+  @override
   final List<WorkManager> workManagers = <WorkManager>[];
 
   /**
@@ -190,6 +192,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   ResultProvider resultProvider;
+
+  /**
+   * The map of [ResultChangedEvent] controllers.
+   */
+  final Map<ResultDescriptor, StreamController<ResultChangedEvent>>
+      _resultChangedControllers =
+      <ResultDescriptor, StreamController<ResultChangedEvent>>{};
 
   /**
    * The most recently incrementally resolved source, or `null` when it was
@@ -260,6 +269,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             options.enableStrictCallChecks ||
         this._options.enableGenericMethods != options.enableGenericMethods ||
         this._options.enableAsync != options.enableAsync ||
+        this._options.enableConditionalDirectives !=
+            options.enableConditionalDirectives ||
         this._options.enableSuperMixins != options.enableSuperMixins;
     int cacheSize = options.cacheSize;
     if (this._options.cacheSize != cacheSize) {
@@ -274,6 +285,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.enableAssertMessage = options.enableAssertMessage;
     this._options.enableStrictCallChecks = options.enableStrictCallChecks;
     this._options.enableAsync = options.enableAsync;
+    this._options.enableConditionalDirectives =
+        options.enableConditionalDirectives;
     this._options.enableSuperMixins = options.enableSuperMixins;
     this._options.hint = options.hint;
     this._options.incremental = options.incremental;
@@ -486,6 +499,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   /**
    * Sets the [TypeProvider] for this context.
    */
+  @override
   void set typeProvider(TypeProvider typeProvider) {
     _typeProvider = typeProvider;
   }
@@ -675,10 +689,19 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (sdk == null) {
       return new AnalysisCache(<CachePartition>[_privatePartition]);
     }
-    return new AnalysisCache(<CachePartition>[
+    AnalysisCache cache = new AnalysisCache(<CachePartition>[
       AnalysisEngine.instance.partitionManager.forSdk(sdk),
       _privatePartition
     ]);
+    cache.onResultInvalidated.listen((InvalidatedResult event) {
+      StreamController<ResultChangedEvent> controller =
+          _resultChangedControllers[event.descriptor];
+      if (controller != null) {
+        controller.add(new ResultChangedEvent(
+            this, event.entry.target, event.descriptor, event.value, false));
+      }
+    });
+    return cache;
   }
 
   /**
@@ -1092,8 +1115,24 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  Stream<ResultChangedEvent> onResultChanged(ResultDescriptor descriptor) {
+    driver.onResultComputed(descriptor).listen((ResultChangedEvent event) {
+      _resultChangedControllers[descriptor]?.add(event);
+    });
+    return _resultChangedControllers.putIfAbsent(descriptor, () {
+      return new StreamController<ResultChangedEvent>.broadcast(sync: true);
+    }).stream;
+  }
+
+  @override
+  @deprecated
   Stream<ComputedResult> onResultComputed(ResultDescriptor descriptor) {
-    return driver.onResultComputed(descriptor);
+    return onResultChanged(descriptor)
+        .where((event) => event.wasComputed)
+        .map((event) {
+      return new ComputedResult(
+          event.context, event.descriptor, event.target, event.value);
+    });
   }
 
   @override

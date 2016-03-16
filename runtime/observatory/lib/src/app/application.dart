@@ -87,6 +87,8 @@ class ObservatoryApplication extends Observable {
   }
 
   void _onEvent(ServiceEvent event) {
+    assert(event.kind != ServiceEvent.kNone);
+
     switch(event.kind) {
       case ServiceEvent.kVMUpdate:
       case ServiceEvent.kIsolateStart:
@@ -139,6 +141,7 @@ class ObservatoryApplication extends Observable {
     _pageRegistry.add(new IsolateReconnectPage(this));
     _pageRegistry.add(new ErrorViewPage(this));
     _pageRegistry.add(new MetricsPage(this));
+    _pageRegistry.add(new PersistentHandlesPage(this));
     _pageRegistry.add(new PortsPage(this));
     _pageRegistry.add(new LoggingPage(this));
     _pageRegistry.add(new TimelinePage(this));

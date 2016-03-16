@@ -238,12 +238,6 @@ static int GetScaleFactor(intptr_t size) {
 
 
 #define TYPED_DATA_ALLOCATOR(clazz)                                            \
-void Intrinsifier::TypedData_##clazz##_new(Assembler* assembler) {             \
-  intptr_t size = TypedData::ElementSizeInBytes(kTypedData##clazz##Cid);       \
-  intptr_t max_len = TypedData::MaxElements(kTypedData##clazz##Cid);           \
-  int shift = GetScaleFactor(size);                                            \
-  TYPED_ARRAY_ALLOCATION(TypedData, kTypedData##clazz##Cid, max_len, shift);   \
-}                                                                              \
 void Intrinsifier::TypedData_##clazz##_factory(Assembler* assembler) {         \
   intptr_t size = TypedData::ElementSizeInBytes(kTypedData##clazz##Cid);       \
   intptr_t max_len = TypedData::MaxElements(kTypedData##clazz##Cid);           \
@@ -1538,7 +1532,7 @@ void Intrinsifier::DoubleToInteger(Assembler* assembler) {
   __ lw(T0, Address(SP, 0 * kWordSize));
   __ LoadDFromOffset(D0, T0, Double::value_offset() - kHeapObjectTag);
 
-  __ cvtwd(F2, D0);
+  __ truncwd(F2, D0);
   __ mfc1(V0, F2);
 
   // Overflow is signaled with minint.

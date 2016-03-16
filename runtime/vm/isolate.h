@@ -312,13 +312,24 @@ class Isolate : public BaseIsolate {
   void set_message_handler(MessageHandler* value) { message_handler_ = value; }
 
   bool is_runnable() const { return is_runnable_; }
-  void set_is_runnable(bool value) { is_runnable_ = value; }
+  void set_is_runnable(bool value) {
+    is_runnable_ = value;
+    if (is_runnable_) {
+      set_last_resume_timestamp();
+    }
+  }
 
   IsolateSpawnState* spawn_state() const { return spawn_state_; }
   void set_spawn_state(IsolateSpawnState* value) { spawn_state_ = value; }
 
   Mutex* mutex() const { return mutex_; }
   Mutex* symbols_mutex() const { return symbols_mutex_; }
+  Mutex* type_canonicalization_mutex() const {
+    return type_canonicalization_mutex_;
+  }
+  Mutex* constant_canonicalization_mutex() const {
+    return constant_canonicalization_mutex_;
+  }
 
   Debugger* debugger() const {
     if (!FLAG_support_debugger) {
@@ -570,6 +581,9 @@ class Isolate : public BaseIsolate {
   void set_deoptimized_code_array(const GrowableObjectArray& value);
   void TrackDeoptimizedCode(const Code& code);
 
+  RawError* sticky_error() const { return sticky_error_; }
+  void clear_sticky_error();
+
   bool compilation_allowed() const { return compilation_allowed_; }
   void set_compilation_allowed(bool allowed) {
     compilation_allowed_ = allowed;
@@ -752,8 +766,10 @@ class Isolate : public BaseIsolate {
   bool has_compiled_code_;  // Can check that no compilation occured.
   Random random_;
   Simulator* simulator_;
-  Mutex* mutex_;  // protects stack_limit_, saved_stack_limit_, compiler stats.
-  Mutex* symbols_mutex_;  // Protects concurrent access to teh symbol table.
+  Mutex* mutex_;  // Protects stack_limit_, saved_stack_limit_, compiler stats.
+  Mutex* symbols_mutex_;  // Protects concurrent access to the symbol table.
+  Mutex* type_canonicalization_mutex_;  // Protects type canonicalization.
+  Mutex* constant_canonicalization_mutex_;  // Protects const canonicalization.
   uword saved_stack_limit_;
   uword deferred_interrupts_mask_;
   uword deferred_interrupts_;
@@ -794,6 +810,8 @@ class Isolate : public BaseIsolate {
   RawGrowableObjectArray* tag_table_;
 
   RawGrowableObjectArray* deoptimized_code_array_;
+
+  RawError* sticky_error_;
 
   // Background compilation.
   BackgroundCompiler* background_compiler_;
@@ -837,7 +855,7 @@ class Isolate : public BaseIsolate {
   uint32_t prefix_invalidation_gen_;
 
   // Protect access to boxed_field_list_.
-  Monitor* boxed_field_list_monitor_;
+  Mutex* boxed_field_list_mutex_;
   // List of fields that became boxed and that trigger deoptimization.
   RawGrowableObjectArray* boxed_field_list_;
 

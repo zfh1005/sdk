@@ -51,6 +51,7 @@ DEFINE_FLAG(bool, await_is_keyword, false,
     "await and yield are treated as proper keywords in synchronous code.");
 
 DECLARE_FLAG(bool, profile_vm);
+DECLARE_FLAG(bool, trace_service);
 
 // Quick access to the current thread, isolate and zone.
 #define T (thread())
@@ -2956,6 +2957,22 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
 }
 
 
+// Returns a zone allocated string.
+static char* DumpPendingFunctions(
+    Zone* zone,
+    const GrowableObjectArray& pending_functions) {
+  ASSERT(zone != NULL);
+  char* result = OS::SCreate(zone, "Pending Functions:\n");
+  for (intptr_t i = 0; i < pending_functions.Length(); i++) {
+    const Function& func =
+        Function::Handle(zone, Function::RawCast(pending_functions.At(i)));
+    const String& fname = String::Handle(zone, func.UserVisibleName());
+    result = OS::SCreate(zone, "%s%" Pd ": %s\n", result, i, fname.ToCString());
+  }
+  return result;
+}
+
+
 void Parser::CheckRecursiveInvocation() {
   const GrowableObjectArray& pending_functions =
       GrowableObjectArray::Handle(Z, T->pending_functions());
@@ -2964,7 +2981,16 @@ void Parser::CheckRecursiveInvocation() {
     if (pending_functions.At(i) == current_function().raw()) {
       const String& fname =
           String::Handle(Z, current_function().UserVisibleName());
-      ReportError("circular dependency for function %s", fname.ToCString());
+      if (FLAG_trace_service) {
+        const char* pending_function_dump =
+            DumpPendingFunctions(Z, pending_functions);
+        ASSERT(pending_function_dump != NULL);
+        ReportError("circular dependency for function %s\n%s",
+                    fname.ToCString(),
+                    pending_function_dump);
+      } else {
+        ReportError("circular dependency for function %s", fname.ToCString());
+      }
     }
   }
   ASSERT(!unregister_pending_function_);
@@ -5796,7 +5822,7 @@ void Parser::ParseLibraryImportExport(const Object& tl_owner,
           : String::Cast(valueNode->AsLiteralNode()->literal());
       // Call the embedder to supply us with the environment.
       const String& env_value =
-          String::Handle(Api::CallEnvironmentCallback(T, key));
+          String::Handle(Api::GetEnvironmentValue(T, key));
       if (!env_value.IsNull() && env_value.Equals(value)) {
         condition_triggered = true;
         url_literal = conditional_url_literal;
@@ -10252,15 +10278,12 @@ AstNode* Parser::ThrowTypeError(TokenPosition type_pos,
       type_pos, Integer::ZoneHandle(Z, Integer::New(type_pos.value()))));
   // Src value argument.
   arguments->Add(new(Z) LiteralNode(type_pos, Object::null_instance()));
-  // Dst type name argument.
-  arguments->Add(new(Z) LiteralNode(type_pos, Symbols::Malformed()));
+  // Dst type argument.
+  arguments->Add(new(Z) LiteralNode(type_pos, type));
   // Dst name argument.
   arguments->Add(new(Z) LiteralNode(type_pos, Symbols::Empty()));
-  // Malformed type error or malbounded type error.
-  const Error& error = Error::Handle(Z, type.error());
-  ASSERT(!error.IsNull());
-  arguments->Add(new(Z) LiteralNode(type_pos, String::ZoneHandle(Z,
-      Symbols::New(error.ToErrorCString()))));
+  // Bound error msg argument.
+  arguments->Add(new(Z) LiteralNode(type_pos, Object::null_instance()));
   return MakeStaticCall(Symbols::TypeError(), method_name, arguments);
 }
 
@@ -11606,7 +11629,14 @@ AstNode* Parser::ParseClosurization(AstNode* primary) {
       // In the pathological case where a library imports itself with
       // a prefix, the name mangling does not help in hiding the private
       // name, so we explicitly prevent lookup of private names here.
-      obj = prefix.LookupObject(extractor_name);
+      if (is_setter_name) {
+        String& setter_name =
+            String::Handle(Z, Field::SetterName(extractor_name));
+        obj = prefix.LookupObject(setter_name);
+      }
+      if (obj.IsNull()) {
+        obj = prefix.LookupObject(extractor_name);
+      }
     }
     if (!prefix.is_loaded() && (parsed_function() != NULL)) {
       // Remember that this function depends on an import prefix of an
@@ -13255,7 +13285,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
       (la3 == Token::kLT) || (la3 == Token::kPERIOD) || (la3 == Token::kHASH);
 
   LibraryPrefix& prefix = LibraryPrefix::ZoneHandle(Z);
-  AbstractType& type = AbstractType::Handle(Z,
+  AbstractType& type = AbstractType::ZoneHandle(Z,
       ParseType(ClassFinalizer::kCanonicalizeWellFormed,
                 allow_deferred_type,
                 consume_unresolved_prefix,
@@ -13264,7 +13294,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   if (FLAG_load_deferred_eagerly &&
       !prefix.IsNull() && prefix.is_deferred_load() && !prefix.is_loaded()) {
     // Add runtime check.
-    Type& malformed_type = Type::Handle(Z);
+    Type& malformed_type = Type::ZoneHandle(Z);
     malformed_type = ClassFinalizer::NewFinalizedMalformedType(
         Error::Handle(Z),  // No previous error.
         script_,
@@ -13384,7 +13414,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
                                     NULL);  // No existing function.
     } else if (constructor.IsRedirectingFactory()) {
       ClassFinalizer::ResolveRedirectingFactory(type_class, constructor);
-      Type& redirect_type = Type::Handle(Z, constructor.RedirectionType());
+      Type& redirect_type = Type::ZoneHandle(Z, constructor.RedirectionType());
       if (!redirect_type.IsMalformedOrMalbounded() &&
           !redirect_type.IsInstantiated()) {
         // The type arguments of the redirection type are instantiated from the

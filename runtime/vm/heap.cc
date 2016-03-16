@@ -446,6 +446,19 @@ void Heap::CollectAllGarbage() {
 }
 
 
+#if defined(DEBUG)
+void Heap::WaitForSweeperTasks() {
+  Thread* thread = Thread::Current();
+  {
+    MonitorLocker ml(old_space_.tasks_lock());
+    while (old_space_.tasks() > 0) {
+      ml.WaitWithSafepointCheck(thread);
+    }
+  }
+}
+#endif
+
+
 bool Heap::ShouldPretenure(intptr_t class_id) const {
   if (class_id == kOneByteStringCid) {
     return pretenure_policy_ > 0;
@@ -488,6 +501,11 @@ void Heap::UpdateGlobalMaxUsed() {
   isolate_->GetHeapGlobalUsedMaxMetric()->SetValue(
       (UsedInWords(Heap::kNew) * kWordSize) +
       (UsedInWords(Heap::kOld) * kWordSize));
+}
+
+
+void Heap::InitGrowthControl() {
+  old_space_.InitGrowthControl();
 }
 
 

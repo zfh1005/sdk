@@ -8,7 +8,8 @@ import '../common.dart';
 import '../constants/values.dart';
 import '../cps_ir/cps_ir_nodes.dart' as cps_ir;
 import '../elements/elements.dart';
-import 'package:js_ast/js_ast.dart' as js;
+import '../io/source_information.dart';
+import '../js_backend/codegen/glue.dart';
 
 import 'tree_ir_nodes.dart';
 
@@ -48,6 +49,7 @@ typedef Statement NodeCallback(Statement next);
  */
 class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   final InternalErrorFunction internalError;
+  final Glue glue;
 
   final Map<cps_ir.Primitive, Variable> primitive2variable =
       <cps_ir.Primitive, Variable>{};
@@ -60,17 +62,12 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   final Map<cps_ir.Continuation, Label> labels = <cps_ir.Continuation, Label>{};
 
   ExecutableElement currentElement;
-  /// The 'this' Parameter for currentElement or the enclosing method.
+  /// The parameter to be translated to 'this'.  This can either be the receiver
+  /// parameter, the interceptor parameter, or null if the method has neither.
   cps_ir.Parameter thisParameter;
   cps_ir.Continuation returnContinuation;
 
-  Builder parent;
-
-  Builder(this.internalError, [this.parent]);
-
-  Builder createInnerBuilder() {
-    return new Builder(internalError, this);
-  }
+  Builder(this.internalError, this.glue);
 
   /// Variable used in [buildPhiAssignments] as a temporary when swapping
   /// variables.
@@ -84,16 +81,14 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   }
 
   Variable getMutableVariable(cps_ir.MutableVariable mutableVariable) {
-    if (!mutable2variable.containsKey(mutableVariable)) {
-      return parent.getMutableVariable(mutableVariable)..isCaptured = true;
-    }
     return mutable2variable[mutableVariable];
   }
 
   VariableUse getMutableVariableUse(
-        cps_ir.Reference<cps_ir.MutableVariable> reference) {
+        cps_ir.Reference<cps_ir.MutableVariable> reference,
+        SourceInformation sourceInformation) {
     Variable variable = getMutableVariable(reference.definition);
-    return new VariableUse(variable);
+    return new VariableUse(variable, sourceInformation: sourceInformation);
   }
 
   /// Obtains the variable representing the given primitive. Returns null for
@@ -108,7 +103,8 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   /// referred to by [reference].
   /// This increments the reference count for the given variable, so the
   /// returned expression must be used in the tree.
-  Expression getVariableUse(cps_ir.Reference<cps_ir.Primitive> reference) {
+  Expression getVariableUse(cps_ir.Reference<cps_ir.Primitive> reference,
+                            {SourceInformation sourceInformation}) {
     cps_ir.Primitive prim = reference.definition.effectiveDefinition;
     if (prim is cps_ir.Constant && inlinedConstants.contains(prim)) {
       return new Constant(prim.value);
@@ -116,7 +112,8 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     if (thisParameter != null && prim == thisParameter) {
       return new This();
     }
-    return new VariableUse(getVariable(prim));
+    return new VariableUse(
+        getVariable(prim), sourceInformation: sourceInformation);
   }
 
   Expression getVariableUseOrNull(
@@ -128,24 +125,22 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     return labels.putIfAbsent(cont, () => new Label());
   }
 
-  Variable addFunctionParameter(cps_ir.Parameter parameter) {
-    return getVariable(parameter);
-  }
-
   FunctionDefinition buildFunction(cps_ir.FunctionDefinition node) {
     currentElement = node.element;
-    if (parent != null) {
-      // Local function's 'this' refers to enclosing method's 'this'
-      thisParameter = parent.thisParameter;
+    List<Variable> parameters = node.parameters.map(getVariable).toList();
+    if (node.interceptorParameter != null) {
+      parameters.insert(0, getVariable(node.receiverParameter));
+      thisParameter = glue.methodUsesReceiverArgument(node.element)
+          ? node.interceptorParameter
+          : node.receiverParameter;
     } else {
-      thisParameter = node.thisParameter;
+      thisParameter = node.receiverParameter;
     }
-    List<Variable> parameters =
-        node.parameters.map(addFunctionParameter).toList();
     returnContinuation = node.returnContinuation;
     phiTempVar = new Variable(node.element, null);
     Statement body = translateExpression(node.body);
-    return new FunctionDefinition(node.element, parameters, body);
+    return new FunctionDefinition(node.element, parameters, body,
+        sourceInformation: node.sourceInformation);
   }
 
   /// Returns a list of variables corresponding to the arguments to a method
@@ -396,7 +391,7 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
 
   NodeCallback visitLetMutable(cps_ir.LetMutable node) {
     Variable variable = addMutableVariable(node.variable);
-    Expression value = getVariableUse(node.value);
+    Expression value = getVariableUse(node.valueRef);
     return (Statement next) => Assign.makeStatement(variable, value, next);
   }
 
@@ -406,7 +401,7 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   // (not a function like interior and call expressions).
 
   Statement visitThrow(cps_ir.Throw node) {
-    Expression value = getVariableUse(node.value);
+    Expression value = getVariableUse(node.valueRef);
     return new Throw(value);
   }
 
@@ -420,13 +415,13 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     // arguments to formal parameter variables, followed by the body if
     // the continuation is singly reference or a break if it is multiply
     // referenced.
-    cps_ir.Continuation cont = node.continuation.definition;
+    cps_ir.Continuation cont = node.continuation;
     if (cont == returnContinuation) {
-      assert(node.arguments.length == 1);
-      return new Return(getVariableUse(node.arguments.single),
+      assert(node.argumentRefs.length == 1);
+      return new Return(getVariableUse(node.argumentRefs.single),
                         sourceInformation: node.sourceInformation);
     } else {
-      List<Expression> arguments = translateArguments(node.arguments);
+      List<Expression> arguments = translateArguments(node.argumentRefs);
       return buildPhiAssignments(cont.parameters, arguments,
           () {
             // Translate invocations of recursive and non-recursive
@@ -456,11 +451,13 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
 
   /// Translates a branch condition to a tree expression.
   Expression translateCondition(cps_ir.Branch branch) {
-    Expression value = getVariableUse(branch.condition);
+    Expression value = getVariableUse(
+        branch.conditionRef, sourceInformation: branch.sourceInformation);
     if (branch.isStrictCheck) {
       return new ApplyBuiltinOperator(
           BuiltinOperator.StrictEq,
-          <Expression>[value, new Constant(new TrueConstantValue())]);
+          <Expression>[value, new Constant(new TrueConstantValue())],
+          branch.sourceInformation);
     } else {
       return value;
     }
@@ -469,17 +466,18 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   Statement visitBranch(cps_ir.Branch node) {
     Expression condition = translateCondition(node);
     Statement thenStatement, elseStatement;
-    cps_ir.Continuation cont = node.trueContinuation.definition;
+    cps_ir.Continuation cont = node.trueContinuation;
     assert(cont.parameters.isEmpty);
     thenStatement = cont.hasExactlyOneUse
         ? translateExpression(cont.body)
         : new Break(labels[cont]);
-    cont = node.falseContinuation.definition;
+    cont = node.falseContinuation;
     assert(cont.parameters.isEmpty);
     elseStatement = cont.hasExactlyOneUse
         ? translateExpression(cont.body)
         : new Break(labels[cont]);
-    return new If(condition, thenStatement, elseStatement);
+    return new If(
+        condition, thenStatement, elseStatement, node.sourceInformation);
   }
 
 
@@ -489,13 +487,14 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   //
 
   Expression visitSetField(cps_ir.SetField node) {
-    return new SetField(getVariableUse(node.object),
+    return new SetField(getVariableUse(node.objectRef),
                         node.field,
-                        getVariableUse(node.value));
+                        getVariableUse(node.valueRef),
+                        node.sourceInformation);
   }
 
   Expression visitInterceptor(cps_ir.Interceptor node) {
-    return new Interceptor(getVariableUse(node.input),
+    return new Interceptor(getVariableUse(node.inputRef),
                            node.interceptedClasses,
                            node.sourceInformation);
   }
@@ -503,14 +502,14 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   Expression visitCreateInstance(cps_ir.CreateInstance node) {
     return new CreateInstance(
         node.classElement,
-        translateArguments(node.arguments),
-        getVariableUseOrNull(node.typeInformation),
+        translateArguments(node.argumentRefs),
+        getVariableUseOrNull(node.typeInformationRef),
         node.sourceInformation);
   }
 
   Expression visitGetField(cps_ir.GetField node) {
-    return new GetField(getVariableUse(node.object), node.field,
-        objectIsNotNull: !node.object.definition.type.isNullable);
+    return new GetField(getVariableUse(node.objectRef), node.field,
+        node.sourceInformation, objectIsNotNull: !node.object.type.isNullable);
   }
 
   Expression visitCreateBox(cps_ir.CreateBox node) {
@@ -520,17 +519,18 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   Expression visitCreateInvocationMirror(cps_ir.CreateInvocationMirror node) {
     return new CreateInvocationMirror(
         node.selector,
-        translateArguments(node.arguments));
+        translateArguments(node.argumentRefs));
   }
 
   Expression visitGetMutable(cps_ir.GetMutable node) {
-    return getMutableVariableUse(node.variable);
+    return getMutableVariableUse(node.variableRef, node.sourceInformation);
   }
 
   Expression visitSetMutable(cps_ir.SetMutable node) {
-    Variable variable = getMutableVariable(node.variable.definition);
-    Expression value = getVariableUse(node.value);
-    return new Assign(variable, value);
+    Variable variable = getMutableVariable(node.variable);
+    Expression value = getVariableUse(node.valueRef);
+    return new Assign(
+        variable, value, sourceInformation: node.sourceInformation);
   }
 
   Expression visitConstant(cps_ir.Constant node) {
@@ -540,18 +540,18 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   Expression visitLiteralList(cps_ir.LiteralList node) {
     return new LiteralList(
             node.dartType,
-            translateArguments(node.values));
+            translateArguments(node.valueRefs));
   }
 
   Expression visitReifyRuntimeType(cps_ir.ReifyRuntimeType node) {
     return new ReifyRuntimeType(
-        getVariableUse(node.value), node.sourceInformation);
+        getVariableUse(node.valueRef), node.sourceInformation);
   }
 
   Expression visitReadTypeVariable(cps_ir.ReadTypeVariable node) {
     return new ReadTypeVariable(
         node.variable,
-        getVariableUse(node.target),
+        getVariableUse(node.targetRef),
         node.sourceInformation);
   }
 
@@ -559,17 +559,17 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     return new TypeExpression(
         node.kind,
         node.dartType,
-        node.arguments.map(getVariableUse).toList());
+        node.argumentRefs.map(getVariableUse).toList());
   }
 
   Expression visitTypeTest(cps_ir.TypeTest node) {
-    Expression value = getVariableUse(node.value);
-    List<Expression> typeArgs = translateArguments(node.typeArguments);
+    Expression value = getVariableUse(node.valueRef);
+    List<Expression> typeArgs = translateArguments(node.typeArgumentRefs);
     return new TypeOperator(value, node.dartType, typeArgs, isTypeTest: true);
   }
 
   Expression visitTypeTestViaFlag(cps_ir.TypeTestViaFlag node) {
-    Expression value = getVariableUse(node.interceptor);
+    Expression value = getVariableUse(node.interceptorRef);
     // TODO(sra): Move !! to cps_ir level.
     return new Not(new Not(new GetTypeTestProperty(value, node.dartType)));
   }
@@ -581,88 +581,138 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   Expression visitSetStatic(cps_ir.SetStatic node) {
     return new SetStatic(
         node.element,
-        getVariableUse(node.value),
+        getVariableUse(node.valueRef),
         node.sourceInformation);
   }
 
   Expression visitApplyBuiltinOperator(cps_ir.ApplyBuiltinOperator node) {
     if (node.operator == BuiltinOperator.IsFalsy) {
-      return new Not(getVariableUse(node.arguments.single));
+      return new Not(getVariableUse(node.argumentRefs.single));
     }
-    return new ApplyBuiltinOperator(node.operator,
-                                    translateArguments(node.arguments));
+    return new ApplyBuiltinOperator(
+        node.operator,
+        translateArguments(node.argumentRefs),
+        node.sourceInformation);
   }
 
   Expression visitApplyBuiltinMethod(cps_ir.ApplyBuiltinMethod node) {
     return new ApplyBuiltinMethod(node.method,
-        getVariableUse(node.receiver),
-        translateArguments(node.arguments),
-        receiverIsNotNull: !node.receiver.definition.type.isNullable);
+        getVariableUse(node.receiverRef),
+        translateArguments(node.argumentRefs),
+        receiverIsNotNull: !node.receiver.type.isNullable);
   }
 
   Expression visitGetLength(cps_ir.GetLength node) {
-    return new GetLength(getVariableUse(node.object));
+    return new GetLength(getVariableUse(node.objectRef));
   }
 
   Expression visitGetIndex(cps_ir.GetIndex node) {
-    return new GetIndex(getVariableUse(node.object),
-                        getVariableUse(node.index));
+    return new GetIndex(getVariableUse(node.objectRef),
+                        getVariableUse(node.indexRef));
   }
 
   Expression visitSetIndex(cps_ir.SetIndex node) {
-    return new SetIndex(getVariableUse(node.object),
-                        getVariableUse(node.index),
-                        getVariableUse(node.value));
+    return new SetIndex(getVariableUse(node.objectRef),
+                        getVariableUse(node.indexRef),
+                        getVariableUse(node.valueRef));
   }
 
   Expression visitInvokeStatic(cps_ir.InvokeStatic node) {
-    List<Expression> arguments = translateArguments(node.arguments);
+    List<Expression> arguments = translateArguments(node.argumentRefs);
     return new InvokeStatic(node.target, node.selector, arguments,
                                          node.sourceInformation);
   }
 
+  List<Expression> insertReceiverArgument(Expression receiver,
+        List<Expression> arguments) {
+    return new List<Expression>.generate(arguments.length + 1,
+        (n) => n == 0 ? receiver : arguments[n - 1],
+        growable: false);
+  }
+
   Expression visitInvokeMethod(cps_ir.InvokeMethod node) {
-    if (node.callingConvention == cps_ir.CallingConvention.OneShotIntercepted) {
-      List<Expression> arguments = new List.generate(
-          1 + node.arguments.length,
-          (n) => getVariableUse(n == 0 ? node.receiver : node.arguments[n - 1]),
-          growable: false);
-      return new OneShotInterceptor(node.selector, node.mask, arguments,
-          node.sourceInformation);
+    switch (node.callingConvention) {
+      case cps_ir.CallingConvention.Normal:
+        InvokeMethod invoke = new InvokeMethod(
+            getVariableUse(node.receiverRef),
+            node.selector,
+            node.mask,
+            translateArguments(node.argumentRefs),
+            node.sourceInformation);
+        invoke.receiverIsNotNull = !node.receiver.type.isNullable;
+        return invoke;
+
+      case cps_ir.CallingConvention.Intercepted:
+        List<Expression> arguments = insertReceiverArgument(
+            getVariableUse(node.receiverRef),
+            translateArguments(node.argumentRefs));
+        InvokeMethod invoke = new InvokeMethod(
+            getVariableUse(node.interceptorRef),
+            node.selector,
+            node.mask,
+            arguments,
+            node.sourceInformation);
+        // Sometimes we know the Dart receiver is non-null because it has been
+        // refined, which implies that the JS receiver also can not be null at
+        // the use-site.  Interceptors are not refined, so this information is
+        // not always available on the JS receiver.
+        // Also check the JS receiver's type, however, because sometimes we know
+        // an interceptor is non-null because it intercepts JSNull.
+        invoke.receiverIsNotNull =
+            !node.receiver.type.isNullable ||
+            !node.interceptor.type.isNullable;
+        return invoke;
+
+      case cps_ir.CallingConvention.DummyIntercepted:
+        List<Expression> arguments = insertReceiverArgument(
+            new Constant(new IntConstantValue(0)),
+            translateArguments(node.argumentRefs));
+        InvokeMethod invoke = new InvokeMethod(
+            getVariableUse(node.receiverRef),
+            node.selector,
+            node.mask,
+            arguments,
+            node.sourceInformation);
+        invoke.receiverIsNotNull = !node.receiver.type.isNullable;
+        return invoke;
+
+      case cps_ir.CallingConvention.OneShotIntercepted:
+        List<Expression> arguments = insertReceiverArgument(
+            getVariableUse(node.receiverRef),
+            translateArguments(node.argumentRefs));
+        return new OneShotInterceptor(
+            node.selector,
+            node.mask,
+            arguments,
+            node.sourceInformation);
     }
-    InvokeMethod invoke = new InvokeMethod(
-        getVariableUse(node.receiver),
-        node.selector,
-        node.mask,
-        translateArguments(node.arguments),
-        node.sourceInformation);
-    // Sometimes we know the Dart receiver is non-null because it has been
-    // refined, which implies that the JS receiver also can not be null at the
-    // use-site.  Interceptors are not refined, so this information is not
-    // always available on the JS receiver.
-    // Also check the JS receiver's type, however, because sometimes we know an
-    // interceptor is non-null because it intercepts JSNull.
-    invoke.receiverIsNotNull =
-        !node.dartReceiver.type.isNullable ||
-        !node.receiver.definition.type.isNullable;
-    return invoke;
   }
 
   Expression visitInvokeMethodDirectly(cps_ir.InvokeMethodDirectly node) {
-    Expression receiver = getVariableUse(node.receiver);
-    List<Expression> arguments = translateArguments(node.arguments);
-    return new InvokeMethodDirectly(receiver, node.target,
-        node.selector, arguments, node.sourceInformation);
+    if (node.interceptorRef != null) {
+      return new InvokeMethodDirectly(getVariableUse(node.interceptorRef),
+          node.target,
+          node.selector,
+          insertReceiverArgument(getVariableUse(node.receiverRef),
+              translateArguments(node.argumentRefs)),
+          node.sourceInformation);
+    } else {
+      return new InvokeMethodDirectly(getVariableUse(node.receiverRef),
+          node.target,
+          node.selector,
+          translateArguments(node.argumentRefs),
+          node.sourceInformation);
+    }
   }
 
   Expression visitTypeCast(cps_ir.TypeCast node) {
-    Expression value = getVariableUse(node.value);
-    List<Expression> typeArgs = translateArguments(node.typeArguments);
+    Expression value = getVariableUse(node.valueRef);
+    List<Expression> typeArgs = translateArguments(node.typeArgumentRefs);
     return new TypeOperator(value, node.dartType, typeArgs, isTypeTest: false);
   }
 
   Expression visitInvokeConstructor(cps_ir.InvokeConstructor node) {
-    List<Expression> arguments = translateArguments(node.arguments);
+    List<Expression> arguments = translateArguments(node.argumentRefs);
     return new InvokeConstructor(
         node.dartType,
         node.target,
@@ -673,8 +723,8 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
 
   visitForeignCode(cps_ir.ForeignCode node) {
     List<Expression> arguments =
-        node.arguments.map(getVariableUse).toList(growable: false);
-    List<bool> nullableArguments = node.arguments
+        node.argumentRefs.map(getVariableUse).toList(growable: false);
+    List<bool> nullableArguments = node.argumentRefs
         .map((argument) => argument.definition.type.isNullable)
         .toList(growable: false);
     if (node.codeTemplate.isExpression) {
@@ -684,7 +734,8 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
           arguments,
           node.nativeBehavior,
           nullableArguments,
-          node.dependency);
+          node.dependency,
+          node.sourceInformation);
     } else {
       return (Statement next) {
         assert(next is Unreachable); // We are not using the `next` statement.
@@ -694,7 +745,8 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
             arguments,
             node.nativeBehavior,
             nullableArguments,
-            node.dependency);
+            node.dependency,
+            node.sourceInformation);
       };
     }
   }
@@ -704,8 +756,8 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     // In the Tree IR, syntax is more important, so the receiver check uses
     // "useInvoke" to denote if an invocation should be emitted.
     return new ReceiverCheck(
-        condition: getVariableUseOrNull(node.condition),
-        value: getVariableUse(node.value),
+        condition: getVariableUseOrNull(node.conditionRef),
+        value: getVariableUse(node.valueRef),
         selector: node.selector,
         useSelector: node.useSelector,
         useInvoke: !node.isNullCheck,
@@ -720,13 +772,13 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   @override
   NodeCallback visitYield(cps_ir.Yield node) {
     return (Statement next) {
-      return new Yield(getVariableUse(node.input), node.hasStar, next);
+      return new Yield(getVariableUse(node.inputRef), node.hasStar, next);
     };
   }
 
   @override
   Expression visitAwait(cps_ir.Await node) {
-    return new Await(getVariableUse(node.input));
+    return new Await(getVariableUse(node.inputRef));
   }
 
   @override

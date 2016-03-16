@@ -13,9 +13,9 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/member.dart';
-import 'package:analyzer/src/generated/element_handle.dart'
+import 'package:analyzer/src/dart/element/handle.dart'
     show ConstructorElementHandle;
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, RecordingErrorListener;
@@ -1321,8 +1321,8 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
                 element is FieldElement &&
                 node.isFinal &&
                 !element.isStatic)) {
-      if (node.element != null) {
-        constantsToCompute.add(node.element);
+      if (element != null) {
+        constantsToCompute.add(element);
       }
     }
     return null;
@@ -1734,7 +1734,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         elementType = type;
       }
     }
-    InterfaceType listType = _typeProvider.listType.substitute4([elementType]);
+    InterfaceType listType = _typeProvider.listType.instantiate([elementType]);
     return new DartObjectImpl(listType, new ListState(elements));
   }
 
@@ -1774,7 +1774,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       }
     }
     InterfaceType mapType =
-        _typeProvider.mapType.substitute4([keyType, valueType]);
+        _typeProvider.mapType.instantiate([keyType, valueType]);
     return new DartObjectImpl(mapType, new MapState(map));
   }
 
@@ -2505,6 +2505,7 @@ class DartObjectImpl implements DartObject {
   /**
    * The run-time type of this object.
    */
+  @override
   final ParameterizedType type;
 
   /**

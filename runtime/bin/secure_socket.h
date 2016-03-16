@@ -9,14 +9,14 @@
 #error "secure_socket.h can only be included on builds with SSL enabled"
 #endif
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 #include <sys/types.h>
 
 #include <openssl/bio.h>
-#include <openssl/ssl.h>
 #include <openssl/err.h>
+#include <openssl/ssl.h>
 #include <openssl/x509.h>
 
 #include "bin/builtin.h"
@@ -62,7 +62,9 @@ class SSLFilter {
         in_handshake_(false),
         hostname_(NULL) { }
 
-  void Init(Dart_Handle dart_this);
+  ~SSLFilter();
+
+  Dart_Handle Init(Dart_Handle dart_this);
   void Connect(const char* hostname,
                SSL_CTX* context,
                bool is_server,
@@ -100,7 +102,6 @@ class SSLFilter {
   SSL* ssl_;
   BIO* socket_side_;
 
-
  private:
   static bool library_initialized_;
   static Mutex* mutex_;  // To protect library initialization.
@@ -120,7 +121,7 @@ class SSLFilter {
   static bool isBufferEncrypted(int i) {
     return static_cast<BufferIndex>(i) >= kFirstEncrypted;
   }
-  void InitializeBuffers(Dart_Handle dart_this);
+  Dart_Handle InitializeBuffers(Dart_Handle dart_this);
   void InitializePlatformData();
 
   DISALLOW_COPY_AND_ASSIGN(SSLFilter);

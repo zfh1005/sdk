@@ -45,12 +45,10 @@ async_star_regression_2238_test: CompileTimeError, RuntimeError # drt only runti
 async_star_cancel_while_paused_test: RuntimeError
 async_star_await_pauses_test: Skip # Times out. Issue 23996
 
-library_env_test: RuntimeError
-
-accessor_conflict_export2_test: RuntimeError # Issue 25625
-accessor_conflict_import2_test: RuntimeError # Issue 25625
-accessor_conflict_import_prefixed2_test: RuntimeError # Issue 25625
-accessor_conflict_import_prefixed_test: RuntimeError # Issue 25625
+# Experimental feature: Syntactic support for generic methods.
+generic_methods_test: CompiletimeError # Issue 25869
+generic_functions_test: CompiletimeError # Issue 25869
+generic_sends_test: CompiletimeError # Issue 25869
 
 [ ($compiler == none || $compiler == precompiler || $compiler == dart2app) && ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) ]
 
@@ -91,6 +89,10 @@ main_test/21: Fail # Issue 20028
 main_test/42: Fail # Issue 20028
 mirror_in_static_init_test: Fail # Issue 22071
 vm/debug_break_enabled_vm_test/*: Skip # Issue 14651.
+# Experimental feature: Syntactic support for generic methods.
+generic_methods_test: RuntimeError # Issue 25869
+generic_functions_test: RuntimeError # Issue 25869
+generic_sends_test: RuntimeError # Issue 25869
 
 [ $compiler == none && $runtime == dartium && $system == linux && $arch != x64 ]
 issue_22780_test/01 : Pass, Timeout # Issue 24473
@@ -98,12 +100,7 @@ issue_22780_test/01 : Pass, Timeout # Issue 24473
 [ $compiler == none && $runtime == drt ]
 disassemble_test: Pass, Fail # Issue 18122
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && $arch == mips && $checked ]
-generic_instanceof3_test: Pass, Crash # Issue 17440.
-
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && $arch == mips && $mode == debug ]
-stack_overflow_test: Skip # Crashes. Issue 17440.
-stack_overflow_stacktrace_test: Skip # Crashes. Issue 17440.
 large_class_declaration_test: SkipSlow # Times out. Issue 20352
 
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && $arch == arm64 ]
@@ -121,33 +118,17 @@ issue23244_test: Fail # Issue 23244
 [ ($compiler == none || $compiler == precompiler || $compiler == dart2app) && (($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) || $runtime == drt || $runtime == dartium) && $arch == ia32 ]
 vm/regress_24517_test: Pass, Fail # Issue 24517.
 
-[ ($noopt || $compiler == precompiler) ]
-# Imports dart:mirrors
-const_evaluation_test: CompileTimeError
-deferred_constraints_constants_test/none: CompileTimeError
-deferred_constraints_constants_test/reference_after_load: CompileTimeError
-enum_mirror_test: CompileTimeError
-field_increment_bailout_test: CompileTimeError
-instance_creation_in_function_annotation_test: CompileTimeError
-invocation_mirror2_test: CompileTimeError
-invocation_mirror_invoke_on2_test: CompileTimeError
-invocation_mirror_invoke_on_test: CompileTimeError
-issue21079_test: CompileTimeError
-many_overridden_no_such_method_test: CompileTimeError
-no_such_method_test: CompileTimeError
-null_test/none: CompileTimeError
-overridden_no_such_method_test: CompileTimeError
-redirecting_factory_reflection_test: CompileTimeError
-regress_13462_0_test: CompileTimeError
-regress_13462_1_test: CompileTimeError
-regress_18535_test: CompileTimeError
-super_call4_test: CompileTimeError
-super_getter_setter_test: CompileTimeError
-vm/reflect_core_vm_test: CompileTimeError
+[ $noopt || $compiler == precompiler ]
+# Stacktraces in precompilation omit inlined frames.
+full_stacktrace1_test: Pass, RuntimeError
+full_stacktrace2_test: Pass, RuntimeError
+full_stacktrace3_test: Pass, RuntimeError
+stack_trace_test: Pass, RuntimeError
+stacktrace_rethrow_error_test: Pass, RuntimeError
+stacktrace_rethrow_nonerror_test: Pass, RuntimeError
+stacktrace_test: Pass, RuntimeError
 
-deferred_global_test: RuntimeError # Issue 25845
-
-[ $runtime == dart_product ]
+[ $noopt || $compiler == precompiler || $mode == product ]
 # Imports dart:mirrors
 const_evaluation_test: SkipByDesign
 deferred_constraints_constants_test: SkipByDesign
@@ -162,13 +143,13 @@ many_overridden_no_such_method_test: SkipByDesign
 no_such_method_test: SkipByDesign
 null_test/none: SkipByDesign
 overridden_no_such_method_test: SkipByDesign
+redirecting_factory_reflection_test: SkipByDesign
 regress_13462_0_test: SkipByDesign
 regress_13462_1_test: SkipByDesign
 regress_18535_test: SkipByDesign
 super_call4_test: SkipByDesign
 super_getter_setter_test: SkipByDesign
 vm/reflect_core_vm_test: SkipByDesign
-redirecting_factory_reflection_test: SkipByDesign
 
 [ ($noopt || $compiler == precompiler || $compiler == dart2app) ]
 # Deferred loading happens eagerly
@@ -176,6 +157,7 @@ regress_23408_test: RuntimeError
 deferred_inheritance_constraints_test: Skip
 deferred_load_constants_test: Skip # multitest gets confused
 tearoff_basic_test: RuntimeError, Crash # Conflicting flag.
+deferred_global_test: RuntimeError # Issue 25845
 
 vm/type_vm_test: RuntimeError # Expects line and column numbers
 vm/type_cast_vm_test: RuntimeError # Line number mismatch.
@@ -197,3 +179,21 @@ regress_22443_test: Skip
 
 [ $runtime == vm && $mode == product ]
 vm/type_vm_test: Fail,OK  # Expects exact type name.
+
+[ ($compiler == none || $compiler == precompiler || $compiler == dart2app) && $browser ]
+# The following tests are supposed to fail.
+library_env_test/has_io_support: RuntimeError, OK
+library_env_test/has_no_html_support: RuntimeError, OK
+
+[ ($compiler == none || $compiler == precompiler || $compiler == dart2app) && $browser != true ]
+# The following tests are supposed to fail.
+library_env_test/has_html_support: RuntimeError, OK
+library_env_test/has_no_io_support: RuntimeError, OK
+
+[ $compiler == none && $noopt == false && $mode != product ]
+# The following tests are supposed to fail.
+library_env_test/has_no_mirror_support: RuntimeError, OK
+
+[ $noopt || $compiler == precompiler || $mode == product ]
+# The following tests are supposed to fail.
+library_env_test/has_mirror_support: RuntimeError, OK

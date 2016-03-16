@@ -167,7 +167,7 @@ class ElementFactory {
     FieldElementImpl valuesField = new FieldElementImpl("values", -1);
     valuesField.static = true;
     valuesField.const3 = true;
-    valuesField.type = typeProvider.listType.substitute4(<DartType>[enumType]);
+    valuesField.type = typeProvider.listType.instantiate(<DartType>[enumType]);
     fields.add(valuesField);
     //
     // Build the enum constants.
@@ -250,6 +250,15 @@ class ElementFactory {
   static FieldFormalParameterElementImpl fieldFormalParameter(
           Identifier name) =>
       new FieldFormalParameterElementImpl.forNode(name);
+
+  /**
+   * Destroy any static state retained by [ElementFactory].  This should be
+   * called from the `setUp` method of any tests that use [ElementFactory], in
+   * order to ensure that state is not shared between multiple tests.
+   */
+  static void flushStaticState() {
+    _objectElement = null;
+  }
 
   static FunctionElementImpl functionElement(String functionName) =>
       functionElement4(functionName, null, null, null, null);

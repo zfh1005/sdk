@@ -109,7 +109,7 @@ import 'serialization/task.dart' show
     SerializationTask;
 import 'script.dart' show
     Script;
-import 'ssa/ssa.dart' show
+import 'ssa/nodes.dart' show
     HInstruction;
 import 'tracer.dart' show
     Tracer;
@@ -455,6 +455,7 @@ abstract class Compiler {
             this.dumpInfo: false,
             bool useStartupEmitter: false,
             bool enableConditionalDirectives: false,
+            bool useNewSourceInfo: false,
             this.useContentSecurityPolicy: false,
             bool hasIncrementalSupport: false,
             this.enableExperimentalMirrors: false,
@@ -502,7 +503,8 @@ abstract class Compiler {
       js_backend.JavaScriptBackend jsBackend =
           new js_backend.JavaScriptBackend(
               this, generateSourceMap: generateSourceMap,
-              useStartupEmitter: useStartupEmitter);
+              useStartupEmitter: useStartupEmitter,
+              useNewSourceInfo: useNewSourceInfo);
       backend = jsBackend;
     } else {
       backend = new dart_backend.DartBackend(this, strips,

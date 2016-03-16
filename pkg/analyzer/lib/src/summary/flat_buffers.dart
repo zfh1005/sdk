@@ -10,6 +10,21 @@ import 'dart:math';
 import 'dart:typed_data';
 
 /**
+ * Reader of lists of boolean values.
+ *
+ * The returned unmodifiable lists lazily read values on access.
+ */
+class BoolListReader extends Reader<List<bool>> {
+  const BoolListReader();
+
+  @override
+  int get size => 4;
+
+  @override
+  List<bool> read(BufferPointer bp) => new _FbBoolList(bp.derefObject());
+}
+
+/**
  * The reader of booleans.
  */
 class BoolReader extends Reader<bool> {
@@ -335,6 +350,38 @@ class Builder {
   }
 
   /**
+   * Write the given list of boolean [values].
+   */
+  Offset writeListBool(List<bool> values) {
+    int bitLength = values.length;
+    int padding = (-bitLength) % 8;
+    int byteLength = (bitLength + padding) ~/ 8;
+    // Prepare the backing Uint8List.
+    Uint8List bytes = new Uint8List(byteLength + 1);
+    // Record every bit.
+    int byteIndex = 0;
+    int byte = 0;
+    int mask = 1;
+    for (int bitIndex = 0; bitIndex < bitLength; bitIndex++) {
+      if (bitIndex != 0 && (bitIndex % 8 == 0)) {
+        bytes[byteIndex++] = byte;
+        byte = 0;
+        mask = 1;
+      }
+      if (values[bitIndex]) {
+        byte |= mask;
+      }
+      mask <<= 1;
+    }
+    // Write the last byte, even if it may be on the padding.
+    bytes[byteIndex] = byte;
+    // Write the padding length.
+    bytes[byteLength] = padding;
+    // Write as a Uint8 list.
+    return writeListUint8(bytes);
+  }
+
+  /**
    * Write the given list of 64-bit float [values].
    */
   Offset writeListFloat64(List<double> values) {
@@ -645,7 +692,7 @@ abstract class TableReader<T> extends Reader<T> {
 }
 
 /**
- * Reader of lists of 32-bit float values.
+ * Reader of lists of unsigned 32-bit integer values.
  *
  * The returned unmodifiable lists lazily read values on access.
  */
@@ -673,6 +720,21 @@ class Uint32Reader extends Reader<int> {
 }
 
 /**
+ * Reader of lists of unsigned 8-bit integer values.
+ *
+ * The returned unmodifiable lists lazily read values on access.
+ */
+class Uint8ListReader extends Reader<List<int>> {
+  const Uint8ListReader();
+
+  @override
+  int get size => 4;
+
+  @override
+  List<int> read(BufferPointer bp) => new _FbUint8List(bp.derefObject());
+}
+
+/**
  * The reader of unsigned 8-bit integers.
  */
 class Uint8Reader extends Reader<int> {
@@ -686,23 +748,50 @@ class Uint8Reader extends Reader<int> {
 }
 
 /**
+ * List of booleans backed by 8-bit unsigned integers.
+ */
+class _FbBoolList extends Object with ListMixin<bool> implements List<bool> {
+  final BufferPointer bp;
+  int _length;
+
+  _FbBoolList(this.bp);
+
+  @override
+  int get length {
+    if (_length == null) {
+      int byteLength = bp._getUint32();
+      _length = (byteLength - 1) * 8 - _getByte(byteLength - 1);
+    }
+    return _length;
+  }
+
+  @override
+  void set length(int i) =>
+      throw new StateError('Attempt to modify immutable list');
+
+  @override
+  bool operator [](int i) {
+    int index = i ~/ 8;
+    int mask = 1 << i % 8;
+    return _getByte(index) & mask != 0;
+  }
+
+  @override
+  void operator []=(int i, bool e) =>
+      throw new StateError('Attempt to modify immutable list');
+
+  int _getByte(int index) => bp._getUint8(4 + index);
+}
+
+/**
  * The list backed by 64-bit values - Uint64 length and Float64.
  */
 class _FbFloat64List extends _FbList<double> {
-  List<double> _items;
-
   _FbFloat64List(BufferPointer bp) : super(bp);
 
   @override
   double operator [](int i) {
-    _items ??= new List<double>(length);
-    double item = _items[i];
-    if (item == null) {
-      BufferPointer ref = bp._advance(8 + 8 * i);
-      item = ref._getFloat64();
-      _items[i] = item;
-    }
-    return item;
+    return bp._getFloat64(8 + 8 * i);
   }
 }
 
@@ -757,19 +846,23 @@ abstract class _FbList<E> extends Object with ListMixin<E> implements List<E> {
  * List backed by 32-bit unsigned integers.
  */
 class _FbUint32List extends _FbList<int> {
-  List<int> _items;
-
   _FbUint32List(BufferPointer bp) : super(bp);
 
   @override
   int operator [](int i) {
-    _items ??= new List<int>(length);
-    int item = _items[i];
-    if (item == null) {
-      item = bp._getUint32(4 + 4 * i);
-      _items[i] = item;
-    }
-    return item;
+    return bp._getUint32(4 + 4 * i);
+  }
+}
+
+/**
+ * List backed by 8-bit unsigned integers.
+ */
+class _FbUint8List extends _FbList<int> {
+  _FbUint8List(BufferPointer bp) : super(bp);
+
+  @override
+  int operator [](int i) {
+    return bp._getUint8(4 + i);
   }
 }
 

@@ -394,6 +394,8 @@ class AnimationEffectTiming extends Interceptor {
   @DomName('AnimationEffectTiming.duration')
   @DocsEditable()
   @Experimental() // untriaged
+  @Creates('Null')
+  @Returns('num|String')
   Object duration;
 
   @DomName('AnimationEffectTiming.easing')
@@ -1319,6 +1321,11 @@ class BluetoothGattCharacteristic extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory BluetoothGattCharacteristic._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('BluetoothGATTCharacteristic.uuid')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String uuid;
+
   @DomName('BluetoothGATTCharacteristic.readValue')
   @DocsEditable()
   @Experimental() // untriaged
@@ -1392,6 +1399,27 @@ class BluetoothGattService extends Interceptor {
 class BluetoothUuid extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory BluetoothUuid._() { throw new UnsupportedError("Not supported"); }
+
+  @JSName('canonicalUUID')
+  @DomName('BluetoothUUID.canonicalUUID')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static String canonicalUuid(int alias) native;
+
+  @DomName('BluetoothUUID.getCharacteristic')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static String getCharacteristic(Object name) native;
+
+  @DomName('BluetoothUUID.getDescriptor')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static String getDescriptor(Object name) native;
+
+  @DomName('BluetoothUUID.getService')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static String getService(Object name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -2452,7 +2480,7 @@ class CanvasRenderingContext2D extends Interceptor implements CanvasRenderingCon
   @DomName('CanvasRenderingContext2D.createImageDataFromImageData')
   @DocsEditable()
   ImageData createImageDataFromImageData(ImageData imagedata) =>
-    JS('ImageData', '#.createImageData(#, #)', this, imagedata);
+    JS('ImageData', '#.createImageData(#)', this, imagedata);
 
   /**
    * Sets the color used inside shapes.
@@ -3698,6 +3726,7 @@ class CryptoKey extends Interceptor {
   @DomName('CryptoKey.algorithm')
   @DocsEditable()
   @Experimental() // untriaged
+  @Creates('Null')
   final Object algorithm;
 
   @DomName('CryptoKey.extractable')
@@ -3737,6 +3766,24 @@ class Css extends Interceptor {
   @DomName('CSS.supports')
   @DocsEditable()
   static bool supportsCondition(String conditionText) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('CSSCharsetRule')
+// http://dev.w3.org/csswg/cssom/#the-csscharsetrule-interface
+@Experimental()
+@Native("CSSCharsetRule")
+class CssCharsetRule extends CssRule {
+  // To suppress missing implicit constructor warnings.
+  factory CssCharsetRule._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('CSSCharsetRule.encoding')
+  @DocsEditable()
+  String encoding;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4109,15 +4156,6 @@ class CssStyleDeclaration  extends Interceptor with
   @DomName('CSSStyleDeclaration.parentRule')
   @DocsEditable()
   final CssRule parentRule;
-
-  @DomName('CSSStyleDeclaration.__getter__')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object __getter__(String name) native;
-
-  @DomName('CSSStyleDeclaration.__setter__')
-  @DocsEditable()
-  void __setter__(String property, String propertyValue) native;
 
   @DomName('CSSStyleDeclaration.getPropertyPriority')
   @DocsEditable()
@@ -10234,12 +10272,12 @@ class Document extends Node
   /// Stream of `copy` events handled by this [Document].
   @DomName('Document.oncopy')
   @DocsEditable()
-  Stream<Event> get onCopy => Element.copyEvent.forTarget(this);
+  Stream<ClipboardEvent> get onCopy => Element.copyEvent.forTarget(this);
 
   /// Stream of `cut` events handled by this [Document].
   @DomName('Document.oncut')
   @DocsEditable()
-  Stream<Event> get onCut => Element.cutEvent.forTarget(this);
+  Stream<ClipboardEvent> get onCut => Element.cutEvent.forTarget(this);
 
   /// Stream of `doubleclick` events handled by this [Document].
   @DomName('Document.ondblclick')
@@ -10391,7 +10429,7 @@ class Document extends Node
   /// Stream of `paste` events handled by this [Document].
   @DomName('Document.onpaste')
   @DocsEditable()
-  Stream<Event> get onPaste => Element.pasteEvent.forTarget(this);
+  Stream<ClipboardEvent> get onPaste => Element.pasteEvent.forTarget(this);
 
   @DomName('Document.onpause')
   @DocsEditable()
@@ -12075,12 +12113,12 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
   /// Stream of `copy` events handled by this [Element].
   @DomName('Element.oncopy')
   @DocsEditable()
-  ElementStream<Event> get onCopy;
+  ElementStream<ClipboardEvent> get onCopy;
 
   /// Stream of `cut` events handled by this [Element].
   @DomName('Element.oncut')
   @DocsEditable()
-  ElementStream<Event> get onCut;
+  ElementStream<ClipboardEvent> get onCut;
 
   /// Stream of `doubleclick` events handled by this [Element].
   @DomName('Element.ondblclick')
@@ -12328,7 +12366,7 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
   /// Stream of `paste` events handled by this [Element].
   @DomName('Element.onpaste')
   @DocsEditable()
-  ElementStream<Event> get onPaste;
+  ElementStream<ClipboardEvent> get onPaste;
 
   @DomName('Element.onpause')
   @DocsEditable()
@@ -12607,12 +12645,12 @@ class _FrozenElementList extends ListBase
   /// Stream of `copy` events handled by this [Element].
   @DomName('Element.oncopy')
   @DocsEditable()
-  ElementStream<Event> get onCopy => Element.copyEvent._forElementList(this);
+  ElementStream<ClipboardEvent> get onCopy => Element.copyEvent._forElementList(this);
 
   /// Stream of `cut` events handled by this [Element].
   @DomName('Element.oncut')
   @DocsEditable()
-  ElementStream<Event> get onCut => Element.cutEvent._forElementList(this);
+  ElementStream<ClipboardEvent> get onCut => Element.cutEvent._forElementList(this);
 
   /// Stream of `doubleclick` events handled by this [Element].
   @DomName('Element.ondblclick')
@@ -12860,7 +12898,7 @@ class _FrozenElementList extends ListBase
   /// Stream of `paste` events handled by this [Element].
   @DomName('Element.onpaste')
   @DocsEditable()
-  ElementStream<Event> get onPaste => Element.pasteEvent._forElementList(this);
+  ElementStream<ClipboardEvent> get onPaste => Element.pasteEvent._forElementList(this);
 
   @DomName('Element.onpause')
   @DocsEditable()
@@ -14302,7 +14340,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    */
   @DomName('Element.copyEvent')
   @DocsEditable()
-  static const EventStreamProvider<Event> copyEvent = const EventStreamProvider<Event>('copy');
+  static const EventStreamProvider<ClipboardEvent> copyEvent = const EventStreamProvider<ClipboardEvent>('copy');
 
   /**
    * Static factory designed to expose `cut` events to event
@@ -14312,7 +14350,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    */
   @DomName('Element.cutEvent')
   @DocsEditable()
-  static const EventStreamProvider<Event> cutEvent = const EventStreamProvider<Event>('cut');
+  static const EventStreamProvider<ClipboardEvent> cutEvent = const EventStreamProvider<ClipboardEvent>('cut');
 
   /**
    * Static factory designed to expose `doubleclick` events to event
@@ -14637,7 +14675,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    */
   @DomName('Element.pasteEvent')
   @DocsEditable()
-  static const EventStreamProvider<Event> pasteEvent = const EventStreamProvider<Event>('paste');
+  static const EventStreamProvider<ClipboardEvent> pasteEvent = const EventStreamProvider<ClipboardEvent>('paste');
 
   @DomName('Element.pauseEvent')
   @DocsEditable()
@@ -15435,12 +15473,12 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
   /// Stream of `copy` events handled by this [Element].
   @DomName('Element.oncopy')
   @DocsEditable()
-  ElementStream<Event> get onCopy => copyEvent.forElement(this);
+  ElementStream<ClipboardEvent> get onCopy => copyEvent.forElement(this);
 
   /// Stream of `cut` events handled by this [Element].
   @DomName('Element.oncut')
   @DocsEditable()
-  ElementStream<Event> get onCut => cutEvent.forElement(this);
+  ElementStream<ClipboardEvent> get onCut => cutEvent.forElement(this);
 
   /// Stream of `doubleclick` events handled by this [Element].
   @DomName('Element.ondblclick')
@@ -15688,7 +15726,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
   /// Stream of `paste` events handled by this [Element].
   @DomName('Element.onpaste')
   @DocsEditable()
-  ElementStream<Event> get onPaste => pasteEvent.forElement(this);
+  ElementStream<ClipboardEvent> get onPaste => pasteEvent.forElement(this);
 
   @DomName('Element.onpause')
   @DocsEditable()
@@ -21416,6 +21454,9 @@ class KeyboardEvent extends UIEvent {
   @DomName('KeyboardEvent.charCode')
   int get charCode => _charCode;
 
+  @DomName('KeyboardEvent.which')
+  int get which => _which;
+
   @DomName('KeyboardEvent.KeyboardEvent')
   @DocsEditable()
   factory KeyboardEvent._(String type, [Map eventInitDict]) {
@@ -21452,9 +21493,6 @@ class KeyboardEvent extends UIEvent {
   @DocsEditable()
   final bool altKey;
 
-  // Use implementation from UIEvent.
-  // final int _charCode;
-
   @DomName('KeyboardEvent.code')
   @DocsEditable()
   @Experimental() // untriaged
@@ -21468,9 +21506,6 @@ class KeyboardEvent extends UIEvent {
   @DocsEditable()
   @Experimental() // untriaged
   final String key;
-
-  // Use implementation from UIEvent.
-  // final int _keyCode;
 
   @JSName('keyIdentifier')
   @DomName('KeyboardEvent.keyIdentifier')
@@ -21500,9 +21535,6 @@ class KeyboardEvent extends UIEvent {
   @DomName('KeyboardEvent.shiftKey')
   @DocsEditable()
   final bool shiftKey;
-
-  // Use implementation from UIEvent.
-  // final int which;
 
   @DomName('KeyboardEvent.getModifierState')
   @DocsEditable()
@@ -23435,8 +23467,8 @@ class MessageEvent extends Event {
   @JSName('data')
   @DomName('MessageEvent.data')
   @DocsEditable()
-  @Creates('Null')
-  @Returns('Object|Null')
+  @annotation_Creates_SerializedScriptValue
+  @annotation_Returns_SerializedScriptValue
   final dynamic _get_data;
 
 
@@ -24198,7 +24230,7 @@ class MouseEvent extends UIEvent {
   final int _webkitMovementY;
 
   // Use implementation from UIEvent.
-  // final int which;
+  // final int _which;
 
   @DomName('MouseEvent.initMouseEvent')
   @DocsEditable()
@@ -24251,6 +24283,14 @@ class MouseEvent extends UIEvent {
   @DomName('MouseEvent.screenX')
   @DomName('MouseEvent.screenY')
   Point get screen => new Point(_screenX, _screenY);
+
+  @DomName('MouseEvent.layerX')
+  @DomName('MouseEvent.layerY')
+  Point get layer => new Point(_layerX, _layerY);
+
+  @DomName('MouseEvent.pageX')
+  @DomName('MouseEvent.pageY')
+  Point get page => new Point(_pageX, _pageY);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25760,6 +25800,8 @@ class Notification extends EventTarget {
   @DomName('Notification.data')
   @DocsEditable()
   @Experimental() // untriaged
+  @annotation_Creates_SerializedScriptValue
+  @annotation_Returns_SerializedScriptValue
   final Object data;
 
   @DomName('Notification.dir')
@@ -28158,6 +28200,15 @@ class RelatedEvent extends Event {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: Do not edit - generated code.
+
+
+@DomName('RequestAnimationFrameCallback')
+typedef void RequestAnimationFrameCallback(num highResTime);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 
 @DocsEditable()
 @DomName('ResourceProgressEvent')
@@ -29817,16 +29868,34 @@ class ServiceWorkerGlobalScope extends WorkerGlobalScope {
   @Experimental() // untriaged
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: Do not edit - generated code.
 
-@DocsEditable()
+
+// TODO(alanknight): Provide a nicer constructor that uses named parameters
+// rather than an initialization map.
 @DomName('ServiceWorkerMessageEvent')
 @Experimental() // untriaged
 @Native("ServiceWorkerMessageEvent")
 class ServiceWorkerMessageEvent extends Event {
+
+  // TODO(alanknight): This really should be generated by the
+  // _OutputConversion in the systemnative.py script, but that doesn't
+  // use those conversions right now, so do this as a one-off.
+  @DomName('ServiceWorkerMessageEvent.data')
+  @DocsEditable()
+  dynamic get data => convertNativeToDart_SerializedScriptValue(this._get_data);
+
+  @JSName('data')
+  @DomName('ServiceWorkerMessageEvent.data')
+  @DocsEditable()
+  @annotation_Creates_SerializedScriptValue
+  @annotation_Returns_SerializedScriptValue
+  final dynamic _get_data;
+
   // To suppress missing implicit constructor warnings.
   factory ServiceWorkerMessageEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -29841,11 +29910,6 @@ class ServiceWorkerMessageEvent extends Event {
   }
   static ServiceWorkerMessageEvent _create_1(type, eventInitDict) => JS('ServiceWorkerMessageEvent', 'new ServiceWorkerMessageEvent(#,#)', type, eventInitDict);
   static ServiceWorkerMessageEvent _create_2(type) => JS('ServiceWorkerMessageEvent', 'new ServiceWorkerMessageEvent(#)', type);
-
-  @DomName('ServiceWorkerMessageEvent.data')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final Object data;
 
   @DomName('ServiceWorkerMessageEvent.lastEventId')
   @DocsEditable()
@@ -29865,7 +29929,10 @@ class ServiceWorkerMessageEvent extends Event {
   @DomName('ServiceWorkerMessageEvent.source')
   @DocsEditable()
   @Experimental() // untriaged
+  @Creates('Null')
+  @Returns('_ServiceWorker|MessagePort')
   final Object source;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33398,24 +33465,17 @@ class UIEvent extends Event {
   @Returns('Window|=Object')
   final dynamic _get_view;
 
+  @JSName('which')
   @DomName('UIEvent.which')
   @DocsEditable()
   @Unstable()
-  final int which;
+  final int _which;
 
   @JSName('initUIEvent')
   @DomName('UIEvent.initUIEvent')
   @DocsEditable()
   void _initUIEvent(String type, bool bubbles, bool cancelable, Window view, int detail) native;
 
-
-  @DomName('UIEvent.layerX')
-  @DomName('UIEvent.layerY')
-  Point get layer => new Point(_layerX, _layerY);
-
-  @DomName('UIEvent.pageX')
-  @DomName('UIEvent.pageY')
-  Point get page => new Point(_pageX, _pageY);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34072,11 +34132,13 @@ class VttCue extends TextTrackCue {
   @DomName('VTTCue.line')
   @DocsEditable()
   @Experimental() // untriaged
+  @Returns('num|String')
   Object line;
 
   @DomName('VTTCue.position')
   @DocsEditable()
   @Experimental() // untriaged
+  @Returns('num|String')
   Object position;
 
   @DomName('VTTCue.regionId')
@@ -43111,22 +43173,22 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** The "fixed" value of whether the alt key is being pressed. */
   bool _shadowAltKey;
 
-  /** Caculated value of what the estimated charCode is for this event. */
+  /** Calculated value of what the estimated charCode is for this event. */
   int _shadowCharCode;
 
-  /** Caculated value of what the estimated keyCode is for this event. */
+  /** Calculated value of what the estimated keyCode is for this event. */
   int _shadowKeyCode;
 
-  /** Caculated value of what the estimated keyCode is for this event. */
+  /** Calculated value of what the estimated keyCode is for this event. */
   int get keyCode => _shadowKeyCode;
 
-  /** Caculated value of what the estimated charCode is for this event. */
+  /** Calculated value of what the estimated charCode is for this event. */
   int get charCode => this.type == 'keypress' ? _shadowCharCode : 0;
 
-  /** Caculated value of whether the alt key is pressed is for this event. */
+  /** Calculated value of whether the alt key is pressed is for this event. */
   bool get altKey => _shadowAltKey;
 
-  /** Caculated value of what the estimated keyCode is for this event. */
+  /** Calculated value of what the estimated keyCode is for this event. */
   int get which => keyCode;
 
   /** Accessor to the underlying keyCode value is the parent event. */
@@ -43263,23 +43325,22 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   static EventStreamProvider<KeyEvent> keyPressEvent =
       new _KeyboardEventHandler('keypress');
 
-  /** Accessor to the clipboardData available for this event. */
-  DataTransfer get clipboardData => _parent.clipboardData;
+  String get code => _parent.code;
   /** True if the ctrl key is pressed during this event. */
   bool get ctrlKey => _parent.ctrlKey;
   int get detail => _parent.detail;
+  String get key => _parent.key;
   /**
    * Accessor to the part of the keyboard that the key was pressed from (one of
    * KeyLocation.STANDARD, KeyLocation.RIGHT, KeyLocation.LEFT,
    * KeyLocation.NUMPAD, KeyLocation.MOBILE, KeyLocation.JOYSTICK).
    */
   int get keyLocation => _parent.keyLocation;
-  Point get layer => _parent.layer;
   /** True if the Meta (or Mac command) key is pressed during this event. */
   bool get metaKey => _parent.metaKey;
-  Point get page => _parent.page;
   /** True if the shift key was pressed during this event. */
   bool get shiftKey => _parent.shiftKey;
+  InputDevice get sourceDevice => _parent.sourceDevice;
   Window get view => _parent.view;
   void _initUIEvent(String type, bool canBubble, bool cancelable,
       Window view, int detail) {
@@ -43289,6 +43350,8 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
 
   int get _charCode => charCode;
   int get _keyCode => keyCode;
+  int get _which => which;
+
   String get _keyIdentifier {
     throw new UnsupportedError("keyIdentifier is unsupported.");
   }
@@ -43298,10 +43361,6 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
     throw new UnsupportedError(
         "Cannot initialize a KeyboardEvent from a KeyEvent.");
   }
-  int get _layerX => throw new UnsupportedError('Not applicable to KeyEvent');
-  int get _layerY => throw new UnsupportedError('Not applicable to KeyEvent');
-  int get _pageX => throw new UnsupportedError('Not applicable to KeyEvent');
-  int get _pageY => throw new UnsupportedError('Not applicable to KeyEvent');
   @Experimental() // untriaged
   bool getModifierState(String keyArgument) => throw new UnimplementedError();
   @Experimental() // untriaged
@@ -43349,8 +43408,6 @@ class _WrappedEvent implements Event {
   bool get bubbles => wrapped.bubbles;
 
   bool get cancelable => wrapped.cancelable;
-
-  DataTransfer get clipboardData => wrapped.clipboardData;
 
   EventTarget get currentTarget => wrapped.currentTarget;
 

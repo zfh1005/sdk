@@ -27,10 +27,12 @@ import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/absolute_path.dart';
+import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
@@ -228,6 +230,12 @@ abstract class ContextManager {
   // TODO(brianwilkerson) Move this class to a public library.
 
   /**
+   * Return the [AnalysisContext]s that are being used to analyze the analysis
+   * roots.
+   */
+  Iterable<AnalysisContext> get analysisContexts;
+
+  /**
    * Get the callback interface used to create, destroy, and update contexts.
    */
   ContextManagerCallbacks get callbacks;
@@ -242,6 +250,12 @@ abstract class ContextManager {
    * to [setRoots].
    */
   List<String> get excludedPaths;
+
+  /**
+   * Return a table mapping [Folder]s to the [AnalysisContext]s associated with
+   * them.
+   */
+  Map<Folder, AnalysisContext> get folderMap;
 
   /**
    * Return the list of included paths (folders and files) most recently passed
@@ -322,19 +336,10 @@ abstract class ContextManagerCallbacks {
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet);
 
   /**
-   * Called when the ContextManager is about to start computing the package
-   * map.
+   * Signals that the context manager has started to compute a package map (if
+   * [computing] is `true`) or has finished (if [computing] is `false`).
    */
-  void beginComputePackageMap() {
-    // By default, do nothing.
-  }
-
-  /**
-   * Called when the ContextManager has finished computing the package map.
-   */
-  void endComputePackageMap() {
-    // By default, do nothing.
-  }
+  void computingPackageMap(bool computing);
 
   /**
    * Remove the context associated with the given [folder].  [flushedFiles] is
@@ -344,15 +349,9 @@ abstract class ContextManagerCallbacks {
   void removeContext(Folder folder, List<String> flushedFiles);
 
   /**
-   * Return `true` if the given [file] should be analyzed.
+   * Called when the package resolution for the given [context] has changed.
    */
-  bool shouldFileBeAnalyzed(File file);
-
-  /**
-   * Called when the disposition for a context has changed.
-   */
-  void updateContextPackageUriResolver(
-      Folder contextFolder, FolderDisposition disposition);
+  void updateContextPackageUriResolver(AnalysisContext context);
 }
 
 /**
@@ -389,6 +388,12 @@ class ContextManagerImpl implements ContextManager {
    * The [ResourceProvider] using which paths are converted into [Resource]s.
    */
   final ResourceProvider resourceProvider;
+
+  /**
+   * The manager used to access the SDK that should be associated with a
+   * particular context.
+   */
+  final DartSdkManager sdkManager;
 
   /**
    * The context used to work with absolute file system paths.
@@ -450,14 +455,19 @@ class ContextManagerImpl implements ContextManager {
       new AnalysisOptionsProvider();
 
   /**
-   * The instrumentation service used to report instrumentation data.
+   * A list of the globs used to determine which files should be analyzed.
    */
-  final InstrumentationService _instrumentationService;
+  final List<Glob> analyzedFilesGlobs;
 
   /**
    * The default options used to create new analysis contexts.
    */
   final AnalysisOptionsImpl defaultContextOptions;
+
+  /**
+   * The instrumentation service used to report instrumentation data.
+   */
+  final InstrumentationService _instrumentationService;
 
   @override
   ContextManagerCallbacks callbacks;
@@ -469,6 +479,13 @@ class ContextManagerImpl implements ContextManager {
   final ContextInfo rootInfo = new ContextInfo._root();
 
   /**
+   * A table mapping [Folder]s to the [AnalysisContext]s associated with them.
+   */
+  @override
+  final Map<Folder, AnalysisContext> folderMap =
+      new HashMap<Folder, AnalysisContext>();
+
+  /**
    * Stream subscription we are using to watch each analysis root directory for
    * changes.
    */
@@ -477,14 +494,19 @@ class ContextManagerImpl implements ContextManager {
 
   ContextManagerImpl(
       this.resourceProvider,
+      this.sdkManager,
       this.packageResolverProvider,
       this.embeddedUriResolverProvider,
       this._packageMapProvider,
+      this.analyzedFilesGlobs,
       this._instrumentationService,
       this.defaultContextOptions) {
     absolutePathContext = resourceProvider.absolutePathContext;
     pathContext = resourceProvider.pathContext;
   }
+
+  @override
+  Iterable<AnalysisContext> get analysisContexts => folderMap.values;
 
   @override
   List<AnalysisContext> contextsInAnalysisRoot(Folder analysisRoot) {
@@ -783,7 +805,7 @@ class ContextManagerImpl implements ContextManager {
       // add files, recurse into folders
       if (child is File) {
         // ignore if should not be analyzed at all
-        if (!callbacks.shouldFileBeAnalyzed(child)) {
+        if (!_shouldFileBeAnalyzed(child)) {
           continue;
         }
         // ignore if was not excluded
@@ -830,7 +852,7 @@ class ContextManagerImpl implements ContextManager {
       }
       // add files, recurse into folders
       if (child is File) {
-        if (callbacks.shouldFileBeAnalyzed(child)) {
+        if (_shouldFileBeAnalyzed(child)) {
           Source source = createSourceInContext(info.context, child);
           changeSet.addedSource(source);
           info.sources[path] = source;
@@ -913,7 +935,7 @@ class ContextManagerImpl implements ContextManager {
         if (info.isPathToPackageDescription(path)) {
           Packages packages = _readPackagespec(packagespec);
           if (packages != null) {
-            callbacks.updateContextPackageUriResolver(
+            _updateContextPackageUriResolver(
                 folder, new PackagesFileDisposition(packages));
           }
         }
@@ -994,7 +1016,7 @@ class ContextManagerImpl implements ContextManager {
       return new NoPackageFolderDisposition(packageRoot: packageRoot);
     } else {
       PackageMapInfo packageMapInfo;
-      callbacks.beginComputePackageMap();
+      callbacks.computingPackageMap(true);
       try {
         // Try .packages first.
         if (absolutePathContext.basename(packagespecFile.path) ==
@@ -1013,7 +1035,7 @@ class ContextManagerImpl implements ContextManager {
           packageMapInfo = _packageMapProvider.computePackageMap(folder);
         });
       } finally {
-        callbacks.endComputePackageMap();
+        callbacks.computingPackageMap(false);
       }
       for (String dependencyPath in packageMapInfo.dependencies) {
         addDependency(dependencyPath);
@@ -1050,6 +1072,7 @@ class ContextManagerImpl implements ContextManager {
 
     info.setDependencies(dependencies);
     info.context = callbacks.addContext(folder, options, disposition);
+    folderMap[folder] = info.context;
     info.context.name = folder.path;
 
     processOptionsForContext(info, optionMap);
@@ -1112,6 +1135,41 @@ class ContextManagerImpl implements ContextManager {
       _addSourceFiles(changeSet, folder, parent);
       callbacks.applyChangesToContext(folder, changeSet);
     }
+  }
+
+  /**
+   * Set up a [SourceFactory] that resolves packages as appropriate for the
+   * given [disposition].
+   */
+  SourceFactory _createSourceFactory(InternalAnalysisContext context,
+      AnalysisOptions options, FolderDisposition disposition, Folder folder) {
+    List<UriResolver> resolvers = [];
+    List<UriResolver> packageUriResolvers =
+        disposition.createPackageUriResolvers(resourceProvider);
+
+    EmbedderUriResolver embedderUriResolver;
+
+    // First check for a resolver provider.
+    if (embeddedUriResolverProvider != null) {
+      embedderUriResolver = embeddedUriResolverProvider(folder);
+    }
+
+    // If no embedded URI resolver was provided, defer to a locator-backed one.
+    embedderUriResolver ??=
+        new EmbedderUriResolver(context.embedderYamlLocator.embedderYamls);
+    if (embedderUriResolver.length == 0) {
+      // The embedder uri resolver has no mappings. Use the default Dart SDK
+      // uri resolver.
+      resolvers.add(new DartUriResolver(sdkManager.getSdkForOptions(options)));
+    } else {
+      // The embedder uri resolver has mappings, use it instead of the default
+      // Dart SDK uri resolver.
+      resolvers.add(embedderUriResolver);
+    }
+
+    resolvers.addAll(packageUriResolvers);
+    resolvers.add(new ResourceUriResolver(resourceProvider));
+    return new SourceFactory(resolvers, disposition.packages);
   }
 
   /**
@@ -1304,7 +1362,7 @@ class ContextManagerImpl implements ContextManager {
         // that case don't add it.
         if (resource is File) {
           File file = resource;
-          if (callbacks.shouldFileBeAnalyzed(file)) {
+          if (_shouldFileBeAnalyzed(file)) {
             ChangeSet changeSet = new ChangeSet();
             Source source = createSourceInContext(info.context, file);
             changeSet.addedSource(source);
@@ -1484,7 +1542,33 @@ class ContextManagerImpl implements ContextManager {
     FolderDisposition disposition = _computeFolderDisposition(
         info.folder, dependencies.add, _findPackageSpecFile(info.folder));
     info.setDependencies(dependencies);
-    callbacks.updateContextPackageUriResolver(info.folder, disposition);
+    _updateContextPackageUriResolver(info.folder, disposition);
+  }
+
+  /**
+   * Return `true` if the given [file] should be analyzed.
+   */
+  bool _shouldFileBeAnalyzed(File file) {
+    for (Glob glob in analyzedFilesGlobs) {
+      if (glob.matches(file.path)) {
+        // Emacs creates dummy links to track the fact that a file is open for
+        // editing and has unsaved changes (e.g. having unsaved changes to
+        // 'foo.dart' causes a link '.#foo.dart' to be created, which points to
+        // the non-existent file 'username@hostname.pid'. To avoid these dummy
+        // links causing the analyzer to thrash, just ignore links to
+        // non-existent files.
+        return file.exists;
+      }
+    }
+    return false;
+  }
+
+  void _updateContextPackageUriResolver(
+      Folder contextFolder, FolderDisposition disposition) {
+    AnalysisContext context = folderMap[contextFolder];
+    context.sourceFactory = _createSourceFactory(
+        context, context.analysisOptions, disposition, contextFolder);
+    callbacks.updateContextPackageUriResolver(context);
   }
 
   /**

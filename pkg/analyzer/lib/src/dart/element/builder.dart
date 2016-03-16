@@ -160,6 +160,8 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
 
   @override
   Object visitExportDirective(ExportDirective node) {
+    // Remove previous element. (It will remain null if the target is missing.)
+    node.element = null;
     Source exportedSource = node.source;
     if (exportedSource != null && context.exists(exportedSource)) {
       // The exported source will be null if the URI in the export
@@ -200,10 +202,8 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
 
   @override
   Object visitImportDirective(ImportDirective node) {
-    String uriContent = node.uriContent;
-    if (DartUriResolver.isDartExtUri(uriContent)) {
-      libraryElement.hasExtUri = true;
-    }
+    // Remove previous element. (It will remain null if the target is missing.)
+    node.element = null;
     Source importedSource = node.source;
     if (importedSource != null && context.exists(importedSource)) {
       // The imported source will be null if the URI in the import
@@ -220,7 +220,7 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
           importElement.uriOffset = uriLiteral.offset;
           importElement.uriEnd = uriLiteral.end;
         }
-        importElement.uri = uriContent;
+        importElement.uri = node.uriContent;
         importElement.deferred = node.deferredKeyword != null;
         importElement.combinators = _buildCombinators(node);
         importElement.importedLibrary = importedLibrary;
@@ -307,7 +307,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
    * The compilation unit element into which the elements being built will be
    * stored.
    */
-  final CompilationUnitElement compilationUnitElement;
+  final CompilationUnitElementImpl compilationUnitElement;
 
   /**
    * The element holder associated with the element that is currently being built.
@@ -334,9 +334,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   HashMap<String, FieldElement> _fieldMap;
 
   /**
-   * Initialize a newly created element builder to build the elements for a compilation unit.
-   *
-   * @param initialHolder the element holder associated with the compilation unit being built
+   * Initialize a newly created element builder to build the elements for a
+   * compilation unit. The [initialHolder] is the element holder to which the
+   * children of the visited compilation unit node will be added.
    */
   ElementBuilder(ElementHolder initialHolder, this.compilationUnitElement) {
     _currentHolder = initialHolder;
@@ -377,6 +377,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       if (stackTraceParameter != null) {
         LocalVariableElementImpl stackTrace =
             new LocalVariableElementImpl.forNode(stackTraceParameter);
+        _setCodeRange(stackTrace, stackTraceParameter);
         _currentHolder.addLocalVariable(stackTrace);
         stackTraceParameter.staticElement = stackTrace;
       }
@@ -408,6 +409,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     }
     SimpleIdentifier className = node.name;
     ClassElementImpl element = new ClassElementImpl.forNode(className);
+    _setCodeRange(element, node);
     element.metadata = _createElementAnnotations(node.metadata);
     List<TypeParameterElement> typeParameters = holder.typeParameters;
     List<DartType> typeArguments = _createTypeParameterTypes(typeParameters);
@@ -457,6 +459,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     _visitChildren(holder, node);
     SimpleIdentifier className = node.name;
     ClassElementImpl element = new ClassElementImpl.forNode(className);
+    _setCodeRange(element, node);
     element.metadata = _createElementAnnotations(node.metadata);
     element.abstract = node.abstractKeyword != null;
     element.mixinApplication = true;
@@ -474,6 +477,14 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitCompilationUnit(CompilationUnit node) {
+    if (compilationUnitElement is ElementImpl) {
+      _setCodeRange(compilationUnitElement, node);
+    }
+    return super.visitCompilationUnit(node);
+  }
+
+  @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     ElementHolder holder = new ElementHolder();
     bool wasInFunction = _inFunction;
@@ -487,6 +498,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     SimpleIdentifier constructorName = node.name;
     ConstructorElementImpl element =
         new ConstructorElementImpl.forNode(constructorName);
+    _setCodeRange(element, node);
     element.metadata = _createElementAnnotations(node.metadata);
     setElementDocumentationComment(element, node);
     if (node.externalKeyword != null) {
@@ -528,11 +540,10 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     SimpleIdentifier variableName = node.identifier;
     LocalVariableElementImpl element =
         new LocalVariableElementImpl.forNode(variableName);
+    _setCodeRange(element, node);
     element.metadata = _createElementAnnotations(node.metadata);
     ForEachStatement statement = node.parent as ForEachStatement;
-    int declarationEnd = node.offset + node.length;
-    int statementEnd = statement.offset + statement.length;
-    element.setVisibleRange(declarationEnd, statementEnd - declarationEnd - 1);
+    element.setVisibleRange(statement.offset, statement.length);
     element.const3 = node.isConst;
     element.final2 = node.isFinal;
     if (node.type == null) {
@@ -560,6 +571,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     } else {
       parameter = new DefaultParameterElementImpl.forNode(parameterName);
     }
+    _setCodeRange(parameter, node);
     parameter.const3 = node.isConst;
     parameter.final2 = node.isFinal;
     parameter.parameterKind = node.kind;
@@ -596,6 +608,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   Object visitEnumDeclaration(EnumDeclaration node) {
     SimpleIdentifier enumName = node.name;
     ClassElementImpl enumElement = new ClassElementImpl.forNode(enumName);
+    _setCodeRange(enumElement, node);
     enumElement.metadata = _createElementAnnotations(node.metadata);
     enumElement.enum2 = true;
     setElementDocumentationComment(enumElement, node);
@@ -606,6 +619,27 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     // to subclass, mix-in, implement, or explicitly instantiate an enum).  So
     // we represent this as having no constructors.
     enumElement.constructors = ConstructorElement.EMPTY_LIST;
+    //
+    // Build the elements for the constants. These are minimal elements; the
+    // rest of the constant elements (and elements for other fields) must be
+    // built later after we can access the type provider.
+    //
+    List<FieldElement> fields = new List<FieldElement>();
+    NodeList<EnumConstantDeclaration> constants = node.constants;
+    for (EnumConstantDeclaration constant in constants) {
+      SimpleIdentifier constantName = constant.name;
+      FieldElementImpl constantField =
+          new ConstFieldElementImpl.forNode(constantName);
+      constantField.static = true;
+      constantField.const3 = true;
+      constantField.type = enumType;
+      setElementDocumentationComment(constantField, constant);
+      fields.add(constantField);
+      _createGetter(constantField);
+      constantName.staticElement = constantField;
+    }
+    enumElement.fields = fields;
+
     _currentHolder.addEnum(enumElement);
     enumName.staticElement = enumElement;
     return super.visitEnumDeclaration(node);
@@ -613,7 +647,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitExportDirective(ExportDirective node) {
-    _createElementAnnotations(node.metadata);
+    List<ElementAnnotation> annotations =
+        _createElementAnnotations(node.metadata);
+    compilationUnitElement.setAnnotations(node.offset, annotations);
     return super.visitExportDirective(node);
   }
 
@@ -625,6 +661,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
           _fieldMap == null ? null : _fieldMap[parameterName.name];
       FieldFormalParameterElementImpl parameter =
           new FieldFormalParameterElementImpl.forNode(parameterName);
+      _setCodeRange(parameter, node);
       parameter.const3 = node.isConst;
       parameter.final2 = node.isFinal;
       parameter.parameterKind = node.kind;
@@ -666,6 +703,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         SimpleIdentifier functionName = node.name;
         FunctionElementImpl element =
             new FunctionElementImpl.forNode(functionName);
+        _setCodeRange(element, node);
         element.metadata = _createElementAnnotations(node.metadata);
         setElementDocumentationComment(element, node);
         if (node.externalKeyword != null) {
@@ -713,6 +751,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         if (node.isGetter) {
           PropertyAccessorElementImpl getter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          _setCodeRange(getter, node);
           getter.metadata = _createElementAnnotations(node.metadata);
           setElementDocumentationComment(getter, node);
           if (node.externalKeyword != null) {
@@ -740,6 +779,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         } else {
           PropertyAccessorElementImpl setter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          _setCodeRange(setter, node);
           setter.metadata = _createElementAnnotations(node.metadata);
           setElementDocumentationComment(setter, node);
           if (node.externalKeyword != null) {
@@ -791,6 +831,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     FunctionBody body = node.body;
     FunctionElementImpl element =
         new FunctionElementImpl.forOffset(node.beginToken.offset);
+    _setCodeRange(element, node);
     element.functions = holder.functions;
     element.labels = holder.labels;
     element.localVariables = holder.localVariables;
@@ -829,6 +870,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     List<TypeParameterElement> typeParameters = holder.typeParameters;
     FunctionTypeAliasElementImpl element =
         new FunctionTypeAliasElementImpl.forNode(aliasName);
+    _setCodeRange(element, node);
     element.metadata = _createElementAnnotations(node.metadata);
     setElementDocumentationComment(element, node);
     element.parameters = parameters;
@@ -847,6 +889,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       SimpleIdentifier parameterName = node.identifier;
       ParameterElementImpl parameter =
           new ParameterElementImpl.forNode(parameterName);
+      _setCodeRange(parameter, node);
       parameter.parameterKind = node.kind;
       _setParameterVisibleRange(node, parameter);
       _currentHolder.addParameter(parameter);
@@ -868,7 +911,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitImportDirective(ImportDirective node) {
-    _createElementAnnotations(node.metadata);
+    List<ElementAnnotation> annotations =
+        _createElementAnnotations(node.metadata);
+    compilationUnitElement.setAnnotations(node.offset, annotations);
     return super.visitImportDirective(node);
   }
 
@@ -887,7 +932,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitLibraryDirective(LibraryDirective node) {
-    _createElementAnnotations(node.metadata);
+    List<ElementAnnotation> annotations =
+        _createElementAnnotations(node.metadata);
+    compilationUnitElement.setAnnotations(node.offset, annotations);
     return super.visitLibraryDirective(node);
   }
 
@@ -914,6 +961,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         }
         MethodElementImpl element =
             new MethodElementImpl(nameOfMethod, methodName.offset);
+        _setCodeRange(element, node);
         element.metadata = _createElementAnnotations(node.metadata);
         setElementDocumentationComment(element, node);
         element.abstract = node.isAbstract;
@@ -952,6 +1000,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         if (node.isGetter) {
           PropertyAccessorElementImpl getter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          _setCodeRange(getter, node);
           getter.metadata = _createElementAnnotations(node.metadata);
           setElementDocumentationComment(getter, node);
           if (node.externalKeyword != null) {
@@ -979,6 +1028,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         } else {
           PropertyAccessorElementImpl setter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          _setCodeRange(setter, node);
           setter.metadata = _createElementAnnotations(node.metadata);
           setElementDocumentationComment(setter, node);
           if (node.externalKeyword != null) {
@@ -1047,7 +1097,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitPartDirective(PartDirective node) {
-    _createElementAnnotations(node.metadata);
+    List<ElementAnnotation> annotations =
+        _createElementAnnotations(node.metadata);
+    compilationUnitElement.setAnnotations(node.offset, annotations);
     return super.visitPartDirective(node);
   }
 
@@ -1057,6 +1109,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       SimpleIdentifier parameterName = node.identifier;
       ParameterElementImpl parameter =
           new ParameterElementImpl.forNode(parameterName);
+      _setCodeRange(parameter, node);
       parameter.const3 = node.isConst;
       parameter.final2 = node.isFinal;
       parameter.parameterKind = node.kind;
@@ -1102,6 +1155,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     SimpleIdentifier parameterName = node.name;
     TypeParameterElementImpl typeParameter =
         new TypeParameterElementImpl.forNode(parameterName);
+    _setCodeRange(typeParameter, node);
     typeParameter.metadata = _createElementAnnotations(node.metadata);
     TypeParameterTypeImpl typeParameterType =
         new TypeParameterTypeImpl(typeParameter);
@@ -1130,6 +1184,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       }
       element = field;
       field.static = fieldNode.isStatic;
+      _setCodeRange(element, node);
       setElementDocumentationComment(element, fieldNode);
       field.hasImplicitType = varList.type == null;
       _currentHolder.addField(field);
@@ -1143,10 +1198,8 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         variable = new LocalVariableElementImpl.forNode(variableName);
       }
       element = variable;
-      Block enclosingBlock = node.getAncestor((node) => node is Block);
-      // TODO(brianwilkerson) This isn't right for variables declared in a for
-      // loop.
-      variable.setVisibleRange(enclosingBlock.offset, enclosingBlock.length);
+      _setCodeRange(element, node);
+      _setVariableVisibleRange(variable, node);
       variable.hasImplicitType = varList.type == null;
       _currentHolder.addLocalVariable(variable);
       variableName.staticElement = element;
@@ -1159,6 +1212,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         variable = new TopLevelVariableElementImpl.forNode(variableName);
       }
       element = variable;
+      _setCodeRange(element, node);
       if (varList.parent is TopLevelVariableDeclaration) {
         setElementDocumentationComment(element, varList.parent);
       }
@@ -1221,8 +1275,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       elementAnnotations = _createElementAnnotations(node.metadata);
     }
     for (VariableDeclaration variableDeclaration in node.variables) {
-      (variableDeclaration.element as ElementImpl).metadata =
-          elementAnnotations;
+      ElementImpl element = variableDeclaration.element as ElementImpl;
+      _setCodeRange(element, node.parent);
+      element.metadata = elementAnnotations;
     }
     return null;
   }
@@ -1277,6 +1332,18 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   }
 
   /**
+   * Create a getter that corresponds to the given [field].
+   */
+  void _createGetter(FieldElementImpl field) {
+    PropertyAccessorElementImpl getter =
+        new PropertyAccessorElementImpl.forVariable(field);
+    getter.getter = true;
+    getter.returnType = field.type;
+    getter.type = new FunctionTypeImpl(getter);
+    field.getter = getter;
+  }
+
+  /**
    * Create the types associated with the given type parameters, setting the type of each type
    * parameter, and return an array of types corresponding to the given parameters.
    *
@@ -1314,6 +1381,10 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     return null;
   }
 
+  void _setCodeRange(ElementImpl element, AstNode node) {
+    element.setCodeRange(node.offset, node.length);
+  }
+
   /**
    * Sets the visible source range for formal parameter.
    */
@@ -1323,6 +1394,18 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     if (body is BlockFunctionBody || body is ExpressionFunctionBody) {
       element.setVisibleRange(body.offset, body.length);
     }
+  }
+
+  void _setVariableVisibleRange(
+      LocalVariableElementImpl element, VariableDeclaration node) {
+    AstNode scopeNode;
+    AstNode parent2 = node.parent.parent;
+    if (parent2 is ForStatement) {
+      scopeNode = parent2;
+    } else {
+      scopeNode = node.getAncestor((node) => node is Block);
+    }
+    element.setVisibleRange(scopeNode.offset, scopeNode.length);
   }
 
   /**

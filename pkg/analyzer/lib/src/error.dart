@@ -20,12 +20,15 @@ class AnalyzerError implements Exception {
 
   String get message => toString();
 
+  @override
   String toString() {
     var builder = new StringBuffer();
 
     // Print a less friendly string representation to ensure that
     // error.source.contents is not executed, as .contents it isn't async
-    builder.write("Error in ${error.source.shortName}: ${error.message}");
+    String sourceName = error.source.shortName;
+    sourceName ??= '<unknown source>';
+    builder.write("Error in $sourceName: ${error.message}");
 
 //    var content = error.source.contents.data;
 //    var beforeError = content.substring(0, error.offset);
@@ -89,5 +92,6 @@ class AnalyzerErrorGroup implements Exception {
       new UnmodifiableListView<AnalyzerError>(_errors);
 
   String get message => toString();
+  @override
   String toString() => errors.join("\n");
 }

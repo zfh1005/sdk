@@ -21,6 +21,8 @@ import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analysis_server/src/services/search/search_engine_internal.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -28,7 +30,7 @@ import 'package:analyzer/plugin/embedded_resolver_provider.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
@@ -38,6 +40,7 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/util/glob.dart';
+import 'package:analyzer/task/dart.dart';
 import 'package:plugin/plugin.dart';
 
 typedef void OptionUpdater(AnalysisOptionsImpl options);
@@ -75,14 +78,14 @@ class AnalysisServer {
    * The version of the analysis server. The value should be replaced
    * automatically during the build.
    */
-  static final String VERSION = '1.14.0';
+  static final String VERSION = '1.15.0';
 
   /**
    * The number of milliseconds to perform operations before inserting
    * a 1 millisecond delay so that the VM and dart:io can deliver content
    * to stdin. This should be removed once the underlying problem is fixed.
    */
-  static int performOperationDelayFreqency = 25;
+  static int performOperationDelayFrequency = 25;
 
   /**
    * The options of this server instance.
@@ -114,6 +117,12 @@ class AnalysisServer {
    * The plugin associated with this analysis server.
    */
   final ServerPlugin serverPlugin;
+
+  /**
+   * A list of the globs used to determine which files should be analyzed. The
+   * list is lazily created and should be accessed using [analyzedFilesGlobs].
+   */
+  List<Glob> _analyzedFilesGlobs = null;
 
   /**
    * The [ContextManager] that handles the mapping from analysis roots to
@@ -154,12 +163,6 @@ class AnalysisServer {
    * The instrumentation service that is to be used by this analysis server.
    */
   final InstrumentationService instrumentationService;
-
-  /**
-   * A table mapping [Folder]s to the [AnalysisContext]s associated with them.
-   */
-  final Map<Folder, AnalysisContext> folderMap =
-      new HashMap<Folder, AnalysisContext>();
 
   /**
    * A queue of the operations to perform in this server.
@@ -313,7 +316,7 @@ class AnalysisServer {
       EmbeddedResolverProvider embeddedResolverProvider: null,
       this.rethrowExceptions: true})
       : index = _index,
-        searchEngine = _index != null ? createSearchEngine(_index) : null {
+        searchEngine = _index != null ? new SearchEngineImpl(_index) : null {
     _performance = performanceDuringStartup;
     defaultContextOptions.incremental = true;
     defaultContextOptions.incrementalApi =
@@ -322,11 +325,14 @@ class AnalysisServer {
         options.enableIncrementalResolutionValidation;
     defaultContextOptions.generateImplicitErrors = false;
     operationQueue = new ServerOperationQueue();
+    sdkManager = new DartSdkManager(defaultSdkCreator);
     contextManager = new ContextManagerImpl(
         resourceProvider,
+        sdkManager,
         packageResolverProvider,
         embeddedResolverProvider,
         packageMapProvider,
+        analyzedFilesGlobs,
         instrumentationService,
         defaultContextOptions);
     ServerContextManagerCallbacks contextManagerCallbacks =
@@ -345,13 +351,47 @@ class AnalysisServer {
         _performance = performanceAfterStartup;
       });
     });
+    _setupIndexInvalidation();
     Notification notification =
         new ServerConnectedParams(VERSION).toNotification();
     channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
     handlers = serverPlugin.createDomains(this);
-    sdkManager = new DartSdkManager(defaultSdkCreator);
   }
+
+  /**
+   * Return the [AnalysisContext]s that are being used to analyze the analysis
+   * roots.
+   */
+  Iterable<AnalysisContext> get analysisContexts =>
+      contextManager.analysisContexts;
+
+  /**
+   * Return a list of the globs used to determine which files should be analyzed.
+   */
+  List<Glob> get analyzedFilesGlobs {
+    if (_analyzedFilesGlobs == null) {
+      _analyzedFilesGlobs = <Glob>[];
+      List<String> patterns = serverPlugin.analyzedFilePatterns;
+      for (String pattern in patterns) {
+        try {
+          _analyzedFilesGlobs
+              .add(new Glob(JavaFile.pathContext.separator, pattern));
+        } catch (exception, stackTrace) {
+          AnalysisEngine.instance.logger.logError(
+              'Invalid glob pattern: "$pattern"',
+              new CaughtException(exception, stackTrace));
+        }
+      }
+    }
+    return _analyzedFilesGlobs;
+  }
+
+  /**
+   * Return a table mapping [Folder]s to the [AnalysisContext]s associated with
+   * them.
+   */
+  Map<Folder, AnalysisContext> get folderMap => contextManager.folderMap;
 
   /**
    * The [Future] that completes when analysis is complete.
@@ -464,21 +504,13 @@ class AnalysisServer {
    * explicitly or implicitly.  Return `null` if there is no such context.
    */
   AnalysisContext getAnalysisContextForSource(Source source) {
-    for (AnalysisContext context in folderMap.values) {
+    for (AnalysisContext context in analysisContexts) {
       SourceKind kind = context.getKindOf(source);
       if (kind != SourceKind.UNKNOWN) {
         return context;
       }
     }
     return null;
-  }
-
-  /**
-   * Return the [AnalysisContext]s that are being used to analyze the analysis
-   * roots.
-   */
-  Iterable<AnalysisContext> getAnalysisContexts() {
-    return folderMap.values;
   }
 
   CompilationUnitElement getCompilationUnitElement(String file) {
@@ -556,7 +588,7 @@ class AnalysisServer {
       }
     }
     // try to find a context that analysed the file
-    for (AnalysisContext context in folderMap.values) {
+    for (AnalysisContext context in analysisContexts) {
       Source source = ContextManagerImpl.createSourceInContext(context, file);
       SourceKind kind = context.getKindOf(source);
       if (kind != SourceKind.UNKNOWN) {
@@ -564,7 +596,7 @@ class AnalysisServer {
       }
     }
     // try to find a context for which the file is a priority source
-    for (InternalAnalysisContext context in folderMap.values) {
+    for (InternalAnalysisContext context in analysisContexts) {
       List<Source> sources = context.getSourcesWithFullName(path);
       if (sources.isNotEmpty) {
         Source source = sources.first;
@@ -614,23 +646,6 @@ class AnalysisServer {
     return elements;
   }
 
-// TODO(brianwilkerson) Add the following method after 'prioritySources' has
-// been added to InternalAnalysisContext.
-//  /**
-//   * Return a list containing the full names of all of the sources that are
-//   * priority sources.
-//   */
-//  List<String> getPriorityFiles() {
-//    List<String> priorityFiles = new List<String>();
-//    folderMap.values.forEach((ContextDirectory directory) {
-//      InternalAnalysisContext context = directory.context;
-//      context.prioritySources.forEach((Source source) {
-//        priorityFiles.add(source.fullName);
-//      });
-//    });
-//    return priorityFiles;
-//  }
-
   /**
    * Return an analysis error info containing the array of all of the errors and
    * the line info associated with [file].
@@ -673,6 +688,23 @@ class AnalysisServer {
     }
     return nodes;
   }
+
+// TODO(brianwilkerson) Add the following method after 'prioritySources' has
+// been added to InternalAnalysisContext.
+//  /**
+//   * Return a list containing the full names of all of the sources that are
+//   * priority sources.
+//   */
+//  List<String> getPriorityFiles() {
+//    List<String> priorityFiles = new List<String>();
+//    folderMap.values.forEach((ContextDirectory directory) {
+//      InternalAnalysisContext context = directory.context;
+//      context.prioritySources.forEach((Source source) {
+//        priorityFiles.add(source.fullName);
+//      });
+//    });
+//    return priorityFiles;
+//  }
 
   /**
    * Returns resolved [CompilationUnit]s of the Dart file with the given [path].
@@ -1116,7 +1148,7 @@ class AnalysisServer {
       if (preferredContext == null) {
         Resource resource = resourceProvider.getResource(file);
         if (resource is File && resource.exists) {
-          for (AnalysisContext context in folderMap.values) {
+          for (AnalysisContext context in analysisContexts) {
             Uri uri = context.sourceFactory.restoreUri(source);
             if (uri.scheme != 'file') {
               preferredContext = context;
@@ -1133,7 +1165,7 @@ class AnalysisServer {
         sourceMap.putIfAbsent(preferredContext, () => <Source>[]).add(source);
         contextFound = true;
       }
-      for (AnalysisContext context in folderMap.values) {
+      for (AnalysisContext context in analysisContexts) {
         if (context != preferredContext &&
             context.getKindOf(source) != SourceKind.UNKNOWN) {
           sourceMap.putIfAbsent(context, () => <Source>[]).add(source);
@@ -1174,7 +1206,6 @@ class AnalysisServer {
   void shutdown() {
     running = false;
     if (index != null) {
-      index.clear();
       index.stop();
     }
     // Defer closing the channel and shutting down the instrumentation server so
@@ -1243,11 +1274,19 @@ class AnalysisServer {
         // Protocol parsing should have ensured that we never get here.
         throw new AnalysisException('Illegal change type');
       }
+
+      AnalysisContext containingContext = getContainingContext(file);
+
+      // Check for an implicitly added but missing source.
+      // (For example, the target of an import might not exist yet.)
+      // We need to do this before setContents, which changes the stamp.
+      bool wasMissing = containingContext?.getModificationStamp(source) == -1;
+
       overlayState.setContents(source, newContents);
       // If the source does not exist, then it was an overlay-only one.
       // Remove it from contexts.
       if (newContents == null && !source.exists()) {
-        for (InternalAnalysisContext context in folderMap.values) {
+        for (InternalAnalysisContext context in analysisContexts) {
           List<Source> sources = context.getSourcesWithFullName(file);
           ChangeSet changeSet = new ChangeSet();
           sources.forEach(changeSet.removedSource);
@@ -1258,10 +1297,15 @@ class AnalysisServer {
       }
       // Update all contexts.
       bool anyContextUpdated = false;
-      for (InternalAnalysisContext context in folderMap.values) {
+      for (InternalAnalysisContext context in analysisContexts) {
         List<Source> sources = context.getSourcesWithFullName(file);
         sources.forEach((Source source) {
           anyContextUpdated = true;
+          if (context == containingContext && wasMissing) {
+            // Promote missing source to an explicitly added Source.
+            context.applyChanges(new ChangeSet()..addedSource(source));
+            schedulePerformAnalysisOperation(context);
+          }
           if (context.handleContentsChanged(
               source, oldContents, newContents, true)) {
             schedulePerformAnalysisOperation(context);
@@ -1315,7 +1359,7 @@ class AnalysisServer {
     //
     // Update existing contexts.
     //
-    folderMap.forEach((Folder folder, AnalysisContext context) {
+    for (AnalysisContext context in analysisContexts) {
       AnalysisOptionsImpl options =
           new AnalysisOptionsImpl.from(context.analysisOptions);
       optionUpdaters.forEach((OptionUpdater optionUpdater) {
@@ -1324,13 +1368,21 @@ class AnalysisServer {
       context.analysisOptions = options;
       // TODO(brianwilkerson) As far as I can tell, this doesn't cause analysis
       // to be scheduled for this context.
-    });
+    }
     //
     // Update the defaults used to create new contexts.
     //
     optionUpdaters.forEach((OptionUpdater optionUpdater) {
       optionUpdater(defaultContextOptions);
     });
+  }
+
+  void _computingPackageMap(bool computing) {
+    if (serverServices.contains(ServerService.STATUS)) {
+      PubStatus pubStatus = new PubStatus(computing);
+      ServerStatusParams params = new ServerStatusParams(pub: pubStatus);
+      sendNotification(params.toNotification());
+    }
   }
 
   /**
@@ -1378,7 +1430,7 @@ class AnalysisServer {
   }
 
   /**
-   * Schedules [performOperation] exection.
+   * Schedules [performOperation] execution.
    */
   void _schedulePerformOperation() {
     if (performOperationPending) {
@@ -1392,17 +1444,45 @@ class AnalysisServer {
      * every 25 milliseconds.
      *
      * To disable this workaround and see the underlying problem,
-     * set performOperationDelayFreqency to zero
+     * set performOperationDelayFrequency to zero
      */
     int now = new DateTime.now().millisecondsSinceEpoch;
     if (now > _nextPerformOperationDelayTime &&
-        performOperationDelayFreqency > 0) {
-      _nextPerformOperationDelayTime = now + performOperationDelayFreqency;
+        performOperationDelayFrequency > 0) {
+      _nextPerformOperationDelayTime = now + performOperationDelayFrequency;
       new Future.delayed(new Duration(milliseconds: 1), performOperation);
     } else {
       new Future(performOperation);
     }
     performOperationPending = true;
+  }
+
+  /**
+   * Listen for context events and invalidate index.
+   *
+   * It is possible that this method will do more in the future, e.g. listening
+   * for summary information and linking pre-indexed packages into the index,
+   * but for now we only invalidate project specific index information.
+   */
+  void _setupIndexInvalidation() {
+    if (index == null) {
+      return;
+    }
+    onContextsChanged.listen((ContextsChangedEvent event) {
+      for (AnalysisContext context in event.added) {
+        context
+            .onResultChanged(RESOLVED_UNIT)
+            .listen((ResultChangedEvent event) {
+          if (event.wasInvalidated) {
+            LibrarySpecificUnit target = event.target;
+            index.removeUnit(event.context, target.library, target.unit);
+          }
+        });
+      }
+      for (AnalysisContext context in event.removed) {
+        index.removeContext(context);
+      }
+    });
   }
 }
 
@@ -1453,34 +1533,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
    */
   final ResourceProvider resourceProvider;
 
-  /**
-   * A list of the globs used to determine which files should be analyzed. The
-   * list is lazily created and should be accessed using [analyzedFilesGlobs].
-   */
-  List<Glob> _analyzedFilesGlobs = null;
-
   ServerContextManagerCallbacks(this.analysisServer, this.resourceProvider);
-
-  /**
-   * Return a list of the globs used to determine which files should be analyzed.
-   */
-  List<Glob> get analyzedFilesGlobs {
-    if (_analyzedFilesGlobs == null) {
-      _analyzedFilesGlobs = <Glob>[];
-      List<String> patterns = analysisServer.serverPlugin.analyzedFilePatterns;
-      for (String pattern in patterns) {
-        try {
-          _analyzedFilesGlobs
-              .add(new Glob(JavaFile.pathContext.separator, pattern));
-        } catch (exception, stackTrace) {
-          AnalysisEngine.instance.logger.logError(
-              'Invalid glob pattern: "$pattern"',
-              new CaughtException(exception, stackTrace));
-        }
-      }
-    }
-    return _analyzedFilesGlobs;
-  }
 
   @override
   AnalysisContext addContext(
@@ -1516,23 +1569,14 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
-  void beginComputePackageMap() {
-    _computingPackageMap(true);
-  }
-
-  @override
-  void endComputePackageMap() {
-    _computingPackageMap(false);
-  }
+  void computingPackageMap(bool computing) =>
+      analysisServer._computingPackageMap(computing);
 
   @override
   void removeContext(Folder folder, List<String> flushedFiles) {
     AnalysisContext context = analysisServer.folderMap.remove(folder);
     sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
 
-    if (analysisServer.index != null) {
-      analysisServer.index.removeContext(context);
-    }
     analysisServer.operationQueue.contextRemoved(context);
     analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(removed: [context]));
@@ -1542,38 +1586,10 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
-  bool shouldFileBeAnalyzed(File file) {
-    for (Glob glob in analyzedFilesGlobs) {
-      if (glob.matches(file.path)) {
-        // Emacs creates dummy links to track the fact that a file is open for
-        // editing and has unsaved changes (e.g. having unsaved changes to
-        // 'foo.dart' causes a link '.#foo.dart' to be created, which points to
-        // the non-existent file 'username@hostname.pid'. To avoid these dummy
-        // links causing the analyzer to thrash, just ignore links to
-        // non-existent files.
-        return file.exists;
-      }
-    }
-    return false;
-  }
-
-  @override
-  void updateContextPackageUriResolver(
-      Folder contextFolder, FolderDisposition disposition) {
-    AnalysisContext context = analysisServer.folderMap[contextFolder];
-    context.sourceFactory = _createSourceFactory(
-        context, context.analysisOptions, disposition, contextFolder);
+  void updateContextPackageUriResolver(AnalysisContext context) {
     analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(changed: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
-  }
-
-  void _computingPackageMap(bool computing) {
-    if (analysisServer.serverServices.contains(ServerService.STATUS)) {
-      PubStatus pubStatus = new PubStatus(computing);
-      ServerStatusParams params = new ServerStatusParams(pub: pubStatus);
-      analysisServer.sendNotification(params.toNotification());
-    }
   }
 
   /**
@@ -1663,7 +1679,7 @@ class ServerPerformance {
   int slowRequestCount = 0;
 
   /**
-   * Log performation information about the given request.
+   * Log performance information about the given request.
    */
   void logRequest(Request request) {
     ++requestCount;
@@ -1718,7 +1734,7 @@ class ServerPerformanceStatistics {
   static PerformanceTag pub = new PerformanceTag('pub');
 
   /**
-   * The [PerformanceTag] for time spent in server comminication channels.
+   * The [PerformanceTag] for time spent in server communication channels.
    */
   static PerformanceTag serverChannel = new PerformanceTag('serverChannel');
 

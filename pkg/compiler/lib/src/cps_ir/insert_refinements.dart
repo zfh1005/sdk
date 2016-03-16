@@ -73,10 +73,6 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
     let.insertAbove(use);
   }
 
-  Primitive unfoldInterceptor(Primitive prim) {
-    return prim is Interceptor ? prim.input.definition : prim;
-  }
-
   /// Sets [refined] to be the current refinement for its value, and pushes an
   /// action that will restore the original scope again.
   ///
@@ -115,7 +111,7 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
 
     // Note: node.dartArgumentsLength is shorter when the call doesn't include
     // some optional arguments.
-    int length = min(argumentSuccessTypes.length, node.dartArgumentsLength);
+    int length = min(argumentSuccessTypes.length, node.argumentRefs.length);
     for (int i = 0; i < length; i++) {
       TypeMask argSuccessType = argumentSuccessTypes[i];
 
@@ -123,24 +119,24 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
       if (argSuccessType == types.dynamicType) continue;
 
       applyRefinement(node.parent,
-          new Refinement(node.dartArgument(i), argSuccessType));
+          new Refinement(node.argument(i), argSuccessType));
     }
   }
 
   void visitInvokeStatic(InvokeStatic node) {
-    node.arguments.forEach(processReference);
+    node.argumentRefs.forEach(processReference);
     _refineArguments(node,
         _getSuccessTypesForStaticMethod(types, node.target));
   }
 
   void visitInvokeMethod(InvokeMethod node) {
     // Update references to their current refined values.
-    processReference(node.receiver);
-    node.arguments.forEach(processReference);
+    processReference(node.receiverRef);
+    node.argumentRefs.forEach(processReference);
 
     // If the call is intercepted, we want to refine the actual receiver,
     // not the interceptor.
-    Primitive receiver = unfoldInterceptor(node.receiver.definition);
+    Primitive receiver = node.receiver;
 
     // Do not try to refine the receiver of closure calls; the class world
     // does not know about closure classes.
@@ -160,10 +156,10 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
   }
 
   void visitTypeCast(TypeCast node) {
-    Primitive value = node.value.definition;
+    Primitive value = node.value;
 
-    processReference(node.value);
-    node.typeArguments.forEach(processReference);
+    processReference(node.valueRef);
+    node.typeArgumentRefs.forEach(processReference);
 
     // Refine the type of the input.
     TypeMask type = types.subtypesOf(node.dartType).nullable();
@@ -191,11 +187,11 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
   }
 
   void visitBranch(Branch node) {
-    processReference(node.condition);
-    Primitive condition = node.condition.definition;
+    processReference(node.conditionRef);
+    Primitive condition = node.condition;
 
-    Continuation trueCont = node.trueContinuation.definition;
-    Continuation falseCont = node.falseContinuation.definition;
+    Continuation trueCont = node.trueContinuation;
+    Continuation falseCont = node.falseContinuation;
 
     // Sink both continuations to the Branch to ensure everything in scope
     // here is also in scope inside the continuations.
@@ -204,7 +200,7 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
 
     // If the condition is an 'is' check, promote the checked value.
     if (condition is TypeTest) {
-      Primitive value = condition.value.definition;
+      Primitive value = condition.value;
       TypeMask type = types.subtypesOf(condition.dartType);
       Primitive refinedValue = new Refinement(value, type);
       pushRefinement(trueCont, refinedValue);
@@ -237,8 +233,8 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
     }
 
     if (condition is InvokeMethod && condition.selector == Selectors.equals) {
-      refineEquality(condition.dartReceiver,
-                     condition.dartArgument(0),
+      refineEquality(condition.receiver,
+                     condition.argument(0),
                      trueCont,
                      falseCont);
       return;
@@ -246,8 +242,8 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
 
     if (condition is ApplyBuiltinOperator &&
         condition.operator == BuiltinOperator.Identical) {
-      refineEquality(condition.arguments[0].definition,
-                     condition.arguments[1].definition,
+      refineEquality(condition.argument(0),
+                     condition.argument(1),
                      trueCont,
                      falseCont);
       return;

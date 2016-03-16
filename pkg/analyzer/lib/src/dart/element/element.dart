@@ -13,10 +13,10 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart'
     show DartObject, EvaluationResultImpl;
-import 'package:analyzer/src/generated/element_handle.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
 import 'package:analyzer/src/generated/java_core.dart';
@@ -86,11 +86,13 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
    * A list containing all of the mixins that are applied to the class being
    * extended in order to derive the superclass of this class.
    */
+  @override
   List<InterfaceType> mixins = InterfaceType.EMPTY_LIST;
 
   /**
    * A list containing all of the interfaces that are implemented by this class.
    */
+  @override
   List<InterfaceType> interfaces = InterfaceType.EMPTY_LIST;
 
   /**
@@ -102,11 +104,13 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
    * The superclass of the class, or `null` if the class does not have an
    * explicit superclass.
    */
+  @override
   InterfaceType supertype;
 
   /**
    * The type defined by the class.
    */
+  @override
   InterfaceType type;
 
   /**
@@ -911,6 +915,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /**
    * The source that corresponds to this compilation unit.
    */
+  @override
   Source source;
 
   /**
@@ -921,6 +926,13 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
    * computed.
    */
   Source librarySource;
+
+  /**
+   * A table mapping the offset of a directive to the annotations associated
+   * with that directive, or `null` if none of the annotations in the
+   * compilation unit have annotations.
+   */
+  Map<int, List<ElementAnnotation>> annotationMap = null;
 
   /**
    * A list containing all of the top-level accessors (getters and setters)
@@ -1098,6 +1110,18 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   CompilationUnit computeNode() => unit;
 
+  /**
+   * Return the annotations associated with the directive at the given [offset],
+   * or an empty list if the directive has no annotations or if there is no
+   * directive at the given offset.
+   */
+  List<ElementAnnotation> getAnnotations(int offset) {
+    if (annotationMap == null) {
+      return ElementAnnotation.EMPTY_LIST;
+    }
+    return annotationMap[offset] ?? ElementAnnotation.EMPTY_LIST;
+  }
+
   @override
   ElementImpl getChild(String identifier) {
     //
@@ -1174,6 +1198,15 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       TopLevelVariableElement from, TopLevelVariableElement to) {
     int index = _variables.indexOf(from);
     _variables[index] = to;
+  }
+
+  /**
+   * Set the annotations associated with the directive at the given [offset] to
+   * the given list of [annotations].
+   */
+  void setAnnotations(int offset, List<ElementAnnotation> annotations) {
+    annotationMap ??= new HashMap<int, List<ElementAnnotation>>();
+    annotationMap[offset] = annotations;
   }
 
   @override
@@ -1568,6 +1601,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
   static String _META_LIB_NAME = "meta";
 
   /**
+   * The name of the top-level variable used to mark a method as requiring
+   * overriders to call super.
+   */
+  static String _MUST_CALL_SUPER_VARIABLE_NAME = "mustCallSuper";
+
+  /**
    * The name of the top-level variable used to mark a method as being expected
    * to override an inherited method.
    */
@@ -1632,6 +1671,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
     }
     return false;
   }
+
+  @override
+  bool get isMustCallSuper =>
+      element is PropertyAccessorElement &&
+      element.name == _MUST_CALL_SUPER_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
 
   @override
   bool get isOverride =>
@@ -1730,6 +1775,17 @@ abstract class ElementImpl implements Element {
   int _docRangeLength;
 
   /**
+   * The offset of the beginning of the element's code in the file that contains
+   * the element, or `null` if the element is synthetic.
+   */
+  int _codeOffset;
+
+  /**
+   * The length of the element's code, or `null` if the element is synthetic.
+   */
+  int _codeLength;
+
+  /**
    * Initialize a newly created element to have the given [name] at the given
    * [_nameOffset].
    */
@@ -1742,6 +1798,17 @@ abstract class ElementImpl implements Element {
    */
   ElementImpl.forNode(Identifier name)
       : this(name == null ? "" : name.name, name == null ? -1 : name.offset);
+
+  /**
+   * The length of the element's code, or `null` if the element is synthetic.
+   */
+  int get codeLength => _codeLength;
+
+  /**
+   * The offset of the beginning of the element's code in the file that contains
+   * the element, or `null` if the element is synthetic.
+   */
+  int get codeOffset => _codeOffset;
 
   @override
   AnalysisContext get context {
@@ -1920,6 +1987,27 @@ abstract class ElementImpl implements Element {
   }
 
   /**
+   * Append to the given [buffer] a comma-separated list of the names of the
+   * types of this element and every enclosing element.
+   */
+  void appendPathTo(StringBuffer buffer) {
+    Element element = this;
+    while (element != null) {
+      if (element != this) {
+        buffer.write(', ');
+      }
+      buffer.write(element.runtimeType);
+      String name = element.name;
+      if (name != null) {
+        buffer.write(' (');
+        buffer.write(name);
+        buffer.write(')');
+      }
+      element = element.enclosingElement;
+    }
+  }
+
+  /**
    * Append a textual representation of this element to the given [buffer].
    */
   void appendTo(StringBuffer buffer) {
@@ -2020,6 +2108,14 @@ abstract class ElementImpl implements Element {
         child.accept(visitor);
       }
     }
+  }
+
+  /**
+   * Set the code range for this element.
+   */
+  void setCodeRange(int offset, int length) {
+    _codeOffset = offset;
+    _codeLength = length;
   }
 
   /**
@@ -2154,10 +2250,10 @@ class ElementLocationImpl implements ElementLocation {
 
   @override
   int get hashCode {
-    int result = 1;
+    int result = 0;
     for (int i = 0; i < _components.length; i++) {
       String component = _components[i];
-      result = 31 * result + component.hashCode;
+      result = JenkinsSmiHash.combine(result, component.hashCode);
     }
     return result;
   }
@@ -3100,6 +3196,24 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   LibraryElementImpl.forNode(this.context, LibraryIdentifier name)
       : super.forNode(name),
         nameLength = name != null ? name.length : 0;
+
+  @override
+  int get codeLength {
+    if (_definingCompilationUnit is CompilationUnitElementImpl) {
+      return (_definingCompilationUnit as CompilationUnitElementImpl)
+          .codeLength;
+    }
+    return null;
+  }
+
+  @override
+  int get codeOffset {
+    if (_definingCompilationUnit is CompilationUnitElementImpl) {
+      return (_definingCompilationUnit as CompilationUnitElementImpl)
+          .codeOffset;
+    }
+    return null;
+  }
 
   @override
   CompilationUnitElement get definingCompilationUnit =>

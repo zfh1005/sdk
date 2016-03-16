@@ -110,7 +110,7 @@ class CheckCpsIntegrity extends TrampolineRecursiveVisitor {
   @override
   Expression traverseLetMutable(LetMutable node) {
     handleDeclaration(node.variable);
-    processReference(node.value);
+    processReference(node.valueRef);
 
     // Put the primitive in scope when visiting the body.
     enterScope([node.variable]);
@@ -134,9 +134,13 @@ class CheckCpsIntegrity extends TrampolineRecursiveVisitor {
 
   @override
   visitFunctionDefinition(FunctionDefinition node) {
-    if (node.thisParameter != null) {
-      handleDeclaration(node.thisParameter);
-      enterScope([node.thisParameter]);
+    if (node.interceptorParameter != null) {
+      handleDeclaration(node.interceptorParameter);
+      enterScope([node.interceptorParameter]);
+    }
+    if (node.receiverParameter != null) {
+      handleDeclaration(node.receiverParameter);
+      enterScope([node.receiverParameter]);
     }
     node.parameters.forEach(handleDeclaration);
     enterScope(node.parameters);
@@ -166,7 +170,7 @@ class CheckCpsIntegrity extends TrampolineRecursiveVisitor {
 
   @override
   processInvokeContinuation(InvokeContinuation node) {
-    Continuation target = node.continuation.definition;
+    Continuation target = node.continuation;
     if (node.isRecursive && inScope[target] == ScopeType.InScope) {
       error('Non-recursive InvokeContinuation marked as recursive', node);
     }
@@ -176,8 +180,21 @@ class CheckCpsIntegrity extends TrampolineRecursiveVisitor {
     if (node.isRecursive && !target.isRecursive) {
       error('Recursive Continuation was not marked as recursive', node);
     }
-    if (node.arguments.length != target.parameters.length) {
+    if (node.argumentRefs.length != target.parameters.length) {
       error('Arity mismatch in InvokeContinuation', node);
+    }
+  }
+
+  @override
+  processInvokeMethod(InvokeMethod node) {
+    if (node.callingConvention == CallingConvention.Intercepted) {
+      if (node.interceptorRef == null) {
+        error('No interceptor on intercepted call', node);
+      }
+    } else {
+      if (node.interceptorRef != null) {
+        error('Interceptor on call with ${node.callingConvention}', node);
+      }
     }
   }
 

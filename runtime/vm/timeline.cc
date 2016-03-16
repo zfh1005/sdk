@@ -10,6 +10,7 @@
 #include "vm/lockers.h"
 #include "vm/log.h"
 #include "vm/object.h"
+#include "vm/service_event.h"
 #include "vm/thread.h"
 #include "vm/timeline.h"
 
@@ -154,6 +155,22 @@ void Timeline::SetVMStreamEnabled(bool enabled) {
 }
 
 
+void Timeline::StreamStateChange(const char* stream_name,
+                                 bool prev,
+                                 bool curr) {
+  if (prev == curr) {
+    return;
+  }
+  if (strcmp(stream_name, "Embedder") == 0) {
+    if (curr && (Timeline::get_start_recording_cb() != NULL)) {
+      Timeline::get_start_recording_cb()();
+    } else if (!curr && (Timeline::get_stop_recording_cb() != NULL)) {
+      Timeline::get_stop_recording_cb()();
+    }
+  }
+}
+
+
 void Timeline::Shutdown() {
   ASSERT(recorder_ != NULL);
   if (FLAG_timeline_dir != NULL) {
@@ -272,6 +289,9 @@ TimelineEventRecorder* Timeline::recorder_ = NULL;
 TimelineStream Timeline::vm_stream_;
 TimelineStream Timeline::vm_api_stream_;
 MallocGrowableArray<char*>* Timeline::enabled_streams_ = NULL;
+Dart_EmbedderTimelineStartRecording Timeline::start_recording_cb_ = NULL;
+Dart_EmbedderTimelineStopRecording Timeline::stop_recording_cb_ = NULL;
+Dart_EmbedderTimelineGetTimeline Timeline::get_timeline_cb_ = NULL;
 
 #define ISOLATE_TIMELINE_STREAM_DEFINE_FLAG(name, enabled_by_default)          \
   bool Timeline::stream_##name##_enabled_ = enabled_by_default;
@@ -1007,6 +1027,14 @@ void TimelineEventRecorder::ThreadBlockCompleteEvent(TimelineEvent* event) {
 }
 
 
+void TimelineEventRecorder::PrintEmbedderJSONEvents(JSONStream* events) {
+  if (Timeline::get_get_timeline_cb() != NULL) {
+    events->PrintCommaIfNeeded();
+    Timeline::get_get_timeline_cb()(AppendJSONStreamConsumer, events);
+  }
+}
+
+
 void TimelineEventRecorder::WriteTo(const char* directory) {
   if (!FLAG_support_service) {
     return;
@@ -1146,6 +1174,7 @@ void TimelineEventRingRecorder::PrintJSON(JSONStream* js,
     JSONArray events(&topLevel, "traceEvents");
     PrintJSONMeta(&events);
     PrintJSONEvents(&events, filter);
+    PrintEmbedderJSONEvents(js);
   }
 }
 
@@ -1157,6 +1186,7 @@ void TimelineEventRingRecorder::PrintTraceEvent(JSONStream* js,
   }
   JSONArray events(js);
   PrintJSONEvents(&events, filter);
+  PrintEmbedderJSONEvents(js);
 }
 
 
@@ -1218,15 +1248,15 @@ void TimelineEventRingRecorder::CompleteEvent(TimelineEvent* event) {
 }
 
 
-TimelineEventStreamingRecorder::TimelineEventStreamingRecorder() {
+TimelineEventCallbackRecorder::TimelineEventCallbackRecorder() {
 }
 
 
-TimelineEventStreamingRecorder::~TimelineEventStreamingRecorder() {
+TimelineEventCallbackRecorder::~TimelineEventCallbackRecorder() {
 }
 
 
-void TimelineEventStreamingRecorder::PrintJSON(JSONStream* js,
+void TimelineEventCallbackRecorder::PrintJSON(JSONStream* js,
                                                TimelineEventFilter* filter) {
   if (!FLAG_support_service) {
     return;
@@ -1240,7 +1270,7 @@ void TimelineEventStreamingRecorder::PrintJSON(JSONStream* js,
 }
 
 
-void TimelineEventStreamingRecorder::PrintTraceEvent(
+void TimelineEventCallbackRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
   if (!FLAG_support_service) {
@@ -1250,14 +1280,14 @@ void TimelineEventStreamingRecorder::PrintTraceEvent(
 }
 
 
-TimelineEvent* TimelineEventStreamingRecorder::StartEvent() {
+TimelineEvent* TimelineEventCallbackRecorder::StartEvent() {
   TimelineEvent* event = new TimelineEvent();
   return event;
 }
 
 
-void TimelineEventStreamingRecorder::CompleteEvent(TimelineEvent* event) {
-  StreamEvent(event);
+void TimelineEventCallbackRecorder::CompleteEvent(TimelineEvent* event) {
+  OnEvent(event);
   delete event;
 }
 
@@ -1279,6 +1309,7 @@ void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
     JSONArray events(&topLevel, "traceEvents");
     PrintJSONMeta(&events);
     PrintJSONEvents(&events, filter);
+    PrintEmbedderJSONEvents(js);
   }
 }
 
@@ -1291,6 +1322,7 @@ void TimelineEventEndlessRecorder::PrintTraceEvent(
   }
   JSONArray events(js);
   PrintJSONEvents(&events, filter);
+  PrintEmbedderJSONEvents(js);
 }
 
 
@@ -1396,6 +1428,16 @@ TimelineEventBlock::~TimelineEventBlock() {
 }
 
 
+void TimelineEventBlock::PrintJSON(JSONStream* js) const {
+  ASSERT(!in_use());
+  JSONArray events(js);
+  for (intptr_t i = 0; i < length(); i++) {
+    const TimelineEvent* event = At(i);
+    events.AddValue(event);
+  }
+}
+
+
 TimelineEvent* TimelineEventBlock::StartEvent() {
   ASSERT(!IsFull());
   if (FLAG_trace_timeline) {
@@ -1465,6 +1507,11 @@ void TimelineEventBlock::Finish() {
     OS::Print("Finish block %p\n", this);
   }
   in_use_ = false;
+  if (Service::timeline_stream.enabled()) {
+    ServiceEvent service_event(NULL, ServiceEvent::kTimelineEvents);
+    service_event.set_timeline_event_block(this);
+    Service::HandleEvent(&service_event);
+  }
 }
 
 

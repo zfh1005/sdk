@@ -2764,6 +2764,19 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
 }
 
 
+LocationSummary* CheckedSmiOpInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
+  // Only for precompiled code, not on ia32 currently.
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // Only for precompiled code, not on ia32 currently.
+  UNIMPLEMENTED();
+}
+
 LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -6507,7 +6520,7 @@ LocationSummary* GotoInstr::MakeLocationSummary(Zone* zone,
 
 void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->is_optimizing()) {
-    if (FLAG_emit_edge_counters) {
+    if (FLAG_reorder_basic_blocks) {
       compiler->EmitEdgeCounter(block()->preorder_number());
     }
     // Add a deoptimization descriptor for deoptimizing instructions that
@@ -6548,8 +6561,11 @@ void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Load code object from frame.
   __ movl(target_reg, Address(EBP, kPcMarkerSlotFromFp * kWordSize));
-  // Load instructions entry point.
-  __ movl(target_reg, FieldAddress(target_reg, Code::entry_point_offset()));
+  // Load instructions object (active_instructions and Code::entry_point() may
+  // not point to this instruction object any more; see Code::DisableDartCode).
+  __ movl(target_reg,
+      FieldAddress(target_reg, Code::saved_instructions_offset()));
+  __ addl(target_reg, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
 
   // Add the offset.
   Register offset_reg = locs()->in(0).reg();

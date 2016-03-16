@@ -29,7 +29,6 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/generated/visitors.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/driver.dart';
@@ -1005,24 +1004,46 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
     Map<Source, SourceKind> exportSourceKindMap =
         getRequiredInput(EXPORTS_SOURCE_KIND_INPUT_NAME);
     //
-    // Build elements.
+    // Try to get the existing LibraryElement.
     //
-    DirectiveElementBuilder builder = new DirectiveElementBuilder(
-        context,
-        libraryElement,
-        importLibraryMap,
-        importSourceKindMap,
-        exportLibraryMap,
-        exportSourceKindMap);
-    libraryUnit.accept(builder);
-    // See commentary in the computation of the LIBRARY_CYCLE result
-    // for details on library cycle invalidation.
-    libraryElement.invalidateLibraryCycles();
+    LibraryElement element;
+    {
+      InternalAnalysisContext internalContext =
+          context as InternalAnalysisContext;
+      AnalysisCache analysisCache = internalContext.analysisCache;
+      CacheEntry cacheEntry = internalContext.getCacheEntry(target);
+      element = analysisCache.getValue(target, LIBRARY_ELEMENT2);
+      if (element == null &&
+          internalContext.aboutToComputeResult(cacheEntry, LIBRARY_ELEMENT2)) {
+        element = analysisCache.getValue(target, LIBRARY_ELEMENT2);
+      }
+    }
+    //
+    // Build or reuse the directive elements.
+    //
+    List<AnalysisError> errors;
+    if (element == null) {
+      DirectiveElementBuilder builder = new DirectiveElementBuilder(
+          context,
+          libraryElement,
+          importLibraryMap,
+          importSourceKindMap,
+          exportLibraryMap,
+          exportSourceKindMap);
+      libraryUnit.accept(builder);
+      // See the commentary in the computation of the LIBRARY_CYCLE result
+      // for details on library cycle invalidation.
+      libraryElement.invalidateLibraryCycles();
+      errors = builder.errors;
+    } else {
+      DirectiveResolver resolver = new DirectiveResolver();
+      libraryUnit.accept(resolver);
+    }
     //
     // Record outputs.
     //
     outputs[LIBRARY_ELEMENT2] = libraryElement;
-    outputs[BUILD_DIRECTIVES_ERRORS] = builder.errors;
+    outputs[BUILD_DIRECTIVES_ERRORS] = errors;
   }
 
   /**
@@ -1384,9 +1405,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
       libraryElement.definingCompilationUnit = definingCompilationUnitElement;
       libraryElement.entryPoint = entryPoint;
       libraryElement.parts = sourcedCompilationUnits;
-      for (Directive directive in directivesToResolve) {
-        directive.element = libraryElement;
-      }
+      libraryElement.hasExtUri = _hasExtUri(definingCompilationUnit);
       BuildLibraryElementUtils.patchTopLevelAccessors(libraryElement);
       // set the library documentation to the docs associated with the first
       // directive in the compilation unit.
@@ -1394,6 +1413,15 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
         setElementDocumentationComment(
             libraryElement, definingCompilationUnit.directives.first);
       }
+    }
+    //
+    // Resolve the relevant directives to the library element.
+    //
+    // TODO(brianwilkerson) This updates the state of the AST structures but
+    // does not associate a new result with it.
+    //
+    for (Directive directive in directivesToResolve) {
+      directive.element = libraryElement;
     }
     //
     // Record outputs.
@@ -1432,6 +1460,21 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
       }
     }
     return null;
+  }
+
+  /**
+   * Return `true` if the given compilation [unit] contains at least one
+   * import directive with a `dart-ext:` URI.
+   */
+  bool _hasExtUri(CompilationUnit unit) {
+    for (Directive directive in unit.directives) {
+      if (directive is ImportDirective) {
+        if (DartUriResolver.isDartExtUri(directive.uriContent)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   /**
@@ -2770,10 +2813,20 @@ class GenerateLintsTask extends SourceBasedAnalysisTask {
     //
     // Generate lints.
     //
+    List<AstVisitor> visitors = <AstVisitor>[];
+
     List<Linter> linters = getLints(context);
-    linters.forEach((l) => l.reporter = errorReporter);
-    Iterable<AstVisitor> visitors = linters.map((l) => l.getVisitor()).toList();
-    unit.accept(new DelegatingAstVisitor(visitors.where((v) => v != null)));
+    for (Linter linter in linters) {
+      AstVisitor visitor = linter.getVisitor();
+      if (visitor != null) {
+        linter.reporter = errorReporter;
+        visitors
+            .add(new TimedAstVisitor(visitor, lintRegistry.getTimer(linter)));
+      }
+    }
+
+    DelegatingAstVisitor dv = new DelegatingAstVisitor(visitors);
+    unit.accept(dv);
 
     //
     // Record outputs.
@@ -2909,12 +2962,33 @@ abstract class InferStaticVariableTask extends ConstantEvaluationAnalysisTask {
   VariableDeclaration getDeclaration(CompilationUnit unit) {
     VariableElement variable = target;
     AstNode node = new NodeLocator2(variable.nameOffset).searchWithin(unit);
+    if (node == null) {
+      Source variableSource = variable.source;
+      Source unitSource = unit.element.source;
+      if (variableSource != unitSource) {
+        throw new AnalysisException(
+            "Failed to find the AST node for the variable "
+            "${variable.displayName} in $variableSource "
+            "because we were looking in $unitSource");
+      }
+      throw new AnalysisException(
+          "Failed to find the AST node for the variable "
+          "${variable.displayName} in $variableSource");
+    }
     VariableDeclaration declaration =
         node.getAncestor((AstNode ancestor) => ancestor is VariableDeclaration);
     if (declaration == null || declaration.name != node) {
+      Source variableSource = variable.source;
+      Source unitSource = unit.element.source;
+      if (variableSource != unitSource) {
+        throw new AnalysisException(
+            "Failed to find the declaration of the variable "
+            "${variable.displayName} in $variableSource"
+            "because we were looking in $unitSource");
+      }
       throw new AnalysisException(
           "Failed to find the declaration of the variable "
-          "${variable.displayName} in ${variable.source}");
+          "${variable.displayName} in $variableSource");
     }
     return declaration;
   }
@@ -3365,6 +3439,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     parser.parseAsync = options.enableAsync;
     parser.parseFunctionBodies = options.analyzeFunctionBodiesPredicate(source);
     parser.parseGenericMethods = options.enableGenericMethods;
+    parser.parseConditionalDirectives = options.enableConditionalDirectives;
     parser.parseGenericMethodComments = options.strongMode;
     CompilationUnit unit = parser.parseCompilationUnit(tokenStream);
     unit.lineInfo = lineInfo;
@@ -3867,6 +3942,15 @@ class PropagateVariableTypeTask extends InferStaticVariableTask {
    */
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     VariableElement variable = target;
+    if (variable.library == null) {
+      StringBuffer buffer = new StringBuffer();
+      buffer.write(
+          'PropagateVariableTypeTask building inputs for a variable with no library. Variable name = "');
+      buffer.write(variable.name);
+      buffer.write('". Path = ');
+      (variable as ElementImpl).appendPathTo(buffer);
+      throw new AnalysisException(buffer.toString());
+    }
     LibrarySpecificUnit unit =
         new LibrarySpecificUnit(variable.library.source, variable.source);
     return <String, TaskInput>{
@@ -5075,6 +5159,11 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     CompilationUnitElement unitElement = unit.element;
     LibraryElement libraryElement = unitElement.library;
+    if (libraryElement == null) {
+      throw new AnalysisException(
+          'VerifyUnitTask verifying a unit with no library: '
+          '${unitElement.source.fullName}');
+    }
     //
     // Validate the directives.
     //

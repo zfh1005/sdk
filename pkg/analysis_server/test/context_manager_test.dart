@@ -15,18 +15,20 @@ import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_io.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/util/glob.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:linter/src/rules/avoid_as.dart';
-import 'package:package_config/packages.dart';
 import 'package:path/path.dart';
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
+import 'mock_sdk.dart';
 import 'mocks.dart';
 import 'utils.dart';
 
@@ -92,12 +94,26 @@ class AbstractContextManagerTest {
     ['x']
   ]);
 
+  List<Glob> get analysisFilesGlobs {
+    List<String> patterns = <String>[
+      '**/*.${AnalysisEngine.SUFFIX_DART}',
+      '**/*.${AnalysisEngine.SUFFIX_HTML}',
+      '**/*.${AnalysisEngine.SUFFIX_HTM}',
+      '**/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}'
+    ];
+    return patterns
+        .map((pattern) => new Glob(JavaFile.pathContext.separator, pattern))
+        .toList();
+  }
+
   List<ErrorProcessor> get errorProcessors => callbacks.currentContext
       .getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
 
   List<Linter> get lints => getLints(callbacks.currentContext);
 
   AnalysisOptions get options => callbacks.currentContext.analysisOptions;
+
+  Map<String, List<Folder>> get _currentPackageMap => _packageMap(projPath);
 
   void deleteFile(List<String> pathComponents) {
     String filePath = posix.joinAll(pathComponents);
@@ -137,11 +153,16 @@ class AbstractContextManagerTest {
     processRequiredPlugins();
     resourceProvider = new MemoryResourceProvider();
     packageMapProvider = new MockPackageMapProvider();
+    DartSdkManager sdkManager = new DartSdkManager(() {
+      return new MockSdk();
+    });
     manager = new ContextManagerImpl(
         resourceProvider,
+        sdkManager,
         providePackageResolver,
         provideEmbeddedUriResolver,
         packageMapProvider,
+        analysisFilesGlobs,
         InstrumentationService.NULL_SERVICE,
         new AnalysisOptionsImpl());
     callbacks = new TestContextManagerCallbacks(resourceProvider);
@@ -378,6 +399,7 @@ analyzer:
   language:
     enableGenericMethods: true
     enableAsync: false
+    enableConditionalDirectives: true
   errors:
     unused_local_variable: false
 linter:
@@ -403,9 +425,13 @@ linter:
     expect(context.analysisOptions.enableAsync, isFalse);
     // * from `.analysis_options`:
     expect(context.analysisOptions.enableGenericMethods, isTrue);
+    expect(context.analysisOptions.enableConditionalDirectives, isTrue);
+
     // * verify tests are excluded
-    expect(callbacks.currentContextFilePaths[projPath].keys,
-        ['/my/proj/sdk_ext/entry.dart']);
+    expect(
+        callbacks.currentContextFilePaths[projPath].keys,
+        unorderedEquals(
+            ['/my/proj/sdk_ext/entry.dart', '/my/proj/.analysis_options']));
 
     // Verify filter setup.
     expect(errorProcessors, hasLength(2));
@@ -657,8 +683,10 @@ analyzer:
         callbacks.currentContextFilePaths[projPath];
     expect(fileTimestamps, isNotEmpty);
     List<String> files = fileTimestamps.keys.toList();
-    expect(files.length, equals(1));
-    expect(files[0], equals('/my/proj/lib/main.dart'));
+    expect(
+        files,
+        unorderedEquals(
+            ['/my/proj/lib/main.dart', '/my/proj/.analysis_options']));
   }
 
   test_path_filter_child_contexts_option() async {
@@ -1052,8 +1080,7 @@ test_pack:lib/''');
         <String, String>{projPath: packageRootPath});
     expect(callbacks.currentContextPaths, hasLength(1));
     expect(callbacks.currentContextPaths, contains(projPath));
-    expect(callbacks.currentContextDispositions[projPath].packageRoot,
-        packageRootPath);
+    _checkPackageRoot(projPath, packageRootPath);
   }
 
   void test_setRoots_addFolderWithPubspec() {
@@ -1164,11 +1191,11 @@ test_pack:lib/''');
     callbacks.assertContextFiles(subProjectA, [subProjectA_file]);
     callbacks.assertContextFiles(subProjectB, [subProjectB_file]);
     // verify package maps
-    _checkPackageMap(root, isNull);
-    _checkPackageMap(
-        subProjectA, equals(packageMapProvider.packageMaps[subProjectA]));
-    _checkPackageMap(
-        subProjectB, equals(packageMapProvider.packageMaps[subProjectB]));
+    expect(_packageMap(root), isNull);
+    expect(_packageMap(subProjectA),
+        equals(packageMapProvider.packageMaps[subProjectA]));
+    expect(_packageMap(subProjectB),
+        equals(packageMapProvider.packageMaps[subProjectB]));
   }
 
   void test_setRoots_addPackageRoot() {
@@ -1181,7 +1208,7 @@ test_pack:lib/''');
     List<String> includedPaths = <String>[projPath];
     List<String> excludedPaths = <String>[];
     manager.setRoots(includedPaths, excludedPaths, <String, String>{});
-    _checkPackageMap(projPath, equals(packageMapProvider.packageMap));
+    expect(_currentPackageMap, equals(packageMapProvider.packageMap));
     manager.setRoots(includedPaths, excludedPaths,
         <String, String>{projPath: packageRootPath});
     _checkPackageRoot(projPath, equals(packageRootPath));
@@ -1503,7 +1530,7 @@ analyzer:
       'foo': [packageFolder]
     };
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
-    _checkPackageMap(projPath, equals(packageMapProvider.packageMap));
+    expect(_currentPackageMap, equals(packageMapProvider.packageMap));
   }
 
   void test_setRoots_noContext_excludedFolder() {
@@ -1691,7 +1718,7 @@ analyzer:
         <String, String>{projPath: packageRootPath});
     _checkPackageRoot(projPath, equals(packageRootPath));
     manager.setRoots(includedPaths, excludedPaths, <String, String>{});
-    _checkPackageMap(projPath, equals(packageMapProvider.packageMap));
+    expect(_currentPackageMap, equals(packageMapProvider.packageMap));
   }
 
   void test_setRoots_rootPathContainsDotFile() {
@@ -2229,20 +2256,22 @@ analyzer:
     resourceProvider.newFile(dartFilePath, 'contents');
     // the created context has the expected empty package map
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
-    _checkPackageMap(projPath, isEmpty);
+    expect(_currentPackageMap, isEmpty);
     // configure package map
     String packagePath = '/package/foo';
     resourceProvider.newFolder(packagePath);
-    packageMapProvider.packageMap = {'foo': projPath};
+    packageMapProvider.packageMap = {
+      'foo': [resourceProvider.newFolder(projPath)]
+    };
     // Changing a .dart file in the project shouldn't cause a new
     // package map to be picked up.
     resourceProvider.modifyFile(dartFilePath, 'new contents');
     return pumpEventQueue().then((_) {
-      _checkPackageMap(projPath, isEmpty);
+      expect(_currentPackageMap, isEmpty);
       // However, changing the package map dependency should.
       resourceProvider.modifyFile(dependencyPath, 'new contents');
       return pumpEventQueue().then((_) {
-        _checkPackageMap(projPath, equals(packageMapProvider.packageMap));
+        expect(_currentPackageMap, equals(packageMapProvider.packageMap));
       });
     });
   }
@@ -2257,14 +2286,14 @@ analyzer:
     resourceProvider.newFile(dartFilePath, 'contents');
     // the created context has the expected empty package map
     manager.setRoots(<String>[projPath], <String>[], <String, String>{});
-    _checkPackageMap(projPath, isEmpty);
+    expect(_currentPackageMap, isEmpty);
     // Change the package map dependency so that the packageMapProvider is
     // re-run, and arrange for it to return null from computePackageMap().
     packageMapProvider.packageMap = null;
     resourceProvider.modifyFile(dependencyPath, 'new contents');
     return pumpEventQueue().then((_) {
       // The package map should have been changed to null.
-      _checkPackageMap(projPath, isNull);
+      expect(_currentPackageMap, isNull);
     });
   }
 
@@ -2280,39 +2309,34 @@ analyzer:
     Map<String, int> filePaths = callbacks.currentContextFilePaths[projPath];
     expect(filePaths, hasLength(1));
     expect(filePaths, contains(filePath));
-    Packages packages = callbacks.currentContextDispositions[projPath].packages;
-    expect(packages.packages, isEmpty);
+    expect(_currentPackageMap, isEmpty);
 
     // update .packages
     callbacks.now++;
     resourceProvider.modifyFile(packagesPath, 'main:./lib/');
     return pumpEventQueue().then((_) {
       // verify new package info
-      packages = callbacks.currentContextDispositions[projPath].packages;
-      expect(packages.packages, unorderedEquals(['main']));
+      expect(_currentPackageMap.keys, unorderedEquals(['main']));
     });
   }
 
   /**
    * Verify that package URI's for source files in [path] will be resolved
-   * using a package map matching [expectation].
-   */
-  void _checkPackageMap(String path, expectation) {
-    FolderDisposition disposition = callbacks.currentContextDispositions[path];
-    Map<String, List<Folder>> packageMap =
-        disposition is PackageMapDisposition ? disposition.packageMap : null;
-    expect(packageMap, expectation);
-  }
-
-  /**
-   * Verify that package URI's for source files in [path] will be resolved
-   * using a package root maching [expectation].
+   * using a package root matching [expectation].
    */
   void _checkPackageRoot(String path, expectation) {
-    FolderDisposition disposition = callbacks.currentContextDispositions[path];
-    expect(disposition.packageRoot, expectation);
+    // TODO(brianwilkerson) Figure out how to test this. Possibly by comparing
+    // the contents of the package map (although that approach doesn't work at
+    // the moment).
+//    FolderDisposition disposition = callbacks.currentContextDispositions[path];
+//    expect(disposition.packageRoot, expectation);
     // TODO(paulberry): we should also verify that the package map itself is
     // correct.  See dartbug.com/23909.
+  }
+
+  Map<String, List<Folder>> _packageMap(String contextPath) {
+    Folder folder = resourceProvider.getFolder(contextPath);
+    return manager.folderMap[folder]?.sourceFactory?.packageMap;
   }
 }
 
@@ -2346,12 +2370,6 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
       <String, Set<Source>>{};
 
   /**
-   * Map from context to folder disposition.
-   */
-  final Map<String, FolderDisposition> currentContextDispositions =
-      <String, FolderDisposition>{};
-
-  /**
    * Resource provider used for this test.
    */
   final ResourceProvider resourceProvider;
@@ -2371,7 +2389,6 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
     currentContextTimestamps[path] = now;
     currentContextFilePaths[path] = <String, int>{};
     currentContextSources[path] = new HashSet<Source>();
-    currentContextDispositions[path] = disposition;
     currentContext = AnalysisEngine.instance.createAnalysisContext();
     _locateEmbedderYamls(currentContext, disposition);
     List<UriResolver> resolvers = [];
@@ -2427,33 +2444,22 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
+  void computingPackageMap(bool computing) {
+    // Do nothing.
+  }
+
+  @override
   void removeContext(Folder folder, List<String> flushedFiles) {
     String path = folder.path;
     expect(currentContextPaths, contains(path));
     currentContextTimestamps.remove(path);
     currentContextFilePaths.remove(path);
     currentContextSources.remove(path);
-    currentContextDispositions.remove(path);
   }
 
   @override
-  bool shouldFileBeAnalyzed(File file) {
-    if (!(AnalysisEngine.isDartFileName(file.path) ||
-        AnalysisEngine.isHtmlFileName(file.path))) {
-      return false;
-    }
-    // Emacs creates dummy links to track the fact that a file is open for
-    // editing and has unsaved changes (e.g. having unsaved changes to
-    // 'foo.dart' causes a link '.#foo.dart' to be created, which points to the
-    // non-existent file 'username@hostname.pid'.  To avoid these dummy links
-    // causing the analyzer to thrash, just ignore links to non-existent files.
-    return file.exists;
-  }
-
-  @override
-  void updateContextPackageUriResolver(
-      Folder contextFolder, FolderDisposition disposition) {
-    currentContextDispositions[contextFolder.path] = disposition;
+  void updateContextPackageUriResolver(AnalysisContext context) {
+    // Nothing to do.
   }
 
   /// If [disposition] has a package map, attempt to locate `_embedder.yaml`

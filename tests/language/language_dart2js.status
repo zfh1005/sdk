@@ -25,7 +25,7 @@ mixin_supertype_subclass4_test: CompileTimeError # Issue 23773
 mixin_of_mixin_test: CompileTimeError # Issue 23773
 
 # The following tests are supposed to fail.
-# When run for testing dart2js supports all dart:X libraries (because it
+# In testing-mode, dart2js supports all dart:X libraries (because it
 # uses '--categories=all').
 library_env_test/has_no_html_support: RuntimeError, OK
 library_env_test/has_no_io_support: RuntimeError, OK
@@ -35,6 +35,11 @@ accessor_conflict_import2_test: RuntimeError # Issue 25626
 accessor_conflict_import_prefixed2_test: RuntimeError # Issue 25626
 accessor_conflict_import_prefixed_test: RuntimeError # Issue 25626
 accessor_conflict_import_test: RuntimeError # Issue 25626
+
+# Experimental feature: Syntactic support for generic methods.
+generic_functions_test: CompileTimeError # Issue 25835
+generic_methods_test: CompileTimeError # Issue 25835
+generic_sends_test: CompileTimeError # Issue 25835
 
 [ $compiler == dart2js && $runtime == jsshell ]
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
@@ -309,8 +314,14 @@ switch8_test: Crash # Pending statics: JSArray
 regress_21795_test: Pass, RuntimeError # Due to inlining?
 
 [ $compiler == dart2js && $cps_ir && $host_checked ]
+accessor_conflict_export2_test: Crash # Duplicate export of 'x'
+accessor_conflict_export_test: Crash # Duplicate export of 'x'
 async_throw_in_catch_test/forceAwait: Crash # Issue 24485
 async_throw_in_catch_test/none: Crash # Issue 24485
 execute_finally9_test: Crash # Issue 24485
 regress_21795_test: Crash # Issue 24485
 regress_23537_test: Crash # Issue 24485
+try_finally_regress_25333_test: Crash # Issue 24485
+
+[ $compiler == dart2js && $cps_ir && $checked ]
+*: Skip # `assert` not implemented

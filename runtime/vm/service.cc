@@ -12,6 +12,7 @@
 #include "vm/coverage.h"
 #include "vm/cpu.h"
 #include "vm/dart_api_impl.h"
+#include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/isolate.h"
@@ -20,6 +21,7 @@
 #include "vm/message_handler.h"
 #include "vm/native_entry.h"
 #include "vm/native_arguments.h"
+#include "vm/native_symbol.h"
 #include "vm/object.h"
 #include "vm/object_graph.h"
 #include "vm/object_id_ring.h"
@@ -120,6 +122,7 @@ StreamInfo Service::echo_stream("_Echo");
 StreamInfo Service::graph_stream("_Graph");
 StreamInfo Service::logging_stream("_Logging");
 StreamInfo Service::extension_stream("Extension");
+StreamInfo Service::timeline_stream("Timeline");
 
 static StreamInfo* streams_[] = {
   &Service::vm_stream,
@@ -130,6 +133,7 @@ static StreamInfo* streams_[] = {
   &Service::graph_stream,
   &Service::logging_stream,
   &Service::extension_stream,
+  &Service::timeline_stream,
 };
 
 
@@ -1028,11 +1032,12 @@ void Service::HandleEvent(ServiceEvent* event) {
     params.AddProperty("streamId", stream_id);
     params.AddProperty("event", event);
   }
-  PostEvent(stream_id, event->KindAsCString(), &js);
+  PostEvent(event->isolate(), stream_id, event->KindAsCString(), &js);
 }
 
 
-void Service::PostEvent(const char* stream_id,
+void Service::PostEvent(Isolate* isolate,
+                        const char* stream_id,
                         const char* kind,
                         JSONStream* event) {
   ASSERT(stream_id != NULL);
@@ -1061,7 +1066,6 @@ void Service::PostEvent(const char* stream_id,
   list_values[1] = &json_cobj;
 
   if (FLAG_trace_service) {
-    Isolate* isolate = Isolate::Current();
     const char* isolate_name = "<no current isolate>";
     if (isolate != NULL) {
       isolate_name = isolate->name();
@@ -1289,8 +1293,7 @@ static bool GetStack(Thread* thread, JSONStream* js) {
   }
 
   {
-    MessageHandler::AcquiredQueues aq;
-    isolate->message_handler()->AcquireQueues(&aq);
+    MessageHandler::AcquiredQueues aq(isolate->message_handler());
     jsobj.AddProperty("messages", aq.queue());
   }
 
@@ -1677,8 +1680,7 @@ static RawObject* LookupHeapObjectMessage(Thread* thread,
   if (!GetUnsignedIntegerId(parts[1], &message_id, 16)) {
     return Object::sentinel().raw();
   }
-  MessageHandler::AcquiredQueues aq;
-  thread->isolate()->message_handler()->AcquireQueues(&aq);
+  MessageHandler::AcquiredQueues aq(thread->isolate()->message_handler());
   Message* message = aq.queue()->FindMessageById(message_id);
   if (message == NULL) {
     // The user may try to load an expired message.
@@ -2398,15 +2400,11 @@ static bool GetCoverage(Thread* thread, JSONStream* js) {
 }
 
 
-static const char* kCallSitesStr = "_CallSites";
-static const char* kCoverageStr = "Coverage";
-static const char* kPossibleBreakpointsStr = "PossibleBreakpoints";
-
-
 static const char* const report_enum_names[] = {
-  kCallSitesStr,
-  kCoverageStr,
-  kPossibleBreakpointsStr,
+  SourceReport::kCallSitesStr,
+  SourceReport::kCoverageStr,
+  SourceReport::kPossibleBreakpointsStr,
+  SourceReport::kProfileStr,
   NULL,
 };
 
@@ -2434,12 +2432,14 @@ static bool GetSourceReport(Thread* thread, JSONStream* js) {
   const char** reports = reports_parameter->Parse(thread->zone(), reports_str);
   intptr_t report_set = 0;
   while (*reports != NULL) {
-    if (strcmp(*reports, kCallSitesStr) == 0) {
+    if (strcmp(*reports, SourceReport::kCallSitesStr) == 0) {
       report_set |= SourceReport::kCallSites;
-    } else if (strcmp(*reports, kCoverageStr) == 0) {
+    } else if (strcmp(*reports, SourceReport::kCoverageStr) == 0) {
       report_set |= SourceReport::kCoverage;
-    } else if (strcmp(*reports, kPossibleBreakpointsStr) == 0) {
+    } else if (strcmp(*reports, SourceReport::kPossibleBreakpointsStr) == 0) {
       report_set |= SourceReport::kPossibleBreakpoints;
+    } else if (strcmp(*reports, SourceReport::kProfileStr) == 0) {
+      report_set |= SourceReport::kProfile;
     }
     reports++;
   }
@@ -3014,6 +3014,16 @@ static bool Resume(Thread* thread, JSONStream* js) {
     PrintSuccess(js);
     return true;
   }
+  if (isolate->message_handler()->should_pause_on_start()) {
+    isolate->message_handler()->set_should_pause_on_start(false);
+    isolate->SetResumeRequest();
+    if (Service::debug_stream.enabled()) {
+      ServiceEvent event(isolate, ServiceEvent::kResume);
+      Service::HandleEvent(&event);
+    }
+    PrintSuccess(js);
+    return true;
+  }
   if (isolate->message_handler()->is_paused_on_exit()) {
     isolate->message_handler()->set_should_pause_on_exit(false);
     isolate->SetResumeRequest();
@@ -3463,6 +3473,99 @@ static bool GetObjectByAddress(Thread* thread, JSONStream* js) {
   } else {
     obj.PrintJSON(js, ref);
   }
+  return true;
+}
+
+
+static const MethodParameter* get_persistent_handles_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
+
+
+template<typename T>
+class PersistentHandleVisitor : public HandleVisitor {
+ public:
+  PersistentHandleVisitor(Thread* thread, JSONArray* handles)
+      : HandleVisitor(thread),
+        handles_(handles) {
+    ASSERT(handles_ != NULL);
+  }
+
+  void Append(PersistentHandle* persistent_handle) {
+    JSONObject obj(handles_);
+    obj.AddProperty("type", "_PersistentHandle");
+    const Object& object = Object::Handle(persistent_handle->raw());
+    obj.AddProperty("object", object);
+  }
+
+  void Append(FinalizablePersistentHandle* weak_persistent_handle) {
+    JSONObject obj(handles_);
+    obj.AddProperty("type", "_WeakPersistentHandle");
+    const Object& object =
+        Object::Handle(weak_persistent_handle->raw());
+    obj.AddProperty("object", object);
+    obj.AddPropertyF(
+        "peer",
+        "0x%" Px "",
+        reinterpret_cast<uintptr_t>(weak_persistent_handle->peer()));
+    obj.AddPropertyF(
+        "callbackAddress",
+        "0x%" Px "",
+        reinterpret_cast<uintptr_t>(weak_persistent_handle->callback()));
+    // Attempt to include a native symbol name.
+    char* name = NativeSymbolResolver::LookupSymbolName(
+        reinterpret_cast<uintptr_t>(weak_persistent_handle->callback()),
+        NULL);
+    obj.AddProperty("callbackSymbolName",
+                    (name == NULL) ? "" : name);
+    if (name != NULL) {
+      NativeSymbolResolver::FreeSymbolName(name);
+    }
+    obj.AddPropertyF("externalSize",
+                     "%" Pd "",
+                     weak_persistent_handle->external_size());
+  }
+
+ protected:
+  virtual void VisitHandle(uword addr) {
+    T* handle = reinterpret_cast<T*>(addr);
+    Append(handle);
+  }
+
+  JSONArray* handles_;
+};
+
+
+static bool GetPersistentHandles(Thread* thread, JSONStream* js) {
+  Isolate* isolate = thread->isolate();
+  ASSERT(isolate != NULL);
+
+  ApiState* api_state = isolate->api_state();
+  ASSERT(api_state != NULL);
+
+  {
+    JSONObject obj(js);
+    obj.AddProperty("type", "_PersistentHandles");
+    // Persistent handles.
+    {
+      JSONArray persistent_handles(&obj, "persistentHandles");
+      PersistentHandles& handles = api_state->persistent_handles();
+      PersistentHandleVisitor<PersistentHandle> visitor(
+          thread, &persistent_handles);
+      handles.Visit(&visitor);
+    }
+    // Weak persistent handles.
+    {
+      JSONArray weak_persistent_handles(&obj, "weakPersistentHandles");
+      FinalizablePersistentHandles& handles =
+          api_state->weak_persistent_handles();
+      PersistentHandleVisitor<FinalizablePersistentHandle> visitor(
+          thread, &weak_persistent_handles);
+      handles.VisitHandles(&visitor);
+    }
+  }
+
   return true;
 }
 
@@ -3938,6 +4041,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_object_params },
   { "_getObjectByAddress", GetObjectByAddress,
     get_object_by_address_params },
+  { "_getPersistentHandles", GetPersistentHandles,
+      get_persistent_handles_params, },
   { "_getPorts", GetPorts,
     get_ports_params },
   { "_getReachableSize", GetReachableSize,
@@ -3946,7 +4051,7 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_retained_size_params },
   { "_getRetainingPath", GetRetainingPath,
     get_retaining_path_params },
-  { "_getSourceReport", GetSourceReport,
+  { "getSourceReport", GetSourceReport,
     get_source_report_params },
   { "getStack", GetStack,
     get_stack_params },

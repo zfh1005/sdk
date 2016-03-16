@@ -53,6 +53,23 @@ import 'format.dart' as generated;
 const informative = null;
 
 /**
+ * Information about an element code range.
+ */
+abstract class CodeRange extends base.SummaryClass {
+  /**
+   * Length of the element code.
+   */
+  @Id(1)
+  int get length;
+
+  /**
+   * Offset of the element code relative to the beginning of the file.
+   */
+  @Id(0)
+  int get offset;
+}
+
+/**
  * Summary information about a reference to a an entity such as a type, top
  * level executable, or executable within a class.
  */
@@ -149,9 +166,31 @@ abstract class EntityRef extends base.SummaryClass {
 }
 
 /**
+ * Enum used to indicate the kind of a name in index.
+ */
+enum IndexNameKind {
+  /**
+   * A top-level element.
+   */
+  topLevel,
+
+  /**
+   * A class member.
+   */
+  classMember
+}
+
+/**
  * Enum used to indicate the kind of an index relation.
  */
 enum IndexRelationKind {
+  /**
+   * Left: class.
+   *   Is ancestor of (is extended or implemented, directly or indirectly).
+   * Right: other class declaration.
+   */
+  IS_ANCESTOR_OF,
+
   /**
    * Left: class.
    *   Is extended by.
@@ -181,13 +220,6 @@ enum IndexRelationKind {
   IS_INVOKED_BY,
 
   /**
-   * Left: method, property accessor, function, variable.
-   *   Is invoked with a qualifier at.
-   * Right: location.
-   */
-  IS_INVOKED_QUALIFIED_BY,
-
-  /**
    * Left: any element.
    *   Is referenced (and not invoked, read/written) at.
    * Right: location.
@@ -195,11 +227,25 @@ enum IndexRelationKind {
   IS_REFERENCED_BY,
 
   /**
-   * Left: any element.
-   *   Is referenced (and not invoked, read/written) with a qualifier at.
+   * Left: unresolved member name.
+   *   Is read at.
    * Right: location.
    */
-  IS_REFERENCED_QUALIFIED_BY
+  IS_READ_BY,
+
+  /**
+   * Left: unresolved member name.
+   *   Is both read and written at.
+   * Right: location.
+   */
+  IS_READ_WRITTEN_BY,
+
+  /**
+   * Left: unresolved member name.
+   *   Is written at.
+   * Right: location.
+   */
+  IS_WRITTEN_BY
 }
 
 /**
@@ -226,7 +272,27 @@ enum IndexSyntheticElementKind {
   /**
    * The synthetic setter of a property introducing element.
    */
-  setter
+  setter,
+
+  /**
+   * The synthetic top-level variable element.
+   */
+  topLevelVariable,
+
+  /**
+   * The synthetic `loadLibrary` element.
+   */
+  loadLibrary,
+
+  /**
+   * The synthetic `index` getter of an enum.
+   */
+  enumIndex,
+
+  /**
+   * The synthetic `values` getter of an enum.
+   */
+  enumValues
 }
 
 /**
@@ -428,6 +494,13 @@ abstract class LinkedReference extends base.SummaryClass {
  */
 abstract class LinkedUnit extends base.SummaryClass {
   /**
+   * List of slot ids (referring to [UnlinkedExecutable.constCycleSlot])
+   * corresponding to const constructors that are part of cycles.
+   */
+  @Id(2)
+  List<int> get constCycles;
+
+  /**
    * Information about the resolution of references within the compilation
    * unit.  Each element of [UnlinkedUnit.references] has a corresponding
    * element in this list (at the same index).  If this list has additional
@@ -468,6 +541,20 @@ abstract class PackageBundle extends base.SummaryClass {
   List<String> get linkedLibraryUris;
 
   /**
+   * Major version of the summary format.  See
+   * [PackageBundleAssembler.currentMajorVersion].
+   */
+  @Id(5)
+  int get majorVersion;
+
+  /**
+   * Minor version of the summary format.  See
+   * [PackageBundleAssembler.currentMinorVersion].
+   */
+  @Id(6)
+  int get minorVersion;
+
+  /**
    * List of MD5 hashes of the files listed in [unlinkedUnitUris].  Each hash
    * is encoded as a hexadecimal string using lower case letters.
    */
@@ -499,15 +586,8 @@ abstract class PackageIndex extends base.SummaryClass {
    * Each item of this list corresponds to a unique referenced element.  It is
    * the kind of the synthetic element.
    */
-  @Id(6)
+  @Id(5)
   List<IndexSyntheticElementKind> get elementKinds;
-
-  /**
-   * Each item of this list corresponds to a unique library URI with an element
-   * referenced in the [PackageIndex].  It is an index into [uris] list.
-   */
-  @Id(2)
-  List<int> get elementLibraryUris;
 
   /**
    * Each item of this list corresponds to a unique referenced element.  It is
@@ -520,30 +600,41 @@ abstract class PackageIndex extends base.SummaryClass {
 
   /**
    * Each item of this list corresponds to a unique referenced element.  It is
-   * the index into [elementLibraryUris] and [elementUnitUris] for the library
+   * the index into [unitLibraryUris] and [unitUnitUris] for the library
    * specific unit where the element is declared.
    */
   @Id(0)
   List<int> get elementUnits;
 
   /**
-   * Each item of this list corresponds to a unique unit URI with an element
-   * referenced in the [PackageIndex].  It is an index into [uris] list.
+   * List of unique element strings used in this [PackageIndex].  The list is
+   * sorted in ascending order, so that the client can quickly check the
+   * presence of a string in this [PackageIndex].
    */
-  @Id(3)
-  List<int> get elementUnitUris;
+  @Id(6)
+  List<String> get strings;
 
   /**
-   * List of units indexed in this [PackageIndex].
+   * Each item of this list corresponds to the library URI of a unique library
+   * specific unit referenced in the [PackageIndex].  It is an index into
+   * [strings] list.
    */
-  @Id(5)
+  @Id(2)
+  List<int> get unitLibraryUris;
+
+  /**
+   * List of indexes of each unit in this [PackageIndex].
+   */
+  @Id(4)
   List<UnitIndex> get units;
 
   /**
-   * List of unique URIs used in this [PackageIndex].
+   * Each item of this list corresponds to the unit URI of a unique library
+   * specific unit referenced in the [PackageIndex].  It is an index into
+   * [strings] list.
    */
-  @Id(4)
-  List<String> get uris;
+  @Id(3)
+  List<int> get unitUnitUris;
 }
 
 /**
@@ -619,45 +710,95 @@ enum ReferenceKind {
  */
 abstract class UnitIndex extends base.SummaryClass {
   /**
-   * Each item of this list is the index into [PackageIndex.elementUnits] and
-   * [PackageIndex.elementOffsets].  The list is sorted in ascending order, so
-   * that the client can quickly find element references in this [UnitIndex].
+   * Each item of this list is the kind of an element defined in this unit.
    */
-  @Id(4)
-  List<int> get elements;
+  @Id(6)
+  List<IndexNameKind> get definedNameKinds;
+
+  /**
+   * Each item of this list is the name offset of an element defined in this
+   * unit relative to the beginning of the file.
+   */
+  @Id(7)
+  List<int> get definedNameOffsets;
+
+  /**
+   * Each item of this list corresponds to an element defined in this unit.  It
+   * is an index into [PackageIndex.strings] list.  The list is sorted in
+   * ascending order, so that the client can quickly find name definitions in
+   * this [UnitIndex].
+   */
+  @Id(5)
+  List<int> get definedNames;
+
+  /**
+   * Index into [PackageIndex.unitLibraryUris] and [PackageIndex.unitUnitUris]
+   * for the library specific unit that corresponds to this [UnitIndex].
+   */
+  @Id(0)
+  int get unit;
+
+  /**
+   * Each item of this list is the `true` if the corresponding element usage
+   * is qualified with some prefix.
+   */
+  @Id(11)
+  List<bool> get usedElementIsQualifiedFlags;
 
   /**
    * Each item of this list is the kind of the element usage.
    */
-  @Id(5)
-  List<IndexRelationKind> get kinds;
-
-  /**
-   * The library source URI of this unit, e.g. `dart:core` or
-   * `package:foo/bar.dart`, as index into [PackageIndex.uris].
-   */
-  @Id(0)
-  int get libraryUri;
+  @Id(4)
+  List<IndexRelationKind> get usedElementKinds;
 
   /**
    * Each item of this list is the length of the element usage.
    */
-  @Id(2)
-  List<int> get locationLengths;
+  @Id(1)
+  List<int> get usedElementLengths;
 
   /**
    * Each item of this list is the offset of the element usage relative to the
    * beginning of the file.
    */
-  @Id(3)
-  List<int> get locationOffsets;
+  @Id(2)
+  List<int> get usedElementOffsets;
 
   /**
-   * The unit source URI of this unit, e.g. `dart:core/int.dart` or
-   * `package:foo/bar/baz.dart`, as index into [PackageIndex.uris].
+   * Each item of this list is the index into [PackageIndex.elementUnits] and
+   * [PackageIndex.elementOffsets].  The list is sorted in ascending order, so
+   * that the client can quickly find element references in this [UnitIndex].
    */
-  @Id(1)
-  int get unitUri;
+  @Id(3)
+  List<int> get usedElements;
+
+  /**
+   * Each item of this list is the kind of the name usage.
+   */
+  @Id(10)
+  List<IndexRelationKind> get usedNameKinds;
+
+  /**
+   * Each item of this list is the offset of the name usage relative to the
+   * beginning of the file.
+   */
+  @Id(9)
+  List<int> get usedNameOffsets;
+
+  /**
+   * Each item of this list is the index into [PackageIndex.strings] for a
+   * used name.  The list is sorted in ascending order, so that the client can
+   * quickly find name uses in this [UnitIndex].
+   */
+  @Id(8)
+  List<int> get usedNames;
+
+  /**
+   * Each item of this list is the `true` if the corresponding name usage
+   * is qualified with some prefix.
+   */
+  @Id(12)
+  List<bool> get usedNameIsQualifiedFlags;
 }
 
 /**
@@ -669,6 +810,12 @@ abstract class UnlinkedClass extends base.SummaryClass {
    */
   @Id(5)
   List<UnlinkedConst> get annotations;
+
+  /**
+   * Code range of the class.
+   */
+  @Id(13)
+  CodeRange get codeRange;
 
   /**
    * Documentation comment for the class, or `null` if there is no
@@ -1221,6 +1368,12 @@ abstract class UnlinkedEnum extends base.SummaryClass {
   List<UnlinkedConst> get annotations;
 
   /**
+   * Code range of the enum.
+   */
+  @Id(5)
+  CodeRange get codeRange;
+
+  /**
    * Documentation comment for the enum, or `null` if there is no documentation
    * comment.
    */
@@ -1287,11 +1440,28 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
   List<UnlinkedConst> get annotations;
 
   /**
+   * Code range of the executable.
+   */
+  @Id(26)
+  CodeRange get codeRange;
+
+  /**
    * If a constant [UnlinkedExecutableKind.constructor], the constructor
    * initializers.  Otherwise empty.
    */
   @Id(14)
   List<UnlinkedConstructorInitializer> get constantInitializers;
+
+  /**
+   * If [kind] is [UnlinkedExecutableKind.constructor] and [isConst] is `true`,
+   * a nonzero slot id which is unique within this compilation unit.  If this id
+   * is found in [LinkedUnit.constCycles], then this constructor is part of a
+   * cycle.
+   *
+   * Otherwise, zero.
+   */
+  @Id(25)
+  int get constCycleSlot;
 
   /**
    * Documentation comment for the executable, or `null` if there is no
@@ -1659,6 +1829,12 @@ abstract class UnlinkedParam extends base.SummaryClass {
   List<UnlinkedConst> get annotations;
 
   /**
+   * Code range of the parameter.
+   */
+  @Id(14)
+  CodeRange get codeRange;
+
+  /**
    * If the parameter has a default value, the constant expression in the
    * default value.  Note that the presence of this expression does not mean
    * that it is a valid, check [UnlinkedConst.isInvalid].
@@ -1909,6 +2085,12 @@ abstract class UnlinkedTypedef extends base.SummaryClass {
   List<UnlinkedConst> get annotations;
 
   /**
+   * Code range of the typedef.
+   */
+  @Id(7)
+  CodeRange get codeRange;
+
+  /**
    * Documentation comment for the typedef, or `null` if there is no
    * documentation comment.
    */
@@ -1966,6 +2148,12 @@ abstract class UnlinkedTypeParam extends base.SummaryClass {
   EntityRef get bound;
 
   /**
+   * Code range of the type parameter.
+   */
+  @Id(4)
+  CodeRange get codeRange;
+
+  /**
    * Name of the type parameter.
    */
   @Id(0)
@@ -1992,6 +2180,12 @@ abstract class UnlinkedUnit extends base.SummaryClass {
    */
   @Id(2)
   List<UnlinkedClass> get classes;
+
+  /**
+   * Code range of the unit.
+   */
+  @Id(15)
+  CodeRange get codeRange;
 
   /**
    * Enums declared in the compilation unit.
@@ -2100,6 +2294,12 @@ abstract class UnlinkedVariable extends base.SummaryClass {
    */
   @Id(8)
   List<UnlinkedConst> get annotations;
+
+  /**
+   * Code range of the variable.
+   */
+  @Id(14)
+  CodeRange get codeRange;
 
   /**
    * If [isConst] is true, and the variable has an initializer, the constant

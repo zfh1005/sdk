@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Constants for use in metadata annotations such as `@protected`.
+/// Constants for use in metadata annotations.
 ///
 /// See also `@deprecated` and `@override` in the `dart:core` library.
 ///
@@ -29,6 +29,18 @@ library meta;
 /// * a method that has this annotation that can return anything other than a
 ///   newly allocated object.
 const _Factory factory = const _Factory();
+
+/// Used to annotate a const constructor `c`. Indicates that any invocation of
+/// the constructor must use the keyword `const` unless one or more of the
+/// arguments to the constructor is not a compile-time constant.
+///
+/// Tools, such as the analyzer, can provide feedback if
+/// * the annotation is associated with anything other than a const constructor,
+///   or
+/// * an invocation of a constructor that has this annotation is not invoked
+///   using the `const` keyword unless one or more of the arguments to the
+///   constructor is not a compile-time constant.
+const _Literal literal = const _Literal();
 
 /// Used to annotate an instance method `m`. Indicates that every invocation of
 /// a method that overrides `m` must also invoke `m`. In addition, every method
@@ -67,13 +79,38 @@ const _Protected protected = const _Protected();
 ///
 /// Tools, such as the analyzer, can provide feedback if
 /// * the annotation is associated with anything other than a named parameter,
-///   or
+/// * the annotation is associated with a named parameter in a method `m1` that
+///   overrides a method `m0` and `m0` defines a named parameter with the same
+///   name that does not have this annotation, or
 /// * an invocation of a method or function does not include an argument
 ///   corresponding to a named parameter that has this annotation.
-const _Required required = const _Required();
+const Required required = const Required();
+
+/// Used to annotate a named parameter `p` in a method or function `f`.
+///
+/// See [required] for more details.
+class Required {
+  /// A human-readable explanation of the reason why the annotated parameter is
+  /// required. For example, the annotation might look like:
+  ///
+  ///     ButtonWidget({
+  ///         Function onHover,
+  ///         @Required('Buttons must do something when pressed')
+  ///         Function onPressed,
+  ///         ...
+  ///     }) ...
+  final String reason;
+
+  /// Initialize a newly created instance to have the given [reason].
+  const Required([this.reason]);
+}
 
 class _Factory {
   const _Factory();
+}
+
+class _Literal {
+  const _Literal();
 }
 
 class _MustCallSuper {
@@ -82,8 +119,4 @@ class _MustCallSuper {
 
 class _Protected {
   const _Protected();
-}
-
-class _Required {
-  const _Required();
 }

@@ -1173,9 +1173,9 @@ intptr_t Simulator::WriteExclusiveW(uword addr, intptr_t value, Instr* instr) {
   bool write_allowed = HasExclusiveAccessAndOpen(addr);
   if (write_allowed) {
     WriteW(addr, value, instr);
-    return 0;  // Success.
+    return 1;  // Success.
   }
-  return 1;  // Failure.
+  return 0;  // Failure.
 }
 
 
@@ -1888,6 +1888,28 @@ void Simulator::DecodeCop1(Instr* instr) {
             (fs_val <= ft_val) || isnan(fs_val) || isnan(ft_val));
         break;
       }
+      case COP1_TRUNC_W: {
+        switch (instr->FormatField()) {
+          case FMT_D: {
+            double fs_dbl = get_fregister_double(instr->FsField());
+            int32_t fs_int;
+            if (isnan(fs_dbl) || isinf(fs_dbl) || (fs_dbl > kMaxInt32) ||
+                (fs_dbl < kMinInt32)) {
+              fs_int = kMaxInt32;
+            } else {
+              fs_int = static_cast<int32_t>(fs_dbl);
+            }
+            set_fregister(instr->FdField(), fs_int);
+            break;
+          }
+          default: {
+            OS::PrintErr("DecodeCop1: 0x%x\n", instr->InstructionBits());
+            UnimplementedInstruction(instr);
+            break;
+          }
+        }
+        break;
+      }
       case COP1_CVT_D: {
         switch (instr->FormatField()) {
           case FMT_W: {
@@ -1900,34 +1922,6 @@ void Simulator::DecodeCop1(Instr* instr) {
             float fs_flt = get_fregister_float(instr->FsField());
             double fs_dbl = static_cast<double>(fs_flt);
             set_fregister_double(instr->FdField(), fs_dbl);
-            break;
-          }
-          case FMT_L: {
-            int64_t fs_int = get_fregister_long(instr->FsField());
-            double fs_dbl = static_cast<double>(fs_int);
-            set_fregister_double(instr->FdField(), fs_dbl);
-            break;
-          }
-          default: {
-            OS::PrintErr("DecodeCop1: 0x%x\n", instr->InstructionBits());
-            UnimplementedInstruction(instr);
-            break;
-          }
-        }
-        break;
-      }
-      case COP1_CVT_W: {
-        switch (instr->FormatField()) {
-          case FMT_D: {
-            double fs_dbl = get_fregister_double(instr->FsField());
-            int32_t fs_int;
-            if (isnan(fs_dbl) || isinf(fs_dbl) || (fs_dbl > INT_MAX) ||
-                (fs_dbl < INT_MIN)) {
-              fs_int = INT_MIN;
-            } else {
-              fs_int = static_cast<int32_t>(fs_dbl);
-            }
-            set_fregister(instr->FdField(), fs_int);
             break;
           }
           default: {
@@ -2169,6 +2163,19 @@ void Simulator::InstructionDecode(Instr* instr) {
       set_register(instr->RtField(), instr->UImmField() << 16);
       break;
     }
+    case LL: {
+      // Format(instr, "ll 'rt, 'imms('rs)");
+      int32_t base_val = get_register(instr->RsField());
+      int32_t imm_val = instr->SImmField();
+      uword addr = base_val + imm_val;
+      if (Simulator::IsIllegalAddress(addr)) {
+        HandleIllegalAccess(addr, instr);
+      } else {
+        int32_t res = ReadExclusiveW(addr, instr);
+        set_register(instr->RtField(), res);
+      }
+      break;
+    }
     case LW: {
       // Format(instr, "lw 'rt, 'imms('rs)");
       int32_t base_val = get_register(instr->RsField());
@@ -2211,6 +2218,20 @@ void Simulator::InstructionDecode(Instr* instr) {
         HandleIllegalAccess(addr, instr);
       } else {
         WriteB(addr, rt_val & 0xff);
+      }
+      break;
+    }
+    case SC: {
+      // Format(instr, "sc 'rt, 'imms('rs)");
+      int32_t rt_val = get_register(instr->RtField());
+      int32_t base_val = get_register(instr->RsField());
+      int32_t imm_val = instr->SImmField();
+      uword addr = base_val + imm_val;
+      if (Simulator::IsIllegalAddress(addr)) {
+        HandleIllegalAccess(addr, instr);
+      } else {
+        intptr_t status = WriteExclusiveW(addr, rt_val, instr);
+        set_register(instr->RtField(), status);
       }
       break;
     }

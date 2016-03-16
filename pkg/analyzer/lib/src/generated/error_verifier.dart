@@ -9,11 +9,11 @@ import "dart:math" as math;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -356,8 +356,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   Object visitBinaryExpression(BinaryExpression node) {
     Token operator = node.operator;
     TokenType type = operator.type;
-    if (type == TokenType.AMPERSAND_AMPERSAND ||
-        type == TokenType.BAR_BAR) {
+    if (type == TokenType.AMPERSAND_AMPERSAND || type == TokenType.BAR_BAR) {
       String lexeme = operator.lexeme;
       _checkForAssignability(node.leftOperand, _boolType,
           StaticTypeWarningCode.NON_BOOL_OPERAND, [lexeme]);
@@ -690,6 +689,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitForEachStatement(ForEachStatement node) {
+    _checkForInIterable(node);
+    return super.visitForEachStatement(node);
+  }
+
+  @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
     try {
@@ -841,8 +846,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         }
       }
       _checkForExpectedOneListTypeArgument(node, typeArguments);
-      _checkForListElementTypeNotAssignable(node, typeArguments);
     }
+
+    _checkForListElementTypeNotAssignable(node);
     return super.visitListLiteral(node);
   }
 
@@ -858,8 +864,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         }
       }
       _checkExpectedTwoMapTypeArguments(typeArguments);
-      _checkForMapTypeNotAssignable(node, typeArguments);
     }
+
+    _checkForMapTypeNotAssignable(node);
     _checkForNonConstMapAsExpressionStatement(node);
     return super.visitMapLiteral(node);
   }
@@ -897,6 +904,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _checkForAllInvalidOverrideErrorCodesForMethod(node);
       _checkForTypeAnnotationDeferredClass(returnTypeName);
       _checkForIllegalReturnType(returnTypeName);
+      _checkForMustCallSuper(node);
       return super.visitMethodDeclaration(node);
     } finally {
       _enclosingFunction = previousFunction;
@@ -2842,8 +2850,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (type.element.isAbstract) {
       ConstructorElement element = expression.staticElement;
       if (element != null && !element.isFactory) {
-        if ((expression.keyword as KeywordToken).keyword ==
-            Keyword.CONST) {
+        if ((expression.keyword as KeywordToken).keyword == Keyword.CONST) {
           _errorReporter.reportErrorForNode(
               StaticWarningCode.CONST_WITH_ABSTRACT_CLASS, typeName);
         } else {
@@ -4033,63 +4040,62 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Verify that the elements given list [literal] are subtypes of the specified
-   * element type. The [typeArguments] are the type arguments.
+   * Verify that the elements given list [literal] are subtypes of the list's
+   * static type.
    *
    * See [CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE], and
    * [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE].
    */
-  bool _checkForListElementTypeNotAssignable(
-      ListLiteral literal, TypeArgumentList typeArguments) {
-    NodeList<TypeName> typeNames = typeArguments.arguments;
-    if (typeNames.length < 1) {
-      return false;
-    }
-    DartType listElementType = typeNames[0].type;
+  void _checkForListElementTypeNotAssignable(ListLiteral literal) {
+    // Determine the list's element type. We base this on the static type and
+    // not the literal's type arguments because in strong mode, the type
+    // arguments may be inferred.
+    DartType listType = literal.staticType;
+    assert(listType is InterfaceTypeImpl);
+
+    List<DartType> typeArguments =
+        (listType as InterfaceTypeImpl).typeArguments;
+    assert(typeArguments.length == 1);
+
+    DartType listElementType = typeArguments[0];
+
     // Check every list element.
-    bool hasProblems = false;
     for (Expression element in literal.elements) {
       if (literal.constKeyword != null) {
         // TODO(paulberry): this error should be based on the actual type of the
         // list element, not the static type.  See dartbug.com/21119.
-        if (_checkForArgumentTypeNotAssignableWithExpectedTypes(
+        _checkForArgumentTypeNotAssignableWithExpectedTypes(
             element,
             listElementType,
-            CheckedModeCompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE)) {
-          hasProblems = true;
-        }
+            CheckedModeCompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE);
       }
-      if (_checkForArgumentTypeNotAssignableWithExpectedTypes(
-          element,
-          listElementType,
-          StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE)) {
-        hasProblems = true;
-      }
+      _checkForArgumentTypeNotAssignableWithExpectedTypes(element,
+          listElementType, StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE);
     }
-    return hasProblems;
   }
 
   /**
    * Verify that the key/value of entries of the given map [literal] are
-   * subtypes of the key/value types specified in the type arguments. The
-   * [typeArguments] are the type arguments.
+   * subtypes of the map's static type.
    *
    * See [CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE],
    * [CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE],
    * [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE], and
    * [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE].
    */
-  bool _checkForMapTypeNotAssignable(
-      MapLiteral literal, TypeArgumentList typeArguments) {
-    // Prepare maps key/value types.
-    NodeList<TypeName> typeNames = typeArguments.arguments;
-    if (typeNames.length < 2) {
-      return false;
-    }
-    DartType keyType = typeNames[0].type;
-    DartType valueType = typeNames[1].type;
-    // Check every map entry.
-    bool hasProblems = false;
+  void _checkForMapTypeNotAssignable(MapLiteral literal) {
+    // Determine the map's key and value types. We base this on the static type
+    // and not the literal's type arguments because in strong mode, the type
+    // arguments may be inferred.
+    DartType mapType = literal.staticType;
+    assert(mapType is InterfaceTypeImpl);
+
+    List<DartType> typeArguments =
+        (mapType as InterfaceTypeImpl).typeArguments;
+    assert(typeArguments.length == 2);
+    DartType keyType = typeArguments[0];
+    DartType valueType = typeArguments[1];
+
     NodeList<MapLiteralEntry> entries = literal.entries;
     for (MapLiteralEntry entry in entries) {
       Expression key = entry.key;
@@ -4097,27 +4103,18 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       if (literal.constKeyword != null) {
         // TODO(paulberry): this error should be based on the actual type of the
         // list element, not the static type.  See dartbug.com/21119.
-        if (_checkForArgumentTypeNotAssignableWithExpectedTypes(key, keyType,
-            CheckedModeCompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE)) {
-          hasProblems = true;
-        }
-        if (_checkForArgumentTypeNotAssignableWithExpectedTypes(
+        _checkForArgumentTypeNotAssignableWithExpectedTypes(key, keyType,
+            CheckedModeCompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE);
+        _checkForArgumentTypeNotAssignableWithExpectedTypes(
             value,
             valueType,
-            CheckedModeCompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE)) {
-          hasProblems = true;
-        }
+            CheckedModeCompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE);
       }
-      if (_checkForArgumentTypeNotAssignableWithExpectedTypes(
-          key, keyType, StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE)) {
-        hasProblems = true;
-      }
-      if (_checkForArgumentTypeNotAssignableWithExpectedTypes(
-          value, valueType, StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE)) {
-        hasProblems = true;
-      }
+      _checkForArgumentTypeNotAssignableWithExpectedTypes(
+          key, keyType, StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE);
+      _checkForArgumentTypeNotAssignableWithExpectedTypes(
+          value, valueType, StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE);
     }
-    return hasProblems;
   }
 
   /**
@@ -4416,6 +4413,18 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
     }
     return numSuperInitializers > 0;
+  }
+
+  void _checkForMustCallSuper(MethodDeclaration node) {
+    MethodElement element = _findOverriddenMemberThatMustCallSuper(node);
+    if (element != null) {
+      _InvocationCollector collector = new _InvocationCollector();
+      node.accept(collector);
+      if (!collector.superCalls.contains(element.name)) {
+        _errorReporter.reportErrorForNode(HintCode.MUST_CALL_SUPER, node.name,
+            [element.enclosingElement.name]);
+      }
+    }
   }
 
   /**
@@ -5176,7 +5185,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Check the given [typeReference] and that the [name] is not the reference to
+   * Check the given [typeReference] and that the [name] is not a reference to
    * an instance member.
    *
    * See [StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER].
@@ -5652,16 +5661,63 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
+   * Check for a type mis-match between the iterable expression and the
+   * assigned variable in a for-in statement.
+   */
+  void _checkForInIterable(ForEachStatement node) {
+    // Ignore malformed for statements.
+    if (node.identifier == null && node.loopVariable == null) {
+      return;
+    }
+
+    DartType iterableType = getStaticType(node.iterable);
+    if (iterableType.isDynamic) {
+      return;
+    }
+
+    // The type of the loop variable.
+    SimpleIdentifier variable = node.identifier != null
+        ? node.identifier
+        : node.loopVariable.identifier;
+    DartType variableType = getStaticType(variable);
+
+    DartType loopType = node.awaitKeyword != null
+        ? _typeProvider.streamType
+        : _typeProvider.iterableType;
+
+    // Use an explicit string instead of [loopType] to remove the "<E>".
+    String loopTypeName = node.awaitKeyword != null ? "Stream" : "Iterable";
+
+    // The object being iterated has to implement Iterable<T> for some T that
+    // is assignable to the variable's type.
+    // TODO(rnystrom): Move this into mostSpecificTypeArgument()?
+    iterableType = iterableType.resolveToBound(_typeProvider.objectType);
+    DartType bestIterableType =
+        _typeSystem.mostSpecificTypeArgument(iterableType, loopType);
+    if (bestIterableType == null) {
+      _errorReporter.reportTypeErrorForNode(
+          StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE,
+          node.iterable,
+          [iterableType, loopTypeName]);
+    } else if (!_typeSystem.isAssignableTo(bestIterableType, variableType)) {
+      _errorReporter.reportTypeErrorForNode(
+          StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
+          node.iterable,
+          [iterableType, loopTypeName, variableType]);
+    }
+  }
+
+  /**
    * Check for a type mis-match between the yielded type and the declared
    * return type of a generator function.
    *
    * This method should only be called in generator functions.
    */
-  bool _checkForYieldOfInvalidType(
+  void _checkForYieldOfInvalidType(
       Expression yieldExpression, bool isYieldEach) {
     assert(_inGenerator);
     if (_enclosingFunction == null) {
-      return false;
+      return;
     }
     DartType declaredReturnType = _enclosingFunction.returnType;
     DartType staticYieldedType = getStaticType(yieldExpression);
@@ -5670,17 +5726,17 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       impliedReturnType = staticYieldedType;
     } else if (_enclosingFunction.isAsynchronous) {
       impliedReturnType =
-          _typeProvider.streamType.substitute4(<DartType>[staticYieldedType]);
+          _typeProvider.streamType.instantiate(<DartType>[staticYieldedType]);
     } else {
       impliedReturnType =
-          _typeProvider.iterableType.substitute4(<DartType>[staticYieldedType]);
+          _typeProvider.iterableType.instantiate(<DartType>[staticYieldedType]);
     }
     if (!_typeSystem.isAssignableTo(impliedReturnType, declaredReturnType)) {
       _errorReporter.reportTypeErrorForNode(
           StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
           yieldExpression,
           [impliedReturnType, declaredReturnType]);
-      return true;
+      return;
     }
     if (isYieldEach) {
       // Since the declared return type might have been "dynamic", we need to
@@ -5697,10 +5753,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
             yieldExpression,
             [impliedReturnType, requiredReturnType]);
-        return true;
+        return;
       }
     }
-    return false;
   }
 
   /**
@@ -5783,10 +5838,27 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     DartType staticReturnType = getStaticType(returnExpression);
     if (staticReturnType != null && _enclosingFunction.isAsynchronous) {
-      return _typeProvider.futureType.substitute4(
+      return _typeProvider.futureType.instantiate(
           <DartType>[staticReturnType.flattenFutures(_typeSystem)]);
     }
     return staticReturnType;
+  }
+
+  MethodElement _findOverriddenMemberThatMustCallSuper(MethodDeclaration node) {
+    ExecutableElement overriddenMember = _getOverriddenMember(node.element);
+    List<ExecutableElement> seen = <ExecutableElement>[];
+    while (
+        overriddenMember is MethodElement && !seen.contains(overriddenMember)) {
+      for (ElementAnnotation annotation in overriddenMember.metadata) {
+        if (annotation.isMustCallSuper) {
+          return overriddenMember;
+        }
+      }
+      seen.add(overriddenMember);
+      // Keep looking up the chain.
+      overriddenMember = _getOverriddenMember(overriddenMember);
+    }
+    return null;
   }
 
   /**
@@ -5837,6 +5909,19 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     } else {
       return null;
     }
+  }
+
+  ExecutableElement _getOverriddenMember(Element member) {
+    if (member == null || _inheritanceManager == null) {
+      return null;
+    }
+
+    ClassElement classElement =
+        member.getAncestor((element) => element is ClassElement);
+    if (classElement == null) {
+      return null;
+    }
+    return _inheritanceManager.lookupInheritance(classElement, member.name);
   }
 
   /**
@@ -6219,6 +6304,20 @@ class GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference
       for (DartType typeArgument in interfaceType.typeArguments) {
         _addTypeToCheck(typeArgument);
       }
+    }
+  }
+}
+
+/**
+ * Recursively visits an AST, looking for method invocations.
+ */
+class _InvocationCollector extends RecursiveAstVisitor {
+  final List<String> superCalls = <String>[];
+
+  @override
+  visitMethodInvocation(MethodInvocation node) {
+    if (node.target is SuperExpression) {
+      superCalls.add(node.methodName.name);
     }
   }
 }

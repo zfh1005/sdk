@@ -163,7 +163,8 @@ class PositionSourceInformationBuilder implements SourceInformationBuilder {
               sourceFile, element.position.charOffset, name));
     } else {
       return new PositionSourceInformation(
-          null,
+          new OffsetSourceLocation(sourceFile,
+              element.resolvedAst.node.getBeginToken().charOffset, name),
           new OffsetSourceLocation(sourceFile,
               element.resolvedAst.node.getEndToken().charOffset, name));
     }
@@ -221,6 +222,8 @@ class PositionSourceInformationBuilder implements SourceInformationBuilder {
             sourceFile, right.getBeginToken().charOffset, name));
   }
 
+  // TODO(johnniwinther): Clean up the use of this and [buildBinary],
+  // [buildIndex], etc.
   @override
   SourceInformation buildCall(Node receiver, Node call) {
     return new PositionSourceInformation(
@@ -265,6 +268,48 @@ class PositionSourceInformationBuilder implements SourceInformationBuilder {
   SourceInformationBuilder forContext(AstElement element) {
     return new PositionSourceInformationBuilder(element);
   }
+
+  @override
+  SourceInformation buildForeignCode(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildStringInterpolation(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildForInIterator(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildForInMoveNext(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildForInCurrent(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildForInSet(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildIndex(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildIndexSet(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildBinary(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildCatch(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildIs(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildAs(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildSwitch(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildSwitchCase(Node node) => buildBegin(node);
 }
 
 /// The start, end and closing offsets for a [js.Node].
@@ -500,16 +545,30 @@ class PositionTraceListener extends TraceListener with
   void onStep(js.Node node, Offset offset, StepKind kind) {
     SourceInformation sourceInformation = computeSourceInformation(node);
     if (sourceInformation == null) return;
+    int codeLocation = offset.subexpressionOffset;
+    if (codeLocation == null) return;
 
-    SourcePositionKind sourcePositionKind = SourcePositionKind.START;
+    void registerPosition(SourcePositionKind sourcePositionKind) {
+      SourceLocation sourceLocation =
+          getSourceLocation(sourceInformation, sourcePositionKind);
+      if (sourceLocation != null) {
+        sourceMapper.register(node, codeLocation, sourceLocation);
+      }
+    }
+
     switch (kind) {
-      case StepKind.FUN:
-        sourcePositionKind = SourcePositionKind.INNER;
+      case StepKind.FUN_ENTRY:
+        // TODO(johnniwinther): Remove this when fully transitioned to the
+        // new source info system.
+        registerPosition(SourcePositionKind.START);
+        break;
+      case StepKind.FUN_EXIT:
+        registerPosition(SourcePositionKind.INNER);
         break;
       case StepKind.CALL:
         CallPosition callPosition =
             CallPosition.getSemanticPositionForCall(node);
-        sourcePositionKind = callPosition.sourcePositionKind;
+        registerPosition(callPosition.sourcePositionKind);
         break;
       case StepKind.NEW:
       case StepKind.RETURN:
@@ -524,13 +583,8 @@ class PositionTraceListener extends TraceListener with
       case StepKind.WHILE_CONDITION:
       case StepKind.DO_CONDITION:
       case StepKind.SWITCH_EXPRESSION:
+        registerPosition(SourcePositionKind.START);
         break;
-    }
-    int codeLocation = offset.subexpressionOffset;
-    SourceLocation sourceLocation =
-        getSourceLocation(sourceInformation, sourcePositionKind);
-    if (codeLocation != null && sourceLocation != null) {
-      sourceMapper.register(node, codeLocation, sourceLocation);
     }
   }
 }
@@ -672,7 +726,8 @@ enum BranchKind {
 }
 
 enum StepKind {
-  FUN,
+  FUN_ENTRY,
+  FUN_EXIT,
   CALL,
   NEW,
   RETURN,
@@ -797,11 +852,17 @@ class JavaScriptTracer extends js.BaseVisitor  {
     if (!active) {
       active = node.sourceInformation != null;
     }
+    leftToRightOffset = statementOffset =
+        getSyntaxOffset(node, kind: CodePositionKind.START);
+    Offset entryOffset = getOffsetForNode(node, statementOffset);
+    notifyStep(node, entryOffset, StepKind.FUN_ENTRY);
+
     visit(node.body);
+
     leftToRightOffset = statementOffset =
         getSyntaxOffset(node, kind: CodePositionKind.CLOSING);
-    Offset offset = getOffsetForNode(node, statementOffset);
-    notifyStep(node, offset, StepKind.FUN);
+    Offset exitOffset = getOffsetForNode(node, statementOffset);
+    notifyStep(node, exitOffset, StepKind.FUN_EXIT);
     active = activeBefore;
   }
 

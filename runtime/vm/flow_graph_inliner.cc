@@ -915,22 +915,30 @@ class CallSiteInliner : public ValueObject {
         ASSERT(error.IsLanguageError());
 
         if (LanguageError::Cast(error).kind() == Report::kBailout) {
-          thread()->set_deopt_id(prev_deopt_id);
-          TRACE_INLINING(THR_Print("     Bailout: %s\n",
-                                   error.ToErrorCString()));
-          PRINT_INLINING_TREE("Bailout",
-              &call_data->caller, &function, call);
-          return false;
+          if (error.raw() == Object::background_compilation_error().raw()) {
+             // Fall through to exit the compilation, and retry it later.
+          } else {
+            thread()->set_deopt_id(prev_deopt_id);
+            TRACE_INLINING(THR_Print("     Bailout: %s\n",
+                                     error.ToErrorCString()));
+            PRINT_INLINING_TREE("Bailout",
+                &call_data->caller, &function, call);
+            return false;
+          }
         } else {
           // Fall through to exit long jump scope.
+          ASSERT(FLAG_precompiled_mode);
         }
       }
     }
 
-    // Propagate a compile-time error. Only in precompilation do we attempt to
+    // Propagate a compile-time error. In precompilation we attempt to
     // inline functions that have never been compiled before; when JITing we
     // should only see compile-time errors in unoptimized compilation.
-    ASSERT(FLAG_precompiled_mode);
+    // In background compilation we may abort compilation as the state
+    // changes while compiling. Propagate that 'error' and retry compilation
+    // later.
+    ASSERT(FLAG_precompiled_mode || Compiler::IsBackgroundCompilation());
     Thread::Current()->long_jump_base()->Jump(1, error);
     UNREACHABLE();
     return false;
@@ -1960,8 +1968,10 @@ intptr_t FlowGraphInliner::NextInlineId(const Function& function,
   ASSERT(tp.IsReal() || tp.IsSynthetic() || tp.IsNoSource());
   inline_id_to_function_->Add(&function);
   inline_id_to_token_pos_->Add(tp);
-  ASSERT(inline_id_to_token_pos_->length() == inline_id_to_function_->length());
   caller_inline_id_->Add(parent_id);
+  // We always have one less token position than functions.
+  ASSERT(inline_id_to_token_pos_->length() ==
+         (inline_id_to_function_->length() - 1));
   return id;
 }
 

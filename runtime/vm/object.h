@@ -262,15 +262,12 @@ class Object {
         &raw()->ptr()->tags_, old_tags, new_tags);
   }
   bool IsCanonical() const {
-    ASSERT(!IsNull());
     return raw()->IsCanonical();
   }
   void SetCanonical() const {
-    ASSERT(!IsNull());
     raw()->SetCanonical();
   }
   void ClearCanonical() const {
-    ASSERT(!IsNull());
     raw()->ClearCanonical();
   }
   intptr_t GetClassId() const {
@@ -1201,6 +1198,21 @@ class Class : public Object {
 
   RawLibraryPrefix* LookupLibraryPrefix(const String& name) const;
 
+  // Returns an instance of Double or Double::null().
+  // 'index' points to either:
+  // - constants_list_ position of found element, or
+  // - constants_list_ position where new canonical can be inserted.
+  RawDouble* LookupCanonicalDouble(Zone* zone,
+                                   double value, intptr_t* index) const;
+  RawMint* LookupCanonicalMint(Zone* zone,
+                               int64_t value, intptr_t* index) const;
+  RawBigint* LookupCanonicalBigint(Zone* zone,
+                                   const Bigint& value, intptr_t* index) const;
+  // The methods above are more efficient than this generic one.
+  RawInstance* LookupCanonicalInstance(Zone* zone,
+                                       const Instance& value,
+                                       intptr_t* index) const;
+
   void InsertCanonicalConstant(intptr_t index, const Instance& constant) const;
 
   intptr_t FindCanonicalTypeIndex(const AbstractType& needle) const;
@@ -1487,6 +1499,15 @@ class Class : public Object {
       Error* bound_error,
       TrailPtr bound_trail,
       Heap::Space space);
+
+  // Returns AbstractType::null() if type not found.
+  RawAbstractType* LookupCanonicalType(Zone* zone,
+                                       const AbstractType& type,
+                                       intptr_t* index) const;
+
+  // Returns canonical type. Thread safe.
+  RawAbstractType* LookupOrAddCanonicalType(const AbstractType& type,
+                                            intptr_t start_index) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Class, Object);
   friend class AbstractType;
@@ -4140,10 +4161,10 @@ class Stackmap : public Object {
     StoreNonPointer(&raw_ptr()->pc_offset_, value);
   }
 
-  intptr_t RegisterBitCount() const { return raw_ptr()->register_bit_count_; }
-  void SetRegisterBitCount(intptr_t register_bit_count) const {
-    ASSERT(register_bit_count < kMaxInt32);
-    StoreNonPointer(&raw_ptr()->register_bit_count_, register_bit_count);
+  intptr_t SlowPathBitCount() const { return raw_ptr()->slow_path_bit_count_; }
+  void SetSlowPathBitCount(intptr_t bit_count) const {
+    ASSERT(bit_count < kMaxInt32);
+    StoreNonPointer(&raw_ptr()->slow_path_bit_count_, bit_count);
   }
 
   bool Equals(const Stackmap& other) const {
@@ -4361,6 +4382,8 @@ class Code : public Object {
     StorePointer(&raw_ptr()->code_source_map_, code_source_map.raw());
   }
 
+  TokenPosition GetTokenPositionAt(intptr_t offset) const;
+
   // Array of DeoptInfo objects.
   RawArray* deopt_info_array() const {
     return raw_ptr()->deopt_info_array_;
@@ -4459,8 +4482,12 @@ class Code : public Object {
   RawArray* GetInlinedCallerIdMap() const;
   void SetInlinedCallerIdMap(const Array& value) const;
 
+  // If |token_positions| is not NULL it will be populated with the token
+  // positions of the inlined calls.
   void GetInlinedFunctionsAt(
-      intptr_t offset, GrowableArray<Function*>* fs) const;
+      intptr_t offset,
+      GrowableArray<Function*>* fs,
+      GrowableArray<TokenPosition>* token_positions = NULL) const;
 
   void DumpInlinedIntervals() const;
 

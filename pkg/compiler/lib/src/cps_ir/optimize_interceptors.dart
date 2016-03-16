@@ -104,7 +104,7 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
     for (Reference ref = interceptor.firstRef; ref != null; ref = ref.next) {
       Node use = ref.parent;
       if (use is InvokeMethod) {
-        TypeMask type = use.dartReceiver.type;
+        TypeMask type = use.receiver.type;
         bool canOccurAsReceiver(ClassElement elem) {
           return classWorld.isInstantiated(elem) &&
               !typeSystem.areDisjoint(type,
@@ -137,7 +137,7 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
     for (Reference ref = node.firstRef; ref != null; ref = ref.next) {
       if (ref.parent is InvokeMethod) {
         InvokeMethod invoke = ref.parent;
-        if (invoke.receiver != ref) return false;
+        if (invoke.interceptorRef != ref) return false;
         var interceptedClasses =
             backend.getInterceptedClassesOn(invoke.selector.name);
         if (interceptedClasses.contains(helpers.jsDoubleClass)) return false;
@@ -157,7 +157,7 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
       Node use = ref.parent;
       if (use is InvokeMethod) {
         if (selectorsOnNull.contains(use.selector) &&
-            use.dartReceiver.type.isNullable) {
+            use.receiver.type.isNullable) {
           return true;
         }
       } else {
@@ -173,7 +173,7 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
     // TODO(asgerf): This could be more precise if we used the use-site type,
     // since the interceptor may have been hoisted out of a loop, where a less
     // precise type is known.
-    Primitive input = node.input.definition;
+    Primitive input = node.input;
     TypeMask type = input.type;
     if (canInterceptNull(node)) return null;
     type = type.nonNullable();
@@ -198,7 +198,7 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
   /// successful.
   bool constifyInterceptor(Interceptor interceptor) {
     LetPrim let = interceptor.parent;
-    Primitive input = interceptor.input.definition;
+    Primitive input = interceptor.input;
     ClassElement classElement = getSingleInterceptorClass(interceptor);
 
     if (classElement == null) return false;
@@ -261,7 +261,7 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
   @override
   void visitInvokeMethod(InvokeMethod node) {
     if (node.callingConvention != CallingConvention.Intercepted) return;
-    Primitive interceptor = node.receiver.definition;
+    Primitive interceptor = node.interceptor;
     if (interceptor is! Interceptor ||
         interceptor.hasMultipleUses ||
         loopHeaderFor[interceptor] != currentLoopHeader) {
@@ -269,13 +269,12 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
     }
     // TODO(asgerf): Consider heuristics for when to use one-shot interceptors.
     //   E.g. using only one-shot interceptors with a fast path.
-    node.callingConvention = CallingConvention.OneShotIntercepted;
-    node..receiver.unlink()..receiver = node.arguments.removeAt(0);
+    node.makeOneShotIntercepted();
   }
 
   @override
   void visitTypeTestViaFlag(TypeTestViaFlag node) {
-    Primitive interceptor = node.interceptor.definition;
+    Primitive interceptor = node.interceptor;
     if (interceptor is! Interceptor ||
         interceptor.hasMultipleUses ||
         loopHeaderFor[interceptor] != currentLoopHeader ||
@@ -283,7 +282,7 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
       return;
     }
     Interceptor inter = interceptor;
-    Primitive value = inter.input.definition;
+    Primitive value = inter.input;
     node.replaceWith(new TypeTest(value, node.dartType, [])..type = node.type);
   }
 }

@@ -7,10 +7,6 @@ import 'cps_ir_nodes.dart';
 import 'optimizers.dart';
 import 'cps_fragment.dart';
 import '../js_backend/js_backend.dart';
-import '../constants/values.dart';
-import '../elements/elements.dart';
-import '../universe/selector.dart';
-import '../types/types.dart';
 import 'type_mask_system.dart';
 
 /// Optimizations based on intraprocedural forward dataflow analysis, taking
@@ -117,7 +113,7 @@ class PathBasedOptimizer extends TrampolineRecursiveVisitor
   }
 
   void visitInvokeContinuation(InvokeContinuation node) {
-    Continuation cont = node.continuation.definition;
+    Continuation cont = node.continuation;
     if (cont.isReturnContinuation) return;
     if (node.isRecursive) return;
     Map<Primitive, int> target = valuesAt[cont];
@@ -131,9 +127,9 @@ class PathBasedOptimizer extends TrampolineRecursiveVisitor
   }
 
   visitBranch(Branch node) {
-    Primitive condition = node.condition.definition.effectiveDefinition;
-    Continuation trueCont = node.trueContinuation.definition;
-    Continuation falseCont = node.falseContinuation.definition;
+    Primitive condition = node.condition.effectiveDefinition;
+    Continuation trueCont = node.trueContinuation;
+    Continuation falseCont = node.falseContinuation;
     if (condition.hasExactlyOneUse) {
       // Handle common case specially. Do not add [condition] to the map if
       // there are no other uses.
@@ -157,27 +153,23 @@ class PathBasedOptimizer extends TrampolineRecursiveVisitor
   }
 
   void visitInvokeMethod(InvokeMethod node) {
-    int receiverValue = valueOf[node.dartReceiver] ?? ANY;
+    int receiverValue = valueOf[node.receiver] ?? ANY;
     if (!backend.isInterceptedSelector(node.selector)) {
       // Only self-interceptors can respond to a non-intercepted selector.
-      valueOf[node.dartReceiver] = receiverValue & SELF_INTERCEPTOR;
+      valueOf[node.receiver] = receiverValue & SELF_INTERCEPTOR;
     } else if (receiverValue & ~SELF_INTERCEPTOR == 0 &&
                node.callingConvention == CallingConvention.Intercepted) {
       // This is an intercepted call whose receiver is definitely a
       // self-interceptor.
       // TODO(25646): If TypeMasks could represent "any self-interceptor" this
       //   optimization should be subsumed by type propagation.
-      node.receiver.changeTo(node.dartReceiver);
+      node.interceptorRef.changeTo(node.receiver);
 
       // Replace the extra receiver argument with a dummy value if the
       // target definitely does not use it.
-      if (typeSystem.targetIgnoresReceiverArgument(node.dartReceiver.type,
+      if (typeSystem.targetIgnoresReceiverArgument(node.receiver.type,
             node.selector)) {
-        Constant dummy = new Constant(new IntConstantValue(0))
-            ..type = typeSystem.intType;
-        new LetPrim(dummy).insertAbove(node.parent);
-        node.arguments[0].changeTo(dummy);
-        node.callingConvention = CallingConvention.DummyIntercepted;
+        node.makeDummyIntercepted();
       }
     }
   }

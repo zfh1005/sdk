@@ -22,6 +22,7 @@ transferables_test: RuntimeError # Dartium JSInterop failure
 worker_api_test: Fail # Issue 10223
 resource_http_test: Fail # Issue 24203
 js_function_getter_trust_types_test: Skip # dartium doesn't support trust types.
+websocket_test/supported: Skip # Dartium 45 roll timesout
 
 [ $compiler == none && $mode == debug && ($runtime == drt || $runtime == dartium ) ]
 datalistelement_test: Skip # Issue 20540
@@ -44,6 +45,7 @@ custom/element_upgrade_test: Fail # Issue 17298
 [ $compiler == dart2js && $browser ]
 custom/created_callback_test: Fail # Support for created constructor. Issue 14835
 fontface_loaded_test: Fail # Support for promises.
+js_typed_interop_side_cast_exp_test: RuntimeError # Issue 25937
 
 [ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim || $runtime == ff  || $ie) ]
 custom/entered_left_view_test/viewless_document: Fail # Polyfill does not handle this
@@ -103,20 +105,13 @@ element_types_test/supported_meter: RuntimeError # Issue 18573
 
 [ $runtime == chrome ]
 touchevent_test/supported: Fail # Touch events are only supported on touch devices
-element_animate_test/simple_timing: RuntimeError # Please triage this failure
 element_types_test/supported_object: RuntimeError # Issue 25155
 element_types_test/supported_embed: RuntimeError # Issue 25155
 svgelement_test/PathElement: RuntimeError # Issue 25665
 
-[ $runtime == chrome && $cps_ir == false ]
-element_animate_test/omit_timing: RuntimeError # Also timing out on MacOS. Issue 23507
-element_animate_test/timing_dict: RuntimeError # Also timing out on MacOS. Issue 23507
-
 [ $runtime == chrome && $system == macos ]
 canvasrenderingcontext2d_test/drawImage_video_element: Skip # Times out. Please triage this failure.
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip # Times out. Please triage this failure.
-element_animate_test/omit_timing: Skip # Timing out on MacOS. Issue 23507
-element_animate_test/timing_dict: Skip # Timing out on MacOS. Issue 23507
 transition_event_test/functional: Skip # Times out. Issue 22167
 request_animation_frame_test: Skip # Times out. Issue 22167
 
@@ -425,20 +420,17 @@ window_nosuchmethod_test: StaticWarning
 js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue #25759
 
 [ $compiler == dart2js && $cps_ir && $browser ]
-# Custom element support:
-custom/constructor_calls_created_synchronously_test: RuntimeError # Need custom element support #25484
-custom/element_upgrade_test: RuntimeError # Need custom element support #25484
-custom/mirrors_test: RuntimeError # Need custom element support #25484
-custom_elements_23127_test/baseline: RuntimeError # Need custom element support #25484
-custom_elements_23127_test/c2: RuntimeError # Need custom element support #25484
-custom_elements_23127_test/c1t: RuntimeError # Need custom element support #25484
-custom_elements_23127_test/c2t: RuntimeError # Need custom element support #25484
-custom_elements_test/innerHtml: RuntimeError # Need custom element support #25484
-custom_elements_test/register: RuntimeError # Need custom element support #25484
-
 js_typed_interop_side_cast_exp_test: RuntimeError # Corner case in package:js that we might want to remove (See comment in #24978).
 js_typed_interop_test/static_method_tearoff_1: RuntimeError # Tree-shaking a used tear-off (#24978, #25720).
 js_typed_interop_default_arg_test/explicit_argument: RuntimeError # Tree-shaking a used tear-off (#24978, #25720).
 
 # These are raw dart:js tests that fail due to bugs in the CPS IR:
 js_test/Dart_functions: RuntimeError # Tree-shaking an escaping closure #25720
+
+[ $compiler == dart2js && $cps_ir && $host_checked ]
+js_typed_interop_default_arg_test/none: Crash # Issue 25911
+js_typed_interop_default_arg_test/default_value: Crash # Issue 25911
+js_typed_interop_default_arg_test/explicit_argument: Crash # Issue 25911
+
+[ $compiler == dart2js && $cps_ir && $checked ]
+*: Skip # `assert` not implemented

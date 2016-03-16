@@ -155,7 +155,7 @@ abstract class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
   @override
   void visitChildren(AstVisitor visitor) {
     if (_commentIsBeforeAnnotations()) {
-      _safelyVisitChild(_comment, visitor);
+      _comment?.accept(visitor);
       _metadata.accept(visitor);
     } else {
       for (AstNode child in sortedCommentAndAnnotations) {
@@ -191,6 +191,7 @@ class AnnotationImpl extends AstNodeImpl implements Annotation {
   /**
    * The at sign that introduced the annotation.
    */
+  @override
   Token atSign;
 
   /**
@@ -203,6 +204,7 @@ class AnnotationImpl extends AstNodeImpl implements Annotation {
    * The period before the constructor name, or `null` if this annotation is not
    * the invocation of a named constructor.
    */
+  @override
   Token period;
 
   /**
@@ -226,6 +228,7 @@ class AnnotationImpl extends AstNodeImpl implements Annotation {
   /**
    * The element annotation representing this annotation in the element model.
    */
+  @override
   ElementAnnotation elementAnnotation;
 
   /**
@@ -306,9 +309,9 @@ class AnnotationImpl extends AstNodeImpl implements Annotation {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_name, visitor);
-    _safelyVisitChild(_constructorName, visitor);
-    _safelyVisitChild(_arguments, visitor);
+    _name?.accept(visitor);
+    _constructorName?.accept(visitor);
+    _arguments?.accept(visitor);
   }
 }
 
@@ -327,6 +330,7 @@ class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   /**
    * The left parenthesis.
    */
+  @override
   Token leftParenthesis;
 
   /**
@@ -337,6 +341,7 @@ class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   /**
    * The right parenthesis.
    */
+  @override
   Token rightParenthesis;
 
   /**
@@ -480,6 +485,7 @@ class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   /**
    * The 'as' operator.
    */
+  @override
   Token asOperator;
 
   /**
@@ -529,8 +535,8 @@ class AsExpressionImpl extends ExpressionImpl implements AsExpression {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_expression, visitor);
-    _safelyVisitChild(_type, visitor);
+    _expression?.accept(visitor);
+    _type?.accept(visitor);
   }
 }
 
@@ -544,11 +550,13 @@ class AssertStatementImpl extends StatementImpl implements AssertStatement {
   /**
    * The token representing the 'assert' keyword.
    */
+  @override
   Token assertKeyword;
 
   /**
    * The left parenthesis.
    */
+  @override
   Token leftParenthesis;
 
   /**
@@ -559,6 +567,7 @@ class AssertStatementImpl extends StatementImpl implements AssertStatement {
   /**
    * The comma, if a message expression was supplied.  Otherwise `null`.
    */
+  @override
   Token comma;
 
   /**
@@ -570,11 +579,13 @@ class AssertStatementImpl extends StatementImpl implements AssertStatement {
   /**
    * The right parenthesis.
    */
+  @override
   Token rightParenthesis;
 
   /**
    * The semicolon terminating the statement.
    */
+  @override
   Token semicolon;
 
   /**
@@ -629,8 +640,8 @@ class AssertStatementImpl extends StatementImpl implements AssertStatement {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_condition, visitor);
-    _safelyVisitChild(message, visitor);
+    _condition?.accept(visitor);
+    message?.accept(visitor);
   }
 }
 
@@ -650,6 +661,7 @@ class AssignmentExpressionImpl extends ExpressionImpl
   /**
    * The assignment operator being applied.
    */
+  @override
   Token operator;
 
   /**
@@ -663,6 +675,7 @@ class AssignmentExpressionImpl extends ExpressionImpl
    * the operator is not a compound operator, or if the operator could not be
    * resolved.
    */
+  @override
   MethodElement staticElement;
 
   /**
@@ -671,6 +684,7 @@ class AssignmentExpressionImpl extends ExpressionImpl
    * if the operator is not a compound operator, or if the operator could not be
    * resolved.
    */
+  @override
   MethodElement propagatedElement;
 
   /**
@@ -813,8 +827,8 @@ class AssignmentExpressionImpl extends ExpressionImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_leftHandSide, visitor);
-    _safelyVisitChild(_rightHandSide, visitor);
+    _leftHandSide?.accept(visitor);
+    _rightHandSide?.accept(visitor);
   }
 }
 
@@ -927,15 +941,6 @@ abstract class AstNodeImpl implements AstNode {
     }
     return child;
   }
-
-  /**
-   * If the given [child] is not `null`, use the given [visitor] to visit it.
-   */
-  void _safelyVisitChild(AstNode child, AstVisitor visitor) {
-    if (child != null) {
-      child.accept(visitor);
-    }
-  }
 }
 
 /**
@@ -948,6 +953,7 @@ class AwaitExpressionImpl extends ExpressionImpl implements AwaitExpression {
   /**
    * The 'await' keyword.
    */
+  @override
   Token awaitKeyword;
 
   /**
@@ -993,7 +999,7 @@ class AwaitExpressionImpl extends ExpressionImpl implements AwaitExpression {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_expression, visitor);
+    _expression?.accept(visitor);
   }
 }
 
@@ -1012,6 +1018,7 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
   /**
    * The binary operator being applied.
    */
+  @override
   Token operator;
 
   /**
@@ -1024,6 +1031,7 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
    * left operand, or `null` if the AST structure has not been resolved, if the
    * operator is not user definable, or if the operator could not be resolved.
    */
+  @override
   MethodElement staticElement;
 
   /**
@@ -1032,6 +1040,7 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
    * the operator is not user definable, or if the operator could not be
    * resolved.
    */
+  @override
   MethodElement propagatedElement;
 
   /**
@@ -1120,8 +1129,8 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_leftOperand, visitor);
-    _safelyVisitChild(_rightOperand, visitor);
+    _leftOperand?.accept(visitor);
+    _rightOperand?.accept(visitor);
   }
 }
 
@@ -1137,12 +1146,14 @@ class BlockFunctionBodyImpl extends FunctionBodyImpl
    * The token representing the 'async' or 'sync' keyword, or `null` if there is
    * no such keyword.
    */
+  @override
   Token keyword;
 
   /**
    * The star optionally following the 'async' or 'sync' keyword, or `null` if
    * there is wither no such keyword or no star.
    */
+  @override
   Token star;
 
   /**
@@ -1197,7 +1208,7 @@ class BlockFunctionBodyImpl extends FunctionBodyImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_block, visitor);
+    _block?.accept(visitor);
   }
 }
 
@@ -1211,6 +1222,7 @@ class BlockImpl extends StatementImpl implements Block {
   /**
    * The left curly bracket.
    */
+  @override
   Token leftBracket;
 
   /**
@@ -1221,6 +1233,7 @@ class BlockImpl extends StatementImpl implements Block {
   /**
    * The right curly bracket.
    */
+  @override
   Token rightBracket;
 
   /**
@@ -1264,11 +1277,13 @@ class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
   /**
    * The token representing the literal.
    */
+  @override
   Token literal;
 
   /**
    * The value of the literal.
    */
+  @override
   bool value = false;
 
   /**
@@ -1307,6 +1322,7 @@ class BreakStatementImpl extends StatementImpl implements BreakStatement {
   /**
    * The token representing the 'break' keyword.
    */
+  @override
   Token breakKeyword;
 
   /**
@@ -1317,6 +1333,7 @@ class BreakStatementImpl extends StatementImpl implements BreakStatement {
   /**
    * The semicolon terminating the statement.
    */
+  @override
   Token semicolon;
 
   /**
@@ -1328,6 +1345,7 @@ class BreakStatementImpl extends StatementImpl implements BreakStatement {
    * resolved. Note that if the source code has errors, the target might be
    * invalid (e.g. trying to break to a switch case).
    */
+  @override
   AstNode target;
 
   /**
@@ -1362,7 +1380,7 @@ class BreakStatementImpl extends StatementImpl implements BreakStatement {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_label, visitor);
+    _label?.accept(visitor);
   }
 }
 
@@ -1433,7 +1451,7 @@ class CascadeExpressionImpl extends ExpressionImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_target, visitor);
+    _target?.accept(visitor);
     _cascadeSections.accept(visitor);
   }
 }
@@ -1453,6 +1471,7 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
    * The token representing the 'on' keyword, or `null` if there is no 'on'
    * keyword.
    */
+  @override
   Token onKeyword;
 
   /**
@@ -1465,11 +1484,13 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
    * The token representing the 'catch' keyword, or `null` if there is no
    * 'catch' keyword.
    */
+  @override
   Token catchKeyword;
 
   /**
    * The left parenthesis, or `null` if there is no 'catch' keyword.
    */
+  @override
   Token leftParenthesis;
 
   /**
@@ -1482,6 +1503,7 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
    * The comma separating the exception parameter from the stack trace
    * parameter, or `null` if there is no stack trace parameter.
    */
+  @override
   Token comma;
 
   /**
@@ -1493,6 +1515,7 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   /**
    * The right parenthesis, or `null` if there is no 'catch' keyword.
    */
+  @override
   Token rightParenthesis;
 
   /**
@@ -1582,10 +1605,10 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_exceptionType, visitor);
-    _safelyVisitChild(_exceptionParameter, visitor);
-    _safelyVisitChild(_stackTraceParameter, visitor);
-    _safelyVisitChild(_body, visitor);
+    _exceptionType?.accept(visitor);
+    _exceptionParameter?.accept(visitor);
+    _stackTraceParameter?.accept(visitor);
+    _body?.accept(visitor);
   }
 }
 
@@ -1635,11 +1658,13 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   /**
    * The 'abstract' keyword, or `null` if the keyword was absent.
    */
+  @override
   Token abstractKeyword;
 
   /**
    * The token representing the 'class' keyword.
    */
+  @override
   Token classKeyword;
 
   /**
@@ -1675,6 +1700,7 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   /**
    * The left curly bracket.
    */
+  @override
   Token leftBracket;
 
   /**
@@ -1685,6 +1711,7 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   /**
    * The right curly bracket.
    */
+  @override
   Token rightBracket;
 
   /**
@@ -1848,12 +1875,12 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_name, visitor);
-    _safelyVisitChild(_typeParameters, visitor);
-    _safelyVisitChild(_extendsClause, visitor);
-    _safelyVisitChild(_withClause, visitor);
-    _safelyVisitChild(_implementsClause, visitor);
-    _safelyVisitChild(_nativeClause, visitor);
+    _name?.accept(visitor);
+    _typeParameters?.accept(visitor);
+    _extendsClause?.accept(visitor);
+    _withClause?.accept(visitor);
+    _implementsClause?.accept(visitor);
+    _nativeClause?.accept(visitor);
     members.accept(visitor);
   }
 }
@@ -1890,12 +1917,14 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   /**
    * The token for the '=' separating the name from the definition.
    */
+  @override
   Token equals;
 
   /**
    * The token for the 'abstract' keyword, or `null` if this is not defining an
    * abstract class.
    */
+  @override
   Token abstractKeyword;
 
   /**
@@ -2006,11 +2035,11 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_name, visitor);
-    _safelyVisitChild(_typeParameters, visitor);
-    _safelyVisitChild(_superclass, visitor);
-    _safelyVisitChild(_withClause, visitor);
-    _safelyVisitChild(_implementsClause, visitor);
+    _name?.accept(visitor);
+    _typeParameters?.accept(visitor);
+    _superclass?.accept(visitor);
+    _withClause?.accept(visitor);
+    _implementsClause?.accept(visitor);
   }
 }
 
@@ -2026,6 +2055,7 @@ abstract class CombinatorImpl extends AstNodeImpl implements Combinator {
    * The 'hide' or 'show' keyword specifying what kind of processing is to be
    * done on the names.
    */
+  @override
   Token keyword;
 
   /**
@@ -2059,6 +2089,7 @@ class CommentImpl extends AstNodeImpl implements Comment {
   /**
    * The tokens representing the comment.
    */
+  @override
   final List<Token> tokens;
 
   /**
@@ -2151,6 +2182,7 @@ class CommentReferenceImpl extends AstNodeImpl implements CommentReference {
    * The token representing the 'new' keyword, or `null` if there was no 'new'
    * keyword.
    */
+  @override
   Token newKeyword;
 
   /**
@@ -2189,7 +2221,7 @@ class CommentReferenceImpl extends AstNodeImpl implements CommentReference {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_identifier, visitor);
+    _identifier?.accept(visitor);
   }
 }
 
@@ -2254,6 +2286,7 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
    * The first token in the token stream that was parsed to form this
    * compilation unit.
    */
+  @override
   Token beginToken;
 
   /**
@@ -2276,17 +2309,20 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
    * The last token in the token stream that was parsed to form this compilation
    * unit. This token should always have a type of [TokenType.EOF].
    */
+  @override
   Token endToken;
 
   /**
    * The element associated with this compilation unit, or `null` if the AST
    * structure has not been resolved.
    */
+  @override
   CompilationUnitElement element;
 
   /**
    * The line information for this compilation unit.
    */
+  @override
   LineInfo lineInfo;
 
   /**
@@ -2370,7 +2406,7 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_scriptTag, visitor);
+    _scriptTag?.accept(visitor);
     if (_directivesAreBeforeDeclarations) {
       _directives.accept(visitor);
       _declarations.accept(visitor);
@@ -2421,6 +2457,7 @@ class ConditionalExpressionImpl extends ExpressionImpl
   /**
    * The token used to separate the condition from the then expression.
    */
+  @override
   Token question;
 
   /**
@@ -2431,6 +2468,7 @@ class ConditionalExpressionImpl extends ExpressionImpl
   /**
    * The token used to separate the then expression from the else expression.
    */
+  @override
   Token colon;
 
   /**
@@ -2494,9 +2532,9 @@ class ConditionalExpressionImpl extends ExpressionImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_condition, visitor);
-    _safelyVisitChild(_thenExpression, visitor);
-    _safelyVisitChild(_elseExpression, visitor);
+    _condition?.accept(visitor);
+    _thenExpression?.accept(visitor);
+    _elseExpression?.accept(visitor);
   }
 }
 
@@ -2513,11 +2551,15 @@ class ConditionalExpressionImpl extends ExpressionImpl
  *         identifier ('.' identifier)*
  */
 class ConfigurationImpl extends AstNodeImpl implements Configuration {
+  @override
   Token ifKeyword;
+  @override
   Token leftParenthesis;
   DottedName _name;
+  @override
   Token equalToken;
   StringLiteral _value;
+  @override
   Token rightParenthesis;
   StringLiteral _libraryUri;
 
@@ -2579,9 +2621,9 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_name, visitor);
-    _safelyVisitChild(_value, visitor);
-    _safelyVisitChild(_libraryUri, visitor);
+    _name?.accept(visitor);
+    _value?.accept(visitor);
+    _libraryUri?.accept(visitor);
   }
 }
 
@@ -2612,18 +2654,21 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
    * The token for the 'external' keyword, or `null` if the constructor is not
    * external.
    */
+  @override
   Token externalKeyword;
 
   /**
    * The token for the 'const' keyword, or `null` if the constructor is not a
    * const constructor.
    */
+  @override
   Token constKeyword;
 
   /**
    * The token for the 'factory' keyword, or `null` if the constructor is not a
    * factory constructor.
    */
+  @override
   Token factoryKeyword;
 
   /**
@@ -2637,6 +2682,7 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
    * The token for the period before the constructor name, or `null` if the
    * constructor being declared is unnamed.
    */
+  @override
   Token period;
 
   /**
@@ -2654,6 +2700,7 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
    * The token for the separator (colon or equals) before the initializer list
    * or redirection, or `null` if there are no initializers.
    */
+  @override
   Token separator;
 
   /**
@@ -2678,6 +2725,7 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
    * structure has not been resolved or if this constructor could not be
    * resolved.
    */
+  @override
   ConstructorElement element;
 
   /**
@@ -2801,12 +2849,12 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_returnType, visitor);
-    _safelyVisitChild(_name, visitor);
-    _safelyVisitChild(_parameters, visitor);
+    _returnType?.accept(visitor);
+    _name?.accept(visitor);
+    _parameters?.accept(visitor);
     _initializers.accept(visitor);
-    _safelyVisitChild(_redirectedConstructor, visitor);
-    _safelyVisitChild(_body, visitor);
+    _redirectedConstructor?.accept(visitor);
+    _body?.accept(visitor);
   }
 }
 
@@ -2821,12 +2869,14 @@ class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   /**
    * The token for the 'this' keyword, or `null` if there is no 'this' keyword.
    */
+  @override
   Token thisKeyword;
 
   /**
    * The token for the period after the 'this' keyword, or `null` if there is no
    * 'this' keyword.
    */
+  @override
   Token period;
 
   /**
@@ -2837,6 +2887,7 @@ class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   /**
    * The token for the equal sign between the field name and the expression.
    */
+  @override
   Token equals;
 
   /**
@@ -2895,8 +2946,8 @@ class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_fieldName, visitor);
-    _safelyVisitChild(_expression, visitor);
+    _fieldName?.accept(visitor);
+    _expression?.accept(visitor);
   }
 }
 
@@ -2927,6 +2978,7 @@ class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
    * The token for the period before the constructor name, or `null` if the
    * specified constructor is the unnamed constructor.
    */
+  @override
   Token period;
 
   /**
@@ -2940,6 +2992,7 @@ class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
    * information, or `null` if the AST structure has not been resolved or if
    * this constructor name could not be resolved.
    */
+  @override
   ConstructorElement staticElement;
 
   /**
@@ -2987,8 +3040,8 @@ class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_type, visitor);
-    _safelyVisitChild(_name, visitor);
+    _type?.accept(visitor);
+    _name?.accept(visitor);
   }
 }
 
@@ -3002,6 +3055,7 @@ class ContinueStatementImpl extends StatementImpl implements ContinueStatement {
   /**
    * The token representing the 'continue' keyword.
    */
+  @override
   Token continueKeyword;
 
   /**
@@ -3012,6 +3066,7 @@ class ContinueStatementImpl extends StatementImpl implements ContinueStatement {
   /**
    * The semicolon terminating the statement.
    */
+  @override
   Token semicolon;
 
   /**
@@ -3056,7 +3111,7 @@ class ContinueStatementImpl extends StatementImpl implements ContinueStatement {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_label, visitor);
+    _label?.accept(visitor);
   }
 }
 
@@ -3087,6 +3142,7 @@ class DeclaredIdentifierImpl extends DeclarationImpl
    * The token representing either the 'final', 'const' or 'var' keyword, or
    * `null` if no keyword was used.
    */
+  @override
   Token keyword;
 
   /**
@@ -3170,8 +3226,8 @@ class DeclaredIdentifierImpl extends DeclarationImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_type, visitor);
-    _safelyVisitChild(_identifier, visitor);
+    _type?.accept(visitor);
+    _identifier?.accept(visitor);
   }
 }
 
@@ -3196,12 +3252,14 @@ class DefaultFormalParameterImpl extends FormalParameterImpl
   /**
    * The kind of this parameter.
    */
+  @override
   ParameterKind kind;
 
   /**
    * The token separating the parameter from the default value, or `null` if
    * there is no default value.
    */
+  @override
   Token separator;
 
   /**
@@ -3268,8 +3326,8 @@ class DefaultFormalParameterImpl extends FormalParameterImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_parameter, visitor);
-    _safelyVisitChild(_defaultValue, visitor);
+    _parameter?.accept(visitor);
+    _defaultValue?.accept(visitor);
   }
 }
 
@@ -3288,6 +3346,7 @@ abstract class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
    * The element associated with this directive, or `null` if the AST structure
    * has not been resolved or if this directive could not be resolved.
    */
+  @override
   Element element;
 
   /**
@@ -3309,6 +3368,7 @@ class DoStatementImpl extends StatementImpl implements DoStatement {
   /**
    * The token representing the 'do' keyword.
    */
+  @override
   Token doKeyword;
 
   /**
@@ -3319,6 +3379,7 @@ class DoStatementImpl extends StatementImpl implements DoStatement {
   /**
    * The token representing the 'while' keyword.
    */
+  @override
   Token whileKeyword;
 
   /**
@@ -3334,11 +3395,13 @@ class DoStatementImpl extends StatementImpl implements DoStatement {
   /**
    * The right parenthesis.
    */
+  @override
   Token rightParenthesis;
 
   /**
    * The semicolon terminating the statement.
    */
+  @override
   Token semicolon;
 
   /**
@@ -3393,8 +3456,8 @@ class DoStatementImpl extends StatementImpl implements DoStatement {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_body, visitor);
-    _safelyVisitChild(_condition, visitor);
+    _body?.accept(visitor);
+    _condition?.accept(visitor);
   }
 }
 
@@ -3453,11 +3516,13 @@ class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
   /**
    * The token representing the literal.
    */
+  @override
   Token literal;
 
   /**
    * The value of the literal.
    */
+  @override
   double value;
 
   /**
@@ -3496,6 +3561,7 @@ class EmptyFunctionBodyImpl extends FunctionBodyImpl
    * The token representing the semicolon that marks the end of the function
    * body.
    */
+  @override
   Token semicolon;
 
   /**
@@ -3605,7 +3671,7 @@ class EnumConstantDeclarationImpl extends DeclarationImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_name, visitor);
+    _name?.accept(visitor);
   }
 }
 
@@ -3620,11 +3686,13 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   /**
    * The 'enum' keyword.
    */
+  @override
   Token enumKeyword;
 
   /**
    * The left curly bracket.
    */
+  @override
   Token leftBracket;
 
   /**
@@ -3635,6 +3703,7 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   /**
    * The right curly bracket.
    */
+  @override
   Token rightBracket;
 
   /**
@@ -3683,7 +3752,7 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_name, visitor);
+    _name?.accept(visitor);
     _constants.accept(visitor);
   }
 }
@@ -3763,12 +3832,14 @@ class ExpressionFunctionBodyImpl extends FunctionBodyImpl
    * The token representing the 'async' keyword, or `null` if there is no such
    * keyword.
    */
+  @override
   Token keyword;
 
   /**
    * The token introducing the expression that represents the body of the
    * function.
    */
+  @override
   Token functionDefinition;
 
   /**
@@ -3779,6 +3850,7 @@ class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   /**
    * The semicolon terminating the statement.
    */
+  @override
   Token semicolon;
 
   /**
@@ -3833,7 +3905,7 @@ class ExpressionFunctionBodyImpl extends FunctionBodyImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_expression, visitor);
+    _expression?.accept(visitor);
   }
 }
 
@@ -3850,12 +3922,14 @@ abstract class ExpressionImpl extends AstNodeImpl implements Expression {
    * The static type of this expression, or `null` if the AST structure has not
    * been resolved.
    */
+  @override
   DartType staticType;
 
   /**
    * The propagated type of this expression, or `null` if type propagation has
    * not been performed on the AST structure.
    */
+  @override
   DartType propagatedType;
 
   /**
@@ -3953,6 +4027,7 @@ class ExpressionStatementImpl extends StatementImpl
    * The semicolon terminating the statement, or `null` if the expression is a
    * function expression and therefore isn't followed by a semicolon.
    */
+  @override
   Token semicolon;
 
   /**
@@ -3993,7 +4068,7 @@ class ExpressionStatementImpl extends StatementImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_expression, visitor);
+    _expression?.accept(visitor);
   }
 }
 
@@ -4007,6 +4082,7 @@ class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
   /**
    * The token representing the 'extends' keyword.
    */
+  @override
   Token extendsKeyword;
 
   /**
@@ -4044,7 +4120,7 @@ class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_superclass, visitor);
+    _superclass?.accept(visitor);
   }
 }
 
@@ -4059,6 +4135,7 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
    * The token representing the 'static' keyword, or `null` if the fields are
    * not static.
    */
+  @override
   Token staticKeyword;
 
   /**
@@ -4069,6 +4146,7 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
   /**
    * The semicolon terminating the declaration.
    */
+  @override
   Token semicolon;
 
   /**
@@ -4118,7 +4196,7 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_fieldList, visitor);
+    _fieldList?.accept(visitor);
   }
 }
 
@@ -4135,6 +4213,7 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
    * The token representing either the 'final', 'const' or 'var' keyword, or
    * `null` if no keyword was used.
    */
+  @override
   Token keyword;
 
   /**
@@ -4146,11 +4225,13 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
   /**
    * The token representing the 'this' keyword.
    */
+  @override
   Token thisKeyword;
 
   /**
    * The token representing the period.
    */
+  @override
   Token period;
 
   /**
@@ -4257,10 +4338,10 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_type, visitor);
-    _safelyVisitChild(identifier, visitor);
-    _safelyVisitChild(_typeParameters, visitor);
-    _safelyVisitChild(_parameters, visitor);
+    _type?.accept(visitor);
+    identifier?.accept(visitor);
+    _typeParameters?.accept(visitor);
+    _parameters?.accept(visitor);
   }
 }
 
@@ -4276,16 +4357,19 @@ class ForEachStatementImpl extends StatementImpl implements ForEachStatement {
    * The token representing the 'await' keyword, or `null` if there is no
    * 'await' keyword.
    */
+  @override
   Token awaitKeyword;
 
   /**
    * The token representing the 'for' keyword.
    */
+  @override
   Token forKeyword;
 
   /**
    * The left parenthesis.
    */
+  @override
   Token leftParenthesis;
 
   /**
@@ -4302,6 +4386,7 @@ class ForEachStatementImpl extends StatementImpl implements ForEachStatement {
   /**
    * The token representing the 'in' keyword.
    */
+  @override
   Token inKeyword;
 
   /**
@@ -4312,6 +4397,7 @@ class ForEachStatementImpl extends StatementImpl implements ForEachStatement {
   /**
    * The right parenthesis.
    */
+  @override
   Token rightParenthesis;
 
   /**
@@ -4412,10 +4498,10 @@ class ForEachStatementImpl extends StatementImpl implements ForEachStatement {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_loopVariable, visitor);
-    _safelyVisitChild(_identifier, visitor);
-    _safelyVisitChild(_iterable, visitor);
-    _safelyVisitChild(_body, visitor);
+    _loopVariable?.accept(visitor);
+    _identifier?.accept(visitor);
+    _iterable?.accept(visitor);
+    _body?.accept(visitor);
   }
 }
 
@@ -4471,6 +4557,7 @@ class FormalParameterListImpl extends AstNodeImpl
   /**
    * The left parenthesis.
    */
+  @override
   Token leftParenthesis;
 
   /**
@@ -4482,17 +4569,20 @@ class FormalParameterListImpl extends AstNodeImpl
    * The left square bracket ('[') or left curly brace ('{') introducing the
    * optional parameters, or `null` if there are no optional parameters.
    */
+  @override
   Token leftDelimiter;
 
   /**
    * The right square bracket (']') or right curly brace ('}') terminating the
    * optional parameters, or `null` if there are no optional parameters.
    */
+  @override
   Token rightDelimiter;
 
   /**
    * The right parenthesis.
    */
+  @override
   Token rightParenthesis;
 
   /**
@@ -4569,11 +4659,13 @@ class ForStatementImpl extends StatementImpl implements ForStatement {
   /**
    * The token representing the 'for' keyword.
    */
+  @override
   Token forKeyword;
 
   /**
    * The left parenthesis.
    */
+  @override
   Token leftParenthesis;
 
   /**
@@ -4593,6 +4685,7 @@ class ForStatementImpl extends StatementImpl implements ForStatement {
   /**
    * The semicolon separating the initializer and the condition.
    */
+  @override
   Token leftSeparator;
 
   /**
@@ -4604,6 +4697,7 @@ class ForStatementImpl extends StatementImpl implements ForStatement {
   /**
    * The semicolon separating the condition and the updater.
    */
+  @override
   Token rightSeparator;
 
   /**
@@ -4614,6 +4708,7 @@ class ForStatementImpl extends StatementImpl implements ForStatement {
   /**
    * The right parenthesis.
    */
+  @override
   Token rightParenthesis;
 
   /**
@@ -4704,11 +4799,11 @@ class ForStatementImpl extends StatementImpl implements ForStatement {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_variableList, visitor);
-    _safelyVisitChild(_initialization, visitor);
-    _safelyVisitChild(_condition, visitor);
+    _variableList?.accept(visitor);
+    _initialization?.accept(visitor);
+    _condition?.accept(visitor);
     _updaters.accept(visitor);
-    _safelyVisitChild(_body, visitor);
+    _body?.accept(visitor);
   }
 }
 
@@ -4731,28 +4826,33 @@ abstract class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
   /**
    * Return `true` if this function body is asynchronous.
    */
+  @override
   bool get isAsynchronous => false;
 
   /**
    * Return `true` if this function body is a generator.
    */
+  @override
   bool get isGenerator => false;
 
   /**
    * Return `true` if this function body is synchronous.
    */
+  @override
   bool get isSynchronous => true;
 
   /**
    * Return the token representing the 'async' or 'sync' keyword, or `null` if
    * there is no such keyword.
    */
+  @override
   Token get keyword => null;
 
   /**
    * Return the star following the 'async' or 'sync' keyword, or `null` if there
    * is no star.
    */
+  @override
   Token get star => null;
 
   @override
@@ -4788,6 +4888,7 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
    * The token representing the 'external' keyword, or `null` if this is not an
    * external function.
    */
+  @override
   Token externalKeyword;
 
   /**
@@ -4799,6 +4900,7 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
    * The token representing the 'get' or 'set' keyword, or `null` if this is a
    * function declaration rather than a property declaration.
    */
+  @override
   Token propertyKeyword;
 
   /**
@@ -4888,9 +4990,9 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_returnType, visitor);
-    _safelyVisitChild(_name, visitor);
-    _safelyVisitChild(_functionExpression, visitor);
+    _returnType?.accept(visitor);
+    _name?.accept(visitor);
+    _functionExpression?.accept(visitor);
   }
 }
 
@@ -4933,7 +5035,7 @@ class FunctionDeclarationStatementImpl extends StatementImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_functionDeclaration, visitor);
+    _functionDeclaration?.accept(visitor);
   }
 }
 
@@ -4965,6 +5067,7 @@ class FunctionExpressionImpl extends ExpressionImpl
    * The element associated with the function, or `null` if the AST structure
    * has not been resolved.
    */
+  @override
   ExecutableElement element;
 
   /**
@@ -5039,9 +5142,9 @@ class FunctionExpressionImpl extends ExpressionImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_typeParameters, visitor);
-    _safelyVisitChild(_parameters, visitor);
-    _safelyVisitChild(_body, visitor);
+    _typeParameters?.accept(visitor);
+    _parameters?.accept(visitor);
+    _body?.accept(visitor);
   }
 }
 
@@ -5066,6 +5169,7 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
    * information, or `null` if the AST structure has not been resolved or the
    * function could not be resolved.
    */
+  @override
   ExecutableElement staticElement;
 
   /**
@@ -5073,6 +5177,7 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
    * type information, or `null` if the AST structure has not been resolved or
    * the function could not be resolved.
    */
+  @override
   ExecutableElement propagatedElement;
 
   /**
@@ -5119,9 +5224,9 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_function, visitor);
-    _safelyVisitChild(_typeArguments, visitor);
-    _safelyVisitChild(_argumentList, visitor);
+    _function?.accept(visitor);
+    _typeArguments?.accept(visitor);
+    _argumentList?.accept(visitor);
   }
 }
 
@@ -5217,10 +5322,10 @@ class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_returnType, visitor);
-    _safelyVisitChild(_name, visitor);
-    _safelyVisitChild(_typeParameters, visitor);
-    _safelyVisitChild(_parameters, visitor);
+    _returnType?.accept(visitor);
+    _name?.accept(visitor);
+    _typeParameters?.accept(visitor);
+    _parameters?.accept(visitor);
   }
 }
 
@@ -5319,10 +5424,10 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_returnType, visitor);
-    _safelyVisitChild(identifier, visitor);
-    _safelyVisitChild(_typeParameters, visitor);
-    _safelyVisitChild(_parameters, visitor);
+    _returnType?.accept(visitor);
+    identifier?.accept(visitor);
+    _typeParameters?.accept(visitor);
+    _parameters?.accept(visitor);
   }
 }
 
@@ -5398,11 +5503,13 @@ class IfStatementImpl extends StatementImpl implements IfStatement {
   /**
    * The token representing the 'if' keyword.
    */
+  @override
   Token ifKeyword;
 
   /**
    * The left parenthesis.
    */
+  @override
   Token leftParenthesis;
 
   /**
@@ -5413,6 +5520,7 @@ class IfStatementImpl extends StatementImpl implements IfStatement {
   /**
    * The right parenthesis.
    */
+  @override
   Token rightParenthesis;
 
   /**
@@ -5424,6 +5532,7 @@ class IfStatementImpl extends StatementImpl implements IfStatement {
    * The token representing the 'else' keyword, or `null` if there is no else
    * statement.
    */
+  @override
   Token elseKeyword;
 
   /**
@@ -5499,9 +5608,9 @@ class IfStatementImpl extends StatementImpl implements IfStatement {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_condition, visitor);
-    _safelyVisitChild(_thenStatement, visitor);
-    _safelyVisitChild(_elseStatement, visitor);
+    _condition?.accept(visitor);
+    _thenStatement?.accept(visitor);
+    _elseStatement?.accept(visitor);
   }
 }
 
@@ -5515,6 +5624,7 @@ class ImplementsClauseImpl extends AstNodeImpl implements ImplementsClause {
   /**
    * The token representing the 'implements' keyword.
    */
+  @override
   Token implementsKeyword;
 
   /**
@@ -5572,6 +5682,7 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
    * The token representing the 'as' keyword, or `null` if the imported names are
    * not prefixed.
    */
+  @override
   Token asKeyword;
 
   /**
@@ -5639,7 +5750,7 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_prefix, visitor);
+    _prefix?.accept(visitor);
     combinators.accept(visitor);
   }
 }
@@ -5661,11 +5772,13 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
    * The period ("..") before a cascaded index expression, or `null` if this
    * index expression is not part of a cascade expression.
    */
+  @override
   Token period;
 
   /**
    * The left square bracket.
    */
+  @override
   Token leftBracket;
 
   /**
@@ -5676,6 +5789,7 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
   /**
    * The right square bracket.
    */
+  @override
   Token rightBracket;
 
   /**
@@ -5683,6 +5797,7 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
    * target, or `null` if the AST structure has not been resolved or if the
    * operator could not be resolved.
    */
+  @override
   MethodElement staticElement;
 
   /**
@@ -5690,6 +5805,8 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
    * the target, or `null` if the AST structure has not been resolved or if the
    * operator could not be resolved.
    */
+
+  @override
   MethodElement propagatedElement;
 
   /**
@@ -5852,8 +5969,8 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_target, visitor);
-    _safelyVisitChild(_index, visitor);
+    _target?.accept(visitor);
+    _index?.accept(visitor);
   }
 }
 
@@ -5869,6 +5986,7 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
    * The 'new' or 'const' keyword used to indicate how an object should be
    * created.
    */
+  @override
   Token keyword;
 
   /**
@@ -5886,6 +6004,7 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
    * information, or `null` if the AST structure has not been resolved or if the
    * constructor could not be resolved.
    */
+  @override
   ConstructorElement staticElement;
 
   /**
@@ -5938,8 +6057,8 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_constructorName, visitor);
-    _safelyVisitChild(_argumentList, visitor);
+    _constructorName?.accept(visitor);
+    _argumentList?.accept(visitor);
   }
 }
 
@@ -5961,11 +6080,13 @@ class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   /**
    * The token representing the literal.
    */
+  @override
   Token literal;
 
   /**
    * The value of the literal.
    */
+  @override
   int value = 0;
 
   /**
@@ -6015,6 +6136,7 @@ class InterpolationExpressionImpl extends InterpolationElementImpl
    * expression is a simple identifier or '${' if the expression is a full
    * expression.
    */
+  @override
   Token leftBracket;
 
   /**
@@ -6026,6 +6148,7 @@ class InterpolationExpressionImpl extends InterpolationElementImpl
    * The right curly bracket, or `null` if the expression is an identifier
    * without brackets.
    */
+  @override
   Token rightBracket;
 
   /**
@@ -6066,7 +6189,7 @@ class InterpolationExpressionImpl extends InterpolationElementImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_expression, visitor);
+    _expression?.accept(visitor);
   }
 }
 
@@ -6081,11 +6204,13 @@ class InterpolationStringImpl extends InterpolationElementImpl
   /**
    * The characters that will be added to the string.
    */
+  @override
   Token contents;
 
   /**
    * The value of the literal.
    */
+  @override
   String value;
 
   /**
@@ -6158,7 +6283,6 @@ abstract class InvocationExpressionImpl extends ExpressionImpl
   @override
   ArgumentList get argumentList => _argumentList;
 
-  @override
   void set argumentList(ArgumentList argumentList) {
     _argumentList = _becomeParentOf(argumentList);
   }
@@ -6166,7 +6290,6 @@ abstract class InvocationExpressionImpl extends ExpressionImpl
   @override
   TypeArgumentList get typeArguments => _typeArguments;
 
-  @override
   void set typeArguments(TypeArgumentList typeArguments) {
     _typeArguments = _becomeParentOf(typeArguments);
   }
@@ -6187,11 +6310,13 @@ class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   /**
    * The is operator.
    */
+  @override
   Token isOperator;
 
   /**
    * The not operator, or `null` if the sense of the test is not negated.
    */
+  @override
   Token notOperator;
 
   /**
@@ -6246,8 +6371,8 @@ class IsExpressionImpl extends ExpressionImpl implements IsExpression {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_expression, visitor);
-    _safelyVisitChild(_type, visitor);
+    _expression?.accept(visitor);
+    _type?.accept(visitor);
   }
 }
 
@@ -6312,7 +6437,7 @@ class LabeledStatementImpl extends StatementImpl implements LabeledStatement {
   @override
   void visitChildren(AstVisitor visitor) {
     _labels.accept(visitor);
-    _safelyVisitChild(_statement, visitor);
+    _statement?.accept(visitor);
   }
 }
 
@@ -6331,6 +6456,7 @@ class LabelImpl extends AstNodeImpl implements Label {
   /**
    * The colon that separates the label from the statement.
    */
+  @override
   Token colon;
 
   /**
@@ -6362,7 +6488,7 @@ class LabelImpl extends AstNodeImpl implements Label {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_label, visitor);
+    _label?.accept(visitor);
   }
 }
 
@@ -6376,6 +6502,7 @@ class LibraryDirectiveImpl extends DirectiveImpl implements LibraryDirective {
   /**
    * The token representing the 'library' keyword.
    */
+  @override
   Token libraryKeyword;
 
   /**
@@ -6386,6 +6513,7 @@ class LibraryDirectiveImpl extends DirectiveImpl implements LibraryDirective {
   /**
    * The semicolon terminating the directive.
    */
+  @override
   Token semicolon;
 
   /**
@@ -6426,7 +6554,7 @@ class LibraryDirectiveImpl extends DirectiveImpl implements LibraryDirective {
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_name, visitor);
+    _name?.accept(visitor);
   }
 }
 
@@ -6509,6 +6637,7 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   /**
    * The left square bracket.
    */
+  @override
   Token leftBracket;
 
   /**
@@ -6519,6 +6648,7 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   /**
    * The right square bracket.
    */
+  @override
   Token rightBracket;
 
   /**
@@ -6620,6 +6750,7 @@ class MapLiteralEntryImpl extends AstNodeImpl implements MapLiteralEntry {
   /**
    * The colon that separates the key from the value.
    */
+  @override
   Token separator;
 
   /**
@@ -6666,8 +6797,8 @@ class MapLiteralEntryImpl extends AstNodeImpl implements MapLiteralEntry {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_key, visitor);
-    _safelyVisitChild(_value, visitor);
+    _key?.accept(visitor);
+    _value?.accept(visitor);
   }
 }
 
@@ -6682,6 +6813,7 @@ class MapLiteralImpl extends TypedLiteralImpl implements MapLiteral {
   /**
    * The left curly bracket.
    */
+  @override
   Token leftBracket;
 
   /**
@@ -6692,6 +6824,7 @@ class MapLiteralImpl extends TypedLiteralImpl implements MapLiteral {
   /**
    * The right curly bracket.
    */
+  @override
   Token rightBracket;
 
   /**
@@ -6760,12 +6893,14 @@ class MethodDeclarationImpl extends ClassMemberImpl
    * The token for the 'external' keyword, or `null` if the constructor is not
    * external.
    */
+  @override
   Token externalKeyword;
 
   /**
    * The token representing the 'abstract' or 'static' keyword, or `null` if
    * neither modifier was specified.
    */
+  @override
   Token modifierKeyword;
 
   /**
@@ -6777,12 +6912,14 @@ class MethodDeclarationImpl extends ClassMemberImpl
    * The token representing the 'get' or 'set' keyword, or `null` if this is a
    * method declaration rather than a property declaration.
    */
+  @override
   Token propertyKeyword;
 
   /**
    * The token representing the 'operator' keyword, or `null` if this method
    * does not declare an operator.
    */
+  @override
   Token operatorKeyword;
 
   /**
@@ -6948,11 +7085,11 @@ class MethodDeclarationImpl extends ClassMemberImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_returnType, visitor);
-    _safelyVisitChild(_name, visitor);
-    _safelyVisitChild(_typeParameters, visitor);
-    _safelyVisitChild(_parameters, visitor);
-    _safelyVisitChild(_body, visitor);
+    _returnType?.accept(visitor);
+    _name?.accept(visitor);
+    _typeParameters?.accept(visitor);
+    _parameters?.accept(visitor);
+    _body?.accept(visitor);
   }
 }
 
@@ -6979,6 +7116,7 @@ class MethodInvocationImpl extends InvocationExpressionImpl
    * period ('.'). In a cascade section this will be the cascade operator
    * ('..').
    */
+  @override
   Token operator;
 
   /**
@@ -7067,10 +7205,10 @@ class MethodInvocationImpl extends InvocationExpressionImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_target, visitor);
-    _safelyVisitChild(_methodName, visitor);
-    _safelyVisitChild(_typeArguments, visitor);
-    _safelyVisitChild(_argumentList, visitor);
+    _target?.accept(visitor);
+    _methodName?.accept(visitor);
+    _typeArguments?.accept(visitor);
+    _argumentList?.accept(visitor);
   }
 }
 
@@ -7173,8 +7311,8 @@ class NamedExpressionImpl extends ExpressionImpl implements NamedExpression {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_name, visitor);
-    _safelyVisitChild(_expression, visitor);
+    _name?.accept(visitor);
+    _expression?.accept(visitor);
   }
 }
 
@@ -7190,6 +7328,7 @@ abstract class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
   /**
    * The token representing the 'import' or 'export' keyword.
    */
+  @override
   Token keyword;
 
   /**
@@ -7206,6 +7345,7 @@ abstract class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
   /**
    * The semicolon terminating the directive.
    */
+  @override
   Token semicolon;
 
   /**
@@ -7253,6 +7393,7 @@ class NativeClauseImpl extends AstNodeImpl implements NativeClause {
   /**
    * The token representing the 'native' keyword.
    */
+  @override
   Token nativeKeyword;
 
   /**
@@ -7290,7 +7431,7 @@ class NativeClauseImpl extends AstNodeImpl implements NativeClause {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_name, visitor);
+    _name?.accept(visitor);
   }
 }
 
@@ -7306,6 +7447,7 @@ class NativeFunctionBodyImpl extends FunctionBodyImpl
   /**
    * The token representing 'native' that marks the start of the function body.
    */
+  @override
   Token nativeKeyword;
 
   /**
@@ -7317,6 +7459,7 @@ class NativeFunctionBodyImpl extends FunctionBodyImpl
    * The token representing the semicolon that marks the end of the function
    * body.
    */
+  @override
   Token semicolon;
 
   /**
@@ -7353,7 +7496,7 @@ class NativeFunctionBodyImpl extends FunctionBodyImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_stringLiteral, visitor);
+    _stringLiteral?.accept(visitor);
   }
 }
 
@@ -7366,6 +7509,7 @@ class NodeListImpl<E extends AstNode> extends Object
   /**
    * The node that is the parent of each of the elements in the list.
    */
+  @override
   AstNodeImpl owner;
 
   /**
@@ -7576,7 +7720,7 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
     // they often need to visit other nodes before visiting the identifier.
     //
     if (_commentIsBeforeAnnotations()) {
-      _safelyVisitChild(_comment, visitor);
+      _comment?.accept(visitor);
       _metadata.accept(visitor);
     } else {
       for (AstNode child in sortedCommentAndAnnotations) {
@@ -7691,7 +7835,7 @@ class ParenthesizedExpressionImpl extends ExpressionImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_expression, visitor);
+    _expression?.accept(visitor);
   }
 }
 
@@ -7705,11 +7849,13 @@ class PartDirectiveImpl extends UriBasedDirectiveImpl implements PartDirective {
   /**
    * The token representing the 'part' keyword.
    */
+  @override
   Token partKeyword;
 
   /**
    * The semicolon terminating the directive.
    */
+  @override
   Token semicolon;
 
   /**
@@ -7751,11 +7897,13 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
   /**
    * The token representing the 'part' keyword.
    */
+  @override
   Token partKeyword;
 
   /**
    * The token representing the 'of' keyword.
    */
+  @override
   Token ofKeyword;
 
   /**
@@ -7766,6 +7914,7 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
   /**
    * The semicolon terminating the directive.
    */
+  @override
   Token semicolon;
 
   /**
@@ -7814,7 +7963,7 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_libraryName, visitor);
+    _libraryName?.accept(visitor);
   }
 }
 
@@ -7834,6 +7983,7 @@ class PostfixExpressionImpl extends ExpressionImpl
   /**
    * The postfix operator being applied to the operand.
    */
+  @override
   Token operator;
 
   /**
@@ -7842,6 +7992,7 @@ class PostfixExpressionImpl extends ExpressionImpl
    * the operator is not user definable, or if the operator could not be
    * resolved.
    */
+  @override
   MethodElement propagatedElement;
 
   /**
@@ -7849,6 +8000,7 @@ class PostfixExpressionImpl extends ExpressionImpl
    * operand, or `null` if the AST structure has not been resolved, if the
    * operator is not user definable, or if the operator could not be resolved.
    */
+  @override
   MethodElement staticElement;
 
   /**
@@ -7927,7 +8079,7 @@ class PostfixExpressionImpl extends ExpressionImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_operand, visitor);
+    _operand?.accept(visitor);
   }
 }
 
@@ -8040,8 +8192,8 @@ class PrefixedIdentifierImpl extends IdentifierImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_prefix, visitor);
-    _safelyVisitChild(_identifier, visitor);
+    _prefix?.accept(visitor);
+    _identifier?.accept(visitor);
   }
 }
 
@@ -8152,7 +8304,7 @@ class PrefixExpressionImpl extends ExpressionImpl implements PrefixExpression {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_operand, visitor);
+    _operand?.accept(visitor);
   }
 }
 
@@ -8252,8 +8404,8 @@ class PropertyAccessImpl extends ExpressionImpl implements PropertyAccess {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_target, visitor);
-    _safelyVisitChild(_propertyName, visitor);
+    _target?.accept(visitor);
+    _propertyName?.accept(visitor);
   }
 }
 
@@ -8341,8 +8493,8 @@ class RedirectingConstructorInvocationImpl extends ConstructorInitializerImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_constructorName, visitor);
-    _safelyVisitChild(_argumentList, visitor);
+    _constructorName?.accept(visitor);
+    _argumentList?.accept(visitor);
   }
 }
 
@@ -8440,7 +8592,7 @@ class ReturnStatementImpl extends StatementImpl implements ReturnStatement {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_expression, visitor);
+    _expression?.accept(visitor);
   }
 }
 
@@ -8596,8 +8748,8 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_type, visitor);
-    _safelyVisitChild(identifier, visitor);
+    _type?.accept(visitor);
+    identifier?.accept(visitor);
   }
 }
 
@@ -9300,8 +9452,8 @@ class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_constructorName, visitor);
-    _safelyVisitChild(_argumentList, visitor);
+    _constructorName?.accept(visitor);
+    _argumentList?.accept(visitor);
   }
 }
 
@@ -9387,7 +9539,7 @@ class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
   @override
   void visitChildren(AstVisitor visitor) {
     labels.accept(visitor);
-    _safelyVisitChild(_expression, visitor);
+    _expression?.accept(visitor);
     statements.accept(visitor);
   }
 }
@@ -9576,7 +9728,7 @@ class SwitchStatementImpl extends StatementImpl implements SwitchStatement {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_expression, visitor);
+    _expression?.accept(visitor);
     _members.accept(visitor);
   }
 }
@@ -9717,7 +9869,7 @@ class ThrowExpressionImpl extends ExpressionImpl implements ThrowExpression {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_expression, visitor);
+    _expression?.accept(visitor);
   }
 }
 
@@ -9778,7 +9930,7 @@ class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_variableList, visitor);
+    _variableList?.accept(visitor);
   }
 }
 
@@ -9878,9 +10030,9 @@ class TryStatementImpl extends StatementImpl implements TryStatement {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_body, visitor);
+    _body?.accept(visitor);
     _catchClauses.accept(visitor);
-    _safelyVisitChild(_finallyBlock, visitor);
+    _finallyBlock?.accept(visitor);
   }
 }
 
@@ -10019,7 +10171,7 @@ abstract class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_typeArguments, visitor);
+    _typeArguments?.accept(visitor);
   }
 }
 
@@ -10103,8 +10255,8 @@ class TypeNameImpl extends AstNodeImpl implements TypeName {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_name, visitor);
-    _safelyVisitChild(_typeArguments, visitor);
+    _name?.accept(visitor);
+    _typeArguments?.accept(visitor);
   }
 }
 
@@ -10186,8 +10338,8 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_name, visitor);
-    _safelyVisitChild(_bound, visitor);
+    _name?.accept(visitor);
+    _bound?.accept(visitor);
   }
 }
 
@@ -10319,7 +10471,7 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_uri, visitor);
+    _uri?.accept(visitor);
   }
 }
 
@@ -10464,8 +10616,8 @@ class VariableDeclarationImpl extends DeclarationImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_name, visitor);
-    _safelyVisitChild(_initializer, visitor);
+    _name?.accept(visitor);
+    _initializer?.accept(visitor);
   }
 }
 
@@ -10559,7 +10711,7 @@ class VariableDeclarationListImpl extends AnnotatedNodeImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_type, visitor);
+    _type?.accept(visitor);
     _variables.accept(visitor);
   }
 }
@@ -10614,7 +10766,7 @@ class VariableDeclarationStatementImpl extends StatementImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_variableList, visitor);
+    _variableList?.accept(visitor);
   }
 }
 
@@ -10694,8 +10846,8 @@ class WhileStatementImpl extends StatementImpl implements WhileStatement {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_condition, visitor);
-    _safelyVisitChild(_body, visitor);
+    _condition?.accept(visitor);
+    _body?.accept(visitor);
   }
 }
 
@@ -10819,6 +10971,6 @@ class YieldStatementImpl extends StatementImpl implements YieldStatement {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_expression, visitor);
+    _expression?.accept(visitor);
   }
 }

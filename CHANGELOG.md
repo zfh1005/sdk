@@ -1,33 +1,97 @@
-## 1.15.0
+## 1.16.0
+
+### Analyzer
+
+*   Static checking of `for in` statements. These will now produce static
+    warnings:
+
+    ```dart
+    // Not Iterable.
+    for (var i in 1234) { ... }
+
+    // String cannot be assigned to int.
+    for (int n in <String>["a", "b"]) { ... }
+    ```
+
+## 1.15.0 - 2016-03-09
 
 ### Core library changes
+
+* `dart:async`
+  * Made `StreamView` class a `const` class.
+
+* `dart:core`
   * Added `Uri.queryParametersAll` to handle multiple query parameters with
     the same name.
 
 * `dart:io`
   * Added `SecurityContext.usePrivateKeyBytes`,
-          `SecurityContext.useCertificateChainBytes`,
-          `SecurityContext.setTrustedCertificatesBytes`, and
-          `SecurityContext.setClientAuthoritiesBytes`.
-  * The non-`Bytes` methods of `SecurityContext` are being renamed -`Sync`, as
-    they will do synchronous IO. The non-`Bytes` and non-`Sync` methods are
-    deprecated and will be removed in a later release.
+    `SecurityContext.useCertificateChainBytes`,
+    `SecurityContext.setTrustedCertificatesBytes`, and
+    `SecurityContext.setClientAuthoritiesBytes`.
   * **Breaking** The named `directory` argument of
-    `SecurityContext.setTrustedCertificates` is no longer supported.
-    The method now only supports one argument for the PEM file name containing
-    the trusted certificates.
-  * Added support to SecurityContext for PKCS12 certificate and key containers.
+    `SecurityContext.setTrustedCertificates` has been removed.
+  * Added support to `SecurityContext` for PKCS12 certificate and key
+    containers.
   * All calls in `SecurityContext` that accept certificate data now accept an
     optional named parameter `password`, similar to
     `SecurityContext.usePrivateKeyBytes`, for use as the password for PKCS12
     data.
-* `dart:async`
-  * Made `StreamView` class a `const` class.
 
-## 1.14.2 - 2016-02-09
+### Tool changes
 
-* Fixes a bug where pub would download packages from pub.dartlang.org even when
-  a different hosted URL was specified.
+* Dartium and content shell
+  * The Chrome-based tools that ship as part of the Dart SDK – Dartium and
+    content shell – are now based on Chrome version 45 (instead of Chrome 39).
+  * Dart browser libraries (`dart:html`, `dart:svg`, etc) *have not* been
+    updated.
+    * These are still based on Chrome 39.
+    * These APIs will be updated in a future release.
+  * Note that there are experimental APIs which have changed in the underlying
+    browser, and will not work with the older libraries.
+    For example, `Element.animate`.
+
+* `dartfmt` - upgraded to v0.2.4
+  * Better handling for long collections with comments.
+  * Always put member metadata annotations on their own line.
+  * Indent functions in named argument lists with non-functions.
+  * Force the parameter list to split if a split occurs inside a function-typed
+    parameter.
+  * Don't force a split for before a single named argument if the argument
+    itself splits.
+
+### Service protocol changes
+
+* Fixed a documentation bug where the field `extensionRPCs` in `Isolate`
+  was not marked optional.
+
+### Experimental language features
+  * Added support for [configuration-specific imports](https://github.com/munificent/dep-interface-libraries/blob/master/Proposal.md).
+    On the VM and `dart2js`, they can be enabled with `--conditional-directives`.
+
+    The analyzer requires additional configuration:
+    ```yaml
+    analyzer:
+      language:
+        enableConditionalDirectives: true
+    ```
+
+    Read about [configuring the analyzer] for more details.
+
+[configuring the analyzer]: https://github.com/dart-lang/sdk/tree/master/pkg/analyzer#configuring-the-analyzer
+
+## 1.14.2 - 2016-02-10
+
+Patch release, resolves three issues:
+
+* VM: Fixed a code generation bug on x64.
+  (SDK commit [834b3f02](https://github.com/dart-lang/sdk/commit/834b3f02b6ab740a213fd808e6c6f3269bed80e5))
+
+* `dart:io`: Fixed EOF detection when reading some special device files.
+  (SDK issue [25596](https://github.com/dart-lang/sdk/issues/25596))
+
+* Pub: Fixed an error using hosted dependencies in SDK version 1.14.
+  (Pub issue [1386](https://github.com/dart-lang/pub/issues/1386))
 
 ## 1.14.1 - 2016-02-04
 

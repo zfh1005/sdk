@@ -849,6 +849,7 @@ abstract class VM extends ServiceObjectOwner {
   // Well-known stream ids.
   static const kVMStream = 'VM';
   static const kIsolateStream = 'Isolate';
+  static const kTimelineStream = 'Timeline';
   static const kDebugStream = 'Debug';
   static const kGCStream = 'GC';
   static const kStdoutStream = 'Stdout';
@@ -1170,6 +1171,7 @@ class Isolate extends ServiceObjectOwner {
 
   static const kCallSitesReport = '_CallSites';
   static const kPossibleBreakpointsReport = 'PossibleBreakpoints';
+  static const kProfileReport = '_Profile';
 
   Future<ServiceMap> getSourceReport(List<String> report_kinds,
                                      [Script script,
@@ -1185,7 +1187,7 @@ class Isolate extends ServiceObjectOwner {
     if (endPos != null) {
       params['endTokenPos'] = endPos;
     }
-    return invokeRpc('_getSourceReport', params);
+    return invokeRpc('getSourceReport', params);
   }
 
   /// Fetches and builds the class hierarchy for this isolate. Returns the
@@ -1198,6 +1200,10 @@ class Isolate extends ServiceObjectOwner {
 
   Future<ServiceObject> getPorts() {
     return invokeRpc('_getPorts', {});
+  }
+
+  Future<ServiceObject> getPersistentHandles() {
+    return invokeRpc('_getPersistentHandles', {});
   }
 
   Future<List<Class>> getClassRefs() async {
@@ -1508,6 +1514,7 @@ class Isolate extends ServiceObjectOwner {
       case ServiceEvent.kPauseBreakpoint:
       case ServiceEvent.kPauseInterrupted:
       case ServiceEvent.kPauseException:
+      case ServiceEvent.kNone:
       case ServiceEvent.kResume:
         assert((pauseEvent == null) ||
                !event.timestamp.isBefore(pauseEvent.timestamp));
@@ -1817,6 +1824,7 @@ class ServiceEvent extends ServiceObject {
   static const kPauseBreakpoint        = 'PauseBreakpoint';
   static const kPauseInterrupted       = 'PauseInterrupted';
   static const kPauseException         = 'PauseException';
+  static const kNone                   = 'None';
   static const kResume                 = 'Resume';
   static const kBreakpointAdded        = 'BreakpointAdded';
   static const kBreakpointResolved     = 'BreakpointResolved';
@@ -1851,6 +1859,7 @@ class ServiceEvent extends ServiceObject {
   @observable Map logRecord;
   @observable String extensionKind;
   @observable Map extensionData;
+  @observable List timelineEvents;
 
   int chunkIndex, chunkCount, nodeCount;
 
@@ -1859,7 +1868,8 @@ class ServiceEvent extends ServiceObject {
             kind == kPauseExit ||
             kind == kPauseBreakpoint ||
             kind == kPauseInterrupted ||
-            kind == kPauseException);
+            kind == kPauseException ||
+            kind == kNone);
   }
 
   void _update(ObservableMap map, bool mapIsRef) {
@@ -1927,6 +1937,9 @@ class ServiceEvent extends ServiceObject {
     if (map['extensionKind'] != null) {
       extensionKind = map['extensionKind'];
       extensionData = map['extensionData'];
+    }
+    if (map['timelineEvents'] != null) {
+      timelineEvents = map['timelineEvents'];
     }
   }
 

@@ -6,6 +6,7 @@
 #if defined(TARGET_OS_WINDOWS)
 
 #include "vm/growable_array.h"
+#include "vm/lockers.h"
 #include "vm/os_thread.h"
 
 #include <process.h>  // NOLINT
@@ -305,6 +306,21 @@ Monitor::~Monitor() {
 }
 
 
+bool Monitor::TryEnter() {
+  // Attempt to pass the semaphore but return immediately.
+  BOOL result = TryEnterCriticalSection(&data_.cs_);
+  if (!result) {
+    return false;
+  }
+#if defined(DEBUG)
+  // When running with assertions enabled we do track the owner.
+  ASSERT(owner_ == OSThread::kInvalidThreadId);
+  owner_ = OSThread::GetCurrentThreadId();
+#endif  // defined(DEBUG)
+  return true;
+}
+
+
 void Monitor::Enter() {
   EnterCriticalSection(&data_.cs_);
 
@@ -550,7 +566,7 @@ void ThreadLocalData::AddThreadLocal(ThreadLocalKey key,
     // We only care about thread locals with destructors.
     return;
   }
-  mutex_->Lock();
+  MutexLocker ml(mutex_, false);
 #if defined(DEBUG)
   // Verify that we aren't added twice.
   for (intptr_t i = 0; i < thread_locals_->length(); i++) {
@@ -560,12 +576,12 @@ void ThreadLocalData::AddThreadLocal(ThreadLocalKey key,
 #endif
   // Add to list.
   thread_locals_->Add(ThreadLocalEntry(key, destructor));
-  mutex_->Unlock();
 }
 
 
 void ThreadLocalData::RemoveThreadLocal(ThreadLocalKey key) {
-  ASSERT(thread_locals_ != NULL);  mutex_->Lock();
+  ASSERT(thread_locals_ != NULL);
+  MutexLocker ml(mutex_, false);
   intptr_t i = 0;
   for (; i < thread_locals_->length(); i++) {
     const ThreadLocalEntry& entry = thread_locals_->At(i);
@@ -575,11 +591,9 @@ void ThreadLocalData::RemoveThreadLocal(ThreadLocalKey key) {
   }
   if (i == thread_locals_->length()) {
     // Not found.
-    mutex_->Unlock();
     return;
   }
   thread_locals_->RemoveAt(i);
-  mutex_->Unlock();
 }
 
 
@@ -588,7 +602,7 @@ void ThreadLocalData::RemoveThreadLocal(ThreadLocalKey key) {
 void ThreadLocalData::RunDestructors() {
   ASSERT(thread_locals_ != NULL);
   ASSERT(mutex_ != NULL);
-  mutex_->Lock();
+  MutexLocker ml(mutex_, false);
   for (intptr_t i = 0; i < thread_locals_->length(); i++) {
     const ThreadLocalEntry& entry = thread_locals_->At(i);
     // We access the exiting thread's TLS variable here.
@@ -596,7 +610,6 @@ void ThreadLocalData::RunDestructors() {
     // We invoke the constructor here.
     entry.destructor()(p);
   }
-  mutex_->Unlock();
 }
 
 

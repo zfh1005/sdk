@@ -148,6 +148,7 @@ Precompiler::Precompiler(Thread* thread, bool reset_fields) :
     classes_to_retain_(),
     typeargs_to_retain_(),
     types_to_retain_(),
+    consts_to_retain_(),
     error_(Error::Handle()) {
 }
 
@@ -202,6 +203,12 @@ void Precompiler::DoCompileAll(
     TraceTypesFromRetainedClasses();
     DropTypes();
     DropTypeArguments();
+
+    // Clear these before dropping classes as they may hold onto otherwise
+    // dead instances of classes we will remove.
+    I->object_store()->set_compile_time_constants(Array::null_array());
+    I->object_store()->set_unique_dynamic_targets(Array::null_array());
+
     DropClasses();
     DropLibraries();
 
@@ -214,9 +221,6 @@ void Precompiler::DoCompileAll(
       // Reduces binary size but obfuscates profiler results.
       DedupInstructions();
     }
-
-    I->object_store()->set_compile_time_constants(Array::null_array());
-    I->object_store()->set_unique_dynamic_targets(Array::null_array());
 
     zone_ = NULL;
   }
@@ -409,6 +413,9 @@ void Precompiler::Iterate() {
     }
 
     CheckForNewDynamicFunctions();
+    if (!changed_) {
+      TraceConstFunctions();
+    }
   }
 }
 
@@ -571,6 +578,32 @@ void Precompiler::AddTypesOf(const Function& function) {
     type = function.ParameterTypeAt(i);
     AddType(type);
   }
+  Code& code = Code::Handle(Z, function.CurrentCode());
+  if (code.IsNull()) {
+    ASSERT(function.kind() == RawFunction::kSignatureFunction);
+  } else {
+    const ExceptionHandlers& handlers =
+        ExceptionHandlers::Handle(Z, code.exception_handlers());
+    if (!handlers.IsNull()) {
+      Array& types = Array::Handle(Z);
+      for (intptr_t i = 0; i < handlers.num_entries(); i++) {
+        types = handlers.GetHandledTypes(i);
+        for (intptr_t j = 0; j < types.Length(); j++) {
+          type ^= types.At(j);
+          AddType(type);
+        }
+      }
+    }
+  }
+  // A function can always be inlined and have only a nested local function
+  // remain.
+  const Function& parent = Function::Handle(Z, function.parent_function());
+  if (!parent.IsNull()) {
+    AddTypesOf(parent);
+  }
+  // A class may have all functions inlined except a local function.
+  const Class& owner = Class::Handle(Z, function.Owner());
+  AddTypesOf(owner);
 }
 
 
@@ -604,6 +637,13 @@ void Precompiler::AddType(const AbstractType& abstype) {
     AbstractType& type = AbstractType::Handle(Z);
     type = TypeRef::Cast(abstype).type();
     AddType(type);
+  } else if (abstype.IsTypeParameter()) {
+    const AbstractType& type =
+        AbstractType::Handle(Z, TypeParameter::Cast(abstype).bound());
+    AddType(type);
+    const Class& cls =
+        Class::Handle(Z, TypeParameter::Cast(abstype).parameterized_class());
+    AddTypesOf(cls);
   }
 }
 
@@ -642,6 +682,8 @@ void Precompiler::AddConstObject(const Instance& instance) {
   // Some Instances in the ObjectPool aren't const objects, such as
   // argument descriptors.
   if (!instance.IsCanonical()) return;
+
+  consts_to_retain_.Insert(&Instance::ZoneHandle(Z, instance.raw()));
 
   if (cls.NumTypeArguments() > 0) {
     AddTypeArguments(TypeArguments::Handle(Z, instance.GetTypeArguments()));
@@ -1127,6 +1169,36 @@ void Precompiler::GetUniqueDynamicTarget(Isolate* isolate,
 }
 
 
+void Precompiler::TraceConstFunctions() {
+  // Compilation of const accessors happens outside of the treeshakers
+  // queue, so we haven't previously scanned its literal pool.
+
+  Library& lib = Library::Handle(Z);
+  Class& cls = Class::Handle(Z);
+  Array& functions = Array::Handle(Z);
+  Function& function = Function::Handle(Z);
+
+  for (intptr_t i = 0; i < libraries_.Length(); i++) {
+    lib ^= libraries_.At(i);
+    ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
+    while (it.HasNext()) {
+      cls = it.GetNextClass();
+      if (cls.IsDynamicClass()) {
+        continue;  // class 'dynamic' is in the read-only VM isolate.
+      }
+
+      functions = cls.functions();
+      for (intptr_t j = 0; j < functions.Length(); j++) {
+        function ^= functions.At(j);
+        if (function.is_const() && function.HasCode()) {
+          AddCalleesOf(function);
+        }
+      }
+    }
+  }
+}
+
+
 void Precompiler::DropFunctions() {
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
@@ -1175,7 +1247,7 @@ void Precompiler::DropFunctions() {
           }
           dropped_function_count_++;
           if (FLAG_trace_precompiler) {
-            THR_Print("Precompilation dropping %s\n",
+            THR_Print("Dropping function %s\n",
                       function.ToLibNamePrefixedQualifiedCString());
           }
         }
@@ -1201,7 +1273,7 @@ void Precompiler::DropFunctions() {
     } else {
       dropped_function_count_++;
       if (FLAG_trace_precompiler) {
-        THR_Print("Precompilation dropping %s\n",
+        THR_Print("Dropping function %s\n",
                   function.ToLibNamePrefixedQualifiedCString());
       }
     }
@@ -1246,7 +1318,7 @@ void Precompiler::DropFields() {
           }
           dropped_field_count_++;
           if (FLAG_trace_precompiler) {
-            THR_Print("Precompilation dropping %s\n",
+            THR_Print("Dropping field %s\n",
                       field.ToCString());
           }
         }
@@ -1357,6 +1429,9 @@ void Precompiler::TraceTypesFromRetainedClasses() {
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
   Array& members = Array::Handle(Z);
+  Array& constants = Array::Handle(Z);
+  GrowableObjectArray& retained_constants = GrowableObjectArray::Handle(Z);
+  Instance& constant = Instance::Handle(Z);
 
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
@@ -1387,9 +1462,26 @@ void Precompiler::TraceTypesFromRetainedClasses() {
         // them.
         retain = true;
       }
-      members = cls.constants();
-      if (members.Length() > 0) {
-        // --compile_all?
+
+      constants = cls.constants();
+      retained_constants = GrowableObjectArray::New();
+      for (intptr_t j = 0; j < constants.Length(); j++) {
+        constant ^= constants.At(j);
+        bool retain = consts_to_retain_.Lookup(&constant) != NULL;
+        if (retain) {
+          retained_constants.Add(constant);
+        }
+      }
+      if (retained_constants.Length() > 0) {
+        constants = Array::MakeArray(retained_constants);
+        cls.set_constants(constants);
+      } else {
+        constants = Object::empty_array().raw();
+        cls.set_constants(Object::empty_array());
+      }
+
+      if (constants.Length() > 0) {
+        ASSERT(retain);  // This shouldn't be the reason we keep a class.
         retain = true;
       }
 
@@ -1404,14 +1496,17 @@ void Precompiler::TraceTypesFromRetainedClasses() {
 void Precompiler::DropClasses() {
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
-  Array& members = Array::Handle(Z);
+  Array& constants = Array::Handle(Z);
   String& name = String::Handle(Z);
 
 #if defined(DEBUG)
-  {
-    // Force GC for allocation stats.
-    I->heap()->CollectAllGarbage();
-  }
+  // We are about to remove classes from the class table. For this to be safe,
+  // there must be no instances of these classes on the heap, not even
+  // corpses because the class table entry may be used to find the size of
+  // corpses. Request a full GC and wait for the sweeper tasks to finish before
+  // we continue.
+  I->heap()->CollectAllGarbage();
+  I->heap()->WaitForSweeperTasks();
 #endif
 
   ClassTable* class_table = I->class_table();
@@ -1430,21 +1525,15 @@ void Precompiler::DropClasses() {
       // removed.
       continue;
     }
-    if (cls.is_enum_class()) {
-      // Enum classes have live instances, so we cannot unregister
-      // them.
-      continue;
-    }
-    members = cls.constants();
-    if (members.Length() > 0) {
-      // --compile_all?
-      continue;
-    }
 
     bool retain = classes_to_retain_.Lookup(&cls) != NULL;
     if (retain) {
       continue;
     }
+
+    ASSERT(!cls.is_allocated());
+    constants = cls.constants();
+    ASSERT(constants.Length() == 0);
 
 #if defined(DEBUG)
     intptr_t instances =
@@ -1459,7 +1548,7 @@ void Precompiler::DropClasses() {
 
     dropped_class_count_++;
     if (FLAG_trace_precompiler) {
-      THR_Print("Precompilation dropping %" Pd " %s\n", cid, cls.ToCString());
+      THR_Print("Dropping class %" Pd " %s\n", cid, cls.ToCString());
     }
 
 #if defined(DEBUG)
@@ -1496,7 +1585,7 @@ void Precompiler::DropLibraries() {
       dropped_library_count_++;
       lib.set_index(-1);
       if (FLAG_trace_precompiler) {
-        THR_Print("Precompilation dropping %s\n", lib.ToCString());
+        THR_Print("Dropping library %s\n", lib.ToCString());
       }
     }
   }
@@ -1980,7 +2069,12 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
                                   "OptimizationPasses");
 #endif  // !PRODUCT
         inline_id_to_function.Add(&function);
-        inline_id_to_token_pos.Add(function.token_pos());
+        // We do not add the token position now because we don't know the
+        // position of the inlined call until later. A side effect of this
+        // is that the length of |inline_id_to_function| is always larger
+        // than the length of |inline_id_to_token_pos| by one.
+        // Top scope function has no caller (-1). We do this because we expect
+        // all token positions to be at an inlined call.
         // Top scope function has no caller (-1).
         caller_inline_id.Add(-1);
         CSTAT_TIMER_SCOPE(thread(), graphoptimizer_timer);

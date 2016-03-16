@@ -18,8 +18,8 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../../generated/resolver_test.dart'
-    show TestTypeProvider, AnalysisContextHelper;
+import '../../../generated/analysis_context_factory.dart'
+    show AnalysisContextHelper;
 import '../../../generated/test_support.dart';
 import '../../../reflective_tests.dart';
 import '../../../utils.dart';
@@ -1299,18 +1299,108 @@ class FunctionTypeImplTest extends EngineTestCase {
     expect(type.element, typeElement);
   }
 
-  void test_getNamedParameterTypes() {
-    FunctionTypeImpl type = new FunctionTypeImpl(
-        new FunctionElementImpl.forNode(AstFactory.identifier3("f")));
+  void test_getNamedParameterTypes_namedParameters() {
+    TestTypeProvider typeProvider = new TestTypeProvider();
+    FunctionElement element = ElementFactory
+        .functionElementWithParameters('f', VoidTypeImpl.instance, [
+      ElementFactory.requiredParameter2('a', typeProvider.intType),
+      ElementFactory.requiredParameter('b'),
+      ElementFactory.namedParameter2('c', typeProvider.stringType),
+      ElementFactory.namedParameter('d')
+    ]);
+    FunctionTypeImpl type = element.type;
+    Map<String, DartType> types = type.namedParameterTypes;
+    expect(types, hasLength(2));
+    expect(types['c'], typeProvider.stringType);
+    expect(types['d'], DynamicTypeImpl.instance);
+  }
+
+  void test_getNamedParameterTypes_noNamedParameters() {
+    TestTypeProvider typeProvider = new TestTypeProvider();
+    FunctionElement element = ElementFactory
+        .functionElementWithParameters('f', VoidTypeImpl.instance, [
+      ElementFactory.requiredParameter2('a', typeProvider.intType),
+      ElementFactory.requiredParameter('b'),
+      ElementFactory.positionalParameter2('c', typeProvider.stringType)
+    ]);
+    FunctionTypeImpl type = element.type;
     Map<String, DartType> types = type.namedParameterTypes;
     expect(types, hasLength(0));
   }
 
-  void test_getNormalParameterTypes() {
-    FunctionTypeImpl type = new FunctionTypeImpl(
-        new FunctionElementImpl.forNode(AstFactory.identifier3("f")));
+  void test_getNamedParameterTypes_noParameters() {
+    FunctionTypeImpl type = ElementFactory.functionElement('f').type;
+    Map<String, DartType> types = type.namedParameterTypes;
+    expect(types, hasLength(0));
+  }
+
+  void test_getNormalParameterTypes_noNormalParameters() {
+    TestTypeProvider typeProvider = new TestTypeProvider();
+    FunctionElement element = ElementFactory
+        .functionElementWithParameters('f', VoidTypeImpl.instance, [
+      ElementFactory.positionalParameter2('c', typeProvider.stringType),
+      ElementFactory.positionalParameter('d')
+    ]);
+    FunctionTypeImpl type = element.type;
     List<DartType> types = type.normalParameterTypes;
     expect(types, hasLength(0));
+  }
+
+  void test_getNormalParameterTypes_noParameters() {
+    FunctionTypeImpl type = ElementFactory.functionElement('f').type;
+    List<DartType> types = type.normalParameterTypes;
+    expect(types, hasLength(0));
+  }
+
+  void test_getNormalParameterTypes_normalParameters() {
+    TestTypeProvider typeProvider = new TestTypeProvider();
+    FunctionElement element = ElementFactory
+        .functionElementWithParameters('f', VoidTypeImpl.instance, [
+      ElementFactory.requiredParameter2('a', typeProvider.intType),
+      ElementFactory.requiredParameter('b'),
+      ElementFactory.positionalParameter2('c', typeProvider.stringType)
+    ]);
+    FunctionTypeImpl type = element.type;
+    List<DartType> types = type.normalParameterTypes;
+    expect(types, hasLength(2));
+    expect(types[0], typeProvider.intType);
+    expect(types[1], DynamicTypeImpl.instance);
+  }
+
+  void test_getOptionalParameterTypes_noOptionalParameters() {
+    TestTypeProvider typeProvider = new TestTypeProvider();
+    FunctionElement element = ElementFactory
+        .functionElementWithParameters('f', VoidTypeImpl.instance, [
+      ElementFactory.requiredParameter2('a', typeProvider.intType),
+      ElementFactory.requiredParameter('b'),
+      ElementFactory.namedParameter2('c', typeProvider.stringType),
+      ElementFactory.namedParameter('d')
+    ]);
+    FunctionTypeImpl type = element.type;
+    List<DartType> types = type.optionalParameterTypes;
+    expect(types, hasLength(0));
+  }
+
+  void test_getOptionalParameterTypes_noParameters() {
+    FunctionTypeImpl type = ElementFactory.functionElement('f').type;
+    List<DartType> types = type.optionalParameterTypes;
+    expect(types, hasLength(0));
+  }
+
+  void test_getOptionalParameterTypes_optionalParameters() {
+    TestTypeProvider typeProvider = new TestTypeProvider();
+    FunctionElement element = ElementFactory
+        .functionElementWithParameters('f', VoidTypeImpl.instance, [
+      ElementFactory.requiredParameter2('a', typeProvider.intType),
+      ElementFactory.requiredParameter('b'),
+      ElementFactory.positionalParameter2('c', typeProvider.stringType),
+      ElementFactory.positionalParameter('d')
+    ]);
+    FunctionTypeImpl type = element.type;
+    List<DartType> types = type.optionalParameterTypes;
+    expect(types, hasLength(2));
+    expect(types[0], typeProvider.stringType);
+    expect(types[1], DynamicTypeImpl.instance);
   }
 
   void test_getReturnType() {
@@ -1969,7 +2059,7 @@ class FunctionTypeImplTest extends EngineTestCase {
     FunctionTypeAliasElementImpl f =
         ElementFactory.functionTypeAliasElement('f');
     ClassElementImpl c = ElementFactory.classElement2('C', ['T']);
-    f.returnType = c.type.substitute4([f.type]);
+    f.returnType = c.type.instantiate([f.type]);
     expect(f.type.toString(), '() \u2192 C<...>');
   }
 
@@ -2757,8 +2847,8 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement classB = ElementFactory.classElement2("B");
     DartType dynamicType = DynamicTypeImpl.instance;
     InterfaceType typeAOfDynamic =
-        classA.type.substitute4(<DartType>[dynamicType]);
-    InterfaceType typeAOfB = classA.type.substitute4(<DartType>[classB.type]);
+        classA.type.instantiate(<DartType>[dynamicType]);
+    InterfaceType typeAOfB = classA.type.instantiate(<DartType>[classB.type]);
     expect(typeAOfDynamic.isMoreSpecificThan(typeAOfB), isFalse);
     expect(typeAOfB.isMoreSpecificThan(typeAOfDynamic), isTrue);
   }
@@ -2895,8 +2985,8 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement classB = ElementFactory.classElement2("B");
     DartType dynamicType = DynamicTypeImpl.instance;
     InterfaceType typeAOfDynamic =
-        classA.type.substitute4(<DartType>[dynamicType]);
-    InterfaceType typeAOfB = classA.type.substitute4(<DartType>[classB.type]);
+        classA.type.instantiate(<DartType>[dynamicType]);
+    InterfaceType typeAOfB = classA.type.instantiate(<DartType>[classB.type]);
     expect(typeAOfDynamic.isSubtypeOf(typeAOfB), isTrue);
     expect(typeAOfB.isSubtypeOf(typeAOfDynamic), isTrue);
   }
@@ -2982,7 +3072,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement classJ = ElementFactory.classElement("J", classI.type);
     ClassElement classK = ElementFactory.classElement2("K");
     InterfaceType typeA = classA.type;
-    InterfaceType typeA_dynamic = typeA.substitute4(<DartType>[dynamicType]);
+    InterfaceType typeA_dynamic = typeA.instantiate(<DartType>[dynamicType]);
     InterfaceTypeImpl typeAI = new InterfaceTypeImpl(classA);
     InterfaceTypeImpl typeAJ = new InterfaceTypeImpl(classA);
     InterfaceTypeImpl typeAK = new InterfaceTypeImpl(classA);
@@ -3952,18 +4042,10 @@ class TypeParameterTypeImplTest extends EngineTestCase {
     expect(typeParameterTypeT.isMoreSpecificThan(classS.type), isTrue);
   }
 
-  void test_resolveToBound_unbound() {
-    TypeParameterTypeImpl type = new TypeParameterTypeImpl(
-        new TypeParameterElementImpl.forNode(AstFactory.identifier3("E")));
-    // Returns whatever type is passed to resolveToBound().
-    expect(type.resolveToBound(VoidTypeImpl.instance),
-        same(VoidTypeImpl.instance));
-  }
-
   void test_resolveToBound_bound() {
     ClassElementImpl classS = ElementFactory.classElement2("A");
     TypeParameterElementImpl element =
-    new TypeParameterElementImpl.forNode(AstFactory.identifier3("E"));
+        new TypeParameterElementImpl.forNode(AstFactory.identifier3("E"));
     element.bound = classS.type;
     TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
     expect(type.resolveToBound(null), same(classS.type));
@@ -3972,14 +4054,22 @@ class TypeParameterTypeImplTest extends EngineTestCase {
   void test_resolveToBound_nestedBound() {
     ClassElementImpl classS = ElementFactory.classElement2("A");
     TypeParameterElementImpl elementE =
-    new TypeParameterElementImpl.forNode(AstFactory.identifier3("E"));
+        new TypeParameterElementImpl.forNode(AstFactory.identifier3("E"));
     elementE.bound = classS.type;
     TypeParameterTypeImpl typeE = new TypeParameterTypeImpl(elementE);
     TypeParameterElementImpl elementF =
-    new TypeParameterElementImpl.forNode(AstFactory.identifier3("F"));
+        new TypeParameterElementImpl.forNode(AstFactory.identifier3("F"));
     elementF.bound = typeE;
     TypeParameterTypeImpl typeF = new TypeParameterTypeImpl(elementE);
     expect(typeF.resolveToBound(null), same(classS.type));
+  }
+
+  void test_resolveToBound_unbound() {
+    TypeParameterTypeImpl type = new TypeParameterTypeImpl(
+        new TypeParameterElementImpl.forNode(AstFactory.identifier3("E")));
+    // Returns whatever type is passed to resolveToBound().
+    expect(type.resolveToBound(VoidTypeImpl.instance),
+        same(VoidTypeImpl.instance));
   }
 
   void test_substitute_equal() {

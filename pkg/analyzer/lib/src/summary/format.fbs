@@ -7,9 +7,31 @@
 
 
 /**
+ * Enum used to indicate the kind of a name in index.
+ */
+enum IndexNameKind : byte {
+  /**
+   * A top-level element.
+   */
+  topLevel,
+
+  /**
+   * A class member.
+   */
+  classMember
+}
+
+/**
  * Enum used to indicate the kind of an index relation.
  */
 enum IndexRelationKind : byte {
+  /**
+   * Left: class.
+   *   Is ancestor of (is extended or implemented, directly or indirectly).
+   * Right: other class declaration.
+   */
+  IS_ANCESTOR_OF,
+
   /**
    * Left: class.
    *   Is extended by.
@@ -39,13 +61,6 @@ enum IndexRelationKind : byte {
   IS_INVOKED_BY,
 
   /**
-   * Left: method, property accessor, function, variable.
-   *   Is invoked with a qualifier at.
-   * Right: location.
-   */
-  IS_INVOKED_QUALIFIED_BY,
-
-  /**
    * Left: any element.
    *   Is referenced (and not invoked, read/written) at.
    * Right: location.
@@ -53,11 +68,25 @@ enum IndexRelationKind : byte {
   IS_REFERENCED_BY,
 
   /**
-   * Left: any element.
-   *   Is referenced (and not invoked, read/written) with a qualifier at.
+   * Left: unresolved member name.
+   *   Is read at.
    * Right: location.
    */
-  IS_REFERENCED_QUALIFIED_BY
+  IS_READ_BY,
+
+  /**
+   * Left: unresolved member name.
+   *   Is both read and written at.
+   * Right: location.
+   */
+  IS_READ_WRITTEN_BY,
+
+  /**
+   * Left: unresolved member name.
+   *   Is written at.
+   * Right: location.
+   */
+  IS_WRITTEN_BY
 }
 
 /**
@@ -84,7 +113,27 @@ enum IndexSyntheticElementKind : byte {
   /**
    * The synthetic setter of a property introducing element.
    */
-  setter
+  setter,
+
+  /**
+   * The synthetic top-level variable element.
+   */
+  topLevelVariable,
+
+  /**
+   * The synthetic `loadLibrary` element.
+   */
+  loadLibrary,
+
+  /**
+   * The synthetic `index` getter of an enum.
+   */
+  enumIndex,
+
+  /**
+   * The synthetic `values` getter of an enum.
+   */
+  enumValues
 }
 
 /**
@@ -511,6 +560,21 @@ enum UnlinkedParamKind : byte {
 }
 
 /**
+ * Information about an element code range.
+ */
+table CodeRange {
+  /**
+   * Length of the element code.
+   */
+  length:uint (id: 1);
+
+  /**
+   * Offset of the element code relative to the beginning of the file.
+   */
+  offset:uint (id: 0);
+}
+
+/**
  * Summary information about a reference to a an entity such as a type, top
  * level executable, or executable within a class.
  */
@@ -776,6 +840,12 @@ table LinkedReference {
  */
 table LinkedUnit {
   /**
+   * List of slot ids (referring to [UnlinkedExecutable.constCycleSlot])
+   * corresponding to const constructors that are part of cycles.
+   */
+  constCycles:[uint] (id: 2);
+
+  /**
    * Information about the resolution of references within the compilation
    * unit.  Each element of [UnlinkedUnit.references] has a corresponding
    * element in this list (at the same index).  If this list has additional
@@ -808,6 +878,18 @@ table PackageBundle {
   linkedLibraryUris:[string] (id: 1);
 
   /**
+   * Major version of the summary format.  See
+   * [PackageBundleAssembler.currentMajorVersion].
+   */
+  majorVersion:uint (id: 5);
+
+  /**
+   * Minor version of the summary format.  See
+   * [PackageBundleAssembler.currentMinorVersion].
+   */
+  minorVersion:uint (id: 6);
+
+  /**
    * List of MD5 hashes of the files listed in [unlinkedUnitUris].  Each hash
    * is encoded as a hexadecimal string using lower case letters.
    */
@@ -832,13 +914,7 @@ table PackageIndex {
    * Each item of this list corresponds to a unique referenced element.  It is
    * the kind of the synthetic element.
    */
-  elementKinds:[IndexSyntheticElementKind] (id: 6);
-
-  /**
-   * Each item of this list corresponds to a unique library URI with an element
-   * referenced in the [PackageIndex].  It is an index into [uris] list.
-   */
-  elementLibraryUris:[uint] (id: 2);
+  elementKinds:[IndexSyntheticElementKind] (id: 5);
 
   /**
    * Each item of this list corresponds to a unique referenced element.  It is
@@ -850,26 +926,36 @@ table PackageIndex {
 
   /**
    * Each item of this list corresponds to a unique referenced element.  It is
-   * the index into [elementLibraryUris] and [elementUnitUris] for the library
+   * the index into [unitLibraryUris] and [unitUnitUris] for the library
    * specific unit where the element is declared.
    */
   elementUnits:[uint] (id: 0);
 
   /**
-   * Each item of this list corresponds to a unique unit URI with an element
-   * referenced in the [PackageIndex].  It is an index into [uris] list.
+   * List of unique element strings used in this [PackageIndex].  The list is
+   * sorted in ascending order, so that the client can quickly check the
+   * presence of a string in this [PackageIndex].
    */
-  elementUnitUris:[uint] (id: 3);
+  strings:[string] (id: 6);
 
   /**
-   * List of units indexed in this [PackageIndex].
+   * Each item of this list corresponds to the library URI of a unique library
+   * specific unit referenced in the [PackageIndex].  It is an index into
+   * [strings] list.
    */
-  units:[UnitIndex] (id: 5);
+  unitLibraryUris:[uint] (id: 2);
 
   /**
-   * List of unique URIs used in this [PackageIndex].
+   * List of indexes of each unit in this [PackageIndex].
    */
-  uris:[string] (id: 4);
+  units:[UnitIndex] (id: 4);
+
+  /**
+   * Each item of this list corresponds to the unit URI of a unique library
+   * specific unit referenced in the [PackageIndex].  It is an index into
+   * [strings] list.
+   */
+  unitUnitUris:[uint] (id: 3);
 }
 
 /**
@@ -877,39 +963,82 @@ table PackageIndex {
  */
 table UnitIndex {
   /**
-   * Each item of this list is the index into [PackageIndex.elementUnits] and
-   * [PackageIndex.elementOffsets].  The list is sorted in ascending order, so
-   * that the client can quickly find element references in this [UnitIndex].
+   * Each item of this list is the kind of an element defined in this unit.
    */
-  elements:[uint] (id: 4);
+  definedNameKinds:[IndexNameKind] (id: 6);
+
+  /**
+   * Each item of this list is the name offset of an element defined in this
+   * unit relative to the beginning of the file.
+   */
+  definedNameOffsets:[uint] (id: 7);
+
+  /**
+   * Each item of this list corresponds to an element defined in this unit.  It
+   * is an index into [PackageIndex.strings] list.  The list is sorted in
+   * ascending order, so that the client can quickly find name definitions in
+   * this [UnitIndex].
+   */
+  definedNames:[uint] (id: 5);
+
+  /**
+   * Index into [PackageIndex.unitLibraryUris] and [PackageIndex.unitUnitUris]
+   * for the library specific unit that corresponds to this [UnitIndex].
+   */
+  unit:uint (id: 0);
+
+  /**
+   * Each item of this list is the `true` if the corresponding element usage
+   * is qualified with some prefix.
+   */
+  usedElementIsQualifiedFlags:[ubyte] (id: 11);
 
   /**
    * Each item of this list is the kind of the element usage.
    */
-  kinds:[IndexRelationKind] (id: 5);
-
-  /**
-   * The library source URI of this unit, e.g. `dart:core` or
-   * `package:foo/bar.dart`, as index into [PackageIndex.uris].
-   */
-  libraryUri:uint (id: 0);
+  usedElementKinds:[IndexRelationKind] (id: 4);
 
   /**
    * Each item of this list is the length of the element usage.
    */
-  locationLengths:[uint] (id: 2);
+  usedElementLengths:[uint] (id: 1);
 
   /**
    * Each item of this list is the offset of the element usage relative to the
    * beginning of the file.
    */
-  locationOffsets:[uint] (id: 3);
+  usedElementOffsets:[uint] (id: 2);
 
   /**
-   * The unit source URI of this unit, e.g. `dart:core/int.dart` or
-   * `package:foo/bar/baz.dart`, as index into [PackageIndex.uris].
+   * Each item of this list is the index into [PackageIndex.elementUnits] and
+   * [PackageIndex.elementOffsets].  The list is sorted in ascending order, so
+   * that the client can quickly find element references in this [UnitIndex].
    */
-  unitUri:uint (id: 1);
+  usedElements:[uint] (id: 3);
+
+  /**
+   * Each item of this list is the kind of the name usage.
+   */
+  usedNameKinds:[IndexRelationKind] (id: 10);
+
+  /**
+   * Each item of this list is the offset of the name usage relative to the
+   * beginning of the file.
+   */
+  usedNameOffsets:[uint] (id: 9);
+
+  /**
+   * Each item of this list is the index into [PackageIndex.strings] for a
+   * used name.  The list is sorted in ascending order, so that the client can
+   * quickly find name uses in this [UnitIndex].
+   */
+  usedNames:[uint] (id: 8);
+
+  /**
+   * Each item of this list is the `true` if the corresponding name usage
+   * is qualified with some prefix.
+   */
+  usedNameIsQualifiedFlags:[ubyte] (id: 12);
 }
 
 /**
@@ -920,6 +1049,11 @@ table UnlinkedClass {
    * Annotations for this class.
    */
   annotations:[UnlinkedConst] (id: 5);
+
+  /**
+   * Code range of the class.
+   */
+  codeRange:CodeRange (id: 13);
 
   /**
    * Documentation comment for the class, or `null` if there is no
@@ -1128,6 +1262,11 @@ table UnlinkedEnum {
   annotations:[UnlinkedConst] (id: 4);
 
   /**
+   * Code range of the enum.
+   */
+  codeRange:CodeRange (id: 5);
+
+  /**
    * Documentation comment for the enum, or `null` if there is no documentation
    * comment.
    */
@@ -1182,10 +1321,25 @@ table UnlinkedExecutable {
   annotations:[UnlinkedConst] (id: 6);
 
   /**
+   * Code range of the executable.
+   */
+  codeRange:CodeRange (id: 26);
+
+  /**
    * If a constant [UnlinkedExecutableKind.constructor], the constructor
    * initializers.  Otherwise empty.
    */
   constantInitializers:[UnlinkedConstructorInitializer] (id: 14);
+
+  /**
+   * If [kind] is [UnlinkedExecutableKind.constructor] and [isConst] is `true`,
+   * a nonzero slot id which is unique within this compilation unit.  If this id
+   * is found in [LinkedUnit.constCycles], then this constructor is part of a
+   * cycle.
+   *
+   * Otherwise, zero.
+   */
+  constCycleSlot:uint (id: 25);
 
   /**
    * Documentation comment for the executable, or `null` if there is no
@@ -1472,6 +1626,11 @@ table UnlinkedParam {
   annotations:[UnlinkedConst] (id: 9);
 
   /**
+   * Code range of the parameter.
+   */
+  codeRange:CodeRange (id: 14);
+
+  /**
    * If the parameter has a default value, the constant expression in the
    * default value.  Note that the presence of this expression does not mean
    * that it is a valid, check [UnlinkedConst.isInvalid].
@@ -1668,6 +1827,11 @@ table UnlinkedTypedef {
   annotations:[UnlinkedConst] (id: 4);
 
   /**
+   * Code range of the typedef.
+   */
+  codeRange:CodeRange (id: 7);
+
+  /**
    * Documentation comment for the typedef, or `null` if there is no
    * documentation comment.
    */
@@ -1715,6 +1879,11 @@ table UnlinkedTypeParam {
   bound:EntityRef (id: 2);
 
   /**
+   * Code range of the type parameter.
+   */
+  codeRange:CodeRange (id: 4);
+
+  /**
    * Name of the type parameter.
    */
   name:string (id: 0);
@@ -1733,6 +1902,11 @@ table UnlinkedUnit {
    * Classes declared in the compilation unit.
    */
   classes:[UnlinkedClass] (id: 2);
+
+  /**
+   * Code range of the unit.
+   */
+  codeRange:CodeRange (id: 15);
 
   /**
    * Enums declared in the compilation unit.
@@ -1823,6 +1997,11 @@ table UnlinkedVariable {
    * Annotations for this variable.
    */
   annotations:[UnlinkedConst] (id: 8);
+
+  /**
+   * Code range of the variable.
+   */
+  codeRange:CodeRange (id: 14);
 
   /**
    * If [isConst] is true, and the variable has an initializer, the constant

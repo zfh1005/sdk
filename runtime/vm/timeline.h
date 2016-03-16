@@ -5,6 +5,8 @@
 #ifndef VM_TIMELINE_H_
 #define VM_TIMELINE_H_
 
+#include "include/dart_tools_api.h"
+
 #include "vm/allocation.h"
 #include "vm/bitfield.h"
 #include "vm/os.h"
@@ -65,17 +67,49 @@ class Timeline : public AllStatic {
     return &stream_##name##_enabled_;                                          \
   }                                                                            \
   static void SetStream##name##Enabled(bool enabled) {                         \
+    StreamStateChange(#name, stream_##name##_enabled_, enabled);               \
     stream_##name##_enabled_ = enabled;                                        \
   }
   ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_FLAGS)
 #undef ISOLATE_TIMELINE_STREAM_FLAGS
   static void SetVMStreamEnabled(bool enabled);
 
+  static void set_start_recording_cb(
+      Dart_EmbedderTimelineStartRecording start_recording_cb) {
+    start_recording_cb_ = start_recording_cb;
+  }
+
+  static Dart_EmbedderTimelineStartRecording get_start_recording_cb() {
+    return start_recording_cb_;
+  }
+
+  static void set_stop_recording_cb(
+      Dart_EmbedderTimelineStopRecording stop_recording_cb) {
+    stop_recording_cb_ = stop_recording_cb;
+  }
+
+  static Dart_EmbedderTimelineStopRecording get_stop_recording_cb() {
+    return stop_recording_cb_;
+  }
+
+  static void set_get_timeline_cb(
+      Dart_EmbedderTimelineGetTimeline get_timeline_cb) {
+    get_timeline_cb_ = get_timeline_cb;
+  }
+
+  static Dart_EmbedderTimelineGetTimeline get_get_timeline_cb() {
+    return get_timeline_cb_;
+  }
+
  private:
+  static void StreamStateChange(const char* stream_name, bool prev, bool curr);
   static TimelineEventRecorder* recorder_;
   static TimelineStream vm_stream_;
   static TimelineStream vm_api_stream_;
   static MallocGrowableArray<char*>* enabled_streams_;
+  static Dart_EmbedderTimelineStartRecording start_recording_cb_;
+  static Dart_EmbedderTimelineStopRecording stop_recording_cb_;
+  static Dart_EmbedderTimelineGetTimeline get_timeline_cb_;
 
 #define ISOLATE_TIMELINE_STREAM_DECLARE_FLAG(name, not_used)                   \
   static bool stream_##name##_enabled_;
@@ -526,6 +560,8 @@ class TimelineEventBlock {
   }
 
  protected:
+  void PrintJSON(JSONStream* stream) const;
+
   TimelineEvent* StartEvent();
 
   TimelineEvent events_[kBlockSize];
@@ -545,6 +581,7 @@ class TimelineEventBlock {
   friend class TimelineEventRingRecorder;
   friend class TimelineEventEndlessRecorder;
   friend class TimelineTestHelper;
+  friend class JSONStream;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(TimelineEventBlock);
@@ -641,6 +678,7 @@ class TimelineEventRecorder {
   void PrintJSONMeta(JSONArray* array) const;
   TimelineEvent* ThreadBlockStartEvent();
   void ThreadBlockCompleteEvent(TimelineEvent* event);
+  void PrintEmbedderJSONEvents(JSONStream* events);
 
   Mutex lock_;
   uintptr_t async_id_;
@@ -687,21 +725,22 @@ class TimelineEventRingRecorder : public TimelineEventRecorder {
 };
 
 
-// An abstract recorder that calls |StreamEvent| whenever an event is complete.
-class TimelineEventStreamingRecorder : public TimelineEventRecorder {
+// An abstract recorder that calls |OnEvent| whenever an event is complete.
+// This should only be used for testing.
+class TimelineEventCallbackRecorder : public TimelineEventRecorder {
  public:
-  TimelineEventStreamingRecorder();
-  ~TimelineEventStreamingRecorder();
+  TimelineEventCallbackRecorder();
+  ~TimelineEventCallbackRecorder();
 
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
   void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
 
-  // Called when |event| is ready to be streamed. It is unsafe to keep a
-  // reference to |event| as it may be freed as soon as this function returns.
-  virtual void StreamEvent(TimelineEvent* event) = 0;
+  // Called when |event| is completed. It is unsafe to keep a reference to
+  // |event| as it may be freed as soon as this function returns.
+  virtual void OnEvent(TimelineEvent* event) = 0;
 
   const char* name() const {
-    return "streaming";
+    return "callback";
   }
 
  protected:

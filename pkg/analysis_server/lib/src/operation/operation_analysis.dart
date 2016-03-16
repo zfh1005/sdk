@@ -15,10 +15,9 @@ import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/dependencies/library_dependencies.dart';
-import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -134,7 +133,7 @@ void sendAnalysisNotificationAnalyzedFiles(AnalysisServer server) {
     // analysis engine to update this set incrementally as analysis is
     // performed.
     LibraryDependencyCollector collector =
-        new LibraryDependencyCollector(server.getAnalysisContexts().toList());
+        new LibraryDependencyCollector(server.analysisContexts.toList());
     Set<String> analyzedFiles = collector.collectLibraryDependencies();
     Set<String> prevAnalyzedFiles = server.prevAnalyzedFiles;
     if (prevAnalyzedFiles != null &&
@@ -456,9 +455,7 @@ class _DartIndexOperation extends _SingleFileOperation {
   void perform(AnalysisServer server) {
     ServerPerformanceStatistics.indexOperation.makeCurrentWhile(() {
       try {
-        Index index = server.index;
-        AnalysisContext context = unit.element.context;
-        index.index(context, unit);
+        server.index?.indexUnit(unit);
       } catch (exception, stackTrace) {
         server.sendServerErrorNotification(
             'Failed to index: $file', exception, stackTrace);

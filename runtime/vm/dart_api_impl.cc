@@ -1145,7 +1145,7 @@ DART_EXPORT char* Dart_Initialize(
     Dart_FileCloseCallback file_close,
     Dart_EntropySource entropy_source,
     Dart_GetVMServiceAssetsArchive get_service_assets) {
-  if ((instructions_snapshot != NULL) && !FLAG_precompiled_mode) {
+  if ((instructions_snapshot != NULL) && !FLAG_precompiled_runtime) {
     return strdup("Flag --precompilation was not specified.");
   }
   if (interrupt != NULL) {
@@ -1605,17 +1605,20 @@ static void RunLoopDone(uword param) {
 
 
 DART_EXPORT Dart_Handle Dart_RunLoop() {
-  Thread* T = Thread::Current();
-  Isolate* I = T->isolate();
-  CHECK_API_SCOPE(T);
-  CHECK_CALLBACK_STATE(T);
-  API_TIMELINE_BEGIN_END;
-  Monitor monitor;
-  MonitorLocker ml(&monitor);
+  Isolate* I;
   {
-    // The message handler run loop does not expect to have a current isolate
-    // so we exit the isolate here and enter it again after the runloop is done.
-    Dart_ExitIsolate();
+    Thread* T = Thread::Current();
+    I = T->isolate();
+    CHECK_API_SCOPE(T);
+    CHECK_CALLBACK_STATE(T);
+  }
+  API_TIMELINE_BEGIN_END;
+  // The message handler run loop does not expect to have a current isolate
+  // so we exit the isolate here and enter it again after the runloop is done.
+  ::Dart_ExitIsolate();
+  {
+    Monitor monitor;
+    MonitorLocker ml(&monitor);
     RunLoopData data;
     data.monitor = &monitor;
     data.done = false;
@@ -1625,15 +1628,16 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
     while (!data.done) {
       ml.Wait();
     }
-    ::Dart_EnterIsolate(Api::CastIsolate(I));
   }
-  if (T->sticky_error() != Object::null()) {
-    Dart_Handle error = Api::NewHandle(T, T->sticky_error());
-    T->clear_sticky_error();
+  ::Dart_EnterIsolate(Api::CastIsolate(I));
+  if (I->sticky_error() != Object::null()) {
+    Dart_Handle error =
+        Api::NewHandle(Thread::Current(), I->sticky_error());
+    I->clear_sticky_error();
     return error;
   }
   if (FLAG_print_class_table) {
-    HANDLESCOPE(T);
+    HANDLESCOPE(Thread::Current());
     I->class_table()->Print();
   }
   return Api::Success();
@@ -4964,6 +4968,44 @@ DART_EXPORT void Dart_SetWeakHandleReturnValue(Dart_NativeArguments args,
 
 
 // --- Environment ---
+RawString* Api::GetEnvironmentValue(Thread* thread, const String& name) {
+  String& result = String::Handle(CallEnvironmentCallback(thread, name));
+  if (result.IsNull()) {
+    // Every 'dart:X' library introduces an environment variable
+    // 'dart.library.X' that is set to 'true'.
+    // We just need to make sure to hide private libraries (starting with
+    // "_", and the mirrors library, if it is not supported.
+
+    if (!FLAG_enable_mirrors && name.Equals(Symbols::DartLibraryMirrors())) {
+      return Symbols::False().raw();
+    }
+
+    const String& prefix = Symbols::DartLibrary();
+    if (name.StartsWith(prefix)) {
+      const String& library_name =
+          String::Handle(String::SubString(name, prefix.Length()));
+
+      // Private libraries (starting with "_") are not exposed to the user.
+      if (!library_name.IsNull() && library_name.CharAt(0) != '_') {
+        const String& dart_library_name =
+            String::Handle(String::Concat(Symbols::DartScheme(), library_name));
+        const Library& library =
+            Library::Handle(Library::LookupLibrary(dart_library_name));
+        if (!library.IsNull()) {
+          return Symbols::True().raw();
+        }
+      }
+    }
+    // Check for default VM provided values. If it was not overriden on the
+    // command line.
+    if (Symbols::DartIsVM().Equals(name)) {
+      return Symbols::True().raw();
+    }
+  }
+  return result.raw();
+}
+
+
 RawString* Api::CallEnvironmentCallback(Thread* thread, const String& name) {
   Isolate* isolate = thread->isolate();
   Dart_EnvironmentCallback callback = isolate->environment_callback();
@@ -4983,15 +5025,6 @@ RawString* Api::CallEnvironmentCallback(Thread* thread, const String& name) {
       // At this point everything except null are invalid environment values.
       Exceptions::ThrowArgumentError(
           String::Handle(String::New("Illegal environment value")));
-    }
-  }
-  if (result.IsNull()) {
-    // TODO(iposva): Determine whether builtin values can be overriden by the
-    // embedder.
-    // Check for default VM provided values. If it was not overriden on the
-    // command line.
-    if (Symbols::DartIsVM().Equals(name)) {
-      return Symbols::True().raw();
     }
   }
   return result.raw();
@@ -5874,23 +5907,19 @@ static bool StreamTraceEvents(Dart_StreamConsumer consumer,
   ASSERT(output[output_length - 1] == ']');
   // Replace the ']' with the null character.
   output[output_length - 1] = '\0';
+  char* start = &output[1];
   // We are skipping the '['.
   output_length -= 1;
 
-  // Start the stream.
-  StartStreamToConsumer(consumer, user_data, "timeline");
-
   DataStreamToConsumer(consumer,
                        user_data,
-                       &output[1],
+                       start,
                        output_length,
                        "timeline");
 
   // We stole the JSONStream's output buffer, free it.
   free(output);
 
-  // Finish the stream.
-  FinishStreamToConsumer(consumer, user_data, "timeline");
   return true;
 }
 
@@ -5916,7 +5945,23 @@ DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
   JSONStream js;
   IsolateTimelineEventFilter filter(isolate->main_port());
   timeline_recorder->PrintTraceEvent(&js, &filter);
-  return StreamTraceEvents(consumer, user_data, &js);
+  StartStreamToConsumer(consumer, user_data, "timeline");
+  bool success = StreamTraceEvents(consumer, user_data, &js);
+  FinishStreamToConsumer(consumer, user_data, "timeline");
+  return success;
+}
+
+
+DART_EXPORT void Dart_SetEmbedderTimelineCallbacks(
+    Dart_EmbedderTimelineStartRecording start_recording,
+    Dart_EmbedderTimelineStopRecording stop_recording,
+    Dart_EmbedderTimelineGetTimeline get_timeline) {
+  if (!FLAG_support_timeline) {
+    return;
+  }
+  Timeline::set_start_recording_cb(start_recording);
+  Timeline::set_stop_recording_cb(stop_recording);
+  Timeline::set_get_timeline_cb(get_timeline);
 }
 
 
@@ -5938,10 +5983,16 @@ DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
     return false;
   }
   Timeline::ReclaimCachedBlocksFromThreads();
+  bool success = false;
   JSONStream js;
   TimelineEventFilter filter;
   timeline_recorder->PrintTraceEvent(&js, &filter);
-  return StreamTraceEvents(consumer, user_data, &js);
+  StartStreamToConsumer(consumer, user_data, "timeline");
+  if (StreamTraceEvents(consumer, user_data, &js)) {
+    success = true;
+  }
+  FinishStreamToConsumer(consumer, user_data, "timeline");
+  return success;
 }
 
 
@@ -6066,8 +6117,7 @@ DART_EXPORT Dart_Handle Dart_TimelineAsyncEnd(const char* label,
   return Api::Success();
 }
 
-
-// The precompiler is included in dart_no_snapshot and dart_noopt, and
+// The precompiler is included in dart_bootstrap and dart_noopt, and
 // excluded from dart and dart_precompiled_runtime.
 #if !defined(DART_PRECOMPILER)
 

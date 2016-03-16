@@ -158,6 +158,7 @@ final htmlBlinkMap = {
   'CDATASection': () => CDataSection,
   'CHROMIUMValuebuffer': () => ChromiumValuebuffer,
   'CSS': () => Css,
+  'CSSCharsetRule': () => CssCharsetRule,
   'CSSFontFaceRule': () => CssFontFaceRule,
   'CSSGroupingRule': () => CssGroupingRule,
   'CSSImportRule': () => CssImportRule,
@@ -699,6 +700,7 @@ final htmlBlinkFunctionMap = {
   'CDATASection': () => CDataSection.internalCreateCDataSection,
   'CHROMIUMValuebuffer': () => ChromiumValuebuffer.internalCreateChromiumValuebuffer,
   'CSS': () => Css.internalCreateCss,
+  'CSSCharsetRule': () => CssCharsetRule.internalCreateCssCharsetRule,
   'CSSFontFaceRule': () => CssFontFaceRule.internalCreateCssFontFaceRule,
   'CSSGroupingRule': () => CssGroupingRule.internalCreateCssGroupingRule,
   'CSSImportRule': () => CssImportRule.internalCreateCssImportRule,
@@ -3059,6 +3061,11 @@ class BluetoothGattCharacteristic extends DartHtmlDomObject {
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
   int get hashCode => unwrap_jso(this).hashCode;
 
+  @DomName('BluetoothGATTCharacteristic.uuid')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get uuid => _blink.BlinkBluetoothGATTCharacteristic.instance.uuid_Getter_(unwrap_jso(this));
+  
   @DomName('BluetoothGATTCharacteristic.readValue')
   @DocsEditable()
   @Experimental() // untriaged
@@ -3184,6 +3191,26 @@ class BluetoothUuid extends DartHtmlDomObject {
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
   int get hashCode => unwrap_jso(this).hashCode;
 
+  @DomName('BluetoothUUID.canonicalUUID')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static String canonicalUuid(int alias) => _blink.BlinkBluetoothUUID.instance.canonicalUUID_Callback_1_(alias);
+  
+  @DomName('BluetoothUUID.getCharacteristic')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static String getCharacteristic(Object name) => _blink.BlinkBluetoothUUID.instance.getCharacteristic_Callback_1_(name);
+  
+  @DomName('BluetoothUUID.getDescriptor')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static String getDescriptor(Object name) => _blink.BlinkBluetoothUUID.instance.getDescriptor_Callback_1_(name);
+  
+  @DomName('BluetoothUUID.getService')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static String getService(Object name) => _blink.BlinkBluetoothUUID.instance.getService_Callback_1_(name);
+  
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6082,6 +6109,42 @@ class Css extends DartHtmlDomObject {
 
 
 @DocsEditable()
+@DomName('CSSCharsetRule')
+// http://dev.w3.org/csswg/cssom/#the-csscharsetrule-interface
+@Experimental()
+class CssCharsetRule extends CssRule {
+  // To suppress missing implicit constructor warnings.
+  factory CssCharsetRule._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static CssCharsetRule internalCreateCssCharsetRule() {
+    return new CssCharsetRule._internalWrap();
+  }
+
+  external factory CssCharsetRule._internalWrap();
+
+  @Deprecated("Internal Use Only")
+  CssCharsetRule.internal_() : super.internal_();
+
+
+  @DomName('CSSCharsetRule.encoding')
+  @DocsEditable()
+  String get encoding => _blink.BlinkCSSCharsetRule.instance.encoding_Getter_(unwrap_jso(this));
+  
+  @DomName('CSSCharsetRule.encoding')
+  @DocsEditable()
+  set encoding(String value) => _blink.BlinkCSSCharsetRule.instance.encoding_Setter_(unwrap_jso(this), value);
+  
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('CSSFontFaceRule')
 class CssFontFaceRule extends CssRule {
   // To suppress missing implicit constructor warnings.
@@ -6594,19 +6657,10 @@ class CssStyleDeclaration  extends DartHtmlDomObject with
   @DocsEditable()
   CssRule get parentRule => wrap_jso(_blink.BlinkCSSStyleDeclaration.instance.parentRule_Getter_(unwrap_jso(this)));
   
-  @DomName('CSSStyleDeclaration.__getter__')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object __getter__(String name) => wrap_jso(_blink.BlinkCSSStyleDeclaration.instance.$__getter___Callback_1_(unwrap_jso(this), name));
-  
   @DomName('CSSStyleDeclaration.__propertyQuery__')
   @DocsEditable()
   @Experimental() // untriaged
   bool __propertyQuery__(String name) => _blink.BlinkCSSStyleDeclaration.instance.$__propertyQuery___Callback_1_(unwrap_jso(this), name);
-  
-  @DomName('CSSStyleDeclaration.__setter__')
-  @DocsEditable()
-  void __setter__(String property, String propertyValue) => _blink.BlinkCSSStyleDeclaration.instance.$__setter___Callback_2_(unwrap_jso(this), property, propertyValue);
   
   @DomName('CSSStyleDeclaration.getPropertyPriority')
   @DocsEditable()
@@ -11598,12 +11652,12 @@ class Document extends Node
   /// Stream of `copy` events handled by this [Document].
   @DomName('Document.oncopy')
   @DocsEditable()
-  Stream<Event> get onCopy => Element.copyEvent.forTarget(this);
+  Stream<ClipboardEvent> get onCopy => Element.copyEvent.forTarget(this);
 
   /// Stream of `cut` events handled by this [Document].
   @DomName('Document.oncut')
   @DocsEditable()
-  Stream<Event> get onCut => Element.cutEvent.forTarget(this);
+  Stream<ClipboardEvent> get onCut => Element.cutEvent.forTarget(this);
 
   /// Stream of `doubleclick` events handled by this [Document].
   @DomName('Document.ondblclick')
@@ -11755,7 +11809,7 @@ class Document extends Node
   /// Stream of `paste` events handled by this [Document].
   @DomName('Document.onpaste')
   @DocsEditable()
-  Stream<Event> get onPaste => Element.pasteEvent.forTarget(this);
+  Stream<ClipboardEvent> get onPaste => Element.pasteEvent.forTarget(this);
 
   @DomName('Document.onpause')
   @DocsEditable()
@@ -13834,12 +13888,12 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
   /// Stream of `copy` events handled by this [Element].
   @DomName('Element.oncopy')
   @DocsEditable()
-  ElementStream<Event> get onCopy;
+  ElementStream<ClipboardEvent> get onCopy;
 
   /// Stream of `cut` events handled by this [Element].
   @DomName('Element.oncut')
   @DocsEditable()
-  ElementStream<Event> get onCut;
+  ElementStream<ClipboardEvent> get onCut;
 
   /// Stream of `doubleclick` events handled by this [Element].
   @DomName('Element.ondblclick')
@@ -14087,7 +14141,7 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
   /// Stream of `paste` events handled by this [Element].
   @DomName('Element.onpaste')
   @DocsEditable()
-  ElementStream<Event> get onPaste;
+  ElementStream<ClipboardEvent> get onPaste;
 
   @DomName('Element.onpause')
   @DocsEditable()
@@ -14370,12 +14424,12 @@ class _FrozenElementList extends ListBase
   /// Stream of `copy` events handled by this [Element].
   @DomName('Element.oncopy')
   @DocsEditable()
-  ElementStream<Event> get onCopy => Element.copyEvent._forElementList(this);
+  ElementStream<ClipboardEvent> get onCopy => Element.copyEvent._forElementList(this);
 
   /// Stream of `cut` events handled by this [Element].
   @DomName('Element.oncut')
   @DocsEditable()
-  ElementStream<Event> get onCut => Element.cutEvent._forElementList(this);
+  ElementStream<ClipboardEvent> get onCut => Element.cutEvent._forElementList(this);
 
   /// Stream of `doubleclick` events handled by this [Element].
   @DomName('Element.ondblclick')
@@ -14623,7 +14677,7 @@ class _FrozenElementList extends ListBase
   /// Stream of `paste` events handled by this [Element].
   @DomName('Element.onpaste')
   @DocsEditable()
-  ElementStream<Event> get onPaste => Element.pasteEvent._forElementList(this);
+  ElementStream<ClipboardEvent> get onPaste => Element.pasteEvent._forElementList(this);
 
   @DomName('Element.onpause')
   @DocsEditable()
@@ -15910,7 +15964,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    */
   @DomName('Element.copyEvent')
   @DocsEditable()
-  static const EventStreamProvider<Event> copyEvent = const EventStreamProvider<Event>('copy');
+  static const EventStreamProvider<ClipboardEvent> copyEvent = const EventStreamProvider<ClipboardEvent>('copy');
 
   /**
    * Static factory designed to expose `cut` events to event
@@ -15920,7 +15974,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    */
   @DomName('Element.cutEvent')
   @DocsEditable()
-  static const EventStreamProvider<Event> cutEvent = const EventStreamProvider<Event>('cut');
+  static const EventStreamProvider<ClipboardEvent> cutEvent = const EventStreamProvider<ClipboardEvent>('cut');
 
   /**
    * Static factory designed to expose `doubleclick` events to event
@@ -16251,7 +16305,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    */
   @DomName('Element.pasteEvent')
   @DocsEditable()
-  static const EventStreamProvider<Event> pasteEvent = const EventStreamProvider<Event>('paste');
+  static const EventStreamProvider<ClipboardEvent> pasteEvent = const EventStreamProvider<ClipboardEvent>('paste');
 
   @DomName('Element.pauseEvent')
   @DocsEditable()
@@ -16964,12 +17018,12 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
   /// Stream of `copy` events handled by this [Element].
   @DomName('Element.oncopy')
   @DocsEditable()
-  ElementStream<Event> get onCopy => copyEvent.forElement(this);
+  ElementStream<ClipboardEvent> get onCopy => copyEvent.forElement(this);
 
   /// Stream of `cut` events handled by this [Element].
   @DomName('Element.oncut')
   @DocsEditable()
-  ElementStream<Event> get onCut => cutEvent.forElement(this);
+  ElementStream<ClipboardEvent> get onCut => cutEvent.forElement(this);
 
   /// Stream of `doubleclick` events handled by this [Element].
   @DomName('Element.ondblclick')
@@ -17217,7 +17271,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
   /// Stream of `paste` events handled by this [Element].
   @DomName('Element.onpaste')
   @DocsEditable()
-  ElementStream<Event> get onPaste => pasteEvent.forElement(this);
+  ElementStream<ClipboardEvent> get onPaste => pasteEvent.forElement(this);
 
   @DomName('Element.onpause')
   @DocsEditable()
@@ -24872,6 +24926,9 @@ class KeyboardEvent extends UIEvent {
   @DomName('KeyboardEvent.charCode')
   int get charCode => _charCode;
 
+  @DomName('KeyboardEvent.which')
+  int get which => _which;
+
   @DomName('KeyboardEvent.KeyboardEvent')
   @DocsEditable()
   factory KeyboardEvent._(String type, [Map eventInitDict]) {
@@ -24918,11 +24975,6 @@ class KeyboardEvent extends UIEvent {
   @DocsEditable()
   bool get altKey => _blink.BlinkKeyboardEvent.instance.altKey_Getter_(unwrap_jso(this));
   
-  @DomName('KeyboardEvent.charCode')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get _charCode => _blink.BlinkKeyboardEvent.instance.charCode_Getter_(unwrap_jso(this));
-  
   @DomName('KeyboardEvent.code')
   @DocsEditable()
   @Experimental() // untriaged
@@ -24936,11 +24988,6 @@ class KeyboardEvent extends UIEvent {
   @DocsEditable()
   @Experimental() // untriaged
   String get key => _blink.BlinkKeyboardEvent.instance.key_Getter_(unwrap_jso(this));
-  
-  @DomName('KeyboardEvent.keyCode')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get _keyCode => _blink.BlinkKeyboardEvent.instance.keyCode_Getter_(unwrap_jso(this));
   
   @DomName('KeyboardEvent.keyIdentifier')
   @DocsEditable()
@@ -24969,11 +25016,6 @@ class KeyboardEvent extends UIEvent {
   @DomName('KeyboardEvent.shiftKey')
   @DocsEditable()
   bool get shiftKey => _blink.BlinkKeyboardEvent.instance.shiftKey_Getter_(unwrap_jso(this));
-  
-  @DomName('KeyboardEvent.which')
-  @DocsEditable()
-  @Experimental() // untriaged
-  int get which => _blink.BlinkKeyboardEvent.instance.which_Getter_(unwrap_jso(this));
   
   @DomName('KeyboardEvent.getModifierState')
   @DocsEditable()
@@ -28625,7 +28667,7 @@ class MouseEvent extends UIEvent {
   @DomName('MouseEvent.which')
   @DocsEditable()
   @Experimental() // untriaged
-  int get which => _blink.BlinkMouseEvent.instance.which_Getter_(unwrap_jso(this));
+  int get _which => _blink.BlinkMouseEvent.instance.which_Getter_(unwrap_jso(this));
   
   @DomName('MouseEvent.initMouseEvent')
   @DocsEditable()
@@ -28672,6 +28714,14 @@ class MouseEvent extends UIEvent {
   @DomName('MouseEvent.screenX')
   @DomName('MouseEvent.screenY')
   Point get screen => new Point(_screenX, _screenY);
+
+  @DomName('MouseEvent.layerX')
+  @DomName('MouseEvent.layerY')
+  Point get layer => new Point(_layerX, _layerY);
+
+  @DomName('MouseEvent.pageX')
+  @DomName('MouseEvent.pageY')
+  Point get page => new Point(_pageX, _pageY);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -33639,6 +33689,15 @@ class RelatedEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 
+@DomName('RequestAnimationFrameCallback')
+typedef void RequestAnimationFrameCallback(num highResTime);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
 @DocsEditable()
 @DomName('ResourceProgressEvent')
 // https://chromiumcodereview.appspot.com/14773025/
@@ -35602,17 +35661,27 @@ class ServiceWorkerGlobalScope extends WorkerGlobalScope {
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
 
-@DocsEditable()
+// TODO(alanknight): Provide a nicer constructor that uses named parameters
+// rather than an initialization map.
 @DomName('ServiceWorkerMessageEvent')
 @Experimental() // untriaged
 class ServiceWorkerMessageEvent extends Event {
+
+  // TODO(alanknight): This really should be generated by the
+  // _OutputConversion in the systemnative.py script, but that doesn't
+  // use those conversions right now, so do this as a one-off.
+  @DomName('ServiceWorkerMessageEvent.data')
+  @DocsEditable()
+  dynamic get data => convertNativeToDart_SerializedScriptValue(
+      _blink.BlinkMessageEvent.instance.data_Getter_(unwrap_jso(this)));
+
   // To suppress missing implicit constructor warnings.
   factory ServiceWorkerMessageEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -35638,11 +35707,6 @@ class ServiceWorkerMessageEvent extends Event {
   ServiceWorkerMessageEvent.internal_() : super.internal_();
 
 
-  @DomName('ServiceWorkerMessageEvent.data')
-  @DocsEditable()
-  @Experimental() // untriaged
-  Object get data => wrap_jso(_blink.BlinkServiceWorkerMessageEvent.instance.data_Getter_(unwrap_jso(this)));
-  
   @DomName('ServiceWorkerMessageEvent.lastEventId')
   @DocsEditable()
   @Experimental() // untriaged
@@ -40233,20 +40297,12 @@ class UIEvent extends Event {
   @DomName('UIEvent.which')
   @DocsEditable()
   @Unstable()
-  int get which => _blink.BlinkUIEvent.instance.which_Getter_(unwrap_jso(this));
+  int get _which => _blink.BlinkUIEvent.instance.which_Getter_(unwrap_jso(this));
   
   @DomName('UIEvent.initUIEvent')
   @DocsEditable()
   void _initUIEvent(String type, bool bubbles, bool cancelable, Window view, int detail) => _blink.BlinkUIEvent.instance.initUIEvent_Callback_5_(unwrap_jso(this), type, bubbles, cancelable, unwrap_jso(view), detail);
   
-
-  @DomName('UIEvent.layerX')
-  @DomName('UIEvent.layerY')
-  Point get layer => new Point(_layerX, _layerY);
-
-  @DomName('UIEvent.pageX')
-  @DomName('UIEvent.pageY')
-  Point get page => new Point(_pageX, _pageY);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -40348,10 +40404,10 @@ class Url extends DartHtmlDomObject implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -50651,22 +50707,22 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** The "fixed" value of whether the alt key is being pressed. */
   bool _shadowAltKey;
 
-  /** Caculated value of what the estimated charCode is for this event. */
+  /** Calculated value of what the estimated charCode is for this event. */
   int _shadowCharCode;
 
-  /** Caculated value of what the estimated keyCode is for this event. */
+  /** Calculated value of what the estimated keyCode is for this event. */
   int _shadowKeyCode;
 
-  /** Caculated value of what the estimated keyCode is for this event. */
+  /** Calculated value of what the estimated keyCode is for this event. */
   int get keyCode => _shadowKeyCode;
 
-  /** Caculated value of what the estimated charCode is for this event. */
+  /** Calculated value of what the estimated charCode is for this event. */
   int get charCode => this.type == 'keypress' ? _shadowCharCode : 0;
 
-  /** Caculated value of whether the alt key is pressed is for this event. */
+  /** Calculated value of whether the alt key is pressed is for this event. */
   bool get altKey => _shadowAltKey;
 
-  /** Caculated value of what the estimated keyCode is for this event. */
+  /** Calculated value of what the estimated keyCode is for this event. */
   int get which => keyCode;
 
   /** Accessor to the underlying keyCode value is the parent event. */
@@ -50721,8 +50777,6 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** The currently registered target for this event. */
   EventTarget get currentTarget => _currentTarget;
 
-  /** Accessor to the clipboardData available for this event. */
-  DataTransfer get clipboardData => _parent.clipboardData;
   /** True if the ctrl key is pressed during this event. */
   bool get ctrlKey => _parent.ctrlKey;
   int get detail => _parent.detail;
@@ -50732,10 +50786,8 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
    * KeyLocation.NUMPAD, KeyLocation.MOBILE, KeyLocation.JOYSTICK).
    */
   int get keyLocation => _parent.keyLocation;
-  Point get layer => _parent.layer;
   /** True if the Meta (or Mac command) key is pressed during this event. */
   bool get metaKey => _parent.metaKey;
-  Point get page => _parent.page;
   /** True if the shift key was pressed during this event. */
   bool get shiftKey => _parent.shiftKey;
   Window get view => _parent.view;
@@ -50747,6 +50799,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
 
   int get _charCode => charCode;
   int get _keyCode => keyCode;
+  int get _which => which;
   String get _keyIdentifier {
     throw new UnsupportedError("keyIdentifier is unsupported.");
   }
@@ -50756,10 +50809,6 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
     throw new UnsupportedError(
         "Cannot initialize a KeyboardEvent from a KeyEvent.");
   }
-  int get _layerX => throw new UnsupportedError('Not applicable to KeyEvent');
-  int get _layerY => throw new UnsupportedError('Not applicable to KeyEvent');
-  int get _pageX => throw new UnsupportedError('Not applicable to KeyEvent');
-  int get _pageY => throw new UnsupportedError('Not applicable to KeyEvent');
   @Experimental() // untriaged
   bool getModifierState(String keyArgument) => throw new UnimplementedError();
   @Experimental() // untriaged
@@ -50814,8 +50863,6 @@ class _WrappedEvent implements Event {
   bool get bubbles => wrapped.bubbles;
 
   bool get cancelable => wrapped.cancelable;
-
-  DataTransfer get clipboardData => wrapped.clipboardData;
 
   EventTarget get currentTarget => wrapped.currentTarget;
 

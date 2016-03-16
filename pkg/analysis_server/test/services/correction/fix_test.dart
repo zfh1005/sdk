@@ -1404,6 +1404,31 @@ class B {
 ''');
   }
 
+  test_createField_getter_qualified_propagatedType() async {
+    resolveTestUnit('''
+class A {
+  A get self => this;
+}
+main() {
+  var a = new A();
+  int v = a.self.test;
+}
+''');
+    await assertHasFix(
+        DartFixKind.CREATE_FIELD,
+        '''
+class A {
+  int test;
+
+  A get self => this;
+}
+main() {
+  var a = new A();
+  int v = a.self.test;
+}
+''');
+  }
+
   test_createField_getter_unqualified_instance_asInvocationArgument() async {
     resolveTestUnit('''
 class A {
@@ -1979,6 +2004,31 @@ class A {
 }
 class B {
   get test => null;
+}
+''');
+  }
+
+  test_createGetter_qualified_propagatedType() async {
+    resolveTestUnit('''
+class A {
+  A get self => this;
+}
+main() {
+  var a = new A();
+  int v = a.self.test;
+}
+''');
+    await assertHasFix(
+        DartFixKind.CREATE_GETTER,
+        '''
+class A {
+  A get self => this;
+
+  int get test => null;
+}
+main() {
+  var a = new A();
+  int v = a.self.test;
 }
 ''');
   }
@@ -4341,6 +4391,16 @@ main() {
     await assertNoFix(DartFixKind.CREATE_METHOD);
   }
 
+  test_undefinedMethod_create_BAD_targetIsEnum() async {
+    resolveTestUnit('''
+enum MyEnum {A, B}
+main() {
+  MyEnum.foo();
+}
+''');
+    await assertNoFix(DartFixKind.CREATE_METHOD);
+  }
+
   test_undefinedMethod_create_generic_BAD_argumentType() async {
     resolveTestUnit('''
 class A<T> {
@@ -5111,6 +5171,116 @@ class Test {
   void t() { }
 }
 class Sub extends Test {
+  @override
+  void t() { }
+}
+''');
+  }
+
+  test_lint_addMissingOverride_method_with_doc_comment() async {
+    String src = '''
+class Test {
+  void t() { }
+}
+class Sub extends Test {
+  /// Doc comment.
+  void /*LINT*/t() { }
+}
+''';
+    findLint(src, LintNames.annotate_overrides);
+
+    await applyFix(DartFixKind.LINT_ADD_OVERRIDE);
+
+    verifyResult('''
+class Test {
+  void t() { }
+}
+class Sub extends Test {
+  /// Doc comment.
+  @override
+  void t() { }
+}
+''');
+  }
+
+  test_lint_addMissingOverride_method_with_doc_comment_2() async {
+    String src = '''
+class Test {
+  void t() { }
+}
+class Sub extends Test {
+  /**
+   * Doc comment.
+   */
+  void /*LINT*/t() { }
+}
+''';
+    findLint(src, LintNames.annotate_overrides);
+
+    await applyFix(DartFixKind.LINT_ADD_OVERRIDE);
+
+    verifyResult('''
+class Test {
+  void t() { }
+}
+class Sub extends Test {
+  /**
+   * Doc comment.
+   */
+  @override
+  void t() { }
+}
+''');
+  }
+
+  test_lint_addMissingOverride_method_with_doc_comment_and_metadata() async {
+    String src = '''
+class Test {
+  void t() { }
+}
+class Sub extends Test {
+  /// Doc comment.
+  @foo
+  void /*LINT*/t() { }
+}
+''';
+    findLint(src, LintNames.annotate_overrides);
+
+    await applyFix(DartFixKind.LINT_ADD_OVERRIDE);
+
+    verifyResult('''
+class Test {
+  void t() { }
+}
+class Sub extends Test {
+  /// Doc comment.
+  @override
+  @foo
+  void t() { }
+}
+''');
+  }
+
+  test_lint_addMissingOverride_method_with_non_doc_comment() async {
+    String src = '''
+class Test {
+  void t() { }
+}
+class Sub extends Test {
+  // Non-doc comment.
+  void /*LINT*/t() { }
+}
+''';
+    findLint(src, LintNames.annotate_overrides);
+
+    await applyFix(DartFixKind.LINT_ADD_OVERRIDE);
+
+    verifyResult('''
+class Test {
+  void t() { }
+}
+class Sub extends Test {
+  // Non-doc comment.
   @override
   void t() { }
 }
