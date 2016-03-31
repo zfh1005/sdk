@@ -228,9 +228,11 @@ abstract class Compiler implements LibraryLoaderListener, IdGenerator {
   /// The [String.fromEnvironment] constructor.
   ConstructorElement stringEnvironment;
 
+  // TODO(zarah): Remove this map and incorporate compile-time errors
+  // in the model.
   /// Tracks elements with compile-time errors.
-  final Map<Element, DiagnosticMessage> elementsWithCompileTimeErrors =
-      new Map<Element, DiagnosticMessage>();
+  final Map<Element, List<DiagnosticMessage>> elementsWithCompileTimeErrors =
+      new Map<Element, List<DiagnosticMessage>>();
 
   final Environment environment;
   // TODO(sigmund): delete once we migrate the rest of the compiler to use
@@ -1298,7 +1300,14 @@ abstract class Compiler implements LibraryLoaderListener, IdGenerator {
   void registerCompiletimeError(Element element, DiagnosticMessage message) {
     // The information is only needed if [generateCodeWithCompileTimeErrors].
     if (options.generateCodeWithCompileTimeErrors) {
-      elementsWithCompileTimeErrors[element] = message;
+      if (element == null) {
+        // Record as global error.
+        // TODO(zarah): Extend element model to represent compile-time
+        // errors instead of using a map.
+        element = mainFunction;
+      }
+      elementsWithCompileTimeErrors.
+          putIfAbsent(element, () => <DiagnosticMessage>[]).add(message);
     }
   }
 
@@ -1562,6 +1571,13 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
     if (kind == api.Diagnostic.ERROR ||
         kind == api.Diagnostic.CRASH ||
         (options.fatalWarnings && kind == api.Diagnostic.WARNING)) {
+      Element errorElement;
+      if (message.spannable is Element) {
+        errorElement = message.spannable;
+      } else {
+        errorElement = currentElement;
+      }
+      compiler.registerCompiletimeError(errorElement, message);
       compiler.fatalDiagnosticReported(message, infos, kind);
     }
   }

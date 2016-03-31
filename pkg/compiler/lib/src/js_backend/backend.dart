@@ -1446,7 +1446,7 @@ class JavaScriptBackend extends Backend {
     Element element = work.element;
     if (compiler.elementHasCompileTimeError(element)) {
       DiagnosticMessage message =
-          compiler.elementsWithCompileTimeErrors[element];
+          compiler.elementsWithCompileTimeErrors[element].last;
       String messageText = message.message.computeMessage();
       jsAst.LiteralString messageLiteral =
           js.escapedString("Compile time error in $element: $messageText");
