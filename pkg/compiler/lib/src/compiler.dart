@@ -354,9 +354,11 @@ abstract class Compiler {
   /// The [String.fromEnvironment] constructor.
   ConstructorElement stringEnvironment;
 
+  // TODO(zarah): Remove this map and incorporate compile-time errors
+  // in the model.
   /// Tracks elements with compile-time errors.
-  final Map<Element, DiagnosticMessage> elementsWithCompileTimeErrors =
-      new Map<Element, DiagnosticMessage>();
+  final Map<Element, List<DiagnosticMessage>> elementsWithCompileTimeErrors =
+      new Map<Element, List<DiagnosticMessage>>();
 
   fromEnvironment(String name) => null;
 
@@ -1455,7 +1457,14 @@ abstract class Compiler {
   void registerCompiletimeError(Element element, DiagnosticMessage message) {
     // The information is only needed if [generateCodeWithCompileTimeErrors].
     if (generateCodeWithCompileTimeErrors) {
-      elementsWithCompileTimeErrors[element] = message;
+      if (element == null) {
+        // Record as global error.
+        // TODO(zarah): Extend element model to represent compile-time
+        // errors instead of using a map.
+        element = mainFunction;
+      }
+      elementsWithCompileTimeErrors.
+          putIfAbsent(element, () => <DiagnosticMessage>[]).add(message);
     }
   }
 
@@ -1725,7 +1734,13 @@ class CompilerDiagnosticReporter extends DiagnosticReporter {
         kind == api.Diagnostic.CRASH ||
         (options.fatalWarnings &&
          kind == api.Diagnostic.WARNING)) {
-      compiler.registerCompiletimeError(currentElement, message);
+      Element errorElement;
+      if (message.spannable is Element) {
+        errorElement = message.spannable;
+      } else {
+        errorElement = currentElement;
+      }
+      compiler.registerCompiletimeError(errorElement, message);
       compiler.compilationFailed = true;
     }
     compiler.reportDiagnostic(message, infos, kind);
