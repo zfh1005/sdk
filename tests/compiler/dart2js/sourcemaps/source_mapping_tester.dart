@@ -10,7 +10,23 @@ import 'package:compiler/src/js/js_debug.dart';
 import 'package:js_ast/js_ast.dart';
 import 'sourcemap_helper.dart';
 
+typedef CodePointWhiteListFunction WhiteListFunction(
+    String configuration, String file);
+
+typedef bool CodePointWhiteListFunction(CodePoint codePoint);
+
+CodePointWhiteListFunction emptyWhiteListFunction(String config, String file) {
+  return emptyWhiteList;
+}
+
+bool emptyWhiteList(CodePoint codePoint) => false;
+
 main(List<String> arguments) {
+  test(arguments);
+}
+
+void test(List<String> arguments,
+          {WhiteListFunction whiteListFunction: emptyWhiteListFunction}) {
   Set<String> configurations = new Set<String>();
   Set<String> files = new Set<String>();
   for (String argument in arguments) {
@@ -33,10 +49,12 @@ main(List<String> arguments) {
       List<String> options = TEST_CONFIGURATIONS[config];
       for (String file in files) {
         String filename = TEST_FILES[file];
-        TestResult result = await runTests(config, filename, options);
+        TestResult result = await runTests(
+            config, filename, options);
         if (result.missingCodePointsMap.isNotEmpty) {
-          result.printMissingCodePoints();
-          errorsFound = true;
+          errorsFound = result.printMissingCodePoints(
+              whiteListFunction(config, file));
+          true;
         }
         if (result.multipleNodesMap.isNotEmpty) {
           result.printMultipleNodes();
@@ -95,12 +113,12 @@ Future<TestResult> runTests(
     List<String> options,
     {bool verbose: true}) async {
   SourceMapProcessor processor = new SourceMapProcessor(filename);
-  List<SourceMapInfo> infoList = await processor.process(
+  SourceMaps sourceMaps = await processor.process(
       ['--csp', '--disable-inlining']
       ..addAll(options),
       verbose: verbose);
   TestResult result = new TestResult(config, filename, processor);
-  for (SourceMapInfo info in infoList) {
+  for (SourceMapInfo info in sourceMaps.elementSourceMapInfos.values) {
     if (info.element.library.isPlatformLibrary) continue;
     result.userInfoList.add(info);
     Iterable<CodePoint> missingCodePoints =
@@ -158,14 +176,22 @@ class TestResult {
 
   TestResult(this.config, this.file, this.processor);
 
-  void printMissingCodePoints() {
+  bool printMissingCodePoints(
+      [CodePointWhiteListFunction codePointWhiteList = emptyWhiteList]) {
+    bool allWhiteListed = true;
     missingCodePointsMap.forEach((info, missingCodePoints) {
       print("Missing code points for ${info.element} in '$file' "
             "in config '$config':");
       for (CodePoint codePoint in missingCodePoints) {
-        print("  $codePoint");
+        if (codePointWhiteList(codePoint)) {
+          print("  $codePoint (white-listed)");
+        } else {
+          print("  $codePoint");
+          allWhiteListed = false;
+        }
       }
     });
+    return !allWhiteListed;
   }
 
   void printMultipleNodes() {

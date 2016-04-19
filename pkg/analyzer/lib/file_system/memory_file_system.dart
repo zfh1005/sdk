@@ -2,19 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library memory_file_system;
+library analyzer.file_system.memory_file_system;
 
 import 'dart:async';
 import 'dart:collection';
 import 'dart:core' hide Resource;
 
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/util/absolute_path.dart';
 import 'package:path/path.dart';
 import 'package:watcher/watcher.dart';
-
-import 'file_system.dart';
 
 /**
  * An in-memory implementation of [ResourceProvider].
@@ -24,16 +23,22 @@ class MemoryResourceProvider implements ResourceProvider {
   final Map<String, _MemoryResource> _pathToResource =
       new HashMap<String, _MemoryResource>();
   final Map<String, String> _pathToContent = new HashMap<String, String>();
+  final Map<String, List<int>> _pathToBytes = new HashMap<String, List<int>>();
   final Map<String, int> _pathToTimestamp = new HashMap<String, int>();
   final Map<String, List<StreamController<WatchEvent>>> _pathToWatchers =
       new HashMap<String, List<StreamController<WatchEvent>>>();
   int nextStamp = 0;
 
-  final AbsolutePathContext absolutePathContext =
-      new AbsolutePathContext(posix.separator);
+  final Context _pathContext;
+  @override
+  final AbsolutePathContext absolutePathContext;
+
+  MemoryResourceProvider({bool isWindows: false})
+      : _pathContext = isWindows ? windows : posix,
+        absolutePathContext = new AbsolutePathContext(isWindows);
 
   @override
-  Context get pathContext => posix;
+  Context get pathContext => _pathContext;
 
   /**
    * Delete the file with the given path.
@@ -112,25 +117,26 @@ class MemoryResourceProvider implements ResourceProvider {
 
   File newFile(String path, String content, [int stamp]) {
     path = pathContext.normalize(path);
-    _MemoryResource folder = _pathToResource[pathContext.dirname(path)];
-    if (folder == null) {
-      newFolder(pathContext.dirname(path));
-    } else if (folder is! Folder) {
-      throw new ArgumentError('Cannot create file ($path) as child of file');
-    }
-    _MemoryFile file = new _MemoryFile(this, path);
-    _pathToResource[path] = file;
+    _MemoryFile file = _newFile(path);
     _pathToContent[path] = content;
-    _pathToTimestamp[path] = stamp != null ? stamp : nextStamp++;
+    _pathToTimestamp[path] = stamp ?? nextStamp++;
+    _notifyWatchers(path, ChangeType.ADD);
+    return file;
+  }
+
+  File newFileWithBytes(String path, List<int> bytes, [int stamp]) {
+    path = pathContext.normalize(path);
+    _MemoryFile file = _newFile(path);
+    _pathToBytes[path] = bytes;
+    _pathToTimestamp[path] = stamp ?? nextStamp++;
     _notifyWatchers(path, ChangeType.ADD);
     return file;
   }
 
   Folder newFolder(String path) {
     path = pathContext.normalize(path);
-    if (!path.startsWith(pathContext.separator)) {
-      throw new ArgumentError(
-          "Path must start with '${pathContext.separator}' : $path");
+    if (!pathContext.isAbsolute(path)) {
+      throw new ArgumentError("Path must be absolute : $path");
     }
     _MemoryResource resource = _pathToResource[path];
     if (resource == null) {
@@ -151,6 +157,29 @@ class MemoryResourceProvider implements ResourceProvider {
           'Folder expected at ' "'$path'" 'but ${resource.runtimeType} found';
       throw new ArgumentError(message);
     }
+  }
+
+  _MemoryFile renameFileSync(_MemoryFile file, String newPath) {
+    String path = file.path;
+    if (newPath == path) {
+      return file;
+    }
+    _MemoryResource existingNewResource = _pathToResource[newPath];
+    if (existingNewResource is _MemoryFolder) {
+      throw new FileSystemException(
+          path, 'Could not be renamed: $newPath is a folder.');
+    }
+    _MemoryFile newFile = _newFile(newPath);
+    _pathToResource.remove(path);
+    _pathToContent[newPath] = _pathToContent.remove(path);
+    _pathToBytes[newPath] = _pathToBytes.remove(path);
+    _pathToTimestamp[newPath] = _pathToTimestamp.remove(path);
+    if (existingNewResource != null) {
+      _notifyWatchers(newPath, ChangeType.REMOVE);
+    }
+    _notifyWatchers(path, ChangeType.REMOVE);
+    _notifyWatchers(newPath, ChangeType.ADD);
+    return newFile;
   }
 
   File updateFile(String path, String content, [int stamp]) {
@@ -180,6 +209,22 @@ class MemoryResourceProvider implements ResourceProvider {
     }
   }
 
+  /**
+   * Create a new [_MemoryFile] without any content.
+   */
+  _MemoryFile _newFile(String path) {
+    String folderPath = pathContext.dirname(path);
+    _MemoryResource folder = _pathToResource[folderPath];
+    if (folder == null) {
+      newFolder(folderPath);
+    } else if (folder is! Folder) {
+      throw new ArgumentError('Cannot create file ($path) as child of file');
+    }
+    _MemoryFile file = new _MemoryFile(this, path);
+    _pathToResource[path] = file;
+    return file;
+  }
+
   void _notifyWatchers(String path, ChangeType changeType) {
     _pathToWatchers.forEach((String watcherPath,
         List<StreamController<WatchEvent>> streamControllers) {
@@ -190,6 +235,14 @@ class MemoryResourceProvider implements ResourceProvider {
         }
       }
     });
+  }
+
+  void _setFileBytes(_MemoryFile file, List<int> bytes) {
+    String path = file.path;
+    _pathToResource[path] = file;
+    _pathToBytes[path] = bytes;
+    _pathToTimestamp[path] = nextStamp++;
+    _notifyWatchers(path, ChangeType.MODIFY);
   }
 }
 
@@ -209,6 +262,7 @@ class _MemoryDummyLink extends _MemoryResource implements File {
   @override
   bool get exists => false;
 
+  @override
   int get modificationStamp {
     int stamp = _provider._pathToTimestamp[path];
     if (stamp == null) {
@@ -232,8 +286,23 @@ class _MemoryDummyLink extends _MemoryResource implements File {
   }
 
   @override
+  List<int> readAsBytesSync() {
+    throw new FileSystemException(path, 'File could not be read');
+  }
+
+  @override
   String readAsStringSync() {
     throw new FileSystemException(path, 'File could not be read');
+  }
+
+  @override
+  Resource renameSync(String newPath) {
+    throw new FileSystemException(path, 'File could not be renamed');
+  }
+
+  @override
+  void writeAsBytesSync(List<int> bytes) {
+    throw new FileSystemException(path, 'File could not be written');
   }
 }
 
@@ -247,6 +316,7 @@ class _MemoryFile extends _MemoryResource implements File {
   @override
   bool get exists => _provider._pathToResource[path] is _MemoryFile;
 
+  @override
   int get modificationStamp {
     int stamp = _provider._pathToTimestamp[path];
     if (stamp == null) {
@@ -277,12 +347,31 @@ class _MemoryFile extends _MemoryResource implements File {
   }
 
   @override
+  List<int> readAsBytesSync() {
+    List<int> bytes = _provider._pathToBytes[path];
+    if (bytes == null) {
+      throw new FileSystemException(path, 'File "$path" is not binary.');
+    }
+    return bytes;
+  }
+
+  @override
   String readAsStringSync() {
     String content = _provider._pathToContent[path];
     if (content == null) {
       throw new FileSystemException(path, 'File "$path" does not exist.');
     }
     return content;
+  }
+
+  @override
+  File renameSync(String newPath) {
+    return _provider.renameFileSync(this, newPath);
+  }
+
+  @override
+  void writeAsBytesSync(List<int> bytes) {
+    _provider._setFileBytes(this, bytes);
   }
 }
 
@@ -301,6 +390,7 @@ class _MemoryFileSource extends Source {
 
   final _MemoryFile file;
 
+  @override
   final Uri uri;
 
   /**
@@ -451,6 +541,7 @@ class _MemoryFolder extends _MemoryResource implements Folder {
  */
 abstract class _MemoryResource implements Resource {
   final MemoryResourceProvider _provider;
+  @override
   final String path;
 
   _MemoryResource(this._provider, this.path);

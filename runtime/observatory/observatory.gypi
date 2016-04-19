@@ -25,13 +25,15 @@
             'pubspec.yaml',
           ],
           'outputs': [
-            'pubspec.lock'
+            '<(gen_source_dir)/observatory_packages.stamp'
           ],
           'action': [
             'python',
             '../tools/observatory_tool.py',
             '--sdk=True',
             '--package-root', '<(PRODUCT_DIR)/packages',
+            '--stamp',
+            '<(gen_source_dir)/observatory_packages.stamp',
             '--dart-executable',
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart_bootstrap<(EXECUTABLE_SUFFIX)',
             '--directory', 'observatory',
@@ -44,6 +46,7 @@
       'target_name': 'build_observatory',
       'type': 'none',
       'dependencies': [
+        'dart_bootstrap#host',
         'fetch_observatory_deps#host',
       ],
       'toolsets': ['host'],
@@ -55,7 +58,7 @@
           'action_name': 'pub_build_observatory',
           'inputs': [
             '../../tools/observatory_tool.py',
-            'pubspec.lock',
+            '<(gen_source_dir)/observatory_packages.stamp',
             '<@(_sources)',
           ],
           'outputs': [

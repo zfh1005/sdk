@@ -2,34 +2,32 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.error;
+library analyzer.src.generated.error;
 
 import 'dart:collection';
 
-import 'package:analyzer/src/generated/ast.dart' show AstNode;
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/ast/ast.dart' show AstNode;
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart' show ScannerErrorCode;
+import 'package:analyzer/src/generated/generated/shared_messages.dart'
+    as shared_messages;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
-import 'package:analyzer/src/generated/scanner.dart'
-    show ScannerErrorCode, Token;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:source_span/source_span.dart';
 
 /**
- * The descriptor used to associate error filters with analysis contexts in
+ * The descriptor used to associate error processors with analysis contexts in
  * configuration data.
  */
-final ListResultDescriptor<List<ErrorFilter>> CONFIGURED_ERROR_FILTERS =
-    new ListResultDescriptorImpl('configured.errors', const <ErrorFilter>[]);
-
-/**
- * A predicate used to potentially filter an [error].
- *
- * Returns `true` if this error should be filtered from analysis results.
- */
-typedef bool ErrorFilter(AnalysisError error);
+final ListResultDescriptor<ErrorProcessor> CONFIGURED_ERROR_PROCESSORS =
+    new ListResultDescriptorImpl('configured.errors', const <ErrorProcessor>[]);
 
 /**
  * An error discovered during the analysis of some Dart code.
@@ -46,9 +44,9 @@ class AnalysisError {
    * A [Comparator] that sorts by the name of the file that the [AnalysisError]
    * was found.
    */
-  static Comparator<AnalysisError> FILE_COMPARATOR = (AnalysisError o1,
-          AnalysisError o2) =>
-      o1.source.shortName.compareTo(o2.source.shortName);
+  static Comparator<AnalysisError> FILE_COMPARATOR =
+      (AnalysisError o1, AnalysisError o2) =>
+          o1.source.shortName.compareTo(o2.source.shortName);
 
   /**
    * A [Comparator] that sorts error codes first by their severity (errors
@@ -88,7 +86,7 @@ class AnalysisError {
   /**
    * The source in which the error occurred, or `null` if unknown.
    */
-  Source source;
+  final Source source;
 
   /**
    * The character offset from the beginning of the source (zero based) where
@@ -122,27 +120,6 @@ class AnalysisError {
       this._correction = formatList(correctionTemplate, arguments);
     }
   }
-
-  /**
-   * Initialize a newly created analysis error for the specified [source]. The
-   * error will have the given [errorCode] and the list of [arguments] will be
-   * used to complete the message. The error has no location information.
-   */
-  @deprecated // Use new AnalysisError(source, 0, 0, errorCode, arguments)
-  AnalysisError.con1(Source source, ErrorCode errorCode,
-      [List<Object> arguments])
-      : this(source, 0, 0, errorCode, arguments);
-
-  /**
-   * Initialize a newly created analysis error for the specified [source] at the
-   * given [offset] with the given [length]. The error will have the given
-   * [errorCode] and the list of [arguments] will be used to complete the
-   * message.
-   */
-  @deprecated // Use new AnalysisError(source, offset, length, errorCode, arguments)
-  AnalysisError.con2(Source source, int offset, int length, ErrorCode errorCode,
-      [List<Object> arguments])
-      : this(source, offset, length, errorCode, arguments);
 
   /**
    * Return the template used to create the correction to be displayed for this
@@ -277,28 +254,6 @@ class AnalysisErrorWithProperties extends AnalysisError {
       Source source, int offset, int length, ErrorCode errorCode,
       [List<Object> arguments])
       : super(source, offset, length, errorCode, arguments);
-
-  /**
-   * Initialize a newly created analysis error for the specified [source]. The
-   * error will have the given [errorCode] and the list of [arguments] will be
-   * used to complete the message. The error has no location information.
-   */
-  @deprecated // Use new AnalysisErrorWithProperties(source, 0, 0, errorCode, arguments)
-  AnalysisErrorWithProperties.con1(Source source, ErrorCode errorCode,
-      [List<Object> arguments])
-      : this(source, 0, 0, errorCode, arguments);
-
-  /**
-   * Initialize a newly created analysis error for the specified [source] at the
-   * given [offset] with the given [length]. The error will have the given
-   * [errorCode] and the list of [arguments] will be used to complete the
-   * message.
-   */
-  @deprecated // Use new AnalysisErrorWithProperties(source, offset, length, errorCode, arguments)
-  AnalysisErrorWithProperties.con2(
-      Source source, int offset, int length, ErrorCode errorCode,
-      [List<Object> arguments])
-      : this(source, offset, length, errorCode, arguments);
 
   @override
   Object getProperty(ErrorProperty property) => _propertyMap[property];
@@ -454,7 +409,8 @@ class CheckedModeCompileTimeErrorCode extends ErrorCode {
    * 12.11.2 Const: It is a compile-time error if evaluation of a constant
    * object results in an uncaught exception being thrown.
    */
-  static const CheckedModeCompileTimeErrorCode CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH =
+  static const CheckedModeCompileTimeErrorCode
+      CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH =
       const CheckedModeCompileTimeErrorCode(
           'CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH',
           "The object type '{0}' cannot be assigned to the field '{1}', which has type '{2}'");
@@ -463,7 +419,8 @@ class CheckedModeCompileTimeErrorCode extends ErrorCode {
    * 12.11.2 Const: It is a compile-time error if evaluation of a constant
    * object results in an uncaught exception being thrown.
    */
-  static const CheckedModeCompileTimeErrorCode CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH =
+  static const CheckedModeCompileTimeErrorCode
+      CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH =
       const CheckedModeCompileTimeErrorCode(
           'CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH',
           "The object type '{0}' cannot be assigned to a parameter of type '{1}'");
@@ -480,7 +437,8 @@ class CheckedModeCompileTimeErrorCode extends ErrorCode {
    * 0: the name of the type of the initializer expression
    * 1: the name of the type of the field
    */
-  static const CheckedModeCompileTimeErrorCode CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE =
+  static const CheckedModeCompileTimeErrorCode
+      CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE =
       const CheckedModeCompileTimeErrorCode(
           'CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE',
           "The initializer type '{0}' cannot be assigned to the field type '{1}'");
@@ -498,8 +456,9 @@ class CheckedModeCompileTimeErrorCode extends ErrorCode {
    * warning if <i>T<sub>j</sub></i> may not be assigned to <i>S<sub>j</sub>,
    * 1 &lt;= j &lt;= m</i>.
    */
-  static const CheckedModeCompileTimeErrorCode LIST_ELEMENT_TYPE_NOT_ASSIGNABLE =
-      const CheckedModeCompileTimeErrorCode('LIST_ELEMENT_TYPE_NOT_ASSIGNABLE',
+  static const CheckedModeCompileTimeErrorCode
+      LIST_ELEMENT_TYPE_NOT_ASSIGNABLE = const CheckedModeCompileTimeErrorCode(
+          'LIST_ELEMENT_TYPE_NOT_ASSIGNABLE',
           "The element type '{0}' cannot be assigned to the list type '{1}'");
 
   /**
@@ -766,7 +725,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * constructor is declared by a class C if any instance variable declared in C
    * is initialized with an expression that is not a constant expression.
    */
-  static const CompileTimeErrorCode CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST =
+  static const CompileTimeErrorCode
+      CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST =
       const CompileTimeErrorCode(
           'CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST',
           "Can't define the 'const' constructor because the field '{0}' is initialized with a non-constant value");
@@ -834,7 +794,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * 12.1 Constants: A qualified reference to a static constant variable that is
    * not qualified by a deferred prefix.
    */
-  static const CompileTimeErrorCode CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY =
+  static const CompileTimeErrorCode
+      CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY =
       const CompileTimeErrorCode(
           'CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY',
           "Constant values from a deferred library cannot be used to initialized a 'const' variable");
@@ -852,7 +813,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * map literal is an instance of a class that implements the operator
    * <i>==</i> unless the key is a string or integer.
    */
-  static const CompileTimeErrorCode CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS =
+  static const CompileTimeErrorCode
+      CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS =
       const CompileTimeErrorCode(
           'CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS',
           "The constant map entry key expression type '{0}' cannot override the == operator");
@@ -1028,7 +990,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * 7.6.2 Factories: It is a compile-time error if <i>k</i> explicitly
    * specifies a default value for an optional parameter.
    */
-  static const CompileTimeErrorCode DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR =
+  static const CompileTimeErrorCode
+      DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR =
       const CompileTimeErrorCode(
           'DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR',
           "Default values aren't allowed in factory constructors that redirect to another constructor");
@@ -1178,6 +1141,15 @@ class CompileTimeErrorCode extends ErrorCode {
           "This class cannot extend the deferred class '{0}'");
 
   /**
+   * DEP 37 extends the syntax for assert() to allow a second "message"
+   * argument.  We issue this error if the user tries to supply a "message"
+   * argument but the DEP is not enabled.
+   */
+  static const CompileTimeErrorCode EXTRA_ARGUMENT_TO_ASSERT =
+      const CompileTimeErrorCode('EXTRA_ARGUMENT_TO_ASSERT',
+          "Assertions only accept a single argument");
+
+  /**
    * 12.14.2 Binding Actuals to Formals: It is a static warning if <i>m &lt;
    * h</i> or if <i>m &gt; n</i>.
    *
@@ -1207,7 +1179,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * initializer for a variable that is initialized by means of an initializing
    * formal of <i>k</i>.
    */
-  static const CompileTimeErrorCode FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER =
+  static const CompileTimeErrorCode
+      FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER =
       const CompileTimeErrorCode(
           'FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER',
           "Fields cannot be initialized in both the parameter list and the initializers");
@@ -1688,25 +1661,6 @@ class CompileTimeErrorCode extends ErrorCode {
           "Map literals must be prefixed with 'const' when used as a constant expression");
 
   /**
-   * Enum proposal: It is a static warning if all of the following conditions
-   * hold:
-   * * The switch statement does not have a 'default' clause.
-   * * The static type of <i>e</i> is an enumerated typed with elements
-   *   <i>id<sub>1</sub></i>, &hellip;, <i>id<sub>n</sub></i>.
-   * * The sets {<i>e<sub>1</sub></i>, &hellip;, <i>e<sub>k</sub></i>} and
-   *   {<i>id<sub>1</sub></i>, &hellip;, <i>id<sub>n</sub></i>} are not the
-   *   same.
-   *
-   * Parameters:
-   * 0: the name of the constant that is missing
-   */
-  static const CompileTimeErrorCode MISSING_ENUM_CONSTANT_IN_SWITCH =
-      const CompileTimeErrorCode(
-          'MISSING_ENUM_CONSTANT_IN_SWITCH',
-          "Missing case clause for '{0}'",
-          "Add a case clause for the missing constant or add a default clause.");
-
-  /**
    * 9 Mixins: It is a compile-time error if a declared or derived mixin
    * explicitly declares a constructor.
    *
@@ -1817,8 +1771,9 @@ class CompileTimeErrorCode extends ErrorCode {
    * 7.6.1 Generative Constructors: A generative constructor may be redirecting,
    * in which case its only action is to invoke another generative constructor.
    */
-  static const CompileTimeErrorCode MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS =
-      const CompileTimeErrorCode('MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS',
+  static const CompileTimeErrorCode
+      MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS = const CompileTimeErrorCode(
+          'MULTIPLE_REDIRECTING_CONSTRUCTOR_INVOCATIONS',
           "Constructor may have at most one 'this' redirection");
 
   /**
@@ -1905,7 +1860,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * 12.1 Constants: A qualified reference to a static constant variable that is
    * not qualified by a deferred prefix.
    */
-  static const CompileTimeErrorCode NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY =
+  static const CompileTimeErrorCode
+      NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY =
       const CompileTimeErrorCode(
           'NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY',
           "Constant values from a deferred library cannot be used as a case expression");
@@ -1925,7 +1881,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * 12.1 Constants: A qualified reference to a static constant variable that is
    * not qualified by a deferred prefix.
    */
-  static const CompileTimeErrorCode NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY =
+  static const CompileTimeErrorCode
+      NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY =
       const CompileTimeErrorCode(
           'NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY',
           "Constant values from a deferred library cannot be used as a default parameter value");
@@ -1945,7 +1902,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * 12.1 Constants: A qualified reference to a static constant variable that is
    * not qualified by a deferred prefix.
    */
-  static const CompileTimeErrorCode NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY =
+  static const CompileTimeErrorCode
+      NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY =
       const CompileTimeErrorCode(
           'NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY',
           "Constant values from a deferred library cannot be used as values in a 'const' list");
@@ -1984,8 +1942,9 @@ class CompileTimeErrorCode extends ErrorCode {
    * 12.1 Constants: A qualified reference to a static constant variable that is
    * not qualified by a deferred prefix.
    */
-  static const CompileTimeErrorCode NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY =
-      const CompileTimeErrorCode('NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY',
+  static const CompileTimeErrorCode
+      NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY = const CompileTimeErrorCode(
+          'NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY',
           "Constant values from a deferred library cannot be used as values in a 'const' map");
 
   /**
@@ -2018,7 +1977,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * 12.1 Constants: A qualified reference to a static constant variable that is
    * not qualified by a deferred prefix.
    */
-  static const CompileTimeErrorCode NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY =
+  static const CompileTimeErrorCode
+      NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY =
       const CompileTimeErrorCode(
           'NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY',
           "Constant values from a deferred library cannot be used as constant initializers");
@@ -2161,7 +2121,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * Parameters:
    * 0: the name of the class that implements itself recursively
    */
-  static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS =
+  static const CompileTimeErrorCode
+      RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS =
       const CompileTimeErrorCode(
           'RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS',
           "'{0}' cannot extend itself");
@@ -2179,7 +2140,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * Parameters:
    * 0: the name of the class that implements itself recursively
    */
-  static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS =
+  static const CompileTimeErrorCode
+      RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS =
       const CompileTimeErrorCode(
           'RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS',
           "'{0}' cannot implement itself");
@@ -2197,7 +2159,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * Parameters:
    * 0: the name of the class that implements itself recursively
    */
-  static const CompileTimeErrorCode RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH =
+  static const CompileTimeErrorCode
+      RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH =
       const CompileTimeErrorCode(
           'RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH',
           "'{0}' cannot use itself as a mixin");
@@ -2240,7 +2203,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * <i>redirecting</i>, in which case its only action is to invoke another
    * generative constructor.
    */
-  static const CompileTimeErrorCode REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR =
+  static const CompileTimeErrorCode
+      REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR =
       const CompileTimeErrorCode(
           'REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR',
           "Generative constructor cannot redirect to a factory constructor");
@@ -2259,24 +2223,21 @@ class CompileTimeErrorCode extends ErrorCode {
    * <i>rethrow;</i> is not enclosed within a on-catch clause.
    */
   static const CompileTimeErrorCode RETHROW_OUTSIDE_CATCH =
-      const CompileTimeErrorCode(
-          'RETHROW_OUTSIDE_CATCH', "rethrow must be inside of a catch clause");
+      shared_messages.RETHROW_OUTSIDE_CATCH;
 
   /**
    * 13.12 Return: It is a compile-time error if a return statement of the form
    * <i>return e;</i> appears in a generative constructor.
    */
   static const CompileTimeErrorCode RETURN_IN_GENERATIVE_CONSTRUCTOR =
-      const CompileTimeErrorCode('RETURN_IN_GENERATIVE_CONSTRUCTOR',
-          "Constructors cannot return a value");
+      shared_messages.RETURN_IN_GENERATIVE_CONSTRUCTOR;
 
   /**
    * 13.12 Return: It is a compile-time error if a return statement of the form
    * <i>return e;</i> appears in a generator function.
    */
   static const CompileTimeErrorCode RETURN_IN_GENERATOR =
-      const CompileTimeErrorCode('RETURN_IN_GENERATOR',
-          "Cannot return a value from a generator function (one marked with either 'async*' or 'sync*')");
+      shared_messages.RETURN_IN_GENERATOR;
 
   /**
    * 14.1 Imports: It is a compile-time error if a prefix used in a deferred
@@ -2371,8 +2332,9 @@ class CompileTimeErrorCode extends ErrorCode {
    * class <i>S</i> does not declare a generative constructor named <i>S</i>
    * (respectively <i>S.id</i>)
    */
-  static const CompileTimeErrorCode UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT =
-      const CompileTimeErrorCode('UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT',
+  static const CompileTimeErrorCode
+      UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT = const CompileTimeErrorCode(
+          'UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT',
           "The class '{0}' does not have a default generative constructor");
 
   /**
@@ -2450,7 +2412,8 @@ class CompileTimeErrorCode extends ErrorCode {
    * Parameters:
    * 0: the number of parameters found in the operator declaration
    */
-  static const CompileTimeErrorCode WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS =
+  static const CompileTimeErrorCode
+      WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS =
       const CompileTimeErrorCode(
           'WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS',
           "Operator '-' should declare 0 or 1 parameter, but {0} found");
@@ -2520,8 +2483,10 @@ abstract class ErrorCode {
     // error.dart:
     //
     AnalysisOptionsErrorCode.PARSE_ERROR,
-    AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE,
     AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES,
+    AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE,
+    AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
+    AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE,
     CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
     CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
     CheckedModeCompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
@@ -2555,7 +2520,8 @@ abstract class ErrorCode {
     CompileTimeErrorCode.CONST_DEFERRED_CLASS,
     CompileTimeErrorCode.CONST_FORMAL_PARAMETER,
     CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE,
-    CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY,
+    CompileTimeErrorCode
+        .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY,
     CompileTimeErrorCode.CONST_INSTANCE_FIELD,
     CompileTimeErrorCode.CONST_MAP_KEY_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
     CompileTimeErrorCode.CONST_NOT_INITIALIZED,
@@ -2586,6 +2552,7 @@ abstract class ErrorCode {
     CompileTimeErrorCode.EXTENDS_NON_CLASS,
     CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
     CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS,
+    CompileTimeErrorCode.EXTRA_ARGUMENT_TO_ASSERT,
     CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS,
     CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
     CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
@@ -2630,7 +2597,6 @@ abstract class ErrorCode {
     CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME,
     CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL,
     CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL,
-    CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
     CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR,
     CompileTimeErrorCode.MIXIN_DEFERRED_CLASS,
     CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS,
@@ -2658,7 +2624,8 @@ abstract class ErrorCode {
     CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY,
     CompileTimeErrorCode.NON_CONSTANT_ANNOTATION_CONSTRUCTOR,
     CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER,
-    CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY,
+    CompileTimeErrorCode
+        .NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY,
     CompileTimeErrorCode.NOT_ENOUGH_REQUIRED_ARGUMENTS,
     CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR,
     CompileTimeErrorCode.OBJECT_CANNOT_EXTEND_ANOTHER_CLASS,
@@ -2701,6 +2668,7 @@ abstract class ErrorCode {
     CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR,
     CompileTimeErrorCode.YIELD_IN_NON_GENERATOR,
     HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+    HintCode.CAN_BE_NULL_AFTER_NULL_AWARE,
     HintCode.DEAD_CODE,
     HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH,
     HintCode.DEAD_CODE_ON_CATCH_SUBTYPE,
@@ -2713,7 +2681,9 @@ abstract class ErrorCode {
     HintCode.IS_NOT_INT,
     HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION,
     HintCode.INVALID_ASSIGNMENT,
+    HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
     HintCode.MISSING_RETURN,
+    HintCode.NULL_AWARE_IN_CONDITION,
     HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER,
     HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD,
     HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER,
@@ -2725,6 +2695,7 @@ abstract class ErrorCode {
     HintCode.UNDEFINED_OPERATOR,
     HintCode.UNDEFINED_SETTER,
     HintCode.UNNECESSARY_CAST,
+    HintCode.UNNECESSARY_NO_SUCH_METHOD,
     HintCode.UNNECESSARY_TYPE_CHECK_FALSE,
     HintCode.UNNECESSARY_TYPE_CHECK_TRUE,
     HintCode.UNUSED_ELEMENT,
@@ -2736,7 +2707,6 @@ abstract class ErrorCode {
     HintCode.USE_OF_VOID_RESULT,
     HintCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE,
     HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE,
-    HintCode.NULL_AWARE_IN_CONDITION,
     HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT,
     HtmlErrorCode.PARSE_ERROR,
     HtmlWarningCode.INVALID_URI,
@@ -2764,6 +2734,7 @@ abstract class ErrorCode {
     StaticTypeWarningCode.UNDEFINED_FUNCTION,
     StaticTypeWarningCode.UNDEFINED_GETTER,
     StaticTypeWarningCode.UNDEFINED_METHOD,
+    StaticTypeWarningCode.UNDEFINED_METHOD_WITH_CONSTRUCTOR,
     StaticTypeWarningCode.UNDEFINED_OPERATOR,
     StaticTypeWarningCode.UNDEFINED_SETTER,
     StaticTypeWarningCode.UNDEFINED_SUPER_GETTER,
@@ -2773,6 +2744,8 @@ abstract class ErrorCode {
     StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
     StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
     StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
+    StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE,
+    StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
     StaticWarningCode.AMBIGUOUS_IMPORT,
     StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
     StaticWarningCode.ASSIGNMENT_TO_CONST,
@@ -2810,6 +2783,8 @@ abstract class ErrorCode {
     StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC,
     StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE,
     StaticWarningCode.INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE,
+    StaticWarningCode.INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS,
+    StaticWarningCode.INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND,
     StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE,
     StaticWarningCode.INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE,
     StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE,
@@ -2862,6 +2837,7 @@ abstract class ErrorCode {
     StaticWarningCode.UNDEFINED_SUPER_GETTER,
     StaticWarningCode.UNDEFINED_SUPER_SETTER,
     StaticWarningCode.VOID_RETURN_FOR_GETTER,
+    StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
     TodoCode.TODO,
 
     //
@@ -2879,6 +2855,7 @@ abstract class ErrorCode {
     ParserErrorCode.ASSERT_DOES_NOT_TAKE_THROW,
     ParserErrorCode.ASSERT_DOES_NOT_TAKE_RETHROW,
     ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
+    ParserErrorCode.ASYNC_NOT_SUPPORTED,
     ParserErrorCode.BREAK_OUTSIDE_OF_LOOP,
     ParserErrorCode.CLASS_IN_CLASS,
     ParserErrorCode.COLON_IN_PLACE_OF_IN,
@@ -2942,6 +2919,7 @@ abstract class ErrorCode {
     ParserErrorCode.INVALID_CODE_POINT,
     ParserErrorCode.INVALID_COMMENT_REFERENCE,
     ParserErrorCode.INVALID_HEX_ESCAPE,
+    ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION,
     ParserErrorCode.INVALID_OPERATOR,
     ParserErrorCode.INVALID_OPERATOR_FOR_SUPER,
     ParserErrorCode.INVALID_STAR_AFTER_ASYNC,
@@ -2994,6 +2972,7 @@ abstract class ErrorCode {
     ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS,
     ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT,
     ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP,
+    ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY,
     ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR,
     ParserErrorCode.SETTER_IN_FUNCTION,
     ParserErrorCode.STATIC_AFTER_CONST,
@@ -3081,6 +3060,9 @@ abstract class ErrorCode {
    * The unique name of this error code.
    */
   String get uniqueName => "$runtimeType.$name";
+
+  @override
+  String toString() => uniqueName;
 }
 
 /**
@@ -3261,6 +3243,18 @@ class ErrorReporter {
    * clarify the message.
    */
   void _convertTypeNames(List<Object> arguments) {
+    String displayName(DartType type) {
+      if (type is FunctionType) {
+        String name = type.name;
+        if (name != null && name.length > 0) {
+          StringBuffer buffer = new StringBuffer();
+          buffer.write(name);
+          (type as TypeImpl).appendTo(buffer);
+          return buffer.toString();
+        }
+      }
+      return type.displayName;
+    }
     if (_hasEqualTypeNames(arguments)) {
       int count = arguments.length;
       for (int i = 0; i < count; i++) {
@@ -3269,9 +3263,9 @@ class ErrorReporter {
           DartType type = argument;
           Element element = type.element;
           if (element == null) {
-            arguments[i] = type.displayName;
+            arguments[i] = displayName(type);
           } else {
-            arguments[i] = element.getExtendedDisplayName(type.displayName);
+            arguments[i] = element.getExtendedDisplayName(displayName(type));
           }
         }
       }
@@ -3280,7 +3274,7 @@ class ErrorReporter {
       for (int i = 0; i < count; i++) {
         Object argument = arguments[i];
         if (argument is DartType) {
-          arguments[i] = argument.displayName;
+          arguments[i] = displayName(argument);
         }
       }
     }
@@ -3459,9 +3453,8 @@ class HintCode extends ErrorCode {
    * 0: the name of the actual argument type
    * 1: the name of the expected type
    */
-  static const HintCode ARGUMENT_TYPE_NOT_ASSIGNABLE = const HintCode(
-      'ARGUMENT_TYPE_NOT_ASSIGNABLE',
-      "The argument type '{0}' cannot be assigned to the parameter type '{1}'");
+  static const HintCode ARGUMENT_TYPE_NOT_ASSIGNABLE =
+      shared_messages.ARGUMENT_TYPE_NOT_ASSIGNABLE_HINT;
 
   /**
    * When the target expression uses '?.' operator, it can be `null`, so all the
@@ -3566,6 +3559,18 @@ class HintCode extends ErrorCode {
       "A value of type '{0}' cannot be assigned to a variable of type '{1}'");
 
   /**
+   * This hint is generated anywhere where a member annotated with `@protected`
+   * is used outside an instance member of a subclass.
+   *
+   * Parameters:
+   * 0: the name of the member
+   * 1: the name of the defining class
+   */
+  static const HintCode INVALID_USE_OF_PROTECTED_MEMBER = const HintCode(
+      'INVALID_USE_OF_PROTECTED_MEMBER',
+      "The member '{0}' can only be used within instance members of subclasses of '{1}'");
+
+  /**
    * Generate a hint for methods or functions that have a return type, but do
    * not have a non-void return statement on all branches. At the end of methods
    * or functions with no return, Dart implicitly returns `null`, avoiding these
@@ -3578,6 +3583,18 @@ class HintCode extends ErrorCode {
       'MISSING_RETURN',
       "This function declares a return type of '{0}', but does not end with a return statement",
       "Either add a return statement or change the return type to 'void'");
+
+  /**
+   * Generate a hint for methods that override methods annotated `@mustCallSuper`
+   * that do not invoke the overridden super method.
+   *
+   * Parameters:
+   * 0: the name of the class declaring the overriden method
+   */
+  static const HintCode MUST_CALL_SUPER = const HintCode(
+      'MUST_CALL_SUPER',
+      "This method overrides a method annotated as @mustCall super in '{0}', "
+      "but does invoke the overriden method");
 
   /**
    * A condition in a control flow statement could evaluate to `null` because it
@@ -3642,8 +3659,8 @@ class HintCode extends ErrorCode {
    * 0: the name of the getter
    * 1: the name of the enclosing type where the getter is being looked for
    */
-  static const HintCode UNDEFINED_GETTER = const HintCode('UNDEFINED_GETTER',
-      "The getter '{0}' is not defined for the class '{1}'");
+  static const HintCode UNDEFINED_GETTER =
+      shared_messages.UNDEFINED_GETTER_HINT;
 
   /**
    * This hint is generated anywhere where the
@@ -3654,8 +3671,8 @@ class HintCode extends ErrorCode {
    * 0: the name of the method that is undefined
    * 1: the resolved type name that the method lookup is happening on
    */
-  static const HintCode UNDEFINED_METHOD = const HintCode('UNDEFINED_METHOD',
-      "The method '{0}' is not defined for the class '{1}'");
+  static const HintCode UNDEFINED_METHOD =
+      shared_messages.UNDEFINED_METHOD_HINT;
 
   /**
    * This hint is generated anywhere where the
@@ -3666,9 +3683,8 @@ class HintCode extends ErrorCode {
    * 0: the name of the operator
    * 1: the name of the enclosing type where the operator is being looked for
    */
-  static const HintCode UNDEFINED_OPERATOR = const HintCode(
-      'UNDEFINED_OPERATOR',
-      "The operator '{0}' is not defined for the class '{1}'");
+  static const HintCode UNDEFINED_OPERATOR =
+      shared_messages.UNDEFINED_OPERATOR_HINT;
 
   /**
    * This hint is generated anywhere where the
@@ -3680,14 +3696,20 @@ class HintCode extends ErrorCode {
    * 0: the name of the setter
    * 1: the name of the enclosing type where the setter is being looked for
    */
-  static const HintCode UNDEFINED_SETTER = const HintCode('UNDEFINED_SETTER',
-      "The setter '{0}' is not defined for the class '{1}'");
+  static const HintCode UNDEFINED_SETTER =
+      shared_messages.UNDEFINED_SETTER_HINT;
 
   /**
    * Unnecessary cast.
    */
   static const HintCode UNNECESSARY_CAST =
       const HintCode('UNNECESSARY_CAST', "Unnecessary cast");
+
+  /**
+   * Unnecessary `noSuchMethod` declaration.
+   */
+  static const HintCode UNNECESSARY_NO_SUCH_METHOD = const HintCode(
+      'UNNECESSARY_NO_SUCH_METHOD', "Unnecessary 'noSuchMethod' declaration");
 
   /**
    * Unnecessary type checks, the result is always true.
@@ -4131,8 +4153,7 @@ class StaticTypeWarningCode extends ErrorCode {
    * 2: the name of the method
    */
   static const StaticTypeWarningCode RETURN_OF_INVALID_TYPE =
-      const StaticTypeWarningCode('RETURN_OF_INVALID_TYPE',
-          "The return type '{0}' is not a '{1}', as defined by the method '{2}'");
+      shared_messages.RETURN_OF_INVALID_TYPE;
 
   /**
    * 12.11 Instance Creation: It is a static type warning if any of the type
@@ -4189,8 +4210,7 @@ class StaticTypeWarningCode extends ErrorCode {
    * 1: the name of the enumeration used to access the constant
    */
   static const StaticTypeWarningCode UNDEFINED_ENUM_CONSTANT =
-      const StaticTypeWarningCode('UNDEFINED_ENUM_CONSTANT',
-          "There is no constant named '{0}' in '{1}'");
+      shared_messages.UNDEFINED_ENUM_CONSTANT;
 
   /**
    * 12.15.3 Unqualified Invocation: If there exists a lexically visible
@@ -4205,8 +4225,7 @@ class StaticTypeWarningCode extends ErrorCode {
    * 0: the name of the method that is undefined
    */
   static const StaticTypeWarningCode UNDEFINED_FUNCTION =
-      const StaticTypeWarningCode(
-          'UNDEFINED_FUNCTION', "The function '{0}' is not defined");
+      shared_messages.UNDEFINED_FUNCTION;
 
   /**
    * 12.17 Getter Invocation: Let <i>T</i> be the static type of <i>e</i>. It is
@@ -4217,8 +4236,7 @@ class StaticTypeWarningCode extends ErrorCode {
    * 1: the name of the enclosing type where the getter is being looked for
    */
   static const StaticTypeWarningCode UNDEFINED_GETTER =
-      const StaticTypeWarningCode('UNDEFINED_GETTER',
-          "The getter '{0}' is not defined for the class '{1}'");
+      shared_messages.UNDEFINED_GETTER_STATIC_TYPE_WARNING;
 
   /**
    * 12.15.1 Ordinary Invocation: Let <i>T</i> be the static type of <i>o</i>.
@@ -4230,8 +4248,7 @@ class StaticTypeWarningCode extends ErrorCode {
    * 1: the resolved type name that the method lookup is happening on
    */
   static const StaticTypeWarningCode UNDEFINED_METHOD =
-      const StaticTypeWarningCode('UNDEFINED_METHOD',
-          "The method '{0}' is not defined for the class '{1}'");
+      shared_messages.UNDEFINED_METHOD_STATIC_TYPE_WARNING;
 
   /**
    * 12.15.1 Ordinary Invocation: Let <i>T</i> be the static type of <i>o</i>.
@@ -4243,10 +4260,7 @@ class StaticTypeWarningCode extends ErrorCode {
    * 1: the resolved type name that the method lookup is happening on
    */
   static const StaticTypeWarningCode UNDEFINED_METHOD_WITH_CONSTRUCTOR =
-      const StaticTypeWarningCode(
-          'UNDEFINED_METHOD_WITH_CONSTRUCTOR',
-          "The method '{0}' is not defined for the class '{1}', but a constructor with that name is defined",
-          "Add 'new' or 'const' to invoke the constuctor, or change the method name.");
+      shared_messages.UNDEFINED_METHOD_WITH_CONSTRUCTOR;
 
   /**
    * 12.18 Assignment: Evaluation of an assignment of the form
@@ -4269,8 +4283,7 @@ class StaticTypeWarningCode extends ErrorCode {
    * 1: the name of the enclosing type where the operator is being looked for
    */
   static const StaticTypeWarningCode UNDEFINED_OPERATOR =
-      const StaticTypeWarningCode('UNDEFINED_OPERATOR',
-          "The operator '{0}' is not defined for the class '{1}'");
+      shared_messages.UNDEFINED_OPERATOR_STATIC_TYPE_WARNING;
 
   /**
    * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>.
@@ -4284,8 +4297,7 @@ class StaticTypeWarningCode extends ErrorCode {
    * See [INACCESSIBLE_SETTER].
    */
   static const StaticTypeWarningCode UNDEFINED_SETTER =
-      const StaticTypeWarningCode('UNDEFINED_SETTER',
-          "The setter '{0}' is not defined for the class '{1}'");
+      shared_messages.UNDEFINED_SETTER_STATIC_TYPE_WARNING;
 
   /**
    * 12.17 Getter Invocation: Let <i>T</i> be the static type of <i>e</i>. It is
@@ -4296,8 +4308,7 @@ class StaticTypeWarningCode extends ErrorCode {
    * 1: the name of the enclosing type where the getter is being looked for
    */
   static const StaticTypeWarningCode UNDEFINED_SUPER_GETTER =
-      const StaticTypeWarningCode('UNDEFINED_SUPER_GETTER',
-          "The getter '{0}' is not defined in a superclass of '{1}'");
+      shared_messages.UNDEFINED_SUPER_GETTER_STATIC_TYPE_WARNING;
 
   /**
    * 12.15.4 Super Invocation: A super method invocation <i>i</i> has the form
@@ -4311,8 +4322,7 @@ class StaticTypeWarningCode extends ErrorCode {
    * 1: the resolved type name that the method lookup is happening on
    */
   static const StaticTypeWarningCode UNDEFINED_SUPER_METHOD =
-      const StaticTypeWarningCode('UNDEFINED_SUPER_METHOD',
-          "The method '{0}' is not defined in a superclass of '{1}'");
+      shared_messages.UNDEFINED_SUPER_METHOD;
 
   /**
    * 12.18 Assignment: Evaluation of an assignment of the form
@@ -4335,8 +4345,7 @@ class StaticTypeWarningCode extends ErrorCode {
    * 1: the name of the enclosing type where the operator is being looked for
    */
   static const StaticTypeWarningCode UNDEFINED_SUPER_OPERATOR =
-      const StaticTypeWarningCode('UNDEFINED_SUPER_OPERATOR',
-          "The operator '{0}' is not defined in a superclass of '{1}'");
+      shared_messages.UNDEFINED_SUPER_OPERATOR;
 
   /**
    * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>.
@@ -4350,8 +4359,7 @@ class StaticTypeWarningCode extends ErrorCode {
    * See [INACCESSIBLE_SETTER].
    */
   static const StaticTypeWarningCode UNDEFINED_SUPER_SETTER =
-      const StaticTypeWarningCode('UNDEFINED_SUPER_SETTER',
-          "The setter '{0}' is not defined in a superclass of '{1}'");
+      shared_messages.UNDEFINED_SUPER_SETTER_STATIC_TYPE_WARNING;
 
   /**
    * 12.15.1 Ordinary Invocation: It is a static type warning if <i>T</i> does
@@ -4361,7 +4369,8 @@ class StaticTypeWarningCode extends ErrorCode {
    * when we are able to find the name defined in a supertype. It exists to
    * provide a more informative error message.
    */
-  static const StaticTypeWarningCode UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER =
+  static const StaticTypeWarningCode
+      UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER =
       const StaticTypeWarningCode(
           'UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER',
           "Static members from supertypes must be qualified by the name of the defining type");
@@ -4403,6 +4412,32 @@ class StaticTypeWarningCode extends ErrorCode {
   static const StaticTypeWarningCode YIELD_OF_INVALID_TYPE =
       const StaticTypeWarningCode('YIELD_OF_INVALID_TYPE',
           "The type '{0}' implied by the 'yield' expression must be assignable to '{1}'");
+
+  /**
+   * 17.6.2 For-in. If the iterable expression does not implement Iterable,
+   * this warning is reported.
+   *
+   * Parameters:
+   * 0: The type of the iterable expression.
+   * 1: The sequence type -- Iterable for `for` or Stream for `await for`.
+   */
+  static const StaticTypeWarningCode FOR_IN_OF_INVALID_TYPE =
+      const StaticTypeWarningCode('FOR_IN_OF_INVALID_TYPE',
+          "The type '{0}' used in the 'for' loop must implement {1}");
+
+  /**
+   * 17.6.2 For-in. It the iterable expression does not implement Iterable with
+   * a type argument that can be assigned to the for-in variable's type, this
+   * warning is reported.
+   *
+   * Parameters:
+   * 0: The type of the iterable expression.
+   * 1: The sequence type -- Iterable for `for` or Stream for `await for`.
+   * 2: The loop variable type.
+   */
+  static const StaticTypeWarningCode FOR_IN_OF_INVALID_ELEMENT_TYPE =
+      const StaticTypeWarningCode('FOR_IN_OF_INVALID_ELEMENT_TYPE',
+          "The type '{0}' used in the 'for' loop must implement {1} with a type argument that can be assigned to '{2}'");
 
   /**
    * Initialize a newly created error code to have the given [name]. The message
@@ -4477,8 +4512,7 @@ class StaticWarningCode extends ErrorCode {
    * 1: the name of the expected type
    */
   static const StaticWarningCode ARGUMENT_TYPE_NOT_ASSIGNABLE =
-      const StaticWarningCode('ARGUMENT_TYPE_NOT_ASSIGNABLE',
-          "The argument type '{0}' cannot be assigned to the parameter type '{1}'");
+      shared_messages.ARGUMENT_TYPE_NOT_ASSIGNABLE_STATIC_WARNING;
 
   /**
    * 5 Variables: Attempting to assign to a final variable elsewhere will cause
@@ -4586,7 +4620,8 @@ class StaticWarningCode extends ErrorCode {
    * Parameters:
    * 0: the name of the super class declaring a static member
    */
-  static const StaticWarningCode CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER =
+  static const StaticWarningCode
+      CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER =
       const StaticWarningCode(
           'CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER',
           "Superclass '{0}' declares static member with the same name");
@@ -4615,7 +4650,8 @@ class StaticWarningCode extends ErrorCode {
    * Parameters:
    * 0: the name of the super class declaring a static member
    */
-  static const StaticWarningCode CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER =
+  static const StaticWarningCode
+      CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER =
       const StaticWarningCode(
           'CONFLICTING_INSTANCE_SETTER_AND_SUPERCLASS_MEMBER',
           "Superclass '{0}' declares static member with the same name");
@@ -4685,7 +4721,8 @@ class StaticWarningCode extends ErrorCode {
    * been initialized at its point of declaration is also initialized in a
    * constructor.
    */
-  static const StaticWarningCode FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION =
+  static const StaticWarningCode
+      FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION =
       const StaticWarningCode(
           'FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION',
           "Values cannot be set in the constructor if they are final, and have already been set");
@@ -4698,7 +4735,8 @@ class StaticWarningCode extends ErrorCode {
    * Parameters:
    * 0: the name of the field in question
    */
-  static const StaticWarningCode FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR =
+  static const StaticWarningCode
+      FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR =
       const StaticWarningCode(
           'FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR',
           "'{0}' is final and was given a value when it was declared, so it cannot be set to a new value");
@@ -4845,7 +4883,8 @@ class StaticWarningCode extends ErrorCode {
    * getters none of the <i>m<sub>i</sub></i> are inherited, and a static
    * warning is issued.
    */
-  static const StaticWarningCode INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD =
+  static const StaticWarningCode
+      INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD =
       const StaticWarningCode(
           'INCONSISTENT_METHOD_INHERITANCE_GETTER_AND_METHOD',
           "'{0}' is inherited as a getter and also a method");
@@ -4859,7 +4898,8 @@ class StaticWarningCode extends ErrorCode {
    * 0: the name of the member with the name conflict
    * 1: the name of the enclosing class that has the static member
    */
-  static const StaticWarningCode INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC =
+  static const StaticWarningCode
+      INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC =
       const StaticWarningCode(
           'INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC',
           "'{0}' collides with a static member in the superclass '{1}'");
@@ -4895,6 +4935,34 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE =
       const StaticWarningCode('INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE',
           "The parameter type '{0}' is not assignable to '{1}' as required by the method it is overriding from '{2}'");
+
+  /**
+   * Generic Method DEP: number of type parameters must match.
+   * <https://github.com/leafpetersen/dep-generic-methods/blob/master/proposal.md#function-subtyping>
+   *
+   * Parameters:
+   * 0: the number of type parameters in the method
+   * 1: the number of type parameters in the overridden method
+   * 2: the name of the class where the overridden method is declared
+   */
+  static const StaticWarningCode INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS =
+      const StaticWarningCode('INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS',
+          "The method has {0} type parameters, but it is overriding a method with {1} type parameters from '{2}'");
+
+  /**
+   * Generic Method DEP: bounds of type parameters must be compatible.
+   * <https://github.com/leafpetersen/dep-generic-methods/blob/master/proposal.md#function-subtyping>
+   *
+   * Parameters:
+   * 0: the type parameter name
+   * 1: the type parameter bound
+   * 2: the overridden type parameter name
+   * 3: the overridden type parameter bound
+   * 4: the name of the class where the overridden method is declared
+   */
+  static const StaticWarningCode INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND =
+      const StaticWarningCode('INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND',
+          "The type parameter '{0}' extends '{1}', but that is stricter than '{2}' extends '{3}' in the overridden method from '{4}'");
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method
@@ -4951,8 +5019,9 @@ class StaticWarningCode extends ErrorCode {
    * <i>p</i> and the signature of <i>m1</i> specifies a different default value
    * for <i>p</i>.
    */
-  static const StaticWarningCode INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED =
-      const StaticWarningCode('INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED',
+  static const StaticWarningCode
+      INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED = const StaticWarningCode(
+          'INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED',
           "Parameters cannot override default values, this method overrides '{0}.{1}' where '{2}' has a different value");
 
   /**
@@ -4962,7 +5031,8 @@ class StaticWarningCode extends ErrorCode {
    * <i>p</i> and the signature of <i>m1</i> specifies a different default value
    * for <i>p</i>.
    */
-  static const StaticWarningCode INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL =
+  static const StaticWarningCode
+      INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL =
       const StaticWarningCode(
           'INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL',
           "Parameters cannot override default values, this method overrides '{0}.{1}' where this positional parameter has a different value");
@@ -4974,11 +5044,12 @@ class StaticWarningCode extends ErrorCode {
    *
    * Parameters:
    * 0: the number of named parameters in the overridden member
-   * 1: the name of the class from the overridden method
+   * 1: the signature of the overridden member
+   * 2: the name of the class from the overridden method
    */
   static const StaticWarningCode INVALID_OVERRIDE_NAMED = const StaticWarningCode(
       'INVALID_OVERRIDE_NAMED',
-      "Missing the named parameter '{0}' to match the overridden method from '{1}'");
+      "Missing the named parameter '{0}' to match the overridden method from '{1}' from '{2}'");
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method
@@ -4987,11 +5058,12 @@ class StaticWarningCode extends ErrorCode {
    *
    * Parameters:
    * 0: the number of positional parameters in the overridden member
-   * 1: the name of the class from the overridden method
+   * 1: the signature of the overridden member
+   * 2: the name of the class from the overridden method
    */
   static const StaticWarningCode INVALID_OVERRIDE_POSITIONAL =
       const StaticWarningCode('INVALID_OVERRIDE_POSITIONAL',
-          "Must have at least {0} parameters to match the overridden method from '{1}'");
+          "Must have at least {0} parameters to match the overridden method '{1}' from '{2}'");
 
   /**
    * 7.1 Instance Methods: It is a static warning if an instance method
@@ -5000,11 +5072,12 @@ class StaticWarningCode extends ErrorCode {
    *
    * Parameters:
    * 0: the number of required parameters in the overridden member
-   * 1: the name of the class from the overridden method
+   * 1: the signature of the overridden member
+   * 2: the name of the class from the overridden method
    */
   static const StaticWarningCode INVALID_OVERRIDE_REQUIRED =
       const StaticWarningCode('INVALID_OVERRIDE_REQUIRED',
-          "Must have {0} required parameters or less to match the overridden method from '{1}'");
+          "Must have {0} required parameters or less to match the overridden method '{1}' from '{2}'");
 
   /**
    * 7.3 Setters: It is a static warning if a setter <i>m1</i> overrides a
@@ -5092,7 +5165,8 @@ class StaticWarningCode extends ErrorCode {
    * with argument type <i>T</i> and a getter named <i>v</i> with return type
    * <i>S</i>, and <i>T</i> may not be assigned to <i>S</i>.
    */
-  static const StaticWarningCode MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE =
+  static const StaticWarningCode
+      MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE =
       const StaticWarningCode(
           'MISMATCHED_GETTER_AND_SETTER_TYPES_FROM_SUPERTYPE',
           "The parameter type for setter '{0}' is '{1}' which is not assignable to its getter (of type '{2}'), from superclass '{3}'");
@@ -5194,7 +5268,8 @@ class StaticWarningCode extends ErrorCode {
    * 3: the name of the fourth member
    * 4: the number of additional missing members that aren't listed
    */
-  static const StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS =
+  static const StaticWarningCode
+      NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS =
       const StaticWarningCode(
           'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS',
           "Missing concrete implementation of {0}, {1}, {2}, {3} and {4} more");
@@ -5219,7 +5294,8 @@ class StaticWarningCode extends ErrorCode {
    * 2: the name of the third member
    * 3: the name of the fourth member
    */
-  static const StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR =
+  static const StaticWarningCode
+      NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR =
       const StaticWarningCode(
           'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR',
           "Missing concrete implementation of {0}, {1}, {2} and {3}");
@@ -5241,8 +5317,9 @@ class StaticWarningCode extends ErrorCode {
    * Parameters:
    * 0: the name of the member
    */
-  static const StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE =
-      const StaticWarningCode('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE',
+  static const StaticWarningCode
+      NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE = const StaticWarningCode(
+          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE',
           "Missing concrete implementation of {0}");
 
   /**
@@ -5264,7 +5341,8 @@ class StaticWarningCode extends ErrorCode {
    * 1: the name of the second member
    * 2: the name of the third member
    */
-  static const StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE =
+  static const StaticWarningCode
+      NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE =
       const StaticWarningCode(
           'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE',
           "Missing concrete implementation of {0}, {1} and {2}");
@@ -5287,8 +5365,9 @@ class StaticWarningCode extends ErrorCode {
    * 0: the name of the first member
    * 1: the name of the second member
    */
-  static const StaticWarningCode NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO =
-      const StaticWarningCode('NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO',
+  static const StaticWarningCode
+      NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO = const StaticWarningCode(
+          'NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_TWO',
           "Missing concrete implementation of {0} and {1}");
 
   /**
@@ -5477,7 +5556,7 @@ class StaticWarningCode extends ErrorCode {
    */
   static const StaticWarningCode TYPE_PARAMETER_REFERENCED_BY_STATIC =
       const StaticWarningCode('TYPE_PARAMETER_REFERENCED_BY_STATIC',
-          "Static members cannot reference type parameters");
+          "Static members cannot reference type parameters of the class");
 
   /**
    * 12.16.3 Static Invocation: A static method invocation <i>i</i> has the form
@@ -5507,9 +5586,8 @@ class StaticWarningCode extends ErrorCode {
    * 0: the name of the getter
    * 1: the name of the enclosing type where the getter is being looked for
    */
-  static const StaticWarningCode UNDEFINED_GETTER = const StaticWarningCode(
-      'UNDEFINED_GETTER',
-      "The getter '{0}' is not defined for the class '{1}'");
+  static const StaticWarningCode UNDEFINED_GETTER =
+      shared_messages.UNDEFINED_GETTER_STATIC_WARNING;
 
   /**
    * 12.30 Identifier Reference: It is as static warning if an identifier
@@ -5552,9 +5630,8 @@ class StaticWarningCode extends ErrorCode {
    * 0: the name of the getter
    * 1: the name of the enclosing type where the setter is being looked for
    */
-  static const StaticWarningCode UNDEFINED_SETTER = const StaticWarningCode(
-      'UNDEFINED_SETTER',
-      "The setter '{0}' is not defined for the class '{1}'");
+  static const StaticWarningCode UNDEFINED_SETTER =
+      shared_messages.UNDEFINED_SETTER_STATIC_WARNING;
 
   /**
    * 12.16.3 Static Invocation: It is a static warning if <i>C</i> does not
@@ -5578,8 +5655,7 @@ class StaticWarningCode extends ErrorCode {
    * 1: the name of the enclosing type where the getter is being looked for
    */
   static const StaticWarningCode UNDEFINED_SUPER_GETTER =
-      const StaticWarningCode('UNDEFINED_SUPER_GETTER',
-          "The getter '{0}' is not defined in a superclass of '{1}'");
+      shared_messages.UNDEFINED_SUPER_GETTER_STATIC_WARNING;
 
   /**
    * 12.18 Assignment: It is as static warning if an assignment of the form
@@ -5597,8 +5673,7 @@ class StaticWarningCode extends ErrorCode {
    * 1: the name of the enclosing type where the setter is being looked for
    */
   static const StaticWarningCode UNDEFINED_SUPER_SETTER =
-      const StaticWarningCode('UNDEFINED_SUPER_SETTER',
-          "The setter '{0}' is not defined in a superclass of '{1}'");
+      shared_messages.UNDEFINED_SUPER_SETTER_STATIC_WARNING;
 
   /**
    * 7.2 Getters: It is a static warning if the return type of a getter is void.
@@ -5606,6 +5681,25 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode VOID_RETURN_FOR_GETTER =
       const StaticWarningCode('VOID_RETURN_FOR_GETTER',
           "The return type of the getter must not be 'void'");
+
+  /**
+   * 17.9 Switch: It is a static warning if all of the following conditions
+   * hold:
+   * * The switch statement does not have a 'default' clause.
+   * * The static type of <i>e</i> is an enumerated typed with elements
+   *   <i>id<sub>1</sub></i>, &hellip;, <i>id<sub>n</sub></i>.
+   * * The sets {<i>e<sub>1</sub></i>, &hellip;, <i>e<sub>k</sub></i>} and
+   *   {<i>id<sub>1</sub></i>, &hellip;, <i>id<sub>n</sub></i>} are not the
+   *   same.
+   *
+   * Parameters:
+   * 0: the name of the constant that is missing
+   */
+  static const StaticWarningCode MISSING_ENUM_CONSTANT_IN_SWITCH =
+      const StaticWarningCode(
+          'MISSING_ENUM_CONSTANT_IN_SWITCH',
+          "Missing case clause for '{0}'",
+          "Add a case clause for the missing constant or add a default clause.");
 
   /**
    * Initialize a newly created error code to have the given [name]. The message

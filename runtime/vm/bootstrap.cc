@@ -82,7 +82,7 @@ static bootstrap_lib_props bootstrap_libraries[] = {
   INIT_LIBRARY(ObjectStore::kTypedData,
                typed_data,
                Bootstrap::typed_data_source_paths_,
-               Bootstrap::typed_data_patch_paths_),
+               NULL),
   INIT_LIBRARY(ObjectStore::kVMService,
                _vmservice,
                Bootstrap::_vmservice_source_paths_,
@@ -132,9 +132,9 @@ static RawString* GetLibrarySource(const Library& lib,
   const uint8_t* utf8_array = NULL;
   intptr_t file_length = -1;
 
-  Dart_FileOpenCallback file_open = Isolate::file_open_callback();
-  Dart_FileReadCallback file_read = Isolate::file_read_callback();
-  Dart_FileCloseCallback file_close = Isolate::file_close_callback();
+  Dart_FileOpenCallback file_open = Dart::file_open_callback();
+  Dart_FileReadCallback file_read = Dart::file_read_callback();
+  Dart_FileCloseCallback file_close = Dart::file_close_callback();
   if ((file_open != NULL) && (file_read != NULL) && (file_close != NULL)) {
     // Try to open and read the file.
     void* stream = (*file_open)(source_path, false);
@@ -181,7 +181,6 @@ static Dart_Handle LoadPartSource(Thread* thread,
                                   const Library& lib,
                                   const String& uri) {
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
   const String& part_source = String::Handle(
       zone, GetLibrarySource(lib, uri, false));
   const String& lib_uri = String::Handle(zone, lib.url());
@@ -201,7 +200,7 @@ static Dart_Handle LoadPartSource(Thread* thread,
   const Script& part_script = Script::Handle(
       zone, Script::New(part_uri, part_source, RawScript::kSourceTag));
   const Error& error = Error::Handle(zone, Compile(lib, part_script));
-  return Api::NewHandle(isolate, error.raw());
+  return Api::NewHandle(thread, error.raw());
 }
 
 
@@ -210,6 +209,9 @@ static Dart_Handle BootstrapLibraryTagHandler(Dart_LibraryTag tag,
                                               Dart_Handle uri) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
+  // This handler calls into the VM directly and does not use the Dart
+  // API so we transition back to VM.
+  TransitionNativeToVM transition(thread);
   if (!Dart_IsLibrary(library)) {
     return Api::NewError("not a library");
   }
@@ -293,6 +295,11 @@ RawError* Bootstrap::LoadandCompileScripts() {
   for (intptr_t i = 0;
        bootstrap_libraries[i].index_ != ObjectStore::kNone;
        ++i) {
+#ifdef PRODUCT
+    if (bootstrap_libraries[i].index_ == ObjectStore::kMirrors) {
+      continue;
+    }
+#endif  // !PRODUCT
     uri = Symbols::New(bootstrap_libraries[i].uri_);
     lib = Library::LookupLibrary(uri);
     if (lib.IsNull()) {
@@ -308,6 +315,11 @@ RawError* Bootstrap::LoadandCompileScripts() {
   for (intptr_t i = 0;
        bootstrap_libraries[i].index_ != ObjectStore::kNone;
        ++i) {
+#ifdef PRODUCT
+    if (bootstrap_libraries[i].index_ == ObjectStore::kMirrors) {
+      continue;
+    }
+#endif  // PRODUCT
     uri = Symbols::New(bootstrap_libraries[i].uri_);
     lib = Library::LookupLibrary(uri);
     ASSERT(!lib.IsNull());
@@ -340,13 +352,14 @@ RawError* Bootstrap::LoadandCompileScripts() {
     SetupNativeResolver();
     ClassFinalizer::ProcessPendingClasses();
 
-    Class& cls = Class::Handle(zone);
-    // Eagerly compile the function implementation class as it is the super
-    // class of signature classes. This allows us to just finalize signature
-    // classes without going through the hoops of trying to compile them.
-    const Type& type =
-        Type::Handle(zone, isolate->object_store()->function_impl_type());
-    cls = type.type_class();
+    // Eagerly compile the _Closure class as it is the class of all closure
+    // instances. This allows us to just finalize function types
+    // without going through the hoops of trying to compile their scope class.
+    Class& cls =
+        Class::Handle(zone, isolate->object_store()->closure_class());
+    Compiler::CompileClass(cls);
+    // Eagerly compile Bool class, bool constants are used from within compiler.
+    cls = isolate->object_store()->bool_class();
     Compiler::CompileClass(cls);
   }
 

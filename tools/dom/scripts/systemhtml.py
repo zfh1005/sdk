@@ -406,7 +406,7 @@ _js_support_checks_additional_element = [
 ]
 
 js_support_checks = dict({
-    'AnimationPlayer': "JS('bool', '!!(document.body.animate)')",
+    'Animation': "JS('bool', '!!(document.body.animate)')",
     'AudioContext': "JS('bool', '!!(window.AudioContext ||"
         " window.webkitAudioContext)')",
     'Crypto':
@@ -614,9 +614,7 @@ class HtmlDartInterfaceGenerator(object):
     return new {0}._internalWrap();
   }}
 
-  factory {0}._internalWrap() {{
-    return new {0}.internal_();
-  }}
+  external factory {0}._internalWrap();
 
   @Deprecated("Internal Use Only")
   {0}.internal_() : super.internal_();
@@ -707,7 +705,7 @@ class HtmlDartInterfaceGenerator(object):
     merged_interface = self._interface_type_info.merged_interface()
     if merged_interface:
       self._backend.AddMembers(self._database.GetInterface(merged_interface),
-        not self._backend.ImplementsMergedMembers())
+                               not self._backend.ImplementsMergedMembers())
 
     self._backend.AddMembers(self._interface, False, self._options.dart_js_interop)
     self._backend.AddSecondaryMembers(self._interface)
@@ -739,7 +737,7 @@ class Dart2JSBackend(HtmlDartGenerator):
   """
 
   def __init__(self, interface, options, logging_level=logging.WARNING):
-    super(Dart2JSBackend, self).__init__(interface, options, False)
+    super(Dart2JSBackend, self).__init__(interface, options, False, _logger)
 
     self._database = options.database
     self._template_loader = options.templates
@@ -749,7 +747,6 @@ class Dart2JSBackend(HtmlDartGenerator):
     self._interface_type_info = self._type_registry.TypeInfo(self._interface.id)
     self._current_secondary_parent = None
     self._library_name = self._renamer.GetLibraryName(self._interface)
-
     _logger.setLevel(logging_level)
 
   def ImplementsMergedMembers(self):
@@ -831,7 +828,8 @@ class Dart2JSBackend(HtmlDartGenerator):
     ext_attrs = self._interface.ext_attrs
     has_indexed_getter = 'CustomIndexedGetter' in ext_attrs
     for operation in self._interface.operations:
-      if operation.id == 'item' and 'getter' in operation.specials:
+      if operation.id == 'item' and 'getter' in operation.specials \
+          and not self._OperationRequiresConversions(operation):
         has_indexed_getter = True
         break
     return has_indexed_getter

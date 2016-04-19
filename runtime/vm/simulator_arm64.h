@@ -102,6 +102,9 @@ class Simulator {
   static uword CompareExchange(uword* address,
                                uword compare_value,
                                uword new_value);
+  static uint32_t CompareExchangeUint32(uint32_t* address,
+                                        uint32_t compare_value,
+                                        uint32_t new_value);
 
   // Runtime and native call support.
   enum CallKind {
@@ -205,8 +208,8 @@ class Simulator {
 
   // Synchronization primitives support.
   void ClearExclusive();
-  intptr_t ReadExclusiveW(uword addr, Instr* instr);
-  intptr_t WriteExclusiveW(uword addr, intptr_t value, Instr* instr);
+  intptr_t ReadExclusiveX(uword addr, Instr* instr);
+  intptr_t WriteExclusiveX(uword addr, intptr_t value, Instr* instr);
 
   // Set access to given address to 'exclusive state' for current thread.
   static void SetExclusiveAccess(uword addr);

@@ -14,6 +14,7 @@ import '../closure.dart';
 import '../common.dart';
 import '../common/backend_api.dart' show
     Backend,
+    BackendSerialization,
     ImpactTransformer,
     ForeignResolver;
 import '../common/codegen.dart' show
@@ -22,6 +23,7 @@ import '../common/codegen.dart' show
     CodegenWorkItem;
 import '../common/names.dart' show
     Identifiers,
+    Names,
     Selectors,
     Uris;
 import '../common/registry.dart' show
@@ -47,6 +49,12 @@ import '../core_types.dart' show
     CoreClasses,
     CoreTypes;
 import '../dart_types.dart';
+import '../deferred_load.dart' show
+    DeferredLoadTask;
+import '../diagnostics/invariant.dart' show
+    DEBUG_MODE;
+import '../dump_info.dart' show
+    DumpInfoTask;
 import '../elements/elements.dart';
 import '../elements/visitor.dart' show
     BaseElementVisitor;
@@ -55,8 +63,7 @@ import '../enqueue.dart' show
     ResolutionEnqueuer;
 import '../io/code_output.dart';
 import '../io/source_information.dart' show
-    SourceInformationStrategy,
-    useNewSourceInfo;
+    SourceInformationStrategy;
 import '../io/position_information.dart' show
     PositionSourceInformationStrategy;
 import '../io/start_end_information.dart' show
@@ -76,7 +83,13 @@ import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
 import '../native/native.dart' as native;
 import '../resolution/tree_elements.dart' show
     TreeElements;
-import '../ssa/ssa.dart';
+import '../ssa/builder.dart' show
+    SsaFunctionCompiler;
+import '../ssa/nodes.dart' show
+    HTypeConversion,
+    HInstruction;
+import '../ssa/codegen.dart' show
+    SsaCodeGenerator;
 import '../tree/tree.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart' show
@@ -92,8 +105,11 @@ import '../universe/use.dart' show
     TypeUse,
     TypeUseKind;
 import '../universe/world_impact.dart' show
+    ImpactStrategy,
+    ImpactUseCase,
     TransformedWorldImpact,
-    WorldImpact;
+    WorldImpact,
+    WorldImpactVisitor;
 import '../util/characters.dart';
 import '../util/util.dart';
 import '../world.dart' show
@@ -101,11 +117,15 @@ import '../world.dart' show
 
 import 'backend_helpers.dart';
 import 'backend_impact.dart';
+import 'backend_serialization.dart' show
+    JavaScriptBackendSerialization;
 import 'codegen/task.dart';
 import 'constant_system_javascript.dart';
-import 'patch_resolver.dart';
+import 'native_data.dart' show
+    NativeData;
 import 'js_interop_analysis.dart' show JsInteropAnalysis;
 import 'lookup_map_analysis.dart' show LookupMapAnalysis;
+import 'patch_resolver.dart';
 
 part 'backend.dart';
 part 'checked_mode_helpers.dart';

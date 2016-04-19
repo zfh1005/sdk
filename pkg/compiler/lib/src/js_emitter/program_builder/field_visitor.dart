@@ -99,7 +99,7 @@ class FieldVisitor {
         js.Name accessorName = namer.fieldAccessorName(field);
         js.Name fieldName = namer.fieldPropertyName(field);
         bool needsCheckedSetter = false;
-        if (compiler.enableTypeAssertions
+        if (compiler.options.enableTypeAssertions
             && needsSetter
             && !canAvoidGeneratedCheckedSetter(field)) {
           needsCheckedSetter = true;
@@ -149,7 +149,7 @@ class FieldVisitor {
     if (field.isFinal || field.isConst) return false;
     if (backend.shouldRetainSetter(field)) return true;
     return field.isClassMember &&
-    compiler.codegenWorld.hasInvokedSetter(field, compiler.world);
+        compiler.codegenWorld.hasInvokedSetter(field, compiler.world);
   }
 
   static bool fieldAccessNeverThrows(VariableElement field) {

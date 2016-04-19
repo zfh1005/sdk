@@ -45,8 +45,6 @@ class Driver extends IntegrationTestMixin {
 
   final Logger logger = new Logger('Driver');
 
-  final bool newTaskModel;
-
   /**
    * The diagnostic port for Analysis Server or `null` if none.
    */
@@ -70,7 +68,7 @@ class Driver extends IntegrationTestMixin {
    */
   Completer<Results> _runCompleter = new Completer<Results>();
 
-  Driver({this.newTaskModel, this.diagnosticPort});
+  Driver({this.diagnosticPort});
 
   /**
    * Return a [Future] that completes with the [Results] of running
@@ -114,9 +112,7 @@ class Driver extends IntegrationTestMixin {
     });
     running = true;
     return server
-        .start(
-            diagnosticPort: diagnosticPort,
-            newTaskModel: newTaskModel /*profileServer: true*/)
+        .start(diagnosticPort: diagnosticPort /*profileServer: true*/)
         .then((params) {
       server.listenToOutput(dispatchNotification);
       server.exitCode.then((_) {
@@ -138,7 +134,7 @@ class Driver extends IntegrationTestMixin {
       // doesn't exit, then forcibly terminate it.
       sendServerShutdown();
       await server.exitCode.timeout(timeout, onTimeout: () {
-        return server.kill();
+        return server.kill('server failed to exit');
       });
     }
     _resultsReady();

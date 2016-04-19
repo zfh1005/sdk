@@ -28,7 +28,6 @@
       <top-nav-menu></top-nav-menu>
       <vm-nav-menu vm="{{ isolate.vm }}"></vm-nav-menu>
       <isolate-nav-menu isolate="{{ isolate }}" last="{{ true }}"></isolate-nav-menu>
-      <nav-refresh callback="{{ refreshCoverage }}" label="Refresh Coverage"></nav-refresh>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
 
@@ -90,6 +89,10 @@
             <div class="memberItem">
               <div class="memberName">isolate id</div>
               <div class="memberValue">{{ isolate.number }}</div>
+            </div>
+            <div class="memberItem">
+              <div class="memberName">service protocol extensions</div>
+              <div class="memberValue">{{ isolate.extensionRPCs }}</div>
             </div>
           </div>
         </div>

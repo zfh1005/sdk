@@ -25,9 +25,6 @@ DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
 DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
-DECLARE_FLAG(int, optimization_counter_threshold);
-DECLARE_FLAG(bool, support_debugger);
-DECLARE_FLAG(bool, lazy_dispatchers);
 
 // Input parameters:
 //   LR : return address.
@@ -101,7 +98,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // We are entering runtime code, so the C stack pointer must be restored from
   // the stack limit to the top of the stack. We cache the stack limit address
   // in a callee-saved register.
-  __ mov(R26, CSP);
+  __ mov(R25, CSP);
   __ mov(CSP, SP);
 
   __ blr(R5);
@@ -109,7 +106,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Restore SP and CSP.
   __ mov(SP, CSP);
-  __ mov(CSP, R26);
+  __ mov(CSP, R25);
 
   // Retval is next to 1st argument.
   // Mark that the thread is executing Dart code.
@@ -204,7 +201,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // We are entering runtime code, so the C stack pointer must be restored from
   // the stack limit to the top of the stack. We cache the stack limit address
   // in the Dart SP register, which is callee-saved in the C ABI.
-  __ mov(R26, CSP);
+  __ mov(R25, CSP);
   __ mov(CSP, SP);
 
   __ mov(R1, R5);  // Pass the function entrypoint to call.
@@ -215,7 +212,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   // Restore SP and CSP.
   __ mov(SP, CSP);
-  __ mov(CSP, R26);
+  __ mov(CSP, R25);
 
   // Mark that the thread is executing Dart code.
   __ LoadImmediate(R2, VMTag::kDartTagId);
@@ -297,7 +294,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   // We are entering runtime code, so the C stack pointer must be restored from
   // the stack limit to the top of the stack. We cache the stack limit address
   // in the Dart SP register, which is callee-saved in the C ABI.
-  __ mov(R26, CSP);
+  __ mov(R25, CSP);
   __ mov(CSP, SP);
 
   // Call native function or redirection via simulator.
@@ -305,7 +302,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   // Restore SP and CSP.
   __ mov(SP, CSP);
-  __ mov(CSP, R26);
+  __ mov(CSP, R25);
 
   // Mark that the thread is executing Dart code.
   __ LoadImmediate(R2, VMTag::kDartTagId);
@@ -786,7 +783,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Copy the C stack pointer (R31) into the stack pointer we'll actually use
   // to access the stack, and put the C stack pointer at the stack limit.
-  __ SetupDartSP(Isolate::GetSpecifiedStackSize());
+  __ SetupDartSP(OSThread::GetSpecifiedStackSize());
   __ EnterFrame(0);
 
   // Push code object to PC marker slot.
@@ -829,7 +826,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ LoadFromOffset(R6, THR, Thread::top_exit_frame_info_offset());
   __ StoreToOffset(ZR, THR, Thread::top_exit_frame_info_offset());
   // kExitLinkSlotFromEntryFp must be kept in sync with the code below.
-  ASSERT(kExitLinkSlotFromEntryFp == -21);
+  ASSERT(kExitLinkSlotFromEntryFp == -22);
   __ Push(R6);
 
   // Load arguments descriptor array into R4, which is passed to Dart code.
@@ -1042,8 +1039,17 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ Push(R2);
   __ Push(R3);
 
-  __ orri(R2, TMP, Immediate(1 << RawObject::kRememberedBit));
-  __ StoreFieldToOffset(R2, R0, Object::tags_offset());
+  // Atomically set the remembered bit of the object header.
+  ASSERT(Object::tags_offset() == 0);
+  __ sub(R3, R0, Operand(kHeapObjectTag));
+  // R3: Untagged address of header word (ldxr/stxr do not support offsets).
+  Label retry;
+  __ Bind(&retry);
+  __ ldxr(R2, R3);
+  __ orri(R2, R2, Immediate(1 << RawObject::kRememberedBit));
+  __ stxr(R1, R2, R3);
+  __ cmp(R1, Operand(1));
+  __ b(&retry, EQ);
 
   // Load the StoreBuffer block out of the thread. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
@@ -1294,10 +1300,6 @@ static void EmitFastSmiOp(Assembler* assembler,
                           Label* not_smi_or_overflow,
                           bool should_update_result_range) {
   __ Comment("Fast Smi op");
-  if (FLAG_throw_on_javascript_int_overflow) {
-    // The overflow check is more complex than implemented below.
-    return;
-  }
   __ ldr(R0, Address(SP, + 0 * kWordSize));  // Right.
   __ ldr(R1, Address(SP, + 1 * kWordSize));  // Left.
   __ orr(TMP, R0, Operand(R1));
@@ -1520,9 +1522,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ Pop(R0);  // Pop returned function object into R0.
   __ Pop(R5);  // Restore IC Data.
   __ Pop(R4);  // Restore arguments descriptor array.
-  if (range_collection_mode == kCollectRanges) {
-    __ RestoreCodePointer();
-  }
+  __ RestoreCodePointer();
   __ LeaveStubFrame();
   Label call_target_function;
   if (!FLAG_lazy_dispatchers) {
@@ -1865,9 +1865,13 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // R3: instance class id.
   // R4: instance type arguments.
   __ SmiTag(R3);
+  __ CompareImmediate(R3, Smi::RawValue(kClosureCid));
+  __ b(&loop, NE);
+  __ LoadFieldFromOffset(R3, R0, Closure::function_offset());
+  // R3: instance class id as Smi or function.
   __ Bind(&loop);
   __ LoadFromOffset(
-      R5, R2, kWordSize * SubtypeTestCache::kInstanceClassId);
+      R5, R2, kWordSize * SubtypeTestCache::kInstanceClassIdOrFunction);
   __ CompareObject(R5, Object::null_object());
   __ b(&not_found, EQ);
   __ CompareRegisters(R5, R3);
@@ -2159,7 +2163,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 //  R1: target entry point
 //  CODE_REG: target Code object
 //  R4: arguments descriptor
-void StubCode::GenerateICLookupStub(Assembler* assembler) {
+void StubCode::GenerateICLookupThroughFunctionStub(Assembler* assembler) {
   Label loop, found, miss;
   __ ldr(R4, FieldAddress(R5, ICData::arguments_descriptor_offset()));
   __ ldr(R8, FieldAddress(R5, ICData::ic_data_offset()));
@@ -2184,6 +2188,41 @@ void StubCode::GenerateICLookupStub(Assembler* assembler) {
   __ ldr(R0, Address(R8, target_offset));
   __ ldr(R1, FieldAddress(R0, Function::entry_point_offset()));
   __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
+  __ ret();
+
+  __ Bind(&miss);
+  __ LoadIsolate(R2);
+  __ ldr(CODE_REG, Address(R2, Isolate::ic_miss_code_offset()));
+  __ ldr(R1, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  __ ret();
+}
+
+
+void StubCode::GenerateICLookupThroughCodeStub(Assembler* assembler) {
+  Label loop, found, miss;
+  __ ldr(R4, FieldAddress(R5, ICData::arguments_descriptor_offset()));
+  __ ldr(R8, FieldAddress(R5, ICData::ic_data_offset()));
+  __ AddImmediate(R8, R8, Array::data_offset() - kHeapObjectTag);
+  // R8: first IC entry
+  __ LoadTaggedClassIdMayBeSmi(R1, R0);
+  // R1: receiver cid as Smi
+
+  __ Bind(&loop);
+  __ ldr(R2, Address(R8, 0));
+  __ cmp(R1, Operand(R2));
+  __ b(&found, EQ);
+  __ CompareImmediate(R2, Smi::RawValue(kIllegalCid));
+  __ b(&miss, EQ);
+
+  const intptr_t entry_length = ICData::TestEntryLengthFor(1) * kWordSize;
+  __ AddImmediate(R8, R8, entry_length);  // Next entry.
+  __ b(&loop);
+
+  __ Bind(&found);
+  const intptr_t code_offset = ICData::CodeIndexFor(1) * kWordSize;
+  const intptr_t entry_offset = ICData::EntryPointIndexFor(1) * kWordSize;
+  __ ldr(R1, Address(R8, entry_offset));
+  __ ldr(CODE_REG, Address(R8, code_offset));
   __ ret();
 
   __ Bind(&miss);

@@ -21,9 +21,7 @@
 #include "platform/utils.h"
 #include "vm/code_observers.h"
 #include "vm/dart.h"
-#include "vm/debuginfo.h"
 #include "vm/isolate.h"
-#include "vm/vtune.h"
 #include "vm/zone.h"
 
 
@@ -31,16 +29,15 @@ namespace dart {
 
 // Android CodeObservers.
 
-DEFINE_FLAG(bool, generate_gdb_symbols, false,
-    "Generate symbols of generated dart functions for debugging with GDB");
+#ifndef PRODUCT
+
 DEFINE_FLAG(bool, generate_perf_events_symbols, false,
     "Generate events symbols for profiling with perf");
-
 
 class PerfCodeObserver : public CodeObserver {
  public:
   PerfCodeObserver() : out_file_(NULL) {
-    Dart_FileOpenCallback file_open = Isolate::file_open_callback();
+    Dart_FileOpenCallback file_open = Dart::file_open_callback();
     if (file_open == NULL) {
       return;
     }
@@ -51,7 +48,7 @@ class PerfCodeObserver : public CodeObserver {
   }
 
   ~PerfCodeObserver() {
-    Dart_FileCloseCallback file_close = Isolate::file_close_callback();
+    Dart_FileCloseCallback file_close = Dart::file_close_callback();
     if ((file_close == NULL) || (out_file_ == NULL)) {
       return;
     }
@@ -67,7 +64,7 @@ class PerfCodeObserver : public CodeObserver {
                       uword prologue_offset,
                       uword size,
                       bool optimized) {
-    Dart_FileWriteCallback file_write = Isolate::file_write_callback();
+    Dart_FileWriteCallback file_write = Dart::file_write_callback();
     if ((file_write == NULL) || (out_file_ == NULL)) {
       return;
     }
@@ -83,41 +80,7 @@ class PerfCodeObserver : public CodeObserver {
   DISALLOW_COPY_AND_ASSIGN(PerfCodeObserver);
 };
 
-
-class GdbCodeObserver : public CodeObserver {
- public:
-  GdbCodeObserver() { }
-
-  virtual bool IsActive() const {
-    return FLAG_generate_gdb_symbols;
-  }
-
-  virtual void Notify(const char* name,
-                      uword base,
-                      uword prologue_offset,
-                      uword size,
-                      bool optimized) {
-    if (prologue_offset > 0) {
-      // In order to ensure that gdb sees the first instruction of a function
-      // as the prologue sequence we register two symbols for the cases when
-      // the prologue sequence is not the first instruction:
-      // <name>_entry is used for code preceding the prologue sequence.
-      // <name> for rest of the code (first instruction is prologue sequence).
-      char* pname = OS::SCreate(Thread::Current()->zone(),
-          "%s_%s", name, "entry");
-      DebugInfo::RegisterSection(pname, base, size);
-      DebugInfo::RegisterSection(name,
-                                 (base + prologue_offset),
-                                 (size - prologue_offset));
-    } else {
-      DebugInfo::RegisterSection(name, base, size);
-    }
-  }
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(GdbCodeObserver);
-};
-
+#endif  // !PRODUCT
 
 const char* OS::Name() {
   return "android";
@@ -179,17 +142,29 @@ int64_t OS::GetCurrentTimeMicros() {
 }
 
 
-int64_t OS::GetCurrentTraceMicros() {
+int64_t OS::GetCurrentMonotonicTicks() {
   struct timespec ts;
   if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
     UNREACHABLE();
     return 0;
   }
-  // Convert to microseconds.
+  // Convert to nanoseconds.
   int64_t result = ts.tv_sec;
-  result *= kMicrosecondsPerSecond;
-  result += (ts.tv_nsec / kNanosecondsPerMicrosecond);
+  result *= kNanosecondsPerSecond;
+  result += ts.tv_nsec;
   return result;
+}
+
+
+int64_t OS::GetCurrentMonotonicFrequency() {
+  return kNanosecondsPerSecond;
+}
+
+
+int64_t OS::GetCurrentMonotonicMicros() {
+  int64_t ticks = GetCurrentMonotonicTicks();
+  ASSERT(GetCurrentMonotonicFrequency() == kNanosecondsPerSecond);
+  return ticks / kNanosecondsPerMicrosecond;
 }
 
 
@@ -415,15 +390,11 @@ bool OS::StringToInt64(const char* str, int64_t* value) {
 
 
 void OS::RegisterCodeObservers() {
+#ifndef PRODUCT
   if (FLAG_generate_perf_events_symbols) {
     CodeObservers::Register(new PerfCodeObserver);
   }
-  if (FLAG_generate_gdb_symbols) {
-    CodeObservers::Register(new GdbCodeObserver);
-  }
-#if defined(DART_VTUNE_SUPPORT)
-  CodeObservers::Register(new VTuneCodeObserver);
-#endif
+#endif  // !PRODUCT
 }
 
 

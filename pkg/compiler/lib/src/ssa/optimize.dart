@@ -2,7 +2,41 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of ssa;
+import '../common/codegen.dart' show
+    CodegenRegistry,
+    CodegenWorkItem;
+import '../common/tasks.dart' show
+    CompilerTask;
+import '../compiler.dart' show
+    Compiler;
+import '../constants/constant_system.dart';
+import '../constants/values.dart';
+import '../core_types.dart' show
+    CoreClasses;
+import '../dart_types.dart';
+import '../elements/elements.dart';
+import '../js/js.dart' as js;
+import '../js_backend/backend_helpers.dart' show
+    BackendHelpers;
+import '../js_backend/js_backend.dart';
+import '../native/native.dart' as native;
+import '../tree/tree.dart' as ast;
+import '../types/types.dart';
+import '../universe/selector.dart' show
+    Selector;
+import '../universe/side_effects.dart' show
+    SideEffects;
+import '../util/util.dart';
+import '../world.dart' show
+    ClassWorld,
+    World;
+
+import 'nodes.dart';
+import 'types_propagation.dart';
+import 'types.dart';
+import 'value_range_analyzer.dart';
+import 'value_set.dart';
+import 'interceptor_simplifier.dart';
 
 abstract class OptimizationPhase {
   String get name;
@@ -27,7 +61,7 @@ class SsaOptimizerTask extends CompilerTask {
 
     ConstantSystem constantSystem = compiler.backend.constantSystem;
     JavaScriptItemCompilationContext context = work.compilationContext;
-    bool trustPrimitives = compiler.trustPrimitives;
+    bool trustPrimitives = compiler.options.trustPrimitives;
     measure(() {
       List<OptimizationPhase> phases = <OptimizationPhase>[
           // Run trivial instruction simplification first to optimize
@@ -249,8 +283,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // there is a throw expression in a short-circuit conditional.  Removing the
     // unreachable HBoolify makes it easier to reconstruct the short-circuit
     // operation.
-    if (input.instructionType.isEmpty && !input.instructionType.isNullable)
-      return input;
+    if (input.instructionType.isEmpty) return input;
 
     // All values that cannot be 'true' are boolified to false.
     TypeMask mask = input.instructionType;
@@ -360,7 +393,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         } else if (applies(helpers.jsArrayAdd)) {
           // The codegen special cases array calls, but does not
           // inline argument type checks.
-          if (!compiler.enableTypeAssertions) {
+          if (!compiler.options.enableTypeAssertions) {
             target = helpers.jsArrayAdd;
           }
         }
@@ -377,8 +410,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
           HInstruction argument = node.inputs[2];
           if (argument.isString(compiler)
               && !input.canBeNull()) {
-            return new HStringConcat(input, argument, null,
-                                     node.instructionType);
+            return new HStringConcat(input, argument, node.instructionType);
           }
         } else if (applies(helpers.jsStringToString)
                    && !input.canBeNull()) {
@@ -481,7 +513,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         if (type is FunctionType) {
           canInline = false;
         }
-        if (compiler.enableTypeAssertions) {
+        if (compiler.options.enableTypeAssertions) {
           // TODO(sra): Check if [input] is guaranteed to pass the parameter
           // type check.  Consider using a strengthened type check to avoid
           // passing `null` to primitive types since the native methods usually
@@ -593,8 +625,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // Intersection of int and double return conflicting, so
     // we don't optimize on numbers to preserve the runtime semantics.
     if (!(left.isNumberOrNull(compiler) && right.isNumberOrNull(compiler))) {
-      TypeMask intersection = leftType.intersection(rightType, compiler.world);
-      if (intersection.isEmpty && !intersection.isNullable) {
+      if (leftType.isDisjoint(rightType, compiler.world)) {
         return makeFalse();
       }
     }
@@ -737,8 +768,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
           : new TypeMask.nonNullSubtype(element, classWorld);
       if (expressionMask.union(typeMask, classWorld) == typeMask) {
         return graph.addConstantBool(true, compiler);
-      } else if (expressionMask.intersection(typeMask,
-                                             compiler.world).isEmpty) {
+      } else if (expressionMask.isDisjoint(typeMask, compiler.world)) {
         return graph.addConstantBool(false, compiler);
       }
     }
@@ -888,7 +918,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // interceptor calling convention, but is not a call on an
     // interceptor.
     HInstruction value = node.inputs.last;
-    if (compiler.enableTypeAssertions) {
+    if (compiler.options.enableTypeAssertions) {
       DartType type = field.type;
       if (!type.treatAsRaw || type.isTypeVariable) {
         // We cannot generate the correct type representation here, so don't
@@ -965,7 +995,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
             leftString.primitiveValue, rightString.primitiveValue)),
         compiler);
     if (prefix == null) return folded;
-    return new HStringConcat(prefix, folded, node.node, backend.stringType);
+    return new HStringConcat(prefix, folded, backend.stringType);
   }
 
   HInstruction visitStringify(HStringify node) {
@@ -2154,10 +2184,8 @@ class MemorySet {
     if (nonEscapingReceivers.contains(second)) return false;
     // Typed arrays of different types might have a shared buffer.
     if (couldBeTypedArray(first) && couldBeTypedArray(second)) return true;
-    TypeMask intersection = first.instructionType.intersection(
+    return !first.instructionType.isDisjoint(
         second.instructionType, compiler.world);
-    if (intersection.isEmpty) return false;
-    return true;
   }
 
   bool isFinal(Element element) {

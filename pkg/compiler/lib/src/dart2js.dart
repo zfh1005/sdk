@@ -119,6 +119,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
   bool dumpInfo = false;
   bool allowNativeExtensions = false;
   bool trustTypeAnnotations = false;
+  bool trustJSInteropTypeAnnotations = false;
   bool checkedMode = false;
   // List of provided options that imply that output is expected.
   List<String> optionsImplyCompilation = <String>[];
@@ -227,6 +228,11 @@ Future<api.CompilationResult> compile(List<String> argv) {
     implyCompilation(argument);
   }
 
+  setTrustJSInteropTypeAnnotations(String argument) {
+    trustJSInteropTypeAnnotations = true;
+    implyCompilation(argument);
+  }
+
   setTrustPrimitives(String argument) {
     implyCompilation(argument);
   }
@@ -311,6 +317,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler('--out=.+|-o.*', setOutput, multipleArguments: true),
     new OptionHandler(Flags.allowMockCompilation, passThrough),
     new OptionHandler(Flags.fastStartup, passThrough),
+    new OptionHandler(Flags.conditionalDirectives, passThrough),
     new OptionHandler('${Flags.minify}|-m', implyCompilation),
     new OptionHandler(Flags.preserveUris, passThrough),
     new OptionHandler('--force-strip=.*', setStrip),
@@ -326,6 +333,9 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler(Flags.trustPrimitives,
                       (_) => setTrustPrimitives(
                           Flags.trustPrimitives)),
+    new OptionHandler(Flags.trustJSInteropTypeAnnotations,
+                      (_) => setTrustJSInteropTypeAnnotations(
+                          Flags.trustJSInteropTypeAnnotations)),
     new OptionHandler(r'--help|/\?|/h', (_) => wantHelp = true),
     new OptionHandler('--packages=.+', setPackageConfig),
     new OptionHandler('--package-root=.+|-p.+', setPackageRoot),
@@ -341,7 +351,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler(Flags.dumpInfo, setDumpInfo),
     new OptionHandler('--disallow-unsafe-eval',
                       (_) => hasDisallowUnsafeEval = true),
-    new OptionHandler(Flags.showPackageWarnings, passThrough),
+    new OptionHandler(Option.showPackageWarnings, passThrough),
     new OptionHandler(Flags.useContentSecurityPolicy, passThrough),
     new OptionHandler(Flags.enableExperimentalMirrors, passThrough),
     new OptionHandler(Flags.enableAssertMessage, passThrough),

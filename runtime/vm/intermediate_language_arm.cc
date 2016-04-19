@@ -7,6 +7,7 @@
 
 #include "vm/intermediate_language.h"
 
+#include "vm/compiler.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/flow_graph.h"
@@ -21,13 +22,9 @@
 #include "vm/symbols.h"
 
 #define __ compiler->assembler()->
+#define Z (compiler->zone())
 
 namespace dart {
-
-DECLARE_FLAG(bool, allow_absolute_addresses);
-DECLARE_FLAG(bool, emit_edge_counters);
-DECLARE_FLAG(int, optimization_counter_threshold);
-DECLARE_FLAG(bool, use_osr);
 
 // Generic summary for call instructions that have all arguments pushed
 // on the stack and return the result in a fixed register R0.
@@ -344,13 +341,12 @@ void UnboxedConstantInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
                                                             bool opt) const {
-  const intptr_t kNumInputs = 3;
+  const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new(zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(R0));  // Value.
-  summary->set_in(1, Location::RegisterLocation(R2));  // Instantiator.
-  summary->set_in(2, Location::RegisterLocation(R1));  // Type arguments.
+  summary->set_in(1, Location::RegisterLocation(R1));  // Type arguments.
   summary->set_out(0, Location::RegisterLocation(R0));
   return summary;
 }
@@ -369,7 +365,7 @@ LocationSummary* AssertBooleanInstr::MakeLocationSummary(Zone* zone,
 
 
 static void EmitAssertBoolean(Register reg,
-                              intptr_t token_pos,
+                              TokenPosition token_pos,
                               intptr_t deopt_id,
                               LocationSummary* locs,
                               FlowGraphCompiler* compiler) {
@@ -378,13 +374,13 @@ static void EmitAssertBoolean(Register reg,
   ASSERT(locs->always_calls());
   Label done;
 
-  if (Isolate::Current()->flags().type_checks()) {
+  if (Isolate::Current()->type_checks()) {
     __ CompareObject(reg, Bool::True());
     __ b(&done, EQ);
     __ CompareObject(reg, Bool::False());
     __ b(&done, EQ);
   } else {
-    ASSERT(Isolate::Current()->flags().asserts());
+    ASSERT(Isolate::Current()->asserts());
     __ CompareObject(reg, Object::null_instance());
     __ b(&done, NE);
   }
@@ -942,15 +938,13 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // into the runtime system.
   uword entry;
   const intptr_t argc_tag = NativeArguments::ComputeArgcTag(function());
-  const bool is_leaf_call =
-      (argc_tag & NativeArguments::AutoSetupScopeMask()) == 0;
   const StubEntry* stub_entry;
   if (link_lazily()) {
     stub_entry = StubCode::CallBootstrapCFunction_entry();
     entry = NativeEntry::LinkNativeCallEntry();
   } else {
     entry = reinterpret_cast<uword>(native_c_function());
-    if (is_bootstrap_native() || is_leaf_call) {
+    if (is_bootstrap_native()) {
       stub_entry = StubCode::CallBootstrapCFunction_entry();
 #if defined(USING_SIMULATOR)
       entry = Simulator::RedirectExternalReference(
@@ -961,12 +955,6 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       // stub generates the redirection address when running under the simulator
       // and hence we do not change 'entry' here.
       stub_entry = StubCode::CallNativeCFunction_entry();
-#if defined(USING_SIMULATOR)
-      if (!function().IsNativeAutoSetupScope()) {
-        entry = Simulator::RedirectExternalReference(
-            entry, Simulator::kBootstrapNativeCall, NativeEntry::kNumArguments);
-      }
-#endif
     }
   }
   __ LoadImmediate(R1, argc_tag);
@@ -1591,6 +1579,10 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const intptr_t nullability = field().is_nullable() ? kNullCid : kIllegalCid;
 
   if (field_cid == kDynamicCid) {
+    if (Compiler::IsBackgroundCompilation()) {
+      // Field state changed while compiling.
+      Compiler::AbortBackgroundCompilation(deopt_id());
+    }
     ASSERT(!compiler->is_optimizing());
     return;  // Nothing to emit.
   }
@@ -1619,7 +1611,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* fail = (deopt != NULL) ? deopt : &fail_label;
 
   if (emit_full_guard) {
-    __ LoadObject(field_reg, Field::ZoneHandle(field().raw()));
+    __ LoadObject(field_reg, Field::ZoneHandle(field().Original()));
 
     FieldAddress field_cid_operand(field_reg, Field::guarded_cid_offset());
     FieldAddress field_nullability_operand(
@@ -1745,6 +1737,10 @@ LocationSummary* GuardFieldLengthInstr::MakeLocationSummary(Zone* zone,
 
 void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (field().guarded_list_length() == Field::kNoFixedLength) {
+    if (Compiler::IsBackgroundCompilation()) {
+      // Field state changed while compiling.
+      Compiler::AbortBackgroundCompilation(deopt_id());
+    }
     ASSERT(!compiler->is_optimizing());
     return;  // Nothing to emit.
   }
@@ -1762,7 +1758,7 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     Label ok;
 
-    __ LoadObject(field_reg, Field::ZoneHandle(field().raw()));
+    __ LoadObject(field_reg, Field::ZoneHandle(field().Original()));
 
     __ ldrsb(offset_reg, FieldAddress(field_reg,
         Field::guarded_list_length_in_object_offset_offset()));
@@ -1822,7 +1818,7 @@ class BoxAllocationSlowPath : public SlowPathCode {
     if (Assembler::EmittingComments()) {
       __ Comment("%s slow path allocation of %s",
                  instruction_->DebugName(),
-                 String::Handle(cls_.PrettyName()).ToCString());
+                 String::Handle(cls_.ScrubbedName()).ToCString());
     }
     __ Bind(entry_label());
     const Code& stub = Code::ZoneHandle(
@@ -1834,7 +1830,7 @@ class BoxAllocationSlowPath : public SlowPathCode {
     locs->live_registers()->Remove(Location::RegisterLocation(result_));
 
     compiler->SaveLiveRegisters(locs);
-    compiler->GenerateCall(Scanner::kNoSourcePos,  // No token position.
+    compiler->GenerateCall(TokenPosition::kNoSource,  // No token position.
                            stub_entry,
                            RawPcDescriptors::kOther,
                            locs);
@@ -2119,7 +2115,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Label store_float32x4;
     Label store_float64x2;
 
-    __ LoadObject(temp, Field::ZoneHandle(field().raw()));
+    __ LoadObject(temp, Field::ZoneHandle(Z, field().Original()));
 
     __ ldrh(temp2, FieldAddress(temp, Field::is_nullable_offset()));
     __ CompareImmediate(temp2, kNullCid);
@@ -2259,7 +2255,7 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const Register temp = locs()->temp(0).reg();
 
-  __ LoadObject(temp, field());
+  __ LoadObject(temp, Field::ZoneHandle(Z, field().Original()));
   if (this->value()->NeedsStoreBuffer()) {
     __ StoreIntoObject(temp,
                        FieldAddress(temp, Field::static_value_offset()),
@@ -2274,13 +2270,12 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* InstanceOfInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
-  const intptr_t kNumInputs = 3;
+  const intptr_t kNumInputs = 2;
   const intptr_t kNumTemps = 0;
   LocationSummary* summary = new(zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(R0));
-  summary->set_in(1, Location::RegisterLocation(R2));
-  summary->set_in(2, Location::RegisterLocation(R1));
+  summary->set_in(1, Location::RegisterLocation(R1));
   summary->set_out(0, Location::RegisterLocation(R0));
   return summary;
 }
@@ -2288,8 +2283,7 @@ LocationSummary* InstanceOfInstr::MakeLocationSummary(Zone* zone,
 
 void InstanceOfInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(0).reg() == R0);  // Value.
-  ASSERT(locs()->in(1).reg() == R2);  // Instantiator.
-  ASSERT(locs()->in(2).reg() == R1);  // Instantiator type arguments.
+  ASSERT(locs()->in(1).reg() == R1);  // Instantiator type arguments.
 
   compiler->GenerateInstanceOf(token_pos(),
                                deopt_id(),
@@ -2379,6 +2373,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(kLengthPos).reg() == kLengthReg);
 
   if (compiler->is_optimizing() &&
+      !FLAG_precompiled_mode &&
       num_elements()->BindsToConstant() &&
       num_elements()->BoundConstant().IsSmi()) {
     const intptr_t length = Smi::Cast(num_elements()->BoundConstant()).Value();
@@ -2482,7 +2477,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Label load_float32x4;
     Label load_float64x2;
 
-    __ LoadObject(result_reg, Field::ZoneHandle(field()->raw()));
+    __ LoadObject(result_reg, Field::ZoneHandle(field()->Original()));
 
     FieldAddress field_cid_operand(result_reg, Field::guarded_cid_offset());
     FieldAddress field_nullability_operand(result_reg,
@@ -2879,14 +2874,11 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
     if (FLAG_use_osr && osr_entry_label()->IsLinked()) {
-      uword flags_address = Isolate::Current()->stack_overflow_flags_address();
       const Register value = instruction_->locs()->temp(0).reg();
       __ Comment("CheckStackOverflowSlowPathOsr");
       __ Bind(osr_entry_label());
-      ASSERT(FLAG_allow_absolute_addresses);
-      __ LoadImmediate(IP, flags_address);
-      __ LoadImmediate(value, Isolate::kOsrRequest);
-      __ str(value, Address(IP));
+      __ LoadImmediate(value, Thread::kOsrRequest);
+      __ str(value, Address(THR, Thread::stack_overflow_flags_offset()));
     }
     __ Comment("CheckStackOverflowSlowPath");
     __ Bind(entry_label());
@@ -2906,7 +2898,7 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
       // In unoptimized code, record loop stack checks as possible OSR entries.
       compiler->AddCurrentDescriptor(RawPcDescriptors::kOsrEntry,
                                      instruction_->deopt_id(),
-                                     0);  // No token position.
+                                     TokenPosition::kNoSource);
     }
     compiler->pending_deoptimization_env_ = NULL;
     compiler->RestoreLiveRegisters(instruction_->locs());
@@ -2928,13 +2920,7 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   CheckStackOverflowSlowPath* slow_path = new CheckStackOverflowSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
-  if (compiler->is_optimizing() && FLAG_allow_absolute_addresses) {
-    __ LoadImmediate(IP, Isolate::Current()->stack_limit_address());
-    __ ldr(IP, Address(IP));
-  } else {
-    __ LoadIsolate(IP);
-    __ ldr(IP, Address(IP, Isolate::stack_limit_offset()));
-  }
+  __ ldr(IP, Address(THR, Thread::stack_limit_offset()));
   __ cmp(SP, Operand(IP));
   __ b(slow_path->entry_label(), LS);
   if (compiler->CanOSRFunction() && in_loop()) {
@@ -3047,6 +3033,109 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
     // Shift for result now we know there is no overflow.
     __ Lsl(result, left, IP);
   }
+}
+
+
+class CheckedSmiSlowPath : public SlowPathCode {
+ public:
+  CheckedSmiSlowPath(CheckedSmiOpInstr* instruction, intptr_t try_index)
+      : instruction_(instruction), try_index_(try_index) { }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    if (Assembler::EmittingComments()) {
+      __ Comment("slow path smi operation");
+    }
+    __ Bind(entry_label());
+    LocationSummary* locs = instruction_->locs();
+    Register result = locs->out(0).reg();
+    locs->live_registers()->Remove(Location::RegisterLocation(result));
+
+    compiler->SaveLiveRegisters(locs);
+    __ Push(locs->in(0).reg());
+    __ Push(locs->in(1).reg());
+    compiler->EmitMegamorphicInstanceCall(
+        *instruction_->call()->ic_data(),
+        instruction_->call()->ArgumentCount(),
+        instruction_->call()->deopt_id(),
+        instruction_->call()->token_pos(),
+        locs,
+        try_index_,
+        /* slow_path_argument_count = */ 2);
+    __ mov(result, Operand(R0));
+    compiler->RestoreLiveRegisters(locs);
+    __ b(exit_label());
+  }
+
+ private:
+  CheckedSmiOpInstr* instruction_;
+  intptr_t try_index_;
+};
+
+
+LocationSummary* CheckedSmiOpInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new(zone) LocationSummary(
+      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_in(1, Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresRegister());
+  return summary;
+}
+
+
+void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  CheckedSmiSlowPath* slow_path =
+      new CheckedSmiSlowPath(this, compiler->CurrentTryIndex());
+  compiler->AddSlowPathCode(slow_path);
+  // Test operands if necessary.
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  Register result = locs()->out(0).reg();
+  __ orr(result, left, Operand(right));
+  __ tst(result, Operand(kSmiTagMask));
+  __ b(slow_path->entry_label(), NE);
+  switch (op_kind()) {
+    case Token::kADD:
+      __ adds(result, left, Operand(right));
+      __ b(slow_path->entry_label(), VS);
+      break;
+    case Token::kSUB:
+      __ subs(result, left, Operand(right));
+      __ b(slow_path->entry_label(), VS);
+      break;
+    case Token::kBIT_OR:
+      // Operation part of combined smi check.
+      break;
+    case Token::kBIT_AND:
+      __ and_(result, left, Operand(right));
+      break;
+    case Token::kBIT_XOR:
+      __ eor(result, left, Operand(right));
+      break;
+    case Token::kEQ:
+    case Token::kLT:
+    case Token::kLTE:
+    case Token::kGT:
+    case Token::kGTE: {
+      Label true_label, false_label, done;
+      BranchLabels labels = { &true_label, &false_label, &false_label };
+      Condition true_condition =
+          EmitSmiComparisonOp(compiler, locs(), op_kind());
+      EmitBranchOnCondition(compiler, true_condition, labels);
+      __ Bind(&false_label);
+      __ LoadObject(result, Bool::False());
+      __ b(&done);
+      __ Bind(&true_label);
+      __ LoadObject(result, Bool::True());
+      __ Bind(&done);
+      break;
+    }
+    default:
+      UNIMPLEMENTED();
+  }
+  __ Bind(slow_path->exit_label());
 }
 
 
@@ -6069,27 +6158,6 @@ void CheckArrayBoundInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-static void EmitJavascriptIntOverflowCheck(FlowGraphCompiler* compiler,
-                                           Label* overflow,
-                                           Register result_lo,
-                                           Register result_hi) {
-  // Compare upper half.
-  Label check_lower;
-  __ CompareImmediate(result_hi, 0x00200000);
-  __ b(overflow, GT);
-  __ b(&check_lower, NE);
-
-  __ CompareImmediate(result_lo, 0);
-  __ b(overflow, HI);
-
-  __ Bind(&check_lower);
-  __ CompareImmediate(result_hi, -0x00200000);
-  __ b(overflow, LT);
-  // Anything in the lower part would make the number bigger than the lower
-  // bound, so we are done.
-}
-
-
 LocationSummary* BinaryMintOpInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 2;
@@ -6166,9 +6234,6 @@ void BinaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     default:
       UNREACHABLE();
-  }
-  if (FLAG_throw_on_javascript_int_overflow) {
-    EmitJavascriptIntOverflowCheck(compiler, deopt, out_lo, out_hi);
   }
 }
 
@@ -6315,10 +6380,6 @@ void ShiftMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         UNREACHABLE();
     }
   }
-
-  if (FLAG_throw_on_javascript_int_overflow) {
-    EmitJavascriptIntOverflowCheck(compiler, deopt, out_lo, out_hi);
-  }
 }
 
 
@@ -6345,17 +6406,8 @@ void UnaryMintOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   PairLocation* out_pair = locs()->out(0).AsPairLocation();
   Register out_lo = out_pair->At(0).reg();
   Register out_hi = out_pair->At(1).reg();
-
-  Label* deopt = NULL;
-
-  if (FLAG_throw_on_javascript_int_overflow) {
-    deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptUnaryMintOp);
-  }
   __ mvn(out_lo, Operand(left_lo));
   __ mvn(out_hi, Operand(left_hi));
-  if (FLAG_throw_on_javascript_int_overflow) {
-    EmitJavascriptIntOverflowCheck(compiler, deopt, out_lo, out_hi);
-  }
 }
 
 
@@ -6645,14 +6697,14 @@ LocationSummary* GotoInstr::MakeLocationSummary(Zone* zone,
 
 void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!compiler->is_optimizing()) {
-    if (FLAG_emit_edge_counters) {
+    if (FLAG_reorder_basic_blocks) {
       compiler->EmitEdgeCounter(block()->preorder_number());
     }
     // Add a deoptimization descriptor for deoptimizing instructions that
     // may be inserted before this instruction.
     compiler->AddCurrentDescriptor(RawPcDescriptors::kDeopt,
                                    GetDeoptId(),
-                                   Scanner::kNoSourcePos);
+                                   TokenPosition::kNoSource);
   }
   if (HasParallelMove()) {
     compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
@@ -6855,7 +6907,7 @@ void GrowRegExpStackInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register result = locs()->out(0).reg();
   __ PushObject(Object::null_object());
   __ Push(typed_data);
-  compiler->GenerateRuntimeCall(Scanner::kNoSourcePos,  // No token position.
+  compiler->GenerateRuntimeCall(TokenPosition::kNoSource,
                                 deopt_id(),
                                 kGrowRegExpStackRuntimeEntry,
                                 1,

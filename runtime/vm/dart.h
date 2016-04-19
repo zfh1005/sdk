@@ -23,10 +23,10 @@ class Dart : public AllStatic {
   static const char* InitOnce(
       const uint8_t* vm_isolate_snapshot,
       const uint8_t* instructions_snapshot,
+      const uint8_t* data_snapshot,
       Dart_IsolateCreateCallback create,
-      Dart_IsolateInterruptCallback interrupt,
-      Dart_IsolateUnhandledExceptionCallback unhandled,
       Dart_IsolateShutdownCallback shutdown,
+      Dart_ThreadExitCallback thread_exit,
       Dart_FileOpenCallback file_open,
       Dart_FileReadCallback file_read,
       Dart_FileWriteCallback file_write,
@@ -44,6 +44,10 @@ class Dart : public AllStatic {
 
   static Isolate* vm_isolate() { return vm_isolate_; }
   static ThreadPool* thread_pool() { return thread_pool_; }
+
+  // Returns a timestamp for use in debugging output in milliseconds
+  // since start time.
+  static int64_t timestamp();
 
   static void set_pprof_symbol_generator(DebugInfo* value) {
     pprof_symbol_generator_ = value;
@@ -66,14 +70,65 @@ class Dart : public AllStatic {
     return instructions_snapshot_buffer_ != NULL;
   }
 
+  static const uint8_t* data_snapshot_buffer() {
+    return data_snapshot_buffer_;
+  }
+  static void set_data_snapshot_buffer(const uint8_t* buffer) {
+    data_snapshot_buffer_ = buffer;
+  }
+
+  static Dart_ThreadExitCallback thread_exit_callback() {
+    return thread_exit_callback_;
+  }
+  static void set_thread_exit_callback(Dart_ThreadExitCallback cback) {
+    thread_exit_callback_ = cback;
+  }
+  static void SetFileCallbacks(Dart_FileOpenCallback file_open,
+                               Dart_FileReadCallback file_read,
+                               Dart_FileWriteCallback file_write,
+                               Dart_FileCloseCallback file_close) {
+    file_open_callback_ = file_open;
+    file_read_callback_ = file_read;
+    file_write_callback_ = file_write;
+    file_close_callback_ = file_close;
+  }
+
+  static Dart_FileOpenCallback file_open_callback() {
+    return file_open_callback_;
+  }
+  static Dart_FileReadCallback file_read_callback() {
+    return file_read_callback_;
+  }
+  static Dart_FileWriteCallback file_write_callback() {
+    return file_write_callback_;
+  }
+  static Dart_FileCloseCallback file_close_callback() {
+    return file_close_callback_;
+  }
+
+  static void set_entropy_source_callback(Dart_EntropySource entropy_source) {
+    entropy_source_callback_ = entropy_source;
+  }
+  static Dart_EntropySource entropy_source_callback() {
+    return entropy_source_callback_;
+  }
+
  private:
   static void WaitForIsolateShutdown();
 
   static Isolate* vm_isolate_;
+  static int64_t start_time_;
   static ThreadPool* thread_pool_;
   static DebugInfo* pprof_symbol_generator_;
   static ReadOnlyHandles* predefined_handles_;
   static const uint8_t* instructions_snapshot_buffer_;
+  static const uint8_t* data_snapshot_buffer_;
+  static Dart_ThreadExitCallback thread_exit_callback_;
+  static Dart_FileOpenCallback file_open_callback_;
+  static Dart_FileReadCallback file_read_callback_;
+  static Dart_FileWriteCallback file_write_callback_;
+  static Dart_FileCloseCallback file_close_callback_;
+  static Dart_EntropySource entropy_source_callback_;
 };
 
 }  // namespace dart

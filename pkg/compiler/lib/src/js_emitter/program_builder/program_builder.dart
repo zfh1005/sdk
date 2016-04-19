@@ -310,15 +310,12 @@ class ProgramBuilder {
 
   List<StaticField> _buildStaticLazilyInitializedFields(
       LibrariesMap librariesMap) {
-    // TODO(floitsch): lazy fields should just be in their respective
-    // libraries.
-    if (librariesMap != _registry.mainLibrariesMap) {
-      return const <StaticField>[];
-    }
-
     JavaScriptConstantCompiler handler = backend.constants;
-    List<VariableElement> lazyFields =
-        handler.getLazilyInitializedFieldsForEmission();
+    DeferredLoadTask loadTask = _compiler.deferredLoadTask;
+    Iterable<VariableElement> lazyFields = handler
+        .getLazilyInitializedFieldsForEmission()
+        .where((element) =>
+            loadTask.outputUnitForElement(element) == librariesMap.outputUnit);
     return Elements.sortedByPosition(lazyFields)
         .map(_buildLazyField)
         .where((field) => field != null)  // Happens when the field was unused.
@@ -419,7 +416,7 @@ class ProgramBuilder {
               FunctionElement fn = member;
               functionType = fn.type;
             } else if (member.isGetter) {
-              if (_compiler.trustTypeAnnotations) {
+              if (_compiler.options.trustTypeAnnotations) {
                 GetterElement getter = member;
                 DartType returnType = getter.type.returnType;
                 if (returnType.isFunctionType) {
@@ -525,7 +522,7 @@ class ProgramBuilder {
   ///
   /// Returns a class that contains the fields of a class.
   Class buildFieldsHackForIncrementalCompilation(ClassElement element) {
-    assert(_compiler.hasIncrementalSupport);
+    assert(_compiler.options.hasIncrementalSupport);
 
     List<Field> instanceFields = _buildFields(element, false);
     js.Name name = namer.className(element);
@@ -697,7 +694,7 @@ class ProgramBuilder {
     return backend.isAccessibleByReflection(method) ||
         // During incremental compilation, we have to assume that reflection
         // *might* get enabled.
-        _compiler.hasIncrementalSupport;
+        _compiler.options.hasIncrementalSupport;
   }
 
   bool _methodCanBeApplied(FunctionElement method) {
@@ -707,7 +704,7 @@ class ProgramBuilder {
 
   // TODO(herhut): Refactor incremental compilation and remove method.
   Method buildMethodHackForIncrementalCompilation(FunctionElement element) {
-    assert(_compiler.hasIncrementalSupport);
+    assert(_compiler.options.hasIncrementalSupport);
     if (element.isInstanceMember) {
       return _buildMethod(element);
     } else {

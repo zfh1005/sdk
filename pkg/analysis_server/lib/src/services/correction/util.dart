@@ -12,12 +12,17 @@ import 'package:analysis_server/src/protocol_server.dart'
     show doSourceChange_addElementEdit;
 import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
-import 'package:analysis_server/src/services/search/element_visitors.dart';
-import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/scanner/reader.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:path/path.dart';
 
@@ -396,17 +401,14 @@ AstNode getNearestCommonAncestor(List<AstNode> nodes) {
  */
 Expression getNodeQualifier(SimpleIdentifier node) {
   AstNode parent = node.parent;
-  if (parent is PropertyAccess) {
-    PropertyAccess propertyAccess = parent;
-    if (identical(propertyAccess.propertyName, node)) {
-      return propertyAccess.target;
-    }
+  if (parent is MethodInvocation && identical(parent.methodName, node)) {
+    return parent.target;
   }
-  if (parent is PrefixedIdentifier) {
-    PrefixedIdentifier prefixed = parent;
-    if (identical(prefixed.identifier, node)) {
-      return prefixed.prefix;
-    }
+  if (parent is PropertyAccess && identical(parent.propertyName, node)) {
+    return parent.target;
+  }
+  if (parent is PrefixedIdentifier && identical(parent.identifier, node)) {
+    return parent.prefix;
   }
   return null;
 }
@@ -667,20 +669,10 @@ class CorrectionUtils {
     AstNode enclosingNode = findNode(offset);
     Block enclosingBlock = enclosingNode.getAncestor((node) => node is Block);
     if (enclosingBlock != null) {
-      SourceRange newRange = rangeStartEnd(offset, enclosingBlock.end);
-      ExecutableElement enclosingExecutable =
-          getEnclosingExecutableElement(enclosingNode);
-      if (enclosingExecutable != null) {
-        visitChildren(enclosingExecutable, (Element element) {
-          if (element is LocalElement) {
-            SourceRange elementRange = element.visibleRange;
-            if (elementRange != null && elementRange.intersects(newRange)) {
-              conflicts.add(element.displayName);
-            }
-          }
-          return true;
-        });
-      }
+      _CollectReferencedUnprefixedNames visitor =
+          new _CollectReferencedUnprefixedNames();
+      enclosingBlock.accept(visitor);
+      return visitor.names;
     }
     return conflicts;
   }
@@ -726,7 +718,7 @@ class CorrectionUtils {
       result.offset = prevDirective.end;
       String eol = endOfLine;
       if (prevDirective is LibraryDirective) {
-        result.prefix = "${eol}${eol}";
+        result.prefix = "$eol$eol";
       } else {
         result.prefix = eol;
       }
@@ -753,7 +745,7 @@ class CorrectionUtils {
       if (prevDirective is PartDirective) {
         result.prefix = eol;
       } else {
-        result.prefix = "${eol}${eol}";
+        result.prefix = "$eol$eol";
       }
       return result;
     }
@@ -917,10 +909,14 @@ class CorrectionUtils {
    * Returns a [SourceRange] that covers [range] and extends (if possible) to
    * cover whole lines.
    */
-  SourceRange getLinesRange(SourceRange range) {
+  SourceRange getLinesRange(SourceRange range,
+      {bool skipLeadingEmptyLines: false}) {
     // start
     int startOffset = range.offset;
     int startLineOffset = getLineContentStart(startOffset);
+    if (skipLeadingEmptyLines) {
+      startLineOffset = skipEmptyLinesLeft(startLineOffset);
+    }
     // end
     int endOffset = range.end;
     int afterEndLineOffset = getLineContentEnd(endOffset);
@@ -1042,7 +1038,8 @@ class CorrectionUtils {
    * Fills [librariesToImport] with [LibraryElement]s whose elements are
    * used by the generated source, but not imported.
    */
-  String getTypeSource(DartType type, Set<LibraryElement> librariesToImport) {
+  String getTypeSource(DartType type, Set<LibraryElement> librariesToImport,
+      {StringBuffer parametersBuffer}) {
     StringBuffer sb = new StringBuffer();
     // type parameter
     if (!_isTypeVisible(type)) {
@@ -1050,7 +1047,21 @@ class CorrectionUtils {
     }
     // just a Function, not FunctionTypeAliasElement
     if (type is FunctionType && type.element is! FunctionTypeAliasElement) {
-      return "Function";
+      if (parametersBuffer == null) {
+        return "Function";
+      }
+      parametersBuffer.write('(');
+      for (ParameterElement parameter in type.parameters) {
+        String parameterType = getTypeSource(parameter.type, librariesToImport);
+        if (parametersBuffer.length != 1) {
+          parametersBuffer.write(', ');
+        }
+        parametersBuffer.write(parameterType);
+        parametersBuffer.write(' ');
+        parametersBuffer.write(parameter.name);
+      }
+      parametersBuffer.write(')');
+      return getTypeSource(type.returnType, librariesToImport);
     }
     // BottomType
     if (type.isBottom) {
@@ -1133,7 +1144,7 @@ class CorrectionUtils {
       }
       // update line
       if (right) {
-        line = "${indent}${line}";
+        line = "$indent$line";
       } else {
         line = removeStart(line, indent);
       }
@@ -1204,7 +1215,7 @@ class CorrectionUtils {
       lineOffset += line.length + eol.length;
       // update line indent
       if (!inString) {
-        line = "${newIndent}${removeStart(line, oldIndent)}";
+        line = "$newIndent${removeStart(line, oldIndent)}";
       }
       // append line
       sb.write(line);
@@ -1232,6 +1243,27 @@ class CorrectionUtils {
       SourceRange selection, AstNode node) {
     return _selectionIncludesNonWhitespaceOutsideRange(
         selection, rangeNode(node));
+  }
+
+  /**
+   * Skip spaces, tabs and EOLs on the left from [index].
+   *
+   * If [index] is the start of a method, then in the most cases return the end
+   * of the previous not-whitespace line.
+   */
+  int skipEmptyLinesLeft(int index) {
+    int lastLine = index;
+    while (index > 0) {
+      int c = _buffer.codeUnitAt(index - 1);
+      if (!isWhitespace(c)) {
+        return lastLine;
+      }
+      if (isEOL(c)) {
+        lastLine = index;
+      }
+      index--;
+    }
+    return 0;
   }
 
   /**
@@ -1299,11 +1331,9 @@ class CorrectionUtils {
       String expressionSource = getNodeText(isExpression.expression);
       String typeSource = getNodeText(isExpression.type);
       if (isExpression.notOperator == null) {
-        return _InvertedCondition
-            ._simple("${expressionSource} is! ${typeSource}");
+        return _InvertedCondition._simple("$expressionSource is! $typeSource");
       } else {
-        return _InvertedCondition
-            ._simple("${expressionSource} is ${typeSource}");
+        return _InvertedCondition._simple("$expressionSource is $typeSource");
       }
     }
     if (expression is PrefixExpression) {
@@ -1438,6 +1468,26 @@ class TokenUtils {
       tokens.length == 1 && tokens[0].type == type;
 }
 
+class _CollectReferencedUnprefixedNames extends RecursiveAstVisitor {
+  final Set<String> names = new Set<String>();
+
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (!_isPrefixed(node)) {
+      names.add(node.name);
+    }
+  }
+
+  static bool _isPrefixed(SimpleIdentifier node) {
+    AstNode parent = node.parent;
+    return parent is ConstructorName && parent.name == node ||
+        parent is MethodInvocation &&
+            parent.methodName == node &&
+            parent.realTarget != null ||
+        parent is PrefixedIdentifier && parent.identifier == node ||
+        parent is PropertyAccess && parent.target == node;
+  }
+}
+
 /**
  * A container with a source and its precedence.
  */
@@ -1460,7 +1510,7 @@ class _InvertedCondition {
       _InvertedCondition left, String operation, _InvertedCondition right) {
     // TODO(scheglov) consider merging with "_binary()" after testing
     return new _InvertedCondition(
-        1 << 20, "${left._source}${operation}${right._source}");
+        1 << 20, "${left._source}$operation${right._source}");
   }
 
   /**

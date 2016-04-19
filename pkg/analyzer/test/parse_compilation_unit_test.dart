@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.parse.compilation.unit;
+library analyzer.test.parse_compilation_unit_test;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:unittest/unittest.dart';
@@ -31,9 +31,7 @@ void main() {
       parseCompilationUnit("void main() => print('Hello, world!')");
     }, throwsA(predicate((error) {
       return error is AnalyzerErrorGroup &&
-          error
-              .toString()
-              .contains("Error in <unknown source>: Expected to find ';'");
+          error.toString().contains("Error in <unknown source>: Expected to find ';'");
     })));
   });
 

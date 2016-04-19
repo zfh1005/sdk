@@ -6,7 +6,7 @@
   </head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version <version>1.12.0</version></h1>
+    <h1 style="color:#999999">Version <version>1.15.0</version></h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -395,6 +395,42 @@
           </field>
         </result>
       </request>
+      <request method="getReachableSources">
+        <p>
+          Return the transitive closure of reachable sources for a given file.
+        </p>
+        <p>
+          If a request is made for a file which does not exist, or
+          which is not currently subject to analysis (e.g. because it
+          is not associated with any analysis root specified to
+          analysis.setAnalysisRoots), an error of type
+          <tt>GET_REACHABLE_SOURCES_INVALID_FILE</tt> will be generated.
+        </p>
+        <params>
+          <field name="file">
+            <ref>FilePath</ref>
+            <p>
+              The file for which reachable source information is being requested.
+            </p>
+          </field>
+        </params>
+        <result>
+          <field name="sources">
+            <map>
+              <key><ref>String</ref></key>
+              <value><list>><ref>String</ref></list></value>
+            </map>
+            <p>
+              A mapping from source URIs to directly reachable source URIs. For example,
+              a file "foo.dart" that imports "bar.dart" would have the corresponding mapping
+              { "file:///foo.dart" : ["file:///bar.dart"] }.  If "bar.dart" has further imports
+              (or exports) there will be a mapping from the URI "file:///bar.dart" to them.
+              To check if a specific URI is reachable from a given file, clients can check
+              for its presence in the resulting key set.
+            </p>
+          </field>
+        </result>
+      </request>
       <request method="getLibraryDependencies">
         <p>
           Return library dependency information for use in client-side indexing
@@ -579,14 +615,25 @@
               <value><ref>FilePath</ref></value>
             </map>
             <p>
-              A mapping from source directories to target directories
+              A mapping from source directories to package roots
               that should override the normal package: URI resolution
-              mechanism.  The analyzer will behave as though each
+              mechanism.
+            </p>
+            <p>
+              If a package root is a directory, then
+              the analyzer will behave as though the associated
               source directory in the map contains a special
               pubspec.yaml file which resolves any package: URI to the
-              corresponding path within the target directory.  The
-              effect is the same as specifying the target directory as
+              corresponding path within that package root directory.  The
+              effect is the same as specifying the package root directory as
               a "--package_root" parameter to the Dart VM when
+              executing any Dart file inside the source directory.
+            </p>
+            <p>
+              If a package root is a file, then the analyzer
+              will behave as though that file is a ".packages" file in the
+              source directory. The effect is the same as specifying the file
+              as a "--packages" parameter to the Dart VM when
               executing any Dart file inside the source directory.
             </p>
             <p>
@@ -1959,14 +2006,9 @@
         </params>
       </notification>
     </domain>
-    <domain name="diagnostic" experimental="true">
+    <domain name="diagnostic">
       <p>
-        The diagnostic domain contains experimental server diagnostics APIs. Note
-        that as an experimental API, docs are not generated for this domain and it
-        is subject subject to change without notice.
-        Because this experimental domain is not part of the analysis server's API,
-        the version number of the API will not be updated when changes are made.
-        Caveat emptor!
+        The diagnostic domain contains server diagnostics APIs.
       </p>
       <request method="getDiagnostics">
         <p>Return server diagnostics.</p>
@@ -2044,6 +2086,12 @@
               correction message should indicate how the user can fix
               the error. The field is omitted if there is no correction
               message associated with the error code.
+            </p>
+          </field>
+          <field name="code">
+            <ref>String</ref>
+            <p>
+              The name, as a string, of the error code associated with this error.
             </p>
           </field>
           <field name="hasFix" optional="true">
@@ -2460,7 +2508,7 @@
           <value><code>PARAMETER</code></value>
         </enum>
       </type>
-      <type name="ContextData" experimental="true">
+      <type name="ContextData">
         <p>
           Information about an analysis context.
         </p>
@@ -2590,8 +2638,14 @@
           <value><code>SETTER</code></value>
           <value><code>TOP_LEVEL_VARIABLE</code></value>
           <value><code>TYPE_PARAMETER</code></value>
-          <value><code>UNIT_TEST_GROUP</code></value>
-          <value><code>UNIT_TEST_TEST</code></value>
+          <value>
+            <code>UNIT_TEST_GROUP</code>
+            <p><b><i>Deprecated</i></b>: support for tests was removed.</p>
+          </value>
+          <value>
+            <code>UNIT_TEST_TEST</code>
+            <p><b><i>Deprecated</i></b>: support for tests was removed.</p>
+          </value>
           <value><code>UNKNOWN</code></value>
         </enum>
       </type>
@@ -2652,7 +2706,12 @@
       <type name="FilePath">
         <ref>String</ref>
         <p>
-          The absolute path of a file.
+          The absolute, normalized path of a file.
+        </p>
+        <p>
+          If the format of a file path in a request is not valid, e.g. the
+          path is not absolute or is not normalized, then an error of type
+          <tt>INVALID_FILE_PATH_FORMAT</tt> will be generated.
         </p>
       </type>
       <type name="FoldingKind">
@@ -3644,6 +3703,14 @@
             </p>
           </value>
           <value>
+            <code>GET_REACHABLE_SOURCES_INVALID_FILE</code>
+            <p>
+              An "analysis.getReachableSources" request specified a FilePath
+              which does not match a file currently subject to
+              analysis.
+            </p>
+          </value>
+          <value>
             <code>INVALID_ANALYSIS_ROOT</code>
             <p>
               A path passed as an argument to a request (such as
@@ -3655,6 +3722,13 @@
             <p>
               The context root used to create an execution context does not
               exist.
+            </p>
+          </value>
+          <value>
+            <code>INVALID_FILE_PATH_FORMAT</code>
+            <p>
+              The format of the given file path is invalid, e.g. is not
+              absolute and normalized.
             </p>
           </value>
           <value>

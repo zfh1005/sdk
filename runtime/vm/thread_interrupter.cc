@@ -11,6 +11,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 // Notes:
 //
 // The ThreadInterrupter interrupts all threads actively running isolates once
@@ -75,7 +77,7 @@ void ThreadInterrupter::Startup() {
   ASSERT(interrupter_thread_id_ == OSThread::kInvalidThreadJoinId);
   {
     MonitorLocker startup_ml(monitor_);
-    OSThread::Start(ThreadMain, 0);
+    OSThread::Start("ThreadInterrupter", ThreadMain, 0);
     while (!thread_running_) {
       startup_ml.Wait();
     }
@@ -96,7 +98,7 @@ void ThreadInterrupter::Shutdown() {
     }
     shutdown_ = true;
     // Notify.
-    monitor_->Notify();
+    shutdown_ml.Notify();
     ASSERT(initialized_);
     if (FLAG_trace_thread_interrupter) {
       OS::Print("ThreadInterrupter shutting down.\n");
@@ -153,14 +155,16 @@ void ThreadInterrupter::ThreadMain(uword parameters) {
   {
     // Signal to main thread we are ready.
     MonitorLocker startup_ml(monitor_);
-    interrupter_thread_id_ = OSThread::GetCurrentThreadJoinId();
+    OSThread* os_thread = OSThread::Current();
+    ASSERT(os_thread != NULL);
+    interrupter_thread_id_ = os_thread->join_id();
     thread_running_ = true;
     startup_ml.Notify();
   }
   {
     intptr_t interrupted_thread_count = 0;
-    current_wait_time_ = interrupt_period_;
     MonitorLocker wait_ml(monitor_);
+    current_wait_time_ = interrupt_period_;
     while (!shutdown_) {
       intptr_t r = wait_ml.WaitMicros(current_wait_time_);
 
@@ -179,12 +183,12 @@ void ThreadInterrupter::ThreadMain(uword parameters) {
       interrupted_thread_count = 0;
 
       // Temporarily drop the monitor while we interrupt threads.
-      monitor_->Exit();
+      wait_ml.Exit();
 
       {
-        ThreadIterator it;
+        OSThreadIterator it;
         while (it.HasNext()) {
-          Thread* thread = it.Next();
+          OSThread* thread = it.Next();
           if (thread->ThreadInterruptsEnabled()) {
             interrupted_thread_count++;
             InterruptThread(thread);
@@ -193,7 +197,7 @@ void ThreadInterrupter::ThreadMain(uword parameters) {
       }
 
       // Take the monitor lock again.
-      monitor_->Enter();
+      wait_ml.Enter();
 
       // Now that we have the lock, check if we were signaled to wake up while
       // interrupting threads.
@@ -221,5 +225,7 @@ void ThreadInterrupter::ThreadMain(uword parameters) {
     shutdown_ml.Notify();
   }
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

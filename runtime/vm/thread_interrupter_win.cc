@@ -12,6 +12,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 DECLARE_FLAG(bool, thread_interrupter);
 DECLARE_FLAG(bool, trace_thread_interrupter);
 
@@ -52,19 +54,19 @@ class ThreadInterrupterWin : public AllStatic {
   }
 
 
-  static void Interrupt(Thread* thread) {
-    ASSERT(!OSThread::Compare(GetCurrentThreadId(), thread->id()));
+  static void Interrupt(OSThread* os_thread) {
+    ASSERT(!OSThread::Compare(GetCurrentThreadId(), os_thread->id()));
     HANDLE handle = OpenThread(THREAD_GET_CONTEXT |
                                THREAD_QUERY_INFORMATION |
                                THREAD_SUSPEND_RESUME,
                                false,
-                               thread->id());
+                               os_thread->id());
     ASSERT(handle != NULL);
     DWORD result = SuspendThread(handle);
     if (result == kThreadError) {
       if (FLAG_trace_thread_interrupter) {
         OS::Print("ThreadInterrupter failed to suspend thread %p\n",
-                  reinterpret_cast<void*>(thread->id()));
+                  reinterpret_cast<void*>(os_thread->id()));
       }
       CloseHandle(handle);
       return;
@@ -75,19 +77,25 @@ class ThreadInterrupterWin : public AllStatic {
       ResumeThread(handle);
       if (FLAG_trace_thread_interrupter) {
         OS::Print("ThreadInterrupter failed to get registers for %p\n",
-                  reinterpret_cast<void*>(thread->id()));
+                  reinterpret_cast<void*>(os_thread->id()));
       }
       CloseHandle(handle);
       return;
     }
-    Profiler::SampleThread(thread, its);
+    // Currently we sample only threads that are associated
+    // with an isolate. It is safe to call 'os_thread->thread()'
+    // here as the thread which is being queried is suspended.
+    Thread* thread = os_thread->thread();
+    if (thread != NULL) {
+      Profiler::SampleThread(thread, its);
+    }
     ResumeThread(handle);
     CloseHandle(handle);
   }
 };
 
 
-void ThreadInterrupter::InterruptThread(Thread* thread) {
+void ThreadInterrupter::InterruptThread(OSThread* thread) {
   if (FLAG_trace_thread_interrupter) {
     OS::Print("ThreadInterrupter suspending %p\n",
               reinterpret_cast<void*>(thread->id()));
@@ -109,8 +117,8 @@ void ThreadInterrupter::RemoveSignalHandler() {
   // Nothing to do on Windows.
 }
 
+#endif  // !PRODUCT
 
 }  // namespace dart
 
 #endif  // defined(TARGET_OS_WINDOWS)
-

@@ -5,6 +5,7 @@
 library test.services.refactoring.extract_local;
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
@@ -35,9 +36,8 @@ main() {
     _createRefactoringForString('1 + 2');
     // conflicting name
     RefactoringStatus status = await refactoring.checkAllConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.WARNING,
-        expectedMessage:
-            "A variable with name 'res' is already defined in the visible scope.");
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
+        expectedMessage: "The name 'res' is already used in the scope.");
   }
 
   test_checkFinalConditions_sameVariable_before() async {
@@ -50,9 +50,8 @@ main() {
     _createRefactoringForString('1 + 2');
     // conflicting name
     RefactoringStatus status = await refactoring.checkAllConditions();
-    assertRefactoringStatus(status, RefactoringProblemSeverity.WARNING,
-        expectedMessage:
-            "A variable with name 'res' is already defined in the visible scope.");
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
+        expectedMessage: "The name 'res' is already used in the scope.");
   }
 
   test_checkInitialConditions_assignmentLeftHandSize() async {
@@ -69,17 +68,16 @@ main() {
         expectedMessage: 'Cannot extract the left-hand side of an assignment.');
   }
 
-  test_checkInitialConditions_methodName_reference() async {
+  test_checkInitialConditions_namePartOfDeclaration_function() async {
     indexTestUnit('''
 main() {
-  main();
 }
 ''');
-    _createRefactoringWithSuffix('main', '();');
+    _createRefactoringWithSuffix('main', '()');
     // check conditions
     RefactoringStatus status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
-        expectedMessage: 'Cannot extract a single method name.');
+        expectedMessage: 'Cannot extract the name part of a declaration.');
   }
 
   test_checkInitialConditions_namePartOfDeclaration_variable() async {
@@ -150,7 +148,20 @@ main() {
 ''');
   }
 
-  test_checkLocalName() {
+  test_checkInitialConditions_voidExpression() async {
+    indexTestUnit('''
+main() {
+  print(42);
+}
+''');
+    _createRefactoringForString('print');
+    // check conditions
+    RefactoringStatus status = await refactoring.checkInitialConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
+        expectedMessage: 'Cannot extract the void expression.');
+  }
+
+  test_checkName() {
     indexTestUnit('''
 main() {
   int a = 1 + 2;
@@ -171,6 +182,55 @@ main() {
     // OK
     refactoring.name = 'res';
     assertRefactoringStatusOK(refactoring.checkName());
+  }
+
+  test_checkName_conflict_withInvokedFunction() async {
+    indexTestUnit('''
+main() {
+  int a = 1 + 2;
+  res();
+}
+
+void res() {}
+''');
+    _createRefactoringForString('1 + 2');
+    await refactoring.checkInitialConditions();
+    refactoring.name = 'res';
+    assertRefactoringStatus(
+        refactoring.checkName(), RefactoringProblemSeverity.ERROR,
+        expectedMessage: "The name 'res' is already used in the scope.");
+  }
+
+  test_checkName_conflict_withOtherLocal() async {
+    indexTestUnit('''
+main() {
+  var res;
+  int a = 1 + 2;
+}
+''');
+    _createRefactoringForString('1 + 2');
+    await refactoring.checkInitialConditions();
+    refactoring.name = 'res';
+    assertRefactoringStatus(
+        refactoring.checkName(), RefactoringProblemSeverity.ERROR,
+        expectedMessage: "The name 'res' is already used in the scope.");
+  }
+
+  test_checkName_conflict_withTypeName() async {
+    indexTestUnit('''
+main() {
+  int a = 1 + 2;
+  Res b = null;
+}
+
+class Res {}
+''');
+    _createRefactoringForString('1 + 2');
+    await refactoring.checkInitialConditions();
+    refactoring.name = 'Res';
+    assertRefactoringStatus(
+        refactoring.checkName(), RefactoringProblemSeverity.ERROR,
+        expectedMessage: "The name 'Res' is already used in the scope.");
   }
 
   test_completeStatementExpression() {
@@ -333,14 +393,140 @@ main() {
     _createRefactoring(testCode.indexOf('bb * 2'), 0);
     // check conditions
     await refactoring.checkInitialConditions();
-    List<String> subExpressions = <String>[];
-    for (int i = 0; i < refactoring.coveringExpressionOffsets.length; i++) {
-      int offset = refactoring.coveringExpressionOffsets[i];
-      int length = refactoring.coveringExpressionLengths[i];
-      subExpressions.add(testCode.substring(offset, offset + length));
-    }
+    List<String> subExpressions = _getCoveringExpressions();
     expect(subExpressions,
         ['bbb', 'bbb * 2', 'aaa + bbb * 2', 'aaa + bbb * 2 + 3']);
+  }
+
+  test_coveringExpressions_inArgumentList() async {
+    indexTestUnit('''
+main() {
+  foo(111 + 222);
+}
+int foo(int x) => x;
+''');
+    _createRefactoring(testCode.indexOf('11 +'), 0);
+    // check conditions
+    await refactoring.checkInitialConditions();
+    List<String> subExpressions = _getCoveringExpressions();
+    expect(subExpressions, ['111', '111 + 222', 'foo(111 + 222)']);
+  }
+
+  test_coveringExpressions_inInvocationOfVoidFunction() async {
+    indexTestUnit('''
+main() {
+  foo(111 + 222);
+}
+void foo(int x) {}
+''');
+    _createRefactoring(testCode.indexOf('11 +'), 0);
+    // check conditions
+    await refactoring.checkInitialConditions();
+    List<String> subExpressions = _getCoveringExpressions();
+    expect(subExpressions, ['111', '111 + 222']);
+  }
+
+  test_coveringExpressions_namedExpression_value() async {
+    indexTestUnit('''
+main() {
+  foo(ppp: 42);
+}
+int foo({int ppp: 0}) => ppp + 1;
+''');
+    _createRefactoring(testCode.indexOf('42'), 0);
+    // check conditions
+    await refactoring.checkInitialConditions();
+    List<String> subExpressions = _getCoveringExpressions();
+    expect(subExpressions, ['42', 'foo(ppp: 42)']);
+  }
+
+  test_coveringExpressions_skip_assignment() async {
+    indexTestUnit('''
+main() {
+  int v;
+  foo(v = 111 + 222);
+}
+int foo(x) => 42;
+''');
+    _createRefactoring(testCode.indexOf('11 +'), 0);
+    // check conditions
+    await refactoring.checkInitialConditions();
+    List<String> subExpressions = _getCoveringExpressions();
+    expect(subExpressions, ['111', '111 + 222', 'foo(v = 111 + 222)']);
+  }
+
+  test_coveringExpressions_skip_constructorName() async {
+    indexTestUnit('''
+class AAA {
+  AAA.name() {}
+}
+main() {
+  int v = new AAA.name();
+}
+''');
+    _createRefactoring(testCode.indexOf('AA.name();'), 5);
+    // check conditions
+    await refactoring.checkInitialConditions();
+    List<String> subExpressions = _getCoveringExpressions();
+    expect(subExpressions, ['new AAA.name()']);
+  }
+
+  test_coveringExpressions_skip_constructorName_name() async {
+    indexTestUnit('''
+class A {
+  A.name() {}
+}
+main() {
+  int v = new A.name();
+}
+''');
+    _createRefactoring(testCode.indexOf('ame();'), 0);
+    // check conditions
+    await refactoring.checkInitialConditions();
+    List<String> subExpressions = _getCoveringExpressions();
+    expect(subExpressions, ['new A.name()']);
+  }
+
+  test_coveringExpressions_skip_constructorName_type() async {
+    indexTestUnit('''
+class A {}
+main() {
+  int v = new A();
+}
+''');
+    _createRefactoring(testCode.indexOf('A();'), 0);
+    // check conditions
+    await refactoring.checkInitialConditions();
+    List<String> subExpressions = _getCoveringExpressions();
+    expect(subExpressions, ['new A()']);
+  }
+
+  test_coveringExpressions_skip_constructorName_typeArgument() async {
+    indexTestUnit('''
+class A<T> {}
+main() {
+  int v = new A<String>();
+}
+''');
+    _createRefactoring(testCode.indexOf('ring>'), 0);
+    // check conditions
+    await refactoring.checkInitialConditions();
+    List<String> subExpressions = _getCoveringExpressions();
+    expect(subExpressions, ['new A<String>()']);
+  }
+
+  test_coveringExpressions_skip_namedExpression() async {
+    indexTestUnit('''
+main() {
+  foo(ppp: 42);
+}
+int foo({int ppp: 0}) => ppp + 1;
+''');
+    _createRefactoring(testCode.indexOf('pp: 42'), 0);
+    // check conditions
+    await refactoring.checkInitialConditions();
+    List<String> subExpressions = _getCoveringExpressions();
+    expect(subExpressions, ['foo(ppp: 42)']);
   }
 
   test_fragmentExpression() {
@@ -511,7 +697,7 @@ main() {
     expect(refactoring.names, unorderedEquals(['helloBob', 'bob']));
   }
 
-  test_occurrences_differentVariable() {
+  test_occurrences_differentVariable() async {
     indexTestUnit('''
 main() {
   {
@@ -527,7 +713,7 @@ main() {
 ''');
     _createRefactoringWithSuffix('v + 1', '); // marker');
     // apply refactoring
-    return _assertSuccessfulRefactoring('''
+    await _assertSuccessfulRefactoring('''
 main() {
   {
     int v = 1;
@@ -541,6 +727,8 @@ main() {
   }
 }
 ''');
+    _assertSingleLinkedEditGroup(
+        length: 3, offsets: [36, 59, 85], names: ['object', 'i']);
   }
 
   test_occurrences_disableOccurrences() {
@@ -765,7 +953,7 @@ main(p) {
 ''');
   }
 
-  test_singleExpression_inExpressionBody() {
+  test_singleExpression_inExpressionBody() async {
     indexTestUnit('''
 main() {
   print((x) => x.y * x.y + 1);
@@ -773,7 +961,7 @@ main() {
 ''');
     _createRefactoringForString('x.y');
     // apply refactoring
-    return _assertSuccessfulRefactoring('''
+    await _assertSuccessfulRefactoring('''
 main() {
   print((x) {
     var res = x.y;
@@ -781,6 +969,8 @@ main() {
   });
 }
 ''');
+    _assertSingleLinkedEditGroup(
+        length: 3, offsets: [31, 53, 59], names: ['y']);
   }
 
   test_singleExpression_inIfElseIf() {
@@ -859,6 +1049,24 @@ main() {
 ''');
   }
 
+  test_singleExpression_methodName_reference() async {
+    indexTestUnit('''
+main() {
+  var v = foo().length;
+}
+String foo() => '';
+''');
+    _createRefactoringWithSuffix('foo', '().');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+main() {
+  var res = foo();
+  var v = res.length;
+}
+String foo() => '';
+''');
+  }
+
   test_singleExpression_nameOfProperty_prefixedIdentifier() async {
     indexTestUnit('''
 main(p) {
@@ -894,7 +1102,7 @@ String foo() => '';
   }
 
   /**
-   * Here we use knowledge how exactly `1 + 2 + 3 + 41 is parsed. We know that
+   * Here we use knowledge how exactly `1 + 2 + 3 + 4` is parsed. We know that
    * `1 + 2` will be a separate and complete binary expression, so it can be
    * handled as a single expression.
    */
@@ -910,6 +1118,22 @@ main() {
 main() {
   var res = 1 + 2;
   int a = res + 3 + 4;
+}
+''');
+  }
+
+  test_singleExpression_string() {
+    indexTestUnit('''
+void main() {
+  print("1234");
+}
+''');
+    _createRefactoringAtString('34"');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+void main() {
+  var res = "1234";
+  print(res);
 }
 ''');
   }
@@ -946,7 +1170,7 @@ main() {
 ''');
   }
 
-  test_stringLiteral_part() {
+  test_stringLiteral_part() async {
     indexTestUnit('''
 main() {
   print('abcdefgh');
@@ -954,15 +1178,16 @@ main() {
 ''');
     _createRefactoringForString('cde');
     // apply refactoring
-    return _assertSuccessfulRefactoring(r'''
+    await _assertSuccessfulRefactoring(r'''
 main() {
   var res = 'cde';
   print('ab${res}fgh');
 }
 ''');
+    _assertSingleLinkedEditGroup(length: 3, offsets: [15, 41], names: ['cde']);
   }
 
-  test_stringLiteral_whole() {
+  test_stringLiteral_whole() async {
     indexTestUnit('''
 main() {
   print('abc');
@@ -970,15 +1195,17 @@ main() {
 ''');
     _createRefactoringForString("'abc'");
     // apply refactoring
-    return _assertSuccessfulRefactoring('''
+    await _assertSuccessfulRefactoring('''
 main() {
   var res = 'abc';
   print(res);
 }
 ''');
+    _assertSingleLinkedEditGroup(
+        length: 3, offsets: [15, 36], names: ['object', 's']);
   }
 
-  test_stringLiteralPart() {
+  test_stringLiteralPart() async {
     indexTestUnit(r'''
 main() {
   int x = 1;
@@ -988,7 +1215,7 @@ main() {
 ''');
     _createRefactoringForString(r'$x+$y');
     // apply refactoring
-    return _assertSuccessfulRefactoring(r'''
+    await _assertSuccessfulRefactoring(r'''
 main() {
   int x = 1;
   int y = 2;
@@ -996,6 +1223,7 @@ main() {
   print('${res}=${x+y}');
 }
 ''');
+    _assertSingleLinkedEditGroup(length: 3, offsets: [41, 67], names: ['xy']);
   }
 
   Future _assertInitialConditions_fatal_selection() async {
@@ -1003,6 +1231,27 @@ main() {
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL,
         expectedMessage:
             'Expression must be selected to activate this refactoring.');
+  }
+
+  void _assertSingleLinkedEditGroup(
+      {int length, List<int> offsets, List<String> names}) {
+    String positionsString = offsets
+        .map((offset) => '{"file": "$testFile", "offset": $offset}')
+        .join(',');
+    String suggestionsString =
+        names.map((name) => '{"value": "$name", "kind": "VARIABLE"}').join(',');
+    _assertSingleLinkedEditGroupJson('''
+{
+  "length": $length,
+  "positions": [$positionsString],
+  "suggestions": [$suggestionsString]
+}''');
+  }
+
+  void _assertSingleLinkedEditGroupJson(String expectedJsonString) {
+    List<LinkedEditGroup> editGroups = refactoringChange.linkedEditGroups;
+    expect(editGroups, hasLength(1));
+    expect(editGroups.first.toJson(), JSON.decode(expectedJsonString));
   }
 
   /**
@@ -1022,6 +1271,16 @@ main() {
   }
 
   /**
+   * Creates a new refactoring in [refactoring] at the offset of the given
+   * [search] pattern, and with the length `0`.
+   */
+  void _createRefactoringAtString(String search) {
+    int offset = findOffset(search);
+    int length = 0;
+    _createRefactoring(offset, length);
+  }
+
+  /**
    * Creates a new refactoring in [refactoring] for the selection range of the
    * given [search] pattern.
    */
@@ -1035,5 +1294,15 @@ main() {
     int offset = findOffset(selectionSearch + suffix);
     int length = selectionSearch.length;
     _createRefactoring(offset, length);
+  }
+
+  List<String> _getCoveringExpressions() {
+    List<String> subExpressions = <String>[];
+    for (int i = 0; i < refactoring.coveringExpressionOffsets.length; i++) {
+      int offset = refactoring.coveringExpressionOffsets[i];
+      int length = refactoring.coveringExpressionLengths[i];
+      subExpressions.add(testCode.substring(offset, offset + length));
+    }
+    return subExpressions;
   }
 }

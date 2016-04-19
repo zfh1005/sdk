@@ -8,8 +8,8 @@ import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/services/index/index.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -42,7 +42,8 @@ class UpdateContentTest extends AbstractAnalysisTest {
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_ERRORS) {
       var decoded = new AnalysisErrorsParams.fromNotification(notification);
-      filesErrors[decoded.file] = decoded.errors;
+      _format(AnalysisError e) => "${e.location.startLine}: ${e.message}";
+      filesErrors[decoded.file] = decoded.errors.map(_format).toList();
     }
     if (notification.event == ANALYSIS_NAVIGATION) {
       navigationCount++;
@@ -95,7 +96,7 @@ class UpdateContentTest extends AbstractAnalysisTest {
     createProject();
     addTestFile('main() { print(1); }');
     await server.onAnalysisComplete;
-    verify(server.index.index(anyObject, testUnitMatcher)).times(1);
+    verify(server.index.indexUnit(testUnitMatcher)).times(1);
     // add an overlay
     server.updateContent(
         '1', {testFile: new AddContentOverlay('main() { print(2); }')});
@@ -107,11 +108,7 @@ class UpdateContentTest extends AbstractAnalysisTest {
     server.updateContent('2', {testFile: new RemoveContentOverlay()});
     // Validate that at the end the unit was indexed.
     await server.onAnalysisComplete;
-    if (AnalysisEngine.instance.useTaskModel) {
-      verify(server.index.index(anyObject, testUnitMatcher)).times(3);
-    } else {
-      verify(server.index.index(anyObject, testUnitMatcher)).times(2);
-    }
+    verify(server.index.indexUnit(testUnitMatcher)).times(3);
   }
 
   test_multiple_contexts() async {
@@ -136,8 +133,9 @@ main() { f(); }''');
 library baz;
 f(int i) {}
 ''');
-    Request request = new AnalysisSetAnalysisRootsParams(
-        ['/project1', '/project2'], []).toRequest('0');
+    Request request =
+        new AnalysisSetAnalysisRootsParams(['/project1', '/project2'], [])
+            .toRequest('0');
     handleSuccessfulRequest(request);
     {
       await server.onAnalysisComplete;
@@ -162,12 +160,36 @@ f() {}
     }
   }
 
+  test_overlay_addPreviouslyImported() async {
+    Folder project = resourceProvider.newFolder('/project');
+    handleSuccessfulRequest(
+        new AnalysisSetAnalysisRootsParams([project.path], []).toRequest('0'));
+
+    server.updateContent('1',
+        {'/project/main.dart': new AddContentOverlay('import "target.dart";')});
+    await server.onAnalysisComplete;
+    expect(filesErrors, {
+      '/project/main.dart': ["1: Target of URI does not exist: 'target.dart'"],
+      '/project/target.dart': []
+    });
+
+    server.updateContent('1',
+        {'/project/target.dart': new AddContentOverlay('import "none.dart";')});
+    await server.onAnalysisComplete;
+    expect(filesErrors, {
+      '/project/main.dart': ["1: Unused import"],
+      '/project/target.dart': ["1: Target of URI does not exist: 'none.dart'"],
+      '/project/none.dart': []
+    });
+  }
+
   test_overlayOnly() async {
     String filePath = '/User/project1/test.dart';
     Folder folder1 = resourceProvider.newFolder('/User/project1');
     Folder folder2 = resourceProvider.newFolder('/User/project2');
-    Request request = new AnalysisSetAnalysisRootsParams(
-        [folder1.path, folder2.path], []).toRequest('0');
+    Request request =
+        new AnalysisSetAnalysisRootsParams([folder1.path, folder2.path], [])
+            .toRequest('0');
     handleSuccessfulRequest(request);
     // exactly 2 contexts
     expect(server.folderMap, hasLength(2));
@@ -274,6 +296,4 @@ class _ArgumentMatcher_CompilationUnit extends ArgumentMatcher {
   }
 }
 
-class _MockIndex extends TypedMock implements Index {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class _MockIndex extends TypedMock implements Index {}

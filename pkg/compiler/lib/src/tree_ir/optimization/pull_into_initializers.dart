@@ -168,6 +168,16 @@ class PullIntoInitializers extends RecursiveTransformer
     return node;
   }
 
+  Statement visitReceiverCheck(ReceiverCheck node) {
+    if (node.condition != null) {
+      node.condition = visitExpression(node.condition);
+      // The value occurs in conditional context, so don't pull from that.
+    } else {
+      node.value = visitExpression(node.value);
+    }
+    return node;
+  }
+
   Expression visitAssign(Assign node) {
     bool inImpureContext = impureCounter > 0;
     bool inBranch = branchCounter > 0;
@@ -249,6 +259,18 @@ class PullIntoInitializers extends RecursiveTransformer
     return node;
   }
 
+  Expression visitOneShotInterceptor(OneShotInterceptor node) {
+    super.visitOneShotInterceptor(node);
+    ++impureCounter;
+    return node;
+  }
+
+  Expression visitAwait(Await node) {
+    super.visitAwait(node);
+    ++impureCounter;
+    return node;
+  }
+
   Expression visitConditional(Conditional node) {
     node.condition = visitExpression(node.condition);
     // Visit the branches to detect impure subexpressions, but do not pull
@@ -270,14 +292,6 @@ class PullIntoInitializers extends RecursiveTransformer
 
   Expression visitLiteralList(LiteralList node) {
     super.visitLiteralList(node);
-    if (node.type != null) {
-      ++impureCounter; // Type casts can throw.
-    }
-    return node;
-  }
-
-  Expression visitLiteralMap(LiteralMap node) {
-    super.visitLiteralMap(node);
     if (node.type != null) {
       ++impureCounter; // Type casts can throw.
     }
@@ -335,15 +349,6 @@ class PullIntoInitializers extends RecursiveTransformer
   Expression visitSetIndex(SetIndex node) {
     super.visitSetIndex(node);
     ++impureCounter;
-    return node;
-  }
-
-  void visitInnerFunction(FunctionDefinition node) {
-    new PullIntoInitializers().rewrite(node);
-  }
-
-  Expression visitFunctionExpression(FunctionExpression node) {
-    visitInnerFunction(node.definition);
     return node;
   }
 

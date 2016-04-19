@@ -19,6 +19,7 @@
 # ......dartfmt
 # ......dart2js
 # ......dartanalyzer
+# ......dartdevc
 # ......pub
 # ......snapshots/
 # ........analysis_server.dart.snapshot
@@ -26,6 +27,7 @@
 # ........dartanalyzer.dart.snapshot
 # ........dartdoc.dart.snapshot
 # ........dartfmt.dart.snapshot
+# ........dartdevc.dart.snapshot
 # ........pub.dart.snapshot
 # ........utils_wrapper.dart.snapshot
 #.........resources/
@@ -44,6 +46,10 @@
 # ......dart_shared.platform
 # ......dart2dart.platform
 # ......_internal/
+#.........spec.sum
+#.........strong.sum
+# ......analysis_server/
+# ......analyzer/
 # ......async/
 # ......collection/
 # ......convert/
@@ -125,19 +131,25 @@ def CopyShellScript(src_file, dest_dir):
 
 def CopyDartScripts(home, sdk_root):
   for executable in ['dart2js_sdk', 'dartanalyzer_sdk', 'dartfmt_sdk',
-                     'pub_sdk', 'dartdoc']:
+                     'pub_sdk', 'dartdoc', 'dartdevc_sdk']:
     CopyShellScript(os.path.join(home, 'sdk', 'bin', executable),
                     os.path.join(sdk_root, 'bin'))
 
 
 def CopySnapshots(snapshots, sdk_root):
   for snapshot in ['analysis_server', 'dart2js', 'dartanalyzer', 'dartfmt',
-                   'utils_wrapper', 'pub', 'dartdoc']:
+                   'utils_wrapper', 'pub', 'dartdoc', 'dartdevc']:
     snapshot += '.dart.snapshot'
     copyfile(join(snapshots, snapshot),
              join(sdk_root, 'bin', 'snapshots', snapshot))
 
-def CopyDartdocResources(home,sdk_root):
+def CopyAnalyzerSources(home, lib_dir):
+  for library in ['analyzer', 'analysis_server']:
+    copytree(join(home, 'pkg', library), join(lib_dir, library),
+             ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh',
+                                    '.gitignore', 'packages'))
+
+def CopyDartdocResources(home, sdk_root):
   RESOURCE_DIR = join(sdk_root, 'bin', 'snapshots', 'resources')
   DARTDOC = join(RESOURCE_DIR, 'dartdoc')
 
@@ -149,7 +161,13 @@ def CopyDartdocResources(home,sdk_root):
   PACKAGES_FILE = join(DARTDOC, '.packages')
   packages_file = open(PACKAGES_FILE, 'w')
   packages_file.write('dartdoc:.')
-  packages_file.close() 
+  packages_file.close()
+
+def CopyAnalysisSummaries(snapshots, lib):
+  copyfile(join(snapshots, 'spec.sum'),
+           join(lib, '_internal', 'spec.sum'))
+  copyfile(join(snapshots, 'strong.sum'),
+           join(lib, '_internal', 'strong.sum'))
 
 
 def Main():
@@ -282,8 +300,11 @@ def Main():
 
   # Copy dart2js/pub.
   CopyDartScripts(HOME, SDK_tmp)
+
   CopySnapshots(SNAPSHOT, SDK_tmp)
   CopyDartdocResources(HOME, SDK_tmp)
+  CopyAnalyzerSources(HOME, LIB)
+  CopyAnalysisSummaries(SNAPSHOT, LIB)
 
   # Write the 'version' file
   version = utils.GetVersion()

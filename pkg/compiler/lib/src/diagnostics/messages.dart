@@ -72,6 +72,8 @@ import 'invariant.dart' show
 import 'spannable.dart' show
     CURRENT_ELEMENT_SPANNABLE;
 
+import 'generated/shared_messages.dart' as shared_messages;
+
 const DONT_KNOW_HOW_TO_FIX = "Computer says no!";
 
 /// Keys for the [MessageTemplate]s.
@@ -92,7 +94,6 @@ enum MessageKind {
   ASSIGNING_METHOD,
   ASSIGNING_METHOD_IN_SUPER,
   ASSIGNING_TYPE,
-  ASYNC_AWAIT_NOT_SUPPORTED,
   ASYNC_KEYWORD_AS_IDENTIFIER,
   ASYNC_MODIFIER_ON_ABSTRACT_METHOD,
   ASYNC_MODIFIER_ON_CONSTRUCTOR,
@@ -131,11 +132,11 @@ enum MessageKind {
   CANNOT_RESOLVE_AWAIT_IN_CLOSURE,
   CANNOT_RESOLVE_CONSTRUCTOR,
   CANNOT_RESOLVE_CONSTRUCTOR_FOR_IMPLICIT,
-  CANNOT_RESOLVE_GETTER,
+  UNDEFINED_STATIC_GETTER_BUT_SETTER,
   CANNOT_RESOLVE_IN_INITIALIZER,
-  CANNOT_RESOLVE_SETTER,
+  UNDEFINED_STATIC_SETTER_BUT_GETTER,
   CANNOT_RESOLVE_TYPE,
-  CANNOT_RETURN_FROM_CONSTRUCTOR,
+  RETURN_IN_GENERATIVE_CONSTRUCTOR,
   CLASS_NAME_EXPECTED,
   COMPILER_CRASHED,
   COMPLEX_RETURNING_NSM,
@@ -143,10 +144,12 @@ enum MessageKind {
   CONSIDER_ANALYZE_ALL,
   CONST_CALLS_NON_CONST,
   CONST_CALLS_NON_CONST_FOR_IMPLICIT,
-  CONST_CONSTRUCTOR_HAS_BODY,
+  CONST_CONSTRUCTOR_WITH_BODY,
   CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS,
   CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_CONSTRUCTOR,
   CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS_FIELD,
+  CONST_FACTORY,
+  CONST_LOOP_VARIABLE,
   CONST_MAP_KEY_OVERRIDES_EQUALS,
   CONST_WITHOUT_INITIALIZER,
   CONSTRUCTOR_CALL_EXPECTED,
@@ -210,7 +213,7 @@ enum MessageKind {
   FUNCTION_WITH_INITIALIZER,
   GENERIC,
   GETTER_MISMATCH,
-  GETTER_NOT_FOUND,
+  UNDEFINED_INSTANCE_GETTER_BUT_SETTER,
   HEX_DIGIT_EXPECTED,
   HIDDEN_HINTS,
   HIDDEN_IMPLICIT_IMPORT,
@@ -234,6 +237,7 @@ enum MessageKind {
   IMPORT_BEFORE_PARTS,
   IMPORT_EXPERIMENTAL_MIRRORS,
   IMPORT_PART_OF,
+  IMPORT_PART_OF_HERE,
   IMPORTED_HERE,
   INHERIT_GETTER_AND_METHOD,
   INHERITED_EXPLICIT_GETTER,
@@ -247,7 +251,9 @@ enum MessageKind {
   INTERNAL_LIBRARY,
   INTERNAL_LIBRARY_FROM,
   INVALID_ARGUMENT_AFTER_NAMED,
+  INVALID_AWAIT,
   INVALID_AWAIT_FOR,
+  INVALID_AWAIT_FOR_IN,
   INVALID_BREAK,
   INVALID_CASE_DEFAULT,
   INVALID_CONSTRUCTOR_ARGUMENTS,
@@ -255,6 +261,8 @@ enum MessageKind {
   INVALID_CONTINUE,
   INVALID_FOR_IN,
   INVALID_INITIALIZER,
+  INVALID_METADATA,
+  INVALID_METADATA_GENERIC,
   INVALID_OVERRIDDEN_FIELD,
   INVALID_OVERRIDDEN_GETTER,
   INVALID_OVERRIDDEN_METHOD,
@@ -278,22 +286,25 @@ enum MessageKind {
   INVALID_UNNAMED_CONSTRUCTOR_NAME,
   INVALID_URI,
   INVALID_USE_OF_SUPER,
+  INVALID_YIELD,
   JS_INTEROP_CLASS_CANNOT_EXTEND_DART_CLASS,
   JS_INTEROP_CLASS_NON_EXTERNAL_MEMBER,
-  JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
+  JS_INTEROP_INDEX_NOT_SUPPORTED,
   JS_INTEROP_METHOD_WITH_NAMED_ARGUMENTS,
+  JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS,
   JS_PLACEHOLDER_CAPTURE,
   LIBRARY_NAME_MISMATCH,
   LIBRARY_NOT_FOUND,
   LIBRARY_NOT_SUPPORTED,
   LIBRARY_TAG_MUST_BE_FIRST,
+  MAIN_HAS_PART_OF,
   MAIN_NOT_A_FUNCTION,
   MAIN_WITH_EXTRA_PARAMETER,
   MALFORMED_STRING_LITERAL,
-  MEMBER_NOT_FOUND,
+  UNDEFINED_GETTER,
   MEMBER_NOT_STATIC,
   MEMBER_USES_CLASS_NAME,
-  METHOD_NOT_FOUND,
+  UNDEFINED_METHOD,
   MINUS_OPERATOR_BAD_ARITY,
   MIRROR_BLOAT,
   MIRROR_IMPORT,
@@ -349,7 +360,7 @@ enum MessageKind {
   NULL_NOT_ALLOWED,
   ONLY_ONE_LIBRARY_TAG,
   OPERATOR_NAMED_PARAMETERS,
-  OPERATOR_NOT_FOUND,
+  UNDEFINED_OPERATOR,
   OPERATOR_OPTIONAL_PARAMETERS,
   OPTIONAL_PARAMETER_IN_CATCH,
   OVERRIDE_EQUALS_NOT_HASH_CODE,
@@ -402,8 +413,8 @@ enum MessageKind {
   RETURN_NOTHING,
   RETURN_VALUE_IN_VOID,
   SETTER_MISMATCH,
-  SETTER_NOT_FOUND,
-  SETTER_NOT_FOUND_IN_SUPER,
+  UNDEFINED_SETTER,
+  UNDEFINED_SUPER_SETTER,
   STATIC_FUNCTION_BLOAT,
   STRING_EXPECTED,
   SUPER_CALL_TO_FACTORY,
@@ -418,7 +429,7 @@ enum MessageKind {
   THIS_IS_THE_METHOD,
   THIS_IS_THE_PART_OF_TAG,
   THIS_PROPERTY,
-  THROW_WITHOUT_EXPRESSION,
+  RETHROW_OUTSIDE_CATCH,
   TOP_LEVEL_VARIABLE_DECLARED_STATIC,
   TYPE_ARGUMENT_COUNT_MISMATCH,
   TYPE_VARIABLE_IN_CONSTANT,
@@ -443,7 +454,7 @@ enum MessageKind {
   UNSUPPORTED_EQ_EQ_EQ,
   UNSUPPORTED_LITERAL_SYMBOL,
   UNSUPPORTED_PREFIX_PLUS,
-  UNSUPPORTED_THROW_WITHOUT_EXP,
+  MISSING_EXPRESSION_IN_THROW,
   UNTERMINATED_COMMENT,
   UNTERMINATED_STRING,
   UNTERMINATED_TOKEN,
@@ -498,21 +509,15 @@ class MessageTemplate {
   ///
   /// The map is complete mapping from [MessageKind] to their corresponding
   /// [MessageTemplate].
-  static const Map<MessageKind, MessageTemplate> TEMPLATES =
-    const <MessageKind, MessageTemplate>{
+  // The key type is a union of MessageKind and SharedMessageKind.
+  static final Map<dynamic, MessageTemplate> TEMPLATES =
+      <dynamic, MessageTemplate>{}
+    ..addAll(shared_messages.TEMPLATES)
+    ..addAll(const<MessageKind, MessageTemplate>{
       /// Do not use this. It is here for legacy and debugging. It violates item
       /// 4 of the guide lines for error messages in the beginning of the file.
       MessageKind.GENERIC:
         const MessageTemplate(MessageKind.GENERIC, '#{text}'),
-
-      MessageKind.NOT_ASSIGNABLE:
-        const MessageTemplate(MessageKind.NOT_ASSIGNABLE,
-          "'#{fromType}' is not assignable to '#{toType}'."),
-
-      MessageKind.FORIN_NOT_ASSIGNABLE:
-        const MessageTemplate(MessageKind.FORIN_NOT_ASSIGNABLE,
-          "The element type '#{currentType}' of '#{expressionType}' "
-          "is not assignable to '#{elementType}'."),
 
       MessageKind.VOID_EXPRESSION:
         const MessageTemplate(MessageKind.VOID_EXPRESSION,
@@ -542,10 +547,6 @@ class MessageTemplate {
         const MessageTemplate(MessageKind.NAMED_ARGUMENT_NOT_FOUND,
           "No named argument '#{argumentName}' found on method."),
 
-      MessageKind.MEMBER_NOT_FOUND:
-        const MessageTemplate(MessageKind.MEMBER_NOT_FOUND,
-          "No member named '#{memberName}' in class '#{className}'."),
-
       MessageKind.AWAIT_MEMBER_NOT_FOUND:
         const MessageTemplate(MessageKind.AWAIT_MEMBER_NOT_FOUND,
           "No member named 'await' in class '#{className}'.",
@@ -569,26 +570,6 @@ class A {
 }
 main() => new A().m();
 """]),
-
-      MessageKind.METHOD_NOT_FOUND:
-        const MessageTemplate(MessageKind.METHOD_NOT_FOUND,
-          "No method named '#{memberName}' in class '#{className}'."),
-
-      MessageKind.OPERATOR_NOT_FOUND:
-        const MessageTemplate(MessageKind.OPERATOR_NOT_FOUND,
-          "No operator '#{memberName}' in class '#{className}'."),
-
-      MessageKind.SETTER_NOT_FOUND:
-        const MessageTemplate(MessageKind.SETTER_NOT_FOUND,
-          "No setter named '#{memberName}' in class '#{className}'."),
-
-      MessageKind.SETTER_NOT_FOUND_IN_SUPER:
-        const MessageTemplate(MessageKind.SETTER_NOT_FOUND_IN_SUPER,
-          "No setter named '#{name}' in superclass of '#{className}'."),
-
-      MessageKind.GETTER_NOT_FOUND:
-        const MessageTemplate(MessageKind.GETTER_NOT_FOUND,
-          "No getter named '#{memberName}' in class '#{className}'."),
 
       MessageKind.NOT_CALLABLE:
         const MessageTemplate(MessageKind.NOT_CALLABLE,
@@ -965,17 +946,6 @@ main() {}"""},
         const MessageTemplate(MessageKind.REDIRECTING_CONSTRUCTOR_HAS_BODY,
           "Redirecting constructor can't have a body."),
 
-      MessageKind.CONST_CONSTRUCTOR_HAS_BODY:
-        const MessageTemplate(MessageKind.CONST_CONSTRUCTOR_HAS_BODY,
-          "Const constructor or factory can't have a body.",
-          howToFix: "Remove the 'const' keyword or the body",
-          examples: const ["""
-class C {
-  const C() {}
-}
-
-main() => new C();"""]),
-
       MessageKind.REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER:
         const MessageTemplate(
           MessageKind.REDIRECTING_CONSTRUCTOR_HAS_INITIALIZER,
@@ -1147,11 +1117,6 @@ main() => new C(0);"""]),
         const MessageTemplate(MessageKind.OPTIONAL_PARAMETER_IN_CATCH,
           "Cannot use optional parameters in catch."),
 
-      MessageKind.THROW_WITHOUT_EXPRESSION:
-        const MessageTemplate(MessageKind.THROW_WITHOUT_EXPRESSION,
-          "Cannot use re-throw outside of catch block "
-          "(expression expected after 'throw')."),
-
       MessageKind.UNBOUND_LABEL:
         const MessageTemplate(MessageKind.UNBOUND_LABEL,
           "Cannot resolve label '#{labelName}'."),
@@ -1248,6 +1213,40 @@ main() => new C<String>();
       MessageKind.INVALID_ARGUMENT_AFTER_NAMED:
         const MessageTemplate(MessageKind.INVALID_ARGUMENT_AFTER_NAMED,
           "Unnamed argument after named argument."),
+
+      MessageKind.INVALID_AWAIT_FOR_IN:
+        const MessageTemplate(MessageKind.INVALID_AWAIT_FOR_IN,
+          "'await' is only supported in methods with an 'async' or "
+              "'async*' body modifier.",
+          howToFix: "Try adding 'async' or 'async*' to the method body or "
+              "removing the 'await' keyword.",
+          examples: const [
+            """
+main(o) sync* {
+  await for (var e in o) {}
+}"""]),
+
+      MessageKind.INVALID_AWAIT:
+        const MessageTemplate(MessageKind.INVALID_AWAIT,
+          "'await' is only supported in methods with an 'async' or "
+              "'async*' body modifier.",
+          howToFix: "Try adding 'async' or 'async*' to the method body.",
+          examples: const [
+          """
+main(o) sync* {
+  await null;
+}"""]),
+
+      MessageKind.INVALID_YIELD:
+        const MessageTemplate(MessageKind.INVALID_YIELD,
+          "'yield' is only supported in methods with a 'sync*' or "
+              "'async*' body modifier.",
+          howToFix: "Try adding 'sync*' or 'async*' to the method body.",
+          examples: const [
+            """
+main(o) async {
+  yield 0;
+}"""]),
 
       MessageKind.NOT_A_COMPILE_TIME_CONSTANT:
         const MessageTemplate(MessageKind.NOT_A_COMPILE_TIME_CONSTANT,
@@ -1621,10 +1620,6 @@ main() {
         const MessageTemplate(MessageKind.ILLEGAL_SUPER_SEND,
           "'#{name}' cannot be called on super."),
 
-      MessageKind.NO_SUCH_SUPER_MEMBER:
-        const MessageTemplate(MessageKind.NO_SUCH_SUPER_MEMBER,
-          "Cannot resolve '#{memberName}' in a superclass of '#{className}'."),
-
       MessageKind.ADDITIONAL_TYPE_ARGUMENT:
         const MessageTemplate(MessageKind.ADDITIONAL_TYPE_ARGUMENT,
           "Additional type argument."),
@@ -1811,23 +1806,6 @@ main() {
         const MessageTemplate(MessageKind.OPERATOR_NAMED_PARAMETERS,
           "Operator '#{operatorName}' cannot have named parameters."),
 
-      MessageKind.CONSTRUCTOR_WITH_RETURN_TYPE:
-        const MessageTemplate(MessageKind.CONSTRUCTOR_WITH_RETURN_TYPE,
-          "Cannot have return type for constructor."),
-
-      MessageKind.CANNOT_RETURN_FROM_CONSTRUCTOR:
-        const MessageTemplate(MessageKind.CANNOT_RETURN_FROM_CONSTRUCTOR,
-          "Constructors can't return values.",
-          howToFix: "Remove the return statement or use a factory constructor.",
-          examples: const ["""
-class C {
-  C() {
-    return 1;
-  }
-}
-
-main() => new C();"""]),
-
       MessageKind.ILLEGAL_FINAL_METHOD_MODIFIER:
         const MessageTemplate(MessageKind.ILLEGAL_FINAL_METHOD_MODIFIER,
           "Cannot have final modifier on method."),
@@ -1882,12 +1860,8 @@ main() => new C();"""]),
         const MessageTemplate(MessageKind.PARAMETER_NAME_EXPECTED,
           "parameter name expected."),
 
-      MessageKind.CANNOT_RESOLVE_GETTER:
-        const MessageTemplate(MessageKind.CANNOT_RESOLVE_GETTER,
-          "Cannot resolve getter."),
-
-      MessageKind.CANNOT_RESOLVE_SETTER:
-        const MessageTemplate(MessageKind.CANNOT_RESOLVE_SETTER,
+      MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER:
+        const MessageTemplate(MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER,
           "Cannot resolve setter."),
 
       MessageKind.ASSIGNING_FINAL_FIELD_IN_SUPER:
@@ -1952,6 +1926,22 @@ main() {}
 
 'part.dart': """
 part of library;
+"""}]),
+
+      MessageKind.IMPORT_PART_OF_HERE:
+        const MessageTemplate(MessageKind.IMPORT_PART_OF_HERE,
+          "The library is imported here."),
+
+      MessageKind.MAIN_HAS_PART_OF:
+        const MessageTemplate(MessageKind.MAIN_HAS_PART_OF,
+          "The main application file must not have a 'part-of' directive.",
+          howToFix:  "Try removing the 'part-of' directive or starting "
+              "compilation from another file.",
+          examples: const [const {
+'main.dart': """
+part of library;
+
+main() {}
 """}]),
 
       MessageKind.LIBRARY_NAME_MISMATCH:
@@ -2057,6 +2047,16 @@ void main() {
                     "removing the 'final' modifier.",
           examples: const [
               "class C { static final field; } main() => C.field;"]),
+
+      MessageKind.CONST_LOOP_VARIABLE:
+        const MessageTemplate(MessageKind.CONST_LOOP_VARIABLE,
+          "A loop variable cannot be constant.",
+          howToFix: "Try remove the 'const' modifier or "
+                    "replacing it with a 'final' modifier.",
+          examples: const ["""
+void main() {
+  for (const c in []) {}
+}"""]),
 
       MessageKind.MEMBER_USES_CLASS_NAME:
         const MessageTemplate(MessageKind.MEMBER_USES_CLASS_NAME,
@@ -2262,6 +2262,36 @@ main() => A.A = 1;
                 new Foo().bar(4, baz: 5);
               }
               """]),
+      MessageKind.JS_INTEROP_INDEX_NOT_SUPPORTED:
+        const MessageTemplate(
+           MessageKind.JS_INTEROP_INDEX_NOT_SUPPORTED,
+           "Js-interop does not support [] and []= operator methods.",
+           howToFix: "Try replacing [] and []= operator methods with normal "
+                     "methods.",
+           examples: const [
+               """
+        import 'package:js/js.dart';
+
+        @JS()
+        class Foo {
+          external operator [](arg);
+        }
+
+        main() {
+          new Foo()[0];
+        }
+        """, """
+        import 'package:js/js.dart';
+
+        @JS()
+        class Foo {
+          external operator []=(arg, value);
+        }
+
+        main() {
+          new Foo()[0] = 1;
+        }
+        """]),
 
       MessageKind.JS_OBJECT_LITERAL_CONSTRUCTOR_WITH_POSITIONAL_ARGUMENTS:
         const MessageTemplate(
@@ -2321,11 +2351,6 @@ main() => A.A = 1;
           examples: const [
               "main() => +2;  // No longer a valid way to write '2'"
           ]),
-
-      MessageKind.UNSUPPORTED_THROW_WITHOUT_EXP:
-        const MessageTemplate(MessageKind.UNSUPPORTED_THROW_WITHOUT_EXP,
-          "No expression after 'throw'. "
-          "Did you mean 'rethrow'?"),
 
       MessageKind.DEPRECATED_TYPEDEF_MIXIN_SYNTAX:
         const MessageTemplate(MessageKind.DEPRECATED_TYPEDEF_MIXIN_SYNTAX,
@@ -2501,42 +2526,6 @@ main() {}
           "#{exception}",
           // Don't know how to fix since the underlying error is unknown.
           howToFix: DONT_KNOW_HOW_TO_FIX),
-
-      MessageKind.EXTRANEOUS_MODIFIER:
-        const MessageTemplate(MessageKind.EXTRANEOUS_MODIFIER,
-          "Can't have modifier '#{modifier}' here.",
-          howToFix: "Try removing '#{modifier}'.",
-          examples: const [
-              "var String foo; main(){}",
-              // "var get foo; main(){}",
-              "var set foo; main(){}",
-              "var final foo; main(){}",
-              "var var foo; main(){}",
-              "var const foo; main(){}",
-              "var abstract foo; main(){}",
-              "var static foo; main(){}",
-              "var external foo; main(){}",
-              "get var foo; main(){}",
-              "set var foo; main(){}",
-              "final var foo; main(){}",
-              "var var foo; main(){}",
-              "const var foo; main(){}",
-              "abstract var foo; main(){}",
-              "static var foo; main(){}",
-              "external var foo; main(){}"]),
-
-      MessageKind.EXTRANEOUS_MODIFIER_REPLACE:
-        const MessageTemplate(MessageKind.EXTRANEOUS_MODIFIER_REPLACE,
-          "Can't have modifier '#{modifier}' here.",
-          howToFix:
-            "Try replacing modifier '#{modifier}' with 'var', 'final', "
-            "or a type.",
-          examples: const [
-              // "get foo; main(){}",
-              "set foo; main(){}",
-              "abstract foo; main(){}",
-              "static foo; main(){}",
-              "external foo; main(){}"]),
 
       MessageKind.ABSTRACT_CLASS_INSTANTIATION:
         const MessageTemplate(MessageKind.ABSTRACT_CLASS_INSTANTIATION,
@@ -2851,6 +2840,31 @@ main() => new C();
           "The getter '#{name}' is implicitly declared by this field "
           "in class '#{class}'."),
 
+      MessageKind.INVALID_METADATA:
+        const MessageTemplate(MessageKind.INVALID_METADATA,
+          "A metadata annotation must be either a reference to a compile-time "
+          "constant variable or a call to a constant constructor.",
+          howToFix:
+            "Try using a different constant value or referencing it through a "
+            "constant variable.",
+          examples: const [
+'@Object main() {}',
+'@print main() {}']),
+
+      MessageKind.INVALID_METADATA_GENERIC:
+        const MessageTemplate(MessageKind.INVALID_METADATA_GENERIC,
+          "A metadata annotation using a constant constructor cannot use type "
+          "arguments.",
+          howToFix:
+            "Try removing the type arguments or referencing the constant "
+            "through a constant variable.",
+          examples: const ['''
+class C<T> {
+  const C();
+}
+@C<int>() main() {}
+''']),
+
       MessageKind.EQUAL_MAP_ENTRY_KEY:
         const MessageTemplate(MessageKind.EQUAL_MAP_ENTRY_KEY,
           "An entry with the same key already exists in the map.",
@@ -3143,7 +3157,6 @@ Please include the following information:
       MessageKind.INVALID_SYNC_MODIFIER:
         const MessageTemplate(MessageKind.INVALID_SYNC_MODIFIER,
           "Invalid modifier 'sync'.",
-          options: const ['--enable-async'],
           howToFix: "Try replacing 'sync' with 'sync*'.",
           examples: const [
             "main() sync {}"
@@ -3152,7 +3165,6 @@ Please include the following information:
       MessageKind.INVALID_AWAIT_FOR:
         const MessageTemplate(MessageKind.INVALID_AWAIT_FOR,
           "'await' is only supported on for-in loops.",
-          options: const ['--enable-async'],
           howToFix: "Try rewriting the loop as a for-in loop or removing the "
                     "'await' keyword.",
           examples: const ["""
@@ -3160,10 +3172,6 @@ main() async* {
   await for (int i = 0; i < 10; i++) {}
 }
 """]),
-
-      MessageKind.ASYNC_AWAIT_NOT_SUPPORTED:
-        const MessageTemplate(MessageKind.ASYNC_AWAIT_NOT_SUPPORTED,
-            "The async/sync* syntax is not supported on the current platform."),
 
       MessageKind.ASYNC_MODIFIER_ON_ABSTRACT_METHOD:
         const MessageTemplate(MessageKind.ASYNC_MODIFIER_ON_ABSTRACT_METHOD,
@@ -3242,23 +3250,6 @@ main() async* {
 main() sync* {
  var yield;
 }"""]),
-
-      MessageKind.RETURN_IN_GENERATOR:
-        const MessageTemplate(MessageKind.RETURN_IN_GENERATOR,
-          "'return' with a value is not allowed in a method body using the "
-          "'#{modifier}' modifier.",
-          howToFix: "Try removing the value, replacing 'return' with 'yield' "
-                    "or changing the method body modifier.",
-          examples: const [
-"""
-foo() async* { return 0; }
-main() => foo();
-""",
-
-"""
-foo() sync* { return 0; }
-main() => foo();
-"""]),
 
       MessageKind.NATIVE_NOT_SUPPORTED:
         const MessageTemplate(MessageKind.NATIVE_NOT_SUPPORTED,
@@ -3562,7 +3553,7 @@ $MIRRORS_NOT_SUPPORTED_BY_BACKEND_PADDING#{importChain}"""),
           "Unsupported version of package:lookup_map.",
           howToFix: DONT_KNOW_HOW_TO_FIX),
 
-  }; // End of TEMPLATES.
+  }); // End of TEMPLATES.
 
   /// Padding used before and between import chains in the message for
   /// [MessageKind.IMPORT_EXPERIMENTAL_MIRRORS].

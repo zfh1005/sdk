@@ -10,7 +10,6 @@
 
 #include "zlib/zlib.h"
 
-
 namespace dart {
 namespace bin {
 
@@ -29,10 +28,11 @@ class Filter {
   virtual intptr_t Processed(uint8_t* buffer, intptr_t length, bool finish,
                              bool end) = 0;
 
-  static Dart_Handle SetFilterPointerNativeField(Dart_Handle filter,
-                                                 Filter* filter_pointer);
-  static Dart_Handle GetFilterPointerNativeField(Dart_Handle filter,
-                                                 Filter** filter_pointer);
+  static Dart_Handle SetFilterAndCreateFinalizer(Dart_Handle filter,
+                                                 Filter* filter_pointer,
+                                                 intptr_t filter_size);
+  static Dart_Handle GetFilterNativeField(Dart_Handle filter,
+                                          Filter** filter_pointer);
 
   bool initialized() const { return initialized_; }
   void set_initialized(bool value) { initialized_ = value; }

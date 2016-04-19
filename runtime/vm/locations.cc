@@ -6,8 +6,6 @@
 
 #include "vm/assembler.h"
 #include "vm/il_printer.h"
-#include "vm/intermediate_language.h"
-#include "vm/flow_graph_compiler.h"
 #include "vm/log.h"
 #include "vm/stack_frame.h"
 
@@ -197,6 +195,9 @@ const char* Location::Name() const {
 
 
 void Location::PrintTo(BufferFormatter* f) const {
+  if (!FLAG_support_il_printer) {
+    return;
+  }
   if (kind() == kStackSlot) {
     f->Print("S%+" Pd "", stack_index());
   } else if (kind() == kDoubleStackSlot) {
@@ -299,6 +300,9 @@ Location Location::RemapForSlowPath(Definition* def,
 
 
 void LocationSummary::PrintTo(BufferFormatter* f) const {
+  if (!FLAG_support_il_printer) {
+    return;
+  }
   if (input_count() > 0) {
     f->Print(" (");
     for (intptr_t i = 0; i < input_count(); i++) {

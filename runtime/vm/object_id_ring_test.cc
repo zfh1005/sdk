@@ -11,6 +11,7 @@
 
 namespace dart {
 
+#ifndef PRODUCT
 
 class ObjectIdRingTestHelper {
  public:
@@ -48,7 +49,7 @@ class ObjectIdRingTestHelper {
 
 
 // Test that serial number wrapping works.
-TEST_CASE(ObjectIdRingSerialWrapTest) {
+VM_TEST_CASE(ObjectIdRingSerialWrapTest) {
   Isolate* isolate = Isolate::Current();
   ObjectIdRing* ring = isolate->object_id_ring();
   ObjectIdRingTestHelper::SetCapacityAndMaxSerial(ring, 2, 4);
@@ -133,7 +134,7 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
   EXPECT(Dart_IsList(result));
   EXPECT_VALID(Dart_ListLength(result, &list_length));
   EXPECT_EQ(3, list_length);
-  Isolate* isolate = Isolate::Current();
+  Isolate* isolate = thread->isolate();
   Heap* heap = isolate->heap();
   ObjectIdRing* ring = isolate->object_id_ring();
   ObjectIdRing::LookupResult kind = ObjectIdRing::kInvalid;
@@ -160,8 +161,11 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
   EXPECT_NE(Object::null(), raw_obj2);
   EXPECT_EQ(RawObject::ToAddr(raw_obj), RawObject::ToAddr(raw_obj1));
   EXPECT_EQ(RawObject::ToAddr(raw_obj), RawObject::ToAddr(raw_obj2));
-  // Force a scavenge.
-  heap->CollectGarbage(Heap::kNew);
+  {
+    TransitionNativeToVM transition(thread);
+    // Force a scavenge.
+    heap->CollectGarbage(Heap::kNew);
+  }
   RawObject* raw_object_moved1 = ring->GetObjectForId(raw_obj_id1, &kind);
   EXPECT_EQ(ObjectIdRing::kValid, kind);
   RawObject* raw_object_moved2 = ring->GetObjectForId(raw_obj_id2, &kind);
@@ -174,7 +178,7 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
   EXPECT_NE(RawObject::ToAddr(raw_obj1), RawObject::ToAddr(raw_object_moved1));
   EXPECT_NE(RawObject::ToAddr(raw_obj2), RawObject::ToAddr(raw_object_moved2));
   // Test that we still point at the same list.
-  Dart_Handle moved_handle = Api::NewHandle(isolate, raw_object_moved1);
+  Dart_Handle moved_handle = Api::NewHandle(thread, raw_object_moved1);
   EXPECT_VALID(moved_handle);
   EXPECT(!Dart_IsNull(moved_handle));
   EXPECT(Dart_IsList(moved_handle));
@@ -187,8 +191,8 @@ TEST_CASE(ObjectIdRingScavengeMoveTest) {
 
 
 // Test that the ring table is updated with nulls when the old GC collects.
-TEST_CASE(ObjectIdRingOldGCTest) {
-  Isolate* isolate = Isolate::Current();
+VM_TEST_CASE(ObjectIdRingOldGCTest) {
+  Isolate* isolate = thread->isolate();
   Heap* heap = isolate->heap();
   ObjectIdRing* ring = isolate->object_id_ring();
 
@@ -199,7 +203,7 @@ TEST_CASE(ObjectIdRingOldGCTest) {
     Dart_EnterScope();
     Dart_Handle result;
     // Create a string in the old heap.
-    result = Api::NewHandle(isolate, String::New("old", Heap::kOld));
+    result = Api::NewHandle(thread, String::New("old", Heap::kOld));
     EXPECT_VALID(result);
     intptr_t string_length = 0;
     // Inspect string.
@@ -241,7 +245,7 @@ TEST_CASE(ObjectIdRingOldGCTest) {
 
 // Test that the ring table correctly reports an entry as expired when it is
 // overridden by new entries.
-TEST_CASE(ObjectIdRingExpiredEntryTest) {
+VM_TEST_CASE(ObjectIdRingExpiredEntryTest) {
   Isolate* isolate = Isolate::Current();
   ObjectIdRing* ring = isolate->object_id_ring();
 
@@ -270,5 +274,7 @@ TEST_CASE(ObjectIdRingExpiredEntryTest) {
   EXPECT_NE(obj.raw(), obj_lookup);
   EXPECT_EQ(Object::null(), obj_lookup);
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

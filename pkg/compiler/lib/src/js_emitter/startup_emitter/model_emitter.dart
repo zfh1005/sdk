@@ -56,6 +56,7 @@ import '../../js_backend/js_backend.dart' show
 import '../../util/uri_extras.dart' show
     relativize;
 
+import '../constant_ordering.dart' show deepCompareConstants;
 import '../headers.dart';
 import '../js_emitter.dart' show
     NativeEmitter;
@@ -140,9 +141,9 @@ class ModelEmitter {
     // which compresses a tiny bit better.
     int r = namer.constantLongName(a).compareTo(namer.constantLongName(b));
     if (r != 0) return r;
-    // Resolve collisions in the long name by using the constant name (i.e. JS
-    // name) which is unique.
-    return namer.constantName(a).compareTo(namer.constantName(b));
+
+    // Resolve collisions in the long name by using a structural order.
+    return deepCompareConstants(a, b);
   }
 
   js.Expression generateStaticClosureAccess(FunctionElement element) {
@@ -208,7 +209,8 @@ class ModelEmitter {
       token.setHash(hunkHashes[key]);
     });
 
-    writeMainFragment(mainFragment, mainCode);
+    writeMainFragment(mainFragment, mainCode,
+      isSplit: program.deferredFragments.isNotEmpty);
 
     if (backend.requiresPreamble &&
         !backend.htmlLibraryIsLoaded) {
@@ -216,7 +218,7 @@ class ModelEmitter {
           NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
     }
 
-    if (compiler.deferredMapUri != null) {
+    if (compiler.options.deferredMapUri != null) {
       writeDeferredMap();
     }
 
@@ -226,7 +228,7 @@ class ModelEmitter {
 
   /// Generates a simple header that provides the compiler's build id.
   js.Comment buildGeneratedBy() {
-    String flavor = compiler.useContentSecurityPolicy
+    String flavor = compiler.options.useContentSecurityPolicy
         ? 'fast startup, CSP'
         : 'fast startup';
     return new js.Comment(generatedBy(compiler, flavor: flavor));
@@ -249,10 +251,17 @@ class ModelEmitter {
     return hunkHashes;
   }
 
+  js.Statement buildDeferredInitializerGlobal() {
+    return js.js.statement('self.#deferredInitializers = '
+        'self.#deferredInitializers || Object.create(null);',
+        {'deferredInitializers': deferredInitializersGlobal});
+  }
+
   // Writes the given [fragment]'s [code] into a file.
   //
   // Updates the shared [outputBuffers] field with the output.
-  void writeMainFragment(MainFragment fragment, js.Statement code) {
+  void writeMainFragment(MainFragment fragment, js.Statement code,
+      {bool isSplit}) {
     LineColumnCollector lineColumnCollector;
     List<CodeOutputListener> codeOutputListeners;
     if (shouldGenerateSourceMap) {
@@ -268,21 +277,22 @@ class ModelEmitter {
     js.Program program = new js.Program([
         buildGeneratedBy(),
         new js.Comment(HOOKS_API_USAGE),
+        isSplit ? buildDeferredInitializerGlobal() : new js.Block.empty(),
         code]);
 
-    mainOutput.addBuffer(js.prettyPrint(program, compiler,
+    mainOutput.addBuffer(js.createCodeBuffer(program, compiler,
         monitor: compiler.dumpInfoTask));
 
     if (shouldGenerateSourceMap) {
-      mainOutput.add(
-          generateSourceMapTag(compiler.sourceMapUri, compiler.outputUri));
+      mainOutput.add(generateSourceMapTag(
+          compiler.options.sourceMapUri, compiler.options.outputUri));
     }
 
     mainOutput.close();
 
     if (shouldGenerateSourceMap) {
       outputSourceMap(mainOutput, lineColumnCollector, '',
-          compiler.sourceMapUri, compiler.outputUri);
+          compiler.options.sourceMapUri, compiler.options.outputUri);
     }
   }
 
@@ -321,9 +331,10 @@ class ModelEmitter {
 
     js.Program program = new js.Program([
         buildGeneratedBy(),
+        buildDeferredInitializerGlobal(),
         js.js.statement('$deferredInitializersGlobal.current = #', code)]);
 
-    output.addBuffer(js.prettyPrint(program, compiler,
+    output.addBuffer(js.createCodeBuffer(program, compiler,
         monitor: compiler.dumpInfoTask));
 
     // Make a unique hash of the code (before the sourcemaps are added)
@@ -337,8 +348,8 @@ class ModelEmitter {
 
     if (shouldGenerateSourceMap) {
       Uri mapUri, partUri;
-      Uri sourceMapUri = compiler.sourceMapUri;
-      Uri outputUri = compiler.outputUri;
+      Uri sourceMapUri = compiler.options.sourceMapUri;
+      Uri outputUri = compiler.options.outputUri;
       String partName = "$hunkPrefix.$partExtension";
       String hunkFileName = "$hunkPrefix.$deferredExtension";
 
@@ -346,13 +357,15 @@ class ModelEmitter {
         String mapFileName = hunkFileName + ".map";
         List<String> mapSegments = sourceMapUri.pathSegments.toList();
         mapSegments[mapSegments.length - 1] = mapFileName;
-        mapUri = compiler.sourceMapUri.replace(pathSegments: mapSegments);
+        mapUri = compiler.options.sourceMapUri
+            .replace(pathSegments: mapSegments);
       }
 
       if (outputUri != null) {
         List<String> partSegments = outputUri.pathSegments.toList();
         partSegments[partSegments.length - 1] = hunkFileName;
-        partUri = compiler.outputUri.replace(pathSegments: partSegments);
+        partUri = compiler.options.outputUri
+            .replace(pathSegments: partSegments);
       }
 
       output.add(generateSourceMapTag(mapUri, partUri));
@@ -405,7 +418,8 @@ class ModelEmitter {
     mapping["_comment"] = "This mapping shows which compiled `.js` files are "
         "needed for a given deferred library import.";
     mapping.addAll(compiler.deferredLoadTask.computeDeferredMap());
-    compiler.outputProvider(compiler.deferredMapUri.path, 'deferred_map')
+    compiler.outputProvider(
+          compiler.options.deferredMapUri.path, 'deferred_map')
       ..add(const JsonEncoder.withIndent("  ").convert(mapping))
       ..close();
   }

@@ -25,6 +25,7 @@
           'GCC_ENABLE_CPP_RTTI': 'NO', # -fno-rtti
           'GCC_DEBUGGING_SYMBOLS': 'default', # -g
           'GCC_GENERATE_DEBUGGING_SYMBOLS': 'YES', # Do not strip symbols
+          'DEAD_CODE_STRIPPING': 'YES',  # -Wl,-dead_strip
           'GCC_SYMBOLS_PRIVATE_EXTERN': 'YES', # -fvisibility=hidden
           'GCC_INLINES_ARE_PRIVATE_EXTERN': 'YES', # -fvisibility-inlines-hidden
           'GCC_WARN_NON_VIRTUAL_DESTRUCTOR': 'YES', # -Wnon-virtual-dtor
@@ -54,19 +55,6 @@
           'GCC_ENABLE_TRIGRAPHS': 'NO',
           'COMBINE_HIDPI_IMAGES': 'YES',
         },
-        'conditions': [
-          ['c_frame_pointers==1', {
-            'xcode_settings': {
-              'OTHER_CFLAGS': [
-                '-fno-omit-frame-pointer',
-                '-mno-omit-leaf-frame-pointer',
-              ],
-            },
-            'defines': [
-              'NATIVE_CODE_HAS_FRAME_POINTERS',
-            ],
-          }],
-        ],
       },
       'Dart_Macos_ia32_Base': {
         'abstract': 1,
@@ -75,6 +63,9 @@
         'abstract': 1,
       },
       'Dart_Macos_simarm_Base': {
+        'abstract': 1,
+      },
+      'Dart_Macos_simarmv6_Base': {
         'abstract': 1,
       },
       'Dart_Macos_simarmv5te_Base': {
@@ -88,9 +79,30 @@
       },
       'Dart_Macos_Debug': {
         'abstract': 1,
+        'xcode_settings': {
+          'OTHER_CFLAGS': [
+            '-fno-omit-frame-pointer',
+            '-mno-omit-leaf-frame-pointer',
+          ],
+        },
       },
       'Dart_Macos_Release': {
         'abstract': 1,
+        'xcode_settings': {
+          'OTHER_CFLAGS': [
+            '-fno-omit-frame-pointer',
+            '-mno-omit-leaf-frame-pointer',
+          ],
+        },
+      },
+      'Dart_Macos_Product': {
+        'abstract': 1,
+        'xcode_settings': {
+          'OTHER_CFLAGS': [
+            '-fomit-frame-pointer',
+            '-momit-leaf-frame-pointer',
+          ],
+        },
       },
     },
   },

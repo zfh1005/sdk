@@ -30,12 +30,16 @@ Future setupTCP() async {
 var tcpTests = [
   // Initial.
   (Isolate isolate) async {
-    var result = await isolate.invokeRpcNoUpgrade('__getOpenSockets', {});
+    var result =
+            await isolate.invokeRpcNoUpgrade('ext.dart.io.getOpenSockets', {});
     expect(result['type'], equals('_opensockets'));
     // We expect 3 sockets to be open (in this order):
     //   The server socket accepting connections, on port X
     //   The accepted connection on the client, on port Y
     //   The client connection, on port X
+    if (result['data'].length != 5) {
+      print(result['data']);
+    }
     expect(result['data'].length, equals(5));
     // The first socket will have a name like listening:127.0.0.1:X
     // The second will have a name like 127.0.0.1:Y
@@ -45,7 +49,7 @@ var tcpTests = [
     expect(result['data'][2]['name'].startsWith('127.0.0.1:'), isTrue);
 
     var listening = await isolate.invokeRpcNoUpgrade(
-        '__getSocketByID', { 'id' : result['data'][0]['id'] });
+        'ext.dart.io.getSocketByID', { 'id' : result['data'][0]['id'] });
     expect(listening['id'], equals(result['data'][0]['id']));
     expect(listening['listening'], isTrue);
     expect(listening['socketType'], equals('TCP'));
@@ -61,11 +65,11 @@ var tcpTests = [
     expect(listening['remotePort'], equals('NA'));
 
     var client = await isolate.invokeRpcNoUpgrade(
-        '__getSocketByID', { 'id' : result['data'][1]['id'] });
+        'ext.dart.io.getSocketByID', { 'id' : result['data'][1]['id'] });
     expect(client['id'], equals(result['data'][1]['id']));
 
     var server = await isolate.invokeRpcNoUpgrade(
-        '__getSocketByID', { 'id' : result['data'][2]['id'] });
+        'ext.dart.io.getSocketByID', { 'id' : result['data'][2]['id'] });
     expect(server['id'], equals(result['data'][2]['id']));
 
     // We expect the client to be connected on the port and
@@ -112,10 +116,10 @@ var tcpTests = [
     }
 
     var secondClient = await isolate.invokeRpcNoUpgrade(
-        '__getSocketByID', { 'id' : result['data'][3]['id'] });
+        'ext.dart.io.getSocketByID', { 'id' : result['data'][3]['id'] });
     expect(secondClient['id'], equals(result['data'][3]['id']));
     var secondServer = await isolate.invokeRpcNoUpgrade(
-        '__getSocketByID', { 'id' : result['data'][4]['id'] });
+        'ext.dart.io.getSocketByID', { 'id' : result['data'][4]['id'] });
     expect(secondServer['id'], equals(result['data'][4]['id']));
 
     // We expect the client to be connected on the port and

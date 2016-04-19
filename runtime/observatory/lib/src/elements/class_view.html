@@ -24,7 +24,6 @@
       <library-nav-menu library="{{ cls.library }}"></library-nav-menu>
       <class-nav-menu cls="{{ cls }}" last="{{ true }}"></class-nav-menu>
       <nav-refresh callback="{{ refreshAllocationProfile }}" label="Refresh Allocation Profile"></nav-refresh>
-      <nav-refresh callback="{{ refreshCoverage }}" label="Refresh Coverage"></nav-refresh>
       <nav-refresh callback="{{ refresh }}"></nav-refresh>
     </nav-bar>
 
@@ -35,6 +34,9 @@
         </template>
         <template if="{{ cls.isPatch }}">
           patch
+        </template>
+        <template if="{{ cls.mixin != null }}">
+          mixin
         </template>
         class {{ cls.name }}
       </h1>
@@ -60,9 +62,25 @@
 
         <template if="{{ cls.superclass != null }}">
           <div class="memberItem">
-            <div class="memberName">extends</div>
+            <div class="memberName">superclass</div>
             <div class="memberValue">
               <class-ref ref="{{ cls.superclass }}"></class-ref>
+            </div>
+          </div>
+        </template>
+        <template if="{{ cls.superType != null }}">
+          <div class="memberItem">
+            <div class="memberName">supertype</div>
+            <div class="memberValue">
+              <instance-ref ref="{{ cls.superType }}"></instance-ref>
+            </div>
+          </div>
+        </template>
+        <template if="{{ cls.mixin != null }}">
+          <div class="memberItem">
+            <div class="memberName">mixin</div>
+            <div class="memberValue">
+              <instance-ref ref="{{ cls.mixin }}"></instance-ref>
             </div>
           </div>
         </template>
@@ -177,6 +195,19 @@
                   </eval-link>
                 </template>
                 of total {{ instances['totalCount'] }}
+              </template>
+            </div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">total reachable memory size</div>
+            <div class="memberValue">
+              <template if="{{ reachableBytes == null }}">
+                <eval-link callback="{{ reachableSize }}"
+                           label="[calculate]">
+                </eval-link>
+              </template>
+              <template if="{{ reachableBytes != null }}">
+                {{ reachableBytes | formatSize }}
               </template>
             </div>
           </div>

@@ -165,8 +165,7 @@ UNIT_TEST_CASE(MessageHandler_HasOOBMessages) {
   EXPECT(!handler.HasOOBMessages());
   {
     // Acquire ownership of message handler queues, verify one regular message.
-    MessageHandler::AcquiredQueues aq;
-    handler.AcquireQueues(&aq);
+    MessageHandler::AcquiredQueues aq(&handler);
     EXPECT(aq.queue()->Length() == 1);
   }
 
@@ -177,8 +176,7 @@ UNIT_TEST_CASE(MessageHandler_HasOOBMessages) {
   {
     // Acquire ownership of message handler queues, verify one regular and one
     // OOB message.
-    MessageHandler::AcquiredQueues aq;
-    handler.AcquireQueues(&aq);
+    MessageHandler::AcquiredQueues aq(&handler);
     EXPECT(aq.queue()->Length() == 1);
     EXPECT(aq.oob_queue()->Length() == 1);
   }
@@ -308,8 +306,7 @@ UNIT_TEST_CASE(MessageHandler_HandleNextMessage_Shutdown) {
   EXPECT_EQ(port3, ports[1]);  // oob_message2, shutdown
   {
     // The oob queue has been cleared.  oob_message3 is gone.
-    MessageHandler::AcquiredQueues aq;
-    handler.AcquireQueues(&aq);
+    MessageHandler::AcquiredQueues aq(&handler);
     EXPECT(aq.oob_queue()->Length() == 0);
   }
   handler_peer.CloseAllPorts();
@@ -399,7 +396,7 @@ UNIT_TEST_CASE(MessageHandler_Run) {
   info.handler = &handler;
   info.ports = ports;
   info.count = 10;
-  OSThread::Start(SendMessages, reinterpret_cast<uword>(&info));
+  OSThread::Start("SendMessages", SendMessages, reinterpret_cast<uword>(&info));
   while (sleep < kMaxSleep && handler.message_count() < 11) {
     OS::Sleep(10);
     sleep += 10;

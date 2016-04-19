@@ -4,11 +4,10 @@
 
 library services.src.linter;
 
-import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/analyzer.dart';
-import 'package:yaml/yaml.dart';
+import 'package:analyzer/plugin/options.dart';
 import 'package:linter/src/rules.dart';
-import 'package:linter/src/linter.dart';
+import 'package:yaml/yaml.dart';
 
 /**
  * An error code indicating an undefined lint rule.
@@ -41,9 +40,10 @@ class LinterRuleOptionsValidator extends OptionsValidator {
       //TODO(pq): migrate this to a proper API once there is one.
       Iterable<String> registeredLints = ruleRegistry.map((r) => r.name);
       rules.nodes.forEach((YamlNode ruleNode) {
-        if (!registeredLints.contains(ruleNode.value)) {
+        Object value = ruleNode.value;
+        if (value != null && !registeredLints.contains(value)) {
           reporter.reportErrorForSpan(
-              UNDEFINED_LINT_WARNING, ruleNode.span, [ruleNode.value]);
+              UNDEFINED_LINT_WARNING, ruleNode.span, [value]);
         }
       });
     }

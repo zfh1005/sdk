@@ -51,15 +51,8 @@
         'defines': [
           'DEBUG',
         ],
-        'conditions': [
-          ['c_frame_pointers==1', {
-            'cflags': [
-              '-fno-omit-frame-pointer',
-            ],
-            'defines': [
-              'NATIVE_CODE_HAS_FRAME_POINTERS'
-            ],
-          }],
+        'cflags': [
+          '-fno-omit-frame-pointer',
         ],
       },
       'Dart_Android_Release': {
@@ -72,19 +65,26 @@
           '-Os',
         ],
         'cflags': [
+          '-fno-omit-frame-pointer',
           '-fdata-sections',
           '-ffunction-sections',
           '-O3',
         ],
-        'conditions': [
-          ['c_frame_pointers==1', {
-            'cflags': [
-              '-fno-omit-frame-pointer',
-            ],
-            'defines': [
-              'NATIVE_CODE_HAS_FRAME_POINTERS'
-            ],
-          }],
+      },
+      'Dart_Android_Product': {
+        'abstract': 1,
+        'defines': [
+          'NDEBUG',
+          'PRODUCT',
+        ],
+        'cflags!': [
+          '-O2',
+          '-Os',
+        ],
+        'cflags': [
+          '-fdata-sections',
+          '-ffunction-sections',
+          '-O3',
         ],
       },
       'Dart_Android_ia32_Base': {
@@ -145,6 +145,58 @@
           ['_toolset=="host"', {
             'cflags': [ '-m32', '-pthread' ],
             'ldflags': [ '-m32', '-pthread' ],
+          }],
+        ],
+      },
+      'Dart_Android_x64_Base': {
+        'abstract': 1,
+        'variables': {
+          'android_sysroot': '<(android_ndk_root)/platforms/android-21/arch-x86_64',
+          'android_ndk_include': '<(android_sysroot)/usr/include',
+          'android_ndk_lib': '<(android_sysroot)/usr/lib64',
+        },
+        'target_conditions': [
+          ['_toolset=="target"', {
+            'cflags': [
+              '-fPIE',
+              '--sysroot=<(android_sysroot)',
+              '-I<(android_ndk_include)',
+              '-I<(android_ndk_root)/sources/cxx-stl/stlport/stlport',
+            ],
+            'target_conditions': [
+              ['_type=="executable"', {
+                'ldflags!': ['-Wl,--exclude-libs=ALL,-shared',],
+              }],
+              ['_type=="shared_library"', {
+                'ldflags': ['-Wl,-shared,-Bsymbolic',],
+              }],
+            ],
+            'ldflags': [
+              'x64', '>(_type)', 'target',
+              '-nostdlib',
+              '-Wl,--no-undefined',
+              # Don't export symbols from statically linked libraries.
+              '-Wl,--exclude-libs=ALL',
+              '-Wl,-rpath-link=<(android_ndk_lib)',
+              '-L<(android_ndk_lib)',
+              '-L<(android_ndk_root)/sources/cxx-stl/stlport/libs/x86_64',
+              '-z',
+              'muldefs',
+              '-Bdynamic',
+              '-pie',
+              '-Wl,-dynamic-linker,/system/bin/linker',
+              '-Wl,--gc-sections',
+              '-Wl,-z,nocopyreloc',
+              # crtbegin_dynamic.o should be the last item in ldflags.
+              '<(android_ndk_lib)/crtbegin_dynamic.o',
+            ],
+            'ldflags!': [
+              '-pthread',  # Not supported by Android toolchain.
+            ],
+          }],
+          ['_toolset=="host"', {
+            'cflags': [ '-pthread' ],
+            'ldflags': [ '-pthread' ],
           }],
         ],
       },

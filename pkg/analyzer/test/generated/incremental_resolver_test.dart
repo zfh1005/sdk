@@ -2,29 +2,37 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.incremental_resolver_test;
+library analyzer.test.generated.incremental_resolver_test;
 
-import 'package:analyzer/src/context/cache.dart' as task;
-import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/context/cache.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/builder.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/scanner/reader.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/incremental_logger.dart' as log;
+import 'package:analyzer/src/generated/incremental_logger.dart' as logging;
 import 'package:analyzer/src/generated/incremental_resolution_validator.dart';
 import 'package:analyzer/src/generated/incremental_resolver.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
+import 'package:analyzer/src/generated/utilities_collection.dart';
+import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
+import 'package:analyzer/task/model.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
-import 'parser_test.dart';
-import 'resolver_test.dart';
+import 'analysis_context_factory.dart';
+import 'resolver_test_case.dart';
 import 'test_support.dart';
 
 main() {
@@ -37,81 +45,95 @@ main() {
 
 void initializeTestEnvironment() {}
 
-void _assertEqualError(AnalysisError incrError, AnalysisError fullError) {
-  if (incrError.errorCode != fullError.errorCode ||
-      incrError.source != fullError.source ||
-      incrError.offset != fullError.offset ||
-      incrError.length != fullError.length ||
-      incrError.message != fullError.message) {
+void _assertEqualError(AnalysisError incError, AnalysisError fullError) {
+  if (incError.errorCode != fullError.errorCode ||
+      incError.source != fullError.source ||
+      incError.offset != fullError.offset ||
+      incError.length != fullError.length ||
+      incError.message != fullError.message) {
     StringBuffer buffer = new StringBuffer();
     buffer.writeln('Found error does not match expected error:');
-    if (incrError.errorCode == fullError.errorCode) {
+    if (incError.errorCode == fullError.errorCode) {
       buffer.write('  errorCode = ');
       buffer.write(fullError.errorCode.uniqueName);
     } else {
       buffer.write('  Expected errorCode = ');
       buffer.write(fullError.errorCode.uniqueName);
       buffer.write(' found ');
-      buffer.write(incrError.errorCode.uniqueName);
+      buffer.write(incError.errorCode.uniqueName);
     }
     buffer.writeln();
-    if (incrError.source == fullError.source) {
+    if (incError.source == fullError.source) {
       buffer.write('  source = ');
       buffer.write(fullError.source);
     } else {
       buffer.write('  Expected source = ');
       buffer.write(fullError.source);
       buffer.write(' found ');
-      buffer.write(incrError.source);
+      buffer.write(incError.source);
     }
     buffer.writeln();
-    if (incrError.offset == fullError.offset) {
+    if (incError.offset == fullError.offset) {
       buffer.write('  offset = ');
       buffer.write(fullError.offset);
     } else {
       buffer.write('  Expected offset = ');
       buffer.write(fullError.offset);
       buffer.write(' found ');
-      buffer.write(incrError.offset);
+      buffer.write(incError.offset);
     }
     buffer.writeln();
-    if (incrError.length == fullError.length) {
+    if (incError.length == fullError.length) {
       buffer.write('  length = ');
       buffer.write(fullError.length);
     } else {
       buffer.write('  Expected length = ');
       buffer.write(fullError.length);
       buffer.write(' found ');
-      buffer.write(incrError.length);
+      buffer.write(incError.length);
     }
     buffer.writeln();
-    if (incrError.message == fullError.message) {
+    if (incError.message == fullError.message) {
       buffer.write('  message = ');
       buffer.write(fullError.message);
     } else {
       buffer.write('  Expected message = ');
       buffer.write(fullError.message);
       buffer.write(' found ');
-      buffer.write(incrError.message);
+      buffer.write(incError.message);
     }
     fail(buffer.toString());
   }
 }
 
 void _assertEqualErrors(
-    List<AnalysisError> incrErrors, List<AnalysisError> fullErrors) {
-  expect(incrErrors, hasLength(fullErrors.length));
-  if (incrErrors.isNotEmpty) {
-    incrErrors.sort((a, b) => a.offset - b.offset);
+    List<AnalysisError> incErrors, List<AnalysisError> fullErrors) {
+  expect(incErrors, hasLength(fullErrors.length));
+  if (incErrors.isNotEmpty) {
+    incErrors.sort((a, b) => a.offset - b.offset);
   }
   if (fullErrors.isNotEmpty) {
     fullErrors.sort((a, b) => a.offset - b.offset);
   }
-  int length = incrErrors.length;
+  int length = incErrors.length;
   for (int i = 0; i < length; i++) {
-    AnalysisError incrError = incrErrors[i];
+    AnalysisError incError = incErrors[i];
     AnalysisError fullError = fullErrors[i];
-    _assertEqualError(incrError, fullError);
+    _assertEqualError(incError, fullError);
+  }
+}
+
+void _checkCacheEntries(AnalysisCache cache) {
+  Set seen = new Set();
+  MapIterator<AnalysisTarget, CacheEntry> it = cache.iterator();
+  while (it.moveNext()) {
+    AnalysisTarget key = it.key;
+    if (cache.get(key) == null) {
+      fail("cache corrupted: value of $key changed to null");
+    }
+    if (!seen.add(key)) {
+      fail("cache corrupted: $key appears more than once");
+    }
   }
 }
 
@@ -494,6 +516,20 @@ class A {
 ''');
   }
 
+  void test_false_constructor_parameters_name() {
+    _assertDoesNotMatch(
+        r'''
+class A {
+  A(int a);
+}
+''',
+        r'''
+class A {
+  A(int b);
+}
+''');
+  }
+
   void test_false_constructor_parameters_type_edit() {
     _assertDoesNotMatch(
         r'''
@@ -830,6 +866,22 @@ class A {
 class A {
   final field;
   A(this.field(a));
+}
+''');
+  }
+
+  void test_false_fieldFormalParameter_changeName_wasUnresolvedField() {
+    _assertDoesNotMatch(
+        r'''
+class A {
+  final fff;
+  A(this.unresolved);
+}
+''',
+        r'''
+class A {
+  final fff;
+  A(this.fff);
 }
 ''');
   }
@@ -1545,6 +1597,34 @@ class A {
 ''');
   }
 
+  void test_false_method_getKeyword_add() {
+    _assertDoesNotMatchOK(
+        r'''
+class A {
+  void foo() {}
+}
+''',
+        r'''
+class A {
+  void get foo {}
+}
+''');
+  }
+
+  void test_false_method_getKeyword_remove() {
+    _assertDoesNotMatchOK(
+        r'''
+class A {
+  void get foo {}
+}
+''',
+        r'''
+class A {
+  void foo() {}
+}
+''');
+  }
+
   void test_false_method_list_add() {
     _assertDoesNotMatchOK(
         r'''
@@ -1635,6 +1715,34 @@ class A {
         r'''
 class A {
   String m() {}
+}
+''');
+  }
+
+  void test_false_method_setKeyword_add() {
+    _assertDoesNotMatchOK(
+        r'''
+class A {
+  void foo(x) {}
+}
+''',
+        r'''
+class A {
+  void set foo(x) {}
+}
+''');
+  }
+
+  void test_false_method_setKeyword_remove() {
+    _assertDoesNotMatchOK(
+        r'''
+class A {
+  void set foo(x) {}
+}
+''',
+        r'''
+class A {
+  void foo(x) {}
 }
 ''');
   }
@@ -2449,22 +2557,6 @@ class A {
 ''');
   }
 
-  void test_true_fieldFormalParameter_changeName_wasUnresolvedField() {
-    _assertMatches(
-        r'''
-class A {
-  final fff;
-  A(this.unresolved);
-}
-''',
-        r'''
-class A {
-  final fff;
-  A(this.fff);
-}
-''');
-  }
-
   void test_true_fieldFormalParameter_function() {
     _assertMatches(
         r'''
@@ -3001,11 +3093,11 @@ class B extends Object with A {}
     LibraryElement library = resolve2(source);
     CompilationUnit oldUnit = resolveCompilationUnit(source, library);
     // parse
-    CompilationUnit newUnit = ParserTestCase.parseCompilationUnit(newContent);
+    CompilationUnit newUnit = IncrementalResolverTest._parseUnit(newContent);
     // build elements
     {
       ElementHolder holder = new ElementHolder();
-      ElementBuilder builder = new ElementBuilder(holder);
+      ElementBuilder builder = new ElementBuilder(holder, oldUnit.element);
       newUnit.accept(builder);
     }
     // match
@@ -3024,28 +3116,18 @@ class IncrementalResolverTest extends ResolverTestCase {
 
   @override
   void reset() {
-    if (AnalysisEngine.instance.useTaskModel) {
-      analysisContext2 = AnalysisContextFactory.contextWithCore();
-    } else {
-      analysisContext2 = AnalysisContextFactory.oldContextWithCore();
-    }
+    analysisContext2 = AnalysisContextFactory.contextWithCore();
   }
 
   @override
   void resetWithOptions(AnalysisOptions options) {
-    if (AnalysisEngine.instance.useTaskModel) {
-      analysisContext2 =
-          AnalysisContextFactory.contextWithCoreAndOptions(options);
-    } else {
-      analysisContext2 =
-          AnalysisContextFactory.oldContextWithCoreAndOptions(options);
-    }
+    AnalysisContextFactory.contextWithCoreAndOptions(options);
   }
 
   void setUp() {
     super.setUp();
     test_resolveApiChanges = true;
-    log.logger = log.NULL_LOGGER;
+    logging.logger = logging.NULL_LOGGER;
   }
 
   void test_classMemberAccessor_body() {
@@ -3056,6 +3138,21 @@ class A {
   }
 }''');
     _resolve(_editString('+', '*'), _isFunctionBody);
+  }
+
+  void test_computeConstants_offsetChanged() {
+    _resolveUnit(r'''
+int f() => 0;
+main() {
+  const x1 = f();
+  const x2 = f();
+  const x3 = f();
+  const x4 = f();
+  const x5 = f();
+  print(x1 + x2 + x3 + x4 + x5 + 1);
+}
+''');
+    _resolve(_editString('x1', ' x1'), _isFunctionBody);
   }
 
   void test_constructor_body() {
@@ -3121,15 +3218,6 @@ class B extends A {
 }
 ''');
     _resolve(_editString('+', '*'), _isExpression);
-  }
-
-  void test_fieldFormalParameter() {
-    _resolveUnit(r'''
-class A {
-  int xy;
-  A(this.x);
-}''');
-    _resolve(_editString('this.x', 'this.xy'), _isDeclaration);
   }
 
   void test_function_localFunction_add() {
@@ -3372,6 +3460,9 @@ class B {
         edit.replacement +
         code.substring(offset + edit.length);
     CompilationUnit newUnit = _parseUnit(newCode);
+    AnalysisCache cache = analysisContext2.analysisCache;
+    _checkCacheEntries(cache);
+
     // replace the node
     AstNode oldNode = _findNodeAt(unit, offset, predicate);
     AstNode newNode = _findNodeAt(newUnit, offset, predicate);
@@ -3383,36 +3474,23 @@ class B {
     {
       int delta = edit.replacement.length - edit.length;
       _shiftTokens(unit.beginToken, offset, delta);
+      Token oldBeginToken = oldNode.beginToken;
+      Token oldEndTokenNext = oldNode.endToken.next;
+      oldBeginToken.previous.setNext(newNode.beginToken);
+      newNode.endToken.setNext(oldEndTokenNext);
     }
     // do incremental resolution
     int updateOffset = edit.offset;
     int updateEndOld = updateOffset + edit.length;
     int updateOldNew = updateOffset + edit.replacement.length;
     IncrementalResolver resolver;
-    if (AnalysisEngine.instance.useTaskModel) {
-      LibrarySpecificUnit lsu = new LibrarySpecificUnit(source, source);
-      task.AnalysisCache cache = analysisContext2.analysisCache;
-      resolver = new IncrementalResolver(
-          null,
-          cache.get(source),
-          cache.get(lsu),
-          unit.element,
-          updateOffset,
-          updateEndOld,
-          updateOldNew);
-    } else {
-      resolver = new IncrementalResolver(
-          (analysisContext2 as AnalysisContextImpl)
-              .getReadableSourceEntryOrNull(source),
-          null,
-          null,
-          unit.element,
-          updateOffset,
-          updateEndOld,
-          updateOldNew);
-    }
+    LibrarySpecificUnit lsu = new LibrarySpecificUnit(source, source);
+    resolver = new IncrementalResolver(cache, cache.get(source), cache.get(lsu),
+        unit.element, updateOffset, updateEndOld, updateOldNew);
     bool success = resolver.resolve(newNode);
     expect(success, isTrue);
+    _checkCacheEntries(cache);
+
     List<AnalysisError> newErrors = analysisContext.computeErrors(source);
     // resolve "newCode" from scratch
     CompilationUnit fullNewUnit;
@@ -3422,11 +3500,9 @@ class B {
       LibraryElement library = resolve2(source);
       fullNewUnit = resolveCompilationUnit(source, library);
     }
-    try {
-      assertSameResolution(unit, fullNewUnit);
-    } on IncrementalResolutionMismatch catch (mismatch) {
-      fail(mismatch.message);
-    }
+    _checkCacheEntries(cache);
+
+    assertSameResolution(unit, fullNewUnit);
     // errors
     List<AnalysisError> newFullErrors =
         analysisContext.getErrors(source).errors;
@@ -3441,6 +3517,7 @@ class B {
     library = resolve2(source);
     unit = resolveCompilationUnit(source, library);
     _runTasks();
+    _checkCacheEntries(analysisContext2.analysisCache);
   }
 
   void _runTasks() {
@@ -3494,6 +3571,8 @@ class B {
  */
 @reflectiveTest
 class PoorMansIncrementalResolutionTest extends ResolverTestCase {
+  final _TestLogger logger = new _TestLogger();
+
   Source source;
   String code;
   LibraryElement oldLibrary;
@@ -3519,15 +3598,8 @@ class A {
 
   @override
   void setUp() {
-    AnalysisEngine.instance.useTaskModel = true;
     super.setUp();
     _resetWithIncremental(true);
-  }
-
-  @override
-  void tearDown() {
-    super.tearDown();
-    AnalysisEngine.instance.useTaskModel = false;
   }
 
   void test_computeConstants() {
@@ -3538,13 +3610,15 @@ main() {
   print(x + 1);
 }
 ''');
-    _updateAndValidate(r'''
+    _updateAndValidate(
+        r'''
 int f() => 0;
 main() {
   const x = f();
   print(x + 2);
 }
-''');
+''',
+        expectCachePostConstantsValid: false);
   }
 
   void test_dartDoc_beforeField() {
@@ -3778,23 +3852,6 @@ main() {
 ''');
   }
 
-  void test_endOfLineComment_localFunction_inTopLevelVariable() {
-    _resolveUnit(r'''
-typedef int Binary(one, two, three);
-
-int Global = f((a, b, c) {
-  return 0; // Some comment
-});
-''');
-    _updateAndValidate(r'''
-typedef int Binary(one, two, three);
-
-int Global = f((a, b, c) {
-  return 0; // Some  comment
-});
-''');
-  }
-
   void test_endOfLineComment_outBody_add() {
     _resolveUnit(r'''
 main() {
@@ -3864,6 +3921,25 @@ main() {
 ''');
   }
 
+  void test_endOfLineComment_toDartDoc() {
+    _resolveUnit(r'''
+class A {
+  // text
+  main() {
+    print(42);
+  }
+}''');
+    _updateAndValidate(
+        r'''
+class A {
+  /// text
+  main() {
+    print(42);
+  }
+}''',
+        expectedSuccess: false);
+  }
+
   void test_false_constConstructor_initializer() {
     _resolveUnit(r'''
 class C {
@@ -3889,6 +3965,74 @@ main() {
         expectedSuccess: false);
   }
 
+  void test_false_constructor_initializer_damage() {
+    _resolveUnit(r'''
+class Problem {
+  final Map location;
+  final String message;
+
+  Problem(Map json)
+      : location = json["location"],
+        message = json["message"];
+}''');
+    _updateAndValidate(
+        r'''
+class Problem {
+  final Map location;
+  final String message;
+
+  Problem(Map json)
+      : location = json["location],
+        message = json["message"];
+}''',
+        expectedSuccess: false);
+  }
+
+  void test_false_constructor_initializer_remove() {
+    _resolveUnit(r'''
+class Problem {
+  final String severity;
+  final Map location;
+  final String message;
+
+  Problem(Map json)
+      : severity = json["severity"],
+        location = json["location"],
+        message = json["message"];
+}''');
+    _updateAndValidate(
+        r'''
+class Problem {
+  final String severity;
+  final Map location;
+  final String message;
+
+  Problem(Map json)
+      : severity = json["severity"],
+        message = json["message"];
+}''',
+        expectedSuccess: false);
+  }
+
+  void test_false_endOfLineComment_localFunction_inTopLevelVariable() {
+    _resolveUnit(r'''
+typedef int Binary(one, two, three);
+
+int Global = f((a, b, c) {
+  return 0; // Some comment
+});
+''');
+    _updateAndValidate(
+        r'''
+typedef int Binary(one, two, three);
+
+int Global = f((a, b, c) {
+  return 0; // Some  comment
+});
+''',
+        expectedSuccess: false);
+  }
+
   void test_false_expressionBody() {
     _resolveUnit(r'''
 class A {
@@ -3900,6 +4044,44 @@ class A {
 class A {
   final f = (() => 2)();
 }
+''',
+        expectedSuccess: false);
+  }
+
+  void test_false_expressionBody2() {
+    _resolveUnit(r'''
+class A {
+  int m() => 10 * 10;
+}
+''');
+    _updateAndValidate(
+        r'''
+class A {
+  int m() => 10 * 100;
+}
+''',
+        expectedSuccess: false);
+  }
+
+  void test_false_inBody_functionExpression() {
+    _resolveUnit(r'''
+class C extends D {
+  static final f = () {
+    var x = 0;
+  }();
+}
+
+class D {}
+''');
+    _updateAndValidate(
+        r'''
+class C extends D {
+  static final f = () {
+    var x = 01;
+  }();
+}
+
+class D {}
 ''',
         expectedSuccess: false);
   }
@@ -3973,6 +4155,25 @@ class A {
         expectedSuccess: false);
   }
 
+  void test_false_wholeConstructor() {
+    _resolveUnit(r'''
+class A {
+  A(int a) {
+    print(a);
+  }
+}
+''');
+    _updateAndValidate(
+        r'''
+class A {
+  A(int b) {
+    print(b);
+  }
+}
+''',
+        expectedSuccess: false);
+  }
+
   void test_fieldClassField_propagatedType() {
     _resolveUnit(r'''
 class A {
@@ -4003,6 +4204,21 @@ main() {
   print(123);
   A.b;
 }
+''');
+  }
+
+  void test_hasElementAfter_defaultParameter() {
+    _resolveUnit(r'''
+main() {
+  print(1);
+}
+otherFunction([p = 0]) {}
+''');
+    _updateAndValidate(r'''
+main() {
+  print(2);
+}
+otherFunction([p = 0]) {}
 ''');
   }
 
@@ -4195,23 +4411,6 @@ foo() {
     _assertEqualErrors(newErrors, oldErrors);
   }
 
-  void test_true_wholeConstructor() {
-    _resolveUnit(r'''
-class A {
-  A(int a) {
-    print(a);
-  }
-}
-''');
-    _updateAndValidate(r'''
-class A {
-  A(int b) {
-    print(b);
-  }
-}
-''');
-  }
-
   void test_true_wholeConstructor_addInitializer() {
     _resolveUnit(r'''
 class A {
@@ -4361,6 +4560,21 @@ class A {
     expect(errors, isEmpty);
   }
 
+  void test_updateConstantInitializer() {
+    _resolveUnit(r'''
+main() {
+  const v = const [Unknown];
+}
+''');
+    _updateAndValidate(
+        r'''
+main() {
+   const v = const [Unknown];
+}
+''',
+        expectCachePostConstantsValid: false);
+  }
+
   void test_updateErrors_addNew_hint1() {
     _resolveUnit(r'''
 int main() {
@@ -4460,6 +4674,45 @@ foo(int p) {}
 ''');
   }
 
+  void test_updateErrors_invalidVerifyErrors() {
+    _resolveUnit(r'''
+main() {
+  foo('aaa');
+}
+main2() {
+  foo('bbb');
+}
+foo(int p) {}
+''');
+    // Complete analysis, e.g. compute VERIFY_ERRORS.
+    _runTasks();
+    // Invalidate VERIFY_ERRORS.
+    AnalysisCache cache = analysisContext2.analysisCache;
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    CacheEntry cacheEntry = cache.get(target);
+    expect(cacheEntry.getValue(VERIFY_ERRORS), hasLength(2));
+    cacheEntry.setState(VERIFY_ERRORS, CacheState.INVALID);
+    // Perform incremental resolution.
+    _resetWithIncremental(true);
+    analysisContext2.setContents(
+        source,
+        r'''
+main() {
+  foo(0);
+}
+main2() {
+  foo('bbb');
+}
+foo(int p) {}
+''');
+    // VERIFY_ERRORS is still invalid.
+    expect(cacheEntry.getState(VERIFY_ERRORS), CacheState.INVALID);
+    // Continue analysis - run tasks, so recompute VERIFY_ERRORS.
+    _runTasks();
+    expect(cacheEntry.getState(VERIFY_ERRORS), CacheState.VALID);
+    expect(cacheEntry.getValue(VERIFY_ERRORS), hasLength(1));
+  }
+
   void test_updateErrors_removeExisting_hint() {
     _resolveUnit(r'''
 int main() {
@@ -4522,6 +4775,47 @@ f3() {
 ''');
   }
 
+  void test_visibleRange() {
+    _resolveUnit(r'''
+class Test {
+  method1(p1) {
+    var v1;
+    f1() {}
+    return 1;
+  }
+  method2(p2) {
+    var v2;
+    f2() {}
+    return 2;
+  }
+  method3(p3) {
+    var v3;
+    f3() {}
+    return 3;
+  }
+}
+''');
+    _updateAndValidate(r'''
+class Test {
+  method1(p1) {
+    var v1;
+    f1() {}
+    return 1;
+  }
+  method2(p2) {
+    var v2;
+    f2() {}
+    return 2222;
+  }
+  method3(p3) {
+    var v3;
+    f3() {}
+    return 3;
+  }
+}
+''');
+  }
+
   void test_whitespace_getElementAt() {
     _resolveUnit(r'''
 class A {}
@@ -4552,14 +4846,98 @@ class B extends A {}
     }
   }
 
-  void _assertEqualLineInfo(LineInfo incrLineInfo, LineInfo fullLineInfo) {
+  void test_updateFunctionToForLoop() {
+    _resolveUnit(r'''
+class PlayDrag {
+  final List<num> times = new List<num>();
+
+  PlayDrag.start() {}
+
+  void update(num pos) {
+    fo (int i = times.length - 2; i >= 0; i--) {}
+  }
+}
+''');
+
+    _updateAndValidate(
+        r'''
+class PlayDrag {
+  final List<num> times = new List<num>();
+
+  PlayDrag.start() {}
+
+  void update(num pos) {
+    for (int i = times.length - 2; i >= 0; i--) {}
+  }
+}
+''',
+        expectLibraryUnchanged: false);
+  }
+
+  void _assertCacheResults(
+      {bool expectLibraryUnchanged: true,
+      bool expectCachePostConstantsValid: true}) {
+    _assertCacheSourceResult(TOKEN_STREAM);
+    _assertCacheSourceResult(SCAN_ERRORS);
+    _assertCacheSourceResult(PARSED_UNIT);
+    _assertCacheSourceResult(PARSE_ERRORS);
+    if (!expectLibraryUnchanged) {
+      return;
+    }
+    _assertCacheSourceResult(LIBRARY_ELEMENT1);
+    _assertCacheSourceResult(LIBRARY_ELEMENT2);
+    _assertCacheSourceResult(LIBRARY_ELEMENT3);
+    _assertCacheSourceResult(LIBRARY_ELEMENT4);
+    _assertCacheSourceResult(LIBRARY_ELEMENT5);
+    _assertCacheSourceResult(LIBRARY_ELEMENT6);
+    _assertCacheSourceResult(LIBRARY_ELEMENT7);
+    _assertCacheSourceResult(LIBRARY_ELEMENT8);
+    if (expectCachePostConstantsValid) {
+      _assertCacheSourceResult(LIBRARY_ELEMENT);
+    }
+    _assertCacheUnitResult(RESOLVED_UNIT1);
+    _assertCacheUnitResult(RESOLVED_UNIT2);
+    _assertCacheUnitResult(RESOLVED_UNIT3);
+    _assertCacheUnitResult(RESOLVED_UNIT4);
+    _assertCacheUnitResult(RESOLVED_UNIT5);
+    _assertCacheUnitResult(RESOLVED_UNIT6);
+    _assertCacheUnitResult(RESOLVED_UNIT7);
+    _assertCacheUnitResult(RESOLVED_UNIT8);
+    _assertCacheUnitResult(RESOLVED_UNIT9);
+    _assertCacheUnitResult(RESOLVED_UNIT10);
+    if (expectCachePostConstantsValid) {
+      _assertCacheUnitResult(RESOLVED_UNIT11);
+      _assertCacheUnitResult(RESOLVED_UNIT);
+    }
+  }
+
+  /**
+   * Assert that the [result] of [source] is not INVALID.
+   */
+  void _assertCacheSourceResult(ResultDescriptor result) {
+    AnalysisCache cache = analysisContext2.analysisCache;
+    CacheState state = cache.getState(source, result);
+    expect(state, isNot(CacheState.INVALID), reason: result.toString());
+  }
+
+  /**
+   * Assert that the [result] of the defining unit [source] is not INVALID.
+   */
+  void _assertCacheUnitResult(ResultDescriptor result) {
+    AnalysisCache cache = analysisContext2.analysisCache;
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    CacheState state = cache.getState(target, result);
+    expect(state, isNot(CacheState.INVALID), reason: result.toString());
+  }
+
+  void _assertEqualLineInfo(LineInfo incLineInfo, LineInfo fullLineInfo) {
     for (int offset = 0; offset < 1000; offset++) {
-      LineInfo_Location incrLocation = incrLineInfo.getLocation(offset);
+      LineInfo_Location incLocation = incLineInfo.getLocation(offset);
       LineInfo_Location fullLocation = fullLineInfo.getLocation(offset);
-      if (incrLocation.lineNumber != fullLocation.lineNumber ||
-          incrLocation.columnNumber != fullLocation.columnNumber) {
+      if (incLocation.lineNumber != fullLocation.lineNumber ||
+          incLocation.columnNumber != fullLocation.columnNumber) {
         fail('At offset $offset ' +
-            '(${incrLocation.lineNumber}, ${incrLocation.columnNumber})' +
+            '(${incLocation.lineNumber}, ${incLocation.columnNumber})' +
             ' != ' +
             '(${fullLocation.lineNumber}, ${fullLocation.columnNumber})');
       }
@@ -4574,8 +4952,7 @@ class B extends A {}
     AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
     analysisOptions.incremental = enable;
     analysisOptions.incrementalApi = enable;
-//    log.logger = log.PRINT_LOGGER;
-    log.logger = log.NULL_LOGGER;
+    logging.logger = logger;
     analysisContext2.analysisOptions = analysisOptions;
   }
 
@@ -4595,14 +4972,21 @@ class B extends A {}
   }
 
   void _updateAndValidate(String newCode,
-      {bool expectedSuccess: true, bool compareWithFull: true}) {
+      {bool expectedSuccess: true,
+      bool expectLibraryUnchanged: true,
+      bool expectCachePostConstantsValid: true,
+      bool compareWithFull: true,
+      bool runTasksBeforeIncremental: true}) {
     // Run any pending tasks tasks.
-    _runTasks();
+    if (runTasksBeforeIncremental) {
+      _runTasks();
+    }
     // Update the source - currently this may cause incremental resolution.
     // Then request the updated resolved unit.
     _resetWithIncremental(true);
     analysisContext2.setContents(source, newCode);
     CompilationUnit newUnit = resolveCompilationUnit(source, oldLibrary);
+    logger.expectNoErrors();
     List<AnalysisError> newErrors = analysisContext.computeErrors(source);
     LineInfo newLineInfo = analysisContext.getLineInfo(source);
     // check for expected failure
@@ -4610,10 +4994,16 @@ class B extends A {}
       expect(newUnit.element, isNot(same(oldUnitElement)));
       return;
     }
+    // The cache must still have enough results to make the incremental
+    // resolution useful.
+    _assertCacheResults(
+        expectLibraryUnchanged: expectLibraryUnchanged,
+        expectCachePostConstantsValid: expectCachePostConstantsValid);
     // The existing CompilationUnit[Element] should be updated.
     expect(newUnit, same(oldUnit));
     expect(newUnit.element, same(oldUnitElement));
-    expect(analysisContext.parseCompilationUnit(source), same(oldUnit));
+    expect(analysisContext.getResolvedCompilationUnit(source, oldLibrary),
+        same(oldUnit));
     // The only expected pending task should return the same resolved
     // "newUnit", so all clients will get it using the usual way.
     AnalysisResult analysisResult = analysisContext.performAnalysisTask();
@@ -4622,6 +5012,7 @@ class B extends A {}
     // Resolve "newCode" from scratch.
     if (compareWithFull) {
       _resetWithIncremental(false);
+      changeSource(source, '');
       changeSource(source, newCode);
       _runTasks();
       LibraryElement library = resolve2(source);
@@ -4640,39 +5031,40 @@ class B extends A {}
           analysisContext.getErrors(source).errors;
       _assertEqualErrors(newErrors, newFullErrors);
     }
+    _checkCacheEntries(analysisContext2.analysisCache);
   }
 
-  static void _assertEqualToken(Token incrToken, Token fullToken) {
-//    print('[${incrToken.offset}] |$incrToken| vs. [${fullToken.offset}] |$fullToken|');
-    expect(incrToken.type, fullToken.type);
-    expect(incrToken.offset, fullToken.offset);
-    expect(incrToken.length, fullToken.length);
-    expect(incrToken.lexeme, fullToken.lexeme);
+  static void _assertEqualToken(Token incToken, Token fullToken) {
+//    print('[${incToken.offset}] |$incToken| vs. [${fullToken.offset}] |$fullToken|');
+    expect(incToken.type, fullToken.type);
+    expect(incToken.offset, fullToken.offset);
+    expect(incToken.length, fullToken.length);
+    expect(incToken.lexeme, fullToken.lexeme);
   }
 
   static void _assertEqualTokens(
-      CompilationUnit incrUnit, CompilationUnit fullUnit) {
-    Token incrToken = incrUnit.beginToken;
+      CompilationUnit incUnit, CompilationUnit fullUnit) {
+    Token incToken = incUnit.beginToken;
     Token fullToken = fullUnit.beginToken;
-    while (incrToken.type != TokenType.EOF && fullToken.type != TokenType.EOF) {
-      _assertEqualToken(incrToken, fullToken);
+    while (incToken.type != TokenType.EOF && fullToken.type != TokenType.EOF) {
+      _assertEqualToken(incToken, fullToken);
       // comments
       {
-        Token incrComment = incrToken.precedingComments;
+        Token incComment = incToken.precedingComments;
         Token fullComment = fullToken.precedingComments;
         while (true) {
           if (fullComment == null) {
-            expect(incrComment, isNull);
+            expect(incComment, isNull);
             break;
           }
-          expect(incrComment, isNotNull);
-          _assertEqualToken(incrComment, fullComment);
-          incrComment = incrComment.next;
+          expect(incComment, isNotNull);
+          _assertEqualToken(incComment, fullComment);
+          incComment = incComment.next;
           fullComment = fullComment.next;
         }
       }
       // next tokens
-      incrToken = incrToken.next;
+      incToken = incToken.next;
       fullToken = fullToken.next;
     }
   }
@@ -4892,4 +5284,35 @@ class _Edit {
   final int length;
   final String replacement;
   _Edit(this.offset, this.length, this.replacement);
+}
+
+class _TestLogger implements logging.Logger {
+  Object lastException;
+  Object lastStackTrace;
+
+  void expectNoErrors() {
+    if (lastException != null) {
+      fail("logged an exception:\n$lastException\n$lastStackTrace\n");
+    }
+  }
+
+  @override
+  void enter(String name) {}
+
+  @override
+  void exit() {}
+
+  @override
+  void log(Object obj) {}
+
+  @override
+  void logException(Object exception, [Object stackTrace]) {
+    lastException = exception;
+    lastStackTrace = stackTrace;
+  }
+
+  @override
+  logging.LoggingTimer startTimer() {
+    return new logging.LoggingTimer(this);
+  }
 }

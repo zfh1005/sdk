@@ -1,5 +1,8 @@
-#!/bin/bash -x
+#!/usr/bin/env bash
 #
+
+set -x
+
 #   go.sh [systems]
 #
 # Convenience script to generate systems.  Do not call from build steps or tests
@@ -15,7 +18,7 @@
 #
 # To generate a subset of systems:
 #
-#   ./go.sh dart2js,htmldart2js
+#   ./go.sh dart2js,htmldartium
 #
 # The following gives a picture of the changes due to 'work'
 #
@@ -26,7 +29,7 @@
 #   ./go.sh
 #   meld ../generated0 ../generated   # compare directories with too
 
-ALLSYSTEMS="htmldart2js,htmldartium"
+ALLSYSTEMS="htmldart2js,htmldartium,_blink"
 SYSTEMS="$ALLSYSTEMS"
 
 if [[ "$1" != "" ]] ; then

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library source.sdk_ext;
+library analyzer.source.sdk_ext;
 
 import 'dart:convert';
 import 'dart:core' hide Resource;
@@ -155,7 +155,7 @@ class SdkExtUriResolver extends UriResolver {
   /// Read the contents of [libDir]/[SDK_EXT_NAME] as a string.
   /// Returns null if the file doesn't exist.
   String _readDotSdkExt(Folder libDir) {
-    var file = libDir.getChild(SDK_EXT_NAME);
+    File file = libDir.getChild(SDK_EXT_NAME);
     try {
       return file.readAsStringSync();
     } on FileSystemException {

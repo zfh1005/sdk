@@ -15,6 +15,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 class TimelineRecorderOverride : public ValueObject {
  public:
   explicit TimelineRecorderOverride(TimelineEventRecorder* new_recorder)
@@ -235,7 +237,7 @@ TEST_CASE(TimelineEventBufferPrintJSON) {
 
 
 // Count the number of each event type seen.
-class EventCounterRecorder : public TimelineEventStreamingRecorder {
+class EventCounterRecorder : public TimelineEventCallbackRecorder {
  public:
   EventCounterRecorder() {
     for (intptr_t i = 0; i < TimelineEvent::kNumEventTypes; i++) {
@@ -243,7 +245,7 @@ class EventCounterRecorder : public TimelineEventStreamingRecorder {
     }
   }
 
-  void StreamEvent(TimelineEvent* event) {
+  void OnEvent(TimelineEvent* event) {
     counts_[event->event_type()]++;
   }
 
@@ -256,7 +258,7 @@ class EventCounterRecorder : public TimelineEventStreamingRecorder {
 };
 
 
-TEST_CASE(TimelineEventStreamingRecorderBasic) {
+TEST_CASE(TimelineEventCallbackRecorderBasic) {
   EventCounterRecorder* recorder = new EventCounterRecorder();
   TimelineRecorderOverride override(recorder);
 
@@ -343,12 +345,12 @@ TEST_CASE(TimelineAnalysis_ThreadBlockCount) {
   TimelineTestHelper::FakeThreadEvent(block_1_2, 1, "B2");
   TimelineTestHelper::FakeThreadEvent(block_1_2, 1, "B3");
   // Sleep to ensure timestamps differ.
-  OS::Sleep(1);
+  OS::Sleep(32);
   TimelineTestHelper::FakeThreadEvent(block_1_0, 1, "A1");
-  OS::Sleep(1);
+  OS::Sleep(32);
   TimelineTestHelper::FakeThreadEvent(block_1_1, 1, "C1");
   TimelineTestHelper::FakeThreadEvent(block_1_1, 1, "C2");
-  OS::Sleep(1);
+  OS::Sleep(32);
 
   // Add events to each block for thread 2.
   TimelineTestHelper::FakeThreadEvent(block_2_0, 2, "A");
@@ -453,7 +455,7 @@ TEST_CASE(TimelineRingRecorderJSONOrder) {
 
   // Emit the earlier event into block_1.
   TimelineTestHelper::FakeThreadEvent(block_1, 2, "Alpha", &stream);
-  OS::Sleep(1);
+  OS::Sleep(32);
   // Emit the later event into block_0.
   TimelineTestHelper::FakeThreadEvent(block_0, 2, "Beta", &stream);
 
@@ -478,7 +480,9 @@ TEST_CASE(TimelinePauses_Basic) {
   ASSERT(recorder != NULL);
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
-  ThreadId tid = OSThread::GetCurrentThreadTraceId();
+  OSThread* os_thread = thread->os_thread();
+  ASSERT(os_thread != NULL);
+  ThreadId tid = os_thread->trace_id();
 
   // Test case.
   TimelineTestHelper::FakeDuration(recorder, "a", 0, 10);
@@ -648,7 +652,9 @@ TEST_CASE(TimelinePauses_BeginEnd) {
   ASSERT(recorder != NULL);
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
-  ThreadId tid = OSThread::GetCurrentThreadTraceId();
+  OSThread* os_thread = thread->os_thread();
+  ASSERT(os_thread != NULL);
+  ThreadId tid = os_thread->trace_id();
 
   // Test case.
   TimelineTestHelper::FakeBegin(recorder, "a", 0);
@@ -849,5 +855,7 @@ TEST_CASE(TimelinePauses_BeginEnd) {
   }
   TimelineTestHelper::Clear(recorder);
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

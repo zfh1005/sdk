@@ -446,8 +446,8 @@ class _File extends FileSystemEntity implements File {
       var completer = new Completer();
       void read() {
         file.read(_BLOCK_SIZE).then((data) {
-          if (data.length > 0) builder.add(data);
-          if (data.length == _BLOCK_SIZE) {
+          if (data.length > 0) {
+            builder.add(data);
             read();
           } else {
             completer.complete(builder.takeBytes());
@@ -480,7 +480,7 @@ class _File extends FileSystemEntity implements File {
         do {
           data = opened.readSync(_BLOCK_SIZE);
           if (data.length > 0) builder.add(data);
-        } while (data.length == _BLOCK_SIZE);
+        } while (data.length > 0);
         data = builder.takeBytes();
       } else {
         data = opened.readSync(length);
@@ -595,9 +595,9 @@ class _RandomAccessFile
       // We need to make sure that these are always awailable from the
       // observatory even if no files (or sockets for the socket ones) are
       // open.
-      registerExtension('__getOpenFiles',
+      registerExtension('ext.dart.io.getOpenFiles',
                         _FileResourceInfo.getOpenFiles);
-      registerExtension('__getFileByID',
+      registerExtension('ext.dart.io.getFileByID',
                         _FileResourceInfo.getFileInfoMapByID);
       _connectedResourceHandler = true;
     }

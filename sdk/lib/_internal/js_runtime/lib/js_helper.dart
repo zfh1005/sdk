@@ -891,9 +891,9 @@ class Primitives {
         // an identifier, we use that instead of the very generic 'Object'.
         var objectConstructor = JS('', '#.constructor', object);
         if (JS('bool', 'typeof # == "function"', objectConstructor)) {
-          var decompiledName =
-              JS('var', r'#.match(/^\s*function\s*([\w$]*)\s*\(/)[1]',
-                  JS('var', r'String(#)', objectConstructor));
+          var match = JS('var', r'#.match(/^\s*function\s*([\w$]*)\s*\(/)',
+              JS('var', r'String(#)', objectConstructor));
+          var decompiledName = match == null ? null : JS('var', r'#[1]', match);
           if (decompiledName is String &&
               JS('bool', r'/^\w+$/.test(#)', decompiledName)) {
             name = decompiledName;
@@ -1932,8 +1932,7 @@ class TypeErrorDecoder {
 
     // Since we want to create a new regular expression from an unknown string,
     // we must escape all regular expression syntax.
-    message = JS('String', r"#.replace(new RegExp(#, 'g'), '\\$&')",
-                 message, ESCAPE_REGEXP);
+    message = quoteStringForRegExp(message);
 
     // Look for the special pattern \$camelCase\$ (all the $ symbols
     // have been escaped already), as we will soon be inserting
@@ -2369,20 +2368,19 @@ invokeClosure(Function closure,
               var arg2,
               var arg3,
               var arg4) {
-  if (numberOfArguments == 0) {
-    return JS_CALL_IN_ISOLATE(isolate, () => closure());
-  } else if (numberOfArguments == 1) {
-    return JS_CALL_IN_ISOLATE(isolate, () => closure(arg1));
-  } else if (numberOfArguments == 2) {
-    return JS_CALL_IN_ISOLATE(isolate, () => closure(arg1, arg2));
-  } else if (numberOfArguments == 3) {
-    return JS_CALL_IN_ISOLATE(isolate, () => closure(arg1, arg2, arg3));
-  } else if (numberOfArguments == 4) {
-    return JS_CALL_IN_ISOLATE(isolate, () => closure(arg1, arg2, arg3, arg4));
-  } else {
-    throw new Exception(
-        'Unsupported number of arguments for wrapped closure');
+  switch (numberOfArguments) {
+    case 0:
+      return JS_CALL_IN_ISOLATE(isolate, () => closure());
+    case 1:
+      return JS_CALL_IN_ISOLATE(isolate, () => closure(arg1));
+    case 2:
+      return JS_CALL_IN_ISOLATE(isolate, () => closure(arg1, arg2));
+    case 3:
+      return JS_CALL_IN_ISOLATE(isolate, () => closure(arg1, arg2, arg3));
+    case 4:
+      return JS_CALL_IN_ISOLATE(isolate, () => closure(arg1, arg2, arg3, arg4));
   }
+  throw new Exception('Unsupported number of arguments for wrapped closure');
 }
 
 /**
@@ -2394,21 +2392,18 @@ convertDartClosureToJS(closure, int arity) {
   var function = JS('var', r'#.$identity', closure);
   if (JS('bool', r'!!#', function)) return function;
 
-  // We use $0 and $1 to not clash with variable names used by the
-  // compiler and/or minifier.
-  function = JS('var',
-                '(function(closure, arity, context, invoke) {'
-                '  return function(a1, a2, a3, a4) {'
-                '     return invoke(closure, context, arity, a1, a2, a3, a4);'
-                '  };'
-                '})(#,#,#,#)',
-                closure,
-                arity,
-                // Capture the current isolate now.  Remember that "#"
-                // in JS is simply textual substitution of compiled
-                // expressions.
-                JS_CURRENT_ISOLATE_CONTEXT(),
-                DART_CLOSURE_TO_JS(invokeClosure));
+  function = JS(
+      'var',
+      r'''
+        (function(closure, arity, context, invoke) {
+          return function(a1, a2, a3, a4) {
+            return invoke(closure, context, arity, a1, a2, a3, a4);
+          };
+        })(#,#,#,#)''',
+      closure,
+      arity,
+      JS_CURRENT_ISOLATE_CONTEXT(),
+      DART_CLOSURE_TO_JS(invokeClosure));
 
   JS('void', r'#.$identity = #', closure, function);
   return function;
@@ -2898,10 +2893,9 @@ class BoundClosure extends TearOffClosure {
   bool operator==(other) {
     if (identical(this, other)) return true;
     if (other is! BoundClosure) return false;
-    return JS('bool', '# === # && # === # && # === #',
-        _self, other._self,
-        _target, other._target,
-        _receiver, other._receiver);
+    return JS('bool', '# === #', _self, other._self) &&
+           JS('bool', '# === #', _target, other._target) &&
+           JS('bool', '# === #', _receiver, other._receiver);
   }
 
   int get hashCode {

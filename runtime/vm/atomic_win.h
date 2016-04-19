@@ -28,6 +28,19 @@ inline uintptr_t AtomicOperations::FetchAndIncrement(uintptr_t* p) {
 }
 
 
+inline void AtomicOperations::IncrementBy(intptr_t* p, intptr_t value) {
+#if defined(HOST_ARCH_X64)
+  InterlockedExchangeAdd64(reinterpret_cast<LONGLONG*>(p),
+                           static_cast<LONGLONG>(value));
+#elif defined(HOST_ARCH_IA32)
+  InterlockedExchangeAdd(reinterpret_cast<LONG*>(p),
+                         static_cast<LONG>(value));
+#else
+#error Unsupported host architecture.
+#endif
+}
+
+
 inline uintptr_t AtomicOperations::FetchAndDecrement(uintptr_t* p) {
 #if defined(HOST_ARCH_X64)
   return static_cast<uintptr_t>(
@@ -35,6 +48,19 @@ inline uintptr_t AtomicOperations::FetchAndDecrement(uintptr_t* p) {
 #elif defined(HOST_ARCH_IA32)
   return static_cast<uintptr_t>(
       InterlockedDecrement(reinterpret_cast<LONG*>(p))) + 1;
+#else
+#error Unsupported host architecture.
+#endif
+}
+
+
+inline void AtomicOperations::DecrementBy(intptr_t* p, intptr_t value) {
+#if defined(HOST_ARCH_X64)
+  InterlockedExchangeAdd64(reinterpret_cast<LONGLONG*>(p),
+                           static_cast<LONGLONG>(-value));
+#elif defined(HOST_ARCH_IA32)
+  InterlockedExchangeAdd(reinterpret_cast<LONG*>(p),
+                         static_cast<LONG>(-value));
 #else
 #error Unsupported host architecture.
 #endif
@@ -52,6 +78,18 @@ inline uword AtomicOperations::CompareAndSwapWord(uword* ptr,
                                    static_cast<LONGLONG>(old_value)));
 #elif defined(HOST_ARCH_IA32)
   return static_cast<uword>(
+      InterlockedCompareExchange(reinterpret_cast<LONG*>(ptr),
+                                 static_cast<LONG>(new_value),
+                                 static_cast<LONG>(old_value)));
+#else
+#error Unsupported host architecture.
+#endif
+}
+inline uint32_t AtomicOperations::CompareAndSwapUint32(uint32_t* ptr,
+                                                       uint32_t old_value,
+                                                       uint32_t new_value) {
+#if (defined(HOST_ARCH_X64) || defined(HOST_ARCH_IA32))
+  return static_cast<uint32_t>(
       InterlockedCompareExchange(reinterpret_cast<LONG*>(ptr),
                                  static_cast<LONG>(new_value),
                                  static_cast<LONG>(old_value)));

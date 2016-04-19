@@ -2,41 +2,39 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.incremental_resolver;
+library analyzer.src.generated.incremental_resolver;
 
 import 'dart:collection';
 import 'dart:math' as math;
 
-import 'package:analyzer/src/context/cache.dart'
-    show CacheEntry, Delta, DeltaResult;
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/src/context/cache.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/builder.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/scanner/reader.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/constant.dart';
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/error_verifier.dart';
+import 'package:analyzer/src/generated/incremental_logger.dart'
+    show logger, LoggingTimer;
+import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart' show CONTENT, LINE_INFO;
-import 'package:analyzer/task/model.dart'
-    show AnalysisTarget, ResultDescriptor, TargetedResult, TaskDescriptor;
-
-import 'ast.dart';
-import 'element.dart';
-import 'engine.dart'
-    show
-        AnalysisContext,
-        AnalysisOptions,
-        CacheState,
-        DartEntry,
-        DataDescriptor,
-        InternalAnalysisContext,
-        RecordingErrorListener,
-        SourceEntry;
-import 'error.dart';
-import 'error_verifier.dart';
-import 'incremental_logger.dart' show logger, LoggingTimer;
-import 'java_engine.dart';
-import 'parser.dart';
-import 'resolver.dart';
-import 'scanner.dart';
-import 'source.dart';
-import 'utilities_dart.dart';
+import 'package:analyzer/task/model.dart';
 
 /**
  * If `true`, an attempt to resolve API-changing modifications is made.
@@ -56,7 +54,7 @@ void set test_resolveApiChanges(bool value) {
  */
 class DeclarationMatcher extends RecursiveAstVisitor {
   /**
-   * The libary containing the AST nodes being visited.
+   * The library containing the AST nodes being visited.
    */
   LibraryElement _enclosingLibrary;
 
@@ -120,12 +118,14 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       _gatherElements(element);
       node.accept(this);
     } on _DeclarationMismatchException {
+      logger.log("mismatched");
       return DeclarationMatchKind.MISMATCH;
     } finally {
       logger.exit();
     }
     // no API changes
     if (_removedElements.isEmpty && _addedElements.isEmpty) {
+      logger.log("no API changes");
       return DeclarationMatchKind.MATCH;
     }
     // simple API change
@@ -173,6 +173,8 @@ class DeclarationMatcher extends RecursiveAstVisitor {
         _assertEquals(constructor.parameters.length, 0);
       }
     }
+    // matches, set the element
+    node.name.staticElement = element;
   }
 
   @override
@@ -363,11 +365,12 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       if (newElement != null) {
         _addedElements.add(newElement);
         if (newElement is MethodElement) {
-          List<MethodElement> methods = _enclosingClass.methods;
+          List<MethodElement> methods = _enclosingClass.methods.toList();
           methods.add(newElement);
           _enclosingClass.methods = methods;
         } else {
-          List<PropertyAccessorElement> accessors = _enclosingClass.accessors;
+          List<PropertyAccessorElement> accessors =
+              _enclosingClass.accessors.toList();
           accessors.add(newElement);
           _enclosingClass.accessors = accessors;
         }
@@ -479,7 +482,8 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   void _assertCompatibleParameter(
       FormalParameter node, ParameterElement element) {
     _assertEquals(node.kind, element.parameterKind);
-    if (node.kind == ParameterKind.NAMED) {
+    if (node.kind == ParameterKind.NAMED ||
+        element.enclosingElement is ConstructorElement) {
       _assertEquals(node.identifier.name, element.name);
     }
     // check parameter type specific properties
@@ -602,12 +606,12 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   }
 
   void _assertSameAnnotations(AnnotatedNode node, Element element) {
-    List<Annotation> nodeAnnotaitons = node.metadata;
+    List<Annotation> nodeAnnotations = node.metadata;
     List<ElementAnnotation> elementAnnotations = element.metadata;
-    int length = nodeAnnotaitons.length;
+    int length = nodeAnnotations.length;
     _assertEquals(elementAnnotations.length, length);
     for (int i = 0; i < length; i++) {
-      _assertSameAnnotation(nodeAnnotaitons[i], elementAnnotations[i]);
+      _assertSameAnnotation(nodeAnnotations[i], elementAnnotations[i]);
     }
   }
 
@@ -874,7 +878,7 @@ class IncrementalBodyDelta extends Delta {
 
   @override
   DeltaResult validate(InternalAnalysisContext context, AnalysisTarget target,
-      ResultDescriptor descriptor) {
+      ResultDescriptor descriptor, Object value) {
     // A body change delta should never leak outside its source.
     // It can cause invalidation of results (e.g. hints) in other sources,
     // but only when a result in the updated source is INVALIDATE_NO_DELTA.
@@ -904,12 +908,12 @@ class IncrementalBodyDelta extends Delta {
         isByTask(ComputeConstantDependenciesTask.DESCRIPTOR) ||
         isByTask(ComputeConstantValueTask.DESCRIPTOR) ||
         isByTask(ComputeLibraryCycleTask.DESCRIPTOR) ||
+        isByTask(ComputePropagableVariableDependenciesTask.DESCRIPTOR) ||
         isByTask(DartErrorsTask.DESCRIPTOR) ||
         isByTask(ReadyLibraryElement2Task.DESCRIPTOR) ||
         isByTask(ReadyLibraryElement5Task.DESCRIPTOR) ||
+        isByTask(ReadyLibraryElement6Task.DESCRIPTOR) ||
         isByTask(ReadyResolvedUnitTask.DESCRIPTOR) ||
-        isByTask(ReadyResolvedUnit9Task.DESCRIPTOR) ||
-        isByTask(ReadyResolvedUnit10Task.DESCRIPTOR) ||
         isByTask(EvaluateUnitConstantsTask.DESCRIPTOR) ||
         isByTask(GenerateHintsTask.DESCRIPTOR) ||
         isByTask(InferInstanceMembersInUnitTask.DESCRIPTOR) ||
@@ -918,9 +922,15 @@ class IncrementalBodyDelta extends Delta {
         isByTask(LibraryUnitErrorsTask.DESCRIPTOR) ||
         isByTask(ParseDartTask.DESCRIPTOR) ||
         isByTask(PartiallyResolveUnitReferencesTask.DESCRIPTOR) ||
+        isByTask(PropagateVariableTypesInLibraryClosureTask.DESCRIPTOR) ||
+        isByTask(PropagateVariableTypesInLibraryTask.DESCRIPTOR) ||
+        isByTask(PropagateVariableTypesInUnitTask.DESCRIPTOR) ||
+        isByTask(PropagateVariableTypeTask.DESCRIPTOR) ||
         isByTask(ScanDartTask.DESCRIPTOR) ||
+        isByTask(ResolveConstantExpressionTask.DESCRIPTOR) ||
         isByTask(ResolveInstanceFieldsInUnitTask.DESCRIPTOR) ||
         isByTask(ResolveLibraryReferencesTask.DESCRIPTOR) ||
+        isByTask(ResolveLibraryTask.DESCRIPTOR) ||
         isByTask(ResolveLibraryTypeNamesTask.DESCRIPTOR) ||
         isByTask(ResolveUnitTask.DESCRIPTOR) ||
         isByTask(ResolveUnitTypeNamesTask.DESCRIPTOR) ||
@@ -947,47 +957,44 @@ class IncrementalResolver {
   /**
    * The context the compilation unit being resolved in.
    */
-  AnalysisContext _context;
+  final AnalysisContext _context;
 
   /**
    * The object used to access the types from the core library.
    */
-  TypeProvider _typeProvider;
+  final TypeProvider _typeProvider;
 
   /**
    * The type system primitives.
    */
-  TypeSystem _typeSystem;
+  final TypeSystem _typeSystem;
 
   /**
    * The element for the library containing the compilation unit being resolved.
    */
-  LibraryElementImpl _definingLibrary;
+  final LibraryElementImpl _definingLibrary;
 
-  /**
-   * The [DartEntry] corresponding to the source being resolved.
-   */
-  DartEntry oldEntry;
+  final AnalysisCache _cache;
 
   /**
    * The [CacheEntry] corresponding to the source being resolved.
    */
-  CacheEntry newSourceEntry;
+  final CacheEntry newSourceEntry;
 
   /**
    * The [CacheEntry] corresponding to the [LibrarySpecificUnit] being resolved.
    */
-  CacheEntry newUnitEntry;
+  final CacheEntry newUnitEntry;
 
   /**
    * The source representing the compilation unit being visited.
    */
-  Source _source;
+  final Source _source;
 
   /**
    * The source representing the library of the compilation unit being visited.
    */
-  Source _librarySource;
+  final Source _librarySource;
 
   /**
    * The offset of the changed contents.
@@ -1007,14 +1014,14 @@ class IncrementalResolver {
   /**
    * The delta between [_updateEndNew] and [_updateEndOld].
    */
-  int _updateDelta;
+  final int _updateDelta;
 
   /**
    * The set of [AnalysisError]s that have been already shifted.
    */
-  Set<AnalysisError> _alreadyShiftedErrors = new HashSet.identity();
+  final Set<AnalysisError> _alreadyShiftedErrors = new HashSet.identity();
 
-  RecordingErrorListener errorListener = new RecordingErrorListener();
+  final RecordingErrorListener errorListener = new RecordingErrorListener();
   ResolutionContext _resolutionContext;
 
   List<AnalysisError> _resolveErrors = AnalysisError.NO_ERRORS;
@@ -1025,21 +1032,23 @@ class IncrementalResolver {
    * given source in the given library.
    */
   IncrementalResolver(
-      this.oldEntry,
+      this._cache,
       this.newSourceEntry,
       this.newUnitEntry,
-      this._definingUnit,
+      CompilationUnitElementImpl definingUnit,
       this._updateOffset,
-      this._updateEndOld,
-      this._updateEndNew) {
-    _updateDelta = _updateEndNew - _updateEndOld;
-    _definingLibrary = _definingUnit.library;
-    _librarySource = _definingLibrary.source;
-    _source = _definingUnit.source;
-    _context = _definingUnit.context;
-    _typeProvider = _context.typeProvider;
-    _typeSystem = _context.typeSystem;
-  }
+      int updateEndOld,
+      int updateEndNew)
+      : _definingUnit = definingUnit,
+        _context = definingUnit.context,
+        _typeProvider = definingUnit.context.typeProvider,
+        _typeSystem = definingUnit.context.typeSystem,
+        _definingLibrary = definingUnit.library,
+        _source = definingUnit.source,
+        _librarySource = definingUnit.library.source,
+        _updateEndOld = updateEndOld,
+        _updateEndNew = updateEndNew,
+        _updateDelta = updateEndNew - updateEndOld;
 
   /**
    * Resolve [node], reporting any errors or warnings to the given listener.
@@ -1080,7 +1089,7 @@ class IncrementalResolver {
     LoggingTimer timer = logger.startTimer();
     try {
       ElementHolder holder = new ElementHolder();
-      ElementBuilder builder = new ElementBuilder(holder);
+      ElementBuilder builder = new ElementBuilder(holder, _definingUnit);
       if (_resolutionContext.enclosingClassDeclaration != null) {
         builder.visitClassDeclarationIncrementally(
             _resolutionContext.enclosingClassDeclaration);
@@ -1128,7 +1137,8 @@ class IncrementalResolver {
    *
    * [node] - the node being tested.
    */
-  bool _canBeResolved(AstNode node) => node is ClassDeclaration ||
+  bool _canBeResolved(AstNode node) =>
+      node is ClassDeclaration ||
       node is ClassTypeAlias ||
       node is CompilationUnit ||
       node is ConstructorDeclaration ||
@@ -1237,14 +1247,6 @@ class IncrementalResolver {
   }
 
   void _shiftEntryErrors() {
-    if (oldEntry != null) {
-      _shiftEntryErrors_OLD();
-    } else {
-      _shiftEntryErrors_NEW();
-    }
-  }
-
-  void _shiftEntryErrors_NEW() {
     _shiftErrors_NEW(HINTS);
     _shiftErrors_NEW(LINTS);
     _shiftErrors_NEW(LIBRARY_UNIT_ERRORS);
@@ -1253,13 +1255,6 @@ class IncrementalResolver {
     _shiftErrors_NEW(STRONG_MODE_ERRORS);
     _shiftErrors_NEW(VARIABLE_REFERENCE_ERRORS);
     _shiftErrors_NEW(VERIFY_ERRORS);
-  }
-
-  void _shiftEntryErrors_OLD() {
-    _shiftErrors_OLD(DartEntry.RESOLUTION_ERRORS);
-    _shiftErrors_OLD(DartEntry.VERIFICATION_ERRORS);
-    _shiftErrors_OLD(DartEntry.HINTS);
-    _shiftErrors_OLD(DartEntry.LINTS);
   }
 
   void _shiftErrors(List<AnalysisError> errors) {
@@ -1275,12 +1270,6 @@ class IncrementalResolver {
 
   void _shiftErrors_NEW(ResultDescriptor<List<AnalysisError>> descriptor) {
     List<AnalysisError> errors = newUnitEntry.getValue(descriptor);
-    _shiftErrors(errors);
-  }
-
-  void _shiftErrors_OLD(DataDescriptor<List<AnalysisError>> descriptor) {
-    List<AnalysisError> errors =
-        oldEntry.getValueInLibrary(descriptor, _librarySource);
     _shiftErrors(errors);
   }
 
@@ -1300,8 +1289,8 @@ class IncrementalResolver {
   void _updateElementNameOffsets() {
     LoggingTimer timer = logger.startTimer();
     try {
-      _definingUnit
-          .accept(new _ElementNameOffsetUpdater(_updateOffset, _updateDelta));
+      _definingUnit.accept(
+          new _ElementOffsetUpdater(_updateOffset, _updateDelta, _cache));
       _definingUnit.afterIncrementalResolution();
     } finally {
       timer.stop('update element offsets');
@@ -1309,14 +1298,6 @@ class IncrementalResolver {
   }
 
   void _updateEntry() {
-    if (oldEntry != null) {
-      _updateEntry_OLD();
-    } else {
-      _updateEntry_NEW();
-    }
-  }
-
-  void _updateEntry_NEW() {
     _updateErrors_NEW(RESOLVE_TYPE_NAMES_ERRORS, []);
     _updateErrors_NEW(RESOLVE_UNIT_ERRORS, _resolveErrors);
     _updateErrors_NEW(VARIABLE_REFERENCE_ERRORS, []);
@@ -1327,11 +1308,6 @@ class IncrementalResolver {
     newUnitEntry.setState(USED_LOCAL_ELEMENTS, CacheState.INVALID);
     newUnitEntry.setState(HINTS, CacheState.INVALID);
     newUnitEntry.setState(LINTS, CacheState.INVALID);
-  }
-
-  void _updateEntry_OLD() {
-    _updateErrors_OLD(DartEntry.RESOLUTION_ERRORS, _resolveErrors);
-    _updateErrors_OLD(DartEntry.VERIFICATION_ERRORS, _verifyErrors);
   }
 
   List<AnalysisError> _updateErrors(
@@ -1365,14 +1341,6 @@ class IncrementalResolver {
     newUnitEntry.setValueIncremental(descriptor, errors, true);
   }
 
-  void _updateErrors_OLD(DataDescriptor<List<AnalysisError>> descriptor,
-      List<AnalysisError> newErrors) {
-    List<AnalysisError> oldErrors =
-        oldEntry.getValueInLibrary(descriptor, _librarySource);
-    List<AnalysisError> errors = _updateErrors(oldErrors, newErrors);
-    oldEntry.setValueInLibrary(descriptor, _librarySource, errors);
-  }
-
   void _verify(AstNode node) {
     LoggingTimer timer = logger.startTimer();
     try {
@@ -1383,7 +1351,8 @@ class IncrementalResolver {
           _definingLibrary,
           _typeProvider,
           new InheritanceManager(_definingLibrary),
-          _context.analysisOptions.enableSuperMixins);
+          _context.analysisOptions.enableSuperMixins,
+          _context.analysisOptions.enableAssertMessage);
       if (_resolutionContext.enclosingClassDeclaration != null) {
         errorVerifier.visitClassDeclarationIncrementally(
             _resolutionContext.enclosingClassDeclaration);
@@ -1399,21 +1368,17 @@ class IncrementalResolver {
 class PoorMansIncrementalResolver {
   final TypeProvider _typeProvider;
   final Source _unitSource;
-
-  /**
-   * The [DartEntry] corresponding to the source being resolved.
-   */
-  DartEntry _oldEntry;
+  final AnalysisCache _cache;
 
   /**
    * The [CacheEntry] corresponding to the source being resolved.
    */
-  CacheEntry _newSourceEntry;
+  final CacheEntry _sourceEntry;
 
   /**
    * The [CacheEntry] corresponding to the [LibrarySpecificUnit] being resolved.
    */
-  CacheEntry _newUnitEntry;
+  final CacheEntry _unitEntry;
 
   final CompilationUnit _oldUnit;
   CompilationUnitElement _unitElement;
@@ -1430,9 +1395,9 @@ class PoorMansIncrementalResolver {
   PoorMansIncrementalResolver(
       this._typeProvider,
       this._unitSource,
-      this._oldEntry,
-      this._newSourceEntry,
-      this._newUnitEntry,
+      this._cache,
+      this._sourceEntry,
+      this._unitEntry,
       this._oldUnit,
       bool resolveApiChanges) {
     _resolveApiChanges = resolveApiChanges;
@@ -1491,9 +1456,9 @@ class PoorMansIncrementalResolver {
             _shiftTokens(firstPair.oldToken);
             {
               IncrementalResolver incrementalResolver = new IncrementalResolver(
-                  _oldEntry,
-                  _newSourceEntry,
-                  _newUnitEntry,
+                  _cache,
+                  _sourceEntry,
+                  _unitEntry,
                   _unitElement,
                   _updateOffset,
                   _updateEndOld,
@@ -1519,37 +1484,67 @@ class PoorMansIncrementalResolver {
         {
           List<AstNode> oldParents = _getParents(oldNode);
           List<AstNode> newParents = _getParents(newNode);
+          // fail if an initializer change
+          if (oldParents.any((n) => n is ConstructorInitializer) ||
+              newParents.any((n) => n is ConstructorInitializer)) {
+            logger.log('Failure: a change in a constructor initializer');
+            return false;
+          }
+          // find matching methods / bodies
           int length = math.min(oldParents.length, newParents.length);
           bool found = false;
           for (int i = 0; i < length; i++) {
             AstNode oldParent = oldParents[i];
             AstNode newParent = newParents[i];
-            if (oldParent is ConstructorInitializer ||
-                newParent is ConstructorInitializer) {
-              logger.log('Failure: changes in constant constructor initializers'
-                  ' may cause external changes in constant objects.');
-              return false;
-            }
-            if (oldParent is FunctionDeclaration &&
+            if (oldParent is CompilationUnit && newParent is CompilationUnit) {
+              int oldLength = oldParent.declarations.length;
+              int newLength = newParent.declarations.length;
+              if (oldLength != newLength) {
+                logger.log(
+                    'Failure: unit declarations mismatch $oldLength vs. $newLength');
+                return false;
+              }
+            } else if (oldParent is ClassDeclaration &&
+                newParent is ClassDeclaration) {
+              int oldLength = oldParent.members.length;
+              int newLength = newParent.members.length;
+              if (oldLength != newLength) {
+                logger.log(
+                    'Failure: class declarations mismatch $oldLength vs. $newLength');
+                return false;
+              }
+            } else if (oldParent is FunctionDeclaration &&
                     newParent is FunctionDeclaration ||
-                oldParent is MethodDeclaration &&
-                    newParent is MethodDeclaration ||
                 oldParent is ConstructorDeclaration &&
-                    newParent is ConstructorDeclaration) {
+                    newParent is ConstructorDeclaration ||
+                oldParent is MethodDeclaration &&
+                    newParent is MethodDeclaration) {
               Element oldElement = (oldParent as Declaration).element;
               if (new DeclarationMatcher().matches(newParent, oldElement) ==
                   DeclarationMatchKind.MATCH) {
                 oldNode = oldParent;
                 newNode = newParent;
                 found = true;
+              } else {
+                return false;
               }
-            }
-            if (oldParent is BlockFunctionBody &&
-                newParent is BlockFunctionBody) {
-              oldNode = oldParent;
-              newNode = newParent;
-              found = true;
-              break;
+            } else if (oldParent is FunctionBody && newParent is FunctionBody) {
+              if (oldParent is BlockFunctionBody &&
+                  newParent is BlockFunctionBody) {
+                oldNode = oldParent;
+                newNode = newParent;
+                found = true;
+                break;
+              }
+              logger.log('Failure: not a block function body.');
+              return false;
+            } else if (oldParent is FunctionExpression &&
+                newParent is FunctionExpression) {
+              // skip
+            } else {
+              logger.log('Failure: old and new parent mismatch'
+                  ' ${oldParent.runtimeType} vs. ${newParent.runtimeType}');
+              return false;
             }
           }
           if (!found) {
@@ -1588,9 +1583,9 @@ class PoorMansIncrementalResolver {
         }
         // perform incremental resolution
         IncrementalResolver incrementalResolver = new IncrementalResolver(
-            _oldEntry,
-            _newSourceEntry,
-            _newUnitEntry,
+            _cache,
+            _sourceEntry,
+            _unitEntry,
             _unitElement,
             _updateOffset,
             _updateEndOld,
@@ -1607,9 +1602,12 @@ class PoorMansIncrementalResolver {
         return true;
       }
     } catch (e, st) {
-      logger.log(e);
-      logger.log(st);
+      logger.logException(e, st);
       logger.log('Failure: exception.');
+      // The incremental resolver log is usually turned off,
+      // so also log the exception to the instrumentation log.
+      AnalysisEngine.instance.logger.logError(
+          'Failure in incremental resolver', new CaughtException(e, st));
     } finally {
       logger.exit();
     }
@@ -1623,6 +1621,7 @@ class PoorMansIncrementalResolver {
       RecordingErrorListener errorListener = new RecordingErrorListener();
       Parser parser = new Parser(_unitSource, errorListener);
       AnalysisOptions options = _unitElement.context.analysisOptions;
+      parser.parseConditionalDirectives = options.enableConditionalDirectives;
       parser.parseGenericMethods = options.enableGenericMethods;
       CompilationUnit unit = parser.parseCompilationUnit(token);
       _newParseErrors = errorListener.errors;
@@ -1647,8 +1646,13 @@ class PoorMansIncrementalResolver {
     // find nodes
     int offset = oldComments.offset;
     logger.log('offset: $offset');
-    Comment oldComment = _findNodeCovering(_oldUnit, offset, offset);
-    Comment newComment = _findNodeCovering(newUnit, offset, offset);
+    AstNode oldNode = _findNodeCovering(_oldUnit, offset, offset);
+    AstNode newNode = _findNodeCovering(newUnit, offset, offset);
+    if (oldNode is! Comment || newNode is! Comment) {
+      return false;
+    }
+    Comment oldComment = oldNode;
+    Comment newComment = newNode;
     logger.log('oldComment.beginToken: ${oldComment.beginToken}');
     logger.log('newComment.beginToken: ${newComment.beginToken}');
     _updateOffset = oldToken.offset - 1;
@@ -1659,9 +1663,9 @@ class PoorMansIncrementalResolver {
     NodeReplacer.replace(oldComment, newComment);
     // update elements
     IncrementalResolver incrementalResolver = new IncrementalResolver(
-        _oldEntry,
-        _newSourceEntry,
-        _newUnitEntry,
+        _cache,
+        _sourceEntry,
+        _unitEntry,
         _unitElement,
         _updateOffset,
         _updateEndOld,
@@ -1725,26 +1729,12 @@ class PoorMansIncrementalResolver {
   }
 
   void _updateEntry() {
-    if (_oldEntry != null) {
-      _updateEntry_OLD();
-    } else {
-      _updateEntry_NEW();
-    }
-  }
-
-  void _updateEntry_NEW() {
     // scan results
-    _newSourceEntry.setValueIncremental(SCAN_ERRORS, _newScanErrors, true);
-    _newSourceEntry.setValueIncremental(LINE_INFO, _newLineInfo, false);
+    _sourceEntry.setValueIncremental(SCAN_ERRORS, _newScanErrors, true);
+    _sourceEntry.setValueIncremental(LINE_INFO, _newLineInfo, false);
     // parse results
-    _newSourceEntry.setValueIncremental(PARSE_ERRORS, _newParseErrors, true);
-    _newSourceEntry.setValueIncremental(PARSED_UNIT, _oldUnit, false);
-  }
-
-  void _updateEntry_OLD() {
-    _oldEntry.setValue(SourceEntry.LINE_INFO, _newLineInfo);
-    _oldEntry.setValue(DartEntry.SCAN_ERRORS, _newScanErrors);
-    _oldEntry.setValue(DartEntry.PARSE_ERRORS, _newParseErrors);
+    _sourceEntry.setValueIncremental(PARSE_ERRORS, _newParseErrors, true);
+    _sourceEntry.setValueIncremental(PARSED_UNIT, _oldUnit, false);
   }
 
   /**
@@ -1800,7 +1790,7 @@ class PoorMansIncrementalResolver {
         Token newComment = newToken.precedingComments;
         if (_compareToken(oldComment, newComment, 0, true) != null) {
           _TokenDifferenceKind diffKind = _TokenDifferenceKind.COMMENT;
-          if (oldComment is DocumentationCommentToken ||
+          if (oldComment is DocumentationCommentToken &&
               newComment is DocumentationCommentToken) {
             diffKind = _TokenDifferenceKind.COMMENT_DOC;
           }
@@ -1836,7 +1826,7 @@ class PoorMansIncrementalResolver {
         Token newComment = newToken.precedingComments;
         if (_compareToken(oldComment, newComment, delta, true) != null) {
           _TokenDifferenceKind diffKind = _TokenDifferenceKind.COMMENT;
-          if (oldComment is DocumentationCommentToken ||
+          if (oldComment is DocumentationCommentToken &&
               newComment is DocumentationCommentToken) {
             diffKind = _TokenDifferenceKind.COMMENT_DOC;
           }
@@ -2062,19 +2052,99 @@ class ResolutionContextBuilder {
  */
 class _DeclarationMismatchException {}
 
-class _ElementNameOffsetUpdater extends GeneralizingElementVisitor {
+/**
+ * Adjusts the location of each Element that moved.
+ *
+ * Since `==` and `hashCode` of a local variable or function Element are based
+ * on the element name offsets, we also need to remove these elements from the
+ * cache to avoid a memory leak. TODO(scheglov) fix and remove this
+ */
+class _ElementOffsetUpdater extends GeneralizingElementVisitor {
   final int updateOffset;
   final int updateDelta;
+  final AnalysisCache cache;
 
-  _ElementNameOffsetUpdater(this.updateOffset, this.updateDelta);
+  _ElementOffsetUpdater(this.updateOffset, this.updateDelta, this.cache);
 
   @override
   visitElement(Element element) {
+    // name offset
     int nameOffset = element.nameOffset;
     if (nameOffset > updateOffset) {
-      (element as ElementImpl).nameOffset = nameOffset + updateDelta;
+      // TODO(scheglov) make sure that we don't put local variables
+      // and functions into the cache at all.
+      try {
+        (element as ElementImpl).nameOffset = nameOffset + updateDelta;
+      } on FrozenHashCodeException {
+        cache.remove(element);
+        (element as ElementImpl).nameOffset = nameOffset + updateDelta;
+      }
+      if (element is ConstVariableElement) {
+        ConstVariableElement constVariable = element as ConstVariableElement;
+        Expression initializer = constVariable.constantInitializer;
+        if (initializer != null) {
+          _shiftTokens(initializer.beginToken);
+        }
+      }
+    }
+    // code range
+    if (element is ElementImpl) {
+      int oldOffset = element.codeOffset;
+      int oldLength = element.codeLength;
+      if (oldOffset != null) {
+        int newOffset = oldOffset;
+        int newLength = oldLength;
+        newOffset += oldOffset > updateOffset ? updateDelta : 0;
+        if (oldOffset <= updateOffset && updateOffset < oldOffset + oldLength) {
+          newLength += updateDelta;
+        }
+        if (newOffset != oldOffset || newLength != oldLength) {
+          element.setCodeRange(newOffset, newLength);
+        }
+      }
+    }
+    // visible range
+    if (element is LocalElement) {
+      SourceRange visibleRange = element.visibleRange;
+      if (visibleRange != null) {
+        int oldOffset = visibleRange.offset;
+        int oldLength = visibleRange.length;
+        int newOffset = oldOffset;
+        int newLength = oldLength;
+        newOffset += oldOffset > updateOffset ? updateDelta : 0;
+        newLength += visibleRange.contains(updateOffset) ? updateDelta : 0;
+        if (newOffset != oldOffset || newLength != oldLength) {
+          if (element is FunctionElementImpl) {
+            element.setVisibleRange(newOffset, newLength);
+          } else if (element is LocalVariableElementImpl) {
+            element.setVisibleRange(newOffset, newLength);
+          } else if (element is ParameterElementImpl) {
+            element.setVisibleRange(newOffset, newLength);
+          }
+        }
+      }
     }
     super.visitElement(element);
+  }
+
+  void _shiftTokens(Token token) {
+    while (token != null) {
+      if (token.offset > updateOffset) {
+        token.offset += updateDelta;
+      }
+      // comments
+      _shiftTokens(token.precedingComments);
+      if (token is DocumentationCommentToken) {
+        for (Token reference in token.references) {
+          _shiftTokens(reference);
+        }
+      }
+      // next
+      if (token.type == TokenType.EOF) {
+        break;
+      }
+      token = token.next;
+    }
   }
 }
 

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Second dart test program.
 
-// VMOptions=--optimization-counter-threshold=5
+// VMOptions=--optimization-counter-threshold=5 --no-background-compilation
 
 import "dart:mirrors";
 import "package:expect/expect.dart";
@@ -36,13 +36,9 @@ class Generic2<T, S> {
 // Magic incantation to avoid the compiler recognizing the constant values
 // at compile time. If the result is computed at compile time, the dynamic code
 // will not be tested.
-confuse(x) {
-  try {
-    if (new DateTime.now().millisecondsSinceEpoch == 42) x = 42;
-    throw [x];
-  } on dynamic catch (e) { return e[0]; }
-  return 42;
-}
+@NoInline()
+@AssumeDynamic()
+confuse(x) => x;
 
 void main() {
   for (int i = 0; i < 10; i++) {

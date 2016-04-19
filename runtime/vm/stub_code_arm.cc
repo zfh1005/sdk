@@ -26,9 +26,6 @@ DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
 DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
-DECLARE_FLAG(int, optimization_counter_threshold);
-DECLARE_FLAG(bool, support_debugger);
-DECLARE_FLAG(bool, lazy_dispatchers);
 
 // Input parameters:
 //   LR : return address.
@@ -1455,9 +1452,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Pop returned function object into R0.
   // Restore arguments descriptor array and IC data array.
   __ PopList((1 << R0) | (1 << R4) | (1 << R9));
-  if (range_collection_mode == kCollectRanges) {
-    __ RestoreCodePointer();
-  }
+  __ RestoreCodePointer();
   __ LeaveStubFrame();
   Label call_target_function;
   if (!FLAG_lazy_dispatchers) {
@@ -1804,8 +1799,12 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // R3: instance class id.
   // R4: instance type arguments.
   __ SmiTag(R3);
+  __ CompareImmediate(R3, Smi::RawValue(kClosureCid));
+  __ ldr(R3, FieldAddress(R0, Closure::function_offset()), EQ);
+  // R3: instance class id as Smi or function.
   __ Bind(&loop);
-  __ ldr(R9, Address(R2, kWordSize * SubtypeTestCache::kInstanceClassId));
+  __ ldr(R9,
+         Address(R2, kWordSize * SubtypeTestCache::kInstanceClassIdOrFunction));
   __ CompareObject(R9, Object::null_object());
   __ b(&not_found, EQ);
   __ cmp(R9, Operand(R3));
@@ -2111,7 +2110,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 //  R1: target entry point
 //  CODE_REG: target Code object
 //  R4: arguments descriptor
-void StubCode::GenerateICLookupStub(Assembler* assembler) {
+void StubCode::GenerateICLookupThroughFunctionStub(Assembler* assembler) {
   Label loop, found, miss;
   __ ldr(R4, FieldAddress(R9, ICData::arguments_descriptor_offset()));
   __ ldr(R8, FieldAddress(R9, ICData::ic_data_offset()));
@@ -2136,6 +2135,41 @@ void StubCode::GenerateICLookupStub(Assembler* assembler) {
   __ LoadFromOffset(kWord, R0, R8, target_offset);
   __ ldr(R1, FieldAddress(R0, Function::entry_point_offset()));
   __ ldr(CODE_REG, FieldAddress(R0, Function::code_offset()));
+  __ Ret();
+
+  __ Bind(&miss);
+  __ LoadIsolate(R2);
+  __ ldr(CODE_REG, Address(R2, Isolate::ic_miss_code_offset()));
+  __ ldr(R1, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  __ Ret();
+}
+
+
+void StubCode::GenerateICLookupThroughCodeStub(Assembler* assembler) {
+  Label loop, found, miss;
+  __ ldr(R4, FieldAddress(R9, ICData::arguments_descriptor_offset()));
+  __ ldr(R8, FieldAddress(R9, ICData::ic_data_offset()));
+  __ AddImmediate(R8, R8, Array::data_offset() - kHeapObjectTag);
+  // R8: first IC entry
+  __ LoadTaggedClassIdMayBeSmi(R1, R0);
+  // R1: receiver cid as Smi
+
+  __ Bind(&loop);
+  __ ldr(R2, Address(R8, 0));
+  __ cmp(R1, Operand(R2));
+  __ b(&found, EQ);
+  __ CompareImmediate(R2, Smi::RawValue(kIllegalCid));
+  __ b(&miss, EQ);
+
+  const intptr_t entry_length = ICData::TestEntryLengthFor(1) * kWordSize;
+  __ AddImmediate(R8, entry_length);  // Next entry.
+  __ b(&loop);
+
+  __ Bind(&found);
+  const intptr_t code_offset = ICData::CodeIndexFor(1) * kWordSize;
+  const intptr_t entry_offset = ICData::EntryPointIndexFor(1) * kWordSize;
+  __ ldr(R1, Address(R8, entry_offset));
+  __ ldr(CODE_REG, Address(R8, code_offset));
   __ Ret();
 
   __ Bind(&miss);

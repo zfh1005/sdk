@@ -2,16 +2,40 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.utilities.general;
+library analyzer.src.generated.utilities_general;
 
 import 'dart:collection';
 import 'dart:developer' show UserTag;
+
+/**
+ * Test if the given [value] is `false` or the string "false" (case-insensitive).
+ */
+bool isFalse(Object value) =>
+    value is bool ? !value : toLowerCase(value) == 'false';
 
 /**
  * Test if the given [value] is `true` or the string "true" (case-insensitive).
  */
 bool isTrue(Object value) =>
     value is bool ? value : toLowerCase(value) == 'true';
+
+/**
+ * Safely convert the given [value] to a bool value, or return `null` if the
+ * value coult not be converted.
+ */
+bool toBool(Object value) {
+  if (value is bool) {
+    return value;
+  }
+  String string = toLowerCase(value);
+  if (string == 'true') {
+    return true;
+  }
+  if (string == 'false') {
+    return false;
+  }
+  return null;
+}
 
 /**
  * Safely convert this [value] to lower case, returning `null` if [value] is
@@ -121,7 +145,7 @@ abstract class PerformanceTag {
    * Make this the current tag for the isolate, run [f], and restore the
    * previous tag. Returns the result of invoking [f].
    */
-  makeCurrentWhile(f());
+  dynamic/*=E*/ makeCurrentWhile/*<E>*/(dynamic/*=E*/ f());
 
   /**
    * Reset the total time tracked by all [PerformanceTag]s to zero.
@@ -182,7 +206,7 @@ class _PerformanceTagImpl implements PerformanceTag {
     return previous;
   }
 
-  makeCurrentWhile(f()) {
+  dynamic/*=E*/ makeCurrentWhile/*<E>*/(dynamic/*=E*/ f()) {
     PerformanceTag prevTag = makeCurrent();
     try {
       return f();

@@ -144,19 +144,27 @@ typedef struct _Dart_Isolate* Dart_Isolate;
  * by Dart_Error and exit the program.
  *
  * When an error is returned while in the body of a native function,
- * it can be propagated by calling Dart_PropagateError.  Errors should
- * be propagated unless there is a specific reason not to.  If an
- * error is not propagated then it is ignored.  For example, if an
- * unhandled exception error is ignored, that effectively "catches"
- * the unhandled exception.  Fatal errors must always be propagated.
+ * it can be propagated up the call stack by calling
+ * Dart_PropagateError, Dart_SetReturnValue, or Dart_ThrowException.
+ * Errors should be propagated unless there is a specific reason not
+ * to.  If an error is not propagated then it is ignored.  For
+ * example, if an unhandled exception error is ignored, that
+ * effectively "catches" the unhandled exception.  Fatal errors must
+ * always be propagated.
  *
- * Note that a call to Dart_PropagateError never returns.  Instead it
- * transfers control non-locally using a setjmp-like mechanism.  This
- * can be inconvenient if you have resources that you need to clean up
- * before propagating the error.  When an error is propagated, any
- * current scopes created by Dart_EnterScope will be exited.
+ * When an error is propagated, any current scopes created by
+ * Dart_EnterScope will be exited.
  *
- * To deal with this inconvenience, we often return error handles
+ * Using Dart_SetReturnValue to propagate an exception is somewhat
+ * more convenient than using Dart_PropagateError, and should be
+ * preferred for reasons discussed below.
+ *
+ * Dart_PropagateError and Dart_ThrowException do not return.  Instead
+ * they transfer control non-locally using a setjmp-like mechanism.
+ * This can be inconvenient if you have resources that you need to
+ * clean up before propagating the error.
+ *
+ * When relying on Dart_PropagateError, we often return error handles
  * rather than propagating them from helper functions.  Consider the
  * following contrived example:
  *
@@ -190,6 +198,38 @@ typedef struct _Dart_Isolate* Dart_Isolate;
  * chance to call FreeMyResource(), causing a leak.  Instead, the
  * helper function returns the error handle to the caller, giving the
  * caller a chance to clean up before propagating the error handle.
+ *
+ * When an error is propagated by calling Dart_SetReturnValue, the
+ * native function will be allowed to complete normally and then the
+ * exception will be propagated only once the native call
+ * returns. This can be convenient, as it allows the C code to clean
+ * up normally.
+ *
+ * The example can be written more simply using Dart_SetReturnValue to
+ * propagate the error.
+ *
+ * 1    Dart_Handle isLongStringHelper(Dart_Handle arg) {
+ * 2      intptr_t* length = 0;
+ * 3      result = Dart_StringLength(arg, &length);
+ * 4      if (Dart_IsError(result)) {
+ * 5        return result
+ * 6      }
+ * 7      return Dart_NewBoolean(length > 100);
+ * 8    }
+ * 9
+ * 10   void NativeFunction_isLongString(Dart_NativeArguments args) {
+ * 11     Dart_EnterScope();
+ * 12     AllocateMyResource();
+ * 13     Dart_Handle arg = Dart_GetNativeArgument(args, 0);
+ * 14     Dart_SetReturnValue(isLongStringHelper(arg));
+ * 15     FreeMyResource();
+ * 16     Dart_ExitScope();
+ * 17   }
+ *
+ * In this example, the call to Dart_SetReturnValue on line 14 will
+ * either return the normal return value or the error (potentially
+ * generated on line 3).  The call to FreeMyResource on line 15 will
+ * execute in either case.
  *
  * --- Local and persistent handles ---
  *
@@ -501,140 +541,6 @@ DART_EXPORT void Dart_DeleteWeakPersistentHandle(
     Dart_Isolate isolate,
     Dart_WeakPersistentHandle object);
 
-/**
- * Allocates a prologue weak persistent handle for an object.
- *
- * Prologue weak persistent handles are similar to weak persistent
- * handles but exhibit different behavior during garbage collections
- * that invoke the prologue and epilogue callbacks.  While weak
- * persistent handles always weakly reference their referents,
- * prologue weak persistent handles weakly reference their referents
- * only during a garbage collection that invokes the prologue and
- * epilogue callbacks.  During all other garbage collections, prologue
- * weak persistent handles strongly reference their referents.
- *
- * This handle has the lifetime of the current isolate unless the object
- * pointed to by the handle is garbage collected, in this case the VM
- * automatically deletes the handle after invoking the callback associated
- * with the handle. The handle can also be explicitly deallocated by
- * calling Dart_DeleteWeakPersistentHandle.
- *
- * If the object becomes unreachable the callback is invoked with the weak
- * persistent handle and the peer as arguments. This gives the native code the
- * ability to cleanup data associated with the object and clear out any cached
- * references to the handle. All references to this handle after the callback
- * will be invalid. It is illegal to call into the VM from the callback.
- * If the handle is deleted before the object becomes unreachable,
- * the callback is never invoked.
- *
- * Requires there to be a current isolate.
- *
- * \param object An object.
- * \param peer A pointer to a native object or NULL.  This value is
- *   provided to callback when it is invoked.
- * \param external_allocation_size The number of externally allocated
- *   bytes for peer. Used to inform the garbage collector.
- * \param callback A function pointer that will be invoked sometime
- *   after the object is garbage collected, unless the handle has been deleted.
- *   A valid callback needs to be specified it cannot be NULL.
- *
- * \return Success if the prologue weak persistent handle was created.
- *   Otherwise, returns an error.
- */
-DART_EXPORT Dart_WeakPersistentHandle Dart_NewPrologueWeakPersistentHandle(
-    Dart_Handle object,
-    void* peer,
-    intptr_t external_allocation_size,
-    Dart_WeakPersistentHandleFinalizer callback);
-
-/**
- * Is this object a prologue weak persistent handle?
- *
- * Requires there to be a current isolate.
- */
-DART_EXPORT bool Dart_IsPrologueWeakPersistentHandle(
-    Dart_WeakPersistentHandle object);
-
-typedef struct _Dart_WeakReferenceSetBuilder* Dart_WeakReferenceSetBuilder;
-typedef struct _Dart_WeakReferenceSet* Dart_WeakReferenceSet;
-
-/**
- * Constructs a weak references set builder.
- *
- * \returns a pointer to the weak reference set builder if successful.
- *   Otherwise, returns NULL.
- */
-DART_EXPORT Dart_WeakReferenceSetBuilder Dart_NewWeakReferenceSetBuilder();
-
-/**
- * Constructs a set of weak references from the Cartesian product of
- * the objects in the key set and the objects in values set.
- *
- * \param set_builder The weak references set builder which was created
- *   using Dart_NewWeakReferenceSetBuilder().
- * \param key An object reference.  This references will be
- *   considered weak by the garbage collector.
- * \param value An object reference.  This reference will be
- *   considered weak by garbage collector unless any object reference
- *   in 'keys' is found to be strong.
- *
- * \return a pointer to the weak reference set if successful.
- *   Otherwise, returns NULL.
- */
-DART_EXPORT Dart_WeakReferenceSet Dart_NewWeakReferenceSet(
-    Dart_WeakReferenceSetBuilder set_builder,
-    Dart_WeakPersistentHandle key,
-    Dart_WeakPersistentHandle value);
-
-/**
- * Append the pair of key/value object references to the weak references set.
- *
- * \param reference_set A weak references set into which the pair of key/value
- *   needs to be added.
- * \param key An object reference.  This references will be
- *   considered weak by the garbage collector.
- * \param value An object reference.  This reference will be
- *   considered weak by garbage collector unless any object reference
- *   in 'keys' is found to be strong.
- *
- * \return Success if the prologue weak persistent handle was created.
- *   Otherwise, returns an error.
- */
-DART_EXPORT Dart_Handle Dart_AppendToWeakReferenceSet(
-    Dart_WeakReferenceSet reference_set,
-    Dart_WeakPersistentHandle key,
-    Dart_WeakPersistentHandle value);
-
-/**
- * Append the key object reference to the weak references set.
- *
- * \param reference_set A weak references set into which the key
- *   needs to be added.
- * \param key An object reference.  This references will be
- *   considered weak by the garbage collector.
- *
- * \return Success if the prologue weak persistent handle was created.
- *   Otherwise, returns an error.
- */
-DART_EXPORT Dart_Handle Dart_AppendKeyToWeakReferenceSet(
-    Dart_WeakReferenceSet reference_set,
-    Dart_WeakPersistentHandle key);
-
-/**
- * Append the value object reference to the weak references set.
- *
- * \param reference_set A weak references set into which the key
- *   needs to be added.
- * \param value An object reference.  This references will be
- *   considered weak by the garbage collector.
- *
- * \return Success if the prologue weak persistent handle was created.
- *   Otherwise, returns an error.
- */
-DART_EXPORT Dart_Handle Dart_AppendValueToWeakReferenceSet(
-    Dart_WeakReferenceSet reference_set,
-    Dart_WeakPersistentHandle value);
-
 
 /*
  * ============================
@@ -717,6 +623,8 @@ typedef struct {
   int32_t version;
   bool enable_type_checks;
   bool enable_asserts;
+  bool enable_error_on_bad_type;
+  bool enable_error_on_bad_override;
 } Dart_IsolateFlags;
 
 /**
@@ -777,7 +685,7 @@ typedef struct {
 typedef Dart_Isolate (*Dart_IsolateCreateCallback)(const char* script_uri,
                                                    const char* main,
                                                    const char* package_root,
-                                                   const char** package_map,
+                                                   const char* package_config,
                                                    Dart_IsolateFlags* flags,
                                                    void* callback_data,
                                                    char** error);
@@ -785,28 +693,14 @@ typedef Dart_Isolate (*Dart_IsolateCreateCallback)(const char* script_uri,
 /**
  * An isolate interrupt callback function.
  *
- * This callback, provided by the embedder, is called when an isolate
- * is interrupted as a result of a call to Dart_InterruptIsolate().
- * When the callback is called, Dart_CurrentIsolate can be used to
- * figure out which isolate is being interrupted.
- *
- * \return The embedder returns true if the isolate should continue
- *   execution. If the embedder returns false, the isolate will be
- *   unwound (currently unimplemented).
+ * This callback has been DEPRECATED.
  */
 typedef bool (*Dart_IsolateInterruptCallback)();
-/* TODO(turnidge): Define and implement unwinding. */
 
 /**
  * An isolate unhandled exception callback function.
  *
- * This callback, provided by the embedder, is called when an unhandled
- * exception or internal error is thrown during isolate execution. When the
- * callback is invoked, Dart_CurrentIsolate can be used to figure out which
- * isolate was running when the exception was thrown.
- *
- * \param error The unhandled exception or error.  This handle's scope is
- *   only valid until the embedder returns from this callback.
+ * This callback has been DEPRECATED.
  */
 typedef void (*Dart_IsolateUnhandledExceptionCallback)(Dart_Handle error);
 
@@ -825,6 +719,15 @@ typedef void (*Dart_IsolateUnhandledExceptionCallback)(Dart_Handle error);
  *
  */
 typedef void (*Dart_IsolateShutdownCallback)(void* callback_data);
+
+/**
+ * A thread death callback function.
+ * This callback, provided by the embedder, is called before a thread in the
+ * vm thread pool exits.
+ * This function could be used to dispose of native resources that
+ * are associated and attached to the thread, in order to avoid leaks.
+ */
+typedef void (*Dart_ThreadExitCallback)();
 
 /**
  * Callbacks provided by the embedder for file operations. If the
@@ -888,10 +791,8 @@ typedef Dart_Handle (*Dart_GetVMServiceAssetsArchive)();
  *   instructions, or NULL if no snapshot is provided.
  * \param create A function to be called during isolate creation.
  *   See Dart_IsolateCreateCallback.
- * \param interrupt A function to be called when an isolate is interrupted.
- *   See Dart_IsolateInterruptCallback.
- * \param unhandled_exception A function to be called if an isolate has an
- *   unhandled exception.  Set Dart_IsolateUnhandledExceptionCallback.
+ * \param interrupt This parameter has been DEPRECATED.
+ * \param unhandled_exception This parameter has been DEPRECATED.
  * \param shutdown A function to be called when an isolate is shutdown.
  *   See Dart_IsolateShutdownCallback.
  *
@@ -905,10 +806,12 @@ typedef Dart_Handle (*Dart_GetVMServiceAssetsArchive)();
 DART_EXPORT char* Dart_Initialize(
     const uint8_t* vm_isolate_snapshot,
     const uint8_t* instructions_snapshot,
+    const uint8_t* data_snapshot,
     Dart_IsolateCreateCallback create,
     Dart_IsolateInterruptCallback interrupt,
     Dart_IsolateUnhandledExceptionCallback unhandled_exception,
     Dart_IsolateShutdownCallback shutdown,
+    Dart_ThreadExitCallback thread_exit,
     Dart_FileOpenCallback file_open,
     Dart_FileReadCallback file_read,
     Dart_FileWriteCallback file_write,
@@ -1058,19 +961,6 @@ DART_EXPORT void Dart_ExitIsolate();
  * "pure" dart isolate. Implement and document. */
 
 /**
- * Enables/Disables strict compilation for the current Isolate.
- * Strict compilation includes:
- * - type-checking
- * - asserts
- * - errors on bad types
- * - errors on bad overrides
- *
- * This call requires there to be a current isolate, and requires that there has
- * not yet been any compilation for the current Isolate.
- */
-DART_EXPORT Dart_Handle Dart_IsolateSetStrictCompilation(bool value);
-
-/**
  * Creates a full snapshot of the current isolate heap.
  *
  * A full snapshot is a compact representation of the dart vm isolate heap
@@ -1199,6 +1089,94 @@ DART_EXPORT void Dart_SetMessageNotifyCallback(
  * is impossible to mess up. */
 
 /**
+ * Query the current message notify callback for the isolate.
+ *
+ * \return The current message notify callback for the isolate.
+ */
+DART_EXPORT Dart_MessageNotifyCallback Dart_GetMessageNotifyCallback();
+
+/**
+ * The VM's default message handler supports pausing an isolate before it
+ * processes the first message and right after the it processes the isolate's
+ * final message. This can be controlled for all isolates by two VM flags:
+ *
+ *   `--pause-isolates-on-start`
+ *   `--pause-isolates-on-exit`
+ *
+ * Additionally, Dart_SetShouldPauseOnStart and Dart_SetShouldPauseOnExit can be
+ * used to control this behaviour on a per-isolate basis.
+ *
+ * When an embedder is using a Dart_MessageNotifyCallback the embedder
+ * needs to cooperate with the VM so that the service protocol can report
+ * accurate information about isolates and so that tools such as debuggers
+ * work reliably.
+ *
+ * The following functions can be used to implement pausing on start and exit.
+ */
+
+/**
+ * If the VM flag `--pause-isolates-on-start` was passed this will be true.
+ *
+ * \return A boolean value indicating if pause on start was requested.
+ */
+DART_EXPORT bool Dart_ShouldPauseOnStart();
+
+/**
+ * Override the VM flag `--pause-isolates-on-start` for the current isolate.
+ *
+ * \param should_pause Should the isolate be paused on start?
+ *
+ * NOTE: This must be called before Dart_IsolateMakeRunnable.
+ */
+DART_EXPORT void Dart_SetShouldPauseOnStart(bool should_pause);
+
+/**
+ * Is the current isolate paused on start?
+ *
+ * \return A boolean value indicating if the isolate is paused on start.
+ */
+DART_EXPORT bool Dart_IsPausedOnStart();
+
+/**
+ * Called when the embedder has paused the current isolate on start and when
+ * the embedder has resumed the isolate.
+ *
+ * \param paused Is the isolate paused on start?
+ */
+DART_EXPORT void Dart_SetPausedOnStart(bool paused);
+
+/**
+ * If the VM flag `--pause-isolates-on-exit` was passed this will be true.
+ *
+ * \return A boolean value indicating if pause on exit was requested.
+ */
+DART_EXPORT bool Dart_ShouldPauseOnExit();
+
+/**
+ * Override the VM flag `--pause-isolates-on-exit` for the current isolate.
+ *
+ * \param should_pause Should the isolate be paused on exit?
+ *
+ */
+DART_EXPORT void Dart_SetShouldPauseOnExit(bool should_pause);
+
+/**
+ * Is the current isolate paused on exit?
+ *
+ * \return A boolean value indicating if the isolate is paused on exit.
+ */
+DART_EXPORT bool Dart_IsPausedOnExit();
+
+/**
+ * Called when the embedder has paused the current isolate on exit and when
+ * the embedder has resumed the isolate.
+ *
+ * \param paused Is the isolate paused on exit?
+ */
+DART_EXPORT void Dart_SetPausedOnExit(bool paused);
+
+
+/**
  * Handles the next pending message for the current isolate.
  *
  * May generate an unhandled exception error.
@@ -1206,6 +1184,15 @@ DART_EXPORT void Dart_SetMessageNotifyCallback(
  * \return A valid handle if no error occurs during the operation.
  */
 DART_EXPORT Dart_Handle Dart_HandleMessage();
+
+/**
+ * Handles all pending messages for the current isolate.
+ *
+ * May generate an unhandled exception error.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_HandleMessages();
 
 /**
  * Handles any pending messages for the vm service for the current
@@ -1942,7 +1929,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
  */
 DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
                                             intptr_t offset,
-                                            uint8_t* native_array,
+                                            const uint8_t* native_array,
                                             intptr_t length);
 
 
@@ -2304,6 +2291,10 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
  * appropriate 'catch' block is found, executing 'finally' blocks,
  * etc.
  *
+ * If an error handle is passed into this function, the error is
+ * propagated immediately.  See Dart_PropagateError for a discussion
+ * of error propagation.
+ *
  * If successful, this function does not return. Note that this means
  * that the destructors of any stack-allocated C++ objects will not be
  * called. If there are no Dart frames on the stack, an error occurs.
@@ -2541,6 +2532,10 @@ DART_EXPORT Dart_Handle Dart_GetNativeDoubleArgument(Dart_NativeArguments args,
 
 /**
  * Sets the return value for a native function.
+ *
+ * If retval is an Error handle, then error will be propagated once
+ * the native functions exits. See Dart_PropagateError for a
+ * discussion of how different types of errors are propagated.
  */
 DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
                                      Dart_Handle retval);
@@ -2968,5 +2963,8 @@ DART_EXPORT Dart_Handle Dart_CreatePrecompiledSnapshot(
     intptr_t* isolate_snapshot_size,
     uint8_t** instructions_snapshot_buffer,
     intptr_t* instructions_snapshot_size);
+
+
+DART_EXPORT bool Dart_IsRunningPrecompiledCode();
 
 #endif  /* INCLUDE_DART_API_H_ */  /* NOLINT */

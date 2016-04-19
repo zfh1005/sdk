@@ -16,7 +16,7 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 SecurityContext serverContext = new SecurityContext()
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
   ..usePrivateKey(localFile('certificates/server_key.pem'),
-      password: 'dartdart');
+                  password: 'dartdart');
 
 class CustomException {}
 
@@ -30,7 +30,7 @@ main() async {
     }, onError: (e) { if (e is! HandshakeException) throw e; });
 
   SecurityContext goodContext = new SecurityContext()
-    ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
+    ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
   SecurityContext badContext = new SecurityContext();
   SecurityContext defaultContext = SecurityContext.defaultContext;
 
@@ -55,8 +55,8 @@ Future runClient(int port,
                  callbackReturns,
                  result) async {
   badCertificateCallback(X509Certificate certificate) {
-    Expect.equals('/CN=rootauthority', certificate.subject);
-    Expect.equals('/CN=rootauthority', certificate.issuer);
+    Expect.isTrue(certificate.subject.contains('rootauthority'));
+    Expect.isTrue(certificate.issuer.contains('rootauthority'));
     // Throw exception if one is requested.
     if (callbackReturns == 'exception') throw new CustomException();
     return callbackReturns;

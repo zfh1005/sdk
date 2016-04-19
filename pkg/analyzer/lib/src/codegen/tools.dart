@@ -9,11 +9,10 @@ library analyzer.src.codegen.tools;
 
 import 'dart:io';
 
+import 'package:analyzer/src/codegen/html.dart';
+import 'package:analyzer/src/codegen/text_formatter.dart';
 import 'package:html/dom.dart' as dom;
 import 'package:path/path.dart';
-
-import 'html.dart';
-import 'text_formatter.dart';
 
 final RegExp trailingSpacesInLineRegExp = new RegExp(r' +$', multiLine: true);
 final RegExp trailingWhitespaceRegExp = new RegExp(r'[\n ]+$');
@@ -100,14 +99,14 @@ class CodeGenerator {
    */
   void docComment(List<dom.Node> docs, {bool removeTrailingNewLine: false}) {
     if (containsOnlyWhitespace(docs)) return;
-    writeln(codeGeneratorSettings.docCommentStartMarker);
+    if (codeGeneratorSettings.docCommentStartMarker != null) writeln(codeGeneratorSettings.docCommentStartMarker);
     int width = codeGeneratorSettings.commentLineLength;
     bool javadocStyle = codeGeneratorSettings.languageName == 'java';
     indentBy(codeGeneratorSettings.docCommentLineLeader, () {
       write(nodesToText(docs, width - _state.indent.length, javadocStyle,
           removeTrailingNewLine: removeTrailingNewLine));
     });
-    writeln(codeGeneratorSettings.docCommentEndMarker);
+    if (codeGeneratorSettings.docCommentEndMarker != null) writeln(codeGeneratorSettings.docCommentEndMarker);
   }
 
   /**
@@ -312,7 +311,7 @@ abstract class GeneratedContent {
       print('Please regenerate using:');
       String executable = Platform.executable;
       String packageRoot = '';
-      if (Platform.packageRoot.isNotEmpty) {
+      if (Platform.packageRoot != null) {
         packageRoot = ' --package-root=${Platform.packageRoot}';
       }
       String generateScript =

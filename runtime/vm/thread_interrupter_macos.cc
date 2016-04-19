@@ -15,6 +15,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 DECLARE_FLAG(bool, thread_interrupter);
 DECLARE_FLAG(bool, trace_thread_interrupter);
 
@@ -43,7 +45,7 @@ class ThreadInterrupterMacOS : public AllStatic {
 };
 
 
-void ThreadInterrupter::InterruptThread(Thread* thread) {
+void ThreadInterrupter::InterruptThread(OSThread* thread) {
   if (FLAG_trace_thread_interrupter) {
     OS::Print("ThreadInterrupter interrupting %p\n", thread->id());
   }
@@ -61,7 +63,8 @@ void ThreadInterrupter::RemoveSignalHandler() {
   SignalHandler::Remove();
 }
 
+#endif  // !PRODUCT
+
 }  // namespace dart
 
 #endif  // defined(TARGET_OS_MACOS)
-

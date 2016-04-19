@@ -8,6 +8,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 // Translate from the legacy DebugEvent to a ServiceEvent.
 static ServiceEvent::EventKind TranslateEventKind(
     DebuggerEvent::EventType kind) {
@@ -40,16 +42,22 @@ ServiceEvent::ServiceEvent(Isolate* isolate, EventKind event_kind)
       embedder_stream_id_(NULL),
       breakpoint_(NULL),
       top_frame_(NULL),
+      timeline_event_block_(NULL),
+      extension_rpc_(NULL),
       exception_(NULL),
-      async_continuation_(NULL),
       at_async_jump_(false),
       inspectee_(NULL),
       gc_stats_(NULL),
       bytes_(NULL),
       bytes_length_(0),
       timestamp_(OS::GetCurrentTimeMillis()) {
-  if ((event_kind == ServiceEvent::kPauseStart) ||
-      (event_kind == ServiceEvent::kPauseExit)) {
+  if ((event_kind == ServiceEvent::kPauseStart) &&
+      !isolate->message_handler()->is_paused_on_start()) {
+    // We will pause on start but the message handler lacks a valid
+    // paused timestamp because we haven't paused yet. Use the current time.
+    timestamp_ = OS::GetCurrentTimeMillis();
+  } else if ((event_kind == ServiceEvent::kPauseStart) ||
+             (event_kind == ServiceEvent::kPauseExit)) {
     timestamp_ = isolate->message_handler()->paused_timestamp();
   } else if (event_kind == ServiceEvent::kResume) {
     timestamp_ = isolate->last_resume_timestamp();
@@ -62,8 +70,10 @@ ServiceEvent::ServiceEvent(const DebuggerEvent* debugger_event)
       kind_(TranslateEventKind(debugger_event->type())),
       breakpoint_(NULL),
       top_frame_(NULL),
+      timeline_event_block_(NULL),
+      extension_rpc_(NULL),
       exception_(NULL),
-      async_continuation_(NULL),
+      at_async_jump_(false),
       inspectee_(NULL),
       gc_stats_(NULL),
       bytes_(NULL),
@@ -72,7 +82,6 @@ ServiceEvent::ServiceEvent(const DebuggerEvent* debugger_event)
   DebuggerEvent::EventType type = debugger_event->type();
   if (type == DebuggerEvent::kBreakpointReached) {
     set_breakpoint(debugger_event->breakpoint());
-    set_async_continuation(debugger_event->async_continuation());
     set_at_async_jump(debugger_event->at_async_jump());
   }
   if (type == DebuggerEvent::kExceptionThrown) {
@@ -101,6 +110,8 @@ const char* ServiceEvent::KindAsCString() const {
       return "IsolateExit";
     case kIsolateUpdate:
       return "IsolateUpdate";
+    case kServiceExtensionAdded:
+      return "ServiceExtensionAdded";
     case kPauseStart:
       return "PauseStart";
     case kPauseExit:
@@ -111,6 +122,8 @@ const char* ServiceEvent::KindAsCString() const {
       return "PauseInterrupted";
     case kPauseException:
       return "PauseException";
+    case kNone:
+      return "None";
     case kResume:
       return "Resume";
     case kBreakpointAdded:
@@ -131,6 +144,10 @@ const char* ServiceEvent::KindAsCString() const {
       return "_DebuggerSettingsUpdate";
     case kIllegal:
       return "Illegal";
+    case kExtension:
+      return "Extension";
+    case kTimelineEvents:
+      return "TimelineEvents";
     default:
       UNREACHABLE();
       return "Unknown";
@@ -147,6 +164,7 @@ const char* ServiceEvent::stream_id() const {
     case kIsolateRunnable:
     case kIsolateExit:
     case kIsolateUpdate:
+    case kServiceExtensionAdded:
       return Service::isolate_stream.id();
 
     case kPauseStart:
@@ -154,6 +172,7 @@ const char* ServiceEvent::stream_id() const {
     case kPauseBreakpoint:
     case kPauseInterrupted:
     case kPauseException:
+    case kNone:
     case kResume:
     case kBreakpointAdded:
     case kBreakpointResolved:
@@ -171,6 +190,12 @@ const char* ServiceEvent::stream_id() const {
     case kLogging:
       return Service::logging_stream.id();
 
+    case kExtension:
+      return Service::extension_stream.id();
+
+    case kTimelineEvents:
+      return Service::timeline_stream.id();
+
     default:
       UNREACHABLE();
       return NULL;
@@ -181,6 +206,10 @@ const char* ServiceEvent::stream_id() const {
 void ServiceEvent::PrintJSON(JSONStream* js) const {
   JSONObject jsobj(js);
   PrintJSONHeader(&jsobj);
+  if (kind() == kServiceExtensionAdded) {
+    ASSERT(extension_rpc_ != NULL);
+    jsobj.AddProperty("extensionRPC", extension_rpc_->ToCString());
+  }
   if (kind() == kPauseBreakpoint) {
     JSONArray jsarr(&jsobj, "pauseBreakpoints");
     // TODO(rmacnak): If we are paused at more than one breakpoint,
@@ -192,6 +221,9 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
     if (breakpoint() != NULL) {
       jsobj.AddProperty("breakpoint", breakpoint());
     }
+  }
+  if (kind() == kTimelineEvents) {
+    jsobj.AddProperty("timelineEvents", timeline_event_block_);
   }
   if (kind() == kDebuggerSettingsUpdate) {
     JSONObject jssettings(&jsobj, "_debuggerSettings");
@@ -206,9 +238,8 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
   if (exception() != NULL) {
     jsobj.AddProperty("exception", *(exception()));
   }
-  if (async_continuation() != NULL && !async_continuation()->IsNull()) {
-    jsobj.AddProperty("_asyncContinuation", *(async_continuation()));
-    jsobj.AddProperty("_atAsyncJump", at_async_jump());
+  if (at_async_jump()) {
+    jsobj.AddProperty("atAsyncSuspension", true);
   }
   if (inspectee() != NULL) {
     jsobj.AddProperty("inspectee", *(inspectee()));
@@ -232,6 +263,10 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
     logRecord.AddProperty("error", *(log_record_.error));
     logRecord.AddProperty("stackTrace", *(log_record_.stack_trace));
   }
+  if (kind() == kExtension) {
+    js->AppendSerializedObject("extensionData",
+                               extension_event_.event_data->ToCString());
+  }
 }
 
 
@@ -239,7 +274,12 @@ void ServiceEvent::PrintJSONHeader(JSONObject* jsobj) const {
   ASSERT(jsobj != NULL);
   jsobj->AddProperty("type", "Event");
   jsobj->AddProperty("kind", KindAsCString());
-  if (kind() == kVMUpdate) {
+  if (kind() == kExtension) {
+    ASSERT(extension_event_.event_kind != NULL);
+    jsobj->AddProperty("extensionKind",
+                       extension_event_.event_kind->ToCString());
+  }
+  if (isolate() == NULL) {
     jsobj->AddPropertyVM("vm");
   } else {
     jsobj->AddProperty("isolate", isolate());
@@ -247,5 +287,7 @@ void ServiceEvent::PrintJSONHeader(JSONObject* jsobj) const {
   ASSERT(timestamp_ != -1);
   jsobj->AddPropertyTimeMillis("timestamp", timestamp_);
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

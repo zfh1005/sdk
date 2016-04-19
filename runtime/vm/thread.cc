@@ -4,10 +4,12 @@
 
 #include "vm/thread.h"
 
+#include "vm/dart_api_state.h"
 #include "vm/growable_array.h"
 #include "vm/isolate.h"
 #include "vm/lockers.h"
 #include "vm/log.h"
+#include "vm/message_handler.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
 #include "vm/os_thread.h"
@@ -20,183 +22,24 @@
 
 namespace dart {
 
-// The single thread local key which stores all the thread local data
-// for a thread.
-ThreadLocalKey Thread::thread_key_ = OSThread::kUnsetThreadLocalKey;
-Thread* Thread::thread_list_head_ = NULL;
-Mutex* Thread::thread_list_lock_ = NULL;
 
-// Remove |thread| from each isolate's thread registry.
-class ThreadPruner : public IsolateVisitor {
- public:
-  explicit ThreadPruner(Thread* thread)
-      : thread_(thread) {
-    ASSERT(thread_ != NULL);
-  }
-
-  void VisitIsolate(Isolate* isolate) {
-    ThreadRegistry* registry = isolate->thread_registry();
-    ASSERT(registry != NULL);
-    registry->PruneThread(thread_);
-  }
- private:
-  Thread* thread_;
-};
-
-
-void Thread::AddThreadToList(Thread* thread) {
-  ASSERT(thread != NULL);
-  ASSERT(thread->isolate() == NULL);
-  ASSERT(thread_list_lock_ != NULL);
-  MutexLocker ml(thread_list_lock_);
-
-  ASSERT(thread->thread_list_next_ == NULL);
-
-#if defined(DEBUG)
-  {
-    // Ensure that we aren't already in the list.
-    Thread* current = thread_list_head_;
-    while (current != NULL) {
-      ASSERT(current != thread);
-      current = current->thread_list_next_;
-    }
-  }
-#endif
-
-  // Insert at head of list.
-  thread->thread_list_next_ = thread_list_head_;
-  thread_list_head_ = thread;
-}
-
-
-void Thread::RemoveThreadFromList(Thread* thread) {
-  ASSERT(thread != NULL);
-  ASSERT(thread->isolate() == NULL);
-  ASSERT(thread_list_lock_ != NULL);
-  MutexLocker ml(thread_list_lock_);
-
-  // Handle case where |thread| is head of list.
-  if (thread_list_head_ == thread) {
-    thread_list_head_ = thread->thread_list_next_;
-    thread->thread_list_next_ = NULL;
-    return;
-  }
-
-  Thread* current = thread_list_head_;
-  Thread* previous = NULL;
-
-  // Scan across list and remove |thread|.
-  while (current != NULL) {
-    previous = current;
-    current = current->thread_list_next_;
-    if (current == thread) {
-      // We found |thread|, remove from list.
-      previous->thread_list_next_ = current->thread_list_next_;
-      thread->thread_list_next_ = NULL;
-      return;
-    }
-  }
-
-  UNREACHABLE();
-}
-
-
-bool Thread::IsThreadInList(ThreadId join_id) {
-  if (join_id == OSThread::kInvalidThreadJoinId) {
-    return false;
-  }
-  ThreadIterator it;
-  while (it.HasNext()) {
-    Thread* t = it.Next();
-    // An address test is not sufficient because the allocator may recycle
-    // the address for another Thread. Test against the thread's join id.
-    if (t->join_id() == join_id) {
-      return true;
-    }
-  }
-  return false;
-}
-
-
-static void DeleteThread(void* thread) {
-  delete reinterpret_cast<Thread*>(thread);
-}
-
-
-void Thread::Shutdown() {
-  if (thread_list_lock_ != NULL) {
-    // Delete the current thread.
-    Thread* thread = Current();
-    ASSERT(thread != NULL);
-    delete thread;
-    thread = NULL;
-    SetCurrent(NULL);
-
-    // Check that there are no more threads, then delete the lock.
-    {
-      MutexLocker ml(thread_list_lock_);
-      ASSERT(thread_list_head_ == NULL);
-    }
-
-    // Clean up TLS.
-    OSThread::DeleteThreadLocal(thread_key_);
-    thread_key_ = OSThread::kUnsetThreadLocalKey;
-
-    // Delete the thread list lock.
-    delete thread_list_lock_;
-    thread_list_lock_ = NULL;
-  }
-}
+DECLARE_FLAG(bool, trace_isolates);
+DECLARE_FLAG(bool, trace_service);
+DECLARE_FLAG(bool, trace_service_verbose);
 
 
 Thread::~Thread() {
   // We should cleanly exit any isolate before destruction.
   ASSERT(isolate_ == NULL);
-  // Clear |this| from all isolate's thread registry.
-  ThreadPruner pruner(this);
-  Isolate::VisitIsolates(&pruner);
-  delete log_;
-  log_ = NULL;
-  RemoveThreadFromList(this);
-}
-
-
-void Thread::InitOnceBeforeIsolate() {
-  ASSERT(thread_list_lock_ == NULL);
-  thread_list_lock_ = new Mutex();
-  ASSERT(thread_list_lock_ != NULL);
-  ASSERT(thread_key_ == OSThread::kUnsetThreadLocalKey);
-  thread_key_ = OSThread::CreateThreadLocal(DeleteThread);
-  ASSERT(thread_key_ != OSThread::kUnsetThreadLocalKey);
-  ASSERT(Thread::Current() == NULL);
-  // Allocate a new Thread and postpone initialization of VM constants for
-  // this first thread.
-  Thread* thread = new Thread(false);
-  // Verify that current thread was set.
-  ASSERT(Thread::Current() == thread);
-}
-
-
-void Thread::InitOnceAfterObjectAndStubCode() {
-  Thread* thread = Thread::Current();
-  ASSERT(thread != NULL);
-  ASSERT(thread->isolate() == Dart::vm_isolate());
-  thread->InitVMConstants();
-}
-
-
-void Thread::SetCurrent(Thread* current) {
-  OSThread::SetThreadLocal(thread_key_, reinterpret_cast<uword>(current));
-}
-
-
-void Thread::EnsureInit() {
-  if (Thread::Current() == NULL) {
-    // Allocate a new Thread.
-    Thread* thread = new Thread();
-    // Verify that current thread was set.
-    ASSERT(Thread::Current() == thread);
+  // There should be no top api scopes at this point.
+  ASSERT(api_top_scope() == NULL);
+  // Delete the resusable api scope if there is one.
+  if (api_reusable_scope_) {
+    delete api_reusable_scope_;
+    api_reusable_scope_ = NULL;
   }
+  delete thread_lock_;
+  thread_lock_ = NULL;
 }
 
 
@@ -211,28 +54,43 @@ void Thread::EnsureInit() {
   object##_handle_(NULL),
 
 
-Thread::Thread(bool init_vm_constants)
-    : id_(OSThread::GetCurrentThreadId()),
-      join_id_(OSThread::GetCurrentThreadJoinId()),
-      trace_id_(OSThread::GetCurrentThreadTraceId()),
-      thread_interrupt_disabled_(1),  // Thread interrupts disabled by default.
+Thread::Thread(Isolate* isolate)
+    : BaseThread(false),
+      stack_limit_(0),
+      stack_overflow_flags_(0),
       isolate_(NULL),
       heap_(NULL),
-      timeline_block_(NULL),
+      top_exit_frame_info_(0),
       store_buffer_block_(NULL),
-      log_(new class Log()),
-      REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
-      REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
+      vm_tag_(0),
+      task_kind_(kUnknownTask),
+      os_thread_(NULL),
+      thread_lock_(new Monitor()),
+      zone_(NULL),
+      api_reusable_scope_(NULL),
+      api_top_scope_(NULL),
+      top_resource_(NULL),
+      long_jump_base_(NULL),
+      no_callback_scope_depth_(0),
+#if defined(DEBUG)
+      top_handle_scope_(NULL),
+      no_handle_scope_depth_(0),
+      no_safepoint_scope_depth_(0),
+#endif
       reusable_handles_(),
+      saved_stack_limit_(0),
+      deferred_interrupts_mask_(0),
+      deferred_interrupts_(0),
+      stack_overflow_count_(0),
       cha_(NULL),
       deopt_id_(0),
-      vm_tag_(0),
       pending_functions_(GrowableObjectArray::null()),
-      no_callback_scope_depth_(0),
-      thread_list_next_(NULL),
-      name_(NULL) {
-  ClearState();
-
+      sticky_error_(Error::null()),
+      REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
+      REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
+      safepoint_state_(0),
+      execution_state_(kThreadInVM),
+      next_(NULL) {
 #define DEFAULT_INIT(type_name, member_name, init_expr, default_init_value)    \
   member_name = default_init_value;
 CACHED_CONSTANTS_LIST(DEFAULT_INIT)
@@ -248,12 +106,57 @@ RUNTIME_ENTRY_LIST(DEFAULT_INIT)
 LEAF_RUNTIME_ENTRY_LIST(DEFAULT_INIT)
 #undef DEFAULT_INIT
 
-  if (init_vm_constants) {
+  // We cannot initialize the VM constants here for the vm isolate thread
+  // due to boot strapping issues.
+  if ((Dart::vm_isolate() != NULL) && (isolate != Dart::vm_isolate())) {
     InitVMConstants();
   }
-  SetCurrent(this);
-  AddThreadToList(this);
 }
+
+
+static const struct ALIGN16 {
+  uint64_t a;
+  uint64_t b;
+} double_negate_constant =
+    {0x8000000000000000LL, 0x8000000000000000LL};
+
+static const struct ALIGN16 {
+  uint64_t a;
+  uint64_t b;
+} double_abs_constant =
+    {0x7FFFFFFFFFFFFFFFLL, 0x7FFFFFFFFFFFFFFFLL};
+
+static const struct ALIGN16 {
+  uint32_t a;
+  uint32_t b;
+  uint32_t c;
+  uint32_t d;
+} float_not_constant =
+    { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF };
+
+static const struct ALIGN16 {
+  uint32_t a;
+  uint32_t b;
+  uint32_t c;
+  uint32_t d;
+} float_negate_constant =
+    { 0x80000000, 0x80000000, 0x80000000, 0x80000000 };
+
+static const struct ALIGN16 {
+  uint32_t a;
+  uint32_t b;
+  uint32_t c;
+  uint32_t d;
+} float_absolute_constant =
+    { 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF };
+
+static const struct ALIGN16 {
+  uint32_t a;
+  uint32_t b;
+  uint32_t c;
+  uint32_t d;
+} float_zerow_constant =
+    { 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000 };
 
 
 void Thread::InitVMConstants() {
@@ -288,12 +191,6 @@ LEAF_RUNTIME_ENTRY_LIST(INIT_VALUE)
 }
 
 
-void Thread::ClearState() {
-  memset(&state_, 0, sizeof(state_));
-  pending_functions_ = GrowableObjectArray::null();
-}
-
-
 RawGrowableObjectArray* Thread::pending_functions() {
   if (pending_functions_ == GrowableObjectArray::null()) {
     pending_functions_ = GrowableObjectArray::New(Heap::kOld);
@@ -302,109 +199,279 @@ RawGrowableObjectArray* Thread::pending_functions() {
 }
 
 
-void Thread::Schedule(Isolate* isolate, bool bypass_safepoint) {
-  State st;
-  if (isolate->thread_registry()->RestoreStateTo(this, &st, bypass_safepoint)) {
-    ASSERT(isolate->thread_registry()->Contains(this));
-    state_ = st;
+void Thread::clear_pending_functions() {
+  pending_functions_ = GrowableObjectArray::null();
+}
+
+
+RawError* Thread::sticky_error() const {
+  return sticky_error_;
+}
+
+
+void Thread::set_sticky_error(const Error& value) {
+  ASSERT(!value.IsNull());
+  sticky_error_ = value.raw();
+}
+
+
+void Thread::clear_sticky_error() {
+  sticky_error_ = Error::null();
+}
+
+
+bool Thread::EnterIsolate(Isolate* isolate) {
+  const bool kIsMutatorThread = true;
+  Thread* thread = isolate->ScheduleThread(kIsMutatorThread);
+  if (thread != NULL) {
+    ASSERT(thread->store_buffer_block_ == NULL);
+    thread->task_kind_ = kMutatorTask;
+    thread->StoreBufferAcquire();
+    return true;
   }
-}
-
-
-void Thread::Unschedule(bool bypass_safepoint) {
-  ThreadRegistry* reg = isolate_->thread_registry();
-  ASSERT(reg->Contains(this));
-  reg->SaveStateFrom(this, state_, bypass_safepoint);
-  ClearState();
-}
-
-
-void Thread::EnterIsolate(Isolate* isolate) {
-  Thread* thread = Thread::Current();
-  ASSERT(thread != NULL);
-  ASSERT(thread->isolate() == NULL);
-  ASSERT(!isolate->HasMutatorThread());
-  thread->isolate_ = isolate;
-  isolate->MakeCurrentThreadMutator(thread);
-  thread->set_vm_tag(VMTag::kVMTagId);
-  ASSERT(thread->store_buffer_block_ == NULL);
-  thread->StoreBufferAcquire();
-  ASSERT(isolate->heap() != NULL);
-  thread->heap_ = isolate->heap();
-  thread->Schedule(isolate);
-  thread->EnableThreadInterrupts();
+  return false;
 }
 
 
 void Thread::ExitIsolate() {
   Thread* thread = Thread::Current();
-  // TODO(koda): Audit callers; they should know whether they're in an isolate.
-  if (thread == NULL || thread->isolate() == NULL) return;
-#if defined(DEBUG)
-  ASSERT(!thread->IsAnyReusableHandleScopeActive());
-#endif  // DEBUG
-  thread->DisableThreadInterrupts();
+  ASSERT(thread != NULL && thread->IsMutatorThread());
+  DEBUG_ASSERT(!thread->IsAnyReusableHandleScopeActive());
+  thread->task_kind_ = kUnknownTask;
+  Isolate* isolate = thread->isolate();
+  ASSERT(isolate != NULL);
+  ASSERT(thread->execution_state() == Thread::kThreadInVM);
   // Clear since GC will not visit the thread once it is unscheduled.
   thread->ClearReusableHandles();
-  Isolate* isolate = thread->isolate();
-  thread->Unschedule();
-  // TODO(koda): Move store_buffer_block_ into State.
   thread->StoreBufferRelease();
   if (isolate->is_runnable()) {
     thread->set_vm_tag(VMTag::kIdleTagId);
   } else {
     thread->set_vm_tag(VMTag::kLoadWaitTagId);
   }
-  isolate->ClearMutatorThread();
-  thread->isolate_ = NULL;
-  ASSERT(Isolate::Current() == NULL);
-  thread->heap_ = NULL;
+  const bool kIsMutatorThread = true;
+  isolate->UnscheduleThread(thread, kIsMutatorThread);
 }
 
 
-void Thread::EnterIsolateAsHelper(Isolate* isolate, bool bypass_safepoint) {
-  Thread* thread = Thread::Current();
-  ASSERT(thread != NULL);
-  ASSERT(thread->isolate() == NULL);
-  thread->isolate_ = isolate;
-  ASSERT(thread->store_buffer_block_ == NULL);
-  // TODO(koda): Use StoreBufferAcquire once we properly flush before Scavenge.
-  thread->store_buffer_block_ =
-      thread->isolate()->store_buffer()->PopEmptyBlock();
-  ASSERT(isolate->heap() != NULL);
-  thread->heap_ = isolate->heap();
-  // Do not update isolate->mutator_thread, but perform sanity check:
-  // this thread should not be both the main mutator and helper.
-  ASSERT(!thread->IsMutatorThread());
-  thread->Schedule(isolate, bypass_safepoint);
-  thread->EnableThreadInterrupts();
+bool Thread::EnterIsolateAsHelper(Isolate* isolate,
+                                  TaskKind kind,
+                                  bool bypass_safepoint) {
+  ASSERT(kind != kMutatorTask);
+  const bool kIsNotMutatorThread = false;
+  Thread* thread = isolate->ScheduleThread(kIsNotMutatorThread,
+                                           bypass_safepoint);
+  if (thread != NULL) {
+    ASSERT(thread->store_buffer_block_ == NULL);
+    // TODO(koda): Use StoreBufferAcquire once we properly flush
+    // before Scavenge.
+    thread->store_buffer_block_ =
+        thread->isolate()->store_buffer()->PopEmptyBlock();
+    // This thread should not be the main mutator.
+    thread->task_kind_ = kind;
+    ASSERT(!thread->IsMutatorThread());
+    return true;
+  }
+  return false;
 }
 
 
 void Thread::ExitIsolateAsHelper(bool bypass_safepoint) {
   Thread* thread = Thread::Current();
-  thread->DisableThreadInterrupts();
+  ASSERT(thread != NULL);
+  ASSERT(!thread->IsMutatorThread());
+  ASSERT(thread->execution_state() == Thread::kThreadInVM);
+  thread->task_kind_ = kUnknownTask;
+  // Clear since GC will not visit the thread once it is unscheduled.
+  thread->ClearReusableHandles();
+  thread->StoreBufferRelease();
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
-  thread->Unschedule(bypass_safepoint);
-  // TODO(koda): Move store_buffer_block_ into State.
-  thread->StoreBufferRelease();
-  thread->isolate_ = NULL;
-  thread->heap_ = NULL;
-  ASSERT(!thread->IsMutatorThread());
+  const bool kIsNotMutatorThread = false;
+  isolate->UnscheduleThread(thread, kIsNotMutatorThread, bypass_safepoint);
 }
 
 
-// TODO(koda): Make non-static and invoke in SafepointThreads.
 void Thread::PrepareForGC() {
-  Thread* thread = Thread::Current();
-  // Prevent scheduling another GC.
-  thread->StoreBufferRelease(StoreBuffer::kIgnoreThreshold);
+  ASSERT(IsAtSafepoint());
+  // Prevent scheduling another GC by ignoring the threshold.
+  ASSERT(store_buffer_block_ != NULL);
+  StoreBufferRelease(StoreBuffer::kIgnoreThreshold);
   // Make sure to get an *empty* block; the isolate needs all entries
   // at GC time.
   // TODO(koda): Replace with an epilogue (PrepareAfterGC) that acquires.
-  thread->store_buffer_block_ =
-      thread->isolate()->store_buffer()->PopEmptyBlock();
+  store_buffer_block_ = isolate()->store_buffer()->PopEmptyBlock();
+}
+
+
+void Thread::SetStackLimitFromStackBase(uword stack_base) {
+  // Set stack limit.
+#if defined(USING_SIMULATOR)
+  // Ignore passed-in native stack top and use Simulator stack top.
+  Simulator* sim = Simulator::Current();  // May allocate a simulator.
+  ASSERT(isolate()->simulator() == sim);  // Isolate's simulator is current one.
+  stack_base = sim->StackTop();
+  // The overflow area is accounted for by the simulator.
+#endif
+  SetStackLimit(stack_base - OSThread::GetSpecifiedStackSize());
+}
+
+
+void Thread::SetStackLimit(uword limit) {
+  // The thread setting the stack limit is not necessarily the thread which
+  // the stack limit is being set on.
+  MonitorLocker ml(thread_lock_);
+  if (stack_limit_ == saved_stack_limit_) {
+    // No interrupt pending, set stack_limit_ too.
+    stack_limit_ = limit;
+  }
+  saved_stack_limit_ = limit;
+}
+
+
+void Thread::ClearStackLimit() {
+  SetStackLimit(~static_cast<uword>(0));
+}
+
+
+/* static */
+uword Thread::GetCurrentStackPointer() {
+  // Since AddressSanitizer's detect_stack_use_after_return instruments the
+  // C++ code to give out fake stack addresses, we call a stub in that case.
+  ASSERT(StubCode::GetStackPointer_entry() != NULL);
+  uword (*func)() = reinterpret_cast<uword (*)()>(
+      StubCode::GetStackPointer_entry()->EntryPoint());
+  // But for performance (and to support simulators), we normally use a local.
+#if defined(__has_feature)
+#if __has_feature(address_sanitizer)
+  uword current_sp = func();
+  return current_sp;
+#else
+  uword stack_allocated_local_address = reinterpret_cast<uword>(&func);
+  return stack_allocated_local_address;
+#endif
+#else
+  uword stack_allocated_local_address = reinterpret_cast<uword>(&func);
+  return stack_allocated_local_address;
+#endif
+}
+
+
+void Thread::ScheduleInterrupts(uword interrupt_bits) {
+  MonitorLocker ml(thread_lock_);
+  ScheduleInterruptsLocked(interrupt_bits);
+}
+
+
+void Thread::ScheduleInterruptsLocked(uword interrupt_bits) {
+  ASSERT(thread_lock_->IsOwnedByCurrentThread());
+  ASSERT((interrupt_bits & ~kInterruptsMask) == 0);  // Must fit in mask.
+
+  // Check to see if any of the requested interrupts should be deferred.
+  uword defer_bits = interrupt_bits & deferred_interrupts_mask_;
+  if (defer_bits != 0) {
+    deferred_interrupts_ |= defer_bits;
+    interrupt_bits &= ~deferred_interrupts_mask_;
+    if (interrupt_bits == 0) {
+      return;
+    }
+  }
+
+  if (stack_limit_ == saved_stack_limit_) {
+    stack_limit_ = (~static_cast<uword>(0)) & ~kInterruptsMask;
+  }
+  stack_limit_ |= interrupt_bits;
+}
+
+
+uword Thread::GetAndClearInterrupts() {
+  MonitorLocker ml(thread_lock_);
+  if (stack_limit_ == saved_stack_limit_) {
+    return 0;  // No interrupt was requested.
+  }
+  uword interrupt_bits = stack_limit_ & kInterruptsMask;
+  stack_limit_ = saved_stack_limit_;
+  return interrupt_bits;
+}
+
+
+void Thread::DeferOOBMessageInterrupts() {
+  MonitorLocker ml(thread_lock_);
+  ASSERT(deferred_interrupts_mask_ == 0);
+  deferred_interrupts_mask_ = kMessageInterrupt;
+
+  if (stack_limit_ != saved_stack_limit_) {
+    // Defer any interrupts which are currently pending.
+    deferred_interrupts_ = stack_limit_ & deferred_interrupts_mask_;
+
+    // Clear deferrable interrupts, if present.
+    stack_limit_ &= ~deferred_interrupts_mask_;
+
+    if ((stack_limit_ & kInterruptsMask) == 0) {
+      // No other pending interrupts.  Restore normal stack limit.
+      stack_limit_ = saved_stack_limit_;
+    }
+  }
+  if (FLAG_trace_service && FLAG_trace_service_verbose) {
+    OS::Print("[+%" Pd64 "ms] Isolate %s deferring OOB interrupts\n",
+              Dart::timestamp(), isolate()->name());
+  }
+}
+
+
+void Thread::RestoreOOBMessageInterrupts() {
+  MonitorLocker ml(thread_lock_);
+  ASSERT(deferred_interrupts_mask_ == kMessageInterrupt);
+  deferred_interrupts_mask_ = 0;
+  if (deferred_interrupts_ != 0) {
+    if (stack_limit_ == saved_stack_limit_) {
+      stack_limit_ = (~static_cast<uword>(0)) & ~kInterruptsMask;
+    }
+    stack_limit_ |= deferred_interrupts_;
+    deferred_interrupts_ = 0;
+  }
+  if (FLAG_trace_service && FLAG_trace_service_verbose) {
+    OS::Print("[+%" Pd64 "ms] Isolate %s restoring OOB interrupts\n",
+              Dart::timestamp(), isolate()->name());
+  }
+}
+
+
+RawError* Thread::HandleInterrupts() {
+  uword interrupt_bits = GetAndClearInterrupts();
+  if ((interrupt_bits & kVMInterrupt) != 0) {
+    if (isolate()->store_buffer()->Overflowed()) {
+      if (FLAG_verbose_gc) {
+        OS::PrintErr("Scavenge scheduled by store buffer overflow.\n");
+      }
+      heap()->CollectGarbage(Heap::kNew);
+    }
+  }
+  if ((interrupt_bits & kMessageInterrupt) != 0) {
+    MessageHandler::MessageStatus status =
+        isolate()->message_handler()->HandleOOBMessages();
+    if (status != MessageHandler::kOK) {
+      // False result from HandleOOBMessages signals that the isolate should
+      // be terminating.
+      if (FLAG_trace_isolates) {
+        OS::Print("[!] Terminating isolate due to OOB message:\n"
+                  "\tisolate:    %s\n", isolate()->name());
+      }
+      Thread* thread = Thread::Current();
+      const Error& error = Error::Handle(thread->sticky_error());
+      ASSERT(!error.IsNull() && error.IsUnwindError());
+      thread->clear_sticky_error();
+      return error.raw();
+    }
+  }
+  return Error::null();
+}
+
+
+uword Thread::GetAndClearStackOverflowFlags() {
+  uword stack_overflow_flags = stack_overflow_flags_;
+  stack_overflow_flags_ = 0;
+  return stack_overflow_flags;
 }
 
 
@@ -433,7 +500,7 @@ void Thread::StoreBufferAddObjectGC(RawObject* obj) {
 void Thread::StoreBufferRelease(StoreBuffer::ThresholdPolicy policy) {
   StoreBufferBlock* block = store_buffer_block_;
   store_buffer_block_ = NULL;
-  isolate_->store_buffer()->PushBlock(block, policy);
+  isolate()->store_buffer()->PushBlock(block, policy);
 }
 
 
@@ -447,6 +514,14 @@ bool Thread::IsMutatorThread() const {
 }
 
 
+bool Thread::CanCollectGarbage() const {
+  // We have non mutator threads grow the heap instead of triggering
+  // a garbage collection when they are at a safepoint (e.g: background
+  // compiler thread finalizing and installing code at a safepoint).
+  return (IsMutatorThread() || IsAtSafepoint());
+}
+
+
 bool Thread::IsExecutingDartCode() const {
   return (top_exit_frame_info() == 0) &&
          (vm_tag() == VMTag::kDartTagId);
@@ -456,23 +531,6 @@ bool Thread::IsExecutingDartCode() const {
 bool Thread::HasExitedDartCode() const {
   return (top_exit_frame_info() != 0) &&
          (vm_tag() != VMTag::kDartTagId);
-}
-
-
-CHA* Thread::cha() const {
-  ASSERT(isolate_ != NULL);
-  return cha_;
-}
-
-
-void Thread::set_cha(CHA* value) {
-  ASSERT(isolate_ != NULL);
-  cha_ = value;
-}
-
-
-Log* Thread::log() const {
-  return log_;
 }
 
 
@@ -492,44 +550,37 @@ void Thread::ClearReusableHandles() {
 }
 
 
-void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor) {
+void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
+                                 bool validate_frames) {
   ASSERT(visitor != NULL);
+
+  if (zone_ != NULL) {
+    zone_->VisitObjectPointers(visitor);
+  }
 
   // Visit objects in thread specific handles area.
   reusable_handles_.VisitObjectPointers(visitor);
 
-  if (pending_functions_ != GrowableObjectArray::null()) {
-    visitor->VisitPointer(
-        reinterpret_cast<RawObject**>(&pending_functions_));
+  visitor->VisitPointer(
+      reinterpret_cast<RawObject**>(&pending_functions_));
+  visitor->VisitPointer(
+      reinterpret_cast<RawObject**>(&sticky_error_));
+
+  // Visit the api local scope as it has all the api local handles.
+  ApiLocalScope* scope = api_top_scope_;
+  while (scope != NULL) {
+    scope->local_handles()->VisitObjectPointers(visitor);
+    scope = scope->previous();
   }
-}
 
-
-void Thread::DisableThreadInterrupts() {
-  ASSERT(Thread::Current() == this);
-  AtomicOperations::FetchAndIncrement(&thread_interrupt_disabled_);
-}
-
-
-void Thread::EnableThreadInterrupts() {
-  ASSERT(Thread::Current() == this);
-  uintptr_t old =
-      AtomicOperations::FetchAndDecrement(&thread_interrupt_disabled_);
-  if (old == 1) {
-    // We just decremented from 1 to 0.
-    // Make sure the thread interrupter is awake.
-    ThreadInterrupter::WakeUp();
+  // Iterate over all the stack frames and visit objects on the stack.
+  StackFrameIterator frames_iterator(top_exit_frame_info(),
+                                     validate_frames);
+  StackFrame* frame = frames_iterator.NextFrame();
+  while (frame != NULL) {
+    frame->VisitObjectPointers(visitor);
+    frame = frames_iterator.NextFrame();
   }
-  if (old == 0) {
-    // We just decremented from 0, this means we've got a mismatched pair
-    // of calls to EnableThreadInterrupts and DisableThreadInterrupts.
-    FATAL("Invalid call to Thread::EnableThreadInterrupts()");
-  }
-}
-
-
-bool Thread::ThreadInterruptsEnabled() {
-  return AtomicOperations::LoadRelaxed(&thread_interrupt_disabled_) == 0;
 }
 
 
@@ -585,48 +636,84 @@ LEAF_RUNTIME_ENTRY_LIST(COMPUTE_OFFSET)
 }
 
 
-ThreadIterator::ThreadIterator() {
-  ASSERT(Thread::thread_list_lock_ != NULL);
-  // Lock the thread list while iterating.
-  Thread::thread_list_lock_->Lock();
-  next_ = Thread::thread_list_head_;
+bool Thread::IsValidLocalHandle(Dart_Handle object) const {
+  ApiLocalScope* scope = api_top_scope_;
+  while (scope != NULL) {
+    if (scope->local_handles()->IsValidHandle(object)) {
+      return true;
+    }
+    scope = scope->previous();
+  }
+  return false;
 }
 
 
-ThreadIterator::~ThreadIterator() {
-  ASSERT(Thread::thread_list_lock_ != NULL);
-  // Unlock the thread list when done.
-  Thread::thread_list_lock_->Unlock();
+int Thread::CountLocalHandles() const {
+  int total = 0;
+  ApiLocalScope* scope = api_top_scope_;
+  while (scope != NULL) {
+    total += scope->local_handles()->CountHandles();
+    scope = scope->previous();
+  }
+  return total;
 }
 
 
-bool ThreadIterator::HasNext() const {
-  ASSERT(Thread::thread_list_lock_ != NULL);
-  ASSERT(Thread::thread_list_lock_->IsOwnedByCurrentThread());
-  return next_ != NULL;
+int Thread::ZoneSizeInBytes() const {
+  int total = 0;
+  ApiLocalScope* scope = api_top_scope_;
+  while (scope != NULL) {
+    total += scope->zone()->SizeInBytes();
+    scope = scope->previous();
+  }
+  return total;
 }
 
 
-Thread* ThreadIterator::Next() {
-  ASSERT(Thread::thread_list_lock_ != NULL);
-  ASSERT(Thread::thread_list_lock_->IsOwnedByCurrentThread());
-  Thread* current = next_;
-  next_ = next_->thread_list_next_;
-  return current;
+void Thread::UnwindScopes(uword stack_marker) {
+  // Unwind all scopes using the same stack_marker, i.e. all scopes allocated
+  // under the same top_exit_frame_info.
+  ApiLocalScope* scope = api_top_scope_;
+  while (scope != NULL &&
+         scope->stack_marker() != 0 &&
+         scope->stack_marker() == stack_marker) {
+    api_top_scope_ = scope->previous();
+    delete scope;
+    scope = api_top_scope_;
+  }
+}
+
+
+void Thread::EnterSafepointUsingLock() {
+  isolate()->safepoint_handler()->EnterSafepointUsingLock(this);
+}
+
+
+void Thread::ExitSafepointUsingLock() {
+  isolate()->safepoint_handler()->ExitSafepointUsingLock(this);
+}
+
+
+void Thread::BlockForSafepoint() {
+  isolate()->safepoint_handler()->BlockForSafepoint(this);
 }
 
 
 DisableThreadInterruptsScope::DisableThreadInterruptsScope(Thread* thread)
     : StackResource(thread) {
   if (thread != NULL) {
-    thread->DisableThreadInterrupts();
+    OSThread* os_thread = thread->os_thread();
+    ASSERT(os_thread != NULL);
+    os_thread->DisableThreadInterrupts();
   }
 }
 
 
 DisableThreadInterruptsScope::~DisableThreadInterruptsScope() {
   if (thread() != NULL) {
-    thread()->EnableThreadInterrupts();
+    OSThread* os_thread = thread()->os_thread();
+    ASSERT(os_thread != NULL);
+    os_thread->EnableThreadInterrupts();
   }
 }
 

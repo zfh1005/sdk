@@ -60,7 +60,8 @@ html_interface_renames = monitored.Dict('htmlrenamer.html_interface_renames',
     'SVGSVGElement': 'SvgSvgElement', # Manual to avoid name conflicts.
     'Stream': 'FileStream',
     'StringCallback': '_StringCallback',
-    'WebGLVertexArrayObjectOES': 'VertexArrayObject',
+    'WebGL2RenderingContext': 'RenderingContext2',
+    'WebGL2RenderingContextBase': 'RenderingContextBase2',
     'WindowTimers': '_WindowTimers',
     'XMLHttpRequest': 'HttpRequest',
     'XMLHttpRequestUpload': 'HttpRequestUpload',
@@ -135,6 +136,7 @@ _removed_html_interfaces = [
   'WebKitMediaSource',
   'WebKitNotification',
   'WebGLRenderingContextBase',
+  'WebGL2RenderingContextBase',
   'WebKitSourceBuffer',
   'WebKitSourceBufferList',
   'WorkerLocation', # Workers
@@ -176,9 +178,19 @@ convert_to_future_members = monitored.Set(
 # constructor for dispatch purposes.
 custom_html_constructors = monitored.Set(
     'htmlrenamer.custom_html_constructors', [
+  'CompositionEvent',       # 45 Roll hide default constructor use Dart's custom
+  'CustomEvent',            # 45 Roll hide default constructor use Dart's custom
+  'Event',                  # 45 Roll hide default constructor use Dart's custom
+  'HashChangeEvent',        # 45 Roll hide default constructor use Dart's custom
   'HTMLAudioElement',
   'HTMLOptionElement',
+  'KeyboardEvent',          # 45 Roll hide default constructor use Dart's custom
+  'MessageEvent',           # 45 Roll hide default constructor use Dart's custom
+  'MouseEvent',             # 45 Roll hide default constructor use Dart's custom
   'MutationObserver',
+  'StorageEvent',           # 45 Roll hide default constructor use Dart's custom
+  'UIEvent',                # 45 Roll hide default constructor use Dart's custom
+  'WheelEvent',             # 45 Roll hide default constructor use Dart's custom
 ])
 
 # Members from the standard dom that should not be exposed publicly in dart:html
@@ -252,14 +264,6 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'Element.querySelectorAll',
   # TODO(vsm): These have been converted from int to double in Chrome 36.
   # Special case them so we run on 34, 35, and 36.
-  'Element.offsetLeft',
-  'Element.offsetTop',
-  'Element.offsetWidth',
-  'Element.offsetHeight',
-  'Element.clientLeft',
-  'Element.clientTop',
-  'Element.clientWidth',
-  'Element.clientHeight',
   'Element.scrollLeft',
   'Element.scrollTop',
   'Element.scrollWidth',
@@ -376,6 +380,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'UIEvent.layerY',
   'UIEvent.pageX',
   'UIEvent.pageY',
+  'UIEvent.which',
   'WheelEvent.initWebKitWheelEvent',
   'WheelEvent.deltaX',
   'WheelEvent.deltaY',
@@ -403,6 +408,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
 # Members from the standard dom that exist in the dart:html library with
 # identical functionality but with cleaner names.
 renamed_html_members = monitored.Dict('htmlrenamer.renamed_html_members', {
+    'ConsoleBase.assert': 'assertCondition',
     'CSSKeyframesRule.insertRule': 'appendRule',
     'DirectoryEntry.getDirectory': '_getDirectory',
     'DirectoryEntry.getFile': '_getFile',
@@ -433,18 +439,10 @@ renamed_overloads = monitored.Dict('htmldartgenerator.renamed_overloads', {
   'AudioContext.createBuffer(ArrayBuffer buffer, boolean mixToMono)':
       'createBufferFromBuffer',
   'CSS.supports(DOMString conditionText)': 'supportsCondition',
-  'CanvasRenderingContext2D.createPattern(HTMLImageElement image, '
-      'DOMString repetitionType)': 'createPatternFromImage',
   'DataTransferItemList.add(File file)': 'addFile',
   'DataTransferItemList.add(DOMString data, DOMString type)': 'addData',
   'FormData.append(DOMString name, Blob value, DOMString filename)':
       'appendBlob',
-  'IDBDatabase.transaction(DOMStringList storeNames, IDBTransactionMode mode)':
-      'transactionStores',
-  'IDBDatabase.transaction(sequence<DOMString> storeNames, IDBTransactionMode mode)':
-      'transactionList',
-  'IDBDatabase.transaction(DOMString storeName, IDBTransactionMode mode)':
-      'transactionStore',
   'RTCDataChannel.send(ArrayBuffer data)': 'sendByteBuffer',
   'RTCDataChannel.send(ArrayBufferView data)': 'sendTypedData',
   'RTCDataChannel.send(Blob data)': 'sendBlob',
@@ -491,7 +489,11 @@ renamed_overloads = monitored.Dict('htmldartgenerator.renamed_overloads', {
   'WebSocket.send(ArrayBuffer data)': 'sendByteBuffer',
   'WebSocket.send(ArrayBufferView data)': 'sendTypedData',
   'WebSocket.send(DOMString data)': 'sendString',
-  'WebSocket.send(Blob data)': 'sendBlob'
+  'WebSocket.send(Blob data)': 'sendBlob',
+  'Window.setInterval(DOMString handler, long timeout, any arguments)': '_setInterval_String',
+  'Window.setTimeout(DOMString handler, long timeout, any arguments)': '_setTimeout_String',
+  'WindowTimers.setInterval(DOMString handler, long timeout, any arguments)': '_setInterval_String',
+  'WindowTimers.setTimeout(DOMString handler, long timeout, any arguments)': '_setTimeout_String',
 })
 
 # Members that have multiple definitions, but their types are identical (only
@@ -558,7 +560,12 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'CanvasRenderingContext2D.setMiterLimit',
     'CanvasRenderingContext2D.setShadow',
     'CanvasRenderingContext2D.setStrokeColor',
+    # Disable the webKit version, imageSmoothingEnabled is exposed.
+    'CanvasRenderingContext2D.webkitImageSmoothingEnabled',
     'CharacterData.remove',
+    'ChildNode.replaceWith',
+    'CSSStyleDeclaration.__getter__',
+    'CSSStyleDeclaration.__setter__',
     'Window.call:blur',
     'Window.call:focus',
     'Window.clientInformation',
@@ -575,6 +582,7 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'Window.webkitRequestAnimationFrame',
     'Document.alinkColor',
     'Document.all',
+    'Document.append',
     'Document.applets',
     'Document.bgColor',
     'Document.clear',
@@ -610,6 +618,7 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'Document.location',
     'Document.on:wheel',
     'Document.open',
+    'Document.prepend',
     'Document.register',
     'Document.set:domain',
     'Document.vlinkColor',
@@ -648,14 +657,24 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'DOMException.VALIDATION_ERR',
     'DOMException.WRONG_DOCUMENT_ERR',
     'Element.accessKey',
+    'Element.append',
     'Element.dataset',
     'Element.get:classList',
     'Element.getAttributeNode',
     'Element.getAttributeNodeNS',
     'Element.getElementsByTagNameNS',
     'Element.innerText',
+    # TODO(terry): All offset* attributes are in both HTMLElement and Element
+    #              (it's a Chrome bug with a FIXME note to correct - sometime).
+    #              Until corrected these Element attributes must be ignored.
+    'Element.offsetParent',
+    'Element.offsetTop',
+    'Element.offsetLeft',
+    'Element.offsetWidth',
+    'Element.offsetHeight',
     'Element.on:wheel',
     'Element.outerText',
+    'Element.prepend',
     'Element.removeAttributeNode',
     'Element.set:outerHTML',
     'Element.setAttributeNode',
@@ -777,7 +796,12 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'HTMLTitleElement.text',
     'HTMLUListElement.compact',
     'HTMLUListElement.type',
+    'IDBDatabase.transaction', # We do this in a template without the generated implementation at all.
+    'KeyboardEvent.charCode',
+    'KeyboardEvent.keyCode',
+    'KeyboardEvent.which',
     'Location.valueOf',
+    'MessageEvent.data',
     'MessageEvent.ports',
     'MessageEvent.webkitInitMessageEvent',
     'MouseEvent.x',
@@ -808,19 +832,16 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'NodeIterator.expandEntityReferences',
     'NodeIterator.filter',
     'NodeList.item',
-    'Performance.webkitClearMarks',
-    'Performance.webkitClearMeasures',
-    'Performance.webkitGetEntries',
-    'Performance.webkitGetEntriesByName',
-    'Performance.webkitGetEntriesByType',
-    'Performance.webkitMark',
-    'Performance.webkitMeasure',
+    'ParentNode.append',
+    'ParentNode.prepend',
+    'ServiceWorkerMessageEvent.data',
     'ShadowRoot.getElementsByTagNameNS',
     'SVGElement.getPresentationAttribute',
     'SVGElementInstance.on:wheel',
     'Touch.get:webkitRadiusX',
     'Touch.get:webkitRadiusY',
     'Touch.get:webkitForce',
+    'Touch.get:webkitRotationAngle',
     'WheelEvent.wheelDelta',
     'WheelEvent.wheelDeltaX',
     'WheelEvent.wheelDeltaY',
@@ -836,6 +857,7 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
 # Manual dart: library name lookup.
 _library_names = monitored.Dict('htmlrenamer._library_names', {
   'ANGLEInstancedArrays': 'web_gl',
+  'CHROMIUMSubscribeUniform': 'web_gl',
   'Database': 'web_sql',
   'Navigator': 'html',
   'Window': 'html',
@@ -843,6 +865,7 @@ _library_names = monitored.Dict('htmlrenamer._library_names', {
 
 _library_ids = monitored.Dict('htmlrenamer._library_names', {
   'ANGLEInstancedArrays': 'WebGl',
+  'CHROMIUMSubscribeUniform': 'WebGl',
   'Database': 'WebSql',
   'Navigator': 'Html',
   'Window': 'Html',
@@ -873,6 +896,8 @@ class HtmlRenamer(object):
       return html_interface_renames[interface_id]
     return None;
 
+  def isPrivate(self, interface, member):
+    return self._FindMatch(interface, member, '', private_html_members)
 
   def RenameMember(self, interface_name, member_node, member, member_prefix='',
       dartify_name=True):

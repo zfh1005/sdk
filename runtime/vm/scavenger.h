@@ -24,9 +24,6 @@ class Isolate;
 class JSONObject;
 class ScavengerVisitor;
 
-DECLARE_FLAG(bool, gc_at_alloc);
-
-
 // Wrapper around VirtualMemory that adds caching and handles the empty case.
 class SemiSpace {
  public:
@@ -231,14 +228,10 @@ class Scavenger {
   SemiSpace* Prologue(Isolate* isolate, bool invoke_api_callbacks);
   void IterateStoreBuffers(Isolate* isolate, ScavengerVisitor* visitor);
   void IterateObjectIdTable(Isolate* isolate, ScavengerVisitor* visitor);
-  void IterateRoots(Isolate* isolate,
-                    ScavengerVisitor* visitor,
-                    bool visit_prologue_weak_persistent_handles);
+  void IterateRoots(Isolate* isolate, ScavengerVisitor* visitor);
   void IterateWeakProperties(Isolate* isolate, ScavengerVisitor* visitor);
   void IterateWeakReferences(Isolate* isolate, ScavengerVisitor* visitor);
-  void IterateWeakRoots(Isolate* isolate,
-                        HandleVisitor* visitor,
-                        bool visit_prologue_weak_persistent_handles);
+  void IterateWeakRoots(Isolate* isolate, HandleVisitor* visitor);
   void ProcessToSpace(ScavengerVisitor* visitor);
   uword ProcessWeakProperty(RawWeakProperty* raw_weak,
                             ScavengerVisitor* visitor);

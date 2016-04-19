@@ -55,6 +55,10 @@
         at isolate exit
       </template>
 
+      <template if="{{ isolate.pauseEvent.kind == 'None' }}">
+        not yet runnable
+      </template>
+
       <template if="{{ isolate.pauseEvent.kind == 'PauseInterrupted' ||
                        isolate.pauseEvent.kind == 'PauseBreakpoint' ||
                        isolate.pauseEvent.kind == 'PauseException' }}">
@@ -64,11 +68,13 @@
         <template if="{{ isolate.pauseEvent.kind == 'PauseException' }}">
           by exception
         </template>
-        at
-        <function-ref ref="{{ isolate.topFrame.function }}">
-        </function-ref>
-        (<source-link location="{{ isolate.topFrame.location }}">
-        </source-link>)
+        <template if="{{ isolate.topFrame != null }}">
+          at
+          <function-ref ref="{{ isolate.topFrame.function }}">
+          </function-ref>
+          (<source-link location="{{ isolate.topFrame.location }}">
+          </source-link>)
+        </template>
       </template>
     </template>
 
@@ -164,6 +170,11 @@
         <div class="memberItem">
           <div class="memberValue">
             See <a on-click="{{ goto }}" _href="{{ gotoLink('/heap-snapshot', isolate) }}">heap snapshot</a>
+          </div>
+        </div>
+        <div class="memberItem">
+          <div class="memberValue">
+            See <a on-click="{{ goto }}" _href="{{ gotoLink('/persistent-handles', isolate) }}">persistent handles</a>
           </div>
         </div>
         <div class="memberItem">

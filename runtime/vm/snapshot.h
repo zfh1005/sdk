@@ -22,6 +22,7 @@ class AbstractType;
 class Array;
 class Class;
 class ClassTable;
+class Closure;
 class Code;
 class ExternalTypedData;
 class GrowableObjectArray;
@@ -40,7 +41,9 @@ class RawBigint;
 class RawBoundedType;
 class RawCapability;
 class RawClass;
+class RawClosure;
 class RawClosureData;
+class RawCodeSourceMap;
 class RawContext;
 class RawContextScope;
 class RawDouble;
@@ -54,7 +57,7 @@ class RawICData;
 class RawImmutableArray;
 class RawInstructions;
 class RawInt32x4;
-class RawJSRegExp;
+class RawRegExp;
 class RawLanguageError;
 class RawLibrary;
 class RawLibraryPrefix;
@@ -117,16 +120,12 @@ static const bool kAsInlinedObject = false;
 static const intptr_t kInvalidPatchIndex = -1;
 
 
-class SerializedHeaderTag : public BitField<enum SerializedHeaderType,
-                                            0,
-                                            kHeaderTagBits> {
-};
+class SerializedHeaderTag :
+    public BitField<intptr_t, enum SerializedHeaderType, 0, kHeaderTagBits> {};
 
 
-class SerializedHeaderData : public BitField<intptr_t,
-                                             kHeaderTagBits,
-                                             kObjectIdBits> {
-};
+class SerializedHeaderData :
+    public BitField<intptr_t, intptr_t, kHeaderTagBits, kObjectIdBits> {};
 
 
 enum DeserializeState {
@@ -221,6 +220,34 @@ class InstructionsSnapshot : ValueObject {
   const void* raw_memory_;  // The symbol kInstructionsSnapshot.
 
   DISALLOW_COPY_AND_ASSIGN(InstructionsSnapshot);
+};
+
+
+class DataSnapshot : ValueObject {
+ public:
+  explicit DataSnapshot(const void* raw_memory)
+    : raw_memory_(raw_memory) {
+    ASSERT(Utils::IsAligned(raw_memory, 2 * kWordSize));  // kObjectAlignment
+  }
+
+  void* data_start() {
+    return reinterpret_cast<void*>(
+        reinterpret_cast<uword>(raw_memory_) + kHeaderSize);
+  }
+
+  uword data_size() {
+    uword snapshot_size = *reinterpret_cast<const uword*>(raw_memory_);
+    return snapshot_size - kHeaderSize;
+  }
+
+  // Header: data length and padding for alignment. We use the same alignment
+  // as for code for now.
+  static const intptr_t kHeaderSize = OS::kMaxPreferredCodeAlignment;
+
+ private:
+  const void* raw_memory_;  // The symbol kDataSnapshot.
+
+  DISALLOW_COPY_AND_ASSIGN(DataSnapshot);
 };
 
 
@@ -333,17 +360,22 @@ class BackRefNode : public ValueObject {
 
 class InstructionsReader : public ZoneAllocated {
  public:
-  explicit InstructionsReader(const uint8_t* buffer)
-    : buffer_(buffer) {
-    ASSERT(buffer != NULL);
-    ASSERT(Utils::IsAligned(reinterpret_cast<uword>(buffer),
+  InstructionsReader(const uint8_t* instructions_buffer,
+                     const uint8_t* data_buffer)
+    : instructions_buffer_(instructions_buffer),
+      data_buffer_(data_buffer) {
+    ASSERT(instructions_buffer != NULL);
+    ASSERT(data_buffer != NULL);
+    ASSERT(Utils::IsAligned(reinterpret_cast<uword>(instructions_buffer),
                             OS::PreferredCodeAlignment()));
   }
 
   RawInstructions* GetInstructionsAt(int32_t offset, uword expected_tags);
+  RawObject* GetObjectAt(int32_t offset);
 
  private:
-  const uint8_t* buffer_;
+  const uint8_t* instructions_buffer_;
+  const uint8_t* data_buffer_;
 
   DISALLOW_COPY_AND_ASSIGN(InstructionsReader);
 };
@@ -417,12 +449,14 @@ class SnapshotReader : public BaseReader {
   RawBoundedType* NewBoundedType();
   RawMixinAppType* NewMixinAppType();
   RawPatchClass* NewPatchClass();
+  RawClosure* NewClosure();
   RawClosureData* NewClosureData();
   RawRedirectionData* NewRedirectionData();
   RawFunction* NewFunction();
   RawCode* NewCode(intptr_t pointer_offsets_length);
   RawObjectPool* NewObjectPool(intptr_t length);
   RawPcDescriptors* NewPcDescriptors(intptr_t length);
+  RawCodeSourceMap* NewCodeSourceMap(intptr_t length);
   RawLocalVarDescriptors* NewLocalVarDescriptors(intptr_t num_entries);
   RawExceptionHandlers* NewExceptionHandlers(intptr_t num_entries);
   RawStackmap* NewStackmap(intptr_t length);
@@ -447,18 +481,24 @@ class SnapshotReader : public BaseReader {
   RawObject* NewInteger(int64_t value);
   RawStacktrace* NewStacktrace();
   RawWeakProperty* NewWeakProperty();
-  RawJSRegExp* NewJSRegExp();
+  RawRegExp* NewRegExp();
 
   RawInstructions* GetInstructionsAt(int32_t offset, uword expected_tags) {
     return instructions_reader_->GetInstructionsAt(offset, expected_tags);
   }
 
+  RawObject* GetObjectAt(int32_t offset) {
+    return instructions_reader_->GetObjectAt(offset);
+  }
+
   const uint8_t* instructions_buffer_;
+  const uint8_t* data_buffer_;
 
  protected:
   SnapshotReader(const uint8_t* buffer,
                  intptr_t size,
                  const uint8_t* instructions_buffer,
+                 const uint8_t* data_buffer,
                  Snapshot::Kind kind,
                  ZoneGrowableArray<BackRefNode>* backward_references,
                  Thread* thread);
@@ -558,6 +598,7 @@ class SnapshotReader : public BaseReader {
   friend class Bigint;
   friend class BoundedType;
   friend class Class;
+  friend class Closure;
   friend class ClosureData;
   friend class Code;
   friend class Context;
@@ -569,7 +610,7 @@ class SnapshotReader : public BaseReader {
   friend class ICData;
   friend class ImmutableArray;
   friend class Instructions;
-  friend class JSRegExp;
+  friend class RegExp;
   friend class LanguageError;
   friend class Library;
   friend class LibraryPrefix;
@@ -603,6 +644,7 @@ class VmIsolateSnapshotReader : public SnapshotReader {
   VmIsolateSnapshotReader(const uint8_t* buffer,
                           intptr_t size,
                           const uint8_t* instructions_buffer,
+                          const uint8_t* data_buffer,
                           Thread* thread);
   ~VmIsolateSnapshotReader();
 
@@ -618,6 +660,7 @@ class IsolateSnapshotReader : public SnapshotReader {
   IsolateSnapshotReader(const uint8_t* buffer,
                         intptr_t size,
                         const uint8_t* instructions_buffer,
+                        const uint8_t* data_buffer,
                         Thread* thread);
   ~IsolateSnapshotReader();
 
@@ -806,8 +849,10 @@ class InstructionsWriter : public ZoneAllocated {
                      intptr_t initial_size)
     : stream_(buffer, alloc, initial_size),
       next_offset_(InstructionsSnapshot::kHeaderSize),
+      next_object_offset_(DataSnapshot::kHeaderSize),
       binary_size_(0),
-      instructions_() {
+      instructions_(),
+      objects_() {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
   }
@@ -818,6 +863,8 @@ class InstructionsWriter : public ZoneAllocated {
   intptr_t binary_size() { return binary_size_; }
 
   int32_t GetOffsetFor(RawInstructions* instructions);
+
+  int32_t GetObjectOffsetFor(RawObject* raw_object);
 
   void SetInstructionsCode(RawInstructions* insns, RawCode* code) {
     for (intptr_t i = 0; i < instructions_.length(); i++) {
@@ -846,6 +893,16 @@ class InstructionsWriter : public ZoneAllocated {
     };
   };
 
+  struct ObjectData {
+    explicit ObjectData(RawObject* raw_obj)
+        : raw_obj_(raw_obj) { }
+
+    union {
+      RawObject* raw_obj_;
+      const Object* obj_;
+    };
+  };
+
   void WriteWordLiteral(uword value) {
     // Padding is helpful for comparing the .S with --disassemble.
 #if defined(ARCH_IS_64_BIT)
@@ -858,8 +915,10 @@ class InstructionsWriter : public ZoneAllocated {
 
   WriteStream stream_;
   intptr_t next_offset_;
+  intptr_t next_object_offset_;
   intptr_t binary_size_;
   GrowableArray<InstructionsData> instructions_;
+  GrowableArray<ObjectData> objects_;
 
   DISALLOW_COPY_AND_ASSIGN(InstructionsWriter);
 };
@@ -915,20 +974,27 @@ class SnapshotWriter : public BaseWriter {
     return instructions_writer_->GetOffsetFor(instructions);
   }
 
+  int32_t GetObjectId(RawObject* raw) {
+    return instructions_writer_->GetObjectOffsetFor(raw);
+  }
+
   void SetInstructionsCode(RawInstructions* instructions, RawCode* code) {
     return instructions_writer_->SetInstructionsCode(instructions, code);
   }
 
   void WriteFunctionId(RawFunction* func, bool owner_is_class);
 
+  RawFunction* IsSerializableClosure(RawClosure* closure);
+
+  void WriteStaticImplicitClosure(intptr_t object_id,
+                                  RawFunction* func,
+                                  intptr_t tags);
+
  protected:
   bool CheckAndWritePredefinedObject(RawObject* raw);
   bool HandleVMIsolateObject(RawObject* raw);
 
   void WriteClassId(RawClass* cls);
-  void WriteStaticImplicitClosure(intptr_t object_id,
-                                  RawFunction* func,
-                                  intptr_t tags);
   void WriteObjectImpl(RawObject* raw, bool as_reference);
   void WriteMarkedObjectImpl(RawObject* raw,
                              intptr_t tags,
@@ -942,7 +1008,6 @@ class SnapshotWriter : public BaseWriter {
                     RawTypeArguments* type_arguments,
                     RawObject* data[],
                     bool as_reference);
-  RawFunction* IsSerializableClosure(RawClass* cls, RawObject* obj);
   RawClass* GetFunctionOwner(RawFunction* func);
   void CheckForNativeFields(RawClass* cls);
   void SetWriteException(Exceptions::ExceptionType type, const char* msg);
@@ -990,7 +1055,7 @@ class SnapshotWriter : public BaseWriter {
   friend class RawGrowableObjectArray;
   friend class RawImmutableArray;
   friend class RawInstructions;
-  friend class RawJSRegExp;
+  friend class RawRegExp;
   friend class RawLibrary;
   friend class RawLinkedHashMap;
   friend class RawLiteralToken;

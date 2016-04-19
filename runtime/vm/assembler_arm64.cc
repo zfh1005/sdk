@@ -21,10 +21,10 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, allow_absolute_addresses);
-DEFINE_FLAG(bool, use_far_branches, false, "Always use far branches");
-DEFINE_FLAG(bool, print_stop_message, false, "Print stop message.");
+DECLARE_FLAG(bool, check_code_pointer);
 DECLARE_FLAG(bool, inline_alloc);
+
+DEFINE_FLAG(bool, use_far_branches, false, "Always use far branches");
 
 
 Assembler::Assembler(bool use_far_branches)
@@ -367,6 +367,8 @@ intptr_t Assembler::FindImmediate(int64_t imm) {
 
 
 bool Assembler::CanLoadFromObjectPool(const Object& object) const {
+  ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
+  ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
   ASSERT(!Thread::CanLoadFromThread(object));
   if (!constant_pool_allowed()) {
     return false;
@@ -401,6 +403,8 @@ void Assembler::LoadIsolate(Register dst) {
 void Assembler::LoadObjectHelper(Register dst,
                                  const Object& object,
                                  bool is_unique) {
+  ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
+  ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
   if (Thread::CanLoadFromThread(object)) {
     ldr(dst, Address(THR, Thread::OffsetFromThread(object)));
   } else if (CanLoadFromObjectPool(object)) {
@@ -439,6 +443,8 @@ void Assembler::LoadUniqueObject(Register dst, const Object& object) {
 
 
 void Assembler::CompareObject(Register reg, const Object& object) {
+  ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
+  ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
   if (Thread::CanLoadFromThread(object)) {
     ldr(TMP, Address(THR, Thread::OffsetFromThread(object)));
     CompareRegisters(reg, TMP);
@@ -603,6 +609,24 @@ void Assembler::BranchLink(const StubEntry& stub_entry,
 
 void Assembler::BranchLinkPatchable(const StubEntry& stub_entry) {
   BranchLink(stub_entry, kPatchable);
+}
+
+
+void Assembler::BranchLinkToRuntime() {
+  ldr(LR, Address(THR, Thread::call_to_runtime_entry_point_offset()));
+  ldr(CODE_REG, Address(THR, Thread::call_to_runtime_stub_offset()));
+  blr(LR);
+}
+
+
+void Assembler::BranchLinkWithEquivalence(const StubEntry& stub_entry,
+                                          const Object& equivalence) {
+  const Code& target = Code::Handle(stub_entry.code());
+  const int32_t offset = ObjectPool::element_offset(
+      object_pool_wrapper_.FindObject(target, equivalence));
+  LoadWordFromPoolOffset(CODE_REG, offset);
+  ldr(TMP, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  blr(TMP);
 }
 
 
@@ -933,6 +957,8 @@ void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
 void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          const Object& value) {
+  ASSERT(!value.IsICData() || ICData::Cast(value).IsOriginal());
+  ASSERT(!value.IsField() || Field::Cast(value).IsOriginal());
   ASSERT(value.IsSmi() || value.InVMHeap() ||
          (value.IsOld() && value.IsNotTemporaryScopedHandle()));
   // No store buffer update.
@@ -1077,6 +1103,9 @@ void Assembler::RestoreCodePointer() {
 
 void Assembler::CheckCodePointer() {
 #ifdef DEBUG
+  if (!FLAG_check_code_pointer) {
+    return;
+  }
   Comment("CheckCodePointer");
   Label cid_ok, instructions_ok;
   Push(R0);

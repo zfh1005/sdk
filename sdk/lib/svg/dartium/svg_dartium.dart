@@ -27,9 +27,6 @@ import 'dart:js' as js;
 @Deprecated("Internal Use Only")
 final svgBlinkMap = {
   'SVGAElement': () => AElement,
-  'SVGAltGlyphDefElement': () => _SVGAltGlyphDefElement,
-  'SVGAltGlyphElement': () => AltGlyphElement,
-  'SVGAltGlyphItemElement': () => _SVGAltGlyphItemElement,
   'SVGAngle': () => Angle,
   'SVGAnimateElement': () => AnimateElement,
   'SVGAnimateMotionElement': () => AnimateMotionElement,
@@ -84,20 +81,11 @@ final svgBlinkMap = {
   'SVGFilterElement': () => FilterElement,
   'SVGFilterPrimitiveStandardAttributes': () => FilterPrimitiveStandardAttributes,
   'SVGFitToViewBox': () => FitToViewBox,
-  'SVGFontElement': () => _SVGFontElement,
-  'SVGFontFaceElement': () => _SVGFontFaceElement,
-  'SVGFontFaceFormatElement': () => _SVGFontFaceFormatElement,
-  'SVGFontFaceNameElement': () => _SVGFontFaceNameElement,
-  'SVGFontFaceSrcElement': () => _SVGFontFaceSrcElement,
-  'SVGFontFaceUriElement': () => _SVGFontFaceUriElement,
   'SVGForeignObjectElement': () => ForeignObjectElement,
   'SVGGElement': () => GElement,
   'SVGGeometryElement': () => GeometryElement,
-  'SVGGlyphElement': () => _SVGGlyphElement,
-  'SVGGlyphRefElement': () => _SVGGlyphRefElement,
   'SVGGradientElement': () => _GradientElement,
   'SVGGraphicsElement': () => GraphicsElement,
-  'SVGHKernElement': () => _SVGHKernElement,
   'SVGImageElement': () => ImageElement,
   'SVGLength': () => Length,
   'SVGLengthList': () => LengthList,
@@ -108,7 +96,6 @@ final svgBlinkMap = {
   'SVGMaskElement': () => MaskElement,
   'SVGMatrix': () => Matrix,
   'SVGMetadataElement': () => MetadataElement,
-  'SVGMissingGlyphElement': () => _SVGMissingGlyphElement,
   'SVGNumber': () => Number,
   'SVGNumberList': () => NumberList,
   'SVGPathElement': () => PathElement,
@@ -142,7 +129,6 @@ final svgBlinkMap = {
   'SVGRadialGradientElement': () => RadialGradientElement,
   'SVGRect': () => Rect,
   'SVGRectElement': () => RectElement,
-  'SVGRenderingIntent': () => RenderingIntent,
   'SVGSVGElement': () => SvgSvgElement,
   'SVGScriptElement': () => ScriptElement,
   'SVGSetElement': () => SetElement,
@@ -163,7 +149,6 @@ final svgBlinkMap = {
   'SVGURIReference': () => UriReference,
   'SVGUnitTypes': () => UnitTypes,
   'SVGUseElement': () => UseElement,
-  'SVGVKernElement': () => _SVGVKernElement,
   'SVGViewElement': () => ViewElement,
   'SVGViewSpec': () => ViewSpec,
   'SVGZoomAndPan': () => ZoomAndPan,
@@ -175,9 +160,6 @@ final svgBlinkMap = {
 @Deprecated("Internal Use Only")
 final svgBlinkFunctionMap = {
   'SVGAElement': () => AElement.internalCreateAElement,
-  'SVGAltGlyphDefElement': () => _SVGAltGlyphDefElement.internalCreate_SVGAltGlyphDefElement,
-  'SVGAltGlyphElement': () => AltGlyphElement.internalCreateAltGlyphElement,
-  'SVGAltGlyphItemElement': () => _SVGAltGlyphItemElement.internalCreate_SVGAltGlyphItemElement,
   'SVGAngle': () => Angle.internalCreateAngle,
   'SVGAnimateElement': () => AnimateElement.internalCreateAnimateElement,
   'SVGAnimateMotionElement': () => AnimateMotionElement.internalCreateAnimateMotionElement,
@@ -230,20 +212,11 @@ final svgBlinkFunctionMap = {
   'SVGFETileElement': () => FETileElement.internalCreateFETileElement,
   'SVGFETurbulenceElement': () => FETurbulenceElement.internalCreateFETurbulenceElement,
   'SVGFilterElement': () => FilterElement.internalCreateFilterElement,
-  'SVGFontElement': () => _SVGFontElement.internalCreate_SVGFontElement,
-  'SVGFontFaceElement': () => _SVGFontFaceElement.internalCreate_SVGFontFaceElement,
-  'SVGFontFaceFormatElement': () => _SVGFontFaceFormatElement.internalCreate_SVGFontFaceFormatElement,
-  'SVGFontFaceNameElement': () => _SVGFontFaceNameElement.internalCreate_SVGFontFaceNameElement,
-  'SVGFontFaceSrcElement': () => _SVGFontFaceSrcElement.internalCreate_SVGFontFaceSrcElement,
-  'SVGFontFaceUriElement': () => _SVGFontFaceUriElement.internalCreate_SVGFontFaceUriElement,
   'SVGForeignObjectElement': () => ForeignObjectElement.internalCreateForeignObjectElement,
   'SVGGElement': () => GElement.internalCreateGElement,
   'SVGGeometryElement': () => GeometryElement.internalCreateGeometryElement,
-  'SVGGlyphElement': () => _SVGGlyphElement.internalCreate_SVGGlyphElement,
-  'SVGGlyphRefElement': () => _SVGGlyphRefElement.internalCreate_SVGGlyphRefElement,
   'SVGGradientElement': () => _GradientElement.internalCreate_GradientElement,
   'SVGGraphicsElement': () => GraphicsElement.internalCreateGraphicsElement,
-  'SVGHKernElement': () => _SVGHKernElement.internalCreate_SVGHKernElement,
   'SVGImageElement': () => ImageElement.internalCreateImageElement,
   'SVGLength': () => Length.internalCreateLength,
   'SVGLengthList': () => LengthList.internalCreateLengthList,
@@ -254,7 +227,6 @@ final svgBlinkFunctionMap = {
   'SVGMaskElement': () => MaskElement.internalCreateMaskElement,
   'SVGMatrix': () => Matrix.internalCreateMatrix,
   'SVGMetadataElement': () => MetadataElement.internalCreateMetadataElement,
-  'SVGMissingGlyphElement': () => _SVGMissingGlyphElement.internalCreate_SVGMissingGlyphElement,
   'SVGNumber': () => Number.internalCreateNumber,
   'SVGNumberList': () => NumberList.internalCreateNumberList,
   'SVGPathElement': () => PathElement.internalCreatePathElement,
@@ -288,7 +260,6 @@ final svgBlinkFunctionMap = {
   'SVGRadialGradientElement': () => RadialGradientElement.internalCreateRadialGradientElement,
   'SVGRect': () => Rect.internalCreateRect,
   'SVGRectElement': () => RectElement.internalCreateRectElement,
-  'SVGRenderingIntent': () => RenderingIntent.internalCreateRenderingIntent,
   'SVGSVGElement': () => SvgSvgElement.internalCreateSvgSvgElement,
   'SVGScriptElement': () => ScriptElement.internalCreateScriptElement,
   'SVGSetElement': () => SetElement.internalCreateSetElement,
@@ -307,7 +278,6 @@ final svgBlinkFunctionMap = {
   'SVGTransformList': () => TransformList.internalCreateTransformList,
   'SVGUnitTypes': () => UnitTypes.internalCreateUnitTypes,
   'SVGUseElement': () => UseElement.internalCreateUseElement,
-  'SVGVKernElement': () => _SVGVKernElement.internalCreate_SVGVKernElement,
   'SVGViewElement': () => ViewElement.internalCreateViewElement,
   'SVGViewSpec': () => ViewSpec.internalCreateViewSpec,
   'SVGZoomEvent': () => ZoomEvent.internalCreateZoomEvent,
@@ -349,9 +319,7 @@ class AElement extends GraphicsElement implements UriReference {
     return new AElement._internalWrap();
   }
 
-  factory AElement._internalWrap() {
-    return new AElement.internal_();
-  }
+  external factory AElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   AElement.internal_() : super.internal_();
@@ -370,71 +338,6 @@ class AElement extends GraphicsElement implements UriReference {
   @DomName('SVGAElement.href')
   @DocsEditable()
   AnimatedString get href => wrap_jso(_blink.BlinkSVGAElement.instance.href_Getter_(unwrap_jso(this)));
-  
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('SVGAltGlyphElement')
-@SupportedBrowser(SupportedBrowser.CHROME)
-@SupportedBrowser(SupportedBrowser.FIREFOX)
-@SupportedBrowser(SupportedBrowser.SAFARI)
-@Unstable()
-class AltGlyphElement extends TextPositioningElement implements UriReference {
-  // To suppress missing implicit constructor warnings.
-  factory AltGlyphElement._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('SVGAltGlyphElement.SVGAltGlyphElement')
-  @DocsEditable()
-  factory AltGlyphElement() => _SvgElementFactoryProvider.createSvgElement_tag("altGlyph");
-
-
-  @Deprecated("Internal Use Only")
-  static AltGlyphElement internalCreateAltGlyphElement() {
-    return new AltGlyphElement._internalWrap();
-  }
-
-  factory AltGlyphElement._internalWrap() {
-    return new AltGlyphElement.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  AltGlyphElement.internal_() : super.internal_();
-
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  AltGlyphElement.created() : super.created();
-
-  /// Checks if this type is supported on the current platform.
-  static bool get supported => true;
-
-  @DomName('SVGAltGlyphElement.format')
-  @DocsEditable()
-  String get format => _blink.BlinkSVGAltGlyphElement.instance.format_Getter_(unwrap_jso(this));
-  
-  @DomName('SVGAltGlyphElement.format')
-  @DocsEditable()
-  set format(String value) => _blink.BlinkSVGAltGlyphElement.instance.format_Setter_(unwrap_jso(this), value);
-  
-  @DomName('SVGAltGlyphElement.glyphRef')
-  @DocsEditable()
-  String get glyphRef => _blink.BlinkSVGAltGlyphElement.instance.glyphRef_Getter_(unwrap_jso(this));
-  
-  @DomName('SVGAltGlyphElement.glyphRef')
-  @DocsEditable()
-  set glyphRef(String value) => _blink.BlinkSVGAltGlyphElement.instance.glyphRef_Setter_(unwrap_jso(this), value);
-  
-  @DomName('SVGAltGlyphElement.href')
-  @DocsEditable()
-  AnimatedString get href => wrap_jso(_blink.BlinkSVGAltGlyphElement.instance.href_Getter_(unwrap_jso(this)));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -550,9 +453,7 @@ class AnimateElement extends AnimationElement {
     return new AnimateElement._internalWrap();
   }
 
-  factory AnimateElement._internalWrap() {
-    return new AnimateElement.internal_();
-  }
+  external factory AnimateElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   AnimateElement.internal_() : super.internal_();
@@ -595,9 +496,7 @@ class AnimateMotionElement extends AnimationElement {
     return new AnimateMotionElement._internalWrap();
   }
 
-  factory AnimateMotionElement._internalWrap() {
-    return new AnimateMotionElement.internal_();
-  }
+  external factory AnimateMotionElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   AnimateMotionElement.internal_() : super.internal_();
@@ -640,9 +539,7 @@ class AnimateTransformElement extends AnimationElement {
     return new AnimateTransformElement._internalWrap();
   }
 
-  factory AnimateTransformElement._internalWrap() {
-    return new AnimateTransformElement.internal_();
-  }
+  external factory AnimateTransformElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   AnimateTransformElement.internal_() : super.internal_();
@@ -1158,9 +1055,7 @@ class AnimationElement extends SvgElement implements Tests {
     return new AnimationElement._internalWrap();
   }
 
-  factory AnimationElement._internalWrap() {
-    return new AnimationElement.internal_();
-  }
+  external factory AnimationElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   AnimationElement.internal_() : super.internal_();
@@ -1245,9 +1140,7 @@ class CircleElement extends GeometryElement {
     return new CircleElement._internalWrap();
   }
 
-  factory CircleElement._internalWrap() {
-    return new CircleElement.internal_();
-  }
+  external factory CircleElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   CircleElement.internal_() : super.internal_();
@@ -1296,9 +1189,7 @@ class ClipPathElement extends GraphicsElement {
     return new ClipPathElement._internalWrap();
   }
 
-  factory ClipPathElement._internalWrap() {
-    return new ClipPathElement.internal_();
-  }
+  external factory ClipPathElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   ClipPathElement.internal_() : super.internal_();
@@ -1339,9 +1230,7 @@ class DefsElement extends GraphicsElement {
     return new DefsElement._internalWrap();
   }
 
-  factory DefsElement._internalWrap() {
-    return new DefsElement.internal_();
-  }
+  external factory DefsElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   DefsElement.internal_() : super.internal_();
@@ -1378,9 +1267,7 @@ class DescElement extends SvgElement {
     return new DescElement._internalWrap();
   }
 
-  factory DescElement._internalWrap() {
-    return new DescElement.internal_();
-  }
+  external factory DescElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   DescElement.internal_() : super.internal_();
@@ -1413,9 +1300,7 @@ class DiscardElement extends SvgElement {
     return new DiscardElement._internalWrap();
   }
 
-  factory DiscardElement._internalWrap() {
-    return new DiscardElement.internal_();
-  }
+  external factory DiscardElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   DiscardElement.internal_() : super.internal_();
@@ -1452,9 +1337,7 @@ class EllipseElement extends GeometryElement {
     return new EllipseElement._internalWrap();
   }
 
-  factory EllipseElement._internalWrap() {
-    return new EllipseElement.internal_();
-  }
+  external factory EllipseElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   EllipseElement.internal_() : super.internal_();
@@ -1511,9 +1394,7 @@ class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttrib
     return new FEBlendElement._internalWrap();
   }
 
-  factory FEBlendElement._internalWrap() {
-    return new FEBlendElement.internal_();
-  }
+  external factory FEBlendElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEBlendElement.internal_() : super.internal_();
@@ -1613,9 +1494,7 @@ class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandard
     return new FEColorMatrixElement._internalWrap();
   }
 
-  factory FEColorMatrixElement._internalWrap() {
-    return new FEColorMatrixElement.internal_();
-  }
+  external factory FEColorMatrixElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEColorMatrixElement.internal_() : super.internal_();
@@ -1711,9 +1590,7 @@ class FEComponentTransferElement extends SvgElement implements FilterPrimitiveSt
     return new FEComponentTransferElement._internalWrap();
   }
 
-  factory FEComponentTransferElement._internalWrap() {
-    return new FEComponentTransferElement.internal_();
-  }
+  external factory FEComponentTransferElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEComponentTransferElement.internal_() : super.internal_();
@@ -1773,9 +1650,7 @@ class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAt
     return new FECompositeElement._internalWrap();
   }
 
-  factory FECompositeElement._internalWrap() {
-    return new FECompositeElement.internal_();
-  }
+  external factory FECompositeElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FECompositeElement.internal_() : super.internal_();
@@ -1892,9 +1767,7 @@ class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStand
     return new FEConvolveMatrixElement._internalWrap();
   }
 
-  factory FEConvolveMatrixElement._internalWrap() {
-    return new FEConvolveMatrixElement.internal_();
-  }
+  external factory FEConvolveMatrixElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEConvolveMatrixElement.internal_() : super.internal_();
@@ -2022,9 +1895,7 @@ class FEDiffuseLightingElement extends SvgElement implements FilterPrimitiveStan
     return new FEDiffuseLightingElement._internalWrap();
   }
 
-  factory FEDiffuseLightingElement._internalWrap() {
-    return new FEDiffuseLightingElement.internal_();
-  }
+  external factory FEDiffuseLightingElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEDiffuseLightingElement.internal_() : super.internal_();
@@ -2108,9 +1979,7 @@ class FEDisplacementMapElement extends SvgElement implements FilterPrimitiveStan
     return new FEDisplacementMapElement._internalWrap();
   }
 
-  factory FEDisplacementMapElement._internalWrap() {
-    return new FEDisplacementMapElement.internal_();
-  }
+  external factory FEDisplacementMapElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEDisplacementMapElement.internal_() : super.internal_();
@@ -2214,9 +2083,7 @@ class FEDistantLightElement extends SvgElement {
     return new FEDistantLightElement._internalWrap();
   }
 
-  factory FEDistantLightElement._internalWrap() {
-    return new FEDistantLightElement.internal_();
-  }
+  external factory FEDistantLightElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEDistantLightElement.internal_() : super.internal_();
@@ -2268,9 +2135,7 @@ class FEFloodElement extends SvgElement implements FilterPrimitiveStandardAttrib
     return new FEFloodElement._internalWrap();
   }
 
-  factory FEFloodElement._internalWrap() {
-    return new FEFloodElement.internal_();
-  }
+  external factory FEFloodElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEFloodElement.internal_() : super.internal_();
@@ -2334,9 +2199,7 @@ class FEFuncAElement extends _SVGComponentTransferFunctionElement {
     return new FEFuncAElement._internalWrap();
   }
 
-  factory FEFuncAElement._internalWrap() {
-    return new FEFuncAElement.internal_();
-  }
+  external factory FEFuncAElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEFuncAElement.internal_() : super.internal_();
@@ -2380,9 +2243,7 @@ class FEFuncBElement extends _SVGComponentTransferFunctionElement {
     return new FEFuncBElement._internalWrap();
   }
 
-  factory FEFuncBElement._internalWrap() {
-    return new FEFuncBElement.internal_();
-  }
+  external factory FEFuncBElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEFuncBElement.internal_() : super.internal_();
@@ -2426,9 +2287,7 @@ class FEFuncGElement extends _SVGComponentTransferFunctionElement {
     return new FEFuncGElement._internalWrap();
   }
 
-  factory FEFuncGElement._internalWrap() {
-    return new FEFuncGElement.internal_();
-  }
+  external factory FEFuncGElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEFuncGElement.internal_() : super.internal_();
@@ -2472,9 +2331,7 @@ class FEFuncRElement extends _SVGComponentTransferFunctionElement {
     return new FEFuncRElement._internalWrap();
   }
 
-  factory FEFuncRElement._internalWrap() {
-    return new FEFuncRElement.internal_();
-  }
+  external factory FEFuncRElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEFuncRElement.internal_() : super.internal_();
@@ -2518,9 +2375,7 @@ class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandar
     return new FEGaussianBlurElement._internalWrap();
   }
 
-  factory FEGaussianBlurElement._internalWrap() {
-    return new FEGaussianBlurElement.internal_();
-  }
+  external factory FEGaussianBlurElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEGaussianBlurElement.internal_() : super.internal_();
@@ -2600,9 +2455,7 @@ class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttrib
     return new FEImageElement._internalWrap();
   }
 
-  factory FEImageElement._internalWrap() {
-    return new FEImageElement.internal_();
-  }
+  external factory FEImageElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEImageElement.internal_() : super.internal_();
@@ -2674,9 +2527,7 @@ class FEMergeElement extends SvgElement implements FilterPrimitiveStandardAttrib
     return new FEMergeElement._internalWrap();
   }
 
-  factory FEMergeElement._internalWrap() {
-    return new FEMergeElement.internal_();
-  }
+  external factory FEMergeElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEMergeElement.internal_() : super.internal_();
@@ -2740,9 +2591,7 @@ class FEMergeNodeElement extends SvgElement {
     return new FEMergeNodeElement._internalWrap();
   }
 
-  factory FEMergeNodeElement._internalWrap() {
-    return new FEMergeNodeElement.internal_();
-  }
+  external factory FEMergeNodeElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEMergeNodeElement.internal_() : super.internal_();
@@ -2786,9 +2635,7 @@ class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardA
     return new FEMorphologyElement._internalWrap();
   }
 
-  factory FEMorphologyElement._internalWrap() {
-    return new FEMorphologyElement.internal_();
-  }
+  external factory FEMorphologyElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEMorphologyElement.internal_() : super.internal_();
@@ -2877,9 +2724,7 @@ class FEOffsetElement extends SvgElement implements FilterPrimitiveStandardAttri
     return new FEOffsetElement._internalWrap();
   }
 
-  factory FEOffsetElement._internalWrap() {
-    return new FEOffsetElement.internal_();
-  }
+  external factory FEOffsetElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEOffsetElement.internal_() : super.internal_();
@@ -2955,9 +2800,7 @@ class FEPointLightElement extends SvgElement {
     return new FEPointLightElement._internalWrap();
   }
 
-  factory FEPointLightElement._internalWrap() {
-    return new FEPointLightElement.internal_();
-  }
+  external factory FEPointLightElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEPointLightElement.internal_() : super.internal_();
@@ -3013,9 +2856,7 @@ class FESpecularLightingElement extends SvgElement implements FilterPrimitiveSta
     return new FESpecularLightingElement._internalWrap();
   }
 
-  factory FESpecularLightingElement._internalWrap() {
-    return new FESpecularLightingElement.internal_();
-  }
+  external factory FESpecularLightingElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FESpecularLightingElement.internal_() : super.internal_();
@@ -3033,6 +2874,16 @@ class FESpecularLightingElement extends SvgElement implements FilterPrimitiveSta
   @DomName('SVGFESpecularLightingElement.in1')
   @DocsEditable()
   AnimatedString get in1 => wrap_jso(_blink.BlinkSVGFESpecularLightingElement.instance.in1_Getter_(unwrap_jso(this)));
+  
+  @DomName('SVGFESpecularLightingElement.kernelUnitLengthX')
+  @DocsEditable()
+  @Experimental() // untriaged
+  AnimatedNumber get kernelUnitLengthX => wrap_jso(_blink.BlinkSVGFESpecularLightingElement.instance.kernelUnitLengthX_Getter_(unwrap_jso(this)));
+  
+  @DomName('SVGFESpecularLightingElement.kernelUnitLengthY')
+  @DocsEditable()
+  @Experimental() // untriaged
+  AnimatedNumber get kernelUnitLengthY => wrap_jso(_blink.BlinkSVGFESpecularLightingElement.instance.kernelUnitLengthY_Getter_(unwrap_jso(this)));
   
   @DomName('SVGFESpecularLightingElement.specularConstant')
   @DocsEditable()
@@ -3095,9 +2946,7 @@ class FESpotLightElement extends SvgElement {
     return new FESpotLightElement._internalWrap();
   }
 
-  factory FESpotLightElement._internalWrap() {
-    return new FESpotLightElement.internal_();
-  }
+  external factory FESpotLightElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FESpotLightElement.internal_() : super.internal_();
@@ -3173,9 +3022,7 @@ class FETileElement extends SvgElement implements FilterPrimitiveStandardAttribu
     return new FETileElement._internalWrap();
   }
 
-  factory FETileElement._internalWrap() {
-    return new FETileElement.internal_();
-  }
+  external factory FETileElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FETileElement.internal_() : super.internal_();
@@ -3243,9 +3090,7 @@ class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardA
     return new FETurbulenceElement._internalWrap();
   }
 
-  factory FETurbulenceElement._internalWrap() {
-    return new FETurbulenceElement.internal_();
-  }
+  external factory FETurbulenceElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FETurbulenceElement.internal_() : super.internal_();
@@ -3357,9 +3202,7 @@ class FilterElement extends SvgElement implements UriReference {
     return new FilterElement._internalWrap();
   }
 
-  factory FilterElement._internalWrap() {
-    return new FilterElement.internal_();
-  }
+  external factory FilterElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FilterElement.internal_() : super.internal_();
@@ -3374,14 +3217,6 @@ class FilterElement extends SvgElement implements UriReference {
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
-  @DomName('SVGFilterElement.filterResX')
-  @DocsEditable()
-  AnimatedInteger get filterResX => wrap_jso(_blink.BlinkSVGFilterElement.instance.filterResX_Getter_(unwrap_jso(this)));
-  
-  @DomName('SVGFilterElement.filterResY')
-  @DocsEditable()
-  AnimatedInteger get filterResY => wrap_jso(_blink.BlinkSVGFilterElement.instance.filterResY_Getter_(unwrap_jso(this)));
-  
   @DomName('SVGFilterElement.filterUnits')
   @DocsEditable()
   AnimatedEnumeration get filterUnits => wrap_jso(_blink.BlinkSVGFilterElement.instance.filterUnits_Getter_(unwrap_jso(this)));
@@ -3405,10 +3240,6 @@ class FilterElement extends SvgElement implements UriReference {
   @DomName('SVGFilterElement.y')
   @DocsEditable()
   AnimatedLength get y => wrap_jso(_blink.BlinkSVGFilterElement.instance.y_Getter_(unwrap_jso(this)));
-  
-  @DomName('SVGFilterElement.setFilterRes')
-  @DocsEditable()
-  void setFilterRes(int filterResX, int filterResY) => _blink.BlinkSVGFilterElement.instance.setFilterRes_Callback_2_(unwrap_jso(this), filterResX, filterResY);
   
   @DomName('SVGFilterElement.href')
   @DocsEditable()
@@ -3500,9 +3331,7 @@ class ForeignObjectElement extends GraphicsElement {
     return new ForeignObjectElement._internalWrap();
   }
 
-  factory ForeignObjectElement._internalWrap() {
-    return new ForeignObjectElement.internal_();
-  }
+  external factory ForeignObjectElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   ForeignObjectElement.internal_() : super.internal_();
@@ -3558,9 +3387,7 @@ class GElement extends GraphicsElement {
     return new GElement._internalWrap();
   }
 
-  factory GElement._internalWrap() {
-    return new GElement.internal_();
-  }
+  external factory GElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   GElement.internal_() : super.internal_();
@@ -3593,9 +3420,7 @@ class GeometryElement extends GraphicsElement {
     return new GeometryElement._internalWrap();
   }
 
-  factory GeometryElement._internalWrap() {
-    return new GeometryElement.internal_();
-  }
+  external factory GeometryElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   GeometryElement.internal_() : super.internal_();
@@ -3638,9 +3463,7 @@ class GraphicsElement extends SvgElement implements Tests {
     return new GraphicsElement._internalWrap();
   }
 
-  factory GraphicsElement._internalWrap() {
-    return new GraphicsElement.internal_();
-  }
+  external factory GraphicsElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   GraphicsElement.internal_() : super.internal_();
@@ -3732,9 +3555,7 @@ class ImageElement extends GraphicsElement implements UriReference {
     return new ImageElement._internalWrap();
   }
 
-  factory ImageElement._internalWrap() {
-    return new ImageElement.internal_();
-  }
+  external factory ImageElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   ImageElement.internal_() : super.internal_();
@@ -3966,11 +3787,11 @@ class LengthList extends DartHtmlDomObject with ListMixin<Length>, ImmutableList
   @DomName('SVGLengthList.__setter__')
   @DocsEditable()
   @Experimental() // untriaged
-  void __setter__(int index, Length value) => _blink.BlinkSVGLengthList.instance.$__setter___Callback_2_(unwrap_jso(this), index, unwrap_jso(value));
+  void __setter__(int index, Length newItem) => _blink.BlinkSVGLengthList.instance.$__setter___Callback_2_(unwrap_jso(this), index, unwrap_jso(newItem));
   
   @DomName('SVGLengthList.appendItem')
   @DocsEditable()
-  Length appendItem(Length item) => wrap_jso(_blink.BlinkSVGLengthList.instance.appendItem_Callback_1_(unwrap_jso(this), unwrap_jso(item)));
+  Length appendItem(Length newItem) => wrap_jso(_blink.BlinkSVGLengthList.instance.appendItem_Callback_1_(unwrap_jso(this), unwrap_jso(newItem)));
   
   @DomName('SVGLengthList.clear')
   @DocsEditable()
@@ -3982,11 +3803,11 @@ class LengthList extends DartHtmlDomObject with ListMixin<Length>, ImmutableList
   
   @DomName('SVGLengthList.initialize')
   @DocsEditable()
-  Length initialize(Length item) => wrap_jso(_blink.BlinkSVGLengthList.instance.initialize_Callback_1_(unwrap_jso(this), unwrap_jso(item)));
+  Length initialize(Length newItem) => wrap_jso(_blink.BlinkSVGLengthList.instance.initialize_Callback_1_(unwrap_jso(this), unwrap_jso(newItem)));
   
   @DomName('SVGLengthList.insertItemBefore')
   @DocsEditable()
-  Length insertItemBefore(Length item, int index) => wrap_jso(_blink.BlinkSVGLengthList.instance.insertItemBefore_Callback_2_(unwrap_jso(this), unwrap_jso(item), index));
+  Length insertItemBefore(Length newItem, int index) => wrap_jso(_blink.BlinkSVGLengthList.instance.insertItemBefore_Callback_2_(unwrap_jso(this), unwrap_jso(newItem), index));
   
   @DomName('SVGLengthList.removeItem')
   @DocsEditable()
@@ -3994,7 +3815,7 @@ class LengthList extends DartHtmlDomObject with ListMixin<Length>, ImmutableList
   
   @DomName('SVGLengthList.replaceItem')
   @DocsEditable()
-  Length replaceItem(Length item, int index) => wrap_jso(_blink.BlinkSVGLengthList.instance.replaceItem_Callback_2_(unwrap_jso(this), unwrap_jso(item), index));
+  Length replaceItem(Length newItem, int index) => wrap_jso(_blink.BlinkSVGLengthList.instance.replaceItem_Callback_2_(unwrap_jso(this), unwrap_jso(newItem), index));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4021,9 +3842,7 @@ class LineElement extends GeometryElement {
     return new LineElement._internalWrap();
   }
 
-  factory LineElement._internalWrap() {
-    return new LineElement.internal_();
-  }
+  external factory LineElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   LineElement.internal_() : super.internal_();
@@ -4076,9 +3895,7 @@ class LinearGradientElement extends _GradientElement {
     return new LinearGradientElement._internalWrap();
   }
 
-  factory LinearGradientElement._internalWrap() {
-    return new LinearGradientElement.internal_();
-  }
+  external factory LinearGradientElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   LinearGradientElement.internal_() : super.internal_();
@@ -4131,9 +3948,7 @@ class MarkerElement extends SvgElement implements FitToViewBox {
     return new MarkerElement._internalWrap();
   }
 
-  factory MarkerElement._internalWrap() {
-    return new MarkerElement.internal_();
-  }
+  external factory MarkerElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   MarkerElement.internal_() : super.internal_();
@@ -4238,9 +4053,7 @@ class MaskElement extends SvgElement implements Tests {
     return new MaskElement._internalWrap();
   }
 
-  factory MaskElement._internalWrap() {
-    return new MaskElement.internal_();
-  }
+  external factory MaskElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   MaskElement.internal_() : super.internal_();
@@ -4435,9 +4248,7 @@ class MetadataElement extends SvgElement {
     return new MetadataElement._internalWrap();
   }
 
-  factory MetadataElement._internalWrap() {
-    return new MetadataElement.internal_();
-  }
+  external factory MetadataElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   MetadataElement.internal_() : super.internal_();
@@ -4573,11 +4384,11 @@ class NumberList extends DartHtmlDomObject with ListMixin<Number>, ImmutableList
   @DomName('SVGNumberList.__setter__')
   @DocsEditable()
   @Experimental() // untriaged
-  void __setter__(int index, Number value) => _blink.BlinkSVGNumberList.instance.$__setter___Callback_2_(unwrap_jso(this), index, unwrap_jso(value));
+  void __setter__(int index, Number newItem) => _blink.BlinkSVGNumberList.instance.$__setter___Callback_2_(unwrap_jso(this), index, unwrap_jso(newItem));
   
   @DomName('SVGNumberList.appendItem')
   @DocsEditable()
-  Number appendItem(Number item) => wrap_jso(_blink.BlinkSVGNumberList.instance.appendItem_Callback_1_(unwrap_jso(this), unwrap_jso(item)));
+  Number appendItem(Number newItem) => wrap_jso(_blink.BlinkSVGNumberList.instance.appendItem_Callback_1_(unwrap_jso(this), unwrap_jso(newItem)));
   
   @DomName('SVGNumberList.clear')
   @DocsEditable()
@@ -4589,11 +4400,11 @@ class NumberList extends DartHtmlDomObject with ListMixin<Number>, ImmutableList
   
   @DomName('SVGNumberList.initialize')
   @DocsEditable()
-  Number initialize(Number item) => wrap_jso(_blink.BlinkSVGNumberList.instance.initialize_Callback_1_(unwrap_jso(this), unwrap_jso(item)));
+  Number initialize(Number newItem) => wrap_jso(_blink.BlinkSVGNumberList.instance.initialize_Callback_1_(unwrap_jso(this), unwrap_jso(newItem)));
   
   @DomName('SVGNumberList.insertItemBefore')
   @DocsEditable()
-  Number insertItemBefore(Number item, int index) => wrap_jso(_blink.BlinkSVGNumberList.instance.insertItemBefore_Callback_2_(unwrap_jso(this), unwrap_jso(item), index));
+  Number insertItemBefore(Number newItem, int index) => wrap_jso(_blink.BlinkSVGNumberList.instance.insertItemBefore_Callback_2_(unwrap_jso(this), unwrap_jso(newItem), index));
   
   @DomName('SVGNumberList.removeItem')
   @DocsEditable()
@@ -4601,7 +4412,7 @@ class NumberList extends DartHtmlDomObject with ListMixin<Number>, ImmutableList
   
   @DomName('SVGNumberList.replaceItem')
   @DocsEditable()
-  Number replaceItem(Number item, int index) => wrap_jso(_blink.BlinkSVGNumberList.instance.replaceItem_Callback_2_(unwrap_jso(this), unwrap_jso(item), index));
+  Number replaceItem(Number newItem, int index) => wrap_jso(_blink.BlinkSVGNumberList.instance.replaceItem_Callback_2_(unwrap_jso(this), unwrap_jso(newItem), index));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4628,9 +4439,7 @@ class PathElement extends GeometryElement {
     return new PathElement._internalWrap();
   }
 
-  factory PathElement._internalWrap() {
-    return new PathElement.internal_();
-  }
+  external factory PathElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathElement.internal_() : super.internal_();
@@ -4889,9 +4698,7 @@ class PathSegArcAbs extends PathSeg {
     return new PathSegArcAbs._internalWrap();
   }
 
-  factory PathSegArcAbs._internalWrap() {
-    return new PathSegArcAbs.internal_();
-  }
+  external factory PathSegArcAbs._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegArcAbs.internal_() : super.internal_();
@@ -4974,9 +4781,7 @@ class PathSegArcRel extends PathSeg {
     return new PathSegArcRel._internalWrap();
   }
 
-  factory PathSegArcRel._internalWrap() {
-    return new PathSegArcRel.internal_();
-  }
+  external factory PathSegArcRel._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegArcRel.internal_() : super.internal_();
@@ -5059,9 +4864,7 @@ class PathSegClosePath extends PathSeg {
     return new PathSegClosePath._internalWrap();
   }
 
-  factory PathSegClosePath._internalWrap() {
-    return new PathSegClosePath.internal_();
-  }
+  external factory PathSegClosePath._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegClosePath.internal_() : super.internal_();
@@ -5088,9 +4891,7 @@ class PathSegCurvetoCubicAbs extends PathSeg {
     return new PathSegCurvetoCubicAbs._internalWrap();
   }
 
-  factory PathSegCurvetoCubicAbs._internalWrap() {
-    return new PathSegCurvetoCubicAbs.internal_();
-  }
+  external factory PathSegCurvetoCubicAbs._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegCurvetoCubicAbs.internal_() : super.internal_();
@@ -5165,9 +4966,7 @@ class PathSegCurvetoCubicRel extends PathSeg {
     return new PathSegCurvetoCubicRel._internalWrap();
   }
 
-  factory PathSegCurvetoCubicRel._internalWrap() {
-    return new PathSegCurvetoCubicRel.internal_();
-  }
+  external factory PathSegCurvetoCubicRel._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegCurvetoCubicRel.internal_() : super.internal_();
@@ -5242,9 +5041,7 @@ class PathSegCurvetoCubicSmoothAbs extends PathSeg {
     return new PathSegCurvetoCubicSmoothAbs._internalWrap();
   }
 
-  factory PathSegCurvetoCubicSmoothAbs._internalWrap() {
-    return new PathSegCurvetoCubicSmoothAbs.internal_();
-  }
+  external factory PathSegCurvetoCubicSmoothAbs._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegCurvetoCubicSmoothAbs.internal_() : super.internal_();
@@ -5303,9 +5100,7 @@ class PathSegCurvetoCubicSmoothRel extends PathSeg {
     return new PathSegCurvetoCubicSmoothRel._internalWrap();
   }
 
-  factory PathSegCurvetoCubicSmoothRel._internalWrap() {
-    return new PathSegCurvetoCubicSmoothRel.internal_();
-  }
+  external factory PathSegCurvetoCubicSmoothRel._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegCurvetoCubicSmoothRel.internal_() : super.internal_();
@@ -5364,9 +5159,7 @@ class PathSegCurvetoQuadraticAbs extends PathSeg {
     return new PathSegCurvetoQuadraticAbs._internalWrap();
   }
 
-  factory PathSegCurvetoQuadraticAbs._internalWrap() {
-    return new PathSegCurvetoQuadraticAbs.internal_();
-  }
+  external factory PathSegCurvetoQuadraticAbs._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegCurvetoQuadraticAbs.internal_() : super.internal_();
@@ -5425,9 +5218,7 @@ class PathSegCurvetoQuadraticRel extends PathSeg {
     return new PathSegCurvetoQuadraticRel._internalWrap();
   }
 
-  factory PathSegCurvetoQuadraticRel._internalWrap() {
-    return new PathSegCurvetoQuadraticRel.internal_();
-  }
+  external factory PathSegCurvetoQuadraticRel._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegCurvetoQuadraticRel.internal_() : super.internal_();
@@ -5486,9 +5277,7 @@ class PathSegCurvetoQuadraticSmoothAbs extends PathSeg {
     return new PathSegCurvetoQuadraticSmoothAbs._internalWrap();
   }
 
-  factory PathSegCurvetoQuadraticSmoothAbs._internalWrap() {
-    return new PathSegCurvetoQuadraticSmoothAbs.internal_();
-  }
+  external factory PathSegCurvetoQuadraticSmoothAbs._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegCurvetoQuadraticSmoothAbs.internal_() : super.internal_();
@@ -5531,9 +5320,7 @@ class PathSegCurvetoQuadraticSmoothRel extends PathSeg {
     return new PathSegCurvetoQuadraticSmoothRel._internalWrap();
   }
 
-  factory PathSegCurvetoQuadraticSmoothRel._internalWrap() {
-    return new PathSegCurvetoQuadraticSmoothRel.internal_();
-  }
+  external factory PathSegCurvetoQuadraticSmoothRel._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegCurvetoQuadraticSmoothRel.internal_() : super.internal_();
@@ -5576,9 +5363,7 @@ class PathSegLinetoAbs extends PathSeg {
     return new PathSegLinetoAbs._internalWrap();
   }
 
-  factory PathSegLinetoAbs._internalWrap() {
-    return new PathSegLinetoAbs.internal_();
-  }
+  external factory PathSegLinetoAbs._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegLinetoAbs.internal_() : super.internal_();
@@ -5621,9 +5406,7 @@ class PathSegLinetoHorizontalAbs extends PathSeg {
     return new PathSegLinetoHorizontalAbs._internalWrap();
   }
 
-  factory PathSegLinetoHorizontalAbs._internalWrap() {
-    return new PathSegLinetoHorizontalAbs.internal_();
-  }
+  external factory PathSegLinetoHorizontalAbs._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegLinetoHorizontalAbs.internal_() : super.internal_();
@@ -5658,9 +5441,7 @@ class PathSegLinetoHorizontalRel extends PathSeg {
     return new PathSegLinetoHorizontalRel._internalWrap();
   }
 
-  factory PathSegLinetoHorizontalRel._internalWrap() {
-    return new PathSegLinetoHorizontalRel.internal_();
-  }
+  external factory PathSegLinetoHorizontalRel._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegLinetoHorizontalRel.internal_() : super.internal_();
@@ -5695,9 +5476,7 @@ class PathSegLinetoRel extends PathSeg {
     return new PathSegLinetoRel._internalWrap();
   }
 
-  factory PathSegLinetoRel._internalWrap() {
-    return new PathSegLinetoRel.internal_();
-  }
+  external factory PathSegLinetoRel._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegLinetoRel.internal_() : super.internal_();
@@ -5740,9 +5519,7 @@ class PathSegLinetoVerticalAbs extends PathSeg {
     return new PathSegLinetoVerticalAbs._internalWrap();
   }
 
-  factory PathSegLinetoVerticalAbs._internalWrap() {
-    return new PathSegLinetoVerticalAbs.internal_();
-  }
+  external factory PathSegLinetoVerticalAbs._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegLinetoVerticalAbs.internal_() : super.internal_();
@@ -5777,9 +5554,7 @@ class PathSegLinetoVerticalRel extends PathSeg {
     return new PathSegLinetoVerticalRel._internalWrap();
   }
 
-  factory PathSegLinetoVerticalRel._internalWrap() {
-    return new PathSegLinetoVerticalRel.internal_();
-  }
+  external factory PathSegLinetoVerticalRel._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegLinetoVerticalRel.internal_() : super.internal_();
@@ -5879,7 +5654,7 @@ class PathSegList extends DartHtmlDomObject with ListMixin<PathSeg>, ImmutableLi
   @DomName('SVGPathSegList.__setter__')
   @DocsEditable()
   @Experimental() // untriaged
-  void __setter__(int index, PathSeg value) => _blink.BlinkSVGPathSegList.instance.$__setter___Callback_2_(unwrap_jso(this), index, unwrap_jso(value));
+  void __setter__(int index, PathSeg newItem) => _blink.BlinkSVGPathSegList.instance.$__setter___Callback_2_(unwrap_jso(this), index, unwrap_jso(newItem));
   
   @DomName('SVGPathSegList.appendItem')
   @DocsEditable()
@@ -5930,9 +5705,7 @@ class PathSegMovetoAbs extends PathSeg {
     return new PathSegMovetoAbs._internalWrap();
   }
 
-  factory PathSegMovetoAbs._internalWrap() {
-    return new PathSegMovetoAbs.internal_();
-  }
+  external factory PathSegMovetoAbs._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegMovetoAbs.internal_() : super.internal_();
@@ -5975,9 +5748,7 @@ class PathSegMovetoRel extends PathSeg {
     return new PathSegMovetoRel._internalWrap();
   }
 
-  factory PathSegMovetoRel._internalWrap() {
-    return new PathSegMovetoRel.internal_();
-  }
+  external factory PathSegMovetoRel._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegMovetoRel.internal_() : super.internal_();
@@ -6024,9 +5795,7 @@ class PatternElement extends SvgElement implements FitToViewBox, UriReference, T
     return new PatternElement._internalWrap();
   }
 
-  factory PatternElement._internalWrap() {
-    return new PatternElement.internal_();
-  }
+  external factory PatternElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   PatternElement.internal_() : super.internal_();
@@ -6186,11 +5955,11 @@ class PointList extends DartHtmlDomObject {
   @DomName('SVGPointList.__setter__')
   @DocsEditable()
   @Experimental() // untriaged
-  void __setter__(int index, Point value) => _blink.BlinkSVGPointList.instance.$__setter___Callback_2_(unwrap_jso(this), index, unwrap_jso(value));
+  void __setter__(int index, Point newItem) => _blink.BlinkSVGPointList.instance.$__setter___Callback_2_(unwrap_jso(this), index, unwrap_jso(newItem));
   
   @DomName('SVGPointList.appendItem')
   @DocsEditable()
-  Point appendItem(Point item) => wrap_jso(_blink.BlinkSVGPointList.instance.appendItem_Callback_1_(unwrap_jso(this), unwrap_jso(item)));
+  Point appendItem(Point newItem) => wrap_jso(_blink.BlinkSVGPointList.instance.appendItem_Callback_1_(unwrap_jso(this), unwrap_jso(newItem)));
   
   @DomName('SVGPointList.clear')
   @DocsEditable()
@@ -6202,11 +5971,11 @@ class PointList extends DartHtmlDomObject {
   
   @DomName('SVGPointList.initialize')
   @DocsEditable()
-  Point initialize(Point item) => wrap_jso(_blink.BlinkSVGPointList.instance.initialize_Callback_1_(unwrap_jso(this), unwrap_jso(item)));
+  Point initialize(Point newItem) => wrap_jso(_blink.BlinkSVGPointList.instance.initialize_Callback_1_(unwrap_jso(this), unwrap_jso(newItem)));
   
   @DomName('SVGPointList.insertItemBefore')
   @DocsEditable()
-  Point insertItemBefore(Point item, int index) => wrap_jso(_blink.BlinkSVGPointList.instance.insertItemBefore_Callback_2_(unwrap_jso(this), unwrap_jso(item), index));
+  Point insertItemBefore(Point newItem, int index) => wrap_jso(_blink.BlinkSVGPointList.instance.insertItemBefore_Callback_2_(unwrap_jso(this), unwrap_jso(newItem), index));
   
   @DomName('SVGPointList.removeItem')
   @DocsEditable()
@@ -6214,7 +5983,7 @@ class PointList extends DartHtmlDomObject {
   
   @DomName('SVGPointList.replaceItem')
   @DocsEditable()
-  Point replaceItem(Point item, int index) => wrap_jso(_blink.BlinkSVGPointList.instance.replaceItem_Callback_2_(unwrap_jso(this), unwrap_jso(item), index));
+  Point replaceItem(Point newItem, int index) => wrap_jso(_blink.BlinkSVGPointList.instance.replaceItem_Callback_2_(unwrap_jso(this), unwrap_jso(newItem), index));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6241,9 +6010,7 @@ class PolygonElement extends GeometryElement {
     return new PolygonElement._internalWrap();
   }
 
-  factory PolygonElement._internalWrap() {
-    return new PolygonElement.internal_();
-  }
+  external factory PolygonElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   PolygonElement.internal_() : super.internal_();
@@ -6288,9 +6055,7 @@ class PolylineElement extends GeometryElement {
     return new PolylineElement._internalWrap();
   }
 
-  factory PolylineElement._internalWrap() {
-    return new PolylineElement.internal_();
-  }
+  external factory PolylineElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   PolylineElement.internal_() : super.internal_();
@@ -6437,9 +6202,7 @@ class RadialGradientElement extends _GradientElement {
     return new RadialGradientElement._internalWrap();
   }
 
-  factory RadialGradientElement._internalWrap() {
-    return new RadialGradientElement.internal_();
-  }
+  external factory RadialGradientElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   RadialGradientElement.internal_() : super.internal_();
@@ -6562,9 +6325,7 @@ class RectElement extends GeometryElement {
     return new RectElement._internalWrap();
   }
 
-  factory RectElement._internalWrap() {
-    return new RectElement.internal_();
-  }
+  external factory RectElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   RectElement.internal_() : super.internal_();
@@ -6609,60 +6370,6 @@ class RectElement extends GeometryElement {
 
 
 @DocsEditable()
-@DomName('SVGRenderingIntent')
-@Unstable()
-class RenderingIntent extends DartHtmlDomObject {
-  // To suppress missing implicit constructor warnings.
-  factory RenderingIntent._() { throw new UnsupportedError("Not supported"); }
-
-  @Deprecated("Internal Use Only")
-  static RenderingIntent internalCreateRenderingIntent() {
-    return new RenderingIntent._internalWrap();
-  }
-
-  factory RenderingIntent._internalWrap() {
-    return new RenderingIntent.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  RenderingIntent.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
-  @DomName('SVGRenderingIntent.RENDERING_INTENT_ABSOLUTE_COLORIMETRIC')
-  @DocsEditable()
-  static const int RENDERING_INTENT_ABSOLUTE_COLORIMETRIC = 5;
-
-  @DomName('SVGRenderingIntent.RENDERING_INTENT_AUTO')
-  @DocsEditable()
-  static const int RENDERING_INTENT_AUTO = 1;
-
-  @DomName('SVGRenderingIntent.RENDERING_INTENT_PERCEPTUAL')
-  @DocsEditable()
-  static const int RENDERING_INTENT_PERCEPTUAL = 2;
-
-  @DomName('SVGRenderingIntent.RENDERING_INTENT_RELATIVE_COLORIMETRIC')
-  @DocsEditable()
-  static const int RENDERING_INTENT_RELATIVE_COLORIMETRIC = 3;
-
-  @DomName('SVGRenderingIntent.RENDERING_INTENT_SATURATION')
-  @DocsEditable()
-  static const int RENDERING_INTENT_SATURATION = 4;
-
-  @DomName('SVGRenderingIntent.RENDERING_INTENT_UNKNOWN')
-  @DocsEditable()
-  static const int RENDERING_INTENT_UNKNOWN = 0;
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
 @DomName('SVGScriptElement')
 @Unstable()
 class ScriptElement extends SvgElement implements UriReference {
@@ -6679,9 +6386,7 @@ class ScriptElement extends SvgElement implements UriReference {
     return new ScriptElement._internalWrap();
   }
 
-  factory ScriptElement._internalWrap() {
-    return new ScriptElement.internal_();
-  }
+  external factory ScriptElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   ScriptElement.internal_() : super.internal_();
@@ -6733,9 +6438,7 @@ class SetElement extends AnimationElement {
     return new SetElement._internalWrap();
   }
 
-  factory SetElement._internalWrap() {
-    return new SetElement.internal_();
-  }
+  external factory SetElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   SetElement.internal_() : super.internal_();
@@ -6775,9 +6478,7 @@ class StopElement extends SvgElement {
     return new StopElement._internalWrap();
   }
 
-  factory StopElement._internalWrap() {
-    return new StopElement.internal_();
-  }
+  external factory StopElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   StopElement.internal_() : super.internal_();
@@ -6879,11 +6580,11 @@ class StringList extends DartHtmlDomObject with ListMixin<String>, ImmutableList
   @DomName('SVGStringList.__setter__')
   @DocsEditable()
   @Experimental() // untriaged
-  void __setter__(int index, String value) => _blink.BlinkSVGStringList.instance.$__setter___Callback_2_(unwrap_jso(this), index, value);
+  void __setter__(int index, String newItem) => _blink.BlinkSVGStringList.instance.$__setter___Callback_2_(unwrap_jso(this), index, newItem);
   
   @DomName('SVGStringList.appendItem')
   @DocsEditable()
-  String appendItem(String item) => _blink.BlinkSVGStringList.instance.appendItem_Callback_1_(unwrap_jso(this), item);
+  String appendItem(String newItem) => _blink.BlinkSVGStringList.instance.appendItem_Callback_1_(unwrap_jso(this), newItem);
   
   @DomName('SVGStringList.clear')
   @DocsEditable()
@@ -6895,7 +6596,7 @@ class StringList extends DartHtmlDomObject with ListMixin<String>, ImmutableList
   
   @DomName('SVGStringList.initialize')
   @DocsEditable()
-  String initialize(String item) => _blink.BlinkSVGStringList.instance.initialize_Callback_1_(unwrap_jso(this), item);
+  String initialize(String newItem) => _blink.BlinkSVGStringList.instance.initialize_Callback_1_(unwrap_jso(this), newItem);
   
   @DomName('SVGStringList.insertItemBefore')
   @DocsEditable()
@@ -6907,7 +6608,7 @@ class StringList extends DartHtmlDomObject with ListMixin<String>, ImmutableList
   
   @DomName('SVGStringList.replaceItem')
   @DocsEditable()
-  String replaceItem(String item, int index) => _blink.BlinkSVGStringList.instance.replaceItem_Callback_2_(unwrap_jso(this), item, index);
+  String replaceItem(String newItem, int index) => _blink.BlinkSVGStringList.instance.replaceItem_Callback_2_(unwrap_jso(this), newItem, index);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6935,9 +6636,7 @@ class StyleElement extends SvgElement {
     return new StyleElement._internalWrap();
   }
 
-  factory StyleElement._internalWrap() {
-    return new StyleElement.internal_();
-  }
+  external factory StyleElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   StyleElement.internal_() : super.internal_();
@@ -7416,9 +7115,7 @@ class SvgElement extends Element implements GlobalEventHandlers {
     return new SvgElement._internalWrap();
   }
 
-  factory SvgElement._internalWrap() {
-    return new SvgElement.internal_();
-  }
+  external factory SvgElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   SvgElement.internal_() : super.internal_();
@@ -7458,33 +7155,15 @@ class SvgElement extends Element implements GlobalEventHandlers {
   @DocsEditable()
   SvgElement get viewportElement => wrap_jso(_blink.BlinkSVGElement.instance.viewportElement_Getter_(unwrap_jso(this)));
   
-  @DomName('SVGElement.xmlbase')
-  @DocsEditable()
-  String get xmlbase => _blink.BlinkSVGElement.instance.xmlbase_Getter_(unwrap_jso(this));
-  
-  @DomName('SVGElement.xmlbase')
-  @DocsEditable()
-  set xmlbase(String value) => _blink.BlinkSVGElement.instance.xmlbase_Setter_(unwrap_jso(this), value);
-  
-  @DomName('SVGElement.xmllang')
+  @DomName('SVGElement.blur')
   @DocsEditable()
   @Experimental() // untriaged
-  String get xmllang => _blink.BlinkSVGElement.instance.xmllang_Getter_(unwrap_jso(this));
+  void blur() => _blink.BlinkSVGElement.instance.blur_Callback_0_(unwrap_jso(this));
   
-  @DomName('SVGElement.xmllang')
+  @DomName('SVGElement.focus')
   @DocsEditable()
   @Experimental() // untriaged
-  set xmllang(String value) => _blink.BlinkSVGElement.instance.xmllang_Setter_(unwrap_jso(this), value);
-  
-  @DomName('SVGElement.xmlspace')
-  @DocsEditable()
-  @Experimental() // untriaged
-  String get xmlspace => _blink.BlinkSVGElement.instance.xmlspace_Getter_(unwrap_jso(this));
-  
-  @DomName('SVGElement.xmlspace')
-  @DocsEditable()
-  @Experimental() // untriaged
-  set xmlspace(String value) => _blink.BlinkSVGElement.instance.xmlspace_Setter_(unwrap_jso(this), value);
+  void focus() => _blink.BlinkSVGElement.instance.focus_Callback_0_(unwrap_jso(this));
   
   @DomName('SVGElement.onabort')
   @DocsEditable()
@@ -7771,9 +7450,7 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ZoomAndPan 
     return new SvgSvgElement._internalWrap();
   }
 
-  factory SvgSvgElement._internalWrap() {
-    return new SvgSvgElement.internal_();
-  }
+  external factory SvgSvgElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   SvgSvgElement.internal_() : super.internal_();
@@ -7974,9 +7651,7 @@ class SwitchElement extends GraphicsElement {
     return new SwitchElement._internalWrap();
   }
 
-  factory SwitchElement._internalWrap() {
-    return new SwitchElement.internal_();
-  }
+  external factory SwitchElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   SwitchElement.internal_() : super.internal_();
@@ -8013,9 +7688,7 @@ class SymbolElement extends SvgElement implements FitToViewBox {
     return new SymbolElement._internalWrap();
   }
 
-  factory SymbolElement._internalWrap() {
-    return new SymbolElement.internal_();
-  }
+  external factory SymbolElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   SymbolElement.internal_() : super.internal_();
@@ -8060,9 +7733,7 @@ class TSpanElement extends TextPositioningElement {
     return new TSpanElement._internalWrap();
   }
 
-  factory TSpanElement._internalWrap() {
-    return new TSpanElement.internal_();
-  }
+  external factory TSpanElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   TSpanElement.internal_() : super.internal_();
@@ -8126,9 +7797,7 @@ class TextContentElement extends GraphicsElement {
     return new TextContentElement._internalWrap();
   }
 
-  factory TextContentElement._internalWrap() {
-    return new TextContentElement.internal_();
-  }
+  external factory TextContentElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   TextContentElement.internal_() : super.internal_();
@@ -8170,11 +7839,11 @@ class TextContentElement extends GraphicsElement {
   
   @DomName('SVGTextContentElement.getEndPositionOfChar')
   @DocsEditable()
-  Point getEndPositionOfChar(int offset) => wrap_jso(_blink.BlinkSVGTextContentElement.instance.getEndPositionOfChar_Callback_1_(unwrap_jso(this), offset));
+  Point getEndPositionOfChar(int charnum) => wrap_jso(_blink.BlinkSVGTextContentElement.instance.getEndPositionOfChar_Callback_1_(unwrap_jso(this), charnum));
   
   @DomName('SVGTextContentElement.getExtentOfChar')
   @DocsEditable()
-  Rect getExtentOfChar(int offset) => wrap_jso(_blink.BlinkSVGTextContentElement.instance.getExtentOfChar_Callback_1_(unwrap_jso(this), offset));
+  Rect getExtentOfChar(int charnum) => wrap_jso(_blink.BlinkSVGTextContentElement.instance.getExtentOfChar_Callback_1_(unwrap_jso(this), charnum));
   
   @DomName('SVGTextContentElement.getNumberOfChars')
   @DocsEditable()
@@ -8182,19 +7851,19 @@ class TextContentElement extends GraphicsElement {
   
   @DomName('SVGTextContentElement.getRotationOfChar')
   @DocsEditable()
-  num getRotationOfChar(int offset) => _blink.BlinkSVGTextContentElement.instance.getRotationOfChar_Callback_1_(unwrap_jso(this), offset);
+  num getRotationOfChar(int charnum) => _blink.BlinkSVGTextContentElement.instance.getRotationOfChar_Callback_1_(unwrap_jso(this), charnum);
   
   @DomName('SVGTextContentElement.getStartPositionOfChar')
   @DocsEditable()
-  Point getStartPositionOfChar(int offset) => wrap_jso(_blink.BlinkSVGTextContentElement.instance.getStartPositionOfChar_Callback_1_(unwrap_jso(this), offset));
+  Point getStartPositionOfChar(int charnum) => wrap_jso(_blink.BlinkSVGTextContentElement.instance.getStartPositionOfChar_Callback_1_(unwrap_jso(this), charnum));
   
   @DomName('SVGTextContentElement.getSubStringLength')
   @DocsEditable()
-  num getSubStringLength(int offset, int length) => _blink.BlinkSVGTextContentElement.instance.getSubStringLength_Callback_2_(unwrap_jso(this), offset, length);
+  num getSubStringLength(int charnum, int nchars) => _blink.BlinkSVGTextContentElement.instance.getSubStringLength_Callback_2_(unwrap_jso(this), charnum, nchars);
   
   @DomName('SVGTextContentElement.selectSubString')
   @DocsEditable()
-  void selectSubString(int offset, int length) => _blink.BlinkSVGTextContentElement.instance.selectSubString_Callback_2_(unwrap_jso(this), offset, length);
+  void selectSubString(int charnum, int nchars) => _blink.BlinkSVGTextContentElement.instance.selectSubString_Callback_2_(unwrap_jso(this), charnum, nchars);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8221,9 +7890,7 @@ class TextElement extends TextPositioningElement {
     return new TextElement._internalWrap();
   }
 
-  factory TextElement._internalWrap() {
-    return new TextElement.internal_();
-  }
+  external factory TextElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   TextElement.internal_() : super.internal_();
@@ -8256,9 +7923,7 @@ class TextPathElement extends TextContentElement implements UriReference {
     return new TextPathElement._internalWrap();
   }
 
-  factory TextPathElement._internalWrap() {
-    return new TextPathElement.internal_();
-  }
+  external factory TextPathElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   TextPathElement.internal_() : super.internal_();
@@ -8331,9 +7996,7 @@ class TextPositioningElement extends TextContentElement {
     return new TextPositioningElement._internalWrap();
   }
 
-  factory TextPositioningElement._internalWrap() {
-    return new TextPositioningElement.internal_();
-  }
+  external factory TextPositioningElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   TextPositioningElement.internal_() : super.internal_();
@@ -8390,9 +8053,7 @@ class TitleElement extends SvgElement {
     return new TitleElement._internalWrap();
   }
 
-  factory TitleElement._internalWrap() {
-    return new TitleElement.internal_();
-  }
+  external factory TitleElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   TitleElement.internal_() : super.internal_();
@@ -8584,11 +8245,11 @@ class TransformList extends DartHtmlDomObject with ListMixin<Transform>, Immutab
   @DomName('SVGTransformList.__setter__')
   @DocsEditable()
   @Experimental() // untriaged
-  void __setter__(int index, Transform value) => _blink.BlinkSVGTransformList.instance.$__setter___Callback_2_(unwrap_jso(this), index, unwrap_jso(value));
+  void __setter__(int index, Transform newItem) => _blink.BlinkSVGTransformList.instance.$__setter___Callback_2_(unwrap_jso(this), index, unwrap_jso(newItem));
   
   @DomName('SVGTransformList.appendItem')
   @DocsEditable()
-  Transform appendItem(Transform item) => wrap_jso(_blink.BlinkSVGTransformList.instance.appendItem_Callback_1_(unwrap_jso(this), unwrap_jso(item)));
+  Transform appendItem(Transform newItem) => wrap_jso(_blink.BlinkSVGTransformList.instance.appendItem_Callback_1_(unwrap_jso(this), unwrap_jso(newItem)));
   
   @DomName('SVGTransformList.clear')
   @DocsEditable()
@@ -8608,11 +8269,11 @@ class TransformList extends DartHtmlDomObject with ListMixin<Transform>, Immutab
   
   @DomName('SVGTransformList.initialize')
   @DocsEditable()
-  Transform initialize(Transform item) => wrap_jso(_blink.BlinkSVGTransformList.instance.initialize_Callback_1_(unwrap_jso(this), unwrap_jso(item)));
+  Transform initialize(Transform newItem) => wrap_jso(_blink.BlinkSVGTransformList.instance.initialize_Callback_1_(unwrap_jso(this), unwrap_jso(newItem)));
   
   @DomName('SVGTransformList.insertItemBefore')
   @DocsEditable()
-  Transform insertItemBefore(Transform item, int index) => wrap_jso(_blink.BlinkSVGTransformList.instance.insertItemBefore_Callback_2_(unwrap_jso(this), unwrap_jso(item), index));
+  Transform insertItemBefore(Transform newItem, int index) => wrap_jso(_blink.BlinkSVGTransformList.instance.insertItemBefore_Callback_2_(unwrap_jso(this), unwrap_jso(newItem), index));
   
   @DomName('SVGTransformList.removeItem')
   @DocsEditable()
@@ -8620,7 +8281,7 @@ class TransformList extends DartHtmlDomObject with ListMixin<Transform>, Immutab
   
   @DomName('SVGTransformList.replaceItem')
   @DocsEditable()
-  Transform replaceItem(Transform item, int index) => wrap_jso(_blink.BlinkSVGTransformList.instance.replaceItem_Callback_2_(unwrap_jso(this), unwrap_jso(item), index));
+  Transform replaceItem(Transform newItem, int index) => wrap_jso(_blink.BlinkSVGTransformList.instance.replaceItem_Callback_2_(unwrap_jso(this), unwrap_jso(newItem), index));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8708,9 +8369,7 @@ class UseElement extends GraphicsElement implements UriReference {
     return new UseElement._internalWrap();
   }
 
-  factory UseElement._internalWrap() {
-    return new UseElement.internal_();
-  }
+  external factory UseElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   UseElement.internal_() : super.internal_();
@@ -8767,9 +8426,7 @@ class ViewElement extends SvgElement implements FitToViewBox, ZoomAndPan {
     return new ViewElement._internalWrap();
   }
 
-  factory ViewElement._internalWrap() {
-    return new ViewElement.internal_();
-  }
+  external factory ViewElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   ViewElement.internal_() : super.internal_();
@@ -8931,9 +8588,7 @@ class ZoomEvent extends UIEvent {
     return new ZoomEvent._internalWrap();
   }
 
-  factory ZoomEvent._internalWrap() {
-    return new ZoomEvent.internal_();
-  }
+  external factory ZoomEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   ZoomEvent.internal_() : super.internal_();
@@ -8980,9 +8635,7 @@ class _GradientElement extends SvgElement implements UriReference {
     return new _GradientElement._internalWrap();
   }
 
-  factory _GradientElement._internalWrap() {
-    return new _GradientElement.internal_();
-  }
+  external factory _GradientElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   _GradientElement.internal_() : super.internal_();
@@ -9035,76 +8688,6 @@ class _GradientElement extends SvgElement implements UriReference {
 
 
 @DocsEditable()
-@DomName('SVGAltGlyphDefElement')
-@Unstable()
-class _SVGAltGlyphDefElement extends SvgElement {
-  // To suppress missing implicit constructor warnings.
-  factory _SVGAltGlyphDefElement._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static _SVGAltGlyphDefElement internalCreate_SVGAltGlyphDefElement() {
-    return new _SVGAltGlyphDefElement._internalWrap();
-  }
-
-  factory _SVGAltGlyphDefElement._internalWrap() {
-    return new _SVGAltGlyphDefElement.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  _SVGAltGlyphDefElement.internal_() : super.internal_();
-
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGAltGlyphDefElement.created() : super.created();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('SVGAltGlyphItemElement')
-@Unstable()
-class _SVGAltGlyphItemElement extends SvgElement {
-  // To suppress missing implicit constructor warnings.
-  factory _SVGAltGlyphItemElement._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static _SVGAltGlyphItemElement internalCreate_SVGAltGlyphItemElement() {
-    return new _SVGAltGlyphItemElement._internalWrap();
-  }
-
-  factory _SVGAltGlyphItemElement._internalWrap() {
-    return new _SVGAltGlyphItemElement.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  _SVGAltGlyphItemElement.internal_() : super.internal_();
-
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGAltGlyphItemElement.created() : super.created();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
 @DomName('SVGComponentTransferFunctionElement')
 @Unstable()
 class _SVGComponentTransferFunctionElement extends SvgElement {
@@ -9117,9 +8700,7 @@ class _SVGComponentTransferFunctionElement extends SvgElement {
     return new _SVGComponentTransferFunctionElement._internalWrap();
   }
 
-  factory _SVGComponentTransferFunctionElement._internalWrap() {
-    return new _SVGComponentTransferFunctionElement.internal_();
-  }
+  external factory _SVGComponentTransferFunctionElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   _SVGComponentTransferFunctionElement.internal_() : super.internal_();
@@ -9154,9 +8735,7 @@ class _SVGCursorElement extends SvgElement implements UriReference, Tests {
     return new _SVGCursorElement._internalWrap();
   }
 
-  factory _SVGCursorElement._internalWrap() {
-    return new _SVGCursorElement.internal_();
-  }
+  external factory _SVGCursorElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   _SVGCursorElement.internal_() : super.internal_();
@@ -9197,9 +8776,7 @@ class _SVGFEDropShadowElement extends SvgElement implements FilterPrimitiveStand
     return new _SVGFEDropShadowElement._internalWrap();
   }
 
-  factory _SVGFEDropShadowElement._internalWrap() {
-    return new _SVGFEDropShadowElement.internal_();
-  }
+  external factory _SVGFEDropShadowElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   _SVGFEDropShadowElement.internal_() : super.internal_();
@@ -9223,330 +8800,6 @@ class _SVGFEDropShadowElement extends SvgElement implements FilterPrimitiveStand
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('SVGFontElement')
-@Unstable()
-class _SVGFontElement extends SvgElement {
-  // To suppress missing implicit constructor warnings.
-  factory _SVGFontElement._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static _SVGFontElement internalCreate_SVGFontElement() {
-    return new _SVGFontElement._internalWrap();
-  }
-
-  factory _SVGFontElement._internalWrap() {
-    return new _SVGFontElement.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  _SVGFontElement.internal_() : super.internal_();
-
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGFontElement.created() : super.created();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('SVGFontFaceElement')
-@Unstable()
-class _SVGFontFaceElement extends SvgElement {
-  // To suppress missing implicit constructor warnings.
-  factory _SVGFontFaceElement._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static _SVGFontFaceElement internalCreate_SVGFontFaceElement() {
-    return new _SVGFontFaceElement._internalWrap();
-  }
-
-  factory _SVGFontFaceElement._internalWrap() {
-    return new _SVGFontFaceElement.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  _SVGFontFaceElement.internal_() : super.internal_();
-
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGFontFaceElement.created() : super.created();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('SVGFontFaceFormatElement')
-@Unstable()
-class _SVGFontFaceFormatElement extends SvgElement {
-  // To suppress missing implicit constructor warnings.
-  factory _SVGFontFaceFormatElement._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static _SVGFontFaceFormatElement internalCreate_SVGFontFaceFormatElement() {
-    return new _SVGFontFaceFormatElement._internalWrap();
-  }
-
-  factory _SVGFontFaceFormatElement._internalWrap() {
-    return new _SVGFontFaceFormatElement.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  _SVGFontFaceFormatElement.internal_() : super.internal_();
-
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGFontFaceFormatElement.created() : super.created();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('SVGFontFaceNameElement')
-@Unstable()
-class _SVGFontFaceNameElement extends SvgElement {
-  // To suppress missing implicit constructor warnings.
-  factory _SVGFontFaceNameElement._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static _SVGFontFaceNameElement internalCreate_SVGFontFaceNameElement() {
-    return new _SVGFontFaceNameElement._internalWrap();
-  }
-
-  factory _SVGFontFaceNameElement._internalWrap() {
-    return new _SVGFontFaceNameElement.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  _SVGFontFaceNameElement.internal_() : super.internal_();
-
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGFontFaceNameElement.created() : super.created();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('SVGFontFaceSrcElement')
-@Unstable()
-class _SVGFontFaceSrcElement extends SvgElement {
-  // To suppress missing implicit constructor warnings.
-  factory _SVGFontFaceSrcElement._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static _SVGFontFaceSrcElement internalCreate_SVGFontFaceSrcElement() {
-    return new _SVGFontFaceSrcElement._internalWrap();
-  }
-
-  factory _SVGFontFaceSrcElement._internalWrap() {
-    return new _SVGFontFaceSrcElement.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  _SVGFontFaceSrcElement.internal_() : super.internal_();
-
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGFontFaceSrcElement.created() : super.created();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('SVGFontFaceUriElement')
-@Unstable()
-class _SVGFontFaceUriElement extends SvgElement {
-  // To suppress missing implicit constructor warnings.
-  factory _SVGFontFaceUriElement._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static _SVGFontFaceUriElement internalCreate_SVGFontFaceUriElement() {
-    return new _SVGFontFaceUriElement._internalWrap();
-  }
-
-  factory _SVGFontFaceUriElement._internalWrap() {
-    return new _SVGFontFaceUriElement.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  _SVGFontFaceUriElement.internal_() : super.internal_();
-
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGFontFaceUriElement.created() : super.created();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('SVGGlyphElement')
-@Unstable()
-class _SVGGlyphElement extends SvgElement {
-  // To suppress missing implicit constructor warnings.
-  factory _SVGGlyphElement._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('SVGGlyphElement.SVGGlyphElement')
-  @DocsEditable()
-  factory _SVGGlyphElement() => _SvgElementFactoryProvider.createSvgElement_tag("glyph");
-
-
-  @Deprecated("Internal Use Only")
-  static _SVGGlyphElement internalCreate_SVGGlyphElement() {
-    return new _SVGGlyphElement._internalWrap();
-  }
-
-  factory _SVGGlyphElement._internalWrap() {
-    return new _SVGGlyphElement.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  _SVGGlyphElement.internal_() : super.internal_();
-
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGGlyphElement.created() : super.created();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DocsEditable()
-@DomName('SVGGlyphRefElement')
-@Unstable()
-class _SVGGlyphRefElement extends SvgElement implements UriReference {
-  // To suppress missing implicit constructor warnings.
-  factory _SVGGlyphRefElement._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static _SVGGlyphRefElement internalCreate_SVGGlyphRefElement() {
-    return new _SVGGlyphRefElement._internalWrap();
-  }
-
-  factory _SVGGlyphRefElement._internalWrap() {
-    return new _SVGGlyphRefElement.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  _SVGGlyphRefElement.internal_() : super.internal_();
-
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGGlyphRefElement.created() : super.created();
-
-  // Override these methods for Dartium _SVGGlyphRefElement can't be abstract.
-  AnimatedString get href => wrap_jso(_blink.BlinkSVGGlyphRefElement.instance.href_Getter_(unwrap_jso(this)));
-}
-
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('SVGHKernElement')
-@Unstable()
-class _SVGHKernElement extends SvgElement {
-  // To suppress missing implicit constructor warnings.
-  factory _SVGHKernElement._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('SVGHKernElement.SVGHKernElement')
-  @DocsEditable()
-  factory _SVGHKernElement() => _SvgElementFactoryProvider.createSvgElement_tag("hkern");
-
-
-  @Deprecated("Internal Use Only")
-  static _SVGHKernElement internalCreate_SVGHKernElement() {
-    return new _SVGHKernElement._internalWrap();
-  }
-
-  factory _SVGHKernElement._internalWrap() {
-    return new _SVGHKernElement.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  _SVGHKernElement.internal_() : super.internal_();
-
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGHKernElement.created() : super.created();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 
 @DocsEditable()
 @DomName('SVGMPathElement')
@@ -9564,9 +8817,7 @@ class _SVGMPathElement extends SvgElement implements UriReference {
     return new _SVGMPathElement._internalWrap();
   }
 
-  factory _SVGMPathElement._internalWrap() {
-    return new _SVGMPathElement.internal_();
-  }
+  external factory _SVGMPathElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   _SVGMPathElement.internal_() : super.internal_();
@@ -9582,77 +8833,3 @@ class _SVGMPathElement extends SvgElement implements UriReference {
   AnimatedString get href => wrap_jso(_blink.BlinkSVGMPathElement.instance.href_Getter_(unwrap_jso(this)));
 }
 
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('SVGMissingGlyphElement')
-@Unstable()
-class _SVGMissingGlyphElement extends SvgElement {
-  // To suppress missing implicit constructor warnings.
-  factory _SVGMissingGlyphElement._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  static _SVGMissingGlyphElement internalCreate_SVGMissingGlyphElement() {
-    return new _SVGMissingGlyphElement._internalWrap();
-  }
-
-  factory _SVGMissingGlyphElement._internalWrap() {
-    return new _SVGMissingGlyphElement.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  _SVGMissingGlyphElement.internal_() : super.internal_();
-
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGMissingGlyphElement.created() : super.created();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
-@DomName('SVGVKernElement')
-@Unstable()
-class _SVGVKernElement extends SvgElement {
-  // To suppress missing implicit constructor warnings.
-  factory _SVGVKernElement._() { throw new UnsupportedError("Not supported"); }
-
-  @DomName('SVGVKernElement.SVGVKernElement')
-  @DocsEditable()
-  factory _SVGVKernElement() => _SvgElementFactoryProvider.createSvgElement_tag("vkern");
-
-
-  @Deprecated("Internal Use Only")
-  static _SVGVKernElement internalCreate_SVGVKernElement() {
-    return new _SVGVKernElement._internalWrap();
-  }
-
-  factory _SVGVKernElement._internalWrap() {
-    return new _SVGVKernElement.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  _SVGVKernElement.internal_() : super.internal_();
-
-  /**
-   * Constructor instantiated by the DOM when a custom element has been created.
-   *
-   * This can only be called by subclasses from their created constructor.
-   */
-  _SVGVKernElement.created() : super.created();
-
-}

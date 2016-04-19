@@ -17,8 +17,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, interpret_irregexp);
-
 // When entering intrinsics code:
 // S4: Arguments descriptor
 // RA: Return address
@@ -36,7 +34,7 @@ intptr_t Intrinsifier::ParameterSlotFromSp() { return -1; }
 // Intrinsify only for Smi value and index. Non-smi values need a store buffer
 // update. Array length is always a Smi.
 void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
-  if (Isolate::Current()->flags().type_checks()) {
+  if (Isolate::Current()->type_checks()) {
     return;
   }
 
@@ -108,7 +106,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
 // On stack: growable array (+1), value (+0).
 void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   // In checked mode we need to type-check the incoming argument.
-  if (Isolate::Current()->flags().type_checks()) return;
+  if (Isolate::Current()->type_checks()) return;
   Label fall_through;
   __ lw(T0, Address(SP, 1 * kWordSize));  // Array.
   __ lw(T1, FieldAddress(T0, GrowableObjectArray::length_offset()));
@@ -240,12 +238,6 @@ static int GetScaleFactor(intptr_t size) {
 
 
 #define TYPED_DATA_ALLOCATOR(clazz)                                            \
-void Intrinsifier::TypedData_##clazz##_new(Assembler* assembler) {             \
-  intptr_t size = TypedData::ElementSizeInBytes(kTypedData##clazz##Cid);       \
-  intptr_t max_len = TypedData::MaxElements(kTypedData##clazz##Cid);           \
-  int shift = GetScaleFactor(size);                                            \
-  TYPED_ARRAY_ALLOCATION(TypedData, kTypedData##clazz##Cid, max_len, shift);   \
-}                                                                              \
 void Intrinsifier::TypedData_##clazz##_factory(Assembler* assembler) {         \
   intptr_t size = TypedData::ElementSizeInBytes(kTypedData##clazz##Cid);       \
   intptr_t max_len = TypedData::MaxElements(kTypedData##clazz##Cid);           \
@@ -1470,7 +1462,7 @@ void Intrinsifier::DoubleFromInteger(Assembler* assembler) {
 
   __ lw(T0, Address(SP, 0 * kWordSize));
   __ andi(CMPRES1, T0, Immediate(kSmiTagMask));
-  __ bne(T0, ZR, &fall_through);
+  __ bne(CMPRES1, ZR, &fall_through);
 
   // Is Smi.
   __ SmiUntag(T0);
@@ -1540,7 +1532,7 @@ void Intrinsifier::DoubleToInteger(Assembler* assembler) {
   __ lw(T0, Address(SP, 0 * kWordSize));
   __ LoadDFromOffset(D0, T0, Double::value_offset() - kHeapObjectTag);
 
-  __ cvtwd(F2, D0);
+  __ truncwd(F2, D0);
   __ mfc1(V0, F2);
 
   // Overflow is signaled with minint.
@@ -1646,11 +1638,9 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   Label fall_through;
   __ lw(T0, Address(SP, 0 * kWordSize));
   __ LoadClassIdMayBeSmi(T1, T0);
+  __ BranchEqual(T1, Immediate(kClosureCid), &fall_through);
   __ LoadClassById(T2, T1);
   // T2: class of instance (T0).
-
-  __ lw(T1, FieldAddress(T2, Class::signature_function_offset()));
-  __ BranchNotEqual(T1, Object::null_object(), &fall_through);
 
   __ lhu(T1, FieldAddress(T2, Class::num_type_arguments_offset()));
   __ BranchNotEqual(T1, Immediate(0), &fall_through);
@@ -1681,7 +1671,7 @@ void Intrinsifier::StringBaseCodeUnitAt(Assembler* assembler) {
 
   // Checks.
   __ andi(CMPRES1, T1, Immediate(kSmiTagMask));
-  __ bne(T1, ZR, &fall_through);  // Index is not a Smi.
+  __ bne(CMPRES1, ZR, &fall_through);  // Index is not a Smi.
   __ lw(T2, FieldAddress(T0, String::length_offset()));  // Range check.
   // Runtime throws exception.
   __ BranchUnsignedGreaterEqual(T1, T2, &fall_through);
@@ -1708,6 +1698,118 @@ void Intrinsifier::StringBaseCodeUnitAt(Assembler* assembler) {
 }
 
 
+void GenerateSubstringMatchesSpecialization(Assembler* assembler,
+                                            intptr_t receiver_cid,
+                                            intptr_t other_cid,
+                                            Label* return_true,
+                                            Label* return_false) {
+  __ SmiUntag(A1);
+  __ lw(T1, FieldAddress(A0, String::length_offset()));  // this.length
+  __ SmiUntag(T1);
+  __ lw(T2, FieldAddress(A2, String::length_offset()));  // other.length
+  __ SmiUntag(T2);
+
+  // if (other.length == 0) return true;
+  __ beq(T2, ZR, return_true);
+
+  // if (start < 0) return false;
+  __ bltz(A1, return_false);
+
+  // if (start + other.length > this.length) return false;
+  __ addu(T0, A1, T2);
+  __ BranchSignedGreater(T0, T1, return_false);
+
+  if (receiver_cid == kOneByteStringCid) {
+    __ AddImmediate(A0, A0, OneByteString::data_offset() - kHeapObjectTag);
+    __ addu(A0, A0, A1);
+  } else {
+    ASSERT(receiver_cid == kTwoByteStringCid);
+    __ AddImmediate(A0, A0, TwoByteString::data_offset() - kHeapObjectTag);
+    __ addu(A0, A0, A1);
+    __ addu(A0, A0, A1);
+  }
+  if (other_cid == kOneByteStringCid) {
+    __ AddImmediate(A2, A2, OneByteString::data_offset() - kHeapObjectTag);
+  } else {
+    ASSERT(other_cid == kTwoByteStringCid);
+    __ AddImmediate(A2, A2, TwoByteString::data_offset() - kHeapObjectTag);
+  }
+
+  // i = 0
+  __ LoadImmediate(T0, 0);
+
+  // do
+  Label loop;
+  __ Bind(&loop);
+
+  if (receiver_cid == kOneByteStringCid) {
+    __ lbu(T3, Address(A0, 0));  // this.codeUnitAt(i + start)
+  } else {
+    __ lhu(T3, Address(A0, 0));  // this.codeUnitAt(i + start)
+  }
+  if (other_cid == kOneByteStringCid) {
+    __ lbu(T4, Address(A2, 0));  // other.codeUnitAt(i)
+  } else {
+    __ lhu(T4, Address(A2, 0));  // other.codeUnitAt(i)
+  }
+  __ bne(T3, T4, return_false);
+
+  // i++, while (i < len)
+  __ AddImmediate(T0, T0, 1);
+  __ AddImmediate(A0, A0, receiver_cid == kOneByteStringCid ? 1 : 2);
+  __ AddImmediate(A2, A2, other_cid == kOneByteStringCid ? 1 : 2);
+  __ BranchSignedLess(T0, T2, &loop);
+
+  __ b(return_true);
+}
+
+
+// bool _substringMatches(int start, String other)
+// This intrinsic handles a OneByteString or TwoByteString receiver with a
+// OneByteString other.
+void Intrinsifier::StringBaseSubstringMatches(Assembler* assembler) {
+  Label fall_through, return_true, return_false, try_two_byte;
+  __ lw(A0, Address(SP, 2 * kWordSize));  // this
+  __ lw(A1, Address(SP, 1 * kWordSize));  // start
+  __ lw(A2, Address(SP, 0 * kWordSize));  // other
+
+  __ andi(CMPRES1, A1, Immediate(kSmiTagMask));
+  __ bne(CMPRES1, ZR, &fall_through);  // 'start' is not a Smi.
+
+  __ LoadClassId(CMPRES1, A2);
+  __ BranchNotEqual(CMPRES1, Immediate(kOneByteStringCid), &fall_through);
+
+  __ LoadClassId(CMPRES1, A0);
+  __ BranchNotEqual(CMPRES1, Immediate(kOneByteStringCid), &try_two_byte);
+
+  GenerateSubstringMatchesSpecialization(assembler,
+                                         kOneByteStringCid,
+                                         kOneByteStringCid,
+                                         &return_true,
+                                         &return_false);
+
+  __ Bind(&try_two_byte);
+  __ LoadClassId(CMPRES1, A0);
+  __ BranchNotEqual(CMPRES1, Immediate(kTwoByteStringCid), &fall_through);
+
+  GenerateSubstringMatchesSpecialization(assembler,
+                                         kTwoByteStringCid,
+                                         kOneByteStringCid,
+                                         &return_true,
+                                         &return_false);
+
+  __ Bind(&return_true);
+  __ LoadObject(V0, Bool::True());
+  __ Ret();
+
+  __ Bind(&return_false);
+  __ LoadObject(V0, Bool::False());
+  __ Ret();
+
+  __ Bind(&fall_through);
+}
+
+
 void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
   Label fall_through, try_two_byte_string;
 
@@ -1716,7 +1818,7 @@ void Intrinsifier::StringBaseCharAt(Assembler* assembler) {
 
   // Checks.
   __ andi(CMPRES1, T1, Immediate(kSmiTagMask));
-  __ bne(T1, ZR, &fall_through);  // Index is not a Smi.
+  __ bne(CMPRES1, ZR, &fall_through);  // Index is not a Smi.
   __ lw(T2, FieldAddress(T0, String::length_offset()));  // Range check.
   // Runtime throws exception.
   __ BranchUnsignedGreaterEqual(T1, T2, &fall_through);
@@ -2059,7 +2161,7 @@ void Intrinsifier::TwoByteString_equality(Assembler* assembler) {
 }
 
 
-void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
+void Intrinsifier::RegExp_ExecuteMatch(Assembler* assembler) {
   if (FLAG_interpret_irregexp) return;
 
   static const intptr_t kRegExpParamOffset = 2 * kWordSize;
@@ -2079,7 +2181,7 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
   __ AddImmediate(T2, -kOneByteStringCid);
   __ sll(T2, T2, kWordSizeLog2);
   __ addu(T2, T2, T1);
-  __ lw(T0, FieldAddress(T2, JSRegExp::function_offset(kOneByteStringCid)));
+  __ lw(T0, FieldAddress(T2, RegExp::function_offset(kOneByteStringCid)));
 
   // Registers are now set up for the lazy compile stub. It expects the function
   // in T0, the argument descriptor in S4, and IC-Data in S5.

@@ -67,7 +67,9 @@ class FlatTypeMask implements TypeMask {
         () => new FlatTypeMask.internal(base, flags));
   }
 
-  bool get isEmpty => (flags >> 1) == EMPTY;
+  bool get isEmpty => isEmptyOrNull && !isNullable;
+  bool get isNull => isEmptyOrNull && isNullable;
+  bool get isEmptyOrNull => (flags >> 1) == EMPTY;
   bool get isExact => (flags >> 1) == EXACT;
   bool get isNullable => (flags & 1) != 0;
 
@@ -94,7 +96,7 @@ class FlatTypeMask implements TypeMask {
 
   bool contains(ClassElement type, ClassWorld classWorld) {
     assert(type.isDeclaration);
-    if (isEmpty) {
+    if (isEmptyOrNull) {
       return false;
     } else if (identical(base, type)) {
       return true;
@@ -137,10 +139,9 @@ class FlatTypeMask implements TypeMask {
   }
 
   bool isInMask(TypeMask other, ClassWorld classWorld) {
-    // null is treated separately, so the empty mask might still contain it.
-    if (isEmpty) return isNullable ? other.isNullable : true;
+    if (isEmptyOrNull) return isNullable ? other.isNullable : true;
     // The empty type contains no classes.
-    if (other.isEmpty) return false;
+    if (other.isEmptyOrNull) return false;
     // Quick check whether to handle null.
     if (isNullable && !other.isNullable) return false;
     other = TypeMask.nonForwardingMask(other);
@@ -215,7 +216,7 @@ class FlatTypeMask implements TypeMask {
 
   bool satisfies(ClassElement cls, ClassWorld classWorld) {
     assert(cls.isDeclaration);
-    if (isEmpty) return false;
+    if (isEmptyOrNull) return false;
     if (classWorld.isSubtypeOf(base, cls)) return true;
     return false;
   }
@@ -225,7 +226,7 @@ class FlatTypeMask implements TypeMask {
    * otherwise returns `null`.  This method is conservative.
    */
   ClassElement singleClass(ClassWorld classWorld) {
-    if (isEmpty) return null;
+    if (isEmptyOrNull) return null;
     if (isNullable) return null;  // It is Null and some other class.
     if (isExact) {
       return base;
@@ -241,7 +242,7 @@ class FlatTypeMask implements TypeMask {
    * Returns whether or not this type mask contains all types.
    */
   bool containsAll(ClassWorld classWorld) {
-    if (isEmpty || isExact) return false;
+    if (isEmptyOrNull || isExact) return false;
     return identical(base, classWorld.objectClass);
   }
 
@@ -251,9 +252,9 @@ class FlatTypeMask implements TypeMask {
     assert(TypeMask.assertIsNormalized(other, classWorld));
     if (other is! FlatTypeMask) return other.union(this, classWorld);
     FlatTypeMask flatOther = other;
-    if (isEmpty) {
+    if (isEmptyOrNull) {
       return isNullable ? flatOther.nullable() : flatOther;
-    } else if (flatOther.isEmpty) {
+    } else if (flatOther.isEmptyOrNull) {
       return flatOther.isNullable ? nullable() : this;
     } else if (base == flatOther.base) {
       return unionSame(flatOther, classWorld);
@@ -339,9 +340,9 @@ class FlatTypeMask implements TypeMask {
     assert(TypeMask.assertIsNormalized(this, classWorld));
     assert(TypeMask.assertIsNormalized(other, classWorld));
     FlatTypeMask flatOther = other;
-    if (isEmpty) {
+    if (isEmptyOrNull) {
       return flatOther.isNullable ? this : nonNullable();
-    } else if (flatOther.isEmpty) {
+    } else if (flatOther.isEmptyOrNull) {
       return isNullable ? flatOther : other.nonNullable();
     } else if (base == flatOther.base) {
       return intersectionSame(flatOther, classWorld);
@@ -356,6 +357,47 @@ class FlatTypeMask implements TypeMask {
     } else {
       return intersectionDisjoint(flatOther, classWorld);
     }
+  }
+
+  bool isDisjoint(TypeMask other, ClassWorld classWorld) {
+    if (other is! FlatTypeMask) return other.isDisjoint(this, classWorld);
+    FlatTypeMask flatOther = other;
+
+    if (isNullable && flatOther.isNullable) return false;
+    if (isEmptyOrNull || flatOther.isEmptyOrNull) return true;
+    if (base == flatOther.base) return false;
+    if (isExact && flatOther.isExact) return true;
+
+    if (isExact) return !flatOther.contains(base, classWorld);
+    if (flatOther.isExact) return !contains(flatOther.base, classWorld);
+
+    // Normalization guarantees that isExact === !isSubclass && !isSubtype.
+    // Both are subclass or subtype masks, so if there is a subclass
+    // relationship, they are not disjoint.
+    if (classWorld.isSubclassOf(flatOther.base, base)) return false;
+    if (classWorld.isSubclassOf(base, flatOther.base)) return false;
+
+    // Two different base classes have no common subclass unless one is a
+    // subclass of the other (checked above).
+    if (isSubclass && flatOther.isSubclass) return true;
+
+    return _isDisjointHelper(this, flatOther, classWorld);
+  }
+
+  static bool _isDisjointHelper(
+      FlatTypeMask a, FlatTypeMask b, ClassWorld classWorld) {
+    if (!a.isSubclass && b.isSubclass) {
+      return _isDisjointHelper(b, a, classWorld);
+    }
+    assert(a.isSubclass || a.isSubtype);
+    assert(b.isSubtype);
+    var elements = a.isSubclass
+      ? classWorld.strictSubclassesOf(a.base)
+      : classWorld.strictSubtypesOf(a.base);
+    for (var element in elements) {
+      if (classWorld.isSubtypeOf(element, b.base)) return false;
+    }
+    return true;
   }
 
   TypeMask intersectionSame(FlatTypeMask other, ClassWorld classWorld) {
@@ -498,8 +540,8 @@ class FlatTypeMask implements TypeMask {
   bool canHit(Element element, Selector selector, ClassWorld classWorld) {
     Backend backend = classWorld.backend;
     assert(element.name == selector.name);
-    if (isEmpty) {
-      if (!isNullable) return false;
+    if (isEmpty) return false;
+    if (isNull) {
       return hasElementIn(backend.nullImplementation, selector, element);
     }
 
@@ -562,7 +604,7 @@ class FlatTypeMask implements TypeMask {
   bool needsNoSuchMethodHandling(Selector selector, ClassWorld classWorld) {
     // A call on an empty type mask is either dead code, or a call on
     // `null`.
-    if (isEmpty) return false;
+    if (isEmptyOrNull) return false;
     // A call on an exact mask for an abstract class is dead code.
     if (isExact && base.isAbstract) return false;
     // If the receiver is guaranteed to have a member that
@@ -643,7 +685,7 @@ class FlatTypeMask implements TypeMask {
   Element locateSingleElement(Selector selector,
                               TypeMask mask,
                               Compiler compiler) {
-    if (isEmpty) return null;
+    if (isEmptyOrNull) return null;
     Iterable<Element> targets =
         compiler.world.allFunctions.filter(selector, mask);
     if (targets.length != 1) return null;
@@ -668,7 +710,7 @@ class FlatTypeMask implements TypeMask {
   }
 
   String toString() {
-    if (isEmpty) return isNullable ? '[null]' : '[empty]';
+    if (isEmptyOrNull) return isNullable ? '[null]' : '[empty]';
     StringBuffer buffer = new StringBuffer();
     if (isNullable) buffer.write('null|');
     if (isExact) buffer.write('exact=');
@@ -685,16 +727,7 @@ class FlatTypeMask implements TypeMask {
     if (xSubset == null) return null;
     Iterable<ClassElement> ySubset = containedSubset(y, classWorld);
     if (ySubset == null) return null;
-    Iterable<ClassElement> smallSet, largeSet;
-    if (xSubset.length <= ySubset.length) {
-      smallSet = xSubset;
-      largeSet = ySubset;
-    } else {
-      smallSet = ySubset;
-      largeSet = xSubset;
-    }
-    var result = smallSet.where((ClassElement each) => largeSet.contains(each));
-    return result.toSet();
+    return xSubset.toSet().intersection(ySubset.toSet());
   }
 
   static Iterable<ClassElement> containedSubset(FlatTypeMask x,

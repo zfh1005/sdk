@@ -43,7 +43,7 @@ class UnionTypeMask implements TypeMask {
       if (mask.isUnion) {
         UnionTypeMask union = mask;
         unionOfHelper(union.disjointMasks, disjoint, classWorld);
-      } else if (mask.isEmpty && !mask.isNullable) {
+      } else if (mask.isEmpty) {
         continue;
       } else {
         FlatTypeMask flatMask = mask;
@@ -94,30 +94,35 @@ class UnionTypeMask implements TypeMask {
     bool useSubclass = masks.every((e) => !e.isSubtype);
     bool isNullable = masks.any((e) => e.isNullable);
 
+    List<ClassElement> masksBases = masks.map((mask) => mask.base).toList();
     Iterable<ClassElement> candidates =
-        classWorld.commonSupertypesOf(masks.map((mask) => mask.base));
+        classWorld.commonSupertypesOf(masksBases);
 
     // Compute the best candidate and its kind.
     ClassElement bestElement;
     int bestKind;
     int bestSize;
     for (ClassElement candidate in candidates) {
-      Iterable<ClassElement> subclasses = useSubclass
-          ? classWorld.strictSubclassesOf(candidate)
-          : const <ClassElement>[];
+      bool isInstantiatedStrictSubclass(cls) => cls != candidate &&
+          classWorld.isDirectlyInstantiated(cls) &&
+          classWorld.isSubclassOf(cls, candidate);
+
       int size;
       int kind;
-      if (masks.every((t) => subclasses.contains(t.base))) {
+      if (useSubclass && masksBases.every(isInstantiatedStrictSubclass)) {
         // If both [this] and [other] are subclasses of the supertype,
         // then we prefer to construct a subclass type mask because it
         // will always be at least as small as the corresponding
         // subtype type mask.
         kind = FlatTypeMask.SUBCLASS;
-        size = subclasses.length;
-        assert(size <= classWorld.strictSubtypesOf(candidate).length);
+        // TODO(sigmund, johnniwinther): computing length here (and below) is
+        // expensive. If we can't prevent `flatten` from being called a lot, it
+        // might be worth caching results.
+        size = classWorld.strictSubclassCount(candidate);
+        assert(size <= classWorld.strictSubtypeCount(candidate));
       } else {
         kind = FlatTypeMask.SUBTYPE;
-        size = classWorld.strictSubtypesOf(candidate).length;
+        size = classWorld.strictSubtypeCount(candidate);
       }
       // Update the best candidate if the new one is better.
       if (bestElement == null || size < bestSize) {
@@ -147,18 +152,30 @@ class UnionTypeMask implements TypeMask {
   TypeMask intersection(var other, ClassWorld classWorld) {
     other = TypeMask.nonForwardingMask(other);
     if (!other.isUnion && disjointMasks.contains(other)) return other;
+    if (other.isUnion && this == other) return this;
 
     List<TypeMask> intersections = <TypeMask>[];
     for (TypeMask current in disjointMasks) {
       if (other.isUnion) {
-        for (FlatTypeMask flatOther in other.disjointMasks) {
-          intersections.add(current.intersection(flatOther, classWorld));
+        if (other.disjointMasks.contains(current)) {
+          intersections.add(current);
+        } else {
+          for (FlatTypeMask flatOther in other.disjointMasks) {
+            intersections.add(current.intersection(flatOther, classWorld));
+          }
         }
       } else {
         intersections.add(current.intersection(other, classWorld));
       }
     }
     return new TypeMask.unionOf(intersections, classWorld);
+  }
+
+  bool isDisjoint(TypeMask other, ClassWorld classWorld) {
+    for (var current in disjointMasks) {
+      if (!current.isDisjoint(other, classWorld)) return false;
+    }
+    return true;
   }
 
   TypeMask nullable() {
@@ -175,7 +192,9 @@ class UnionTypeMask implements TypeMask {
     return new UnionTypeMask._internal(newIterable);
   }
 
+  bool get isEmptyOrNull => false;
   bool get isEmpty => false;
+  bool get isNull => false;
   bool get isNullable => disjointMasks.any((e) => e.isNullable);
   bool get isExact => false;
   bool get isUnion => true;

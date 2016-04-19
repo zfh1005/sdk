@@ -95,11 +95,11 @@ class SimulatorDebugger {
   bool GetFValue(char* desc, float* value);
   bool GetDValue(char* desc, double* value);
 
-  static intptr_t GetApproximateTokenIndex(const Code& code, uword pc);
+  static TokenPosition GetApproximateTokenIndex(const Code& code, uword pc);
 
   static void PrintDartFrame(uword pc, uword fp, uword sp,
                              const Function& function,
-                             intptr_t token_pos,
+                             TokenPosition token_pos,
                              bool is_optimized,
                              bool is_inlined);
   void PrintBacktrace();
@@ -245,9 +245,9 @@ bool SimulatorDebugger::GetDValue(char* desc, double* value) {
 }
 
 
-intptr_t SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
-                                                     uword pc) {
-  intptr_t token_pos = -1;
+TokenPosition SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
+                                                            uword pc) {
+  TokenPosition token_pos = TokenPosition::kNoSource;
   uword pc_offset = pc - code.EntryPoint();
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
@@ -255,7 +255,7 @@ intptr_t SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
   while (iter.MoveNext()) {
     if (iter.PcOffset() == pc_offset) {
       return iter.TokenPos();
-    } else if ((token_pos <= 0) && (iter.PcOffset() > pc_offset)) {
+    } else if (!token_pos.IsReal() && (iter.PcOffset() > pc_offset)) {
       token_pos = iter.TokenPos();
     }
   }
@@ -265,15 +265,15 @@ intptr_t SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
 
 void SimulatorDebugger::PrintDartFrame(uword pc, uword fp, uword sp,
                                        const Function& function,
-                                       intptr_t token_pos,
+                                       TokenPosition token_pos,
                                        bool is_optimized,
                                        bool is_inlined) {
   const Script& script = Script::Handle(function.script());
-  const String& func_name = String::Handle(function.QualifiedUserVisibleName());
+  const String& func_name = String::Handle(function.QualifiedScrubbedName());
   const String& url = String::Handle(script.url());
   intptr_t line = -1;
   intptr_t column = -1;
-  if (token_pos >= 0) {
+  if (token_pos.IsReal()) {
     script.GetTokenLocation(token_pos, &line, &column);
   }
   OS::Print("pc=0x%" Px " fp=0x%" Px " sp=0x%" Px " %s%s (%s:%" Pd
@@ -407,7 +407,11 @@ void SimulatorDebugger::Debug() {
       if (Simulator::IsIllegalAddress(last_pc)) {
         OS::Print("pc is out of bounds: 0x%" Px "\n", last_pc);
       } else {
-        Disassembler::Disassemble(last_pc, last_pc + Instr::kInstrSize);
+        if (FLAG_support_disassembler) {
+          Disassembler::Disassemble(last_pc, last_pc + Instr::kInstrSize);
+        } else {
+          OS::Print("Disassembler not supported in this mode.\n");
+        }
       }
     }
     char* line = ReadLine("sim> ");
@@ -546,7 +550,11 @@ void SimulatorDebugger::Debug() {
           }
         }
         if ((start > 0) && (end > start)) {
-          Disassembler::Disassemble(start, end);
+          if (FLAG_support_disassembler) {
+            Disassembler::Disassemble(start, end);
+          } else {
+            OS::Print("Disassembler not supported in this mode.\n");
+          }
         } else {
           OS::Print("disasm [<address> [<number_of_instructions>]]\n");
         }
@@ -700,8 +708,8 @@ Simulator::Simulator() {
   // the size specified by the user and the buffer space needed for
   // handling stack overflow exceptions. To be safe in potential
   // stack underflows we also add some underflow buffer space.
-  stack_ = new char[(Isolate::GetSpecifiedStackSize() +
-                     Isolate::kStackSizeBuffer +
+  stack_ = new char[(OSThread::GetSpecifiedStackSize() +
+                     OSThread::kStackSizeBuffer +
                      kSimulatorStackUnderflowSize)];
   pc_modified_ = false;
   icount_ = 0;
@@ -1129,7 +1137,7 @@ bool Simulator::HasExclusiveAccessAndOpen(uword addr) {
 void Simulator::ClearExclusive() {
   MutexLocker ml(exclusive_access_lock_);
   // Remove the reservation for this thread.
-  SetExclusiveAccess(NULL);
+  SetExclusiveAccess(0);
 }
 
 
@@ -1171,13 +1179,23 @@ uword Simulator::CompareExchange(uword* address,
 }
 
 
+uint32_t Simulator::CompareExchangeUint32(uint32_t* address,
+                                          uint32_t compare_value,
+                                          uint32_t new_value) {
+  COMPILE_ASSERT(sizeof(uword) == sizeof(uint32_t));
+  return CompareExchange(reinterpret_cast<uword*>(address),
+                         static_cast<uword>(compare_value),
+                         static_cast<uword>(new_value));
+}
+
+
 // Returns the top of the stack area to enable checking for stack pointer
 // validity.
 uword Simulator::StackTop() const {
   // To be safe in potential stack underflows we leave some buffer above and
   // set the stack top.
   return StackBase() +
-      (Isolate::GetSpecifiedStackSize() + Isolate::kStackSizeBuffer);
+      (OSThread::GetSpecifiedStackSize() + OSThread::kStackSizeBuffer);
 }
 
 
@@ -1521,7 +1539,7 @@ void Simulator::SupervisorCall(Instr* instr) {
             (redirection->call_kind() == kBootstrapNativeCall) ||
             (redirection->call_kind() == kNativeCall)) {
           // Set the top_exit_frame_info of this simulator to the native stack.
-          set_top_exit_frame_info(Isolate::GetCurrentStackPointer());
+          set_top_exit_frame_info(Thread::GetCurrentStackPointer());
         }
         if (redirection->call_kind() == kRuntimeCall) {
           NativeArguments arguments;
@@ -3593,7 +3611,11 @@ void Simulator::InstructionDecode(Instr* instr) {
     OS::Print("%" Pu64 " ", icount_);
     const uword start = reinterpret_cast<uword>(instr);
     const uword end = start + Instr::kInstrSize;
-    Disassembler::Disassemble(start, end);
+    if (FLAG_support_disassembler) {
+      Disassembler::Disassemble(start, end);
+    } else {
+      OS::Print("Disassembler not supported in this mode.\n");
+    }
   }
   if (instr->ConditionField() == kSpecialCondition) {
     if (instr->InstructionBits() == static_cast<int32_t>(0xf57ff01f)) {

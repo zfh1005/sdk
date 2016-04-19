@@ -10,6 +10,7 @@
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/flags.h"
+#include "vm/log.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/stack_frame.h"
@@ -21,9 +22,6 @@ namespace dart {
 
 DEFINE_FLAG(bool, print_stacktrace_at_throw, false,
             "Prints a stack trace everytime a throw occurs.");
-
-
-const char* Exceptions::kCastErrorDstName = "type cast";
 
 
 class StacktraceBuilder : public ValueObject {
@@ -64,7 +62,8 @@ class PreallocatedStacktraceBuilder : public StacktraceBuilder {
  public:
   explicit PreallocatedStacktraceBuilder(const Instance& stacktrace)
   : stacktrace_(Stacktrace::Cast(stacktrace)),
-        cur_index_(0) {
+        cur_index_(0),
+        dropped_frames_(0) {
     ASSERT(stacktrace_.raw() ==
            Isolate::Current()->object_store()->preallocated_stack_trace());
   }
@@ -77,6 +76,7 @@ class PreallocatedStacktraceBuilder : public StacktraceBuilder {
 
   const Stacktrace& stacktrace_;
   intptr_t cur_index_;
+  intptr_t dropped_frames_;
 
   DISALLOW_COPY_AND_ASSIGN(PreallocatedStacktraceBuilder);
 };
@@ -90,11 +90,18 @@ void PreallocatedStacktraceBuilder::AddFrame(const Code& code,
     Smi& frame_offset = Smi::Handle();
     intptr_t start = Stacktrace::kPreallocatedStackdepth - (kNumTopframes - 1);
     intptr_t null_slot = start - 2;
+    // We are going to drop one frame.
+    dropped_frames_++;
     // Add an empty slot to indicate the overflow so that the toString
     // method can account for the overflow.
     if (stacktrace_.FunctionAtFrame(null_slot) != Function::null()) {
       stacktrace_.SetCodeAtFrame(null_slot, frame_code);
+      // We drop an extra frame here too.
+      dropped_frames_++;
     }
+    // Encode the number of dropped frames into the pc offset.
+    frame_offset ^= Smi::New(dropped_frames_);
+    stacktrace_.SetPcOffsetAtFrame(null_slot, frame_offset);
     // Move frames one slot down so that we can accomodate the new frame.
     for (intptr_t i = start; i < Stacktrace::kPreallocatedStackdepth; i++) {
       intptr_t prev = (i - 1);
@@ -231,7 +238,7 @@ static void JumpToExceptionHandler(Thread* thread,
       StubCode::JumpToExceptionHandler_entry()->EntryPoint());
 
   // Unpoison the stack before we tear it down in the generated stub code.
-  uword current_sp = Isolate::GetCurrentStackPointer() - 1024;
+  uword current_sp = Thread::GetCurrentStackPointer() - 1024;
   ASAN_UNPOISON(reinterpret_cast<void*>(current_sp),
                 stack_pointer - current_sp);
 
@@ -362,8 +369,8 @@ static void ThrowExceptionHelper(Thread* thread,
   ASSERT(handler_pc != 0);
 
   if (FLAG_print_stacktrace_at_throw) {
-    OS::Print("Exception '%s' thrown:\n", exception.ToCString());
-    OS::Print("%s\n", stacktrace.ToCString());
+    THR_Print("Exception '%s' thrown:\n", exception.ToCString());
+    THR_Print("%s\n", stacktrace.ToCString());
   }
   if (handler_exists) {
     // Found a dart handler for the exception, jump to it.
@@ -424,19 +431,21 @@ RawInstance* Exceptions::NewInstance(const char* class_name) {
 
 // Allocate, initialize, and throw a TypeError or CastError.
 // If error_msg is not null, throw a TypeError, even for a type cast.
-void Exceptions::CreateAndThrowTypeError(intptr_t location,
-                                         const String& src_type_name,
-                                         const String& dst_type_name,
+void Exceptions::CreateAndThrowTypeError(TokenPosition location,
+                                         const AbstractType& src_type,
+                                         const AbstractType& dst_type,
                                          const String& dst_name,
-                                         const String& error_msg) {
-  const Array& args = Array::Handle(Array::New(7));
+                                         const String& bound_error_msg) {
+  ASSERT(!dst_name.IsNull());  // Pass Symbols::Empty() instead.
+  Zone* zone = Thread::Current()->zone();
+  const Array& args = Array::Handle(zone, Array::New(4));
 
   ExceptionType exception_type =
-      (error_msg.IsNull() && dst_name.Equals(kCastErrorDstName)) ?
-          kCast : kType;
+      (bound_error_msg.IsNull() &&
+       (dst_name.raw() == Symbols::InTypeCast().raw())) ? kCast : kType;
 
   DartFrameIterator iterator;
-  const Script& script = Script::Handle(GetCallerScript(&iterator));
+  const Script& script = Script::Handle(zone, GetCallerScript(&iterator));
   intptr_t line;
   intptr_t column = -1;
   if (script.HasSource()) {
@@ -445,33 +454,78 @@ void Exceptions::CreateAndThrowTypeError(intptr_t location,
     script.GetTokenLocation(location, &line, NULL);
   }
   // Initialize '_url', '_line', and '_column' arguments.
-  args.SetAt(0, String::Handle(script.url()));
-  args.SetAt(1, Smi::Handle(Smi::New(line)));
-  args.SetAt(2, Smi::Handle(Smi::New(column)));
+  args.SetAt(0, String::Handle(zone, script.url()));
+  args.SetAt(1, Smi::Handle(zone, Smi::New(line)));
+  args.SetAt(2, Smi::Handle(zone, Smi::New(column)));
 
-  // Initialize '_srcType', '_dstType', '_dstName', and '_errorMsg'.
-  args.SetAt(3, src_type_name);
-  args.SetAt(4, dst_type_name);
-  args.SetAt(5, dst_name);
-  args.SetAt(6, error_msg);
+  // Construct '_errorMsg'.
+  GrowableHandlePtrArray<const String> pieces(zone, 20);
+
+  // Print bound error first, if any.
+  if (!bound_error_msg.IsNull() && (bound_error_msg.Length() > 0)) {
+    pieces.Add(bound_error_msg);
+    pieces.Add(Symbols::NewLine());
+  }
+
+  // If dst_type is malformed or malbounded, only print the embedded error.
+  if (!dst_type.IsNull()) {
+    const LanguageError& error = LanguageError::Handle(zone, dst_type.error());
+    if (!error.IsNull()) {
+      // Print the embedded error only.
+      pieces.Add(String::Handle(zone, Symbols::New(error.ToErrorCString())));
+      pieces.Add(Symbols::NewLine());
+    } else {
+      // Describe the type error.
+      if (!src_type.IsNull()) {
+        pieces.Add(Symbols::TypeQuote());
+        pieces.Add(String::Handle(zone, src_type.UserVisibleName()));
+        pieces.Add(Symbols::QuoteIsNotASubtypeOf());
+      }
+      pieces.Add(Symbols::TypeQuote());
+      pieces.Add(String::Handle(zone, dst_type.UserVisibleName()));
+      pieces.Add(Symbols::SingleQuote());
+      if (exception_type == kCast) {
+        pieces.Add(dst_name);
+      } else if (dst_name.Length() > 0) {
+        pieces.Add(Symbols::SpaceOfSpace());
+        pieces.Add(Symbols::SingleQuote());
+        pieces.Add(dst_name);
+        pieces.Add(Symbols::SingleQuote());
+      }
+      // Print URIs of src and dst types.
+      // Do not print "where" when no URIs get printed.
+      bool printed_where = false;
+      if (!src_type.IsNull()) {
+        const String& uris = String::Handle(zone, src_type.EnumerateURIs());
+        if (uris.Length() > Symbols::SpaceIsFromSpace().Length()) {
+          printed_where = true;
+          pieces.Add(Symbols::SpaceWhereNewLine());
+          pieces.Add(uris);
+        }
+      }
+      if (!dst_type.IsDynamicType() && !dst_type.IsVoidType()) {
+        const String& uris = String::Handle(zone, dst_type.EnumerateURIs());
+        if (uris.Length() > Symbols::SpaceIsFromSpace().Length()) {
+          if (!printed_where) {
+            pieces.Add(Symbols::SpaceWhereNewLine());
+          }
+          pieces.Add(uris);
+        }
+      }
+    }
+  }
+  const String& error_msg =
+      String::Handle(zone, Symbols::FromConcatAll(pieces));
+  args.SetAt(3, error_msg);
 
   // Type errors in the core library may be difficult to diagnose.
   // Print type error information before throwing the error when debugging.
   if (FLAG_print_stacktrace_at_throw) {
-    if (!error_msg.IsNull()) {
-      OS::Print("%s\n", error_msg.ToCString());
-    }
-    OS::Print("'%s': Failed type check: line %" Pd " pos %" Pd ": ",
-              String::Handle(script.url()).ToCString(), line, column);
-    if (!dst_name.IsNull() && (dst_name.Length() > 0)) {
-      OS::Print("type '%s' is not a subtype of type '%s' of '%s'.\n",
-                src_type_name.ToCString(),
-                dst_type_name.ToCString(),
-                dst_name.ToCString());
-    } else {
-      OS::Print("type error.\n");
-    }
+    THR_Print("'%s': Failed type check: line %" Pd " pos %" Pd ": ",
+              String::Handle(zone, script.url()).ToCString(), line, column);
+    THR_Print("%s\n", error_msg.ToCString());
   }
+
   // Throw TypeError or CastError instance.
   Exceptions::ThrowByType(exception_type, args);
   UNREACHABLE();
@@ -482,10 +536,12 @@ void Exceptions::Throw(Thread* thread, const Instance& exception) {
   // Do not notify debugger on stack overflow and out of memory exceptions.
   // The VM would crash when the debugger calls back into the VM to
   // get values of variables.
-  Isolate* isolate = thread->isolate();
-  if (exception.raw() != isolate->object_store()->out_of_memory() &&
-      exception.raw() != isolate->object_store()->stack_overflow()) {
-    isolate->debugger()->SignalExceptionThrown(exception);
+  if (FLAG_support_debugger) {
+    Isolate* isolate = thread->isolate();
+    if (exception.raw() != isolate->object_store()->out_of_memory() &&
+        exception.raw() != isolate->object_store()->stack_overflow()) {
+      isolate->debugger()->SignalExceptionThrown(exception);
+    }
   }
   // Null object is a valid exception object.
   ThrowExceptionHelper(thread, exception,
@@ -624,18 +680,6 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
       library = Library::IsolateLibrary();
       class_name = &Symbols::IsolateSpawnException();
       break;
-    case kIsolateUnhandledException:
-      library = Library::IsolateLibrary();
-      class_name = &Symbols::IsolateUnhandledException();
-      break;
-    case kJavascriptIntegerOverflowError:
-      library = Library::CoreLibrary();
-      class_name = &Symbols::JavascriptIntegerOverflowError();
-      break;
-    case kJavascriptCompatibilityError:
-      library = Library::CoreLibrary();
-      class_name = &Symbols::JavascriptCompatibilityError();
-      break;
     case kAssertion:
       library = Library::CoreLibrary();
       class_name = &Symbols::AssertionError();
@@ -672,13 +716,5 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
                                           arguments);
 }
 
-
-// Throw JavascriptCompatibilityError exception.
-void Exceptions::ThrowJavascriptCompatibilityError(const char* msg) {
-  const Array& exc_args = Array::Handle(Array::New(1));
-  const String& msg_str = String::Handle(String::New(msg));
-  exc_args.SetAt(0, msg_str);
-  Exceptions::ThrowByType(Exceptions::kJavascriptCompatibilityError, exc_args);
-}
 
 }  // namespace dart

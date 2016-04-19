@@ -356,6 +356,11 @@ class Namer {
   jsAst.Name _literalSetterPrefix;
   jsAst.Name _literalLazyGetterPrefix;
 
+  jsAst.Name _staticsPropertyName;
+
+  jsAst.Name get staticsPropertyName =>
+      _staticsPropertyName ??= new StringBackedName('static');
+
   // Name of property in a class description for the native dispatch metadata.
   final String nativeSpecProperty = '%';
 
@@ -619,7 +624,7 @@ class Namer {
   }
 
   String _jsNameHelper(Element e) {
-    String jsInteropName = backend.getJsInteropName(e);
+    String jsInteropName = backend.nativeData.getJsInteropName(e);
     if (jsInteropName != null && jsInteropName.isNotEmpty)
       return jsInteropName;
     return e.isLibrary ? 'self' : e.name;
@@ -774,8 +779,9 @@ class Namer {
   jsAst.Name instanceFieldPropertyName(FieldElement element) {
     ClassElement enclosingClass = element.enclosingClass;
 
-    if (backend.hasFixedBackendName(element)) {
-      return new StringBackedName(backend.getFixedBackendName(element));
+    if (backend.nativeData.hasFixedBackendName(element)) {
+      return new StringBackedName(
+          backend.nativeData.getFixedBackendName(element));
     }
 
     // Some elements, like e.g. instances of BoxFieldElement are special.
@@ -1888,6 +1894,8 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
 
   @override
   int visitDeferred(DeferredConstantValue constant, [_]) {
+    // TODO(sra): Investigate that the use of hashCode here is probably a source
+    // of instability.
     int hash = constant.prefix.hashCode;
     return _combine(hash, _visit(constant.referenced));
   }

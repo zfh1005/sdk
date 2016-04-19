@@ -2,7 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of ssa;
+import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
+import '../compiler.dart' show Compiler;
+import '../constants/constant_system.dart';
+import '../constants/values.dart';
+import '../elements/elements.dart';
+import '../js_backend/backend_helpers.dart' show BackendHelpers;
+import '../js_backend/js_backend.dart';
+import '../types/types.dart';
+import '../universe/selector.dart' show Selector;
+import '../world.dart' show ClassWorld, World;
+
+import 'nodes.dart';
+import 'optimize.dart';
 
 /**
  * This phase simplifies interceptors in multiple ways:
@@ -100,8 +112,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     // All intercepted classes extend `Interceptor`, so if the receiver can't be
     // a class extending `Interceptor` then it can be called directly.
     return new TypeMask.nonNullSubclass(helpers.jsInterceptorClass, classWorld)
-        .intersection(receiver.instructionType, classWorld)
-        .isEmpty;
+        .isDisjoint(receiver.instructionType, classWorld);
   }
 
   HInstruction tryComputeConstantInterceptor(
@@ -136,7 +147,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       Set<ClassElement> interceptedClasses) {
 
     if (type.isNullable) {
-      if (type.isEmpty) {
+      if (type.isNull) {
         return helpers.jsNullClass;
       }
     } else if (type.containsOnlyInt(classWorld)) {
@@ -313,7 +324,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
     }
 
     // Try creating a one-shot interceptor or optimized is-check
-    if (compiler.hasIncrementalSupport) return false;
+    if (compiler.options.hasIncrementalSupport) return false;
     if (node.usedBy.length != 1) return false;
     HInstruction user = node.usedBy.single;
 

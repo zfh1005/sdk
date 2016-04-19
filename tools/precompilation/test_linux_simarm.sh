@@ -1,4 +1,6 @@
-#!/bin/bash -ex
+#!/usr/bin/env bash
+
+set -ex
 
 # Usage:
 #   cd sdk
@@ -6,8 +8,8 @@
 
 ./tools/build.py -mdebug -asimarm runtime
 
-./out/DebugSIMARM/dart_no_snapshot --gen-precompiled-snapshot "$1"
+./out/DebugSIMARM/dart_bootstrap --gen-precompiled-snapshot --package-root=out/DebugX64/packages/ "$1"
 
-gcc -m32 -shared -Wl,-soname,libprecompiled.so -o libprecompiled.so precompiled.S
+gcc -nostartfiles -m32 -shared -Wl,-soname,libprecompiled.so -o libprecompiled.so precompiled.S
 
-LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$PWD" gdb -ex run --args ./out/DebugSIMARM/dart --run-precompiled-snapshot --observe not_used.dart
+gdb -ex run --args ./out/DebugSIMARM/dart_precompiled_runtime --run-precompiled-snapshot=$PWD not_used.dart

@@ -2,7 +2,46 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of ssa;
+import '../common.dart';
+import '../common/codegen.dart' show
+    CodegenRegistry,
+    CodegenWorkItem;
+import '../common/tasks.dart' show
+    CompilerTask;
+import '../compiler.dart' show
+    Compiler;
+import '../constants/constant_system.dart';
+import '../constants/values.dart';
+import '../core_types.dart' show
+    CoreClasses;
+import '../dart_types.dart';
+import '../elements/elements.dart';
+import '../io/source_information.dart';
+import '../js/js.dart' as js;
+import '../js_backend/backend_helpers.dart' show
+    BackendHelpers;
+import '../js_backend/js_backend.dart';
+import '../js_emitter/js_emitter.dart' show
+    CodeEmitterTask,
+    NativeEmitter;
+import '../native/native.dart' as native;
+import '../types/types.dart';
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
+    Selector;
+import '../universe/use.dart' show
+    DynamicUse,
+    StaticUse,
+    TypeUse;
+import '../util/util.dart';
+import '../world.dart' show
+    ClassWorld,
+    World;
+
+import 'nodes.dart';
+import 'codegen_helpers.dart';
+import 'variable_allocator.dart';
 
 class SsaCodeGeneratorTask extends CompilerTask {
 
@@ -247,7 +286,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     shouldGroupVarDeclarations = allocator.names.numberOfVariables > 1;
   }
 
-  void handleDelayedVariableDeclarations() {
+  void handleDelayedVariableDeclarations(SourceInformation sourceInformation) {
     // If we have only one variable declaration and the first statement is an
     // assignment to that variable then we can merge the two.  We count the
     // number of variables in the variable allocator to try to avoid this issue,
@@ -269,7 +308,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
               js.VariableInitialization initialization =
                   new js.VariableInitialization(decl, assignment.value);
               currentContainer.statements[0] = new js.ExpressionStatement(
-                  new js.VariableDeclarationList([initialization]));
+                  new js.VariableDeclarationList([initialization]))
+                      .withSourceInformation(sourceInformation);
               return;
             }
           }
@@ -283,7 +323,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         declarations.add(new js.VariableInitialization(
             new js.VariableDeclaration(name), null));
       });
-      var declarationList = new js.VariableDeclarationList(declarations);
+      var declarationList = new js.VariableDeclarationList(declarations)
+          .withSourceInformation(sourceInformation);;
       insertStatementAtStart(new js.ExpressionStatement(declarationList));
     }
   }
@@ -293,7 +334,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     currentGraph = graph;
     subGraph = new SubGraph(graph.entry, graph.exit);
     visitBasicBlock(graph.entry);
-    handleDelayedVariableDeclarations();
+    handleDelayedVariableDeclarations(graph.sourceInformation);
   }
 
   void visitSubGraph(SubGraph newSubGraph) {
@@ -411,7 +452,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (len == 0) return new js.EmptyStatement();
     if (len == 1) {
       js.Statement result = block.statements[0];
-      if (result is ast.Block) return unwrapStatement(result);
+      if (result is js.Block) return unwrapStatement(result);
       return result;
     }
     return block;
@@ -1415,7 +1456,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       JumpTarget target = node.target;
       if (!tryCallAction(continueAction, target)) {
-        if (target.statement is ast.SwitchStatement) {
+        if (target.isSwitch) {
           pushStatement(
               new js.Continue(backend.namer.implicitContinueLabelName(target))
                   .withSourceInformation(node.sourceInformation));
@@ -1557,7 +1598,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // A direct (i.e. non-interceptor) native call is the result of
         // optimization.  The optimization ensures any type checks or
         // conversions have been satisified.
-        methodName = backend.getFixedBackendName(target);
+        methodName = backend.nativeData.getFixedBackendName(target);
       }
     }
 
@@ -1751,7 +1792,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
               .withSourceInformation(node.sourceInformation);
       if (node.isSetter) {
         registry.registerStaticUse(
-            new StaticUse.superSet(superElement));
+            superElement.isSetter
+                ? new StaticUse.superSetterSet(superElement)
+                : new StaticUse.superFieldSet(superElement));
         use(node.value);
         push(new js.Assignment(access, pop())
             .withSourceInformation(node.sourceInformation));
@@ -1917,7 +1960,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   js.Expression newLiteralBool(bool value,
                                SourceInformation sourceInformation) {
-    if (compiler.enableMinification) {
+    if (compiler.options.enableMinification) {
       // Use !0 for true, !1 for false.
       return new js.Prefix("!", new js.LiteralNumber(value ? "0" : "1"))
           .withSourceInformation(sourceInformation);
@@ -2744,7 +2787,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       ClassWorld classWorld = compiler.world;
       // An int check if the input is not int or null, is not
       // sufficient for doing an argument or receiver check.
-      assert(compiler.trustTypeAnnotations ||
+      assert(compiler.options.trustTypeAnnotations ||
              !node.checkedType.containsOnlyInt(classWorld) ||
              node.checkedInput.isIntegerOrNull(compiler));
       js.Expression test = generateReceiverOrArgumentTypeTest(

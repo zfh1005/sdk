@@ -2,7 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of tree;
+import 'dart:collection' show IterableMixin;
+
+import '../common.dart';
+import '../tokens/precedence_constants.dart' as Precedence show FUNCTION_INFO;
+import '../tokens/token.dart' show BeginGroupToken, Token;
+import '../tokens/token_constants.dart' as Tokens show IDENTIFIER_TOKEN, KEYWORD_TOKEN, PLUS_TOKEN;
+import '../util/util.dart';
+import '../util/characters.dart';
+import '../resolution/secret_tree_element.dart' show NullTreeElementMixin, StoredTreeElementMixin;
+import '../elements/elements.dart' show MetadataAnnotation;
+import 'dartstring.dart';
+import 'prettyprint.dart';
+import 'unparser.dart';
 
 abstract class Visitor<R> {
   const Visitor();
@@ -22,7 +34,9 @@ abstract class Visitor<R> {
   R visitClassNode(ClassNode node) => visitNode(node);
   R visitCombinator(Combinator node) => visitNode(node);
   R visitConditional(Conditional node) => visitExpression(node);
+  R visitConditionalUri(ConditionalUri node) => visitNode(node);
   R visitContinueStatement(ContinueStatement node) => visitGotoStatement(node);
+  R visitDottedName(DottedName node) => visitExpression(node);
   R visitDoWhile(DoWhile node) => visitLoop(node);
   R visitEmptyStatement(EmptyStatement node) => visitStatement(node);
   R visitEnum(Enum node) => visitNode(node);
@@ -34,8 +48,8 @@ abstract class Visitor<R> {
   R visitFunctionExpression(FunctionExpression node) => visitExpression(node);
   R visitGotoStatement(GotoStatement node) => visitStatement(node);
   R visitIdentifier(Identifier node) => visitExpression(node);
-  R visitIf(If node) => visitStatement(node);
   R visitImport(Import node) => visitLibraryDependency(node);
+  R visitIf(If node) => visitStatement(node);
   R visitLabel(Label node) => visitNode(node);
   R visitLabeledStatement(LabeledStatement node) => visitStatement(node);
   R visitLibraryDependency(LibraryDependency node) => visitLibraryTag(node);
@@ -145,6 +159,12 @@ abstract class Node extends NullTreeElementMixin implements Spannable {
 
   Token getBeginToken();
 
+  /// Returns the token that ends the 'prefix' of this node.
+  ///
+  /// For instance the end of the parameters in a [FunctionExpression] or the
+  /// last token before the start of a class body for a [ClassNode].
+  Token getPrefixEndToken() => getEndToken();
+
   Token getEndToken();
 
   Assert asAssert() => null;
@@ -159,7 +179,9 @@ abstract class Node extends NullTreeElementMixin implements Spannable {
   ClassNode asClassNode() => null;
   Combinator asCombinator() => null;
   Conditional asConditional() => null;
+  ConditionalUri asConditionalUri() => null;
   ContinueStatement asContinueStatement() => null;
+  DottedName asDottedName() => null;
   DoWhile asDoWhile() => null;
   EmptyStatement asEmptyStatement() => null;
   Enum asEnum() => null;
@@ -258,6 +280,25 @@ class ClassNode extends Node {
   }
 
   Token getBeginToken() => beginToken;
+
+  @override
+  Token getPrefixEndToken() {
+    Token token;
+    if (interfaces != null) {
+      token = interfaces.getEndToken();
+    }
+    if (token == null && superclass != null) {
+      token = superclass.getEndToken();
+    }
+    if (token == null && typeParameters != null) {
+      token == typeParameters.getEndToken();
+    }
+    if (token == null) {
+      token = name.getEndToken();
+    }
+    assert(invariant(beginToken, token != null));
+    return token;
+  }
 
   Token getEndToken() => endToken;
 }
@@ -543,7 +584,7 @@ class NewExpression extends Expression {
   Token getEndToken() => send.getEndToken();
 }
 
-class NodeList extends Node {
+class NodeList extends Node with IterableMixin<Node> {
   final Link<Node> nodes;
   final Token beginToken;
   final Token endToken;
@@ -558,6 +599,13 @@ class NodeList extends Node {
   NodeList.empty() : this(null, const Link<Node>());
 
   NodeList asNodeList() => this;
+
+  // Override [IterableMixin.toString] with same code as [Node.toString].
+  toString() => unparse(this);
+
+  get length {
+    throw new UnsupportedError('use slowLength() instead of get:length');
+  }
 
   int slowLength() {
     int result = 0;
@@ -734,6 +782,10 @@ class FunctionDeclaration extends Statement {
   visitChildren(Visitor visitor) => function.accept(visitor);
 
   Token getBeginToken() => function.getBeginToken();
+
+  @override
+  Token getPrefixEndToken() => function.getPrefixEndToken();
+
   Token getEndToken() => function.getEndToken();
 }
 
@@ -807,9 +859,9 @@ class FunctionExpression extends Expression with StoredTreeElementMixin {
     if (body != null) body.accept(visitor);
   }
 
-  bool hasBody() => body.asEmptyStatement() == null;
+  bool get hasBody => body.asEmptyStatement() == null;
 
-  bool hasEmptyBody() {
+  bool get hasEmptyBody {
     Block block = body.asBlock();
     if (block == null) return false;
     return block.statements.isEmpty;
@@ -820,6 +872,11 @@ class FunctionExpression extends Expression with StoredTreeElementMixin {
     if (token != null) return token;
     if (getOrSet != null) return getOrSet;
     return firstBeginToken(name, parameters);
+  }
+
+  @override
+  Token getPrefixEndToken() {
+    return parameters != null ? parameters.getEndToken() : name.getEndToken();
   }
 
   Token getEndToken() {
@@ -1022,6 +1079,7 @@ class LiteralList extends Expression {
 
 class LiteralSymbol extends Expression {
   final Token hashToken;
+  // TODO: this could be a DottedNamed.
   final NodeList identifiers;
 
   LiteralSymbol(this.hashToken, this.identifiers);
@@ -1065,6 +1123,32 @@ class Identifier extends Expression with StoredTreeElementMixin {
   Token getBeginToken() => token;
 
   Token getEndToken() => token;
+}
+
+// TODO(floitsch): a dotted identifier isn't really an expression. Should it
+// inherit from Node instead?
+class DottedName extends Expression {
+  final Token token;
+  final NodeList identifiers;
+
+  DottedName(this.token, this.identifiers);
+
+  DottedName asDottedName() => this;
+
+  void visitChildren(Visitor visitor) {
+    identifiers.accept(visitor);
+  }
+
+  accept(Visitor visitor) => visitor.visitDottedName(this);
+
+  Token getBeginToken() => token;
+  Token getEndToken() => identifiers.getEndToken();
+
+  String get slowNameString {
+    Unparser unparser = new Unparser();
+    unparser.unparseNodeListOfIdentifiers(identifiers);
+    return unparser.result;
+  }
 }
 
 class Operator extends Identifier {
@@ -1269,7 +1353,10 @@ class TypeAnnotation extends Node {
 
   Token getBeginToken() => typeName.getBeginToken();
 
-  Token getEndToken() => typeName.getEndToken();
+  Token getEndToken() {
+    if (typeArguments != null) return typeArguments.getEndToken();
+    return typeName.getEndToken();
+  }
 }
 
 class TypeVariable extends Node {
@@ -1964,14 +2051,18 @@ class LibraryName extends LibraryTag {
  */
 abstract class LibraryDependency extends LibraryTag {
   final StringNode uri;
+  final NodeList conditionalUris;
   final NodeList combinators;
 
   LibraryDependency(this.uri,
+                    this.conditionalUris,
                     this.combinators,
                     List<MetadataAnnotation> metadata)
     : super(metadata);
 
   LibraryDependency asLibraryDependency() => this;
+
+  bool get hasConditionalUris => conditionalUris != null;
 }
 
 /**
@@ -1986,11 +2077,11 @@ class Import extends LibraryDependency {
   final Token importKeyword;
   final bool isDeferred;
 
-  Import(this.importKeyword, StringNode uri,
+  Import(this.importKeyword, StringNode uri, NodeList conditionalUris,
          this.prefix, NodeList combinators,
          List<MetadataAnnotation> metadata,
          {this.isDeferred})
-      : super(uri, combinators, metadata);
+      : super(uri, conditionalUris, combinators, metadata);
 
   bool get isImport => true;
 
@@ -2009,8 +2100,42 @@ class Import extends LibraryDependency {
   Token getEndToken() {
     if (combinators != null) return combinators.getEndToken().next;
     if (prefix != null) return prefix.getEndToken().next;
+    if (conditionalUris != null) return conditionalUris.getEndToken().next;
     return uri.getEndToken().next;
   }
+}
+
+/**
+ * A conditional uri inside an import or export clause.
+ *
+ * Example:
+ *
+ *     import 'foo.dart'
+ *       if (some.condition == "someValue") 'bar.dart'
+ *       if (other.condition) 'gee.dart';
+ */
+class ConditionalUri extends Node {
+  final Token ifToken;
+  final DottedName key;
+  // Value may be null.
+  final LiteralString value;
+  final StringNode uri;
+
+  ConditionalUri(this.ifToken, this.key, this.value, this.uri);
+
+  ConditionalUri asConditionalUri() => this;
+
+  accept(Visitor visitor) => visitor.visitConditionalUri(this);
+
+  visitChildren(Visitor visitor) {
+    key.accept(visitor);
+    if (value != null) value.accept(visitor);
+    uri.accept(visitor);
+  }
+
+  Token getBeginToken() => ifToken;
+
+  Token getEndToken() => uri.getEndToken();
 }
 
 /**
@@ -2052,9 +2177,10 @@ class Export extends LibraryDependency {
 
   Export(this.exportKeyword,
          StringNode uri,
+         NodeList conditionalUris,
          NodeList combinators,
          List<MetadataAnnotation> metadata)
-      : super(uri, combinators, metadata);
+      : super(uri, conditionalUris, combinators, metadata);
 
   bool get isExport => true;
 
@@ -2071,6 +2197,7 @@ class Export extends LibraryDependency {
 
   Token getEndToken() {
     if (combinators != null) return combinators.getEndToken().next;
+    if (conditionalUris != null) return conditionalUris.getEndToken().next;
     return uri.getEndToken().next;
   }
 }
@@ -2368,8 +2495,8 @@ class ErrorNode
   get initializers => null;
   get getOrSet => null;
   get isRedirectingFactory => false;
-  bool hasBody() => false;
-  bool hasEmptyBody() => false;
+  bool get hasBody => false;
+  bool get hasEmptyBody => false;
 
   // VariableDefinitions.
   get metadata => null;

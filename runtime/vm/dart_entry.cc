@@ -10,13 +10,12 @@
 #include "vm/debugger.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
+#include "vm/safepoint.h"
 #include "vm/simulator.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 
 namespace dart {
-
-DECLARE_FLAG(bool, lazy_dispatchers);
 
 // A cache of VM heap allocated arguments descriptors.
 RawArray* ArgumentsDescriptor::cached_args_descriptors_[kCachedDescriptorCount];
@@ -33,26 +32,37 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
 
 class ScopedIsolateStackLimits : public ValueObject {
  public:
-  explicit ScopedIsolateStackLimits(Isolate* isolate)
-      : isolate_(isolate), stack_base_(Isolate::GetCurrentStackPointer()) {
-    ASSERT(isolate_ != NULL);
-    ASSERT(isolate_ == Isolate::Current());
-    if (stack_base_ >= isolate_->stack_base()) {
-      isolate_->SetStackLimitFromStackBase(stack_base_);
+  explicit ScopedIsolateStackLimits(Thread* thread)
+      : thread_(thread), saved_stack_limit_(0) {
+    ASSERT(thread != NULL);
+    // Set the thread's stack_base based on the current
+    // stack pointer, we keep refining this value as we
+    // see higher stack pointers (Note: we assume the stack
+    // grows from high to low addresses).
+    OSThread* os_thread = thread->os_thread();
+    ASSERT(os_thread != NULL);
+    uword current_sp = Thread::GetCurrentStackPointer();
+    if (current_sp > os_thread->stack_base()) {
+      os_thread->set_stack_base(current_sp);
     }
+    // Save the Thread's current stack limit and adjust the stack
+    // limit based on the thread's stack_base.
+    ASSERT(thread->isolate() == Isolate::Current());
+    saved_stack_limit_ = thread->saved_stack_limit();
+    thread->SetStackLimitFromStackBase(os_thread->stack_base());
   }
 
   ~ScopedIsolateStackLimits() {
-    ASSERT(isolate_ == Isolate::Current());
-    if (isolate_->stack_base() == stack_base_) {
-      // Bottomed out.
-      isolate_->ClearStackLimit();
-    }
+    ASSERT(thread_->isolate() == Isolate::Current());
+    // Since we started with a stack limit of 0 we should be getting back
+    // to a stack limit of 0 when all nested invocations are done and
+    // we have bottomed out.
+    thread_->SetStackLimit(saved_stack_limit_);
   }
 
  private:
-  Isolate* isolate_;
-  uword stack_base_;
+  Thread* thread_;
+  uword saved_stack_limit_;
 };
 
 
@@ -84,7 +94,6 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   // compiled.
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
   ASSERT(thread->IsMutatorThread());
   if (!function.HasCode()) {
     const Error& error = Error::Handle(
@@ -99,8 +108,9 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   const Code& code = Code::Handle(zone, function.CurrentCode());
   ASSERT(!code.IsNull());
   ASSERT(thread->no_callback_scope_depth() == 0);
-  ScopedIsolateStackLimits stack_limit(isolate);
+  ScopedIsolateStackLimits stack_limit(thread);
   SuspendLongJumpScope suspend_long_jump_scope(thread);
+  TransitionToGenerated transition(thread);
 #if defined(USING_SIMULATOR)
   return bit_copy<RawObject*, int64_t>(Simulator::Current()->Call(
       reinterpret_cast<intptr_t>(entrypoint),
@@ -155,15 +165,16 @@ RawObject* DartEntry::InvokeClosure(const Array& arguments,
     while (!cls.IsNull()) {
       function ^= cls.LookupDynamicFunction(getter_name);
       if (!function.IsNull()) {
-        // Getters don't have a stack overflow check, so do one in C++.
-
-        Isolate* isolate = Isolate::Current();
-#if defined(USING_SIMULATOR)
-        uword stack_pos = Simulator::Current()->get_register(SPREG);
-#else
-        uword stack_pos = Isolate::GetCurrentStackPointer();
+        Thread* thread = Thread::Current();
+        Isolate* isolate = thread->isolate();
+        volatile uword c_stack_pos = Thread::GetCurrentStackPointer();
+        volatile uword c_stack_limit = OSThread::Current()->stack_base() -
+                                       OSThread::GetSpecifiedStackSize();
+#if !defined(USING_SIMULATOR)
+        ASSERT(c_stack_limit == thread->saved_stack_limit());
 #endif
-        if (stack_pos < isolate->saved_stack_limit()) {
+
+        if (c_stack_pos < c_stack_limit) {
           const Instance& exception =
             Instance::Handle(isolate->object_store()->stack_overflow());
           return UnhandledException::New(exception, Stacktrace::Handle());
@@ -180,7 +191,12 @@ RawObject* DartEntry::InvokeClosure(const Array& arguments,
         ASSERT(getter_result.IsNull() || getter_result.IsInstance());
 
         arguments.SetAt(0, getter_result);
-        return InvokeClosure(arguments, arguments_descriptor);
+        // This otherwise unnecessary handle is used to prevent clang from
+        // doing tail call elimination, which would make the stack overflow
+        // check above ineffective.
+        Object& result = Object::Handle(InvokeClosure(arguments,
+                                                      arguments_descriptor));
+        return result.raw();
       }
       cls = cls.SuperClass();
     }
@@ -399,13 +415,11 @@ RawObject* DartLibraryCalls::InstanceCreate(const Library& lib,
   const Class& cls = Class::Handle(lib.LookupClassAllowPrivate(class_name));
   ASSERT(!cls.IsNull());
   // For now, we only support a non-parameterized or raw type.
-  const int kNumExtraArgs = 2;  // implicit rcvr and construction phase args.
+  const int kNumExtraArgs = 1;  // implicit rcvr arg.
   const Instance& exception_object = Instance::Handle(Instance::New(cls));
   const Array& constructor_arguments =
     Array::Handle(Array::New(arguments.Length() + kNumExtraArgs));
   constructor_arguments.SetAt(0, exception_object);
-  constructor_arguments.SetAt(
-      1, Smi::Handle(Smi::New(Function::kCtorPhaseAll)));
   Object& obj = Object::Handle();
   for (intptr_t i = 0; i < arguments.Length(); i++) {
     obj = arguments.At(i);
@@ -539,7 +553,7 @@ RawObject* DartLibraryCalls::HandleMessage(const Object& handler,
   const Array& args = Array::Handle(zone, Array::New(kNumArguments));
   args.SetAt(0, handler);
   args.SetAt(1, message);
-  if (isolate->debugger()->IsStepping()) {
+  if (FLAG_support_debugger && isolate->debugger()->IsStepping()) {
     // If the isolate is being debugged and the debugger was stepping
     // through code, enable single stepping so debugger will stop
     // at the first location the user is interested in.

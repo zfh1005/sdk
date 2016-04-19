@@ -153,6 +153,30 @@ final Matcher isAnalysisGetHoverResult = new LazyMatcher(() => new MatchesJsonOb
   }));
 
 /**
+ * analysis.getReachableSources params
+ *
+ * {
+ *   "file": FilePath
+ * }
+ */
+final Matcher isAnalysisGetReachableSourcesParams = new LazyMatcher(() => new MatchesJsonObject(
+  "analysis.getReachableSources params", {
+    "file": isFilePath
+  }));
+
+/**
+ * analysis.getReachableSources result
+ *
+ * {
+ *   "sources": Map<String, List<String>>
+ * }
+ */
+final Matcher isAnalysisGetReachableSourcesResult = new LazyMatcher(() => new MatchesJsonObject(
+  "analysis.getReachableSources result", {
+    "sources": isMapOf(isString, isListOf(isString))
+  }));
+
+/**
  * analysis.getLibraryDependencies params
  */
 final Matcher isAnalysisGetLibraryDependenciesParams = isNull;
@@ -1046,6 +1070,7 @@ final Matcher isAddContentOverlay = new LazyMatcher(() => new MatchesJsonObject(
  *   "location": Location
  *   "message": String
  *   "correction": optional String
+ *   "code": String
  *   "hasFix": optional bool
  * }
  */
@@ -1054,7 +1079,8 @@ final Matcher isAnalysisError = new LazyMatcher(() => new MatchesJsonObject(
     "severity": isAnalysisErrorSeverity,
     "type": isAnalysisErrorType,
     "location": isLocation,
-    "message": isString
+    "message": isString,
+    "code": isString
   }, optionalFields: {
     "correction": isString,
     "hasFix": isBool
@@ -2075,8 +2101,10 @@ final Matcher isRequestError = new LazyMatcher(() => new MatchesJsonObject(
  *   FORMAT_WITH_ERRORS
  *   GET_ERRORS_INVALID_FILE
  *   GET_NAVIGATION_INVALID_FILE
+ *   GET_REACHABLE_SOURCES_INVALID_FILE
  *   INVALID_ANALYSIS_ROOT
  *   INVALID_EXECUTION_CONTEXT
+ *   INVALID_FILE_PATH_FORMAT
  *   INVALID_OVERLAY_CHANGE
  *   INVALID_PARAMETER
  *   INVALID_REQUEST
@@ -2100,8 +2128,10 @@ final Matcher isRequestErrorCode = new MatchesEnum("RequestErrorCode", [
   "FORMAT_WITH_ERRORS",
   "GET_ERRORS_INVALID_FILE",
   "GET_NAVIGATION_INVALID_FILE",
+  "GET_REACHABLE_SOURCES_INVALID_FILE",
   "INVALID_ANALYSIS_ROOT",
   "INVALID_EXECUTION_CONTEXT",
+  "INVALID_FILE_PATH_FORMAT",
   "INVALID_OVERLAY_CHANGE",
   "INVALID_PARAMETER",
   "INVALID_REQUEST",

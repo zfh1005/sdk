@@ -14,8 +14,9 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -142,7 +143,7 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor {
           haveIntersectingRanges(refactoring.element, nodeElement)) {
         conflictingLocals.add(nodeElement);
         String nodeKind = nodeElement.kind.displayName;
-        String message = "Duplicate ${nodeKind} '$newName'.";
+        String message = "Duplicate $nodeKind '$newName'.";
         result.addError(message, newLocation_fromElement(nodeElement));
         return;
       }
@@ -150,7 +151,8 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor {
         return;
       }
       // shadowing referenced element
-      if (elementRange.contains(node.offset) &&
+      if (elementRange != null &&
+          elementRange.contains(node.offset) &&
           !node.isQualified &&
           !_isNamedExpressionName(node)) {
         nodeElement = getSyntheticAccessorVariable(nodeElement);

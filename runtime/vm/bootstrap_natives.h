@@ -20,17 +20,17 @@ namespace dart {
   V(Object_toString, 1)                                                        \
   V(Object_noSuchMethod, 6)                                                    \
   V(Object_runtimeType, 1)                                                     \
-  V(Object_instanceOf, 5)                                                      \
+  V(Object_instanceOf, 4)                                                      \
   V(Object_instanceOfNum, 2)                                                   \
   V(Object_instanceOfInt, 2)                                                   \
   V(Object_instanceOfSmi, 2)                                                   \
   V(Object_instanceOfDouble, 2)                                                \
   V(Object_instanceOfString, 2)                                                \
-  V(Object_as, 4)                                                              \
+  V(Object_as, 3)                                                              \
   V(Function_apply, 2)                                                         \
-  V(FunctionImpl_equals, 2)                                                    \
-  V(FunctionImpl_hashCode, 1)                                                  \
-  V(FunctionImpl_clone, 1)                                                     \
+  V(Closure_equals, 2)                                                         \
+  V(Closure_hashCode, 1)                                                       \
+  V(Closure_clone, 1)                                                          \
   V(AbstractType_toString, 1)                                                  \
   V(Identical_comparison, 2)                                                   \
   V(Integer_bitAndFromInteger, 2)                                              \
@@ -73,6 +73,7 @@ namespace dart {
   V(Developer_lookupExtension, 1)                                              \
   V(Developer_registerExtension, 2)                                            \
   V(Developer_log, 8)                                                          \
+  V(Developer_postEvent, 2)                                                    \
   V(Double_getIsNegative, 1)                                                   \
   V(Double_getIsInfinite, 1)                                                   \
   V(Double_getIsNaN, 1)                                                        \
@@ -98,12 +99,12 @@ namespace dart {
   V(Double_toStringAsExponential, 2)                                           \
   V(Double_toStringAsPrecision, 2)                                             \
   V(Double_flipSignBit, 1)                                                     \
-  V(JSSyntaxRegExp_factory, 4)                                                 \
-  V(JSSyntaxRegExp_getPattern, 1)                                              \
-  V(JSSyntaxRegExp_getIsMultiLine, 1)                                          \
-  V(JSSyntaxRegExp_getIsCaseSensitive, 1)                                      \
-  V(JSSyntaxRegExp_getGroupCount, 1)                                           \
-  V(JSSyntaxRegExp_ExecuteMatch, 3)                                            \
+  V(RegExp_factory, 4)                                                         \
+  V(RegExp_getPattern, 1)                                                      \
+  V(RegExp_getIsMultiLine, 1)                                                  \
+  V(RegExp_getIsCaseSensitive, 1)                                              \
+  V(RegExp_getGroupCount, 1)                                                   \
+  V(RegExp_ExecuteMatch, 3)                                                    \
   V(List_allocate, 2)                                                          \
   V(List_getIndexed, 2)                                                        \
   V(List_setIndexed, 3)                                                        \
@@ -145,12 +146,13 @@ namespace dart {
   V(Random_setupSeed, 1)                                                       \
   V(Random_initialSeed, 0)                                                     \
   V(SecureRandom_getBytes, 1)                                                  \
-  V(DateNatives_currentTimeMillis, 0)                                          \
-  V(DateNatives_timeZoneName, 1)                                               \
-  V(DateNatives_timeZoneOffsetInSeconds, 1)                                    \
-  V(DateNatives_localTimeZoneAdjustmentInSeconds, 0)                           \
+  V(DateTime_currentTimeMicros, 0)                                             \
+  V(DateTime_timeZoneName, 1)                                                  \
+  V(DateTime_timeZoneOffsetInSeconds, 1)                                       \
+  V(DateTime_localTimeZoneAdjustmentInSeconds, 0)                              \
   V(AssertionError_throwNew, 2)                                                \
   V(Async_rethrow, 2)                                                          \
+  V(StackTrace_current, 0)                                                     \
   V(TypeError_throwNew, 5)                                                     \
   V(FallThroughError_throwNew, 1)                                              \
   V(AbstractClassInstantiationError_throwNew, 2)                               \
@@ -162,34 +164,34 @@ namespace dart {
   V(Timeline_reportCompleteEvent, 5)                                           \
   V(Timeline_reportInstantEvent, 4)                                            \
   V(Timeline_reportTaskEvent, 6)                                               \
-  V(TypedData_Int8Array_new, 1)                                                \
-  V(TypedData_Uint8Array_new, 1)                                               \
-  V(TypedData_Uint8ClampedArray_new, 1)                                        \
-  V(TypedData_Int16Array_new, 1)                                               \
-  V(TypedData_Uint16Array_new, 1)                                              \
-  V(TypedData_Int32Array_new, 1)                                               \
-  V(TypedData_Uint32Array_new, 1)                                              \
-  V(TypedData_Int64Array_new, 1)                                               \
-  V(TypedData_Uint64Array_new, 1)                                              \
-  V(TypedData_Float32Array_new, 1)                                             \
-  V(TypedData_Float64Array_new, 1)                                             \
-  V(TypedData_Float32x4Array_new, 1)                                           \
-  V(TypedData_Int32x4Array_new, 1)                                             \
-  V(TypedData_Float64x2Array_new, 1)                                           \
-  V(ExternalTypedData_Int8Array_new, 1)                                        \
-  V(ExternalTypedData_Uint8Array_new, 1)                                       \
-  V(ExternalTypedData_Uint8ClampedArray_new, 1)                                \
-  V(ExternalTypedData_Int16Array_new, 1)                                       \
-  V(ExternalTypedData_Uint16Array_new, 1)                                      \
-  V(ExternalTypedData_Int32Array_new, 1)                                       \
-  V(ExternalTypedData_Uint32Array_new, 1)                                      \
-  V(ExternalTypedData_Int64Array_new, 1)                                       \
-  V(ExternalTypedData_Uint64Array_new, 1)                                      \
-  V(ExternalTypedData_Float32Array_new, 1)                                     \
-  V(ExternalTypedData_Float64Array_new, 1)                                     \
-  V(ExternalTypedData_Float32x4Array_new, 1)                                   \
-  V(ExternalTypedData_Int32x4Array_new, 1)                                     \
-  V(ExternalTypedData_Float64x2Array_new, 1)                                   \
+  V(TypedData_Int8Array_new, 2)                                                \
+  V(TypedData_Uint8Array_new, 2)                                               \
+  V(TypedData_Uint8ClampedArray_new, 2)                                        \
+  V(TypedData_Int16Array_new, 2)                                               \
+  V(TypedData_Uint16Array_new, 2)                                              \
+  V(TypedData_Int32Array_new, 2)                                               \
+  V(TypedData_Uint32Array_new, 2)                                              \
+  V(TypedData_Int64Array_new, 2)                                               \
+  V(TypedData_Uint64Array_new, 2)                                              \
+  V(TypedData_Float32Array_new, 2)                                             \
+  V(TypedData_Float64Array_new, 2)                                             \
+  V(TypedData_Float32x4Array_new, 2)                                           \
+  V(TypedData_Int32x4Array_new, 2)                                             \
+  V(TypedData_Float64x2Array_new, 2)                                           \
+  V(ExternalTypedData_Int8Array_new, 2)                                        \
+  V(ExternalTypedData_Uint8Array_new, 2)                                       \
+  V(ExternalTypedData_Uint8ClampedArray_new, 2)                                \
+  V(ExternalTypedData_Int16Array_new, 2)                                       \
+  V(ExternalTypedData_Uint16Array_new, 2)                                      \
+  V(ExternalTypedData_Int32Array_new, 2)                                       \
+  V(ExternalTypedData_Uint32Array_new, 2)                                      \
+  V(ExternalTypedData_Int64Array_new, 2)                                       \
+  V(ExternalTypedData_Uint64Array_new, 2)                                      \
+  V(ExternalTypedData_Float32Array_new, 2)                                     \
+  V(ExternalTypedData_Float64Array_new, 2)                                     \
+  V(ExternalTypedData_Float32x4Array_new, 2)                                   \
+  V(ExternalTypedData_Int32x4Array_new, 2)                                     \
+  V(ExternalTypedData_Float64x2Array_new, 2)                                   \
   V(TypedData_length, 1)                                                       \
   V(TypedData_setRange, 7)                                                     \
   V(TypedData_GetInt8, 2)                                                      \
@@ -309,10 +311,60 @@ namespace dart {
   V(Int32x4_setFlagZ, 2)                                                       \
   V(Int32x4_setFlagW, 2)                                                       \
   V(Int32x4_select, 3)                                                         \
-  V(Isolate_spawnFunction, 7)                                                  \
+  V(Isolate_spawnFunction, 10)                                                 \
   V(Isolate_spawnUri, 12)                                                      \
   V(Isolate_getPortAndCapabilitiesOfCurrentIsolate, 0)                         \
+  V(Isolate_getCurrentRootUriStr, 0)                                           \
   V(Isolate_sendOOB, 2)                                                        \
+  V(GrowableList_allocate, 2)                                                  \
+  V(GrowableList_getIndexed, 2)                                                \
+  V(GrowableList_setIndexed, 3)                                                \
+  V(GrowableList_getLength, 1)                                                 \
+  V(GrowableList_getCapacity, 1)                                               \
+  V(GrowableList_setLength, 2)                                                 \
+  V(GrowableList_setData, 2)                                                   \
+  V(Internal_makeListFixedLength, 1)                                           \
+  V(Internal_makeFixedListUnmodifiable, 1)                                     \
+  V(Internal_inquireIs64Bit, 0)                                                \
+  V(LinkedHashMap_allocate, 1)                                                 \
+  V(LinkedHashMap_getIndex, 1)                                                 \
+  V(LinkedHashMap_setIndex, 2)                                                 \
+  V(LinkedHashMap_getData, 1)                                                  \
+  V(LinkedHashMap_setData, 2)                                                  \
+  V(LinkedHashMap_getHashMask, 1)                                              \
+  V(LinkedHashMap_setHashMask, 2)                                              \
+  V(LinkedHashMap_getUsedData, 1)                                              \
+  V(LinkedHashMap_setUsedData, 2)                                              \
+  V(LinkedHashMap_getDeletedKeys, 1)                                           \
+  V(LinkedHashMap_setDeletedKeys, 2)                                           \
+  V(WeakProperty_new, 2)                                                       \
+  V(WeakProperty_getKey, 1)                                                    \
+  V(WeakProperty_getValue, 1)                                                  \
+  V(WeakProperty_setValue, 2)                                                  \
+  V(Uri_isWindowsPlatform, 0)                                                  \
+  V(LibraryPrefix_load, 1)                                                     \
+  V(LibraryPrefix_invalidateDependentCode, 1)                                  \
+  V(LibraryPrefix_loadError, 1)                                                \
+  V(LibraryPrefix_isLoaded, 1)                                                 \
+  V(UserTag_new, 2)                                                            \
+  V(UserTag_label, 1)                                                          \
+  V(UserTag_defaultTag, 0)                                                     \
+  V(UserTag_makeCurrent, 1)                                                    \
+  V(Profiler_getCurrentTag, 0)                                                 \
+  V(ClassID_getID, 1)                                                          \
+  V(Num_toString, 1)                                                           \
+  V(VMService_SendIsolateServiceMessage, 2)                                    \
+  V(VMService_SendRootServiceMessage, 1)                                       \
+  V(VMService_OnStart, 0)                                                      \
+  V(VMService_OnExit, 0)                                                       \
+  V(VMService_OnServerAddressChange, 1)                                        \
+  V(VMService_ListenStream, 1)                                                 \
+  V(VMService_CancelStream, 1)                                                 \
+  V(VMService_RequestAssets, 0)                                                \
+  V(VMService_DecodeAssets, 1)                                                 \
+
+// List of bootstrap native entry points used in the dart:mirror library.
+#define MIRRORS_BOOTSTRAP_NATIVE_LIST(V)                                       \
   V(Mirrors_evalInLibraryWithPrivateKey, 2)                                    \
   V(Mirrors_makeLocalClassMirror, 1)                                           \
   V(Mirrors_makeLocalTypeMirror, 1)                                            \
@@ -362,50 +414,6 @@ namespace dart {
   V(TypedefMirror_referent, 1)                                                 \
   V(TypedefMirror_declaration, 1)                                              \
   V(VariableMirror_type, 2)                                                    \
-  V(GrowableList_allocate, 2)                                                  \
-  V(GrowableList_getIndexed, 2)                                                \
-  V(GrowableList_setIndexed, 3)                                                \
-  V(GrowableList_getLength, 1)                                                 \
-  V(GrowableList_getCapacity, 1)                                               \
-  V(GrowableList_setLength, 2)                                                 \
-  V(GrowableList_setData, 2)                                                   \
-  V(Internal_makeListFixedLength, 1)                                           \
-  V(Internal_makeFixedListUnmodifiable, 1)                                     \
-  V(Internal_inquireIs64Bit, 0)                                                \
-  V(LinkedHashMap_allocate, 1)                                                 \
-  V(LinkedHashMap_getIndex, 1)                                                 \
-  V(LinkedHashMap_setIndex, 2)                                                 \
-  V(LinkedHashMap_getData, 1)                                                  \
-  V(LinkedHashMap_setData, 2)                                                  \
-  V(LinkedHashMap_getHashMask, 1)                                              \
-  V(LinkedHashMap_setHashMask, 2)                                              \
-  V(LinkedHashMap_getUsedData, 1)                                              \
-  V(LinkedHashMap_setUsedData, 2)                                              \
-  V(LinkedHashMap_getDeletedKeys, 1)                                           \
-  V(LinkedHashMap_setDeletedKeys, 2)                                           \
-  V(WeakProperty_new, 2)                                                       \
-  V(WeakProperty_getKey, 1)                                                    \
-  V(WeakProperty_getValue, 1)                                                  \
-  V(WeakProperty_setValue, 2)                                                  \
-  V(Uri_isWindowsPlatform, 0)                                                  \
-  V(LibraryPrefix_load, 1)                                                     \
-  V(LibraryPrefix_invalidateDependentCode, 1)                                  \
-  V(LibraryPrefix_loadError, 1)                                                \
-  V(LibraryPrefix_isLoaded, 1)                                                 \
-  V(UserTag_new, 2)                                                            \
-  V(UserTag_label, 1)                                                          \
-  V(UserTag_defaultTag, 0)                                                     \
-  V(UserTag_makeCurrent, 1)                                                    \
-  V(Profiler_getCurrentTag, 0)                                                 \
-  V(ClassID_getID, 1)                                                          \
-  V(Num_toString, 1)                                                           \
-  V(VMService_SendIsolateServiceMessage, 2)                                    \
-  V(VMService_SendRootServiceMessage, 1)                                       \
-  V(VMService_OnStart, 0)                                                      \
-  V(VMService_OnExit, 0)                                                       \
-  V(VMService_ListenStream, 1)                                                 \
-  V(VMService_CancelStream, 1)                                                 \
-  V(VMService_RequestAssets, 0)                                                \
 
 class BootstrapNatives : public AllStatic {
  public:
@@ -419,6 +427,9 @@ class BootstrapNatives : public AllStatic {
   static void DN_##name(Dart_NativeArguments args);
 
   BOOTSTRAP_NATIVE_LIST(DECLARE_BOOTSTRAP_NATIVE)
+#ifndef PRODUCT
+  MIRRORS_BOOTSTRAP_NATIVE_LIST(DECLARE_BOOTSTRAP_NATIVE)
+#endif
 
 #undef DECLARE_BOOTSTRAP_NATIVE
 };

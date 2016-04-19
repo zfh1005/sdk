@@ -13,6 +13,8 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/embedded_dart_io.h"
+#include "bin/file.h"
 #include "bin/io_natives.h"
 #include "bin/platform.h"
 
@@ -58,7 +60,7 @@ Dart_NativeFunction Builtin::NativeLookup(Dart_Handle name,
   int num_entries = sizeof(BuiltinEntries) / sizeof(struct NativeEntries);
   for (int i = 0; i < num_entries; i++) {
     struct NativeEntries* entry = &(BuiltinEntries[i]);
-    if (!strcmp(function_name, entry->name_) &&
+    if ((strcmp(function_name, entry->name_) == 0) &&
         (entry->argument_count_ == argument_count)) {
       return reinterpret_cast<Dart_NativeFunction>(entry->function_);
     }
@@ -79,9 +81,6 @@ const uint8_t* Builtin::NativeSymbol(Dart_NativeFunction nf) {
 }
 
 
-extern bool capture_stdout;
-
-
 // Implementation of native functions which are used for some
 // test/debug functionality in standalone dart mode.
 void FUNCTION_NAME(Builtin_PrintString)(Dart_NativeArguments args) {
@@ -89,13 +88,16 @@ void FUNCTION_NAME(Builtin_PrintString)(Dart_NativeArguments args) {
   uint8_t* chars = NULL;
   Dart_Handle str = Dart_GetNativeArgument(args, 0);
   Dart_Handle result = Dart_StringToUTF8(str, &chars, &length);
-  if (Dart_IsError(result)) Dart_PropagateError(result);
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
 
   // Uses fwrite to support printing NUL bytes.
-  fwrite(chars, 1, length, stdout);
+  intptr_t res = fwrite(chars, 1, length, stdout);
+  ASSERT(res == length);
   fputs("\n", stdout);
   fflush(stdout);
-  if (capture_stdout) {
+  if (ShouldCaptureStdout()) {
     // For now we report print output on the Stdout stream.
     uint8_t newline[] = { '\n' };
     Dart_ServiceSendDataEvent("Stdout", "WriteEvent", chars, length);

@@ -9,8 +9,9 @@ import 'dart:mirrors';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/src/generated/ast.dart' as engine;
-import 'package:analyzer/src/generated/element.dart' as engine;
+import 'package:analyzer/dart/ast/ast.dart' as engine;
+import 'package:analyzer/dart/element/element.dart' as engine;
+import 'package:analyzer/dart/element/type.dart' as engine;
 import 'package:analyzer/src/generated/error.dart' as engine;
 import 'package:analyzer/src/generated/source.dart' as engine;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -26,9 +27,7 @@ main() {
   defineReflectiveTests(EnumTest);
 }
 
-class AnalysisErrorMock extends TypedMock implements engine.AnalysisError {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class AnalysisErrorMock extends TypedMock implements engine.AnalysisError {}
 
 @reflectiveTest
 class AnalysisErrorTest {
@@ -70,6 +69,7 @@ class AnalysisErrorTest {
       },
       MESSAGE: 'my message',
       CORRECTION: 'my correction',
+      CODE: 'ambiguous_export',
       HAS_FIX: false
     });
   }
@@ -88,6 +88,7 @@ class AnalysisErrorTest {
         START_COLUMN: 2
       },
       MESSAGE: 'my message',
+      CODE: 'ambiguous_export',
       HAS_FIX: false
     });
   }
@@ -106,6 +107,7 @@ class AnalysisErrorTest {
         START_COLUMN: -1
       },
       MESSAGE: 'my message',
+      CODE: 'ambiguous_export',
       HAS_FIX: false
     });
   }
@@ -131,11 +133,8 @@ class EnumTest {
         .run(convertElementKind, exceptions: {
       // TODO(paulberry): do any of the exceptions below constitute bugs?
       engine.ElementKind.DYNAMIC: ElementKind.UNKNOWN,
-      engine.ElementKind.EMBEDDED_HTML_SCRIPT: ElementKind.UNKNOWN,
       engine.ElementKind.ERROR: ElementKind.UNKNOWN,
       engine.ElementKind.EXPORT: ElementKind.UNKNOWN,
-      engine.ElementKind.EXTERNAL_HTML_SCRIPT: ElementKind.UNKNOWN,
-      engine.ElementKind.HTML: ElementKind.UNKNOWN,
       engine.ElementKind.IMPORT: ElementKind.UNKNOWN,
       engine.ElementKind.NAME: ElementKind.UNKNOWN,
       engine.ElementKind.UNIVERSE: ElementKind.UNKNOWN

@@ -1,10 +1,13 @@
-library java.io;
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+library analyzer.src.generated.java_io;
 
 import "dart:io";
 
+import 'package:analyzer/src/generated/java_core.dart' show JavaIOException;
 import 'package:path/path.dart' as path;
-
-import 'java_core.dart' show JavaIOException;
 
 class JavaFile {
   static path.Context pathContext = path.context;
@@ -22,7 +25,9 @@ class JavaFile {
       this._path = pathContext.join(base._path, child);
     }
   }
+  @override
   int get hashCode => _path.hashCode;
+  @override
   bool operator ==(other) {
     return other is JavaFile && other._path == _path;
   }
@@ -98,6 +103,7 @@ class JavaFile {
   }
 
   String readAsStringSync() => _newFile().readAsStringSync();
+  @override
   String toString() => _path.toString();
   Uri toURI() {
     String path = getAbsolutePath();

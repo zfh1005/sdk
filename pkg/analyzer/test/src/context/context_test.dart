@@ -2,39 +2,25 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.src.context.context_test;
+library analyzer.test.src.context.context_test;
 
 import 'dart:async';
+import 'dart:collection';
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
-import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    show
-        AnalysisContext,
-        AnalysisContextStatistics,
-        AnalysisDelta,
-        AnalysisEngine,
-        AnalysisErrorInfo,
-        AnalysisLevel,
-        AnalysisNotScheduledError,
-        AnalysisOptions,
-        AnalysisOptionsImpl,
-        AnalysisResult,
-        ApplyChangesStatus,
-        CacheState,
-        ChangeNotice,
-        ChangeSet,
-        IncrementalAnalysisCache,
-        TimestampedData;
+import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/dart.dart';
@@ -257,8 +243,9 @@ int b = aa;''';
     Element declarationElement = declaration.variables.variables[0].element;
     TopLevelVariableDeclaration use =
         partUnit.declarations[0] as TopLevelVariableDeclaration;
-    Element useElement = (use.variables.variables[0].initializer
-        as SimpleIdentifier).staticElement;
+    Element useElement =
+        (use.variables.variables[0].initializer as SimpleIdentifier)
+            .staticElement;
     expect((useElement as PropertyAccessorElement).variable,
         same(declarationElement));
     return pumpEventQueue().then((_) {
@@ -328,7 +315,6 @@ import 'libB.dart';''';
     expect(importedLibraries, hasLength(2));
     context.computeErrors(libA);
     context.computeErrors(libB);
-    expect(context.sourcesNeedingProcessing, hasLength(0));
     context.setContents(libB, null);
     _removeSource(libB);
     List<Source> sources = context.sourcesNeedingProcessing;
@@ -398,7 +384,6 @@ import 'libB.dart';''';
     context.computeLibraryElement(libA);
     context.computeErrors(libA);
     context.computeErrors(libB);
-    expect(context.sourcesNeedingProcessing, hasLength(0));
     ChangeSet changeSet = new ChangeSet();
     SourceContainer removedContainer =
         new _AnalysisContextImplTest_test_applyChanges_removeContainer(libB);
@@ -503,6 +488,13 @@ library lib;
 
   void test_computeDocumentationComment_null() {
     expect(context.computeDocumentationComment(null), isNull);
+  }
+
+  void test_computeErrors_dart_malformedCode() {
+    Source source = addSource("/lib.dart", "final int , = 42;");
+    List<AnalysisError> errors = context.computeErrors(source);
+    expect(errors, isNotNull);
+    expect(errors.length > 0, isTrue);
   }
 
   void test_computeErrors_dart_none() {
@@ -621,12 +613,15 @@ main() {}''');
       expect(unit, isNotNull);
       completed = true;
     });
-    return pumpEventQueue().then((_) {
-      expect(completed, isFalse);
-      _performPendingAnalysisTasks();
-    }).then((_) => pumpEventQueue()).then((_) {
-      expect(completed, isTrue);
-    });
+    return pumpEventQueue()
+        .then((_) {
+          expect(completed, isFalse);
+          _performPendingAnalysisTasks();
+        })
+        .then((_) => pumpEventQueue())
+        .then((_) {
+          expect(completed, isTrue);
+        });
   }
 
   Future test_computeResolvedCompilationUnitAsync_afterDispose() {
@@ -715,12 +710,15 @@ main() {}''');
       expect(unit, isNotNull);
       completed = true;
     });
-    return pumpEventQueue().then((_) {
-      expect(completed, isFalse);
-      _performPendingAnalysisTasks();
-    }).then((_) => pumpEventQueue()).then((_) {
-      expect(completed, isTrue);
-    });
+    return pumpEventQueue()
+        .then((_) {
+          expect(completed, isFalse);
+          _performPendingAnalysisTasks();
+        })
+        .then((_) => pumpEventQueue())
+        .then((_) {
+          expect(completed, isTrue);
+        });
   }
 
   void test_configurationData() {
@@ -854,7 +852,7 @@ part of lib;
   }
 
   void test_exists_true() {
-    expect(context.exists(new AnalysisContextImplTest_Source_exists_true()),
+    expect(context.exists(new _AnalysisContextImplTest_Source_exists_true()),
         isTrue);
   }
 
@@ -1314,7 +1312,7 @@ main() {}''');
     int stamp = 42;
     expect(
         context.getModificationStamp(
-            new AnalysisContextImplTest_Source_getModificationStamp_fromSource(
+            new _AnalysisContextImplTest_Source_getModificationStamp_fromSource(
                 stamp)),
         stamp);
   }
@@ -1322,7 +1320,7 @@ main() {}''');
   void test_getModificationStamp_overridden() {
     int stamp = 42;
     Source source =
-        new AnalysisContextImplTest_Source_getModificationStamp_overridden(
+        new _AnalysisContextImplTest_Source_getModificationStamp_overridden(
             stamp);
     context.setContents(source, "");
     expect(stamp != context.getModificationStamp(source), isTrue);
@@ -1380,16 +1378,6 @@ main() {}''');
 
     context.applyChanges(changeSet);
     expect(context.getSourcesWithFullName(filePath), unorderedEquals(expected));
-  }
-
-  void test_getStatistics() {
-    AnalysisContextStatistics statistics = context.statistics;
-    expect(statistics, isNotNull);
-    // The following lines are fragile.
-    // The values depend on the number of libraries in the SDK.
-//    assertLength(0, statistics.getCacheRows());
-//    assertLength(0, statistics.getExceptions());
-//    assertLength(0, statistics.getSources());
   }
 
   void test_handleContentsChanged() {
@@ -1473,6 +1461,46 @@ main() {}''');
   void test_isServerLibrary_unknown() {
     Source source = newSource("/test.dart");
     expect(context.isServerLibrary(source), isFalse);
+  }
+
+  void test_onResultInvalidated_removeSource() {
+    Source source = addSource('/test.dart', 'main() {}');
+    _analyzeAll_assertFinished();
+    // listen for changes
+    bool listenerInvoked = false;
+    context.onResultChanged(RESOLVED_UNIT).listen((ResultChangedEvent event) {
+      Source eventSource = event.target.source;
+      expect(event.wasComputed, isFalse);
+      expect(event.wasInvalidated, isTrue);
+      expect(event.descriptor, RESOLVED_UNIT);
+      expect(eventSource, source);
+      listenerInvoked = true;
+    });
+    // apply changes
+    expect(listenerInvoked, false);
+    context.applyChanges(new ChangeSet()..removedSource(source));
+    // verify
+    expect(listenerInvoked, isTrue);
+  }
+
+  void test_onResultInvalidated_setContents() {
+    Source source = addSource('/test.dart', 'main() {}');
+    _analyzeAll_assertFinished();
+    // listen for changes
+    bool listenerInvoked = false;
+    context.onResultChanged(RESOLVED_UNIT).listen((ResultChangedEvent event) {
+      Source eventSource = event.target.source;
+      expect(event.wasComputed, isFalse);
+      expect(event.wasInvalidated, isTrue);
+      expect(event.descriptor, RESOLVED_UNIT);
+      expect(eventSource, source);
+      listenerInvoked = true;
+    });
+    // apply changes
+    expect(listenerInvoked, false);
+    context.setContents(source, 'class B {}');
+    // verify
+    expect(listenerInvoked, isTrue);
   }
 
   void test_parseCompilationUnit_errors() {
@@ -1942,20 +1970,26 @@ library expectedToFindSemicolon
 //    JUnitTestCase.assertNotNullMsg("performAnalysisTask failed to compute an element model", _context.getLibraryElement(source));
   }
 
-  void test_performAnalysisTask_onResultComputed() {
+  void test_performAnalysisTask_onResultChanged() {
     Set<String> libraryElementUris = new Set<String>();
     Set<String> parsedUnitUris = new Set<String>();
     Set<String> resolvedUnitUris = new Set<String>();
     // listen
-    context.onResultComputed(LIBRARY_ELEMENT).listen((event) {
+    context.onResultChanged(LIBRARY_ELEMENT).listen((event) {
+      expect(event.wasComputed, isTrue);
+      expect(event.wasInvalidated, isFalse);
       Source librarySource = event.target;
       libraryElementUris.add(librarySource.uri.toString());
     });
-    context.onResultComputed(PARSED_UNIT).listen((event) {
+    context.onResultChanged(PARSED_UNIT).listen((event) {
+      expect(event.wasComputed, isTrue);
+      expect(event.wasInvalidated, isFalse);
       Source source = event.target;
       parsedUnitUris.add(source.uri.toString());
     });
-    context.onResultComputed(RESOLVED_UNIT).listen((event) {
+    context.onResultChanged(RESOLVED_UNIT).listen((event) {
+      expect(event.wasComputed, isTrue);
+      expect(event.wasInvalidated, isFalse);
       LibrarySpecificUnit target = event.target;
       Source librarySource = target.library;
       resolvedUnitUris.add(librarySource.uri.toString());
@@ -1964,11 +1998,8 @@ library expectedToFindSemicolon
     addSource('/test.dart', 'main() {}');
     _analyzeAll_assertFinished();
     // verify
-    expect(libraryElementUris, contains('dart:core'));
     expect(libraryElementUris, contains('file:///test.dart'));
-    expect(parsedUnitUris, contains('dart:core'));
     expect(parsedUnitUris, contains('file:///test.dart'));
-    expect(resolvedUnitUris, contains('dart:core'));
     expect(resolvedUnitUris, contains('file:///test.dart'));
   }
 
@@ -2024,6 +2055,72 @@ import 'package:crypto/crypto.dart';
     ]);
     _analyzeAll_assertFinished();
     _assertNoExceptions();
+  }
+
+  void test_resolveCompilationUnit_existingElementModel() {
+    Source source = addSource(
+        '/test.dart',
+        r'''
+library test;
+
+String topLevelVariable;
+int get topLevelGetter => 0;
+void set topLevelSetter(int value) {}
+String topLevelFunction(int i) => '';
+
+typedef String FunctionTypeAlias(int i);
+
+enum EnumeratedType {Invalid, Valid}
+
+class ClassOne {
+  int instanceField;
+  static int staticField;
+
+  ClassOne();
+  ClassOne.named();
+
+  int get instanceGetter => 0;
+  static String get staticGetter => '';
+
+  void set instanceSetter(int value) {}
+  static void set staticSetter(int value) {}
+
+  int instanceMethod(int first, [int second = 0]) {
+    int localVariable;
+    int localFunction(String s) {}
+  }
+  static String staticMethod(int first, {int second: 0}) => '';
+}
+
+class ClassTwo {
+  // Implicit no-argument constructor
+}
+''');
+    context.resolveCompilationUnit2(source, source);
+    LibraryElement firstElement = context.computeLibraryElement(source);
+    _ElementGatherer gatherer = new _ElementGatherer();
+    firstElement.accept(gatherer);
+
+    CacheEntry entry =
+        context.analysisCache.get(new LibrarySpecificUnit(source, source));
+    entry.setState(RESOLVED_UNIT1, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT2, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT3, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT4, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT5, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT6, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT7, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT8, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT9, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT10, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT11, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);
+
+    context.resolveCompilationUnit2(source, source);
+    LibraryElement secondElement = context.computeLibraryElement(source);
+    _ElementComparer comparer = new _ElementComparer(gatherer.elements);
+    secondElement.accept(comparer);
+    comparer.expectNoDifferences();
   }
 
   void test_resolveCompilationUnit_import_relative() {
@@ -2497,7 +2594,7 @@ class B {
       expect(unitA.element, same(unitElementA));
       expect(unitElementA.library, same(libraryElementA));
     }
-    // Update a.dart, rename A to A2, invalidates b.dart, so
+    // Add method to a.dart. This invalidates b.dart, so
     // we know that the previous update did not damage dependencies.
     context.setContents(
         sourceA,
@@ -2709,8 +2806,10 @@ class A {
   }
 
   void _assertInvalid(AnalysisTarget target, ResultDescriptor descriptor) {
-    CacheState state = analysisCache.getState(target, descriptor);
-    expect(state, CacheState.INVALID);
+    CacheState actual = analysisCache.getState(target, descriptor);
+    if (actual != CacheState.INVALID) {
+      fail("cache state of $target $descriptor: wanted INVALID, got: $actual");
+    }
   }
 
   void _assertValid(AnalysisTarget target, ResultDescriptor descriptor) {
@@ -2727,10 +2826,110 @@ class A {
   }
 }
 
+class _AnalysisContextImplTest_Source_exists_true extends TestSource {
+  @override
+  bool exists() => true;
+}
+
+class _AnalysisContextImplTest_Source_getModificationStamp_fromSource
+    extends TestSource {
+  int stamp;
+  _AnalysisContextImplTest_Source_getModificationStamp_fromSource(this.stamp);
+  @override
+  int get modificationStamp => stamp;
+}
+
+class _AnalysisContextImplTest_Source_getModificationStamp_overridden
+    extends TestSource {
+  int stamp;
+  _AnalysisContextImplTest_Source_getModificationStamp_overridden(this.stamp);
+  @override
+  int get modificationStamp => stamp;
+}
+
 class _AnalysisContextImplTest_test_applyChanges_removeContainer
     implements SourceContainer {
   Source libB;
   _AnalysisContextImplTest_test_applyChanges_removeContainer(this.libB);
   @override
   bool contains(Source source) => source == libB;
+}
+
+/**
+ * A visitor that can be used to compare all of the elements in an element model
+ * with a previously created map of elements. The class [ElementGatherer] can be
+ * used to create the map of elements.
+ */
+class _ElementComparer extends GeneralizingElementVisitor {
+  /**
+   * The previously created map of elements.
+   */
+  final Map<Element, Element> previousElements;
+
+  /**
+   * The number of elements that were found to have been overwritten.
+   */
+  int overwrittenCount = 0;
+
+  /**
+   * A buffer to which a description of the overwritten elements will be written.
+   */
+  final StringBuffer buffer = new StringBuffer();
+
+  /**
+   * Initialize a newly created visitor.
+   */
+  _ElementComparer(this.previousElements);
+
+  /**
+   * Expect that no differences were found, causing the test to fail if that
+   * wasn't the case.
+   */
+  void expectNoDifferences() {
+    if (overwrittenCount > 0) {
+      fail('Found $overwrittenCount overwritten elements.$buffer');
+    }
+  }
+
+  @override
+  void visitElement(Element element) {
+    Element previousElement = previousElements[element];
+    if (!identical(previousElement, element)) {
+      if (overwrittenCount == 0) {
+        buffer.writeln();
+      }
+      overwrittenCount++;
+      buffer.writeln('Overwritten element:');
+      Element currentElement = element;
+      while (currentElement != null) {
+        buffer.write('  ');
+        buffer.writeln(currentElement.toString());
+        currentElement = currentElement.enclosingElement;
+      }
+    }
+    super.visitElement(element);
+  }
+}
+
+/**
+ * A visitor that can be used to collect all of the elements in an element
+ * model.
+ */
+class _ElementGatherer extends GeneralizingElementVisitor {
+  /**
+   * The map in which the elements are collected. The value of each key is the
+   * key itself.
+   */
+  Map<Element, Element> elements = new HashMap<Element, Element>();
+
+  /**
+   * Initialize the visitor.
+   */
+  _ElementGatherer();
+
+  @override
+  void visitElement(Element element) {
+    elements[element] = element;
+    super.visitElement(element);
+  }
 }

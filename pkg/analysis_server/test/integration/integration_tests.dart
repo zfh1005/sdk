@@ -11,7 +11,6 @@ import 'dart:io';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/server/driver.dart' as analysisServer;
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
@@ -175,7 +174,7 @@ abstract class AbstractAnalysisServerIntegrationTest
     // doesn't exit, then forcibly terminate it.
     sendServerShutdown();
     return server.exitCode.timeout(SHUTDOWN_TIMEOUT, onTimeout: () {
-      return server.kill();
+      return server.kill('server failed to exit');
     });
   }
 
@@ -492,9 +491,9 @@ class Server {
   /**
    * Stop the server.
    */
-  Future kill() {
+  Future kill(String reason) {
     debugStdio();
-    _recordStdio('PROCESS FORCIBLY TERMINATED');
+    _recordStdio('FORCIBLY TERMINATING PROCESS: $reason');
     _process.kill();
     return _process.exitCode;
   }
@@ -515,7 +514,7 @@ class Server {
       try {
         message = JSON.decoder.convert(trimmedLine);
       } catch (exception) {
-        _badDataFromServer();
+        _badDataFromServer('JSON decode failure: $exception');
         return;
       }
       expect(message, isMap);
@@ -558,7 +557,7 @@ class Server {
         .listen((String line) {
       String trimmedLine = line.trim();
       _recordStdio('ERR:  $trimmedLine');
-      _badDataFromServer();
+      _badDataFromServer('Message received on stderr', silent: true);
     });
   }
 
@@ -583,7 +582,7 @@ class Server {
     _pendingCommands[id] = completer;
     String line = JSON.encode(command);
     _recordStdio('SEND: $line');
-    _process.stdin.add(UTF8.encoder.convert("${line}\n"));
+    _process.stdin.add(UTF8.encoder.convert("$line\n"));
     return completer.future;
   }
 
@@ -597,7 +596,6 @@ class Server {
       {bool debugServer: false,
       int diagnosticPort,
       bool profileServer: false,
-      bool newTaskModel: true,
       bool useAnalysisHighlight2: false}) {
     if (_process != null) {
       throw new Exception('Process already started');
@@ -615,7 +613,7 @@ class Server {
       arguments.add('--observe');
       arguments.add('--pause-isolates-on-exit');
     }
-    if (Platform.packageRoot.isNotEmpty) {
+    if (Platform.packageRoot != null) {
       arguments.add('--package-root=${Platform.packageRoot}');
     }
     arguments.add('--checked');
@@ -627,17 +625,13 @@ class Server {
     if (useAnalysisHighlight2) {
       arguments.add('--useAnalysisHighlight2');
     }
-    if (!newTaskModel) {
-      arguments.add('--${analysisServer.Driver.DISABLE_NEW_TASK_MODEL}');
-    }
 //    print('Launching $serverPath');
 //    print('$dartBinary ${arguments.join(' ')}');
     return Process.start(dartBinary, arguments).then((Process process) {
       _process = process;
       process.exitCode.then((int code) {
-        _recordStdio('TERMINATED WITH EXIT CODE $code');
         if (code != 0) {
-          _badDataFromServer();
+          _badDataFromServer('server terminated with exit code $code');
         }
       });
     });
@@ -646,7 +640,10 @@ class Server {
   /**
    * Deal with bad data received from the server.
    */
-  void _badDataFromServer() {
+  void _badDataFromServer(String details, {bool silent: false}) {
+    if (!silent) {
+      _recordStdio('BAD DATA FROM SERVER: $details');
+    }
     if (_receivedBadDataFromServer) {
       // We're already dealing with it.
       return;
@@ -659,7 +656,7 @@ class Server {
     // entire stacktrace.  Use expectAsync() to prevent the test from
     // ending during this 1 second.
     new Future.delayed(new Duration(seconds: 1), expectAsync(() {
-      fail('Bad data received from server');
+      fail('Bad data received from server: $details');
     }));
   }
 

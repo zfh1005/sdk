@@ -26,9 +26,6 @@ DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
 DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
-DECLARE_FLAG(int, optimization_counter_threshold);
-DECLARE_FLAG(bool, support_debugger);
-DECLARE_FLAG(bool, lazy_dispatchers);
 
 // Input parameters:
 //   RSP : points to return address.
@@ -1235,10 +1232,6 @@ static void EmitFastSmiOp(Assembler* assembler,
                           Label* not_smi_or_overflow,
                           bool should_update_result_range) {
   __ Comment("Fast Smi op");
-  if (FLAG_throw_on_javascript_int_overflow) {
-    // The overflow check is more complex than implemented below.
-    return;
-  }
   ASSERT(num_args == 2);
   __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Right
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Left.
@@ -1455,9 +1448,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ popq(RAX);  // Pop returned function object into RAX.
   __ popq(RBX);  // Restore IC data array.
   __ popq(R10);  // Restore arguments descriptor array.
-  if (range_collection_mode == kCollectRanges) {
-    __ RestoreCodePointer();
-  }
+  __ RestoreCodePointer();
   __ LeaveStubFrame();
   Label call_target_function;
   if (!FLAG_lazy_dispatchers) {
@@ -1841,8 +1832,14 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // R13: instance type arguments.
   Label loop, found, not_found, next_iteration;
   __ SmiTag(R10);
+  __ cmpq(R10, Immediate(Smi::RawValue(kClosureCid)));
+  __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
+  __ movq(R10, FieldAddress(RAX, Closure::function_offset()));
+  // R10: instance class id as Smi or function.
   __ Bind(&loop);
-  __ movq(RDI, Address(RDX, kWordSize * SubtypeTestCache::kInstanceClassId));
+  __ movq(RDI,
+          Address(RDX,
+                  kWordSize * SubtypeTestCache::kInstanceClassIdOrFunction));
   __ cmpq(RDI, R9);
   __ j(EQUAL, &not_found, Assembler::kNearJump);
   __ cmpq(RDI, R10);
@@ -2147,7 +2144,7 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 //  RCX: target entry point
 //  CODE_REG: target Code object
 //  R10: arguments descriptor
-void StubCode::GenerateICLookupStub(Assembler* assembler) {
+void StubCode::GenerateICLookupThroughFunctionStub(Assembler* assembler) {
   Label loop, found, miss;
 
   __ movq(R13, FieldAddress(RBX, ICData::ic_data_offset()));
@@ -2175,6 +2172,44 @@ void StubCode::GenerateICLookupStub(Assembler* assembler) {
   __ movq(RAX, Address(R13, target_offset));
   __ movq(RCX, FieldAddress(RAX, Function::entry_point_offset()));
   __ movq(CODE_REG, FieldAddress(RAX, Function::code_offset()));
+  __ ret();
+
+  __ Bind(&miss);
+  __ LoadIsolate(RAX);
+  __ movq(CODE_REG, Address(RAX, Isolate::ic_miss_code_offset()));
+  __ movq(RCX, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  __ ret();
+}
+
+
+void StubCode::GenerateICLookupThroughCodeStub(Assembler* assembler) {
+  Label loop, found, miss;
+
+  __ movq(R13, FieldAddress(RBX, ICData::ic_data_offset()));
+  __ movq(R10, FieldAddress(RBX, ICData::arguments_descriptor_offset()));
+  __ leaq(R13, FieldAddress(R13, Array::data_offset()));
+  // R13: first IC entry
+  __ LoadTaggedClassIdMayBeSmi(RAX, RDI);
+  // RAX: receiver cid as Smi
+
+  __ Bind(&loop);
+  __ movq(R9, Address(R13, 0));
+  __ cmpq(RAX, R9);
+  __ j(EQUAL, &found, Assembler::kNearJump);
+
+  ASSERT(Smi::RawValue(kIllegalCid) == 0);
+  __ testq(R9, R9);
+  __ j(ZERO, &miss, Assembler::kNearJump);
+
+  const intptr_t entry_length = ICData::TestEntryLengthFor(1) * kWordSize;
+  __ addq(R13, Immediate(entry_length));  // Next entry.
+  __ jmp(&loop);
+
+  __ Bind(&found);
+  const intptr_t code_offset = ICData::CodeIndexFor(1) * kWordSize;
+  const intptr_t entry_offset = ICData::EntryPointIndexFor(1) * kWordSize;
+  __ movq(RCX, Address(R13, entry_offset));
+  __ movq(CODE_REG, Address(R13, code_offset));
   __ ret();
 
   __ Bind(&miss);

@@ -72,6 +72,8 @@ class Names {
   static const Name CALL_NAME = Names.call;
 
   static const Name length = const PublicName(Identifiers.length);
+
+  static const Name runtimeType_ = const PublicName(Identifiers.runtimeType_);
 }
 
 /// [Selector]s commonly used.
@@ -95,9 +97,17 @@ class Selectors {
   static final Selector noSuchMethod_ =
       new Selector.call(Names.noSuchMethod_, CallStructure.ONE_ARG);
 
+  /// The selector for tearing off noSuchMethod.
+  static final Selector noSuchMethodGetter =
+      new Selector.getter(Names.noSuchMethod_);
+
   /// The selector for calling the to-string method on 'Object'.
   static final Selector toString_ =
       new Selector.call(Names.toString_, CallStructure.NO_ARGS);
+
+  /// The selector for tearing off toString.
+  static final Selector toStringGetter =
+      new Selector.getter(Names.toString_);
 
   static final Selector hashCode_ =
       new Selector.getter(const PublicName('hashCode'));
@@ -109,13 +119,21 @@ class Selectors {
 
   static final Selector length = new Selector.getter(Names.length);
 
+  static final Selector codeUnitAt =
+      new Selector.call(const PublicName('codeUnitAt'), CallStructure.ONE_ARG);
+
+  static final Selector index = new Selector.index();
+
+  static final Selector runtimeType_ = new Selector.getter(Names.runtimeType_);
+
   /// List of all the selectors held in static fields.
   ///
   /// These objects are shared between different runs in batch-mode and must
   /// thus remain in the [Selector.canonicalizedValues] map.
   static final List<Selector> ALL = <Selector>[
-      cancel, current, iterator, moveNext, noSuchMethod_, toString_,
-      hashCode_, compareTo, equals, length];
+      cancel, current, iterator, moveNext, noSuchMethod_, noSuchMethodGetter,
+      toString_, toStringGetter, hashCode_, compareTo, equals, length,
+      codeUnitAt, index, runtimeType_];
 }
 
 /// [Uri]s commonly used.

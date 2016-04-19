@@ -2,21 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.source.embedder;
+library analyzer.test.source.embedder_test;
 
+import 'dart:core' hide Resource;
+
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/embedder.dart';
+import 'package:analyzer/src/generated/source.dart';
+import 'package:path/path.dart' as path;
 import 'package:unittest/unittest.dart';
 
+import '../resource_utils.dart';
 import '../utils.dart';
 
 main() {
-  initializeTestEnvironment();
   group('EmbedderUriResolverTest', () {
     setUp(() {
+      initializeTestEnvironment(path.context);
       buildResourceProvider();
     });
     tearDown(() {
+      initializeTestEnvironment();
       clearResourceProvider();
     });
     test('test_NullEmbedderYamls', () {
@@ -25,22 +32,29 @@ main() {
     });
     test('test_NoEmbedderYamls', () {
       var locator = new EmbedderYamlLocator({
-        'fox': [resourceProvider.getResource('/empty')]
+        'fox': [pathTranslator.getResource('/empty')]
       });
       expect(locator.embedderYamls.length, equals(0));
     });
     test('test_EmbedderYaml', () {
       var locator = new EmbedderYamlLocator({
-        'fox': [resourceProvider.getResource('/tmp')]
+        'fox': [pathTranslator.getResource('/tmp')]
       });
       var resolver = new EmbedderUriResolver(locator.embedderYamls);
+
+      expectResolved(dartUri, posixPath) {
+        Source source = resolver.resolveAbsolute(Uri.parse(dartUri));
+        expect(source, isNotNull, reason: dartUri);
+        expect(source.fullName, posixToOSPath(posixPath));
+      }
+
       // We have four mappings.
       expect(resolver.length, equals(4));
       // Check that they map to the correct paths.
-      expect(resolver['dart:fox'], equals("/tmp/slippy.dart"));
-      expect(resolver['dart:bear'], equals("/tmp/grizzly.dart"));
-      expect(resolver['dart:relative'], equals("/relative.dart"));
-      expect(resolver['dart:deep'], equals("/tmp/deep/directory/file.dart"));
+      expectResolved('dart:fox', '/tmp/slippy.dart');
+      expectResolved('dart:bear', '/tmp/grizzly.dart');
+      expectResolved('dart:relative', '/relative.dart');
+      expectResolved('dart:deep', '/tmp/deep/directory/file.dart');
     });
     test('test_BadYAML', () {
       var locator = new EmbedderYamlLocator(null);
@@ -49,32 +63,94 @@ main() {
     });
     test('test_restoreAbsolute', () {
       var locator = new EmbedderYamlLocator({
-        'fox': [resourceProvider.getResource('/tmp')]
+        'fox': [pathTranslator.getResource('/tmp')]
       });
       var resolver = new EmbedderUriResolver(locator.embedderYamls);
-      var source = resolver.resolveAbsolute(Uri.parse('dart:fox'));
-      expect(source, isNotNull);
-      // Restore source's uri.
-      var restoreUri = resolver.restoreAbsolute(source);
-      expect(restoreUri, isNotNull);
-      // Verify that it is 'dart:fox'.
-      expect(restoreUri.toString(), equals('dart:fox'));
-      expect(restoreUri.scheme, equals('dart'));
-      expect(restoreUri.path, equals('fox'));
+
+      expectRestore(String dartUri, [String expected]) {
+        var parsedUri = Uri.parse(dartUri);
+        var source = resolver.resolveAbsolute(parsedUri);
+        expect(source, isNotNull);
+        // Restore source's uri.
+        var restoreUri = resolver.restoreAbsolute(source);
+        expect(restoreUri, isNotNull, reason: dartUri);
+        // Verify that it is 'dart:fox'.
+        expect(restoreUri.toString(), equals(expected ?? dartUri));
+        List<String> split = (expected ?? dartUri).split(':');
+        expect(restoreUri.scheme, equals(split[0]));
+        expect(restoreUri.path, equals(split[1]));
+      }
+
+      expectRestore('dart:deep');
+      expectRestore('dart:deep/file.dart', 'dart:deep');
+      expectRestore('dart:deep/part.dart');
+      expectRestore('dart:deep/deep/file.dart');
+    });
+
+    test('test_EmbedderSdk_fromFileUri', () {
+      var locator = new EmbedderYamlLocator({
+        'fox': [pathTranslator.getResource('/tmp')]
+      });
+      var resolver = new EmbedderUriResolver(locator.embedderYamls);
+      var sdk = resolver.dartSdk;
+
+      expectSource(String posixPath, String dartUri) {
+        var uri = Uri.parse(posixToOSFileUri(posixPath));
+        var source = sdk.fromFileUri(uri);
+        expect(source, isNotNull, reason: posixPath);
+        expect(source.uri.toString(), dartUri);
+        expect(source.fullName, posixToOSPath(posixPath));
+      }
+
+      expectSource('/tmp/slippy.dart', 'dart:fox');
+      expectSource('/tmp/deep/directory/file.dart', 'dart:deep');
+      expectSource('/tmp/deep/directory/part.dart', 'dart:deep/part.dart');
+    });
+    test('test_EmbedderSdk_getSdkLibrary', () {
+      var locator = new EmbedderYamlLocator({
+        'fox': [pathTranslator.getResource('/tmp')]
+      });
+      var resolver = new EmbedderUriResolver(locator.embedderYamls);
+      var sdk = resolver.dartSdk;
+      var lib = sdk.getSdkLibrary('dart:fox');
+      expect(lib, isNotNull);
+      expect(lib.path, posixToOSPath('/tmp/slippy.dart'));
+      expect(lib.shortName, 'fox');
+    });
+    test('test_EmbedderSdk_mapDartUri', () {
+      var locator = new EmbedderYamlLocator({
+        'fox': [pathTranslator.getResource('/tmp')]
+      });
+      var resolver = new EmbedderUriResolver(locator.embedderYamls);
+      var sdk = resolver.dartSdk;
+
+      expectSource(String dartUri, String posixPath) {
+        var source = sdk.mapDartUri(dartUri);
+        expect(source, isNotNull, reason: posixPath);
+        expect(source.uri.toString(), dartUri);
+        expect(source.fullName, posixToOSPath(posixPath));
+      }
+
+      expectSource('dart:fox', '/tmp/slippy.dart');
+      expectSource('dart:deep', '/tmp/deep/directory/file.dart');
+      expectSource('dart:deep/part.dart', '/tmp/deep/directory/part.dart');
     });
   });
 }
 
-MemoryResourceProvider resourceProvider;
+ResourceProvider resourceProvider;
+TestPathTranslator pathTranslator;
 
 buildResourceProvider() {
-  resourceProvider = new MemoryResourceProvider();
-  resourceProvider.newFolder('/empty');
-  resourceProvider.newFolder('/tmp');
-  resourceProvider.newFile(
-      '/tmp/_embedder.yaml',
-      r'''
-embedder_libs:
+  var rawProvider = new MemoryResourceProvider(isWindows: isWindows);
+  resourceProvider = new TestResourceProvider(rawProvider);
+  pathTranslator = new TestPathTranslator(rawProvider)
+    ..newFolder('/empty')
+    ..newFolder('/tmp')
+    ..newFile(
+        '/tmp/_embedder.yaml',
+        r'''
+embedded_libs:
   "dart:fox": "slippy.dart"
   "dart:bear": "grizzly.dart"
   "dart:relative": "../relative.dart"
@@ -85,4 +161,5 @@ embedder_libs:
 
 clearResourceProvider() {
   resourceProvider = null;
+  pathTranslator = null;
 }

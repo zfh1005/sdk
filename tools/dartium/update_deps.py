@@ -41,8 +41,9 @@ from time import strptime
 ########################################################################
 
 BRANCH_CURRENT="dart/dartium"
-BRANCH_NEXT="dart/dartium"
-BRANCH_MULTIVM="dart/multivm"
+BRANCH_NEXT="dart/2454_1"
+
+# (repo_name, deps_dir, repo_branch, prefix, repos, branch)
 
 TARGETS = {
   'dartium': (
@@ -56,9 +57,9 @@ TARGETS = {
     ),
   'integration': (
     # TODO(jacobr): what is the git repo for integration if any?
-    'https://dart.googlecode.com/svn/branches/dartium_integration/deps/dartium.deps',
+    'git@github.com:dart-lang/sdk.git',
     'tools/deps/dartium.deps',
-    'origin/master',
+    'origin/integration',
     'dartium',
     # TODO(vsm): Reenable 'chromium'
     ['webkit'],
@@ -79,14 +80,14 @@ TARGETS = {
 # used to generated the commit message.
 REPOSITORY_INFO = {
     'webkit': (
-        'http://src.chromium.org/blink/branches/%s',
-        'http://src.chromium.org/viewvc/blink?view=rev&revision=%s'),
+        'https://src.chromium.org/blink/branches/%s',
+        'https://src.chromium.org/viewvc/blink?view=rev&revision=%s'),
     'blink': (
-        'http://src.chromium.org/blink/branches/%s',
-        'http://src.chromium.org/viewvc/blink?view=rev&revision=%s'),
+        'https://src.chromium.org/blink/branches/%s',
+        'https://src.chromium.org/viewvc/blink?view=rev&revision=%s'),
     'chromium': (
-        'http://src.chromium.org/chrome/branches/%s',
-        'http://src.chromium.org/viewvc/chrome?view=rev&revision=%s'),
+        'https://src.chromium.org/chrome/branches/%s',
+        'https://src.chromium.org/viewvc/chrome?view=rev&revision=%s'),
 }
 
 REPOSITORIES = REPOSITORY_INFO.keys()

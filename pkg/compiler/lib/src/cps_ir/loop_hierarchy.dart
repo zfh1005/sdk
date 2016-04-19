@@ -5,6 +5,7 @@
 library dart2js.cps_ir.loop_hierarchy;
 
 import 'cps_ir_nodes.dart';
+import 'cps_fragment.dart';
 
 /// Determines the effective nesting of loops.
 ///
@@ -33,7 +34,10 @@ class LoopHierarchy {
   Map<Continuation, Continuation> loopTarget = <Continuation, Continuation>{};
 
   /// Current nesting depth.
-  int currentDepth = 0;
+  int _currentDepth = 0;
+
+  /// The loop target to use for missing code.  Used by [update].
+  Continuation _exitLoop;
 
   /// Computes the loop hierarchy for the given function.
   ///
@@ -88,40 +92,24 @@ class LoopHierarchy {
   /// from the current exception handler.
   Continuation _processContinuation(Continuation cont, Continuation catchLoop) {
     if (cont.isRecursive) {
-      ++currentDepth;
-      loopDepth[cont] = currentDepth;
+      ++_currentDepth;
+      loopDepth[cont] = _currentDepth;
       Continuation target = _processBlock(cont.body, catchLoop);
       _markInnerLoop(loopTarget[cont], target);
-      --currentDepth;
+      --_currentDepth;
     } else {
       loopTarget[cont] = _processBlock(cont.body, catchLoop);
     }
     return loopTarget[cont];
   }
 
-  bool _isCallContinuation(Continuation cont) {
-    return cont.hasExactlyOneUse && cont.firstRef.parent is CallExpression;
-  }
-
   /// Analyzes a basic block and returns the innermost loop that
   /// can be invoked recursively from that block.
   Continuation _processBlock(Expression node, Continuation catchLoop) {
-    List<Continuation> callContinuations = <Continuation>[];
-    for (; node is! TailExpression; node = node.next) {
+    for (; node != null && node is! TailExpression; node = node.next) {
       if (node is LetCont) {
         for (Continuation cont in node.continuations) {
-          if (!_isCallContinuation(cont)) {
-            // Process non-call continuations at the binding site, so they
-            // their loop target is known at all use sites.
-            _processContinuation(cont, catchLoop);
-          } else {
-            // To avoid deep recursion, do not analyze call continuations
-            // recursively. This basic block traversal steps into the
-            // call contiunation after visiting its use site. We store the
-            // continuations in a list so we can set the loop target once
-            // it is known.
-            callContinuations.add(cont);
-          }
+          _processContinuation(cont, catchLoop);
         }
       } else if (node is LetHandler) {
         catchLoop = _processContinuation(node.handler, catchLoop);
@@ -130,24 +118,60 @@ class LoopHierarchy {
     Continuation target;
     if (node is InvokeContinuation) {
       if (node.isRecursive) {
-        target = node.continuation.definition;
+        target = node.continuation;
       } else {
-        target = loopTarget[node.continuation.definition];
+        target = loopTarget[node.continuation];
       }
     } else if (node is Branch) {
       target = _markInnerLoop(
-          loopTarget[node.trueContinuation.definition],
-          loopTarget[node.falseContinuation.definition]);
+          loopTarget[node.trueContinuation],
+          loopTarget[node.falseContinuation]);
+    } else if (node == null) {
+      // If the code ends abruptly, use the exit loop provided in [update].
+      target = _exitLoop;
     } else {
-      assert(node is Unreachable || node is Throw);
+      assert(node is Unreachable || node is Throw || node == null);
     }
-    target = _markInnerLoop(target, catchLoop);
-    for (Continuation cont in callContinuations) {
-      // Store the loop target on each call continuation in the basic block.
-      // Because we walk over call continuations as part of the basic block
-      // traversal, these do not get their loop target set otherwise.
-      loopTarget[cont] = target;
+    return _markInnerLoop(target, catchLoop);
+  }
+
+  /// Returns the the innermost loop that effectively encloses both
+  /// c1 and c2 (or `null` if there is no such loop).
+  Continuation lowestCommonAncestor(Continuation c1, Continuation c2) {
+    int d1 = getDepth(c1), d2 = getDepth(c2);
+    while (c1 != c2) {
+      if (d1 <= d2) {
+        c2 = getEnclosingLoop(c2);
+        d2 = getDepth(c2);
+      } else {
+        c1 = getEnclosingLoop(c1);
+        d1 = getDepth(c1);
+      }
     }
-    return target;
+    return c1;
+  }
+
+  /// Returns the lexical nesting depth of [loop].
+  int getDepth(Continuation loop) {
+    if (loop == null) return 0;
+    return loopDepth[loop];
+  }
+
+  /// Sets the loop header for each continuation bound inside the given
+  /// fragment.
+  ///
+  /// If the fragment is open, [exitLoop] denotes the loop header for
+  /// the code that will occur after the fragment.
+  ///
+  /// [catchLoop] is the loop target for the catch clause of the try/catch
+  /// surrounding the inserted fragment.
+  void update(CpsFragment fragment,
+              {Continuation exitLoop,
+               Continuation catchLoop}) {
+    if (fragment.isEmpty) return;
+    _exitLoop = exitLoop;
+    _currentDepth = getDepth(exitLoop);
+    _processBlock(fragment.root, catchLoop);
+    _exitLoop = null;
   }
 }

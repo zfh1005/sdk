@@ -9,12 +9,12 @@
 #include "bin/utils.h"
 #include "bin/utils_win.h"
 
-
 namespace dart {
 namespace bin {
 
 const char* kPrecompiledLibraryName = "precompiled.dll";
-const char* kPrecompiledSymbolName = "_kInstructionsSnapshot";
+const char* kPrecompiledInstructionsSymbolName = "_kInstructionsSnapshot";
+const char* kPrecompiledDataSymbolName = "_kDataSnapshot";
 
 void* Extensions::LoadExtensionLibrary(const char* library_file) {
   SetLastError(0);

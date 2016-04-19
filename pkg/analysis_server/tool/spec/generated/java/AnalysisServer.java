@@ -119,6 +119,20 @@ public interface AnalysisServer {
   public void analysis_getNavigation(String file, int offset, int length, GetNavigationConsumer consumer);
 
   /**
+   * {@code analysis.getReachableSources}
+   *
+   * Return the transitive closure of reachable sources for a given file.
+   *
+   * If a request is made for a file which does not exist, or which is not currently subject to
+   * analysis (e.g. because it is not associated with any analysis root specified to
+   * analysis.setAnalysisRoots), an error of type GET_REACHABLE_SOURCES_INVALID_FILE will be
+   * generated.
+   *
+   * @param file The file for which reachable source information is being requested.
+   */
+  public void analysis_getReachableSources(String file, GetReachableSourcesConsumer consumer);
+
+  /**
    * {@code analysis.reanalyze}
    *
    * Force the re-analysis of everything contained in the specified analysis roots. This will cause
@@ -160,13 +174,17 @@ public interface AnalysisServer {
    * @param included A list of the files and directories that should be analyzed.
    * @param excluded A list of the files and directories within the included directories that should
    *         not be analyzed.
-   * @param packageRoots A mapping from source directories to target directories that should override
-   *         the normal package: URI resolution mechanism. The analyzer will behave as though each
-   *         source directory in the map contains a special pubspec.yaml file which resolves any
-   *         package: URI to the corresponding path within the target directory. The effect is the
-   *         same as specifying the target directory as a "--package_root" parameter to the Dart VM
-   *         when executing any Dart file inside the source directory. Files in any directories that
-   *         are not overridden by this mapping have their package: URI's resolved using the normal
+   * @param packageRoots A mapping from source directories to package roots that should override the
+   *         normal package: URI resolution mechanism. If a package root is a directory, then the
+   *         analyzer will behave as though the associated source directory in the map contains a
+   *         special pubspec.yaml file which resolves any package: URI to the corresponding path
+   *         within that package root directory. The effect is the same as specifying the package
+   *         root directory as a "--package_root" parameter to the Dart VM when executing any Dart
+   *         file inside the source directory. If a package root is a file, then the analyzer will
+   *         behave as though that file is a ".packages" file in the source directory. The effect is
+   *         the same as specifying the file as a "--packages" parameter to the Dart VM when
+   *         executing any Dart file inside the source directory. Files in any directories that are
+   *         not overridden by this mapping have their package: URI's resolved using the normal
    *         pubspec.yaml mechanism. If this field is absent, or the empty map is specified, that
    *         indicates that the normal pubspec.yaml mechanism should always be used.
    */

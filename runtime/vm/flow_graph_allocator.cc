@@ -14,13 +14,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, print_ssa_liveness, false,
-            "Print liveness for ssa variables.");
-DEFINE_FLAG(bool, trace_ssa_allocator, false,
-            "Trace register allocation over SSA.");
-DEFINE_FLAG(bool, print_ssa_liveranges, false,
-            "Print live ranges after allocation.");
-
 #if defined(DEBUG)
 #define TRACE_ALLOC(statement)                                                 \
   do {                                                                         \
@@ -2969,8 +2962,12 @@ void FlowGraphAllocator::AllocateRegisters() {
 
     THR_Print("-- [before ssa allocator] ir [%s] -------------\n",
               function.ToFullyQualifiedCString());
-    FlowGraphPrinter printer(flow_graph_, true);
-    printer.PrintBlocks();
+    if (FLAG_support_il_printer) {
+#ifndef PRODUCT
+      FlowGraphPrinter printer(flow_graph_, true);
+      printer.PrintBlocks();
+#endif
+    }
     THR_Print("----------------------------------------------\n");
   }
 
@@ -3010,8 +3007,12 @@ void FlowGraphAllocator::AllocateRegisters() {
 
     THR_Print("-- [after ssa allocator] ir [%s] -------------\n",
               function.ToFullyQualifiedCString());
-    FlowGraphPrinter printer(flow_graph_, true);
-    printer.PrintBlocks();
+    if (FLAG_support_il_printer) {
+#ifndef PRODUCT
+      FlowGraphPrinter printer(flow_graph_, true);
+      printer.PrintBlocks();
+#endif
+    }
     THR_Print("----------------------------------------------\n");
   }
 }

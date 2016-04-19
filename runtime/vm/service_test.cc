@@ -21,6 +21,8 @@ namespace dart {
 // This flag is used in the Service_Flags test below.
 DEFINE_FLAG(bool, service_testing_flag, false, "Comment");
 
+#ifndef PRODUCT
+
 class ServiceTestMessageHandler : public MessageHandler {
  public:
   ServiceTestMessageHandler() : _msg(NULL) {}
@@ -35,10 +37,15 @@ class ServiceTestMessageHandler : public MessageHandler {
     }
 
     // Parse the message.
-    Thread* thread = Thread::Current();
-    MessageSnapshotReader reader(message->data(), message->len(), thread);
-    const Object& response_obj = Object::Handle(reader.ReadObject());
     String& response = String::Handle();
+    Object& response_obj = Object::Handle();
+    if (message->IsRaw()) {
+      response_obj = message->raw_obj();
+    } else {
+      Thread* thread = Thread::Current();
+      MessageSnapshotReader reader(message->data(), message->len(), thread);
+      response_obj = reader.ReadObject();
+    }
     response ^= response_obj.raw();
     _msg = strdup(response.ToCString());
     return kOK;
@@ -161,7 +168,8 @@ TEST_CASE(Service_Code) {
       "  x();\n"
       "}";
 
-  Isolate* isolate = Isolate::Current();
+  Isolate* isolate = thread->isolate();
+  isolate->set_is_runnable(true);
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
   Library& vmlib = Library::Handle();
@@ -184,7 +192,7 @@ TEST_CASE(Service_Code) {
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
+  Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
   EXPECT_VALID(port);
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
@@ -267,8 +275,8 @@ TEST_CASE(Service_TokenStream) {
       "main() {\n"
       "}";
 
-  Isolate* isolate = Isolate::Current();
-
+  Isolate* isolate = thread->isolate();
+  isolate->set_is_runnable(true);
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
   Library& vmlib = Library::Handle();
@@ -288,7 +296,7 @@ TEST_CASE(Service_TokenStream) {
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
+  Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
   EXPECT_VALID(port);
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
@@ -326,7 +334,8 @@ TEST_CASE(Service_PcDescriptors) {
     "  x();\n"
     "}";
 
-  Isolate* isolate = Isolate::Current();
+  Isolate* isolate = thread->isolate();
+  isolate->set_is_runnable(true);
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
   Library& vmlib = Library::Handle();
@@ -350,7 +359,7 @@ TEST_CASE(Service_PcDescriptors) {
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
+  Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
   EXPECT_VALID(port);
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
@@ -387,7 +396,8 @@ TEST_CASE(Service_LocalVarDescriptors) {
     "  x();\n"
     "}";
 
-  Isolate* isolate = Isolate::Current();
+  Isolate* isolate = thread->isolate();
+  isolate->set_is_runnable(true);
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
   Library& vmlib = Library::Handle();
@@ -411,7 +421,7 @@ TEST_CASE(Service_LocalVarDescriptors) {
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
+  Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
   EXPECT_VALID(port);
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
@@ -430,6 +440,81 @@ TEST_CASE(Service_LocalVarDescriptors) {
 }
 
 
+
+static void WeakHandleFinalizer(void* isolate_callback_data,
+                                Dart_WeakPersistentHandle handle,
+                                void* peer) {
+}
+
+
+TEST_CASE(Service_PersistentHandles) {
+  const char* kScript =
+    "var port;\n"  // Set to our mock port by C++.
+    "\n"
+    "class A {\n"
+    "  var a;\n"
+    "}\n"
+    "var global = new A();\n"
+    "main() {\n"
+    "  return global;\n"
+    "}";
+
+  Isolate* isolate = thread->isolate();
+  isolate->set_is_runnable(true);
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& vmlib = Library::Handle();
+  vmlib ^= Api::UnwrapHandle(lib);
+  EXPECT(!vmlib.IsNull());
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+  // Create a persistent handle to global.
+  Dart_PersistentHandle persistent_handle = Dart_NewPersistentHandle(result);
+
+  // Create a weak persistent handle to global.
+  Dart_WeakPersistentHandle weak_persistent_handle =
+      Dart_NewWeakPersistentHandle(result,
+                                   reinterpret_cast<void*>(0xdeadbeef),
+                                   128,
+                                   WeakHandleFinalizer);
+
+  // Build a mock message handler and wrap it in a dart port.
+  ServiceTestMessageHandler handler;
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
+  EXPECT_VALID(port);
+  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
+
+  Array& service_msg = Array::Handle();
+
+  // Get persistent handles.
+  service_msg = Eval(lib, "[0, port, '0', '_getPersistentHandles', [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
+  // Look for a heart beat.
+  EXPECT_SUBSTRING("\"type\":\"_PersistentHandles\"", handler.msg());
+  EXPECT_SUBSTRING("\"peer\":\"0xdeadbeef\"", handler.msg());
+  EXPECT_SUBSTRING("\"name\":\"A\"", handler.msg());
+  EXPECT_SUBSTRING("\"externalSize\":\"128\"", handler.msg());
+
+  // Delete persistent handles.
+  Dart_DeletePersistentHandle(persistent_handle);
+  Dart_DeleteWeakPersistentHandle(Dart_CurrentIsolate(),
+                                  weak_persistent_handle);
+
+  // Get persistent handles (again).
+  service_msg = Eval(lib, "[0, port, '0', '_getPersistentHandles', [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
+  EXPECT_SUBSTRING("\"type\":\"_PersistentHandles\"", handler.msg());
+  // Verify that old persistent handles are not present.
+  EXPECT_NOTSUBSTRING("\"peer\":\"0xdeadbeef\"", handler.msg());
+  EXPECT_NOTSUBSTRING("\"name\":\"A\"", handler.msg());
+  EXPECT_NOTSUBSTRING("\"externalSize\":\"128\"", handler.msg());
+}
+
+
 TEST_CASE(Service_Address) {
   const char* kScript =
       "var port;\n"  // Set to our mock port by C++.
@@ -437,14 +522,15 @@ TEST_CASE(Service_Address) {
       "main() {\n"
       "}";
 
-  Isolate* isolate = Isolate::Current();
+  Isolate* isolate = thread->isolate();
+  isolate->set_is_runnable(true);
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
 
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
+  Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
   EXPECT_VALID(port);
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
@@ -518,7 +604,6 @@ TEST_CASE(Service_EmbedderRootHandler) {
   Dart_RegisterRootServiceRequestCallback("alpha", alpha_callback, NULL);
   Dart_RegisterRootServiceRequestCallback("beta", beta_callback, NULL);
 
-  Isolate* isolate = Isolate::Current();
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
@@ -527,7 +612,7 @@ TEST_CASE(Service_EmbedderRootHandler) {
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
+  Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
   EXPECT_VALID(port);
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
@@ -559,7 +644,7 @@ TEST_CASE(Service_EmbedderIsolateHandler) {
   Dart_RegisterIsolateServiceRequestCallback("alpha", alpha_callback, NULL);
   Dart_RegisterIsolateServiceRequestCallback("beta", beta_callback, NULL);
 
-  Isolate* isolate = Isolate::Current();
+  Isolate* isolate = thread->isolate();
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
@@ -568,7 +653,7 @@ TEST_CASE(Service_EmbedderIsolateHandler) {
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
+  Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
   EXPECT_VALID(port);
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
@@ -598,7 +683,8 @@ TEST_CASE(Service_Profile) {
       "  x = x / 13;\n"
       "}";
 
-  Isolate* isolate = Isolate::Current();
+  Isolate* isolate = thread->isolate();
+  isolate->set_is_runnable(true);
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
@@ -607,7 +693,7 @@ TEST_CASE(Service_Profile) {
   // Build a mock message handler and wrap it in a dart port.
   ServiceTestMessageHandler handler;
   Dart_Port port_id = PortMap::CreatePort(&handler);
-  Dart_Handle port = Api::NewHandle(isolate, SendPort::New(port_id));
+  Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
   EXPECT_VALID(port);
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
@@ -634,5 +720,7 @@ TEST_CASE(Service_Profile) {
 }
 
 #endif  // !defined(TARGET_ARCH_ARM64)
+
+#endif  // !PRODUCT
 
 }  // namespace dart

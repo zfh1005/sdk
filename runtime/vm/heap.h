@@ -24,11 +24,6 @@ class ObjectSet;
 class ServiceEvent;
 class VirtualMemory;
 
-DECLARE_FLAG(bool, verbose_gc);
-DECLARE_FLAG(bool, verify_before_gc);
-DECLARE_FLAG(bool, verify_after_gc);
-DECLARE_FLAG(bool, gc_at_alloc);
-
 class Heap {
  public:
   enum Space {
@@ -125,9 +120,17 @@ class Heap {
   void CollectGarbage(Space space);
   void CollectGarbage(Space space, ApiCallbacks api_callbacks, GCReason reason);
   void CollectAllGarbage();
+  bool NeedsGarbageCollection() const {
+    return old_space_.NeedsGarbageCollection();
+  }
+
+#if defined(DEBUG)
+  void WaitForSweeperTasks();
+#endif
 
   // Enables growth control on the page space heaps.  This should be
   // called before any user code is executed.
+  void InitGrowthControl();
   void EnableGrowthControl() { SetGrowthControlState(true); }
   void DisableGrowthControl() { SetGrowthControlState(false); }
   void SetGrowthControlState(bool state);
@@ -231,8 +234,6 @@ class Heap {
     stats_.data_[id] = value;
   }
 
-  bool gc_in_progress();
-
   void UpdateGlobalMaxUsed();
 
   static bool IsAllocatableInNewSpace(intptr_t size) {
@@ -248,10 +249,13 @@ class Heap {
 
   Isolate* isolate() const { return isolate_; }
 
+  Monitor* barrier() const { return barrier_; }
+  Monitor* barrier_done() const { return barrier_done_; }
+
   bool ShouldPretenure(intptr_t class_id) const;
 
-  void SetupInstructionsSnapshotPage(void* pointer, uword size) {
-    old_space_.SetupInstructionsSnapshotPage(pointer, size);
+  void SetupExternalPage(void* pointer, uword size, bool is_executable) {
+    old_space_.SetupExternalPage(pointer, size, is_executable);
   }
 
  private:
@@ -308,16 +312,24 @@ class Heap {
   // ensure thread-safety.
   bool VerifyGC(MarkExpectation mark_expectation = kForbidMarked) const;
 
+  // Helper functions for garbage collection.
+  void CollectNewSpaceGarbage(
+      Thread* thread, ApiCallbacks api_callbacks, GCReason reason);
+  void CollectOldSpaceGarbage(
+      Thread* thread, ApiCallbacks api_callbacks, GCReason reason);
+
   // GC stats collection.
   void RecordBeforeGC(Space space, GCReason reason);
-  void RecordAfterGC();
+  void RecordAfterGC(Space space);
   void PrintStats();
   void UpdateClassHeapStatsBeforeGC(Heap::Space space);
   void UpdatePretenurePolicy();
 
-  // Updates gc_in_progress.
-  void BeginGC();
-  void EndGC();
+  // Updates gc in progress flags.
+  bool BeginNewSpaceGC(Thread* thread);
+  void EndNewSpaceGC();
+  bool BeginOldSpaceGC(Thread* thread);
+  void EndOldSpaceGC();
 
   // If this heap is non-empty, updates start and end to the smallest range that
   // contains both the original [start, end) and the [lowest, highest) addresses
@@ -325,6 +337,8 @@ class Heap {
   void GetMergedAddressRange(uword* start, uword* end) const;
 
   Isolate* isolate_;
+  Monitor* barrier_;
+  Monitor* barrier_done_;
 
   // The different spaces used for allocation.
   Scavenger new_space_;
@@ -340,8 +354,9 @@ class Heap {
   bool read_only_;
 
   // GC on the heap is in progress.
-  Mutex gc_in_progress_mutex_;
-  bool gc_in_progress_;
+  Monitor gc_in_progress_monitor_;
+  bool gc_new_space_in_progress_;
+  bool gc_old_space_in_progress_;
 
   int pretenure_policy_;
 

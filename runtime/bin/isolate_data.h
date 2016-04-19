@@ -9,7 +9,6 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 
-
 namespace dart {
 namespace bin {
 
@@ -21,14 +20,15 @@ class EventHandler;
 // when the isolate shuts down.
 class IsolateData {
  public:
-  explicit IsolateData(const char* url,
-                       const char* package_root,
-                       const char* packages_file)
-      : script_url(strdup(url)),
+  IsolateData(const char* url,
+              const char* package_root,
+              const char* packages_file)
+      : script_url((url != NULL) ? strdup(url) : NULL),
         package_root(NULL),
         packages_file(NULL),
         udp_receive_buffer(NULL),
-        load_async_id(-1) {
+        load_async_id(-1),
+        builtin_lib_(NULL) {
     if (package_root != NULL) {
       ASSERT(packages_file == NULL);
       this->package_root = strdup(package_root);
@@ -36,11 +36,31 @@ class IsolateData {
       this->packages_file = strdup(packages_file);
     }
   }
+
   ~IsolateData() {
     free(script_url);
+    script_url = NULL;
     free(package_root);
+    package_root = NULL;
     free(packages_file);
+    packages_file = NULL;
     free(udp_receive_buffer);
+    udp_receive_buffer = NULL;
+    if (builtin_lib_ != NULL) {
+      Dart_DeletePersistentHandle(builtin_lib_);
+    }
+  }
+
+  Dart_Handle builtin_lib() const {
+    ASSERT(builtin_lib_ != NULL);
+    ASSERT(!Dart_IsError(builtin_lib_));
+    return builtin_lib_;
+  }
+  void set_builtin_lib(Dart_Handle lib) {
+    ASSERT(builtin_lib_ == NULL);
+    ASSERT(lib != NULL);
+    ASSERT(!Dart_IsError(lib));
+    builtin_lib_ = Dart_NewPersistentHandle(lib);
   }
 
   char* script_url;
@@ -50,6 +70,8 @@ class IsolateData {
   int64_t load_async_id;
 
  private:
+  Dart_Handle builtin_lib_;
+
   DISALLOW_COPY_AND_ASSIGN(IsolateData);
 };
 

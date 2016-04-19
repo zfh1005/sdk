@@ -18,7 +18,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
 DECLARE_FLAG(bool, inline_alloc);
 
 
@@ -2163,6 +2162,8 @@ void Assembler::LoadIsolate(Register dst) {
 
 
 void Assembler::LoadObject(Register dst, const Object& object) {
+  ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
+  ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
   if (object.IsSmi() || object.InVMHeap()) {
     movl(dst, Immediate(reinterpret_cast<int32_t>(object.raw())));
   } else {
@@ -2176,6 +2177,8 @@ void Assembler::LoadObject(Register dst, const Object& object) {
 
 
 void Assembler::LoadObjectSafely(Register dst, const Object& object) {
+  ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
+  ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
   if (Assembler::IsSafe(object)) {
     LoadObject(dst, object);
   } else {
@@ -2187,6 +2190,8 @@ void Assembler::LoadObjectSafely(Register dst, const Object& object) {
 
 
 void Assembler::PushObject(const Object& object) {
+  ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
+  ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
   if (object.IsSmi() || object.InVMHeap()) {
     pushl(Immediate(reinterpret_cast<int32_t>(object.raw())));
   } else {
@@ -2200,6 +2205,8 @@ void Assembler::PushObject(const Object& object) {
 
 
 void Assembler::CompareObject(Register reg, const Object& object) {
+  ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
+  ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
   if (object.IsSmi() || object.InVMHeap()) {
     cmpl(reg, Immediate(reinterpret_cast<int32_t>(object.raw())));
   } else {
@@ -2398,6 +2405,8 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
 
 void Assembler::UnverifiedStoreOldObject(const Address& dest,
                                          const Object& value) {
+  ASSERT(!value.IsICData() || ICData::Cast(value).IsOriginal());
+  ASSERT(!value.IsField() || Field::Cast(value).IsOriginal());
   ASSERT(value.IsOld());
   ASSERT(!value.InVMHeap());
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
@@ -2411,6 +2420,8 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          const Object& value,
                                          FieldContent old_content) {
+  ASSERT(!value.IsICData() || ICData::Cast(value).IsOriginal());
+  ASSERT(!value.IsField() || Field::Cast(value).IsOriginal());
   VerifyHeapWord(dest, old_content);
   if (value.IsSmi() || value.InVMHeap()) {
     Immediate imm_value(reinterpret_cast<int32_t>(value.raw()));
@@ -2631,6 +2642,12 @@ void Assembler::Call(const StubEntry& stub_entry) {
   const Code& target = Code::ZoneHandle(stub_entry.code());
   LoadObject(CODE_REG, target);
   call(FieldAddress(CODE_REG, Code::entry_point_offset()));
+}
+
+
+void Assembler::CallToRuntime() {
+  movl(CODE_REG, Address(THR, Thread::call_to_runtime_stub_offset()));
+  call(Address(THR, Thread::call_to_runtime_entry_point_offset()));
 }
 
 

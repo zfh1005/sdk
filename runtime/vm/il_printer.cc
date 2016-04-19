@@ -11,6 +11,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 DEFINE_FLAG(bool, print_environments, false, "Print SSA environments.");
 DEFINE_FLAG(charp, print_flow_graph_filter, NULL,
     "Print only IR of functions with matching names");
@@ -145,7 +147,7 @@ void FlowGraphPrinter::PrintOneInstruction(Instruction* instr,
 
 
 void FlowGraphPrinter::PrintTypeCheck(const ParsedFunction& parsed_function,
-                                      intptr_t token_pos,
+                                      TokenPosition token_pos,
                                       Value* value,
                                       const AbstractType& dst_type,
                                       const String& dst_name,
@@ -169,7 +171,7 @@ void CompileType::PrintTo(BufferFormatter* f) const {
   if ((cid_ != kIllegalCid) && (cid_ != kDynamicCid)) {
     const Class& cls =
         Class::Handle(Isolate::Current()->class_table()->At(cid_));
-    type_name = String::Handle(cls.PrettyName()).ToCString();
+    type_name = String::Handle(cls.ScrubbedName()).ToCString();
   } else if (type_ != NULL &&
              !type_->Equals(Type::Handle(Type::DynamicType()))) {
     type_name = type_->ToCString();
@@ -405,9 +407,6 @@ void AssertAssignableInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(", %s, '%s'",
            dst_type().ToCString(),
            dst_name().ToCString());
-  f->Print(" instantiator(");
-  instantiator()->PrintTo(f);
-  f->Print(")");
   f->Print(" instantiator_type_arguments(");
   instantiator_type_arguments()->PrintTo(f);
   f->Print(")");
@@ -448,6 +447,9 @@ void PolymorphicInstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
     PushArgumentAt(i)->value()->PrintTo(f);
   }
   PrintICDataHelper(f, ic_data());
+  if (with_checks()) {
+    f->Print(" WITH CHECKS");
+  }
 }
 
 
@@ -551,9 +553,6 @@ void InstanceOfInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(" %s %s",
             negate_result() ? "ISNOT" : "IS",
             String::Handle(type().Name()).ToCString());
-  f->Print(" instantiator(");
-  instantiator()->PrintTo(f);
-  f->Print(")");
   f->Print(" type-arg(");
   instantiator_type_arguments()->PrintTo(f);
   f->Print(")");
@@ -569,7 +568,7 @@ void RelationalOpInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void AllocateObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s", String::Handle(cls().PrettyName()).ToCString());
+  f->Print("%s", String::Handle(cls().ScrubbedName()).ToCString());
   for (intptr_t i = 0; i < ArgumentCount(); i++) {
     f->Print(", ");
     PushArgumentAt(i)->value()->PrintTo(f);
@@ -582,7 +581,7 @@ void AllocateObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void MaterializeObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s", String::Handle(cls_.PrettyName()).ToCString());
+  f->Print("%s", String::Handle(cls_.ScrubbedName()).ToCString());
   for (intptr_t i = 0; i < InputCount(); i++) {
     f->Print(", ");
     f->Print("%s: ", slots_[i]->ToCString());
@@ -663,6 +662,15 @@ void ExtractNthOutputInstr::PrintOperandsTo(BufferFormatter* f) const {
 void UnaryIntegerOpInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(op_kind()));
   value()->PrintTo(f);
+}
+
+
+void CheckedSmiOpInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s", Token::Str(op_kind()));
+  f->Print(", ");
+  left()->PrintTo(f);
+  f->Print(", ");
+  right()->PrintTo(f);
 }
 
 
@@ -930,7 +938,7 @@ void CheckClassIdInstr::PrintOperandsTo(BufferFormatter* f) const {
 
   const Class& cls =
     Class::Handle(Isolate::Current()->class_table()->At(cid()));
-  f->Print(", %s", String::Handle(cls.PrettyName()).ToCString());
+  f->Print(", %s", String::Handle(cls.ScrubbedName()).ToCString());
 }
 
 
@@ -1222,5 +1230,45 @@ const char* Environment::ToCString() const {
   PrintTo(&bf);
   return Thread::Current()->zone()->MakeCopyOfString(buffer);
 }
+
+#else  // PRODUCT
+
+void FlowGraphPrinter::PrintOneInstruction(Instruction* instr,
+                                           bool print_locations) {
+  UNREACHABLE();
+}
+
+
+void FlowGraphPrinter::PrintTypeCheck(const ParsedFunction& parsed_function,
+                                      TokenPosition token_pos,
+                                      Value* value,
+                                      const AbstractType& dst_type,
+                                      const String& dst_name,
+                                      bool eliminated) {
+  UNREACHABLE();
+}
+
+
+void FlowGraphPrinter::PrintBlock(BlockEntryInstr* block,
+                                  bool print_locations) {
+  UNREACHABLE();
+}
+
+
+void FlowGraphPrinter::PrintGraph(const char* phase, FlowGraph* flow_graph) {
+  UNREACHABLE();
+}
+
+
+void FlowGraphPrinter::PrintICData(const ICData& ic_data) {
+  UNREACHABLE();
+}
+
+
+bool FlowGraphPrinter::ShouldPrint(const Function& function) {
+  return false;
+}
+
+#endif  // !PRODUCT
 
 }  // namespace dart

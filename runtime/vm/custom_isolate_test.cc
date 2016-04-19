@@ -16,6 +16,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, trace_shutdown);
+
 static void native_echo(Dart_NativeArguments args);
 static void CustomIsolateImpl_start(Dart_NativeArguments args);
 static Dart_NativeFunction NativeLookup(Dart_Handle name,
@@ -210,6 +212,7 @@ void MessageEvent::Process() {
     OS::Print("<< Shutting down isolate(%p)\n", isolate());
     event_queue->RemoveEventsForIsolate(isolate());
     Dart_SetMessageNotifyCallback(NULL);
+    Dart_ExitScope();
     Dart_ShutdownIsolate();
   } else {
     Dart_ExitScope();
@@ -230,7 +233,7 @@ static Dart_NativeFunction NativeLookup(Dart_Handle name,
                                         int argc,
                                         bool* auto_setup_scope) {
   ASSERT(auto_setup_scope != NULL);
-  *auto_setup_scope = false;
+  *auto_setup_scope = true;
   const char* name_str = NULL;
   EXPECT(Dart_IsString(name));
   EXPECT_VALID(Dart_StringToCString(name, &name_str));
@@ -243,7 +246,7 @@ static Dart_NativeFunction NativeLookup(Dart_Handle name,
 }
 
 
-const char* saved_echo = NULL;
+char* saved_echo = NULL;
 static void native_echo(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle arg = Dart_GetNativeArgument(args, 0);
@@ -252,7 +255,7 @@ static void native_echo(Dart_NativeArguments args) {
   const char* c_str = NULL;
   EXPECT_VALID(Dart_StringToCString(toString, &c_str));
   if (saved_echo) {
-    free(const_cast<char*>(saved_echo));
+    free(saved_echo);
   }
   saved_echo = strdup(c_str);
   OS::Print("-- (isolate=%p) %s\n", Dart_CurrentIsolate(), c_str);
@@ -315,8 +318,12 @@ static void CustomIsolateImpl_start(Dart_NativeArguments args) {
 
 
 UNIT_TEST_CASE(CustomIsolates) {
+  bool saved_flag = FLAG_trace_shutdown;
+  FLAG_trace_shutdown = true;
   FLAG_verify_handles = true;
+#ifdef DEBUG
   FLAG_verify_on_transition = true;
+#endif
   event_queue = new EventQueue();
 
   Dart_Isolate dart_isolate = TestCase::CreateTestIsolate();
@@ -350,10 +357,11 @@ UNIT_TEST_CASE(CustomIsolates) {
   }
   OS::Print("-- Finished event loop --\n");
   EXPECT_STREQ("Received: 43", saved_echo);
-  free(const_cast<char*>(saved_echo));
+  free(saved_echo);
 
   delete event_queue;
   event_queue = NULL;
+  FLAG_trace_shutdown = saved_flag;
 }
 
 }  // namespace dart

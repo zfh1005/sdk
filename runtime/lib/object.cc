@@ -10,14 +10,12 @@
 #include "vm/heap.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
-#include "vm/report.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 
 namespace dart {
 
 DECLARE_FLAG(bool, trace_type_checks);
-DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 
 // Helper function in stacktrace.cc.
 void _printCurrentStacktrace();
@@ -88,7 +86,7 @@ DEFINE_NATIVE_ENTRY(Object_noSuchMethod, 6) {
     // found.
     Function& function = Function::Handle();
     if (instance.IsClosure()) {
-      function = Closure::function(instance);
+      function = Closure::Cast(instance).function();
     } else {
       Class& instance_class = Class::Handle(instance.clazz());
       function = instance_class.LookupDynamicFunction(member_name);
@@ -121,60 +119,17 @@ DEFINE_NATIVE_ENTRY(Object_runtimeType, 1) {
 }
 
 
-static void WarnOnJSIntegralNumTypeTest(
-    const Instance& instance,
-    const TypeArguments& instantiator_type_arguments,
-    const AbstractType& type) {
-  const bool instance_is_int = instance.IsInteger();
-  const bool instance_is_double = instance.IsDouble();
-  if (!(instance_is_int || instance_is_double)) {
-    return;
-  }
-  AbstractType& instantiated_type = AbstractType::Handle(type.raw());
-  if (!type.IsInstantiated()) {
-    instantiated_type = type.InstantiateFrom(instantiator_type_arguments, NULL);
-  }
-  if (instance_is_double) {
-    if (instantiated_type.IsIntType()) {
-      const double value = Double::Cast(instance).value();
-      if (floor(value) == value) {
-        Report::JSWarningFromNative(
-            false,  // Object_instanceOf and Object_as are not static calls.
-            "integral value of type 'double' is also considered to be "
-            "of type 'int'");
-      }
-    }
-  } else {
-    ASSERT(instance_is_int);
-    if (instantiated_type.IsDoubleType()) {
-      Report::JSWarningFromNative(
-          false,  // Object_instanceOf and Object_as are not static calls.
-          "integer value is also considered to be of type 'double'");
-    }
-  }
-}
-
-
-DEFINE_NATIVE_ENTRY(Object_instanceOf, 5) {
+DEFINE_NATIVE_ENTRY(Object_instanceOf, 4) {
   const Instance& instance =
       Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
-  // Instantiator at position 1 is not used. It is passed along so that the call
-  // can be easily converted to an optimized implementation. Instantiator is
-  // used to populate the subtype cache.
   const TypeArguments& instantiator_type_arguments =
-      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(2));
+      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(1));
   const AbstractType& type =
-      AbstractType::CheckedHandle(zone, arguments->NativeArgAt(3));
-  const Bool& negate = Bool::CheckedHandle(zone, arguments->NativeArgAt(4));
+      AbstractType::CheckedHandle(zone, arguments->NativeArgAt(2));
+  const Bool& negate = Bool::CheckedHandle(zone, arguments->NativeArgAt(3));
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsMalformed());
   ASSERT(!type.IsMalbounded());
-
-  // Check for javascript compatibility.
-  if (FLAG_warn_on_javascript_compatibility) {
-    WarnOnJSIntegralNumTypeTest(instance, instantiator_type_arguments, type);
-  }
-
   Error& bound_error = Error::Handle(zone, Error::null());
   const bool is_instance_of = instance.IsInstanceOf(type,
                                                     instantiator_type_arguments,
@@ -182,10 +137,12 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 5) {
   if (FLAG_trace_type_checks) {
     const char* result_str = is_instance_of ? "true" : "false";
     OS::Print("Native Object.instanceOf: result %s\n", result_str);
-    const Type& instance_type = Type::Handle(instance.GetType());
+    const AbstractType& instance_type =
+        AbstractType::Handle(zone, instance.GetType());
     OS::Print("  instance type: %s\n",
-              String::Handle(instance_type.Name()).ToCString());
-    OS::Print("  test type: %s\n", String::Handle(type.Name()).ToCString());
+              String::Handle(zone, instance_type.Name()).ToCString());
+    OS::Print("  test type: %s\n",
+              String::Handle(zone, type.Name()).ToCString());
     if (!bound_error.IsNull()) {
       OS::Print("  bound error: %s\n", bound_error.ToErrorCString());
     }
@@ -195,11 +152,11 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 5) {
     DartFrameIterator iterator;
     StackFrame* caller_frame = iterator.NextFrame();
     ASSERT(caller_frame != NULL);
-    const intptr_t location = caller_frame->GetTokenPos();
+    const TokenPosition location = caller_frame->GetTokenPos();
     String& bound_error_message = String::Handle(
         zone, String::New(bound_error.ToErrorCString()));
     Exceptions::CreateAndThrowTypeError(
-        location, Symbols::Empty(), Symbols::Empty(),
+        location, AbstractType::Handle(zone), AbstractType::Handle(zone),
         Symbols::Empty(), bound_error_message);
     UNREACHABLE();
   }
@@ -267,38 +224,32 @@ DEFINE_NATIVE_ENTRY(Object_instanceOfString, 2) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Object_as, 4) {
-  const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
-  // Instantiator at position 1 is not used. It is passed along so that the call
-  // can be easily converted to an optimized implementation. Instantiator is
-  // used to populate the subtype cache.
+DEFINE_NATIVE_ENTRY(Object_as, 3) {
+  const Instance& instance =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   const TypeArguments& instantiator_type_arguments =
-      TypeArguments::CheckedHandle(arguments->NativeArgAt(2));
-  const AbstractType& type =
-      AbstractType::CheckedHandle(arguments->NativeArgAt(3));
+      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(1));
+  AbstractType& type =
+      AbstractType::CheckedHandle(zone, arguments->NativeArgAt(2));
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsMalformed());
   ASSERT(!type.IsMalbounded());
-  Error& bound_error = Error::Handle();
+  Error& bound_error = Error::Handle(zone);
   if (instance.IsNull()) {
     return instance.raw();
   }
-
-  // Check for javascript compatibility.
-  if (FLAG_warn_on_javascript_compatibility) {
-    WarnOnJSIntegralNumTypeTest(instance, instantiator_type_arguments, type);
-  }
-
   const bool is_instance_of = instance.IsInstanceOf(type,
                                                     instantiator_type_arguments,
                                                     &bound_error);
   if (FLAG_trace_type_checks) {
     const char* result_str = is_instance_of ? "true" : "false";
     OS::Print("Object.as: result %s\n", result_str);
-    const Type& instance_type = Type::Handle(instance.GetType());
+    const AbstractType& instance_type =
+        AbstractType::Handle(zone, instance.GetType());
     OS::Print("  instance type: %s\n",
-              String::Handle(instance_type.Name()).ToCString());
-    OS::Print("  cast type: %s\n", String::Handle(type.Name()).ToCString());
+              String::Handle(zone, instance_type.Name()).ToCString());
+    OS::Print("  cast type: %s\n",
+              String::Handle(zone, type.Name()).ToCString());
     if (!bound_error.IsNull()) {
       OS::Print("  bound error: %s\n", bound_error.ToErrorCString());
     }
@@ -307,34 +258,25 @@ DEFINE_NATIVE_ENTRY(Object_as, 4) {
     DartFrameIterator iterator;
     StackFrame* caller_frame = iterator.NextFrame();
     ASSERT(caller_frame != NULL);
-    const intptr_t location = caller_frame->GetTokenPos();
+    const TokenPosition location = caller_frame->GetTokenPos();
     const AbstractType& instance_type =
-        AbstractType::Handle(instance.GetType());
-    const String& instance_type_name =
-        String::Handle(instance_type.UserVisibleName());
-    String& type_name = String::Handle();
+        AbstractType::Handle(zone, instance.GetType());
     if (!type.IsInstantiated()) {
       // Instantiate type before reporting the error.
-      const AbstractType& instantiated_type = AbstractType::Handle(
-          type.InstantiateFrom(instantiator_type_arguments, NULL));
-      // Note that instantiated_type may be malformed.
-      type_name = instantiated_type.UserVisibleName();
-    } else {
-      type_name = type.UserVisibleName();
+      type = type.InstantiateFrom(instantiator_type_arguments, NULL,
+                                  NULL, NULL, Heap::kNew);
+      // Note that the instantiated type may be malformed.
     }
-    String& bound_error_message =  String::Handle();
     if (bound_error.IsNull()) {
-      const String& dst_name = String::ZoneHandle(
-          Symbols::New(Exceptions::kCastErrorDstName));
-
       Exceptions::CreateAndThrowTypeError(
-          location, instance_type_name, type_name,
-          dst_name, Object::null_string());
+          location, instance_type, type,
+          Symbols::InTypeCast(), Object::null_string());
     } else {
-      ASSERT(isolate->flags().type_checks());
-      bound_error_message = String::New(bound_error.ToErrorCString());
+      ASSERT(isolate->type_checks());
+      const String& bound_error_message =
+          String::Handle(zone, String::New(bound_error.ToErrorCString()));
       Exceptions::CreateAndThrowTypeError(
-          location, instance_type_name, Symbols::Empty(),
+          location, instance_type, AbstractType::Handle(zone),
           Symbols::Empty(), bound_error_message);
     }
     UNREACHABLE();
@@ -345,14 +287,14 @@ DEFINE_NATIVE_ENTRY(Object_as, 4) {
 
 DEFINE_NATIVE_ENTRY(AbstractType_toString, 1) {
   const AbstractType& type =
-      AbstractType::CheckedHandle(arguments->NativeArgAt(0));
+      AbstractType::CheckedHandle(zone, arguments->NativeArgAt(0));
   return type.UserVisibleName();
 }
 
 
 DEFINE_NATIVE_ENTRY(LibraryPrefix_invalidateDependentCode, 1) {
   const LibraryPrefix& prefix =
-      LibraryPrefix::CheckedHandle(arguments->NativeArgAt(0));
+      LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
   prefix.InvalidateDependentCode();
   return Bool::Get(true).raw();
 }
@@ -360,7 +302,7 @@ DEFINE_NATIVE_ENTRY(LibraryPrefix_invalidateDependentCode, 1) {
 
 DEFINE_NATIVE_ENTRY(LibraryPrefix_load, 1) {
   const LibraryPrefix& prefix =
-      LibraryPrefix::CheckedHandle(arguments->NativeArgAt(0));
+      LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
   bool hasCompleted = prefix.LoadLibrary();
   return Bool::Get(hasCompleted).raw();
 }
@@ -368,19 +310,19 @@ DEFINE_NATIVE_ENTRY(LibraryPrefix_load, 1) {
 
 DEFINE_NATIVE_ENTRY(LibraryPrefix_loadError, 1) {
   const LibraryPrefix& prefix =
-      LibraryPrefix::CheckedHandle(arguments->NativeArgAt(0));
+      LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
   // Currently all errors are Dart instances, e.g. I/O errors
   // created by deferred loading code. LanguageErrors from
   // failed loading or finalization attempts are propagated and result
   // in the isolate's death.
-  const Instance& error = Instance::Handle(prefix.LoadError());
+  const Instance& error = Instance::Handle(zone, prefix.LoadError());
   return error.raw();
 }
 
 
 DEFINE_NATIVE_ENTRY(LibraryPrefix_isLoaded, 1) {
   const LibraryPrefix& prefix =
-      LibraryPrefix::CheckedHandle(arguments->NativeArgAt(0));
+      LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
   return Bool::Get(prefix.is_loaded()).raw();
 }
 

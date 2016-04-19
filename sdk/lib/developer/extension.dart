@@ -4,21 +4,38 @@
 
 part of dart.developer;
 
+/// A response to a service protocol extension RPC.
+///
+/// If the RPC was successful, use [ServiceExtensionResponse.result], otherwise
+/// use [ServiceExtensionResponse.error].
 class ServiceExtensionResponse {
   final String _result;
   final int _errorCode;
   final String _errorDetail;
 
-  ServiceExtensionResponse.result(this._result)
-      : _errorCode = null,
+  /// Creates a successful to a service protocol extension RPC.
+  ///
+  /// Requires [result] to be a JSON object encoded as a string. When forming
+  /// the JSON-RPC message [result] will be inlined directly.
+  ServiceExtensionResponse.result(String result)
+      : _result = result,
+        _errorCode = null,
         _errorDetail = null {
     if (_result is! String) {
       throw new ArgumentError.value(_result, "result", "Must be a String");
     }
   }
 
-  ServiceExtensionResponse.error(this._errorCode, this._errorDetail)
-      : _result = null {
+  /// Creates an error response to a service protocol extension RPC.
+  ///
+  /// Requires [errorCode] to be [invalidParams] or between [extensionErrorMin]
+  /// and [extensionErrorMax]. Requires [errorDetail] to be a JSON object
+  /// encoded as a string. When forming the JSON-RPC message [errorDetail] will
+  /// be inlined directly.
+  ServiceExtensionResponse.error(int errorCode, String errorDetail)
+      : _result = null,
+        _errorCode = errorCode,
+        _errorDetail = errorDetail {
     _validateErrorCode(_errorCode);
     if (_errorDetail is! String) {
       throw new ArgumentError.value(_errorDetail,
@@ -28,13 +45,23 @@ class ServiceExtensionResponse {
   }
 
   /// Invalid method parameter(s) error code.
-  static const kInvalidParams = -32602;
+  @deprecated static const kInvalidParams = invalidParams;
   /// Generic extension error code.
-  static const kExtensionError = -32000;
+  @deprecated static const kExtensionError = extensionError;
   /// Maximum extension provided error code.
-  static const kExtensionErrorMax = -32000;
+  @deprecated static const kExtensionErrorMax = extensionErrorMax;
   /// Minimum extension provided error code.
-  static const kExtensionErrorMin = -32016;
+  @deprecated static const kExtensionErrorMin = extensionErrorMin;
+
+  /// Invalid method parameter(s) error code.
+  static const invalidParams = -32602;
+  /// Generic extension error code.
+  static const extensionError = -32000;
+  /// Maximum extension provided error code.
+  static const extensionErrorMax = -32000;
+  /// Minimum extension provided error code.
+  static const extensionErrorMin = -32016;
+
 
   static String _errorCodeMessage(int errorCode) {
     _validateErrorCode(errorCode);
@@ -48,11 +75,11 @@ class ServiceExtensionResponse {
     if (errorCode is! int) {
       throw new ArgumentError.value(errorCode, "errorCode", "Must be an int");
     }
-    if (errorCode == kInvalidParams) {
+    if (errorCode == invalidParams) {
       return;
     }
-    if ((errorCode >= kExtensionErrorMin) &&
-        (errorCode <= kExtensionErrorMax)) {
+    if ((errorCode >= extensionErrorMin) &&
+        (errorCode <= extensionErrorMax)) {
       return;
     }
     throw new ArgumentError.value(errorCode, "errorCode", "Out of range");
@@ -81,18 +108,35 @@ class ServiceExtensionResponse {
 ///
 /// Must complete to a [ServiceExtensionResponse].
 ///
-/// [method] - the method name.
-/// [parameters] - the parameters.
+/// [method] - the method name of the service protocol request.
+/// [parameters] - A map holding the parameters to the service protocol request.
+///
+/// *NOTE*: All parameter names and values are **encoded as strings**.
 typedef Future<ServiceExtensionResponse>
-    ServiceExtensionHandler(String method, Map parameters);
+    ServiceExtensionHandler(String method, Map<String, String> parameters);
 
 /// Register a [ServiceExtensionHandler] that will be invoked in this isolate
-/// for [method].
+/// for [method]. *NOTE*: Service protocol extensions must be registered
+/// in each isolate.
+///
+/// *NOTE*: [method] must begin with 'ext.' and you should use the following
+/// structure to avoid conflicts with other packages: 'ext.package.command'.
+/// That is, immediately following the 'ext.' prefix, should be the registering
+/// package name followed by another period ('.') and then the command name.
+/// For example: 'ext.dart.io.getOpenFiles'.
+///
+/// Because service extensions are isolate specific, clients using extensions
+/// must always include an 'isolateId' parameter with each RPC.
 void registerExtension(String method, ServiceExtensionHandler handler) {
   if (method is! String) {
     throw new ArgumentError.value(method,
                                   'method',
                                   'Must be a String');
+  }
+  if (!method.startsWith('ext.')) {
+    throw new ArgumentError.value(method,
+                                  'method',
+                                  'Must begin with ext.');
   }
   if (_lookupExtension(method) != null) {
     throw new ArgumentError('Extension already registered: $method');
@@ -105,6 +149,25 @@ void registerExtension(String method, ServiceExtensionHandler handler) {
   _registerExtension(method, handler);
 }
 
+/// Post an event of [eventKind] with payload of [eventData] to the `Extension`
+/// event stream.
+void postEvent(String eventKind, Map eventData) {
+  if (eventKind is! String) {
+    throw new ArgumentError.value(eventKind,
+                                  'eventKind',
+                                  'Must be a String');
+  }
+  if (eventData is! Map) {
+    throw new ArgumentError.value(eventData,
+                                  'eventData',
+                                  'Must be a Map');
+  }
+  String eventDataAsString = JSON.encode(eventData);
+  _postEvent(eventKind, eventDataAsString);
+}
+
+external _postEvent(String eventKind, String eventData);
+
 // Both of these functions are written inside C++ to avoid updating the data
 // structures in Dart, getting an OOB, and observing stale state. Do not move
 // these into Dart code unless you can ensure that the operations will can be
@@ -112,80 +175,3 @@ void registerExtension(String method, ServiceExtensionHandler handler) {
 // LookupServiceExtensionHandler and RegisterServiceExtensionHandler.
 external ServiceExtensionHandler _lookupExtension(String method);
 external _registerExtension(String method, ServiceExtensionHandler handler);
-
-// This code is only invoked when there is no other Dart code on the stack.
-_runExtension(ServiceExtensionHandler handler,
-              String method,
-              List<String> parameterKeys,
-              List<String> parameterValues,
-              /*SendPort*/ replyPort,
-              Object id) {
-  var parameters = {};
-  for (var i = 0; i < parameterKeys.length; i++) {
-    parameters[parameterKeys[i]] = parameterValues[i];
-  }
-  var response;
-  try {
-    response = handler(method, parameters);
-  } catch (e, st) {
-    var errorDetails = (st == null) ? '$e' : '$e\n$st';
-    response = new ServiceExtensionResponse.error(
-        ServiceExtensionResponse.kExtensionError,
-        errorDetails);
-    _postResponse(replyPort, id, response);
-    return;
-  }
-  if (response is! Future) {
-    response = new ServiceExtensionResponse.error(
-          ServiceExtensionResponse.kExtensionError,
-          "Extension handler must return a Future");
-    _postResponse(replyPort, id, response);
-    return;
-  }
-  response.catchError((e, st) {
-    // Catch any errors eagerly and wrap them in a ServiceExtensionResponse.
-    var errorDetails = (st == null) ? '$e' : '$e\n$st';
-    return new ServiceExtensionResponse.error(
-        ServiceExtensionResponse.kExtensionError,
-        errorDetails);
-  }).then((response) {
-    // Post the valid response or the wrapped error after verifying that
-    // the response is a ServiceExtensionResponse.
-    if (response is! ServiceExtensionResponse) {
-      response = new ServiceExtensionResponse.error(
-          ServiceExtensionResponse.kExtensionError,
-          "Extension handler must complete to a ServiceExtensionResponse");
-    }
-    _postResponse(replyPort, id, response);
-  }).catchError((e, st) {
-    // We do not expect any errors to occur in the .then or .catchError blocks
-    // but, suppress them just in case.
-  });
-}
-
-// This code is only invoked by _runExtension.
-_postResponse(/*SendPort*/ replyPort,
-              Object id,
-              ServiceExtensionResponse response) {
-  assert(replyPort != null);
-  if (id == null) {
-    // No id -> no response.
-    replyPort.send(null);
-    return;
-  }
-  assert(id != null);
-  StringBuffer sb = new StringBuffer();
-  sb.write('{"jsonrpc":"2.0",');
-  if (response._isError()) {
-    sb.write('"error":');
-  } else {
-    sb.write('"result":');
-  }
-  sb.write('${response._toString()},');
-  if (id is String) {
-    sb.write('"id":"$id"}');
-  } else {
-    sb.write('"id":$id}');
-  }
-  replyPort.send(sb.toString());
-}

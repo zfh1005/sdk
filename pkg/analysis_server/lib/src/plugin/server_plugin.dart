@@ -14,8 +14,6 @@ import 'package:analysis_server/plugin/edit/assist/assist.dart';
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
 import 'package:analysis_server/plugin/edit/fix/fix.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
-import 'package:analysis_server/plugin/index/index.dart';
-import 'package:analysis_server/plugin/index/index_core.dart';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
@@ -30,7 +28,6 @@ import 'package:analysis_server/src/provisional/completion/completion_core.dart'
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
-import 'package:analysis_server/src/services/index/index_contributor.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:plugin/plugin.dart';
 
@@ -138,11 +135,6 @@ class ServerPlugin implements Plugin {
   ExtensionPoint fixContributorExtensionPoint;
 
   /**
-   * The extension point that allows plugins to register index contributors.
-   */
-  ExtensionPoint indexContributorExtensionPoint;
-
-  /**
    * The extension point that allows plugins to register navigation
    * contributors.
    */
@@ -189,21 +181,15 @@ class ServerPlugin implements Plugin {
    * Return a list containing all of the completion contributors that were
    * contributed.
    */
-  List<CompletionContributor> get completionContributors =>
-      completionContributorExtensionPoint.extensions;
+  Iterable<CompletionContributor> get completionContributors =>
+      completionContributorExtensionPoint.extensions
+          .map((CompletionContributorFactory factory) => factory());
 
   /**
    * Return a list containing all of the fix contributors that were contributed.
    */
   List<FixContributor> get fixContributors =>
       fixContributorExtensionPoint.extensions;
-
-  /**
-   * Return a list containing all of the index contributors that were
-   * contributed.
-   */
-  List<IndexContributor> get indexContributors =>
-      indexContributorExtensionPoint.extensions;
 
   /**
    * Return a list containing all of the navigation contributors that were
@@ -260,8 +246,6 @@ class ServerPlugin implements Plugin {
         DOMAIN_EXTENSION_POINT, _validateDomainExtension);
     fixContributorExtensionPoint = registerExtensionPoint(
         FIX_CONTRIBUTOR_EXTENSION_POINT, _validateFixContributorExtension);
-    indexContributorExtensionPoint = registerExtensionPoint(
-        INDEX_CONTRIBUTOR_EXTENSION_POINT, _validateIndexContributorExtension);
     navigationContributorExtensionPoint = registerExtensionPoint(
         NAVIGATION_CONTRIBUTOR_EXTENSION_POINT,
         _validateNavigationContributorExtension);
@@ -291,7 +275,7 @@ class ServerPlugin implements Plugin {
     // Register completion contributors.
     //
     // TODO(brianwilkerson) Register the completion contributors.
-//    registerExtension(COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID, ???);
+    //registerExtension(COMPLETION_CONTRIBUTOR_EXTENSION_POINT_ID, ???);
     //
     // Register analysis contributors.
     //
@@ -322,11 +306,6 @@ class ServerPlugin implements Plugin {
     //
     registerExtension(
         FIX_CONTRIBUTOR_EXTENSION_POINT_ID, new DefaultFixContributor());
-    //
-    // Register index contributors.
-    //
-    registerExtension(
-        INDEX_CONTRIBUTOR_EXTENSION_POINT_ID, new DartIndexContributor());
   }
 
   /**
@@ -370,10 +349,10 @@ class ServerPlugin implements Plugin {
    * valid completion contributor.
    */
   void _validateCompletionContributorExtension(Object extension) {
-    if (extension is! CompletionContributor) {
+    if (extension is! CompletionContributorFactory) {
       String id = completionContributorExtensionPoint.uniqueIdentifier;
       throw new ExtensionError(
-          'Extensions to $id must be an CompletionContributor');
+          'Extensions to $id must be an CompletionContributorFactory');
     }
   }
 
@@ -397,17 +376,6 @@ class ServerPlugin implements Plugin {
     if (extension is! FixContributor) {
       String id = fixContributorExtensionPoint.uniqueIdentifier;
       throw new ExtensionError('Extensions to $id must be a FixContributor');
-    }
-  }
-
-  /**
-   * Validate the given extension by throwing an [ExtensionError] if it is not a
-   * valid index contributor.
-   */
-  void _validateIndexContributorExtension(Object extension) {
-    if (extension is! IndexContributor) {
-      String id = indexContributorExtensionPoint.uniqueIdentifier;
-      throw new ExtensionError('Extensions to $id must be an IndexContributor');
     }
   }
 

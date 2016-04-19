@@ -22,6 +22,8 @@ import '../closure.dart' show
     ClosureClassMap,
     ClosureFieldElement,
     CapturedVariable;
+import '../core_types.dart' show
+    CoreClasses;
 import '../dart_types.dart' show
     DartType,
     FunctionType,
@@ -34,6 +36,7 @@ import '../deferred_load.dart' show
 import '../elements/elements.dart' show
     ClassElement,
     ConstructorBodyElement,
+    ConstructorElement,
     Element,
     Elements,
     ElementKind,
@@ -66,7 +69,6 @@ import '../js_backend/js_backend.dart' show
     TypeCheck,
     TypeChecks,
     TypeVariableHandler;
-import '../native/native.dart' as native;
 import '../universe/call_structure.dart' show
     CallStructure;
 import '../universe/selector.dart' show

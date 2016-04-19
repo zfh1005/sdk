@@ -2,7 +2,44 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of type_graph_inferrer;
+library compiler.src.inferrer.type_graph_nodes;
+
+import 'dart:collection' show IterableBase;
+
+import '../common.dart';
+import '../common/names.dart' show Identifiers;
+import '../compiler.dart' show Compiler;
+import '../constants/values.dart';
+import '../cps_ir/cps_ir_nodes.dart' as cps_ir show Node;
+import '../dart_types.dart' show
+    DartType,
+    FunctionType,
+    InterfaceType,
+    TypeKind;
+import '../elements/elements.dart';
+import '../native/native.dart' as native;
+import '../tree/tree.dart' as ast show
+    DartString,
+    Node,
+    LiteralBool,
+    Send,
+    SendSet,
+    TryStatement;
+import '../types/types.dart' show
+    ContainerTypeMask,
+    DictionaryTypeMask,
+    MapTypeMask,
+    TypeMask,
+    ValueTypeMask;
+import '../universe/selector.dart' show Selector;
+import '../util/util.dart' show ImmutableEmptySet, Setlet;
+import '../world.dart' show ClassWorld;
+
+import 'inferrer_visitor.dart' show ArgumentsTypes;
+import 'type_graph_inferrer.dart' show
+    TypeGraphInferrerEngine,
+    TypeInformationSystem;
+import 'debug.dart' as debug;
 
 /**
  * Common class for all nodes in the graph. The current nodes are:
@@ -32,7 +69,7 @@ abstract class TypeInformation {
   final MemberTypeInformation context;
 
   /// The element this [TypeInformation] node belongs to.
-  MemberElement get contextMember => context == null ? null : context.element;
+  TypedElement get contextMember => context == null ? null : context.element;
 
   Iterable<TypeInformation> get assignments => _assignments;
 
@@ -200,6 +237,12 @@ abstract class TypeInformation {
     abandonInferencing = false;
     doNotEnqueue = false;
   }
+
+  /// Destroys information not needed after type inference.
+  void cleanup() {
+    users = null;
+    _assignments = null;
+  }
 }
 
 abstract class ApplyableTypeInformation implements TypeInformation {
@@ -348,6 +391,10 @@ class MemberTypeInformation extends ElementTypeInformation
    */
   int closurizedCount = 0;
 
+  // Strict `bool` value is computed in cleanup(). Also used as a flag to see if
+  // cleanup has been called.
+  bool _isCalledOnce = null;
+
   /**
    * This map contains the callers of [element]. It stores all unique call sites
    * to enable counting the global number of call sites of [element].
@@ -355,18 +402,23 @@ class MemberTypeInformation extends ElementTypeInformation
    * A call site is either an AST [ast.Node], a [cps_ir.Node] or in the case of
    * synthesized calls, an [Element] (see uses of [synthesizeForwardingCall]
    * in [SimpleTypeInferrerVisitor]).
+   *
+   * The global information is summarized in [cleanup], after which [_callers]
+   * is set to `null`.
    */
-  final Map<Element, Setlet<Spannable>> _callers = new Map<Element, Setlet>();
+  Map<Element, Setlet<Spannable>> _callers;
 
   MemberTypeInformation._internal(Element element)
       : super._internal(null, element);
 
   void addCall(Element caller, Spannable node) {
     assert(node is ast.Node || node is cps_ir.Node || node is Element);
+    _callers ??= <Element, Setlet>{};
     _callers.putIfAbsent(caller, () => new Setlet()).add(node);
   }
 
   void removeCall(Element caller, node) {
+    if (_callers == null) return;
     Setlet calls = _callers[caller];
     if (calls == null) return;
     calls.remove(node);
@@ -375,9 +427,27 @@ class MemberTypeInformation extends ElementTypeInformation
     }
   }
 
-  Iterable<Element> get callers => _callers.keys;
+  Iterable<Element> get callers {
+    // TODO(sra): This is called only from an unused API and a test. If it
+    // becomes used, [cleanup] will need to copy `_caller.keys`.
+
+    // `simple_inferrer_callers_test.dart` ensures that cleanup has not
+    // happened.
+    return _callers.keys;
+  }
 
   bool isCalledOnce() {
+    // If this assert fires it means that this MemberTypeInformation for the
+    // element was not part of type inference. This happens for
+    // ConstructorBodyElements, so guard the call with a test for
+    // ConstructorBodyElement. For other elements, investigate why the element
+    // was not present for type inference.
+    assert(_isCalledOnce != null);
+    return _isCalledOnce ?? false;
+  }
+
+  bool _computeIsCalledOnce() {
+    if (_callers == null) return false;
     int count = 0;
     for (var set in _callers.values) {
       count += set.length;
@@ -445,8 +515,8 @@ class MemberTypeInformation extends ElementTypeInformation
   TypeMask potentiallyNarrowType(TypeMask mask,
                                  TypeGraphInferrerEngine inferrer) {
     Compiler compiler = inferrer.compiler;
-    if (!compiler.trustTypeAnnotations &&
-        !compiler.enableTypeAssertions &&
+    if (!compiler.options.trustTypeAnnotations &&
+        !compiler.options.enableTypeAssertions &&
         !inferrer.annotations.trustTypeAnnotations(element)) {
       return mask;
     }
@@ -455,14 +525,14 @@ class MemberTypeInformation extends ElementTypeInformation
       return mask;
     }
     if (element.isField) {
-      return new TypeMaskSystem(compiler).narrowType(mask, element.type);
+      return _narrowType(compiler, mask, element.type);
     }
     assert(element.isFunction ||
            element.isGetter ||
            element.isFactoryConstructor);
 
     FunctionType type = element.type;
-    return new TypeMaskSystem(compiler).narrowType(mask, type.returnType);
+    return _narrowType(compiler, mask, type.returnType);
   }
 
   TypeMask computeType(TypeGraphInferrerEngine inferrer) {
@@ -492,6 +562,14 @@ class MemberTypeInformation extends ElementTypeInformation
     if (element.isFunction) return false;
 
     return super.hasStableType(inferrer);
+  }
+
+  void cleanup() {
+    // This node is on multiple lists so cleanup() can be called twice.
+    if (_isCalledOnce != null) return;
+    _isCalledOnce = _computeIsCalledOnce();
+    _callers = null;
+    super.cleanup();
   }
 }
 
@@ -586,15 +664,15 @@ class ParameterTypeInformation extends ElementTypeInformation {
   TypeMask potentiallyNarrowType(TypeMask mask,
                                  TypeGraphInferrerEngine inferrer) {
     Compiler compiler = inferrer.compiler;
-    if (!compiler.trustTypeAnnotations &&
+    if (!compiler.options.trustTypeAnnotations &&
         !inferrer.annotations.trustTypeAnnotations(declaration)) {
       return mask;
     }
     // When type assertions are enabled (aka checked mode), we have to always
     // ignore type annotations to ensure that the checks are actually inserted
     // into the function body and retained until runtime.
-    assert(!compiler.enableTypeAssertions);
-    return new TypeMaskSystem(compiler).narrowType(mask, element.type);
+    assert(!compiler.options.enableTypeAssertions);
+    return _narrowType(compiler, mask, element.type);
   }
 
   TypeMask computeType(TypeGraphInferrerEngine inferrer) {
@@ -795,7 +873,6 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
                                             TypeGraphInferrerEngine inferrer) {
     ClassWorld classWorld = inferrer.classWorld;
     if (!classWorld.backend.intImplementation.isResolved) return null;
-    TypeMask emptyType = const TypeMask.nonNullEmpty();
     if (mask == null) return null;
     if (!mask.containsOnlyInt(classWorld)) {
       return null;
@@ -806,7 +883,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
 
     ClassElement uint31Implementation = classWorld.backend.uint31Implementation;
     bool isInt(info) => info.type.containsOnlyInt(classWorld);
-    bool isEmpty(info) => info.type == emptyType;
+    bool isEmpty(info) => info.type.isEmpty;
     bool isUInt31(info) {
       return info.type.satisfies(uint31Implementation, classWorld);
     }
@@ -889,28 +966,34 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
         ? compiler.world.allFunctions.filter(selector, typeMask)
         : targets;
 
-    // Add calls to new targets to the graph.
-    targets.where((target) => !oldTargets.contains(target)).forEach((element) {
-      MemberTypeInformation callee =
-          inferrer.types.getInferredTypeOf(element);
-      callee.addCall(caller, call);
-      callee.addUser(this);
-      inferrer.updateParameterAssignments(
-          this, element, arguments, selector, typeMask, remove: false,
-          addToQueue: true);
-    });
+    // Update the call graph if the targets could have changed.
+    if (!identical(targets, oldTargets)) {
+      // Add calls to new targets to the graph.
+      targets
+          .where((target) => !oldTargets.contains(target))
+          .forEach((element) {
+            MemberTypeInformation callee =
+                inferrer.types.getInferredTypeOf(element);
+            callee.addCall(caller, call);
+            callee.addUser(this);
+            inferrer.updateParameterAssignments(
+                this, element, arguments, selector, typeMask, remove: false,
+                addToQueue: true);
+          });
 
-    // Walk over the old targets, and remove calls that cannot happen
-    // anymore.
-    oldTargets.where((target) => !targets.contains(target)).forEach((element) {
-      MemberTypeInformation callee =
-          inferrer.types.getInferredTypeOf(element);
-      callee.removeCall(caller, call);
-      callee.removeUser(this);
-      inferrer.updateParameterAssignments(
-          this, element, arguments, selector, typeMask, remove: true,
-          addToQueue: true);
-    });
+      // Walk over the old targets, and remove calls that cannot happen anymore.
+      oldTargets
+          .where((target) => !targets.contains(target))
+          .forEach((element) {
+            MemberTypeInformation callee =
+                inferrer.types.getInferredTypeOf(element);
+            callee.removeCall(caller, call);
+            callee.removeUser(this);
+            inferrer.updateParameterAssignments(
+                this, element, arguments, selector, typeMask, remove: true,
+            addToQueue: true);
+          });
+    }
 
     // Walk over the found targets, and compute the joined union type mask
     // for all these targets.
@@ -935,7 +1018,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
           ValueTypeMask arg = arguments.positional[0].type;
           String key = arg.value.primitiveValue.slowToString();
           if (dictionaryTypeMask.typeMap.containsKey(key)) {
-            if (_VERBOSE) {
+            if (debug.VERBOSE) {
               print("Dictionary lookup for $key yields "
                     "${dictionaryTypeMask.typeMap[key]}.");
             }
@@ -943,14 +1026,14 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
           } else {
             // The typeMap is precise, so if we do not find the key, the lookup
             // will be [null] at runtime.
-            if (_VERBOSE) {
+            if (debug.VERBOSE) {
               print("Dictionary lookup for $key yields [null].");
             }
             return inferrer.types.nullType.type;
           }
         }
         MapTypeMask mapTypeMask = typeMask;
-        if (_VERBOSE) {
+        if (debug.VERBOSE) {
           print(
               "Map lookup for $selector yields ${mapTypeMask.valueType}.");
         }
@@ -1180,7 +1263,7 @@ class NarrowTypeInformation extends TypeInformation {
     TypeMask input = assignments.first.type;
     TypeMask intersection = input.intersection(typeAnnotation,
         inferrer.classWorld);
-    if (_ANOMALY_WARN) {
+    if (debug.ANOMALY_WARN) {
       if (!input.containsMask(intersection, inferrer.classWorld) ||
           !typeAnnotation.containsMask(intersection, inferrer.classWorld)) {
         print("ANOMALY WARNING: narrowed $input to $intersection via "
@@ -1283,6 +1366,12 @@ class ListTypeInformation extends TypeInformation
   }
 
   TypeMask safeType(TypeGraphInferrerEngine inferrer) => originalType;
+
+  void cleanup() {
+    super.cleanup();
+    elementType.cleanup();
+    _flowsInto = null;
+  }
 }
 
 /**
@@ -1444,6 +1533,16 @@ class MapTypeInformation extends TypeInformation
     return keyType.isStable &&
            valueType.isStable &&
            super.hasStableType(inferrer);
+  }
+
+  void cleanup() {
+    super.cleanup();
+    keyType.cleanup();
+    valueType.cleanup();
+    for (TypeInformation info in typeInfoMap.values) {
+      info.cleanup();
+    }
+    _flowsInto = null;
   }
 
   String toString() {
@@ -1610,4 +1709,25 @@ abstract class TypeInformationVisitor<T> {
   T visitParameterTypeInformation(ParameterTypeInformation info);
   T visitClosureTypeInformation(ClosureTypeInformation info);
   T visitAwaitTypeInformation(AwaitTypeInformation info);
+}
+
+TypeMask _narrowType(Compiler compiler, TypeMask type, DartType annotation,
+    {bool isNullable: true}) {
+  if (annotation.treatAsDynamic) return type;
+  if (annotation.isObject) return type;
+  TypeMask otherType;
+  if (annotation.isTypedef || annotation.isFunctionType) {
+    otherType = compiler.typesTask.functionType;
+  } else if (annotation.isTypeVariable) {
+    // TODO(ngeoffray): Narrow to bound.
+    return type;
+  } else if (annotation.isVoid) {
+    otherType = compiler.typesTask.nullType;
+  } else {
+    assert(annotation.isInterfaceType);
+    otherType = new TypeMask.nonNullSubtype(annotation.element, compiler.world);
+  }
+  if (isNullable) otherType = otherType.nullable();
+  if (type == null) return otherType;
+  return type.intersection(otherType, compiler.world);
 }

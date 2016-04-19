@@ -123,6 +123,10 @@ patch class SecurityContext {
   /* patch */ static SecurityContext get defaultContext {
     return _SecurityContext.defaultContext;
   }
+
+  /* patch */ static bool get alpnSupported {
+    return _SecurityContext.alpnSupported;
+  }
 }
 
 class _SecurityContext
@@ -137,14 +141,36 @@ class _SecurityContext
   static final SecurityContext defaultContext =
       new _SecurityContext().._trustBuiltinRoots();
 
-  void usePrivateKey(String keyFile, {String password})
-      native "SecurityContext_UsePrivateKey";
-  void setTrustedCertificates({String file, String directory})
-      native "SecurityContext_SetTrustedCertificates";
-  void useCertificateChain(String file)
-      native "SecurityContext_UseCertificateChain";
-  void setClientAuthorities(String file)
-      native "SecurityContext_SetClientAuthorities";
+  void usePrivateKey(String file, {String password}) {
+    List<int> bytes = (new File(file)).readAsBytesSync();
+    usePrivateKeyBytes(bytes, password: password);
+  }
+  void usePrivateKeyBytes(List<int> keyBytes, {String password})
+      native "SecurityContext_UsePrivateKeyBytes";
+
+  void setTrustedCertificates(String file, {String password}) {
+    List<int> bytes = (new File(file)).readAsBytesSync();
+    setTrustedCertificatesBytes(bytes, password: password);
+  }
+  void setTrustedCertificatesBytes(List<int> certBytes, {String password})
+      native "SecurityContext_SetTrustedCertificatesBytes";
+
+  void useCertificateChain(String file, {String password}) {
+    List<int> bytes = (new File(file)).readAsBytesSync();
+    useCertificateChainBytes(bytes, password: password);
+  }
+  void useCertificateChainBytes(List<int> chainBytes, {String password})
+      native "SecurityContext_UseCertificateChainBytes";
+
+  void setClientAuthorities(String file, {String password}) {
+    List<int> bytes = (new File(file)).readAsBytesSync();
+    setClientAuthoritiesBytes(bytes, password: password);
+  }
+  void setClientAuthoritiesBytes(List<int> authCertBytes, {String password})
+      native "SecurityContext_SetClientAuthoritiesBytes";
+
+  static bool get alpnSupported => _alpnSupported();
+  static bool _alpnSupported() native "SecurityContext_AlpnSupported";
   void setAlpnProtocols(List<String> protocols, bool isServer) {
     Uint8List encodedProtocols =
         SecurityContext._protocolsToLengthEncoding(protocols);

@@ -12,6 +12,7 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/plugin/linter_plugin.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_plugin.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -31,7 +32,8 @@ int findIdentifierLength(String search) {
     int c = search.codeUnitAt(length);
     if (!(c >= 'a'.codeUnitAt(0) && c <= 'z'.codeUnitAt(0) ||
         c >= 'A'.codeUnitAt(0) && c <= 'Z'.codeUnitAt(0) ||
-        c >= '0'.codeUnitAt(0) && c <= '9'.codeUnitAt(0))) {
+        c >= '0'.codeUnitAt(0) && c <= '9'.codeUnitAt(0) ||
+        c == '_'.codeUnitAt(0))) {
       break;
     }
     length++;
@@ -60,6 +62,9 @@ class AbstractAnalysisTest {
   String testCode;
 
   AbstractAnalysisTest();
+
+  AnalysisDomainHandler get analysisHandler => server.handlers
+      .singleWhere((handler) => handler is AnalysisDomainHandler);
 
   void addAnalysisSubscription(AnalysisService service, String file) {
     // add file to subscription
@@ -96,21 +101,27 @@ class AbstractAnalysisTest {
   }
 
   AnalysisServer createAnalysisServer(Index index) {
+    //
+    // Collect plugins
+    //
     ServerPlugin serverPlugin = new ServerPlugin();
-    // TODO(pq): this convoluted extension registry dance needs cleanup.
-    List<Plugin> plugins = <Plugin>[
-      serverPlugin,
-      linterPlugin,
-      linterServerPlugin
-    ];
-    // Accessing `taskManager` ensures that AE plugins are registered.
-    AnalysisEngine.instance.taskManager;
-    plugins.addAll(AnalysisEngine.instance.supportedPlugins);
+    List<Plugin> plugins = <Plugin>[];
+    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
+    plugins.add(AnalysisEngine.instance.commandLinePlugin);
+    plugins.add(AnalysisEngine.instance.optionsPlugin);
+    plugins.add(serverPlugin);
+    plugins.add(dartCompletionPlugin);
+    plugins.add(linterPlugin);
+    plugins.add(linterServerPlugin);
     addServerPlugins(plugins);
-    // process plugins
+    //
+    // Process plugins
+    //
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins(plugins);
-    // create server
+    //
+    // Create server
+    //
     return new AnalysisServer(
         serverChannel,
         resourceProvider,
@@ -118,7 +129,7 @@ class AbstractAnalysisTest {
         index,
         serverPlugin,
         new AnalysisServerOptions(),
-        new MockSdk(),
+        () => new MockSdk(),
         InstrumentationService.NULL_SERVICE);
   }
 
@@ -133,7 +144,7 @@ class AbstractAnalysisTest {
     resourceProvider.newFolder(projectPath);
     Request request =
         new AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
-    handleSuccessfulRequest(request);
+    handleSuccessfulRequest(request, handler: analysisHandler);
   }
 
   /**
@@ -161,9 +172,10 @@ class AbstractAnalysisTest {
   /**
    * Validates that the given [request] is handled successfully.
    */
-  Response handleSuccessfulRequest(Request request) {
+  Response handleSuccessfulRequest(Request request, {RequestHandler handler}) {
+    handler ??= this.handler;
     Response response = handler.handleRequest(request);
-    expect(response, isResponseSuccess('0'));
+    expect(response, isResponseSuccess(request.id));
     return response;
   }
 
@@ -193,8 +205,7 @@ class AbstractAnalysisTest {
     packageMapProvider = new MockPackageMapProvider();
     Index index = createIndex();
     server = createAnalysisServer(index);
-    handler = server.handlers
-        .singleWhere((handler) => handler is AnalysisDomainHandler);
+    handler = analysisHandler;
     // listen for notifications
     Stream<Notification> notificationStream =
         serverChannel.notificationController.stream;

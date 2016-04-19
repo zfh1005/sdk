@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of tree;
+import '../tokens/token.dart' show BeginGroupToken, Token;
+import '../util/util.dart';
+import 'nodes.dart';
 
 /**
  * Pretty-prints Node tree in XML-like format.
@@ -88,8 +90,18 @@ class PrettyPrinter extends Indentation with Tagging<Node> implements Visitor {
     visitNodeWithChildren(node, "Conditional");
   }
 
+  visitConditionalUri(ConditionalUri node) {
+    visitNodeWithChildren(node, "ConditionalUri");
+  }
+
   visitContinueStatement(ContinueStatement node) {
     visitNodeWithChildren(node, "ContinueStatement");
+  }
+
+  visitDottedName(DottedName node) {
+    openNode(node, "DottedName");
+    visitChildNode(node.identifiers, "identifiers");
+    closeNode();
   }
 
   visitDoWhile(DoWhile node) {
@@ -380,6 +392,9 @@ class PrettyPrinter extends Indentation with Tagging<Node> implements Visitor {
   visitExport(Export node) {
     openNode(node, "Export");
     visitChildNode(node.uri, "uri");
+    if (node.conditionalUris != null) {
+      visitChildNode(node.conditionalUris, "conditionalUris");
+    }
     visitChildNode(node.combinators, "combinators");
     closeNode();
   }
@@ -388,6 +403,9 @@ class PrettyPrinter extends Indentation with Tagging<Node> implements Visitor {
     openNode(node, "Import", {
       "isDeferred" : "${node.isDeferred}"});
     visitChildNode(node.uri, "uri");
+    if (node.conditionalUris != null) {
+      visitChildNode(node.conditionalUris, "conditionalUris");
+    }
     visitChildNode(node.combinators, "combinators");
     if (node.prefix != null) {
       visitChildNode(node.prefix, "prefix");

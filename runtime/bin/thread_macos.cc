@@ -6,19 +6,21 @@
 #if defined(TARGET_OS_MACOS)
 
 #include "bin/thread.h"
+#include "bin/thread_macos.h"
 
-#include <sys/errno.h>  // NOLINT
-#include <sys/types.h>  // NOLINT
-#include <sys/sysctl.h>  // NOLINT
-#include <mach/mach_init.h>  // NOLINT
 #include <mach/mach_host.h>  // NOLINT
+#include <mach/mach_init.h>  // NOLINT
 #include <mach/mach_port.h>  // NOLINT
 #include <mach/mach_traps.h>  // NOLINT
 #include <mach/task_info.h>  // NOLINT
-#include <mach/thread_info.h>  // NOLINT
 #include <mach/thread_act.h>  // NOLINT
+#include <mach/thread_info.h>  // NOLINT
+#include <sys/errno.h>  // NOLINT
+#include <sys/sysctl.h>  // NOLINT
+#include <sys/types.h>  // NOLINT
 
 #include "platform/assert.h"
+#include "platform/utils.h"
 
 namespace dart {
 namespace bin {
@@ -27,7 +29,7 @@ namespace bin {
   if (result != 0) { \
     const int kBufferSize = 1024; \
     char error_message[kBufferSize]; \
-    strerror_r(result, error_message, kBufferSize); \
+    Utils::StrError(result, error_message, kBufferSize); \
     FATAL2("pthread error: %d (%s)", result, error_message); \
   }
 
@@ -37,14 +39,16 @@ namespace bin {
   if (result != 0) { \
     const int kBufferSize = 1024; \
     char error_message[kBufferSize]; \
-    strerror_r(result, error_message, kBufferSize); \
+    Utils::StrError(result, error_message, kBufferSize); \
     fprintf(stderr, "%s:%d: pthread error: %d (%s)\n", \
             __FILE__, __LINE__, result, error_message); \
     return result; \
   }
 #else
 #define RETURN_ON_PTHREAD_FAILURE(result) \
-  if (result != 0) return result;
+  if (result != 0) { \
+    return result; \
+  }
 #endif
 
 
@@ -106,8 +110,9 @@ int Thread::Start(ThreadStartFunction function, uword parameter) {
 }
 
 
-ThreadLocalKey Thread::kUnsetThreadLocalKey = static_cast<pthread_key_t>(-1);
-ThreadId Thread::kInvalidThreadId = reinterpret_cast<ThreadId>(NULL);
+const ThreadLocalKey Thread::kUnsetThreadLocalKey =
+    static_cast<pthread_key_t>(-1);
+const ThreadId Thread::kInvalidThreadId = reinterpret_cast<ThreadId>(NULL);
 
 ThreadLocalKey Thread::CreateThreadLocal() {
   pthread_key_t key = kUnsetThreadLocalKey;
@@ -155,7 +160,7 @@ intptr_t Thread::ThreadIdToIntPtr(ThreadId id) {
 
 
 bool Thread::Compare(ThreadId a, ThreadId b) {
-  return pthread_equal(a, b) != 0;
+  return (pthread_equal(a, b) != 0);
 }
 
 

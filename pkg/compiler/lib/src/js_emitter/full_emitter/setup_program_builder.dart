@@ -81,9 +81,10 @@ jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
   String unmangledNameIndex = backend.mustRetainMetadata
       ? ' 3 * optionalParameterCount + 2 * requiredParameterCount + 3'
       : ' 2 * optionalParameterCount + requiredParameterCount + 3';
-  String receiverParamName = compiler.enableMinification ? "r" : "receiver";
-  String valueParamName = compiler.enableMinification ? "v" : "value";
-  String space = compiler.enableMinification ? "" : " ";
+  String receiverParamName = compiler.options.enableMinification
+      ? "r" : "receiver";
+  String valueParamName = compiler.options.enableMinification ? "v" : "value";
+  String space = compiler.options.enableMinification ? "" : " ";
   String _ = space;
 
   String specProperty = '"${namer.nativeSpecProperty}"';  // "%"
@@ -102,17 +103,19 @@ jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
      'mangledNames': mangledNamesAccess,
      'mangledGlobalNames': mangledGlobalNamesAccess,
      'statics': staticsAccess,
+     'staticsPropertyName': namer.staticsPropertyName,
+     'staticsPropertyNameString': js.quoteName(namer.staticsPropertyName),
      'typeInformation': typeInformationAccess,
      'globalFunctions': globalFunctionsAccess,
      'enabledInvokeOn': compiler.enabledInvokeOn,
      'interceptedNames': interceptedNamesAccess,
      'interceptedNamesSet': emitter.generateInterceptedNamesSet(),
-     'notInCspMode': !compiler.useContentSecurityPolicy,
-     'inCspMode': compiler.useContentSecurityPolicy,
+     'notInCspMode': !compiler.options.useContentSecurityPolicy,
+     'inCspMode': compiler.options.useContentSecurityPolicy,
      'deferredAction': namer.deferredAction,
      'hasIsolateSupport': program.hasIsolateSupport,
      'fieldNamesProperty': js.string(Emitter.FIELD_NAMES_PROPERTY_NAME),
-     'hasIncrementalSupport': compiler.hasIncrementalSupport,
+     'hasIncrementalSupport': compiler.options.hasIncrementalSupport,
      'incrementalHelper': namer.accessIncrementalHelper,
      'createNewIsolateFunction': createNewIsolateFunctionAccess,
      'isolateName': namer.isolateName,
@@ -526,10 +529,10 @@ function $setupProgramName(programData, typesOffset) {
       for (var i = 0; i < properties.length; i++) {
         var property = properties[i];
         var firstChar = property.charCodeAt(0);
-        if (property === "static") {
-          processStatics(#statics[cls] = descriptor.static,
+        if (property === #staticsPropertyNameString) {
+          processStatics(#statics[cls] = descriptor.#staticsPropertyName,
                          processedClasses);
-          delete descriptor.static;
+          delete descriptor.#staticsPropertyName;
         } else if (firstChar === 43) { // 43 is "+".
           mangledNames[previousProperty] = property.substring(1);
           var flag = descriptor[property];

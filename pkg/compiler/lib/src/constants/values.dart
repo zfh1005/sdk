@@ -64,6 +64,8 @@ abstract class ConstantValue {
   bool get isMinusZero => false;
   bool get isZero => false;
   bool get isOne => false;
+  bool get isPositiveInfinity => false;
+  bool get isNegativeInfinity => false;
 
   // TODO(johnniwinther): Replace with a 'type' getter.
   DartType getType(CoreTypes types);
@@ -279,6 +281,10 @@ class DoubleConstantValue extends NumConstantValue {
 
   bool get isOne => primitiveValue == 1.0;
 
+  bool get isPositiveInfinity => primitiveValue == double.INFINITY;
+
+  bool get isNegativeInfinity => primitiveValue == -double.INFINITY;
+
   DartType getType(CoreTypes types) => types.doubleType;
 
   bool operator ==(var other) {
@@ -375,11 +381,15 @@ class StringConstantValue extends PrimitiveConstantValue {
       : this.primitiveValue = value,
         this.hashCode = value.slowToString().hashCode;
 
+  StringConstantValue.fromString(String value)
+      : this(new DartString.literal(value));
+
   bool get isString => true;
 
   DartType getType(CoreTypes types) => types.stringType;
 
   bool operator ==(var other) {
+    if (identical(this, other)) return true;
     if (other is !StringConstantValue) return false;
     StringConstantValue otherString = other;
     return hashCode == otherString.hashCode &&
@@ -452,6 +462,7 @@ class ListConstantValue extends ObjectConstantValue {
   bool get isList => true;
 
   bool operator ==(var other) {
+    if (identical(this, other)) return true;
     if (other is !ListConstantValue) return false;
     ListConstantValue otherList = other;
     if (hashCode != otherList.hashCode) return false;
@@ -499,6 +510,7 @@ class MapConstantValue extends ObjectConstantValue {
   final List<ConstantValue> keys;
   final List<ConstantValue> values;
   final int hashCode;
+  Map<ConstantValue, ConstantValue> _lookupMap;
 
   MapConstantValue(InterfaceType type,
                    List<ConstantValue> keys,
@@ -515,6 +527,7 @@ class MapConstantValue extends ObjectConstantValue {
   bool get isMap => true;
 
   bool operator ==(var other) {
+    if (identical(this, other)) return true;
     if (other is !MapConstantValue) return false;
     MapConstantValue otherMap = other;
     if (hashCode != otherMap.hashCode) return false;
@@ -535,6 +548,12 @@ class MapConstantValue extends ObjectConstantValue {
   }
 
   int get length => keys.length;
+
+  ConstantValue lookup(ConstantValue key) {
+    var lookupMap = _lookupMap ??=
+        new Map<ConstantValue, ConstantValue>.fromIterables(keys, values);
+    return lookupMap[key];
+  }
 
   accept(ConstantValueVisitor visitor, arg) => visitor.visitMap(this, arg);
 
@@ -645,6 +664,7 @@ class ConstructedConstantValue extends ObjectConstantValue {
   bool get isConstructedObject => true;
 
   bool operator ==(var otherVar) {
+    if (identical(this, otherVar)) return true;
     if (otherVar is !ConstructedConstantValue) return false;
     ConstructedConstantValue other = otherVar;
     if (hashCode != other.hashCode) return false;

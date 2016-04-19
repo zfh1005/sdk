@@ -17,7 +17,9 @@ class BackgroundCompilationQueue;
 class Class;
 class Code;
 class CompilationWorkQueue;
+class FlowGraph;
 class Function;
+class IndirectGotoInstr;
 class Library;
 class ParsedFunction;
 class QueueElement;
@@ -25,59 +27,52 @@ class RawInstance;
 class Script;
 class SequenceNode;
 
-// Carries result from background compilation: code and generation counters
-// that help check if the code may have become invalid during background
-// compilation.
-class BackgroundCompilationResult : public ValueObject {
+
+class CompilationPipeline : public ZoneAllocated {
  public:
-  BackgroundCompilationResult();
+  static CompilationPipeline* New(Zone* zone, const Function& function);
 
-  // Initializes with current isolate-stored generations
-  void Init();
+  virtual void ParseFunction(ParsedFunction* parsed_function) = 0;
+  virtual FlowGraph* BuildFlowGraph(
+      Zone* zone,
+      ParsedFunction* parsed_function,
+      const ZoneGrowableArray<const ICData*>& ic_data_array,
+      intptr_t osr_id) = 0;
+  virtual void FinalizeCompilation() = 0;
+  virtual ~CompilationPipeline() { }
+};
 
-  void set_result_code(const Code& value) { result_code_ = value.raw(); }
-  const Code& result_code() const { return result_code_; }
 
-  uint32_t cha_invalidation_gen() const { return cha_invalidation_gen_; }
-  uint32_t field_invalidation_gen() const { return field_invalidation_gen_; }
-  uint32_t prefix_invalidation_gen() const { return prefix_invalidation_gen_; }
+class DartCompilationPipeline : public CompilationPipeline {
+ public:
+  virtual void ParseFunction(ParsedFunction* parsed_function);
 
-  void SetFromQElement(QueueElement* value);
+  virtual FlowGraph* BuildFlowGraph(
+      Zone* zone,
+      ParsedFunction* parsed_function,
+      const ZoneGrowableArray<const ICData*>& ic_data_array,
+      intptr_t osr_id);
 
-  void SetLeafClasses(const GrowableArray<Class*>& leaf_classes);
-  void SetGuardedFields(const ZoneGrowableArray<const Field*>& guarded_fields);
-  void SetDeoptimizeDependentFields(const GrowableArray<const Field*>& fields);
+  virtual void FinalizeCompilation();
+};
 
-  const Array& leaf_classes() const { return leaf_classes_; }
-  const Array& guarded_fields() const { return guarded_fields_; }
-  const Array& deoptimize_dependent_fields() const {
-    return deoptimize_dependent_fields_;
-  }
 
-  // Returns true if all relevant gen-counts are current and code is valid.
-  bool IsValid() const;
+class IrregexpCompilationPipeline : public CompilationPipeline {
+ public:
+  IrregexpCompilationPipeline() : backtrack_goto_(NULL) { }
 
-  // Remove gen-counts from validation check.
-  void ClearCHAInvalidationGen() {
-    cha_invalidation_gen_ = Isolate::kInvalidGen;
-  }
-  void ClearFieldInvalidationGen() {
-    field_invalidation_gen_ = Isolate::kInvalidGen;
-  }
-  void ClearPrefixInvalidationGen() {
-    prefix_invalidation_gen_ = Isolate::kInvalidGen;
-  }
+  virtual void ParseFunction(ParsedFunction* parsed_function);
 
-  void PrintValidity() const;
+  virtual FlowGraph* BuildFlowGraph(
+      Zone* zone,
+      ParsedFunction* parsed_function,
+      const ZoneGrowableArray<const ICData*>& ic_data_array,
+      intptr_t osr_id);
+
+  virtual void FinalizeCompilation();
 
  private:
-  Code& result_code_;
-  Array& leaf_classes_;
-  Array& guarded_fields_;
-  Array& deoptimize_dependent_fields_;
-  uint32_t cha_invalidation_gen_;
-  uint32_t field_invalidation_gen_;
-  uint32_t prefix_invalidation_gen_;
+  IndirectGotoInstr* backtrack_goto_;
 };
 
 
@@ -116,8 +111,7 @@ class Compiler : public AllStatic {
   static RawError* CompileOptimizedFunction(
       Thread* thread,
       const Function& function,
-      intptr_t osr_id = kNoOSRDeoptId,
-      BackgroundCompilationResult* res = NULL);
+      intptr_t osr_id = kNoOSRDeoptId);
 
   // Generates code for given parsed function (without parsing it again) and
   // sets its code field.
@@ -138,7 +132,6 @@ class Compiler : public AllStatic {
   // The return value is either a RawInstance on success or a RawError
   // on compilation failure.
   static RawObject* EvaluateStaticInitializer(const Field& field);
-  static void CompileStaticInitializer(const Field& field);
 
   // Generates local var descriptors and sets it in 'code'. Do not call if the
   // local var descriptor already exists.
@@ -149,22 +142,11 @@ class Compiler : public AllStatic {
   // Returns Error::null() if there is no compilation error.
   static RawError* CompileAllFunctions(const Class& cls);
 
-  // The following global flags are changed by --noopt handler;
-  // the flags are changed when generating best unoptimized code (no runtime
-  // feedback, no deoptimization).
-
-  // Default: false.
-  static bool always_optimize() { return always_optimize_; }
-  static void set_always_optimize(bool value) { always_optimize_ = value; }
-
-  static bool allow_recompilation() { return allow_recompilation_; }
-  static void set_allow_recompilation(bool value) {
-    allow_recompilation_ = value;
-  }
-
- private:
-  static bool always_optimize_;
-  static bool allow_recompilation_;
+  // Notify the compiler that background (optimized) compilation has failed
+  // because the mutator thread changed the state (e.g., deoptimization,
+  // deferred loading). The background compilation may retry to compile
+  // the same function later.
+  static void AbortBackgroundCompilation(intptr_t deopt_id);
 };
 
 
@@ -182,21 +164,14 @@ class BackgroundCompiler : public ThreadPool::Task {
   // compilation queue.
   void CompileOptimized(const Function& function);
 
-  // Call to activate/install optimized code (must occur in the mutator thread).
-  void InstallGeneratedCode();
-
-
   void VisitPointers(ObjectPointerVisitor* visitor);
 
   BackgroundCompilationQueue* function_queue() const { return function_queue_; }
-  BackgroundCompilationQueue* result_queue() const { return result_queue_; }
 
  private:
   explicit BackgroundCompiler(Isolate* isolate);
 
   virtual void Run();
-
-  void AddResult(const BackgroundCompilationResult& value);
 
   Isolate* isolate_;
   bool running_;       // While true, will try to read queue and compile.
@@ -205,7 +180,6 @@ class BackgroundCompiler : public ThreadPool::Task {
   Monitor* done_monitor_;   // Notify/wait that the thread is done.
 
   BackgroundCompilationQueue* function_queue_;
-  BackgroundCompilationQueue* result_queue_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(BackgroundCompiler);
 };

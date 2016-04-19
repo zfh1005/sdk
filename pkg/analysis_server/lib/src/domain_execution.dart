@@ -161,8 +161,7 @@ class ExecutionDomainHandler implements RequestHandler {
       String filePath = source.fullName;
       // check files
       bool isDartFile = notice.resolvedDartUnit != null;
-      bool isHtmlFile = notice.resolvedHtmlUnit != null;
-      if (!isDartFile && !isHtmlFile) {
+      if (!isDartFile) {
         return;
       }
       // prepare context
@@ -184,10 +183,6 @@ class ExecutionDomainHandler implements RequestHandler {
         server.sendNotification(
             new ExecutionLaunchDataParams(filePath, kind: kind)
                 .toNotification());
-      } else if (isHtmlFile) {
-        List<Source> libraries = context.getLibrariesReferencedFromHtml(source);
-        server.sendNotification(new ExecutionLaunchDataParams(filePath,
-            referencedFiles: _getFullNames(libraries)).toNotification());
       }
     });
   }
@@ -200,7 +195,7 @@ class ExecutionDomainHandler implements RequestHandler {
       server.contextManager.isInAnalysisRoot(filePath);
 
   void _reportCurrentFileStatus() {
-    for (AnalysisContext context in server.getAnalysisContexts()) {
+    for (AnalysisContext context in server.analysisContexts) {
       List<Source> librarySources = context.librarySources;
       List<Source> clientSources = context.launchableClientLibrarySources;
       List<Source> serverSources = context.launchableServerLibrarySources;
@@ -225,7 +220,8 @@ class ExecutionDomainHandler implements RequestHandler {
           List<Source> libraries =
               context.getLibrariesReferencedFromHtml(source);
           server.sendNotification(new ExecutionLaunchDataParams(filePath,
-              referencedFiles: _getFullNames(libraries)).toNotification());
+                  referencedFiles: _getFullNames(libraries))
+              .toNotification());
         }
       }
     }

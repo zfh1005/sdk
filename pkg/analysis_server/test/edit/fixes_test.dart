@@ -7,14 +7,12 @@ library test.edit.fixes;
 import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
-import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:plugin/manager.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart' hide ERROR;
 
 import '../analysis_abstract.dart';
-import '../mocks.dart';
 import '../utils.dart';
 
 main() {
@@ -27,20 +25,20 @@ class FixesTest extends AbstractAnalysisTest {
   @override
   void setUp() {
     super.setUp();
-    createProject();
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins([server.serverPlugin]);
     handler = new EditDomainHandler(server);
   }
 
-  Future test_fixUndefinedClass() async {
+  test_fixUndefinedClass() async {
+    createProject();
     addTestFile('''
 main() {
   Future<String> x = null;
 }
 ''');
     await waitForTasksFinished();
-    List<AnalysisErrorFixes> errorFixes = _getFixesAt('Future<String>');
+    List<AnalysisErrorFixes> errorFixes = await _getFixesAt('Future<String>');
     expect(errorFixes, hasLength(1));
     AnalysisError error = errorFixes[0].error;
     expect(error.severity, AnalysisErrorSeverity.WARNING);
@@ -51,7 +49,8 @@ main() {
     expect(fixes[1].message, matches('Create class'));
   }
 
-  Future test_hasFixes() async {
+  test_hasFixes() async {
+    createProject();
     addTestFile('''
 foo() {
   print(1)
@@ -63,50 +62,78 @@ bar() {
     await waitForTasksFinished();
     // print(1)
     {
-      List<AnalysisErrorFixes> errorFixes = _getFixesAt('print(1)');
+      List<AnalysisErrorFixes> errorFixes = await _getFixesAt('print(1)');
       expect(errorFixes, hasLength(1));
       _isSyntacticErrorWithSingleFix(errorFixes[0]);
     }
     // print(10)
     {
-      List<AnalysisErrorFixes> errorFixes = _getFixesAt('print(10)');
+      List<AnalysisErrorFixes> errorFixes = await _getFixesAt('print(10)');
       expect(errorFixes, hasLength(2));
       _isSyntacticErrorWithSingleFix(errorFixes[0]);
       _isSyntacticErrorWithSingleFix(errorFixes[1]);
     }
   }
 
-  Future test_overlayOnlyFile() async {
-    // add an overlay-only file
-    {
-      testCode = '''
+  test_overlayOnlyFile() async {
+    createProject();
+    testCode = '''
 main() {
-  print(1)
+print(1)
 }
 ''';
-      Request request = new AnalysisUpdateContentParams(
-          {testFile: new AddContentOverlay(testCode)}).toRequest('0');
-      Response response =
-          new AnalysisDomainHandler(server).handleRequest(request);
-      expect(response, isResponseSuccess('0'));
-    }
+    _addOverlay(testFile, testCode);
     // ask for fixes
     await waitForTasksFinished();
-    List<AnalysisErrorFixes> errorFixes = _getFixesAt('print(1)');
+    List<AnalysisErrorFixes> errorFixes = await _getFixesAt('print(1)');
     expect(errorFixes, hasLength(1));
     _isSyntacticErrorWithSingleFix(errorFixes[0]);
   }
 
-  List<AnalysisErrorFixes> _getFixes(int offset) {
+  test_suggestImportFromDifferentAnalysisRoot() async {
+    // Set up two projects.
+    resourceProvider..newFolder("/project1")..newFolder("/project2");
+    handleSuccessfulRequest(
+        new AnalysisSetAnalysisRootsParams(["/project1", "/project2"], [])
+            .toRequest('0'),
+        handler: analysisHandler);
+
+    // Set up files.
+    testFile = "/project1/main.dart";
+    testCode = "main() { print(new Foo()); }";
+    _addOverlay(testFile, testCode);
+    // Add another file in the same project that imports the target file.
+    // This ensures it will be analyzed as an implicit Source.
+    _addOverlay("/project1/another.dart", 'import "../project2/target.dart";');
+    _addOverlay("/project2/target.dart", "class Foo() {}");
+
+    await waitForTasksFinished();
+
+    List<String> fixes = (await _getFixesAt('Foo()'))
+        .single
+        .fixes
+        .map((f) => f.message)
+        .toList();
+    expect(fixes, contains("Import library '../project2/target.dart'"));
+  }
+
+  void _addOverlay(String name, String contents) {
+    Request request =
+        new AnalysisUpdateContentParams({name: new AddContentOverlay(contents)})
+            .toRequest('0');
+    handleSuccessfulRequest(request, handler: analysisHandler);
+  }
+
+  Future<List<AnalysisErrorFixes>> _getFixes(int offset) async {
     Request request = new EditGetFixesParams(testFile, offset).toRequest('0');
-    Response response = handleSuccessfulRequest(request);
+    Response response = await waitResponse(request);
     var result = new EditGetFixesResult.fromResponse(response);
     return result.fixes;
   }
 
-  List<AnalysisErrorFixes> _getFixesAt(String search) {
+  Future<List<AnalysisErrorFixes>> _getFixesAt(String search) async {
     int offset = findOffset(search);
-    return _getFixes(offset);
+    return await _getFixes(offset);
   }
 
   void _isSyntacticErrorWithSingleFix(AnalysisErrorFixes fixes) {

@@ -37,7 +37,7 @@ _custom_factories = [
 ]
 
 class HtmlDartGenerator(object):
-  def __init__(self, interface, options, dart_use_blink):
+  def __init__(self, interface, options, dart_use_blink, logger):
     self._dart_use_blink = dart_use_blink
     self._database = options.database
     self._interface = interface
@@ -46,6 +46,7 @@ class HtmlDartGenerator(object):
     self._renamer = options.renamer
     self._metadata = options.metadata
     self._library_name = self._renamer.GetLibraryName(self._interface)
+    _logger.setLevel(logger.level)
 
   def EmitSupportCheck(self):
     if self.HasSupportCheck():
@@ -132,6 +133,13 @@ class HtmlDartGenerator(object):
 
     secondary_parents = self._database.TransitiveSecondaryParents(interface,
                           not self._dart_use_blink)
+    remove_duplicate_parents = list(set(secondary_parents))
+    if len(secondary_parents) != len(remove_duplicate_parents):
+      secondary_parents = remove_duplicate_parents
+      parent_list = ", ".join(["  %s" % (parent.id) for parent in secondary_parents])
+      _logger.warn('Interface %s has duplicate parent interfaces %s - ' \
+                   'ignoring duplicates. Please file a bug with the dart:html team.' % (interface.id, parent_list))
+
     for parent_interface in sorted(secondary_parents):
       if isinstance(parent_interface, str):
         continue
@@ -245,7 +253,7 @@ class HtmlDartGenerator(object):
         operation.id != '__getter__' and
         operation.id != '__setter__' and
         operation.id != '__delete__'):
-      _logger.error('Multiple type signatures for %s.%s. Please file a bug with'
+      _logger.warn('Multiple type signatures for %s.%s. Please file a bug with'
           ' the dart:html team to determine if one of these functions should be'
           ' renamed.' % (
           interface.id, operation.id))
@@ -311,6 +319,11 @@ class HtmlDartGenerator(object):
       self.EmitAttribute(attribute, attr_name, read_only)
 
   def AddOperation(self, info, declare_only=False, dart_js_interop=False):
+    # TODO(terry): Hack window has 2 overloaded getter one returns Window and
+    #              and other object (we'll always return Window)?
+    if self._interface.id == "Window" and info.name == '__getter__':
+      info.operations[1].type = info.operations[0].type;
+
     """ Adds an operation to the generated class.
     Arguments:
       info - The operation info of the operation to be added.
@@ -528,7 +541,9 @@ class HtmlDartGenerator(object):
   def _AddConstructor(self,
       constructor_info, factory_name, factory_constructor_name):
     # Hack to ignore the Image constructor used by JavaScript.
-    if ((self._interface.id == 'HTMLImageElement' or self._interface.id == 'Blob')
+    if ((self._interface.id == 'HTMLImageElement' or
+         self._interface.id == 'Blob' or
+         self._interface.id == 'DOMException')
       and not constructor_info.pure_dart_constructor):
       return
 
@@ -850,17 +865,20 @@ class HtmlDartGenerator(object):
         verified_type = temp_type  # verified by assignment in checked mode.
       else:
         converted_arguments.append(info.param_infos[position].name)
-        param_type = self._NarrowInputType(arg.type.id)
-        # Verified by argument checking on entry to the dispatcher.
-
-        verified_type = self._InputType(
-            info.param_infos[position].type_id, info)
-        # The native method does not need an argument type if we know the type.
-        # But we do need the native methods to have correct function types, so
-        # be conservative.
-        if param_type == verified_type:
-          if param_type in ['String', 'num', 'int', 'double', 'bool', 'Object']:
-            param_type = 'dynamic'
+        if self._database.HasTypeDef(arg.type.id):
+          param_type = 'dynamic'
+        else:
+          param_type = self._NarrowInputType(arg.type.id)
+          # Verified by argument checking on entry to the dispatcher.
+  
+          verified_type = self._InputType(
+              info.param_infos[position].type_id, info)
+          # The native method does not need an argument type if we know the type.
+          # But we do need the native methods to have correct function types, so
+          # be conservative.
+          if param_type == verified_type:
+            if param_type in ['String', 'num', 'int', 'double', 'bool', 'Object']:
+              param_type = 'dynamic'
 
       target_parameters.append(
           '%s%s' % (TypeOrNothing(param_type), param_name))
@@ -872,4 +890,8 @@ class HtmlDartGenerator(object):
     if conversion:
       return conversion.input_type
     else:
-      return self._NarrowInputType(type_name) if type_name else 'dynamic'
+      # If typedef it's a union return dynamic.
+      if self._database.HasTypeDef(type_name):
+        return 'dynamic'
+      else:
+        return self._NarrowInputType(type_name) if type_name else 'dynamic'

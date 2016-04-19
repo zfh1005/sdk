@@ -6,13 +6,19 @@
 #if defined(TARGET_OS_MACOS)
 
 #include <errno.h>  // NOLINT
+#include <mach/clock.h>  // NOLINT
+#include <mach/mach.h>  // NOLINT
+#include <mach/mach_time.h>  // NOLINT
 #include <netdb.h>  // NOLINT
+#if TARGET_OS_IOS
+#include <sys/sysctl.h>  // NOLINT
+#endif
 #include <sys/time.h>  // NOLINT
 #include <time.h>  // NOLINT
 
 #include "bin/utils.h"
 #include "platform/assert.h"
-
+#include "platform/utils.h"
 
 namespace dart {
 namespace bin {
@@ -22,7 +28,7 @@ OSError::OSError() : sub_system_(kSystem), code_(0), message_(NULL) {
   set_code(errno);
   const int kBufferSize = 1024;
   char error_message[kBufferSize];
-  strerror_r(errno, error_message, kBufferSize);
+  Utils::StrError(errno, error_message, kBufferSize);
   SetMessage(error_message);
 }
 
@@ -33,7 +39,7 @@ void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
   if (sub_system == kSystem) {
     const int kBufferSize = 1024;
     char error_message[kBufferSize];
-    strerror_r(code, error_message, kBufferSize);
+    Utils::StrError(code, error_message, kBufferSize);
     SetMessage(error_message);
   } else if (sub_system == kGetAddressInfo) {
     SetMessage(gai_strerror(code));
@@ -42,11 +48,13 @@ void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
   }
 }
 
+
 const char* StringUtils::ConsoleStringToUtf8(
     const char* str, intptr_t len, intptr_t* result_len) {
   UNIMPLEMENTED();
   return NULL;
 }
+
 
 const char* StringUtils::Utf8ToConsoleString(
     const char* utf8, intptr_t len, intptr_t* result_len) {
@@ -54,11 +62,13 @@ const char* StringUtils::Utf8ToConsoleString(
   return NULL;
 }
 
+
 char* StringUtils::ConsoleStringToUtf8(
     char* str, intptr_t len, intptr_t* result_len) {
   UNIMPLEMENTED();
   return NULL;
 }
+
 
 char* StringUtils::Utf8ToConsoleString(
     char* utf8, intptr_t len, intptr_t* result_len) {
@@ -66,15 +76,29 @@ char* StringUtils::Utf8ToConsoleString(
   return NULL;
 }
 
+
 bool ShellUtils::GetUtf8Argv(int argc, char** argv) {
   return false;
 }
 
-int64_t TimerUtils::GetCurrentTimeMilliseconds() {
-  return GetCurrentTimeMicros() / 1000;
+
+static mach_timebase_info_data_t timebase_info;
+
+
+void TimerUtils::InitOnce() {
+  kern_return_t kr = mach_timebase_info(&timebase_info);
+  ASSERT(KERN_SUCCESS == kr);
 }
 
-int64_t TimerUtils::GetCurrentTimeMicros() {
+
+int64_t TimerUtils::GetCurrentMonotonicMillis() {
+  return GetCurrentMonotonicMicros() / 1000;
+}
+
+
+#if TARGET_OS_IOS
+static int64_t GetCurrentTimeMicros() {
+  // gettimeofday has microsecond resolution.
   struct timeval tv;
   if (gettimeofday(&tv, NULL) < 0) {
     UNREACHABLE();
@@ -82,6 +106,35 @@ int64_t TimerUtils::GetCurrentTimeMicros() {
   }
   return (static_cast<int64_t>(tv.tv_sec) * 1000000) + tv.tv_usec;
 }
+#endif  // TARGET_OS_IOS
+
+
+int64_t TimerUtils::GetCurrentMonotonicMicros() {
+#if TARGET_OS_IOS
+  // On iOS mach_absolute_time stops while the device is sleeping. Instead use
+  // now - KERN_BOOTTIME to get a time difference that is not impacted by clock
+  // changes. KERN_BOOTTIME will be updated by the system whenever the system
+  // clock change.
+  struct timeval boottime;
+  int mib[2] = {CTL_KERN, KERN_BOOTTIME};
+  size_t size = sizeof(boottime);
+  int kr = sysctl(mib, sizeof(mib) / sizeof(mib[0]), &boottime, &size, NULL, 0);
+  ASSERT(KERN_SUCCESS == kr);
+  int64_t now = GetCurrentTimeMicros();
+  int64_t origin = boottime.tv_sec * kMicrosecondsPerSecond;
+  origin += boottime.tv_usec;
+  return now - origin;
+#else
+  ASSERT(timebase_info.denom != 0);
+  // timebase_info converts absolute time tick units into nanoseconds.  Convert
+  // to microseconds.
+  int64_t result = mach_absolute_time() / kNanosecondsPerMicrosecond;
+  result *= timebase_info.numer;
+  result /= timebase_info.denom;
+  return result;
+#endif  // TARGET_OS_IOS
+}
+
 
 void TimerUtils::Sleep(int64_t millis) {
   struct timespec req;  // requested.

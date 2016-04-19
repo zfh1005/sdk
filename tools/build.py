@@ -48,15 +48,15 @@ def BuildOptions():
   result = optparse.OptionParser(usage=usage)
   result.add_option("-m", "--mode",
       help='Build variants (comma-separated).',
-      metavar='[all,debug,release]',
+      metavar='[all,debug,release,product]',
       default='debug')
   result.add_option("-v", "--verbose",
       help='Verbose output.',
       default=False, action="store_true")
   result.add_option("-a", "--arch",
       help='Target architectures (comma-separated).',
-      metavar='[all,ia32,x64,simarm,arm,simarmv5te,armv5te,simmips,mips'
-              ',simarm64,arm64,]',
+      metavar='[all,ia32,x64,simarm,arm,simarmv6,armv6,simarmv5te,armv5te,'
+              'simmips,mips,simarm64,arm64,]',
       default=utils.GuessArchitecture())
   result.add_option("--os",
     help='Target OSs (comma-separated).',
@@ -90,19 +90,19 @@ def ProcessOptions(options, args):
   if options.arch == 'all':
     options.arch = 'ia32,x64,simarm,simmips,simarm64'
   if options.mode == 'all':
-    options.mode = 'release,debug'
+    options.mode = 'debug,release,product'
   if options.os == 'all':
     options.os = 'host,android'
   options.mode = options.mode.split(',')
   options.arch = options.arch.split(',')
   options.os = options.os.split(',')
   for mode in options.mode:
-    if not mode in ['debug', 'release']:
+    if not mode in ['debug', 'release', 'product']:
       print "Unknown mode %s" % mode
       return False
   for arch in options.arch:
-    archs = ['ia32', 'x64', 'simarm', 'arm', 'simarmv5te', 'armv5te', 'simmips',
-             'mips', 'simarm64', 'arm64',]
+    archs = ['ia32', 'x64', 'simarm', 'arm', 'simarmv6', 'armv6',
+             'simarmv5te', 'armv5te', 'simmips', 'mips', 'simarm64', 'arm64',]
     if not arch in archs:
       print "Unknown arch %s" % arch
       return False
@@ -119,7 +119,7 @@ def ProcessOptions(options, args):
         print ("Cross-compilation to %s is not supported on host os %s."
                % (os_name, HOST_OS))
         return False
-      if not arch in ['ia32', 'arm', 'armv5te', 'arm64', 'mips']:
+      if not arch in ['ia32', 'x64', 'arm', 'armv6', 'armv5te', 'arm64', 'mips']:
         print ("Cross-compilation to %s is not supported for architecture %s."
                % (os_name, arch))
         return False
@@ -143,6 +143,8 @@ def GetToolchainPrefix(target_os, arch, options):
       return os.path.join(android_toolchain, 'aarch64-linux-android')
     if arch == 'ia32':
       return os.path.join(android_toolchain, 'i686-linux-android')
+    if arch == 'x64':
+      return os.path.join(android_toolchain, 'x86_64-linux-android')
 
   # If no cross compiler is specified, only try to figure one out on Linux.
   if not HOST_OS in ['linux']:
@@ -153,8 +155,10 @@ def GetToolchainPrefix(target_os, arch, options):
   if arch == 'arm':
     # To use a non-hf compiler, specify on the command line with --toolchain.
     return (DEFAULT_ARM_CROSS_COMPILER_PATH + "/arm-linux-gnueabihf")
+  if arch == 'arm64':
+    return (DEFAULT_ARM_CROSS_COMPILER_PATH + "/aarch64-linux-gnu")
 
-  # TODO(zra): Find default MIPS and ARM64 Linux cross-compilers.
+  # TODO(zra): Find default MIPS Linux cross-compiler.
 
   return None
 
@@ -193,7 +197,7 @@ def GetAndroidToolchainDir(host_os, target_arch):
   global THIRD_PARTY_ROOT
   if host_os not in ['linux']:
     raise Exception('Unsupported host os %s' % host_os)
-  if target_arch not in ['ia32', 'arm', 'arm64']:
+  if target_arch not in ['ia32', 'x64', 'arm', 'arm64']:
     raise Exception('Unsupported target architecture %s' % target_arch)
 
   # Set up path to the Android NDK.
@@ -209,6 +213,8 @@ def GetAndroidToolchainDir(host_os, target_arch):
     toolchain_arch = 'aarch64-linux-android-4.9'
   if target_arch == 'ia32':
     toolchain_arch = 'x86-4.9'
+  if target_arch == 'x64':
+    toolchain_arch = 'x86_64-4.9'
   toolchain_dir = 'linux-x86_64'
   android_toolchain = os.path.join(android_ndk_root,
       'toolchains', toolchain_arch,

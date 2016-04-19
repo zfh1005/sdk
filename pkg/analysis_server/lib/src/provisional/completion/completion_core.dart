@@ -4,51 +4,48 @@
 
 library analysis_server.src.provisional.completion.completion_core;
 
+import 'dart:async';
+
 import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/task/model.dart';
 
 /**
- * A method or function called when the requested analysis has been performed.
+ * An empty list returned by [CompletionContributor]s
+ * when they have no suggestions to contribute.
  */
-typedef AnalysisRequest AnalysisCallback<V>(
-    CompletionRequest request, V computedValue);
+const EMPTY_LIST = const <CompletionSuggestion>[];
 
 /**
- * A request from a contributor for additional analysis.
+ * An object used to instantiate a [CompletionContributor] instance
+ * for each 'completion.getSuggestions' request.
+ * Contributors should *not* be cached between requests.
  */
-class AnalysisRequest<V> {
-  /**
-   * An object with which an analysis result can be associated.
-   */
-  AnalysisTarget target;
+typedef CompletionContributor CompletionContributorFactory();
 
-  /**
-   * A description of an analysis result that can be computed by an [AnalysisTask].
-   */
-  ResultDescriptor<V> descriptor;
-
-  /**
-   * A method or function called when the requested analysis has been performed.
-   */
-  AnalysisCallback<V> callback;
-
-  AnalysisRequest(this.target, this.descriptor, this.callback);
-}
+/**
+ * [AbortCompletion] is thrown when the current completion request
+ * should be aborted because either
+ * the source changed since the request was made, or
+ * a new completion request was received.
+ */
+class AbortCompletion {}
 
 /**
  * An object used to produce completions at a specific location within a file.
  *
- * Clients may extend this class when implementing plugins.
+ * Clients may implement this class when implementing plugins.
  */
 abstract class CompletionContributor {
   /**
-   * Compute a list of completion suggestions based on the given completion
-   * [request]. Return the suggestions that were computed.
+   * Return a [Future] that completes with a list of suggestions
+   * for the given completion [request]. This will
+   * throw [AbortCompletion] if the completion request has been aborted.
    */
-  List<CompletionSuggestion> computeSuggestions(CompletionRequest request);
+  Future<List<CompletionSuggestion>> computeSuggestions(
+      CompletionRequest request);
 }
 
 /**
@@ -74,38 +71,17 @@ abstract class CompletionRequest {
   ResourceProvider get resourceProvider;
 
   /**
+   * Return the search engine.
+   */
+  SearchEngine get searchEngine;
+
+  /**
    * Return the source in which the completion is being requested.
    */
   Source get source;
-}
-
-/**
- * The result of computing suggestions for code completion.
- *
- * Clients may implement this class when implementing plugins.
- */
-abstract class CompletionResult {
-  /**
-   * Return the length of the text to be replaced. This will be zero (0) if the
-   * suggestion is to be inserted, otherwise it will be greater than zero. For
-   * example, if the remainder of the identifier containing the cursor is to be
-   * replaced when the suggestion is applied, in which case the length will be
-   * the number of characters in the existing identifier.
-   */
-  int get replacementLength;
 
   /**
-   * Return the offset of the start of the text to be replaced. This will be
-   * different than the offset used to request the completion suggestions if
-   * there was a portion of text that needs to be replaced. For example, if a
-   * partial identifier is immediately before the original offset, in which case
-   * the replacementOffset will be the offset of the beginning of the
-   * identifier.
+   * Throw [AbortCompletion] if the completion request has been aborted.
    */
-  int get replacementOffset;
-
-  /**
-   * Return the list of suggestions being contributed by the contributor.
-   */
-  List<CompletionSuggestion> get suggestions;
+  void checkAborted();
 }

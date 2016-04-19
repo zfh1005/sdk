@@ -19,8 +19,6 @@
 namespace dart {
 
 DECLARE_FLAG(bool, trace_irregexp);
-DEFINE_FLAG(bool, interpret_irregexp, false,
-            "Use irregexp bytecode interpreter");
 
 // Default to generating optimized regexp code.
 static const bool kRegexpOptimization = true;
@@ -5020,7 +5018,7 @@ RegExpEngine::CompilationResult RegExpEngine::CompileIR(
   const intptr_t specialization_cid = function.string_specialization_cid();
   const bool is_one_byte = (specialization_cid == kOneByteStringCid ||
                             specialization_cid == kExternalOneByteStringCid);
-  JSRegExp& regexp = JSRegExp::Handle(zone, function.regexp());
+  RegExp& regexp = RegExp::Handle(zone, function.regexp());
   const String& pattern = String::Handle(zone, regexp.pattern());
 
   ASSERT(!regexp.IsNull());
@@ -5134,7 +5132,7 @@ RegExpEngine::CompilationResult RegExpEngine::CompileIR(
 
 RegExpEngine::CompilationResult RegExpEngine::CompileBytecode(
     RegExpCompileData* data,
-    const JSRegExp& regexp,
+    const RegExp& regexp,
     bool is_one_byte,
     Zone* zone) {
   ASSERT(FLAG_interpret_irregexp);
@@ -5247,7 +5245,7 @@ RegExpEngine::CompilationResult RegExpEngine::CompileBytecode(
 
 
 static void CreateSpecializedFunction(Zone* zone,
-                                      const JSRegExp& regexp,
+                                      const RegExp& regexp,
                                       intptr_t specialization_cid,
                                       const Object& owner) {
   const intptr_t kParamCount = RegExpMacroAssembler::kParamCount;
@@ -5257,7 +5255,7 @@ static void CreateSpecializedFunction(Zone* zone,
       String::Handle(zone, Symbols::New(
           String::Handle(zone, String::Concat(
               String::Handle(zone, String::Concat(
-                  Symbols::Irregexp(),
+                  Symbols::ColonMatcher(),
                   Symbols::ColonSpace(), Heap::kOld)),
               String::Handle(regexp.pattern()), Heap::kOld)))),
       RawFunction::kIrregexpFunction,
@@ -5267,24 +5265,24 @@ static void CreateSpecializedFunction(Zone* zone,
       false,  // Not external.
       false,  // Not native.
       owner,
-      0));  // No token position.
+      TokenPosition::kMinSource));
 
   // TODO(zerny): Share these arrays between all irregexp functions.
   fn.set_num_fixed_parameters(kParamCount);
   fn.set_parameter_types(Array::Handle(zone, Array::New(kParamCount,
-                                                           Heap::kOld)));
+                                                        Heap::kOld)));
   fn.set_parameter_names(Array::Handle(zone, Array::New(kParamCount,
-                                                           Heap::kOld)));
+                                                        Heap::kOld)));
   fn.SetParameterTypeAt(RegExpMacroAssembler::kParamRegExpIndex,
-                        Type::Handle(zone, Type::DynamicType()));
+                        Object::dynamic_type());
   fn.SetParameterNameAt(RegExpMacroAssembler::kParamRegExpIndex,
                         Symbols::This());
   fn.SetParameterTypeAt(RegExpMacroAssembler::kParamStringIndex,
-                        Type::Handle(zone, Type::DynamicType()));
+                        Object::dynamic_type());
   fn.SetParameterNameAt(RegExpMacroAssembler::kParamStringIndex,
                         Symbols::string_param());
   fn.SetParameterTypeAt(RegExpMacroAssembler::kParamStartOffsetIndex,
-                        Type::Handle(zone, Type::DynamicType()));
+                        Object::dynamic_type());
   fn.SetParameterNameAt(RegExpMacroAssembler::kParamStartOffsetIndex,
                         Symbols::start_index_param());
   fn.set_result_type(Type::Handle(zone, Type::ArrayType()));
@@ -5299,11 +5297,11 @@ static void CreateSpecializedFunction(Zone* zone,
 }
 
 
-RawJSRegExp* RegExpEngine::CreateJSRegExp(Zone* zone,
+RawRegExp* RegExpEngine::CreateRegExp(Zone* zone,
                                           const String& pattern,
                                           bool multi_line,
                                           bool ignore_case) {
-  const JSRegExp& regexp = JSRegExp::Handle(JSRegExp::New());
+  const RegExp& regexp = RegExp::Handle(RegExp::New());
 
   regexp.set_pattern(pattern);
 
@@ -5319,14 +5317,16 @@ RawJSRegExp* RegExpEngine::CreateJSRegExp(Zone* zone,
   regexp.set_is_complex();
   regexp.set_is_global();   // All dart regexps are global.
 
-  const Library& lib = Library::Handle(zone, Library::CoreLibrary());
-  const Class& owner = Class::Handle(
-      zone, lib.LookupClass(Symbols::RegExp()));
+  if (!FLAG_interpret_irregexp) {
+    const Library& lib = Library::Handle(zone, Library::CoreLibrary());
+    const Class& owner = Class::Handle(
+        zone, lib.LookupClass(Symbols::RegExp()));
 
-  CreateSpecializedFunction(zone, regexp, kOneByteStringCid, owner);
-  CreateSpecializedFunction(zone, regexp, kTwoByteStringCid, owner);
-  CreateSpecializedFunction(zone, regexp, kExternalOneByteStringCid, owner);
-  CreateSpecializedFunction(zone, regexp, kExternalTwoByteStringCid, owner);
+    CreateSpecializedFunction(zone, regexp, kOneByteStringCid, owner);
+    CreateSpecializedFunction(zone, regexp, kTwoByteStringCid, owner);
+    CreateSpecializedFunction(zone, regexp, kExternalOneByteStringCid, owner);
+    CreateSpecializedFunction(zone, regexp, kExternalTwoByteStringCid, owner);
+  }
 
   return regexp.raw();
 }

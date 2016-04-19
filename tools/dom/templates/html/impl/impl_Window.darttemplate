@@ -47,10 +47,11 @@ $if DART2JS
    */
   Document get document => JS('Document', '#.document', this);
 
-  WindowBase _open2(url, name) => JS('Window', '#.open(#,#)', this, url, name);
+  WindowBase _open2(url, name) =>
+      JS('Window|Null', '#.open(#,#)', this, url, name);
 
   WindowBase _open3(url, name, options) =>
-      JS('Window', '#.open(#,#,#)', this, url, name, options);
+      JS('Window|Null', '#.open(#,#,#)', this, url, name, options);
 
   /**
    * Opens a new window.
@@ -112,7 +113,7 @@ $if DART2JS
    * for the animation to continue.
    */
   @DomName('Window.requestAnimationFrame')
-  int requestAnimationFrame(RequestAnimationFrameCallback callback) {
+  int requestAnimationFrame(FrameRequestCallback callback) {
     _ensureRequestAnimationFrame();
     return _requestAnimationFrame(_wrapZone(callback));
   }
@@ -131,7 +132,7 @@ $if DART2JS
   }
 
   @JSName('requestAnimationFrame')
-  int _requestAnimationFrame(RequestAnimationFrameCallback callback) native;
+  int _requestAnimationFrame(FrameRequestCallback callback) native;
 
   @JSName('cancelAnimationFrame')
   void _cancelAnimationFrame(int id) native;
@@ -199,7 +200,7 @@ $else
    * for the animation to continue.
    */
   @DomName('Window.requestAnimationFrame')
-  int requestAnimationFrame(RequestAnimationFrameCallback callback) {
+  int requestAnimationFrame(FrameRequestCallback callback) {
     return _requestAnimationFrame(_wrapZone(callback));
   }
 $endif

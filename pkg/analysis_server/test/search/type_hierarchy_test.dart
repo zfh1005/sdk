@@ -9,7 +9,6 @@ import 'dart:async';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/services/index/index.dart';
-import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
@@ -27,14 +26,14 @@ class GetTypeHierarchyTest extends AbstractAnalysisTest {
 
   @override
   Index createIndex() {
-    return createLocalMemoryIndex();
+    return createMemoryIndex();
   }
 
   @override
   void setUp() {
     super.setUp();
-    server.handlers = [new SearchDomainHandler(server),];
     createProject();
+    server.handlers = [new SearchDomainHandler(server),];
   }
 
   test_bad_function() async {
@@ -186,8 +185,9 @@ import 'package:pkgA/libA.dart';
 class C extends A {}
 ''');
     // configure roots
-    Request request = new AnalysisSetAnalysisRootsParams(
-        [projectPath, '/packages/pkgA'], []).toRequest('0');
+    Request request =
+        new AnalysisSetAnalysisRootsParams([projectPath, '/packages/pkgA'], [])
+            .toRequest('0');
     handleSuccessfulRequest(request);
     // test A type hierarchy
     List<TypeHierarchyItem> items = await _getTypeHierarchy('A {}');
@@ -699,6 +699,66 @@ class D extends C {
         itemD.memberElement.location.offset, findOffset('test() {} // in D'));
   }
 
+  test_member_method_private_differentLib() async {
+    addFile(
+        '$testFolder/lib.dart',
+        r'''
+import 'test.dart';
+class A {
+  void _m() {}
+}
+class C extends B {
+  void _m() {}
+}
+''');
+    addTestFile('''
+import 'lib.dart';
+class B extends A {
+  _m() {} // in B
+}
+class D extends C {
+  _m() {} // in D
+}
+''');
+    List<TypeHierarchyItem> items = await _getTypeHierarchy('_m() {} // in B');
+    var itemB = items[0];
+    var itemA = items[itemB.superclass];
+    var itemC = items[itemB.subclasses[0]];
+    var itemD = items[itemC.subclasses[0]];
+    expect(itemB.classElement.name, 'B');
+    expect(itemA.classElement.name, 'A');
+    expect(itemC.classElement.name, 'C');
+    expect(itemD.classElement.name, 'D');
+    expect(itemA.memberElement, isNull);
+    expect(itemC.memberElement, isNull);
+    expect(itemB.memberElement, isNotNull);
+    expect(itemD.memberElement, isNotNull);
+  }
+
+  test_member_method_private_sameLib() async {
+    addTestFile('''
+class A {
+  _m() {} // in A
+}
+class B extends A {
+  _m() {} // in B
+}
+class C extends B {
+  _m() {} // in C
+}
+''');
+    List<TypeHierarchyItem> items = await _getTypeHierarchy('_m() {} // in B');
+    var itemB = items[0];
+    var itemA = items[itemB.superclass];
+    var itemC = items[itemB.subclasses[0]];
+    expect(itemA.classElement.name, 'A');
+    expect(itemB.classElement.name, 'B');
+    expect(itemC.classElement.name, 'C');
+    expect(itemA.memberElement.location.offset, findOffset('_m() {} // in A'));
+    expect(itemB.memberElement.location.offset, findOffset('_m() {} // in B'));
+    expect(itemC.memberElement.location.offset, findOffset('_m() {} // in C'));
+  }
+
   test_member_ofMixin2_method() async {
     addTestFile('''
 class M1 {
@@ -963,8 +1023,9 @@ class D extends C {}
 
   test_superOnly_fileDoesNotExist() async {
     Request request = new SearchGetTypeHierarchyParams(
-        '/does/not/exist.dart', 0,
-        superOnly: true).toRequest(requestId);
+            '/does/not/exist.dart', 0,
+            superOnly: true)
+        .toRequest(requestId);
     Response response = await serverChannel.sendRequest(request);
     List<TypeHierarchyItem> items =
         new SearchGetTypeHierarchyResult.fromResponse(response).hierarchyItems;
@@ -973,7 +1034,8 @@ class D extends C {}
 
   Request _createGetTypeHierarchyRequest(String search, {bool superOnly}) {
     return new SearchGetTypeHierarchyParams(testFile, findOffset(search),
-        superOnly: superOnly).toRequest(requestId);
+            superOnly: superOnly)
+        .toRequest(requestId);
   }
 
   Future<List<TypeHierarchyItem>> _getTypeHierarchy(String search,

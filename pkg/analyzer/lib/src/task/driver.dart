@@ -8,8 +8,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analyzer/src/context/cache.dart';
-import 'package:analyzer/src/generated/engine.dart'
-    hide AnalysisTask, AnalysisContextImpl, WorkManager;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
@@ -45,11 +44,11 @@ class AnalysisDriver {
   final InternalAnalysisContext context;
 
   /**
-   * The map of [ComputedResult] controllers.
+   * The map of [ResultChangedEvent] controllers.
    */
-  final Map<ResultDescriptor,
-          StreamController<ComputedResult>> resultComputedControllers =
-      <ResultDescriptor, StreamController<ComputedResult>>{};
+  final Map<ResultDescriptor, StreamController<ResultChangedEvent>>
+      resultComputedControllers =
+      <ResultDescriptor, StreamController<ResultChangedEvent>>{};
 
   /**
    * The work order that was previously computed but that has not yet been
@@ -155,7 +154,7 @@ class AnalysisDriver {
   /**
    * Create a work order that will produce the given [result] for the given
    * [target]. Return the work order that was created, or `null` if the result
-   * has already been computed.
+   * has either already been computed or cannot be computed.
    */
   WorkOrder createWorkOrderForResult(
       AnalysisTarget target, ResultDescriptor result) {
@@ -166,10 +165,16 @@ class AnalysisDriver {
         state == CacheState.IN_PROCESS) {
       return null;
     }
+    if (context.aboutToComputeResult(entry, result)) {
+      return null;
+    }
     TaskDescriptor taskDescriptor = taskManager.findTask(target, result);
+    if (taskDescriptor == null) {
+      return null;
+    }
     try {
       WorkItem workItem =
-          new WorkItem(context, target, taskDescriptor, result, null);
+          new WorkItem(context, target, taskDescriptor, result, 0, null);
       return new WorkOrder(taskManager, workItem);
     } catch (exception, stackTrace) {
       throw new AnalysisException(
@@ -206,11 +211,10 @@ class AnalysisDriver {
    * Return the stream that is notified when a new value for the given
    * [descriptor] is computed.
    */
-  Stream<ComputedResult> onResultComputed(ResultDescriptor descriptor) {
-    return resultComputedControllers
-        .putIfAbsent(descriptor,
-            () => new StreamController<ComputedResult>.broadcast(sync: true))
-        .stream;
+  Stream<ResultChangedEvent> onResultComputed(ResultDescriptor descriptor) {
+    return resultComputedControllers.putIfAbsent(descriptor, () {
+      return new StreamController<ResultChangedEvent>.broadcast(sync: true);
+    }).stream;
   }
 
   /**
@@ -282,11 +286,11 @@ class AnalysisDriver {
           entry.setValue(result, outputs[result], dependedOn);
         }
         outputs.forEach((ResultDescriptor descriptor, value) {
-          StreamController<ComputedResult> controller =
+          StreamController<ResultChangedEvent> controller =
               resultComputedControllers[descriptor];
           if (controller != null) {
-            ComputedResult event =
-                new ComputedResult(context, descriptor, target, value);
+            ResultChangedEvent event = new ResultChangedEvent(
+                context, target, descriptor, value, true);
             controller.add(event);
           }
         });
@@ -395,6 +399,8 @@ abstract class CycleAwareDependencyWalker<Node> {
     while (_currentIndices.isNotEmpty) {
       Node nextUnevaluatedInput = getNextInput(_path[_currentIndices.last],
           _provisionalDependencies[_currentIndices.last]);
+      // If the assertion below fails, it indicates that [getNextInput] did not
+      // skip an input that we asked it to skip.
       assert(!_provisionalDependencies[_currentIndices.last]
           .contains(nextUnevaluatedInput));
       if (nextUnevaluatedInput != null) {
@@ -498,14 +504,40 @@ class InfiniteTaskLoopException extends AnalysisException {
    * Initialize a newly created exception to represent a failed attempt to
    * perform the given [task] due to the given [dependencyCycle].
    */
-  InfiniteTaskLoopException(AnalysisTask task, this.dependencyCycle,
-      [this.cyclicPath])
-      : super(
-            'Infinite loop while performing task ${task.descriptor.name} for ${task.target}');
+  InfiniteTaskLoopException(AnalysisTask task, List<WorkItem> dependencyCycle,
+      [List<TargetedResult> cyclicPath])
+      : this.dependencyCycle = dependencyCycle,
+        this.cyclicPath = cyclicPath,
+        super(_composeMessage(task, dependencyCycle, cyclicPath));
+
+  /**
+   * Compose an error message based on the data we have available.
+   */
+  static String _composeMessage(AnalysisTask task,
+      List<WorkItem> dependencyCycle, List<TargetedResult> cyclicPath) {
+    StringBuffer buffer = new StringBuffer();
+    buffer.write('Infinite loop while performing task ');
+    buffer.write(task.descriptor.name);
+    buffer.write(' for ');
+    buffer.writeln(task.target);
+    buffer.writeln('  Dependency Cycle:');
+    for (WorkItem item in dependencyCycle) {
+      buffer.write('    ');
+      buffer.writeln(item);
+    }
+    if (cyclicPath != null) {
+      buffer.writeln('  Cyclic Path:');
+      for (TargetedResult result in cyclicPath) {
+        buffer.write('    ');
+        buffer.writeln(result);
+      }
+    }
+    return buffer.toString();
+  }
 }
 
 /**
- * Object used by CycleAwareDependencyWalker to report a single strongly
+ * Object used by [CycleAwareDependencyWalker] to report a single strongly
  * connected component of nodes.
  */
 class StronglyConnectedComponent<Node> {
@@ -551,6 +583,11 @@ class WorkItem {
   final ResultDescriptor spawningResult;
 
   /**
+   * The level of this item in its [WorkOrder].
+   */
+  final int level;
+
+  /**
    * The work order that this item is part of, may be `null`.
    */
   WorkOrder workOrder;
@@ -594,11 +631,12 @@ class WorkItem {
    * described by the given descriptor.
    */
   WorkItem(this.context, this.target, this.descriptor, this.spawningResult,
-      this.workOrder) {
+      this.level, this.workOrder) {
     AnalysisTarget actualTarget =
         identical(target, AnalysisContextTarget.request)
             ? new AnalysisContextTarget(context)
             : target;
+//    print('${'\t' * level}$spawningResult of $actualTarget');
     Map<String, TaskInput> inputDescriptors =
         descriptor.createTaskInputs(actualTarget);
     builder = new TopLevelTaskInputBuilder(inputDescriptors);
@@ -675,12 +713,7 @@ class WorkItem {
       inputTargetedResults.add(new TargetedResult(inputTarget, inputResult));
       CacheEntry inputEntry = context.getCacheEntry(inputTarget);
       CacheState inputState = inputEntry.getState(inputResult);
-      if (skipInputs.any((WorkItem item) =>
-          item.target == inputTarget && item.spawningResult == inputResult)) {
-        // This input is being skipped due to a circular dependency.  Tell the
-        // builder that it's not available so we can move on to other inputs.
-        builder.currentValueNotAvailable();
-      } else if (inputState == CacheState.ERROR) {
+      if (inputState == CacheState.ERROR) {
         exception = inputEntry.exception;
         return null;
       } else if (inputState == CacheState.IN_PROCESS) {
@@ -697,14 +730,37 @@ class WorkItem {
         //
         throw new UnimplementedError();
       } else if (inputState != CacheState.VALID) {
-        try {
-          TaskDescriptor descriptor =
-              taskManager.findTask(inputTarget, inputResult);
-          return new WorkItem(
-              context, inputTarget, descriptor, inputResult, workOrder);
-        } on AnalysisException catch (exception, stackTrace) {
-          this.exception = new CaughtException(exception, stackTrace);
-          return null;
+        if (context.aboutToComputeResult(inputEntry, inputResult)) {
+          inputState = CacheState.VALID;
+          builder.currentValue = inputEntry.getValue(inputResult);
+        } else {
+          try {
+            TaskDescriptor descriptor =
+                taskManager.findTask(inputTarget, inputResult);
+            if (descriptor == null) {
+              throw new AnalysisException(
+                  'Cannot find task to build $inputResult for $inputTarget');
+            }
+            if (skipInputs.any((WorkItem item) =>
+                item.target == inputTarget && item.descriptor == descriptor)) {
+              // This input is being skipped due to a circular dependency.  Tell
+              // the builder that it's not available so we can move on to other
+              // inputs.
+              builder.currentValueNotAvailable();
+            } else {
+              return new WorkItem(context, inputTarget, descriptor, inputResult,
+                  level + 1, workOrder);
+            }
+          } on AnalysisException catch (exception, stackTrace) {
+            this.exception = new CaughtException(exception, stackTrace);
+            return null;
+          } catch (exception, stackTrace) {
+            this.exception = new CaughtException(exception, stackTrace);
+            throw new AnalysisException(
+                'Cannot create work order to build $inputResult for $inputTarget',
+                this.exception);
+            return null;
+          }
         }
       } else {
         builder.currentValue = inputEntry.getValue(inputResult);

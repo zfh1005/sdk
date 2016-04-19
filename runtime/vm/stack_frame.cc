@@ -112,19 +112,15 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
       // visit frame slots which are marked as having objects.
       //
       // The layout of the frame is (lower addresses to the right):
-      // | spill slots | outgoing arguments | saved registers |
-      // |XXXXXXXXXXXXX|--------------------|XXXXXXXXXXXXXXXXX|
+      // | spill slots | outgoing arguments | saved registers | slow-path args |
+      // |XXXXXXXXXXXXX|--------------------|XXXXXXXXXXXXXXXXX|XXXXXXXXXXXXXXXX|
       //
       // The spill slots and any saved registers are described in the stack
       // map.  The outgoing arguments are assumed to be tagged; the number
       // of outgoing arguments is not explicitly tracked.
-      //
-      // TODO(kmillikin): This does not handle slow path calls with
-      // arguments, where the arguments are pushed after the live registers.
-      // Enable such calls.
       intptr_t length = map.Length();
       // Spill slots are at the 'bottom' of the frame.
-      intptr_t spill_slot_count = length - map.RegisterBitCount();
+      intptr_t spill_slot_count = length - map.SlowPathBitCount();
       for (intptr_t bit = 0; bit < spill_slot_count; ++bit) {
         if (map.IsObject(bit)) {
           visitor->VisitPointer(last);
@@ -240,10 +236,10 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
 }
 
 
-intptr_t StackFrame::GetTokenPos() const {
+TokenPosition StackFrame::GetTokenPos() const {
   const Code& code = Code::Handle(LookupDartCode());
   if (code.IsNull()) {
-    return -1;  // Stub frames do not have token_pos.
+    return TokenPosition::kNoSource;  // Stub frames do not have token_pos.
   }
   uword pc_offset = pc() - code.EntryPoint();
   const PcDescriptors& descriptors =
@@ -252,10 +248,10 @@ intptr_t StackFrame::GetTokenPos() const {
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
     if (iter.PcOffset() == pc_offset) {
-      return iter.TokenPos();
+      return TokenPosition(iter.TokenPos());
     }
   }
-  return -1;
+  return TokenPosition::kNoSource;
 }
 
 
@@ -283,12 +279,11 @@ void StackFrameIterator::SetupNextExitFrameData() {
 }
 
 
-// TODO(johnmccutchan): Remove |isolate| argument.
 // Tell MemorySanitizer that generated code initializes part of the stack.
 // TODO(koda): Limit to frames that are actually written by generated code.
-static void UnpoisonStack(Isolate* isolate, uword fp) {
+static void UnpoisonStack(uword fp) {
   ASSERT(fp != 0);
-  uword size = isolate->GetSpecifiedStackSize();
+  uword size = OSThread::GetSpecifiedStackSize();
   MSAN_UNPOISON(reinterpret_cast<void*>(fp - size), 2 * size);
 }
 
@@ -355,7 +350,7 @@ StackFrame* StackFrameIterator::NextFrame() {
     if (!HasNextFrame()) {
       return NULL;
     }
-    UnpoisonStack(thread_->isolate(), frames_.fp_);
+    UnpoisonStack(frames_.fp_);
     if (frames_.pc_ == 0) {
       // Iteration starts from an exit frame given by its fp.
       current_frame_ = NextExitFrame();

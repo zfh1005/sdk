@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
 import 'observatory_element.dart';
-import 'package:observatory/app.dart';
 import 'package:observatory/service_html.dart';
 import 'package:polymer/polymer.dart';
 
@@ -32,10 +31,15 @@ class TimelinePageElement extends ObservatoryElement {
 
   Future postMessage(String method) {
     IFrameElement e = $['root'];
+    var isolateIds = new List();
+    for (var isolate in app.vm.isolates) {
+      isolateIds.add(isolate.id);
+    }
     var message = {
       'method': method,
       'params': {
-        'vmAddress': (app.vm as WebSocketVM).target.networkAddress
+        'vmAddress': (app.vm as WebSocketVM).target.networkAddress,
+        'isolateIds': isolateIds
       }
     };
     e.contentWindow.postMessage(JSON.encode(message), window.location.href);
@@ -43,6 +47,8 @@ class TimelinePageElement extends ObservatoryElement {
   }
 
   Future refresh() async {
+    await app.vm.reload();
+    await app.vm.reloadIsolates();
     return postMessage('refresh');
   }
 
@@ -52,15 +58,23 @@ class TimelinePageElement extends ObservatoryElement {
   }
 
   Future recordOn() async {
-    return app.vm.invokeRpc('_setVMTimelineFlag', {
-      '_record': 'all',
+    return app.vm.invokeRpc('_setVMTimelineFlags', {
+      'recordedStreams': ['all'],
     });
   }
 
   Future recordOff() async {
-    return app.vm.invokeRpc('_setVMTimelineFlag', {
-      '_record': 'none',
+    return app.vm.invokeRpc('_setVMTimelineFlags', {
+      'recordedStreams': [],
     });
+  }
+
+  Future saveTimeline() async {
+    return postMessage('save');
+  }
+
+  Future loadTimeline() async {
+    return postMessage('load');
   }
 
   _updateSize() {

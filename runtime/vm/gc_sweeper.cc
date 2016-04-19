@@ -9,8 +9,9 @@
 #include "vm/heap.h"
 #include "vm/lockers.h"
 #include "vm/pages.h"
+#include "vm/safepoint.h"
 #include "vm/thread_pool.h"
-#include "vm/thread_registry.h"
+#include "vm/timeline.h"
 
 namespace dart {
 
@@ -114,30 +115,36 @@ class SweeperTask : public ThreadPool::Task {
   }
 
   virtual void Run() {
-    Thread::EnterIsolateAsHelper(task_isolate_);
-    GCSweeper sweeper;
+    bool result = Thread::EnterIsolateAsHelper(task_isolate_,
+                                               Thread::kSweeperTask);
+    ASSERT(result);
+    {
+      Thread* thread = Thread::Current();
+      TIMELINE_FUNCTION_GC_DURATION(thread, "SweeperTask");
+      GCSweeper sweeper;
 
-    HeapPage* page = first_;
-    HeapPage* prev_page = NULL;
+      HeapPage* page = first_;
+      HeapPage* prev_page = NULL;
 
-    while (page != NULL) {
-      task_isolate_->thread_registry()->CheckSafepoint();
-      HeapPage* next_page = page->next();
-      ASSERT(page->type() == HeapPage::kData);
-      bool page_in_use = sweeper.SweepPage(page, freelist_, false);
-      if (page_in_use) {
-        prev_page = page;
-      } else {
-        old_space_->FreePage(page, prev_page);
+      while (page != NULL) {
+        thread->CheckForSafepoint();
+        HeapPage* next_page = page->next();
+        ASSERT(page->type() == HeapPage::kData);
+        bool page_in_use = sweeper.SweepPage(page, freelist_, false);
+        if (page_in_use) {
+          prev_page = page;
+        } else {
+          old_space_->FreePage(page, prev_page);
+        }
+        {
+          // Notify the mutator thread that we have added elements to the free
+          // list or that more capacity is available.
+          MonitorLocker ml(old_space_->tasks_lock());
+          ml.Notify();
+        }
+        if (page == last_) break;
+        page = next_page;
       }
-      {
-        // Notify the mutator thread that we have added elements to the free
-        // list or that more capacity is available.
-        MonitorLocker ml(old_space_->tasks_lock());
-        ml.Notify();
-      }
-      if (page == last_) break;
-      page = next_page;
     }
     // Exit isolate cleanly *before* notifying it, to avoid shutdown race.
     Thread::ExitIsolateAsHelper();

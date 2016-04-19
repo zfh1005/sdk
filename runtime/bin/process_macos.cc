@@ -19,14 +19,14 @@
 #include <string.h>  // NOLINT
 #include <unistd.h>  // NOLINT
 
+#include "bin/dartutils.h"
 #include "bin/fdutils.h"
 #include "bin/lockers.h"
 #include "bin/log.h"
 #include "bin/thread.h"
 
 #include "platform/signal_blocker.h"
-
-
+#include "platform/utils.h"
 
 namespace dart {
 namespace bin {
@@ -53,6 +53,8 @@ class ProcessInfo {
   pid_t pid_;
   intptr_t fd_;
   ProcessInfo* next_;
+
+  DISALLOW_COPY_AND_ASSIGN(ProcessInfo);
 };
 
 
@@ -107,6 +109,9 @@ class ProcessInfoList {
   // Mutex protecting all accesses to the linked list of active
   // processes.
   static Mutex* mutex_;
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_IMPLICIT_CONSTRUCTORS(ProcessInfoList);
 };
 
 
@@ -203,9 +208,9 @@ class ExitCodeHandler {
           // pipe has been closed. It is therefore not a problem that
           // write fails with a broken pipe error. Other errors should
           // not happen.
-          if (result != -1 && result != sizeof(message)) {
+          if ((result != -1) && (result != sizeof(message))) {
             FATAL("Failed to write entire process exit message");
-          } else if (result == -1 && errno != EPIPE) {
+          } else if ((result == -1) && (errno != EPIPE)) {
             FATAL1("Failed to write exit code: %d", errno);
           }
           ProcessInfoList::RemoveProcess(pid);
@@ -222,6 +227,9 @@ class ExitCodeHandler {
   static int process_count_;
   static bool running_;
   static Monitor* monitor_;
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_IMPLICIT_CONSTRUCTORS(ExitCodeHandler);
 };
 
 
@@ -264,7 +272,8 @@ class ProcessStarter {
     exec_control_[0] = -1;
     exec_control_[1] = -1;
 
-    program_arguments_ = new char*[arguments_length + 2];
+    program_arguments_ = reinterpret_cast<char**>(Dart_ScopeAllocate(
+        (arguments_length + 2) * sizeof(*program_arguments_)));
     program_arguments_[0] = const_cast<char*>(path_);
     for (int i = 0; i < arguments_length; i++) {
       program_arguments_[i + 1] = arguments[i];
@@ -273,7 +282,8 @@ class ProcessStarter {
 
     program_environment_ = NULL;
     if (environment != NULL) {
-      program_environment_ = new char*[environment_length + 1];
+      program_environment_ = reinterpret_cast<char**>(Dart_ScopeAllocate(
+          (environment_length + 1) * sizeof(*program_environment_)));
       for (int i = 0; i < environment_length; i++) {
         program_environment_[i] = environment[i];
       }
@@ -282,16 +292,12 @@ class ProcessStarter {
   }
 
 
-  ~ProcessStarter() {
-    delete[] program_arguments_;
-    delete[] program_environment_;
-  }
-
-
   int Start() {
     // Create pipes required.
     int err = CreatePipes();
-    if (err != 0) return err;
+    if (err != 0) {
+      return err;
+    }
 
     // Fork to create the new process.
     pid_t pid = TEMP_FAILURE_RETRY(fork());
@@ -311,7 +317,9 @@ class ProcessStarter {
     // Register the child process if not detached.
     if (mode_ == kNormal) {
       err = RegisterProcess(pid);
-      if (err != 0) return err;
+      if (err != 0) {
+        return err;
+      }
     }
 
     // Notify child process to start. This is done to delay the call to exec
@@ -503,8 +511,8 @@ class ProcessStarter {
             SetupDetachedWithStdio();
           }
 
-          if (working_directory_ != NULL &&
-              TEMP_FAILURE_RETRY(chdir(working_directory_)) == -1) {
+          if ((working_directory_ != NULL) &&
+              (TEMP_FAILURE_RETRY(chdir(working_directory_)) == -1)) {
             ReportChildError();
           }
 
@@ -548,9 +556,8 @@ class ProcessStarter {
     // Read exec result from child. If no data is returned the exec was
     // successful and the exec call closed the pipe. Otherwise the errno
     // is written to the pipe.
-    bytes_read =
-        FDUtils::ReadFromBlocking(
-            exec_control_[0], &child_errno, sizeof(child_errno));
+    bytes_read = FDUtils::ReadFromBlocking(
+        exec_control_[0], &child_errno, sizeof(child_errno));
     if (bytes_read == sizeof(child_errno)) {
       ReadChildError();
       return child_errno;
@@ -569,8 +576,7 @@ class ProcessStarter {
     // is written to the pipe as well.
     int result[2];
     bytes_read =
-        FDUtils::ReadFromBlocking(
-            exec_control_[0], result, sizeof(result));
+        FDUtils::ReadFromBlocking(exec_control_[0], result, sizeof(result));
     if (bytes_read == sizeof(int)) {
       *pid = result[0];
     } else if (bytes_read == 2 * sizeof(int)) {
@@ -590,7 +596,9 @@ class ProcessStarter {
 
     // Close all open file descriptors except for exec_control_[1].
     int max_fds = sysconf(_SC_OPEN_MAX);
-    if (max_fds == -1) max_fds = _POSIX_OPEN_MAX;
+    if (max_fds == -1) {
+      max_fds = _POSIX_OPEN_MAX;
+    }
     for (int fd = 0; fd < max_fds; fd++) {
       if (fd != exec_control_[1]) {
         VOID_TEMP_FAILURE_RETRY(close(fd));
@@ -619,12 +627,14 @@ class ProcessStarter {
     // exec_control_[1], write_out_[0], read_in_[1] and
     // read_err_[1].
     int max_fds = sysconf(_SC_OPEN_MAX);
-    if (max_fds == -1) max_fds = _POSIX_OPEN_MAX;
+    if (max_fds == -1) {
+      max_fds = _POSIX_OPEN_MAX;
+    }
     for (int fd = 0; fd < max_fds; fd++) {
-      if (fd != exec_control_[1] &&
-          fd != write_out_[0] &&
-          fd != read_in_[1] &&
-          fd != read_err_[1]) {
+      if ((fd != exec_control_[1]) &&
+          (fd != write_out_[0]) &&
+          (fd != read_in_[1]) &&
+          (fd != read_err_[1])) {
         VOID_TEMP_FAILURE_RETRY(close(fd));
       }
     }
@@ -650,7 +660,9 @@ class ProcessStarter {
     int actual_errno = errno;
     // If CleanupAndReturnError is called without an actual errno make
     // sure to return an error anyway.
-    if (actual_errno == 0) actual_errno = EPERM;
+    if (actual_errno == 0) {
+      actual_errno = EPERM;
+    }
     SetChildOsErrorMessage();
     CloseAllPipes();
     return actual_errno;
@@ -659,9 +671,9 @@ class ProcessStarter {
 
   void SetChildOsErrorMessage() {
     const int kBufferSize = 1024;
-    char error_message[kBufferSize];
-    strerror_r(errno, error_message, kBufferSize);
-    *os_error_message_ = strdup(error_message);
+    char* error_message = DartUtils::ScopedCString(kBufferSize);
+    Utils::StrError(errno, error_message, kBufferSize);
+    *os_error_message_ = error_message;
   }
 
 
@@ -671,10 +683,9 @@ class ProcessStarter {
     int child_errno = errno;
     const int kBufferSize = 1024;
     char os_error_message[kBufferSize];
-    strerror_r(errno, os_error_message, kBufferSize);
-    int bytes_written =
-        FDUtils::WriteToBlocking(
-            exec_control_[1], &child_errno, sizeof(child_errno));
+    Utils::StrError(errno, os_error_message, kBufferSize);
+    int bytes_written = FDUtils::WriteToBlocking(
+        exec_control_[1], &child_errno, sizeof(child_errno));
     if (bytes_written == sizeof(child_errno)) {
       FDUtils::WriteToBlocking(
           exec_control_[1], os_error_message, strlen(os_error_message) + 1);
@@ -696,7 +707,7 @@ class ProcessStarter {
 
   void ReadChildError() {
     const int kMaxMessageSize = 256;
-    char* message = static_cast<char*>(malloc(kMaxMessageSize));
+    char* message = DartUtils::ScopedCString(kMaxMessageSize);
     if (message != NULL) {
       FDUtils::ReadFromBlocking(exec_control_[0], message, kMaxMessageSize);
       message[kMaxMessageSize - 1] = '\0';
@@ -743,6 +754,9 @@ class ProcessStarter {
   intptr_t* id_;
   intptr_t* exit_event_;
   char** os_error_message_;
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_IMPLICIT_CONSTRUCTORS(ProcessStarter);
 };
 
 
@@ -778,10 +792,14 @@ int Process::Start(const char* path,
 
 class BufferList: public BufferListBase {
  public:
+  BufferList() {}
+
   bool Read(int fd, intptr_t available) {
     // Read all available bytes.
     while (available > 0) {
-      if (free_size_ == 0) Allocate();
+      if (free_size_ == 0) {
+        Allocate();
+      }
       ASSERT(free_size_ > 0);
       ASSERT(free_size_ <= kBufferSize);
       size_t block_size = dart::Utils::Minimum(free_size_, available);
@@ -789,13 +807,18 @@ class BufferList: public BufferListBase {
           fd,
           reinterpret_cast<void*>(FreeSpaceAddress()),
           block_size));
-      if (bytes < 0) return false;
+      if (bytes < 0) {
+        return false;
+      }
       data_size_ += bytes;
       free_size_ -= bytes;
       available -= bytes;
     }
     return true;
   }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(BufferList);
 };
 
 
@@ -848,7 +871,7 @@ bool Process::Wait(intptr_t pid,
     int current_alive = alive;
     for (int i = 0; i < current_alive; i++) {
       intptr_t avail;
-      if (fds[i].revents & POLLIN) {
+      if ((fds[i].revents & POLLIN) != 0) {
         avail = FDUtils::AvailableBytes(fds[i].fd);
         // On Mac OS POLLIN can be set with zero available
         // bytes. POLLHUP is most likely also set in this case.
@@ -874,8 +897,8 @@ bool Process::Wait(intptr_t pid,
           }
         }
       }
-      if (fds[i].revents & POLLHUP ||
-          ((fds[i].revents & POLLIN) && avail == 0)) {
+      if (((fds[i].revents & POLLHUP) != 0) ||
+          (((fds[i].revents & POLLIN) != 0) && (avail == 0))) {
         VOID_TEMP_FAILURE_RETRY(close(fds[i].fd));
         alive--;
         if (i < alive) {
@@ -892,7 +915,9 @@ bool Process::Wait(intptr_t pid,
   // Calculate the exit code.
   intptr_t exit_code = exit_code_data.ints[0];
   intptr_t negative = exit_code_data.ints[1];
-  if (negative) exit_code = -exit_code;
+  if (negative != 0) {
+    exit_code = -exit_code;
+  }
   result->set_exit_code(exit_code);
 
   return true;
@@ -984,7 +1009,9 @@ static void SignalHandler(int signal) {
 
 intptr_t Process::SetSignalHandler(intptr_t signal) {
   signal = SignalMap(signal);
-  if (signal == -1) return -1;
+  if (signal == -1) {
+    return -1;
+  }
   bool found = false;
   for (int i = 0; i < kSignalsCount; i++) {
     if (kSignals[i] == signal) {
@@ -992,7 +1019,9 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
       break;
     }
   }
-  if (!found) return -1;
+  if (!found) {
+    return -1;
+  }
   int fds[2];
   if (NO_RETRY_EXPECTED(pipe(fds)) != 0) {
     return -1;
@@ -1037,7 +1066,9 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
 
 void Process::ClearSignalHandler(intptr_t signal) {
   signal = SignalMap(signal);
-  if (signal == -1) return;
+  if (signal == -1) {
+    return;
+  }
   ThreadSignalBlocker blocker(kSignalsCount, kSignals);
   MutexLocker lock(signal_mutex);
   SignalInfo* handler = signal_handlers;
@@ -1046,7 +1077,9 @@ void Process::ClearSignalHandler(intptr_t signal) {
     bool remove = false;
     if (handler->signal() == signal) {
       if (handler->port() == Dart_GetMainPortId()) {
-        if (signal_handlers == handler) signal_handlers = handler->next();
+        if (signal_handlers == handler) {
+          signal_handlers = handler->next();
+        }
         handler->Unlink();
         remove = true;
       } else {
@@ -1054,7 +1087,9 @@ void Process::ClearSignalHandler(intptr_t signal) {
       }
     }
     SignalInfo* next = handler->next();
-    if (remove) delete handler;
+    if (remove) {
+      delete handler;
+    }
     handler = next;
   }
   if (unlisten) {

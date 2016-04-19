@@ -26,14 +26,12 @@
 #include "bin/thread.h"
 #include "bin/utils.h"
 
-
 namespace dart {
 namespace bin {
 
 union RawAddr {
   struct sockaddr_in in;
   struct sockaddr_in6 in6;
-  struct sockaddr_un un;
   struct sockaddr_storage ss;
   struct sockaddr addr;
 };
@@ -44,7 +42,6 @@ class SocketAddress {
     TYPE_ANY = -1,
     TYPE_IPV4,
     TYPE_IPV6,
-    TYPE_UNIX,
   };
 
   enum {
@@ -61,62 +58,40 @@ class SocketAddress {
   ~SocketAddress() {}
 
   int GetType() {
-    switch (addr_.ss.ss_family) {
-      case AF_INET: return TYPE_IPV4;
-      case AF_INET6: return TYPE_IPV6;
-      case AF_UNIX: return TYPE_UNIX;
-      default:
-        UNREACHABLE();
-        return TYPE_ANY;
+    if (addr_.ss.ss_family == AF_INET6) {
+      return TYPE_IPV6;
     }
+    return TYPE_IPV4;
   }
 
-  const char* as_string() const {
-    if (addr_.ss.ss_family == AF_UNIX) {
-      return addr_.un.sun_path;
-    } else {
-      return as_string_;
-    }
-  }
-
+  const char* as_string() const { return as_string_; }
   const RawAddr& addr() const { return addr_; }
 
   static intptr_t GetAddrLength(const RawAddr& addr) {
-    ASSERT(addr.ss.ss_family == AF_INET ||
-           addr.ss.ss_family == AF_INET6 ||
-           addr.ss.ss_family == AF_UNIX);
-    switch (addr.ss.ss_family) {
-      case AF_INET: return sizeof(struct sockaddr_in);
-      case AF_INET6: return sizeof(struct sockaddr_in6);
-      case AF_UNIX: return sizeof(struct sockaddr_un);
-      default:
-        UNREACHABLE();
-        return 0;
-    }
+    ASSERT((addr.ss.ss_family == AF_INET) || (addr.ss.ss_family == AF_INET6));
+    return (addr.ss.ss_family == AF_INET6) ?
+        sizeof(struct sockaddr_in6) : sizeof(struct sockaddr_in);
   }
 
   static intptr_t GetInAddrLength(const RawAddr& addr) {
-    ASSERT(addr.ss.ss_family == AF_INET || addr.ss.ss_family == AF_INET6);
-    return addr.ss.ss_family == AF_INET6 ?
+    ASSERT((addr.ss.ss_family == AF_INET) || (addr.ss.ss_family == AF_INET6));
+    return (addr.ss.ss_family == AF_INET6) ?
         sizeof(struct in6_addr) : sizeof(struct in_addr);
   }
 
   static bool AreAddressesEqual(const RawAddr& a, const RawAddr& b) {
     if (a.ss.ss_family == AF_INET) {
-      if (b.ss.ss_family != AF_INET) return false;
+      if (b.ss.ss_family != AF_INET) {
+        return false;
+      }
       return memcmp(&a.in.sin_addr, &b.in.sin_addr, sizeof(a.in.sin_addr)) == 0;
     } else if (a.ss.ss_family == AF_INET6) {
-      if (b.ss.ss_family != AF_INET6) return false;
+      if (b.ss.ss_family != AF_INET6) {
+        return false;
+      }
       return memcmp(&a.in6.sin6_addr,
                     &b.in6.sin6_addr,
                     sizeof(a.in6.sin6_addr)) == 0;
-    } else if (a.ss.ss_family == AF_UNIX) {
-      int len = sizeof(a.un.sun_path);
-      for (int i = 0; i < len; i++) {
-        if (a.un.sun_path[i] != b.un.sun_path[i]) return false;
-        if (a.un.sun_path[i] == '\0') return true;
-      }
-      return true;
     } else {
       UNREACHABLE();
       return false;
@@ -129,9 +104,11 @@ class SocketAddress {
     intptr_t len;
     Dart_Handle result = Dart_TypedDataAcquireData(
         obj, &data_type, reinterpret_cast<void**>(&data), &len);
-    if (Dart_IsError(result)) Dart_PropagateError(result);
-    if (data_type != Dart_TypedData_kUint8 ||
-        (len != sizeof(in_addr) && len != sizeof(in6_addr))) {
+    if (Dart_IsError(result)) {
+      Dart_PropagateError(result);
+    }
+    if ((data_type != Dart_TypedData_kUint8) ||
+        ((len != sizeof(in_addr)) && (len != sizeof(in6_addr)))) {
       Dart_PropagateError(
           Dart_NewApiError("Unexpected type for socket address"));
     }
@@ -148,62 +125,62 @@ class SocketAddress {
   }
 
   static int16_t FromType(int type) {
-    if (type == TYPE_ANY) return AF_UNSPEC;
-    if (type == TYPE_IPV4) return AF_INET;
-    ASSERT(type == TYPE_IPV6 && "Invalid type");
+    if (type == TYPE_ANY) {
+      return AF_UNSPEC;
+    }
+    if (type == TYPE_IPV4) {
+      return AF_INET;
+    }
+    ASSERT((type == TYPE_IPV6) && "Invalid type");
     return AF_INET6;
   }
 
   static void SetAddrPort(RawAddr* addr, intptr_t port) {
     if (addr->ss.ss_family == AF_INET) {
       addr->in.sin_port = htons(port);
-    } else if (addr->ss.ss_family == AF_INET6) {
-      addr->in6.sin6_port = htons(port);
     } else {
-      UNREACHABLE();
+      addr->in6.sin6_port = htons(port);
     }
   }
 
   static intptr_t GetAddrPort(const RawAddr& addr) {
     if (addr.ss.ss_family == AF_INET) {
       return ntohs(addr.in.sin_port);
-    } else if (addr.ss.ss_family == AF_INET6) {
-      return ntohs(addr.in6.sin6_port);
-    } else if (addr.ss.ss_family == AF_UNIX) {
-      return 1;  // TODO(sgjesse): Should be -1.
     } else {
-      UNREACHABLE();
-      return -1;
+      return ntohs(addr.in6.sin6_port);
     }
   }
 
   static Dart_Handle ToTypedData(const RawAddr& addr) {
     int len = GetInAddrLength(addr);
     Dart_Handle result = Dart_NewTypedData(Dart_TypedData_kUint8, len);
-    if (Dart_IsError(result)) Dart_PropagateError(result);
+    if (Dart_IsError(result)) {
+      Dart_PropagateError(result);
+    }
     Dart_Handle err;
-    RawAddr& raw = const_cast<RawAddr&>(addr);
     if (addr.addr.sa_family == AF_INET6) {
       err = Dart_ListSetAsBytes(
-          result, 0, reinterpret_cast<uint8_t*>(&raw.in6.sin6_addr), len);
+          result, 0,
+          reinterpret_cast<const uint8_t*>(&addr.in6.sin6_addr), len);
     } else {
       err = Dart_ListSetAsBytes(
-          result, 0, reinterpret_cast<uint8_t*>(&raw.in.sin_addr), len);
+          result, 0, reinterpret_cast<const uint8_t*>(&addr.in.sin_addr), len);
     }
-    if (Dart_IsError(err)) Dart_PropagateError(err);
+    if (Dart_IsError(err)) {
+      Dart_PropagateError(err);
+    }
     return result;
   }
 
   static CObjectUint8Array* ToCObject(const RawAddr& addr) {
     int in_addr_len = SocketAddress::GetInAddrLength(addr);
-    void* in_addr;
-    RawAddr& raw = const_cast<RawAddr&>(addr);
+    const void* in_addr;
     CObjectUint8Array* data =
         new CObjectUint8Array(CObject::NewUint8Array(in_addr_len));
     if (addr.addr.sa_family == AF_INET6) {
-      in_addr = reinterpret_cast<void*>(&raw.in6.sin6_addr);
+      in_addr = reinterpret_cast<const void*>(&addr.in6.sin6_addr);
     } else {
-      in_addr = reinterpret_cast<void*>(&raw.in.sin_addr);
+      in_addr = reinterpret_cast<const void*>(&addr.in.sin_addr);
     }
     memmove(data->Buffer(), in_addr, in_addr_len);
     return data;
@@ -216,18 +193,18 @@ class SocketAddress {
   DISALLOW_COPY_AND_ASSIGN(SocketAddress);
 };
 
+
 class InterfaceSocketAddress {
  public:
-  explicit InterfaceSocketAddress(struct sockaddr* sa,
-                                  const char* interface_name,
-                                  intptr_t interface_index)
+  InterfaceSocketAddress(struct sockaddr* sa,
+                         const char* interface_name,
+                         intptr_t interface_index)
       : socket_address_(new SocketAddress(sa)),
         interface_name_(interface_name),
         interface_index_(interface_index) {}
 
   ~InterfaceSocketAddress() {
     delete socket_address_;
-    free(const_cast<char*>(interface_name_));
   }
 
   SocketAddress* socket_address() const { return socket_address_; }
@@ -241,6 +218,7 @@ class InterfaceSocketAddress {
 
   DISALLOW_COPY_AND_ASSIGN(InterfaceSocketAddress);
 };
+
 
 template<typename T>
 class AddressList {
@@ -266,6 +244,7 @@ class AddressList {
 
   DISALLOW_COPY_AND_ASSIGN(AddressList);
 };
+
 
 class Socket {
  public:
@@ -293,7 +272,6 @@ class Socket {
   // specified as the port component of the passed RawAddr structure.
   static intptr_t CreateBindConnect(const RawAddr& addr,
                                     const RawAddr& source_addr);
-  static intptr_t CreateConnectUnix(const RawAddr& addr);
   // Creates a datagram socket which is bound. The port to bind
   // to is specified as the port component of the RawAddr structure.
   static intptr_t CreateBindDatagram(const RawAddr& addr, bool reuseAddress);
@@ -371,9 +349,6 @@ class ServerSocket {
                                    intptr_t backlog,
                                    bool v6_only = false);
 
-  static intptr_t CreateBindListenUnix(const RawAddr& addr,
-                                       intptr_t backlog);
-
   // Start accepting on a newly created listening socket. If it was unable to
   // start accepting incoming sockets, the fd is invalidated.
   static bool StartAccept(intptr_t fd);
@@ -382,6 +357,7 @@ class ServerSocket {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(ServerSocket);
 };
+
 
 class ListeningSocketRegistry {
  private:
@@ -424,8 +400,7 @@ class ListeningSocketRegistry {
                                RawAddr addr,
                                intptr_t backlog,
                                bool v6_only,
-                               bool shared,
-                               bool uds);
+                               bool shared);
 
   // This should be called from the event handler for every kCloseEvent it gets
   // on listening sockets.
@@ -459,7 +434,6 @@ class ListeningSocketRegistry {
  private:
   DISALLOW_COPY_AND_ASSIGN(ListeningSocketRegistry);
 };
-
 
 }  // namespace bin
 }  // namespace dart

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library source.analysis_options_provider;
+library analyzer.source.analysis_options_provider;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -68,7 +68,7 @@ class AnalysisOptionsProvider {
         if (v != null && v is! YamlNode) {
           throw new OptionsFormatException(
               'Bad options file format (expected Node value, '
-                  'got ${v.runtimeType}: `${v.toString()}`)',
+              'got ${v.runtimeType}: `${v.toString()}`)',
               doc.span);
         }
         options[key] = v;
@@ -91,7 +91,7 @@ class AnalysisOptionsProvider {
   ///
   Map<String, YamlNode> merge(
           Map<String, YamlNode> defaults, Map<String, YamlNode> overrides) =>
-      new Merger().merge(defaults, overrides);
+      new Merger().merge(defaults, overrides) as Map<String, YamlNode>;
 
   /// Read the contents of [file] as a string.
   /// Returns null if file does not exist.

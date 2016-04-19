@@ -71,7 +71,7 @@ class GCSNamer(object):
 
   Under every base path, the following structure is used:
     - /VERSION
-    - /api-docs/{dart-api-docs.zip,dartdocs-gen-api.zip}
+    - /api-docs/dartdocs-gen-api.zip
     - /dartium/{chromedriver,content_shell,dartium}
          -{linux,macos,windows}-{ia32,x64}-release.zip
     - /sdk/dartsdk-{linux,macos,windows}-{ia32,x64}-release.zip
@@ -115,9 +115,19 @@ class GCSNamer(object):
     return '/'.join([self.sdk_directory(revision),
       self.sdk_zipfilename(system, arch, mode)])
 
+  def unstripped_filepath(self, revision, system, arch):
+    return '/'.join([self._variant_directory('unstripped', revision),
+                     system,
+                     arch,
+                     self.unstripped_filename(system)])
+
   def dartium_variant_zipfilepath(self, revision, name, system, arch, mode):
     return '/'.join([self.dartium_directory(revision),
       self.dartium_variant_zipfilename(name, system, arch, mode)])
+
+  def apidocs_zipfilepath(self, revision):
+    return '/'.join([self.apidocs_directory(revision),
+      self.dartdocs_zipfilename()])
 
   def dartium_android_apk_filepath(self, revision, name, arch, mode):
     return '/'.join([self.dartium_android_directory(revision),
@@ -162,9 +172,6 @@ class GCSNamer(object):
   def dartium_android_apk_filename(self, name, arch, mode):
     return '%s-%s-%s.apk' % (name, arch, mode)
 
-  def apidocs_zipfilename(self):
-    return 'dart-api-docs.zip'
-
   def dartdocs_zipfilename(self):
     return 'dartdocs-gen-api.zip'
 
@@ -185,6 +192,9 @@ class GCSNamer(object):
     return 'dartsdk-%s-%s-%s.zip' % (
         SYSTEM_RENAMES[system], ARCH_RENAMES[arch], mode)
 
+  def unstripped_filename(self, system):
+    return 'dart.exe' if system.startswith('win') else 'dart'
+
   def dartium_variant_zipfilename(self, name, system, arch, mode):
     assert name in ['chromedriver', 'dartium', 'content_shell']
     assert mode in Mode.ALL_MODES
@@ -198,13 +208,11 @@ class GCSNamerApiDocs(object):
     self.channel = channel
     self.bucket = 'gs://dartlang-api-docs'
 
-  def docs_dirpath(self, revision):
-    assert len('%s' % revision) > 0
-    return '%s/channels/%s/%s' % (self.bucket, self.channel, revision)
-
   def dartdocs_dirpath(self, revision):
     assert len('%s' % revision) > 0
-    return '%s/gen-dartdocs/%s' % (self.bucket, revision)
+    if self.channel == Channel.BLEEDING_EDGE:
+      return '%s/gen-dartdocs/builds/%s' % (self.bucket, revision)
+    return '%s/gen-dartdocs/%s/%s' % (self.bucket, self.channel, revision)
 
   def docs_latestpath(self, revision):
     assert len('%s' % revision) > 0

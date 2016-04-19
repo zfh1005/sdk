@@ -57,7 +57,6 @@ final Set<MessageKind> kindsWithPendingClasses = new Set<MessageKind>.from([
 ]);
 
 Future<Compiler> check(MessageTemplate template, Compiler cachedCompiler) {
-  Expect.isNotNull(template.howToFix);
   Expect.isFalse(template.examples.isEmpty);
 
   return Future.forEach(template.examples, (example) {
@@ -124,7 +123,8 @@ Future<Compiler> check(MessageTemplate template, Compiler cachedCompiler) {
       Expect.isTrue(messageFound,
           '${template.kind}} does not match any in\n '
           '${messages.join('\n ')}');
-      Expect.isFalse(compiler.reporter.hasCrashed);
+      var reporter = compiler.reporter;
+      Expect.isFalse(reporter.hasCrashed);
       if (!unexpectedMessages.isEmpty) {
         for (CollectedMessage message in unexpectedMessages) {
           print("Unexpected message: $message");

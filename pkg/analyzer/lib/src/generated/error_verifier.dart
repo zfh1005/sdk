@@ -2,24 +2,30 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.resolver.error_verifier;
+library analyzer.src.generated.error_verifier;
 
 import 'dart:collection';
 import "dart:math" as math;
 
-import 'package:analyzer/src/generated/static_type_analyzer.dart';
-
-import 'ast.dart';
-import 'constant.dart';
-import 'element.dart';
-import 'element_resolver.dart';
-import 'error.dart';
-import 'java_engine.dart';
-import 'parser.dart' show Parser, ParserErrorCode;
-import 'resolver.dart';
-import 'scanner.dart' as sc;
-import 'sdk.dart' show DartSdk, SdkLibrary;
-import 'utilities_dart.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/constant.dart';
+import 'package:analyzer/src/generated/element_resolver.dart';
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/parser.dart'
+    show Parser, ParserErrorCode;
+import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/sdk.dart' show DartSdk, SdkLibrary;
+import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
  * A visitor used to traverse an AST structure looking for additional errors and
@@ -266,10 +272,21 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   final bool enableSuperMixins;
 
   /**
+   * If `true`, asserts are allowed to take a second argument representing the
+   * assertion failure message (see DEP 37).
+   */
+  final bool enableAssertMessage;
+
+  /**
    * Initialize a newly created error verifier.
    */
-  ErrorVerifier(this._errorReporter, this._currentLibrary, this._typeProvider,
-      this._inheritanceManager, this.enableSuperMixins) {
+  ErrorVerifier(
+      this._errorReporter,
+      this._currentLibrary,
+      this._typeProvider,
+      this._inheritanceManager,
+      this.enableSuperMixins,
+      this.enableAssertMessage) {
     this._isInSystemLibrary = _currentLibrary.source.isInSystemLibrary;
     this._hasExtUri = _currentLibrary.hasExtUri;
     _isEnclosingConstructorConst = false;
@@ -306,16 +323,17 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitAssertStatement(AssertStatement node) {
     _checkForNonBoolExpression(node);
+    _checkAssertMessage(node);
     return super.visitAssertStatement(node);
   }
 
   @override
   Object visitAssignmentExpression(AssignmentExpression node) {
-    sc.TokenType operatorType = node.operator.type;
+    TokenType operatorType = node.operator.type;
     Expression lhs = node.leftHandSide;
     Expression rhs = node.rightHandSide;
-    if (operatorType == sc.TokenType.EQ ||
-        operatorType == sc.TokenType.QUESTION_QUESTION_EQ) {
+    if (operatorType == TokenType.EQ ||
+        operatorType == TokenType.QUESTION_QUESTION_EQ) {
       _checkForInvalidAssignment(lhs, rhs);
     } else {
       _checkForInvalidCompoundAssignment(node, lhs, rhs);
@@ -336,10 +354,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitBinaryExpression(BinaryExpression node) {
-    sc.Token operator = node.operator;
-    sc.TokenType type = operator.type;
-    if (type == sc.TokenType.AMPERSAND_AMPERSAND ||
-        type == sc.TokenType.BAR_BAR) {
+    Token operator = node.operator;
+    TokenType type = operator.type;
+    if (type == TokenType.AMPERSAND_AMPERSAND || type == TokenType.BAR_BAR) {
       String lexeme = operator.lexeme;
       _checkForAssignability(node.leftOperand, _boolType,
           StaticTypeWarningCode.NON_BOOL_OPERAND, [lexeme]);
@@ -664,6 +681,20 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitForStatement(ForStatement node) {
+    if (node.condition != null) {
+      _checkForNonBoolCondition(node.condition);
+    }
+    return super.visitForStatement(node);
+  }
+
+  @override
+  Object visitForEachStatement(ForEachStatement node) {
+    _checkForInIterable(node);
+    return super.visitForEachStatement(node);
+  }
+
+  @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
     try {
@@ -815,8 +846,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         }
       }
       _checkForExpectedOneListTypeArgument(node, typeArguments);
-      _checkForListElementTypeNotAssignable(node, typeArguments);
     }
+
+    _checkForListElementTypeNotAssignable(node);
     return super.visitListLiteral(node);
   }
 
@@ -832,8 +864,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         }
       }
       _checkExpectedTwoMapTypeArguments(typeArguments);
-      _checkForMapTypeNotAssignable(node, typeArguments);
     }
+
+    _checkForMapTypeNotAssignable(node);
     _checkForNonConstMapAsExpressionStatement(node);
     return super.visitMapLiteral(node);
   }
@@ -871,6 +904,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _checkForAllInvalidOverrideErrorCodesForMethod(node);
       _checkForTypeAnnotationDeferredClass(returnTypeName);
       _checkForIllegalReturnType(returnTypeName);
+      _checkForMustCallSuper(node);
       return super.visitMethodDeclaration(node);
     } finally {
       _enclosingFunction = previousFunction;
@@ -930,9 +964,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitPrefixExpression(PrefixExpression node) {
-    sc.TokenType operatorType = node.operator.type;
+    TokenType operatorType = node.operator.type;
     Expression operand = node.operand;
-    if (operatorType == sc.TokenType.BANG) {
+    if (operatorType == TokenType.BANG) {
       _checkForNonBoolNegationExpression(operand);
     } else if (operatorType.isIncrementOperator) {
       _checkForAssignmentToFinal(operand);
@@ -1117,6 +1151,19 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
+   * If the given assert [statement] specifies a message, verify that support
+   * for assertions with messages is enabled.
+   */
+  void _checkAssertMessage(AssertStatement statement) {
+    Expression expression = statement.message;
+    if (expression != null && !enableAssertMessage) {
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.EXTRA_ARGUMENT_TO_ASSERT, expression);
+      return;
+    }
+  }
+
+  /**
    * Verify that the given list of [typeArguments] contains exactly two
    * elements.
    *
@@ -1176,7 +1223,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         } else if (state == INIT_STATE.INIT_IN_DECLARATION) {
           if (fieldElement.isFinal || fieldElement.isConst) {
             _errorReporter.reportErrorForNode(
-                StaticWarningCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
+                StaticWarningCode
+                    .FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
                 formalParameter.identifier,
                 [fieldElement.displayName]);
             foundError = true;
@@ -1211,13 +1259,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           } else if (state == INIT_STATE.INIT_IN_DECLARATION) {
             if (fieldElement.isFinal || fieldElement.isConst) {
               _errorReporter.reportErrorForNode(
-                  StaticWarningCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
+                  StaticWarningCode
+                      .FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION,
                   fieldName);
               foundError = true;
             }
           } else if (state == INIT_STATE.INIT_IN_FIELD_FORMAL) {
             _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
+                CompileTimeErrorCode
+                    .FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
                 fieldName);
             foundError = true;
           } else if (state == INIT_STATE.INIT_IN_INITIALIZERS) {
@@ -1252,27 +1302,27 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         }
       }
     });
+
     if (notInitFinalFields.isNotEmpty) {
       foundError = true;
       AnalysisErrorWithProperties analysisError;
-      if (notInitFinalFields.length == 1) {
+      List<String> names = notInitFinalFields.map((item) => item.name).toList();
+      names.sort();
+      if (names.length == 1) {
         analysisError = _errorReporter.newErrorWithProperties(
             StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
             constructor.returnType,
-            [notInitFinalFields[0].name]);
-      } else if (notInitFinalFields.length == 2) {
+            names);
+      } else if (names.length == 2) {
         analysisError = _errorReporter.newErrorWithProperties(
             StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2,
             constructor.returnType,
-            [notInitFinalFields[0].name, notInitFinalFields[1].name]);
+            names);
       } else {
         analysisError = _errorReporter.newErrorWithProperties(
             StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS,
-            constructor.returnType, [
-          notInitFinalFields[0].name,
-          notInitFinalFields[1].name,
-          notInitFinalFields.length - 2
-        ]);
+            constructor.returnType,
+            [names[0], names[1], names.length - 2]);
       }
       analysisError.setProperty(
           ErrorProperty.NOT_INITIALIZED_FIELDS, notInitFinalFields);
@@ -1316,12 +1366,77 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     FunctionType overridingFT = executableElement.type;
     FunctionType overriddenFT = overriddenExecutable.type;
     InterfaceType enclosingType = _enclosingClass.type;
-    overriddenFT = _inheritanceManager
-        .substituteTypeArgumentsInMemberFromInheritance(
+    overriddenFT =
+        _inheritanceManager.substituteTypeArgumentsInMemberFromInheritance(
             overriddenFT, executableElementName, enclosingType);
     if (overridingFT == null || overriddenFT == null) {
       return false;
     }
+
+    // Handle generic function type parameters.
+    // TODO(jmesserly): this duplicates some code in isSubtypeOf and most of
+    // _isGenericFunctionSubtypeOf. Ideally, we'd let TypeSystem produce
+    // an error message once it's ready to "return false".
+    if (!overridingFT.typeFormals.isEmpty) {
+      if (overriddenFT.typeFormals.isEmpty) {
+        overriddenFT = _typeSystem.instantiateToBounds(overriddenFT);
+      } else {
+        List<TypeParameterElement> params1 = overridingFT.typeFormals;
+        List<TypeParameterElement> params2 = overriddenFT.typeFormals;
+        int count = params1.length;
+        if (params2.length != count) {
+          _errorReporter.reportErrorForNode(
+              StaticWarningCode.INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS,
+              errorNameTarget, [
+            count,
+            params2.length,
+            overriddenExecutable.enclosingElement.displayName
+          ]);
+          return true;
+        }
+        // We build up a substitution matching up the type parameters
+        // from the two types, {variablesFresh/variables1} and
+        // {variablesFresh/variables2}
+        List<DartType> variables1 = new List<DartType>();
+        List<DartType> variables2 = new List<DartType>();
+        List<DartType> variablesFresh = new List<DartType>();
+        for (int i = 0; i < count; i++) {
+          TypeParameterElement p1 = params1[i];
+          TypeParameterElement p2 = params2[i];
+          TypeParameterElementImpl pFresh =
+              new TypeParameterElementImpl(p1.name, -1);
+
+          DartType variable1 = p1.type;
+          DartType variable2 = p2.type;
+          DartType variableFresh = new TypeParameterTypeImpl(pFresh);
+
+          variables1.add(variable1);
+          variables2.add(variable2);
+          variablesFresh.add(variableFresh);
+          DartType bound1 = p1.bound ?? DynamicTypeImpl.instance;
+          DartType bound2 = p2.bound ?? DynamicTypeImpl.instance;
+          bound1 = bound1.substitute2(variablesFresh, variables1);
+          bound2 = bound2.substitute2(variablesFresh, variables2);
+          pFresh.bound = bound2;
+          if (!_typeSystem.isSubtypeOf(bound2, bound1)) {
+            _errorReporter.reportErrorForNode(
+                StaticWarningCode.INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND,
+                errorNameTarget, [
+              p1.displayName,
+              p1.bound,
+              p2.displayName,
+              p2.bound,
+              overriddenExecutable.enclosingElement.displayName
+            ]);
+            return true;
+          }
+        }
+        // Proceed with the rest of the checks, using instantiated types.
+        overridingFT = overridingFT.instantiate(variablesFresh);
+        overriddenFT = overriddenFT.instantiate(variablesFresh);
+      }
+    }
+
     DartType overridingFTReturnType = overridingFT.returnType;
     DartType overriddenFTReturnType = overriddenFT.returnType;
     List<DartType> overridingNormalPT = overridingFT.normalParameterTypes;
@@ -1336,6 +1451,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _errorReporter.reportErrorForNode(
           StaticWarningCode.INVALID_OVERRIDE_REQUIRED, errorNameTarget, [
         overriddenNormalPT.length,
+        overriddenExecutable,
         overriddenExecutable.enclosingElement.displayName
       ]);
       return true;
@@ -1345,6 +1461,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _errorReporter.reportErrorForNode(
           StaticWarningCode.INVALID_OVERRIDE_POSITIONAL, errorNameTarget, [
         overriddenPositionalPT.length + overriddenNormalPT.length,
+        overriddenExecutable,
         overriddenExecutable.enclosingElement.displayName
       ]);
       return true;
@@ -1358,6 +1475,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         _errorReporter.reportErrorForNode(
             StaticWarningCode.INVALID_OVERRIDE_NAMED, errorNameTarget, [
           overriddenParamName,
+          overriddenExecutable,
           overriddenExecutable.enclosingElement.displayName
         ]);
         return true;
@@ -1373,10 +1491,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
               : StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE,
           errorNameTarget,
           [
-        overridingFTReturnType,
-        overriddenFTReturnType,
-        overriddenExecutable.enclosingElement.displayName
-      ]);
+            overridingFTReturnType,
+            overriddenFTReturnType,
+            overriddenExecutable.enclosingElement.displayName
+          ]);
       return true;
     }
     // SWC.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE
@@ -1393,10 +1511,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
                 : StaticWarningCode.INVALID_SETTER_OVERRIDE_NORMAL_PARAM_TYPE,
             parameterLocations[parameterIndex],
             [
-          overridingNormalPT[i],
-          overriddenNormalPT[i],
-          overriddenExecutable.enclosingElement.displayName
-        ]);
+              overridingNormalPT[i],
+              overriddenNormalPT[i],
+              overriddenExecutable.enclosingElement.displayName
+            ]);
         return true;
       }
       parameterIndex++;
@@ -1512,12 +1630,14 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
               }
               if (!result.equalValues(_typeProvider, overriddenResult)) {
                 _errorReporter.reportErrorForNode(
-                    StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED,
-                    formalParameters[i], [
-                  overriddenExecutable.enclosingElement.displayName,
-                  overriddenExecutable.displayName,
-                  parameterName
-                ]);
+                    StaticWarningCode
+                        .INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED,
+                    formalParameters[i],
+                    [
+                      overriddenExecutable.enclosingElement.displayName,
+                      overriddenExecutable.displayName,
+                      parameterName
+                    ]);
                 foundError = true;
               }
             }
@@ -1549,11 +1669,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           }
           if (!result.equalValues(_typeProvider, overriddenResult)) {
             _errorReporter.reportErrorForNode(
-                StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
-                formalParameters[i], [
-              overriddenExecutable.enclosingElement.displayName,
-              overriddenExecutable.displayName
-            ]);
+                StaticWarningCode
+                    .INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
+                formalParameters[i],
+                [
+                  overriddenExecutable.enclosingElement.displayName,
+                  overriddenExecutable.displayName
+                ]);
             foundError = true;
           }
         }
@@ -1822,7 +1944,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     } else if (_inGenerator) {
       // RETURN_IN_GENERATOR
       _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.RETURN_IN_GENERATOR, statement);
+          CompileTimeErrorCode.RETURN_IN_GENERATOR,
+          statement,
+          [_inAsync ? "async*" : "sync*"]);
     }
     // RETURN_OF_INVALID_TYPE
     return _checkForReturnOfInvalidType(returnExpression, expectedReturnType);
@@ -2064,10 +2188,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   bool _checkForBuiltInIdentifierAsName(
       SimpleIdentifier identifier, ErrorCode errorCode) {
-    sc.Token token = identifier.token;
-    if (token.type == sc.TokenType.KEYWORD) {
-      _errorReporter.reportErrorForNode(
-          errorCode, identifier, [identifier.name]);
+    Token token = identifier.token;
+    if (token.type == TokenType.KEYWORD) {
+      _errorReporter
+          .reportErrorForNode(errorCode, identifier, [identifier.name]);
       return true;
     }
     return false;
@@ -2726,8 +2850,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (type.element.isAbstract) {
       ConstructorElement element = expression.staticElement;
       if (element != null && !element.isFactory) {
-        if ((expression.keyword as sc.KeywordToken).keyword ==
-            sc.Keyword.CONST) {
+        if ((expression.keyword as KeywordToken).keyword == Keyword.CONST) {
           _errorReporter.reportErrorForNode(
               StaticWarningCode.CONST_WITH_ABSTRACT_CLASS, typeName);
         } else {
@@ -3168,8 +3291,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return false;
     }
     if (typeName.isDeferred) {
-      _errorReporter.reportErrorForNode(
-          errorCode, typeName, [typeName.name.name]);
+      _errorReporter
+          .reportErrorForNode(errorCode, typeName, [typeName.name.name]);
       return true;
     }
     return false;
@@ -3264,7 +3387,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       // TODO(paulberry): this error should be based on the actual type of the
       // constant, not the static type.  See dartbug.com/21119.
       _errorReporter.reportTypeErrorForNode(
-          CheckedModeCompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
+          CheckedModeCompileTimeErrorCode
+              .CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
           expression,
           [staticType, fieldType]);
     }
@@ -3706,7 +3830,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           // instance vs. static
           if (fieldElt.isStatic) {
             _errorReporter.reportErrorForNode(
-                StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC,
+                StaticWarningCode
+                    .INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC,
                 errorNameTarget,
                 [executableElementName, fieldElt.enclosingElement.displayName]);
             return true;
@@ -3727,11 +3852,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           // instance vs. static
           if (methodElement.isStatic) {
             _errorReporter.reportErrorForNode(
-                StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC,
-                errorNameTarget, [
-              executableElementName,
-              methodElement.enclosingElement.displayName
-            ]);
+                StaticWarningCode
+                    .INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC,
+                errorNameTarget,
+                [
+                  executableElementName,
+                  methodElement.enclosingElement.displayName
+                ]);
             return true;
           }
         }
@@ -3872,7 +3999,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   bool _checkForInvalidModifierOnBody(
       FunctionBody body, CompileTimeErrorCode errorCode) {
-    sc.Token keyword = body.keyword;
+    Token keyword = body.keyword;
     if (keyword != null) {
       _errorReporter.reportErrorForToken(errorCode, keyword, [keyword.lexeme]);
       return true;
@@ -3913,63 +4040,62 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Verify that the elements given list [literal] are subtypes of the specified
-   * element type. The [typeArguments] are the type arguments.
+   * Verify that the elements given list [literal] are subtypes of the list's
+   * static type.
    *
    * See [CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE], and
    * [StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE].
    */
-  bool _checkForListElementTypeNotAssignable(
-      ListLiteral literal, TypeArgumentList typeArguments) {
-    NodeList<TypeName> typeNames = typeArguments.arguments;
-    if (typeNames.length < 1) {
-      return false;
-    }
-    DartType listElementType = typeNames[0].type;
+  void _checkForListElementTypeNotAssignable(ListLiteral literal) {
+    // Determine the list's element type. We base this on the static type and
+    // not the literal's type arguments because in strong mode, the type
+    // arguments may be inferred.
+    DartType listType = literal.staticType;
+    assert(listType is InterfaceTypeImpl);
+
+    List<DartType> typeArguments =
+        (listType as InterfaceTypeImpl).typeArguments;
+    assert(typeArguments.length == 1);
+
+    DartType listElementType = typeArguments[0];
+
     // Check every list element.
-    bool hasProblems = false;
     for (Expression element in literal.elements) {
       if (literal.constKeyword != null) {
         // TODO(paulberry): this error should be based on the actual type of the
         // list element, not the static type.  See dartbug.com/21119.
-        if (_checkForArgumentTypeNotAssignableWithExpectedTypes(
+        _checkForArgumentTypeNotAssignableWithExpectedTypes(
             element,
             listElementType,
-            CheckedModeCompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE)) {
-          hasProblems = true;
-        }
+            CheckedModeCompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE);
       }
-      if (_checkForArgumentTypeNotAssignableWithExpectedTypes(
-          element,
-          listElementType,
-          StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE)) {
-        hasProblems = true;
-      }
+      _checkForArgumentTypeNotAssignableWithExpectedTypes(element,
+          listElementType, StaticWarningCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE);
     }
-    return hasProblems;
   }
 
   /**
    * Verify that the key/value of entries of the given map [literal] are
-   * subtypes of the key/value types specified in the type arguments. The
-   * [typeArguments] are the type arguments.
+   * subtypes of the map's static type.
    *
    * See [CompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE],
    * [CompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE],
    * [StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE], and
    * [StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE].
    */
-  bool _checkForMapTypeNotAssignable(
-      MapLiteral literal, TypeArgumentList typeArguments) {
-    // Prepare maps key/value types.
-    NodeList<TypeName> typeNames = typeArguments.arguments;
-    if (typeNames.length < 2) {
-      return false;
-    }
-    DartType keyType = typeNames[0].type;
-    DartType valueType = typeNames[1].type;
-    // Check every map entry.
-    bool hasProblems = false;
+  void _checkForMapTypeNotAssignable(MapLiteral literal) {
+    // Determine the map's key and value types. We base this on the static type
+    // and not the literal's type arguments because in strong mode, the type
+    // arguments may be inferred.
+    DartType mapType = literal.staticType;
+    assert(mapType is InterfaceTypeImpl);
+
+    List<DartType> typeArguments =
+        (mapType as InterfaceTypeImpl).typeArguments;
+    assert(typeArguments.length == 2);
+    DartType keyType = typeArguments[0];
+    DartType valueType = typeArguments[1];
+
     NodeList<MapLiteralEntry> entries = literal.entries;
     for (MapLiteralEntry entry in entries) {
       Expression key = entry.key;
@@ -3977,27 +4103,18 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       if (literal.constKeyword != null) {
         // TODO(paulberry): this error should be based on the actual type of the
         // list element, not the static type.  See dartbug.com/21119.
-        if (_checkForArgumentTypeNotAssignableWithExpectedTypes(key, keyType,
-            CheckedModeCompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE)) {
-          hasProblems = true;
-        }
-        if (_checkForArgumentTypeNotAssignableWithExpectedTypes(
+        _checkForArgumentTypeNotAssignableWithExpectedTypes(key, keyType,
+            CheckedModeCompileTimeErrorCode.MAP_KEY_TYPE_NOT_ASSIGNABLE);
+        _checkForArgumentTypeNotAssignableWithExpectedTypes(
             value,
             valueType,
-            CheckedModeCompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE)) {
-          hasProblems = true;
-        }
+            CheckedModeCompileTimeErrorCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE);
       }
-      if (_checkForArgumentTypeNotAssignableWithExpectedTypes(
-          key, keyType, StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE)) {
-        hasProblems = true;
-      }
-      if (_checkForArgumentTypeNotAssignableWithExpectedTypes(
-          value, valueType, StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE)) {
-        hasProblems = true;
-      }
+      _checkForArgumentTypeNotAssignableWithExpectedTypes(
+          key, keyType, StaticWarningCode.MAP_KEY_TYPE_NOT_ASSIGNABLE);
+      _checkForArgumentTypeNotAssignableWithExpectedTypes(
+          value, valueType, StaticWarningCode.MAP_VALUE_TYPE_NOT_ASSIGNABLE);
     }
-    return hasProblems;
   }
 
   /**
@@ -4171,7 +4288,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       int offset = statement.offset;
       int end = statement.rightParenthesis.end;
       _errorReporter.reportErrorForOffset(
-          CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
+          StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
           offset,
           end - offset,
           [constantNames[i]]);
@@ -4233,8 +4350,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   void _checkForMixinHasNoConstructors(AstNode node) {
     if ((_enclosingClass as ClassElementImpl).doesMixinLackConstructors) {
       ErrorCode errorCode = CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS;
-      _errorReporter.reportErrorForNode(
-          errorCode, node, [_enclosingClass.supertype]);
+      _errorReporter
+          .reportErrorForNode(errorCode, node, [_enclosingClass.supertype]);
     }
   }
 
@@ -4296,6 +4413,18 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
     }
     return numSuperInitializers > 0;
+  }
+
+  void _checkForMustCallSuper(MethodDeclaration node) {
+    MethodElement element = _findOverriddenMemberThatMustCallSuper(node);
+    if (element != null) {
+      _InvocationCollector collector = new _InvocationCollector();
+      node.accept(collector);
+      if (!collector.superCalls.contains(element.name)) {
+        _errorReporter.reportErrorForNode(HintCode.MUST_CALL_SUPER, node.name,
+            [element.enclosingElement.name]);
+      }
+    }
   }
 
   /**
@@ -4533,6 +4662,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       stringMembersArrayListSet.add(newStrMember);
     }
     List<String> stringMembersArray = new List.from(stringMembersArrayListSet);
+    stringMembersArray.sort();
     AnalysisErrorWithProperties analysisError;
     if (stringMembersArray.length == 1) {
       analysisError = _errorReporter.newErrorWithProperties(
@@ -4563,14 +4693,16 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       ]);
     } else {
       analysisError = _errorReporter.newErrorWithProperties(
-          StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
-          classNameNode, [
-        stringMembersArray[0],
-        stringMembersArray[1],
-        stringMembersArray[2],
-        stringMembersArray[3],
-        stringMembersArray.length - 4
-      ]);
+          StaticWarningCode
+              .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS,
+          classNameNode,
+          [
+            stringMembersArray[0],
+            stringMembersArray[1],
+            stringMembersArray[2],
+            stringMembersArray[3],
+            stringMembersArray.length - 4
+          ]);
     }
     analysisError.setProperty(
         ErrorProperty.UNIMPLEMENTED_METHODS, missingOverridesArray);
@@ -4854,7 +4986,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         if (parameter is DefaultFormalParameter &&
             parameter.defaultValue != null) {
           _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR,
+              CompileTimeErrorCode
+                  .DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR,
               parameter.identifier);
           errorReported = true;
         }
@@ -4886,7 +5019,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           } else {
             if (redirectingElement.isFactory) {
               _errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR,
+                  CompileTimeErrorCode
+                      .REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR,
                   initializer);
             }
           }
@@ -5051,13 +5185,17 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Check the given [typeReference] and that the [name] is not the reference to
+   * Check the given [typeReference] and that the [name] is not a reference to
    * an instance member.
    *
    * See [StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER].
    */
   bool _checkForStaticAccessToInstanceMember(
       ClassElement typeReference, SimpleIdentifier name) {
+    // OK, in comment
+    if (_isInComment) {
+      return false;
+    }
     // OK, target is not a type
     if (typeReference == null) {
       return false;
@@ -5210,9 +5348,14 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (_isInStaticMethod || _isInStaticVariableDeclaration) {
       DartType type = name.type;
       if (type is TypeParameterType) {
-        _errorReporter.reportErrorForNode(
-            StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, name);
-        return true;
+        // The class's type parameters are not in scope for static methods.
+        // However all other type parameters are legal (e.g. the static method's
+        // type parameters, or a local function's type parameters).
+        if (type.element.enclosingElement is ClassElement) {
+          _errorReporter.reportErrorForNode(
+              StaticWarningCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, name);
+          return true;
+        }
       }
     }
     return false;
@@ -5518,16 +5661,72 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
+   * Check for a type mis-match between the iterable expression and the
+   * assigned variable in a for-in statement.
+   */
+  void _checkForInIterable(ForEachStatement node) {
+    // Ignore malformed for statements.
+    if (node.identifier == null && node.loopVariable == null) {
+      return;
+    }
+
+    DartType iterableType = getStaticType(node.iterable);
+    if (iterableType.isDynamic) {
+      return;
+    }
+
+    // The type of the loop variable.
+    SimpleIdentifier variable = node.identifier != null
+        ? node.identifier
+        : node.loopVariable.identifier;
+    DartType variableType = getStaticType(variable);
+
+    DartType loopType = node.awaitKeyword != null
+        ? _typeProvider.streamType
+        : _typeProvider.iterableType;
+
+    // Use an explicit string instead of [loopType] to remove the "<E>".
+    String loopTypeName = node.awaitKeyword != null ? "Stream" : "Iterable";
+
+    // The object being iterated has to implement Iterable<T> for some T that
+    // is assignable to the variable's type.
+    // TODO(rnystrom): Move this into mostSpecificTypeArgument()?
+    iterableType = iterableType.resolveToBound(_typeProvider.objectType);
+    DartType bestIterableType =
+        _typeSystem.mostSpecificTypeArgument(iterableType, loopType);
+
+    // Allow it to be a supertype of Iterable<T> (basically just Object) and do
+    // an implicit downcast to Iterable<dynamic>.
+    if (bestIterableType == null) {
+      if (_typeSystem.isSubtypeOf(loopType, iterableType)) {
+        bestIterableType = DynamicTypeImpl.instance;
+      }
+    }
+
+    if (bestIterableType == null) {
+      _errorReporter.reportTypeErrorForNode(
+          StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE,
+          node.iterable,
+          [iterableType, loopTypeName]);
+    } else if (!_typeSystem.isAssignableTo(bestIterableType, variableType)) {
+      _errorReporter.reportTypeErrorForNode(
+          StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
+          node.iterable,
+          [iterableType, loopTypeName, variableType]);
+    }
+  }
+
+  /**
    * Check for a type mis-match between the yielded type and the declared
    * return type of a generator function.
    *
    * This method should only be called in generator functions.
    */
-  bool _checkForYieldOfInvalidType(
+  void _checkForYieldOfInvalidType(
       Expression yieldExpression, bool isYieldEach) {
     assert(_inGenerator);
     if (_enclosingFunction == null) {
-      return false;
+      return;
     }
     DartType declaredReturnType = _enclosingFunction.returnType;
     DartType staticYieldedType = getStaticType(yieldExpression);
@@ -5536,17 +5735,17 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       impliedReturnType = staticYieldedType;
     } else if (_enclosingFunction.isAsynchronous) {
       impliedReturnType =
-          _typeProvider.streamType.substitute4(<DartType>[staticYieldedType]);
+          _typeProvider.streamType.instantiate(<DartType>[staticYieldedType]);
     } else {
       impliedReturnType =
-          _typeProvider.iterableType.substitute4(<DartType>[staticYieldedType]);
+          _typeProvider.iterableType.instantiate(<DartType>[staticYieldedType]);
     }
     if (!_typeSystem.isAssignableTo(impliedReturnType, declaredReturnType)) {
       _errorReporter.reportTypeErrorForNode(
           StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
           yieldExpression,
           [impliedReturnType, declaredReturnType]);
-      return true;
+      return;
     }
     if (isYieldEach) {
       // Since the declared return type might have been "dynamic", we need to
@@ -5563,10 +5762,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
             yieldExpression,
             [impliedReturnType, requiredReturnType]);
-        return true;
+        return;
       }
     }
-    return false;
   }
 
   /**
@@ -5649,11 +5847,27 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     DartType staticReturnType = getStaticType(returnExpression);
     if (staticReturnType != null && _enclosingFunction.isAsynchronous) {
-      return _typeProvider.futureType.substitute4(<DartType>[
-        StaticTypeAnalyzer.flattenFutures(_typeProvider, staticReturnType)
-      ]);
+      return _typeProvider.futureType.instantiate(
+          <DartType>[staticReturnType.flattenFutures(_typeSystem)]);
     }
     return staticReturnType;
+  }
+
+  MethodElement _findOverriddenMemberThatMustCallSuper(MethodDeclaration node) {
+    ExecutableElement overriddenMember = _getOverriddenMember(node.element);
+    List<ExecutableElement> seen = <ExecutableElement>[];
+    while (
+        overriddenMember is MethodElement && !seen.contains(overriddenMember)) {
+      for (ElementAnnotation annotation in overriddenMember.metadata) {
+        if (annotation.isMustCallSuper) {
+          return overriddenMember;
+        }
+      }
+      seen.add(overriddenMember);
+      // Keep looking up the chain.
+      overriddenMember = _getOverriddenMember(overriddenMember);
+    }
+    return null;
   }
 
   /**
@@ -5663,15 +5877,18 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   ErrorCode _getBaseCaseErrorCode(ClassElement element) {
     InterfaceType supertype = element.supertype;
     if (supertype != null && _enclosingClass == supertype.element) {
-      return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS;
+      return CompileTimeErrorCode
+          .RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS;
     }
     List<InterfaceType> mixins = element.mixins;
     for (int i = 0; i < mixins.length; i++) {
       if (_enclosingClass == mixins[i].element) {
-        return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH;
+        return CompileTimeErrorCode
+            .RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_WITH;
       }
     }
-    return CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS;
+    return CompileTimeErrorCode
+        .RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_IMPLEMENTS;
   }
 
   /**
@@ -5703,6 +5920,19 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
   }
 
+  ExecutableElement _getOverriddenMember(Element member) {
+    if (member == null || _inheritanceManager == null) {
+      return null;
+    }
+
+    ClassElement classElement =
+        member.getAncestor((element) => element is ClassElement);
+    if (classElement == null) {
+      return null;
+    }
+    return _inheritanceManager.lookupInheritance(classElement, member.name);
+  }
+
   /**
    * Return the type of the first and only parameter of the given [setter].
    */
@@ -5727,7 +5957,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     int count = directives.length;
     if (count > 1) {
       for (int i = 0; i < count; i++) {
-        sc.Token deferredToken = directives[i].deferredKeyword;
+        Token deferredToken = directives[i].deferredKeyword;
         if (deferredToken != null) {
           _errorReporter.reportErrorForToken(
               CompileTimeErrorCode.SHARED_DEFERRED_PREFIX, deferredToken);
@@ -5781,7 +6011,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   bool _hasTypedefSelfReference(Element element) {
     Set<Element> checked = new HashSet<Element>();
     List<Element> toCheck = new List<Element>();
-    GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference elementVisitor =
+    GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference
+        elementVisitor =
         new GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference(
             toCheck);
     toCheck.add(element);
@@ -5933,7 +6164,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return false;
   }
 
-  bool _isUserDefinedObject(EvaluationResultImpl result) => result == null ||
+  bool _isUserDefinedObject(EvaluationResultImpl result) =>
+      result == null ||
       (result.value != null && result.value.isUserDefinedObject);
 
   /**
@@ -6081,6 +6313,20 @@ class GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference
       for (DartType typeArgument in interfaceType.typeArguments) {
         _addTypeToCheck(typeArgument);
       }
+    }
+  }
+}
+
+/**
+ * Recursively visits an AST, looking for method invocations.
+ */
+class _InvocationCollector extends RecursiveAstVisitor {
+  final List<String> superCalls = <String>[];
+
+  @override
+  visitMethodInvocation(MethodInvocation node) {
+    if (node.target is SuperExpression) {
+      superCalls.add(node.methodName.name);
     }
   }
 }

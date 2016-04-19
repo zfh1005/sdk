@@ -158,10 +158,11 @@ class Condition : public ValueObject {
     kImmSize = 16,
   };
 
-  class LeftBits : public BitField<Register, kLeftPos, kLeftSize> {};
-  class RightBits : public BitField<Register, kRightPos, kRightSize> {};
-  class RelOpBits : public BitField<RelationOperator, kRelOpPos, kRelOpSize> {};
-  class ImmBits : public BitField<uint16_t, kImmPos, kImmSize> {};
+  class LeftBits : public BitField<uword, Register, kLeftPos, kLeftSize> {};
+  class RightBits : public BitField<uword, Register, kRightPos, kRightSize> {};
+  class RelOpBits :
+      public BitField<uword, RelationOperator, kRelOpPos, kRelOpSize> {};
+  class ImmBits : public BitField<uword, uint16_t, kImmPos, kImmSize> {};
 
   Register left() const { return LeftBits::decode(bits_); }
   Register right() const { return RightBits::decode(bits_); }
@@ -584,6 +585,12 @@ class Assembler : public ValueObject {
     EmitRType(SPECIAL2, rs, rd, rd, 0, CLZ);
   }
 
+  // Convert a double in ds to a 32-bit signed int in fd rounding towards 0.
+  void truncwd(FRegister fd, DRegister ds) {
+    FRegister fs = static_cast<FRegister>(ds * 2);
+    EmitFpuRType(COP1, FMT_D, F0, fs, fd, COP1_TRUNC_W);
+  }
+
   // Convert a 32-bit float in fs to a 64-bit double in dd.
   void cvtds(DRegister dd, FRegister fs) {
     FRegister fd = static_cast<FRegister>(dd * 2);
@@ -596,21 +603,10 @@ class Assembler : public ValueObject {
     EmitFpuRType(COP1, FMT_W, F0, fs, fd, COP1_CVT_D);
   }
 
-  // Converts a 64-bit signed int in fs to a double in fd.
-  void cvtdl(DRegister dd, DRegister ds) {
-    FRegister fs = static_cast<FRegister>(ds * 2);
-    FRegister fd = static_cast<FRegister>(dd * 2);
-    EmitFpuRType(COP1, FMT_L, F0, fs, fd, COP1_CVT_D);
-  }
-
+  // Convert a 64-bit double in ds to a 32-bit float in fd.
   void cvtsd(FRegister fd, DRegister ds) {
     FRegister fs = static_cast<FRegister>(ds * 2);
     EmitFpuRType(COP1, FMT_D, F0, fs, fd, COP1_CVT_S);
-  }
-
-  void cvtwd(FRegister fd, DRegister ds) {
-    FRegister fs = static_cast<FRegister>(ds * 2);
-    EmitFpuRType(COP1, FMT_D, F0, fs, fd, COP1_CVT_W);
   }
 
   void div(Register rs, Register rt) {
@@ -660,6 +656,10 @@ class Assembler : public ValueObject {
 
   void lhu(Register rt, const Address& addr) {
     EmitLoadStore(LHU, rt, addr);
+  }
+
+  void ll(Register rt, const Address& addr) {
+    EmitLoadStore(LL, rt, addr);
   }
 
   void lui(Register rt, const Immediate& imm) {
@@ -788,6 +788,11 @@ class Assembler : public ValueObject {
 
   void sb(Register rt, const Address& addr) {
     EmitLoadStore(SB, rt, addr);
+  }
+
+  // rt = 1 on success, 0 on failure.
+  void sc(Register rt, const Address& addr) {
+    EmitLoadStore(SC, rt, addr);
   }
 
   void sdc1(DRegister dt, const Address& addr) {
@@ -924,6 +929,12 @@ class Assembler : public ValueObject {
                   Patchability patchable = kNotPatchable);
 
   void BranchLinkPatchable(const StubEntry& stub_entry);
+  void BranchLinkToRuntime();
+
+  // Emit a call that shares its object pool entries with other calls
+  // that have the same equivalence marker.
+  void BranchLinkWithEquivalence(const StubEntry& stub_entry,
+                                 const Object& equivalence);
 
   void Drop(intptr_t stack_elements) {
     ASSERT(stack_elements >= 0);

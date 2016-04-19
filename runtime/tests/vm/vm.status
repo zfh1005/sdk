@@ -12,13 +12,17 @@ cc/SNPrint_BadArgs: Skip
 # Flaky on buildbot. Issue 5133 and 10409.
 cc/Sleep: Pass, Fail
 
+dart/data_uri_import_test/none: SkipByDesign
+
 [ $mode == debug ]
 # This is a benchmark that is not informative in debug mode.
 cc/CorelibIsolateStartup: Skip
 # Negative tests of VerifiedMemory should crash iff in DEBUG mode.
 # TODO(koda): Improve support for negative tests.
-cc/VerifyImplicit_Crash: Crash
-cc/VerifyExplicit_Crash: Crash
+cc/VerifyImplicit_Crash: Crash, Timeout  # Timeout: Issue #24596
+cc/VerifyExplicit_Crash: Crash, Timeout  # Timeout: Issue #24596
+# It can take some time for all the isolates to shutdown in a Debug build.
+dart/spawn_shutdown_test: Pass, Slow  # VM Shutdown test
 
 # The following section refers to the dart vm tests which live under
 # runtime/tests/vm/dart.
@@ -29,12 +33,8 @@ cc/Service_Profile: Skip
 cc/Dart2JSCompilerStats: Skip
 cc/CorelibCompilerStats: Skip
 
-[ $arch == simarm || $arch == simarmv5te || $arch == simarm64 || $arch == simmips ]
+[ $arch == simarm || $arch == simarmv6 || $arch == simarmv5te || $arch == simarm64 || $arch == simmips ]
 cc/Service_Profile: Skip
-
-[ $arch == arm ]
-cc/Int8ListLengthMaxElements: Skip # Issue 23314
-cc/ArrayLengthMaxElements: Skip # Issue 23314
 
 [ $compiler == dart2js ]
 dart/redirection_type_shuffling_test: Skip # Depends on lazy enforcement of type bounds
@@ -51,25 +51,20 @@ dart/optimized_stacktrace_test: RuntimeError
 # minifying they can be renamed, which is issue 7953.
 dart/inline_stack_frame_test: RuntimeError, Pass # Issue 7953
 
-[ $compiler == dart2js || $compiler == dartanalyzer || $compiler == dart2analyzer ]
+[ $compiler == dart2js && $cps_ir && $checked ]
+dart/*: Skip # checked mode + cpsir not supported yet. Issue 25761
+
+[ $compiler == dart2js || $compiler == dart2analyzer ]
 # Data uri's not supported by dart2js or the analyzer.
 dart/data_uri*test: Skip
 
-[ $runtime == vm ]
-dart/data_uri_failures_test/wrongmime: RuntimeError, OK # VM is more restrictive than the browser
-dart/data_uri_failures_test/nomime: RuntimeError, OK
-dart/data_uri_failures_test/nocharset: RuntimeError, OK
-dart/data_uri_failures_test/base64: RuntimeError, OK
-
 [ $arch == mips ]
-cc/StaticNonNullSumCallCodegen: Crash, Pass # Issue 17440
-cc/ArrayLengthMaxElements: Crash  # Issue 23275
 cc/Int8ListLengthMaxElements: Skip # Issue 23536, uses 1 GB memory.
 
 [ $arch == mips && $mode == debug ]
-cc/FindCodeObject: Skip # Takes more than 8 minutes. Issue 17440
+cc/FindCodeObject: SkipSlow # Takes more than 8 minutes. Issue 17440
 
-[ $compiler == dartanalyzer || $compiler == dart2analyzer ]
+[ $compiler == dart2analyzer ]
 dart/optimized_stacktrace_test: StaticWarning
 
 [ $runtime != vm ]
@@ -77,10 +72,28 @@ dart/snapshot_version_test: SkipByDesign  # Spawns processes
 dart/spawn_infinite_loop_test: Skip  # VM shutdown test
 dart/spawn_shutdown_test: Skip  # VM Shutdown test
 
-[ $runtime == vm && $mode == debug && $builder_tag == asan ]
-cc/Dart2JSCompileAll: Skip  # Timeout.
+[ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug && $builder_tag == asan ]
+cc/Dart2JSCompileAll: SkipSlow  # Timeout.
+
+[ $builder_tag == asan ]
+cc/CodeImmutability: Fail,OK # Address Sanitizer turns a crash into a failure.
 
 [ $noopt ]
-dart/redirection_type_shuffling_test: CompileTimeError # Imports dart:mirrors
 dart/byte_array_test: Crash # Incompatible flag --disable_alloc_stubs_after_gc
-dart/inline_stack_frame_test: Fail  # Issue 24783 - inlined frames missing
+
+[ $noopt || $compiler == precompiler || $mode == product ]
+dart/redirection_type_shuffling_test: CompileTimeError # Imports dart:mirrors
+
+[ $noopt || $runtime == dart_precompiled ]
+# Stacktraces in precompilation omit inlined frames.
+dart/inline_stack_frame_test: Pass, RuntimeError
+dart/optimized_stacktrace_test: Pass, RuntimeError
+
+[ $runtime == dart_product || $runtime == dart_precompiled ]
+dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
+dart/optimized_stacktrace_test: SkipByDesign # Requires line numbers
+
+[ $runtime == vm && $mode == product ]
+cc/IsolateSetCheckedMode: Fail,OK  # Expects exact type name.
+cc/LibraryGetClassNames: Fail,OK  # Expects exact type name.
+cc/StackTraceFormat: Fail,OK  # Expects exact type name.

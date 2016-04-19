@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library reflective_tests;
+library analyzer.test.reflective_tests;
 
+import 'dart:async';
 @MirrorsUsed(metaTargets: 'ReflectiveTest')
 import 'dart:mirrors';
-import 'dart:async';
 
 import 'package:unittest/unittest.dart';
 
@@ -73,14 +73,15 @@ void runReflectiveTests(Type type) {
 
 Future _invokeSymbolIfExists(InstanceMirror instanceMirror, Symbol symbol) {
   var invocationResult = null;
+  InstanceMirror closure;
   try {
-    invocationResult = instanceMirror.invoke(symbol, []).reflectee;
+    closure = instanceMirror.getField(symbol);
   } on NoSuchMethodError {}
-  if (invocationResult is Future) {
-    return invocationResult;
-  } else {
-    return new Future.value(invocationResult);
+
+  if (closure is ClosureMirror) {
+    invocationResult = closure.apply([]).reflectee;
   }
+  return new Future.value(invocationResult);
 }
 
 /**

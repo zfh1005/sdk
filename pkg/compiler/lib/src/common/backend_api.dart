@@ -31,10 +31,10 @@ import '../elements/elements.dart' show
     Element,
     FunctionElement,
     LibraryElement,
-    MetadataAnnotation;
+    MetadataAnnotation,
+    MethodElement;
 import '../enqueue.dart' show
     Enqueuer,
-    EnqueueTask,
     CodegenEnqueuer,
     ResolutionEnqueuer;
 import '../io/code_output.dart' show
@@ -55,12 +55,18 @@ import '../patch_parser.dart' show
     checkNativeAnnotation, checkJsInteropAnnotation;
 import '../resolution/tree_elements.dart' show
     TreeElements;
+import '../serialization/serialization.dart' show
+    DeserializerPlugin,
+    ObjectDecoder,
+    ObjectEncoder,
+    SerializerPlugin;
 import '../tree/tree.dart' show
     Node,
     Send;
 import '../universe/call_structure.dart' show
     CallStructure;
 import '../universe/world_impact.dart' show
+    ImpactStrategy,
     WorldImpact;
 
 import 'codegen.dart' show
@@ -72,6 +78,7 @@ import 'tasks.dart' show
 import 'work.dart' show
     ItemCompilationContext;
 
+
 abstract class Backend {
   final Compiler compiler;
 
@@ -79,9 +86,6 @@ abstract class Backend {
 
   /// Returns true if the backend supports reflection.
   bool get supportsReflection;
-
-  /// Returns true if the backend supports reflection.
-  bool get supportsAsyncAwait;
 
   /// The [ConstantSystem] used to interpret compile-time constants for this
   /// backend.
@@ -102,6 +106,9 @@ abstract class Backend {
   SourceInformationStrategy get sourceInformationStrategy {
     return const SourceInformationStrategy();
   }
+
+  /// Interface for serialization of backend specific data.
+  BackendSerialization get serialization => const BackendSerialization();
 
   // TODO(johnniwinther): Move this to the JavaScriptBackend.
   String get patchVersion => null;
@@ -284,9 +291,9 @@ abstract class Backend {
     return native.maybeEnableNative(compiler, library);
   }
 
-  /// Processes [element] for resolution and returns the [FunctionElement] that
+  /// Processes [element] for resolution and returns the [MethodElement] that
   /// defines the implementation of [element].
-  FunctionElement resolveExternalFunction(FunctionElement element) => element;
+  MethodElement resolveExternalFunction(MethodElement element) => element;
 
   /// Returns `true` if [library] is a backend specific library whose members
   /// have special treatment, such as being allowed to extends blacklisted
@@ -428,7 +435,13 @@ abstract class Backend {
   /// Returns null if there is none.
   Uri resolvePatchUri(String libraryName, Uri plaformConfigUri);
 
-  EnqueueTask makeEnqueuer() => new EnqueueTask(compiler);
+  /// Creates an impact strategy to use for compilation.
+  ImpactStrategy createImpactStrategy(
+      {bool supportDeferredLoad: true,
+       bool supportDumpInfo: true,
+       bool supportSerialization: true}) {
+    return const ImpactStrategy();
+  }
 }
 
 /// Interface for resolving calls to foreign functions.
@@ -457,4 +470,12 @@ class ImpactTransformer {
   WorldImpact transformCodegenImpact(CodegenImpact worldImpact) {
     return worldImpact;
   }
+}
+
+/// Interface for serialization of backend specific data.
+class BackendSerialization  {
+  const BackendSerialization();
+
+  SerializerPlugin get serializer => const SerializerPlugin();
+  DeserializerPlugin get deserializer => const DeserializerPlugin();
 }

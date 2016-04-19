@@ -2,20 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.test_support;
+library analyzer.test.generated.test_support;
 
 import 'dart:collection';
 
-import 'package:analyzer/src/generated/ast.dart' show AstNode, NodeLocator;
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/ast/ast.dart' show AstNode, SimpleIdentifier;
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:plugin/manager.dart';
+import 'package:plugin/plugin.dart';
 import 'package:unittest/unittest.dart';
 
-import 'resolver_test.dart';
+import 'analysis_context_factory.dart';
 
 /**
  * The class `EngineTestCase` defines utility methods for making assertions.
@@ -91,7 +95,13 @@ class EngineTestCase {
     return null;
   }
 
-  void setUp() {}
+  void setUp() {
+    List<Plugin> plugins = <Plugin>[];
+    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
+    plugins.add(AnalysisEngine.instance.commandLinePlugin);
+    plugins.add(AnalysisEngine.instance.optionsPlugin);
+    new ExtensionManager().processPlugins(plugins);
+  }
 
   void tearDown() {}
 
@@ -123,6 +133,18 @@ class EngineTestCase {
     }
     AstNode node = new NodeLocator(offset).searchWithin(root);
     return node.getAncestor(predicate);
+  }
+
+  /**
+   * Find the [SimpleIdentifier] with at offset of the "prefix".
+   */
+  static SimpleIdentifier findSimpleIdentifier(
+      AstNode root, String code, String prefix) {
+    int offset = code.indexOf(prefix);
+    if (offset == -1) {
+      throw new IllegalArgumentException("Not found '$prefix'.");
+    }
+    return new NodeLocator(offset).searchWithin(root);
   }
 }
 
@@ -401,9 +423,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
    */
   bool _equalErrors(AnalysisError firstError, AnalysisError secondError) =>
       identical(firstError.errorCode, secondError.errorCode) &&
-          firstError.offset == secondError.offset &&
-          firstError.length == secondError.length &&
-          _equalSources(firstError.source, secondError.source);
+      firstError.offset == secondError.offset &&
+      firstError.length == secondError.length &&
+      _equalSources(firstError.source, secondError.source);
 
   /**
    * Return `true` if the two sources are equivalent.
@@ -515,33 +537,18 @@ class GatheringErrorListener implements AnalysisErrorListener {
  */
 class TestLogger implements Logger {
   /**
-   * The number of error messages that were logged.
+   * All logged messages.
    */
-  int errorCount = 0;
-
-  /**
-   * The number of informational messages that were logged.
-   */
-  int infoCount = 0;
+  List<String> log = [];
 
   @override
   void logError(String message, [CaughtException exception]) {
-    errorCount++;
-  }
-
-  @override
-  void logError2(String message, Object exception) {
-    errorCount++;
+    log.add("error: $message");
   }
 
   @override
   void logInformation(String message, [CaughtException exception]) {
-    infoCount++;
-  }
-
-  @override
-  void logInformation2(String message, Object exception) {
-    infoCount++;
+    log.add("info: $message");
   }
 }
 
@@ -556,10 +563,6 @@ class TestSource extends Source {
    * is made to access the contents of this source.
    */
   bool generateExceptionOnRead = false;
-
-  @override
-  int get modificationStamp =>
-      generateExceptionOnRead ? -1 : _modificationStamp;
 
   /**
    * The number of times that the contents of this source have been requested.
@@ -577,18 +580,21 @@ class TestSource extends Source {
     return new TimestampedData<String>(0, _contents);
   }
 
-  String get encoding {
-    throw new UnsupportedOperationException();
-  }
+  String get encoding => _name;
 
   String get fullName {
     return _name;
   }
 
   int get hashCode => 0;
+
   bool get isInSystemLibrary {
     return false;
   }
+
+  @override
+  int get modificationStamp =>
+      generateExceptionOnRead ? -1 : _modificationStamp;
 
   String get shortName {
     return _name;
@@ -637,6 +643,8 @@ class TestSourceWithUri extends TestSource {
 
   TestSourceWithUri(String path, this.uri, [String content])
       : super(path, content);
+
+  String get encoding => uri.toString();
 
   UriKind get uriKind {
     if (uri == null) {

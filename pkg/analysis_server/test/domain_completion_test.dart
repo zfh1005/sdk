@@ -7,372 +7,27 @@ library test.domain.completion;
 import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
-import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/channel/channel.dart';
-import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/context_manager.dart';
-import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/domain_completion.dart';
-import 'package:analysis_server/src/plugin/server_plugin.dart';
-import 'package:analysis_server/src/provisional/completion/completion_core.dart'
-    show AnalysisRequest, CompletionRequest, CompletionResult;
-import 'package:analysis_server/src/provisional/completion/completion_dart.dart'
-    as newApi;
-import 'package:analysis_server/src/services/completion/completion_manager.dart';
-import 'package:analysis_server/src/services/completion/contribution_sorter.dart';
-import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
-import 'package:analysis_server/src/services/index/index.dart' show Index;
-import 'package:analysis_server/src/services/index/local_memory_index.dart';
-import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/source/pub_package_map_provider.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/task/dart.dart';
-import 'package:analyzer/task/dart.dart';
-import 'package:analyzer/task/model.dart';
-import 'package:plugin/manager.dart';
+import 'package:analysis_server/src/provisional/completion/completion_core.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import 'analysis_abstract.dart';
-import 'mock_sdk.dart';
-import 'mocks.dart';
+import 'domain_completion_util.dart';
+import 'mocks.dart' show pumpEventQueue;
 import 'utils.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(CompletionManagerTest);
-  defineReflectiveTests(CompletionTest);
+  defineReflectiveTests(CompletionDomainHandlerTest);
   defineReflectiveTests(_NoSearchEngine);
 }
 
 @reflectiveTest
-class CompletionManagerTest extends AbstractAnalysisTest {
-  AnalysisDomainHandler analysisDomain;
-  Test_CompletionDomainHandler completionDomain;
-  Request request;
-  int requestCount = 0;
-  String testFile2 = '/project/bin/test2.dart';
-
-  /// Cached model state in case tests need to set task model to on/off.
-  bool wasTaskModelEnabled;
-
-  AnalysisServer createAnalysisServer(Index index) {
-    ExtensionManager manager = new ExtensionManager();
-    ServerPlugin serverPlugin = new ServerPlugin();
-    manager.processPlugins([serverPlugin]);
-    return new Test_AnalysisServer(
-        super.serverChannel,
-        super.resourceProvider,
-        super.packageMapProvider,
-        index,
-        serverPlugin,
-        new AnalysisServerOptions(),
-        new MockSdk(),
-        InstrumentationService.NULL_SERVICE);
-  }
-
-  @override
-  Index createIndex() {
-    return createLocalMemoryIndex();
-  }
-
-  void sendRequest(String path) {
-    String id = (++requestCount).toString();
-    request = new CompletionGetSuggestionsParams(path, 0).toRequest(id);
-    Response response = handler.handleRequest(request);
-    expect(response, isResponseSuccess(id));
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-    wasTaskModelEnabled = AnalysisEngine.instance.useTaskModel;
-    AnalysisEngine.instance.useTaskModel = true;
-    createProject();
-    analysisDomain = handler;
-    completionDomain = new Test_CompletionDomainHandler(server);
-    handler = completionDomain;
-    addTestFile('^library A; cl');
-    addFile(testFile2, 'library B; cl');
-  }
-
-  void tearDown() {
-    super.tearDown();
-    analysisDomain = null;
-    completionDomain = null;
-    AnalysisEngine.instance.useTaskModel = wasTaskModelEnabled;
-  }
-
-  /**
-   * Assert different managers are used for different sources
-   */
-  test_2_requests_different_sources() {
-    expect(completionDomain.manager, isNull);
-    sendRequest(testFile);
-    expect(completionDomain.manager, isNotNull);
-    MockCompletionManager expectedManager = completionDomain.manager;
-    expect(expectedManager.disposeCallCount, 0);
-    expect(completionDomain.mockContext.mockStream.listenCount, 1);
-    expect(completionDomain.mockContext.mockStream.cancelCount, 0);
-    return pumpEventQueue().then((_) {
-      expect(completionDomain.manager, expectedManager);
-      expect(completionDomain.mockManager.computeCallCount, 1);
-      sendRequest(testFile2);
-      expect(completionDomain.manager, isNotNull);
-      expect(completionDomain.manager, isNot(expectedManager));
-      expect(expectedManager.disposeCallCount, 1);
-      expectedManager = completionDomain.manager;
-      expect(completionDomain.mockContext.mockStream.listenCount, 2);
-      expect(completionDomain.mockContext.mockStream.cancelCount, 1);
-      return pumpEventQueue();
-    }).then((_) {
-      expect(completionDomain.manager, expectedManager);
-      expect(completionDomain.mockContext.mockStream.listenCount, 2);
-      expect(completionDomain.mockContext.mockStream.cancelCount, 1);
-      expect(completionDomain.mockManager.computeCallCount, 1);
-    });
-  }
-
-  /**
-   * Assert same manager is used for multiple requests on same source
-   */
-  test_2_requests_same_source() {
-    expect(completionDomain.manager, isNull);
-    sendRequest(testFile);
-    expect(completionDomain.manager, isNotNull);
-    expect(completionDomain.manager.source, isNotNull);
-    CompletionManager expectedManager = completionDomain.manager;
-    expect(completionDomain.mockContext.mockStream.listenCount, 1);
-    expect(completionDomain.mockContext.mockStream.cancelCount, 0);
-    return pumpEventQueue().then((_) {
-      expect(completionDomain.manager, expectedManager);
-      expect(completionDomain.mockManager.computeCallCount, 1);
-      sendRequest(testFile);
-      expect(completionDomain.manager, expectedManager);
-      expect(completionDomain.mockContext.mockStream.listenCount, 1);
-      expect(completionDomain.mockContext.mockStream.cancelCount, 0);
-      return pumpEventQueue();
-    }).then((_) {
-      expect(completionDomain.manager, expectedManager);
-      expect(completionDomain.mockContext.mockStream.listenCount, 1);
-      expect(completionDomain.mockContext.mockStream.cancelCount, 0);
-      expect(completionDomain.mockManager.computeCallCount, 2);
-    });
-  }
-
-  /**
-   * Assert manager is NOT cleared when context NOT associated with manager changes.
-   */
-  test_contextsChanged_different() {
-    sendRequest(testFile);
-    CompletionManager expectedManager;
-    return pumpEventQueue().then((_) {
-      expect(completionDomain.manager, isNotNull);
-      expectedManager = completionDomain.manager;
-      completionDomain.contextsChangedRaw(
-          new ContextsChangedEvent(changed: [new MockContext()]));
-      return pumpEventQueue();
-    }).then((_) {
-      expect(completionDomain.manager, expectedManager);
-    });
-  }
-
-  /**
-   * Assert manager is cleared when context associated with manager changes.
-   */
-  test_contextsChanged_same() {
-    sendRequest(testFile);
-    return pumpEventQueue().then((_) {
-      expect(completionDomain.manager, isNotNull);
-      completionDomain.contextsChangedRaw(
-          new ContextsChangedEvent(changed: [completionDomain.mockContext]));
-      return pumpEventQueue();
-    }).then((_) {
-      expect(completionDomain.manager, isNull);
-    });
-  }
-
-  /**
-   * Assert manager is cleared when analysis roots are set
-   */
-  test_setAnalysisRoots() {
-    sendRequest(testFile);
-    return pumpEventQueue().then((_) {
-      expect(completionDomain.manager, isNotNull);
-      request = new AnalysisSetAnalysisRootsParams([], []).toRequest('7');
-      Response response = analysisDomain.handleRequest(request);
-      expect(response, isResponseSuccess('7'));
-      return pumpEventQueue();
-    }).then((_) {
-      expect(completionDomain.manager, isNull);
-    });
-  }
-
-  /**
-   * Assert manager is cleared when source NOT associated with manager is changed.
-   */
-  test_sourcesChanged_different_source_changed() {
-    sendRequest(testFile);
-    return pumpEventQueue().then((_) {
-      expect(completionDomain.manager, isNotNull);
-      ContextSourcePair contextSource = server.getContextSourcePair(testFile2);
-      ChangeSet changeSet = new ChangeSet();
-      changeSet.changedSource(contextSource.source);
-      completionDomain.sourcesChanged(new SourcesChangedEvent(changeSet));
-      expect(completionDomain.manager, isNull);
-    });
-  }
-
-  /**
-   * Assert manager is NOT cleared when source associated with manager is changed.
-   */
-  test_sourcesChanged_same_source_changed() {
-    sendRequest(testFile);
-    return pumpEventQueue().then((_) {
-      expect(completionDomain.manager, isNotNull);
-      CompletionManager expectedManager = completionDomain.manager;
-      ChangeSet changeSet = new ChangeSet();
-      changeSet.changedSource(completionDomain.manager.source);
-      completionDomain.sourcesChanged(new SourcesChangedEvent(changeSet));
-      expect(completionDomain.manager, expectedManager);
-    });
-  }
-
-  /**
-   * Assert manager is cleared when source is deleted
-   */
-  test_sourcesChanged_source_deleted() {
-    sendRequest(testFile);
-    return pumpEventQueue().then((_) {
-      expect(completionDomain.manager, isNotNull);
-      ChangeSet changeSet = new ChangeSet();
-      changeSet.deletedSource(completionDomain.manager.source);
-      completionDomain.sourcesChanged(new SourcesChangedEvent(changeSet));
-      expect(completionDomain.manager, isNull);
-    });
-  }
-
-  /**
-   * Assert manager is cleared when source is removed
-   */
-  test_sourcesChanged_source_removed() {
-    sendRequest(testFile);
-    return pumpEventQueue().then((_) {
-      expect(completionDomain.manager, isNotNull);
-      ChangeSet changeSet = new ChangeSet();
-      changeSet.removedSource(completionDomain.manager.source);
-      completionDomain.sourcesChanged(new SourcesChangedEvent(changeSet));
-      expect(completionDomain.manager, isNull);
-    });
-  }
-}
-
-@reflectiveTest
-class CompletionTest extends AbstractAnalysisTest {
-  String completionId;
-  int completionOffset;
-  int replacementOffset;
-  int replacementLength;
-  List<CompletionSuggestion> suggestions = [];
-  bool suggestionsDone = false;
-
-  String addTestFile(String content, {int offset}) {
-    completionOffset = content.indexOf('^');
-    if (offset != null) {
-      expect(completionOffset, -1, reason: 'cannot supply offset and ^');
-      completionOffset = offset;
-      return super.addTestFile(content);
-    }
-    expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
-    int nextOffset = content.indexOf('^', completionOffset + 1);
-    expect(nextOffset, equals(-1), reason: 'too many ^');
-    return super.addTestFile(content.substring(0, completionOffset) +
-        content.substring(completionOffset + 1));
-  }
-
-  void assertHasResult(CompletionSuggestionKind kind, String completion,
-      {int relevance: DART_RELEVANCE_DEFAULT,
-      bool isDeprecated: false,
-      bool isPotential: false,
-      int selectionOffset}) {
-    var cs;
-    suggestions.forEach((s) {
-      if (s.completion == completion) {
-        if (cs == null) {
-          cs = s;
-        } else {
-          fail('expected exactly one $completion but found > 1');
-        }
-      }
-    });
-    if (cs == null) {
-      var completions = suggestions.map((s) => s.completion).toList();
-      fail('expected "$completion" but found\n $completions');
-    }
-    expect(cs.kind, equals(kind));
-    expect(cs.relevance, equals(relevance));
-    expect(cs.selectionOffset, selectionOffset ?? completion.length);
-    expect(cs.selectionLength, equals(0));
-    expect(cs.isDeprecated, equals(isDeprecated));
-    expect(cs.isPotential, equals(isPotential));
-  }
-
-  void assertNoResult(String completion) {
-    if (suggestions.any((cs) => cs.completion == completion)) {
-      fail('did not expect completion: $completion');
-    }
-  }
-
-  void assertValidId(String id) {
-    expect(id, isNotNull);
-    expect(id.isNotEmpty, isTrue);
-  }
-
-  @override
-  Index createIndex() {
-    return createLocalMemoryIndex();
-  }
-
-  Future getSuggestions() {
-    return waitForTasksFinished().then((_) {
-      Request request = new CompletionGetSuggestionsParams(
-          testFile, completionOffset).toRequest('0');
-      Response response = handleSuccessfulRequest(request);
-      completionId = response.id;
-      assertValidId(completionId);
-      return pumpEventQueue().then((_) {
-        expect(suggestionsDone, isTrue);
-      });
-    });
-  }
-
-  void processNotification(Notification notification) {
-    if (notification.event == COMPLETION_RESULTS) {
-      var params = new CompletionResultsParams.fromNotification(notification);
-      String id = params.id;
-      assertValidId(id);
-      if (id == completionId) {
-        expect(suggestionsDone, isFalse);
-        replacementOffset = params.replacementOffset;
-        replacementLength = params.replacementLength;
-        suggestionsDone = params.isLast;
-        expect(suggestionsDone, isNotNull);
-        suggestions = params.results;
-      }
-    }
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-    createProject();
-    handler = new CompletionDomainHandler(server);
-  }
-
+class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
   test_html() {
     testFile = '/project/web/test.html';
     addTestFile('''
@@ -397,6 +52,76 @@ class CompletionTest extends AbstractAnalysisTest {
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'HtmlElement');
       assertNoResult('test');
     });
+  }
+
+  test_imports_aborted_new_request() async {
+    addTestFile('''
+        class foo { }
+        c^''');
+
+    // Make a request for suggestions
+    Request request =
+        new CompletionGetSuggestionsParams(testFile, completionOffset)
+            .toRequest('7');
+    Response response = handleSuccessfulRequest(request);
+    var result1 = new CompletionGetSuggestionsResult.fromResponse(response);
+    var completionId1 = result1.id;
+    assertValidId(response.id);
+
+    // Perform some analysis but assert that no suggestions have yet been made
+    completionId = completionId1;
+    await pumpEventQueue(25);
+    expect(suggestionsDone, isFalse);
+    expect(suggestions, hasLength(0));
+
+    // Make another request before the first request completes
+    Request request2 =
+        new CompletionGetSuggestionsParams(testFile, completionOffset)
+            .toRequest('8');
+    Response response2 = handleSuccessfulRequest(request2);
+    var result2 = new CompletionGetSuggestionsResult.fromResponse(response2);
+    var completionId2 = result2.id;
+    assertValidId(completionId2);
+
+    // Wait for both sets of suggestions
+    completionId = completionId2;
+    await pumpEventQueue();
+    expect(allSuggestions[completionId1], hasLength(0));
+    expect(allSuggestions[completionId2], same(suggestions));
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'class',
+        relevance: DART_RELEVANCE_HIGH);
+  }
+
+  test_imports_aborted_source_changed() async {
+    addTestFile('''
+        class foo { }
+        c^''');
+
+    // Make a request for suggestions
+    Request request =
+        new CompletionGetSuggestionsParams(testFile, completionOffset)
+            .toRequest('0');
+    Response response = handleSuccessfulRequest(request);
+    completionId = response.id;
+    assertValidId(completionId);
+
+    // Perform some analysis but assert that no suggestions have yet been made
+    await pumpEventQueue(25);
+    expect(suggestionsDone, isFalse);
+    expect(suggestions, hasLength(0));
+
+    // Simulate user deleting text after request but before suggestions returned
+    server.updateContent('uc1', {testFile: new AddContentOverlay(testCode)});
+    server.updateContent('uc2', {
+      testFile: new ChangeContentOverlay(
+          [new SourceEdit(completionOffset - 1, 1, '')])
+    });
+
+    // Expect the completion domain to discard request because source changed
+    await pumpEventQueue().then((_) {
+      expect(suggestionsDone, isTrue);
+    });
+    expect(suggestions, hasLength(0));
   }
 
   test_imports_incremental() async {
@@ -467,8 +192,21 @@ class CompletionTest extends AbstractAnalysisTest {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object');
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'foo');
+      assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'foo');
       assertNoResult('HtmlElement');
+      assertNoResult('test');
+    });
+  }
+
+  test_imports_prefixed2() {
+    addTestFile('''
+      import 'dart:html' as foo;
+      main() {foo.^}
+    ''');
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset));
+      expect(replacementLength, equals(0));
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'HtmlElement');
       assertNoResult('test');
     });
   }
@@ -483,15 +221,15 @@ class CompletionTest extends AbstractAnalysisTest {
   }
 
   test_invocation_sdk_relevancy_off() {
-    var originalSorter = DartCompletionManager.defaultContributionSorter;
+    var originalSorter = DartCompletionManager.contributionSorter;
     var mockSorter = new MockRelevancySorter();
-    DartCompletionManager.defaultContributionSorter = mockSorter;
+    DartCompletionManager.contributionSorter = mockSorter;
     addTestFile('main() {Map m; m.^}');
     return getSuggestions().then((_) {
       // Assert that the CommonUsageComputer has been replaced
       expect(suggestions.any((s) => s.relevance == DART_RELEVANCE_COMMON_USAGE),
           isFalse);
-      DartCompletionManager.defaultContributionSorter = originalSorter;
+      DartCompletionManager.contributionSorter = originalSorter;
       mockSorter.enabled = false;
     });
   }
@@ -511,6 +249,102 @@ class CompletionTest extends AbstractAnalysisTest {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'b');
+    });
+  }
+
+  test_inComment_block_beforeNode() async {
+    addTestFile('''
+  main(aaa, bbb) {
+    /* text ^ */
+    print(42);
+  }
+  ''');
+    await getSuggestions();
+    expect(suggestions, isEmpty);
+  }
+
+  test_inComment_endOfLine_beforeNode() async {
+    addTestFile('''
+  main(aaa, bbb) {
+    // text ^
+    print(42);
+  }
+  ''');
+    await getSuggestions();
+    expect(suggestions, isEmpty);
+  }
+
+  test_inComment_endOfLine_beforeToken() async {
+    addTestFile('''
+  main(aaa, bbb) {
+    // text ^
+  }
+  ''');
+    await getSuggestions();
+    expect(suggestions, isEmpty);
+  }
+
+  test_inDartDoc1() async {
+    addTestFile('''
+  /// ^
+  main(aaa, bbb) {}
+  ''');
+    await getSuggestions();
+    expect(suggestions, isEmpty);
+  }
+
+  test_inDartDoc2() async {
+    addTestFile('''
+  /// Some text^
+  main(aaa, bbb) {}
+  ''');
+    await getSuggestions();
+    expect(suggestions, isEmpty);
+  }
+
+  test_inDartDoc_reference1() async {
+    addFile(
+        '/testA.dart',
+        '''
+  part of libA;
+  foo(bar) => 0;''');
+    addTestFile('''
+  library libA;
+  part "/testA.dart";
+  import "dart:math";
+  /// The [^]
+  main(aaa, bbb) {}
+  ''');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'main',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'foo',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'min');
+  }
+
+  test_inDartDoc_reference2() async {
+    addTestFile('''
+  /// The [m^]
+  main(aaa, bbb) {}
+  ''');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.IDENTIFIER, 'main',
+        relevance: DART_RELEVANCE_LOCAL_FUNCTION);
+  }
+
+  test_inherited() {
+    addFile('/libA.dart', 'class A {m() {}}');
+    addTestFile('''
+import '/libA.dart';
+class B extends A {
+  x() {^}
+}
+''');
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset));
+      expect(replacementLength, equals(0));
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'm');
     });
   }
 
@@ -536,6 +370,23 @@ class CompletionTest extends AbstractAnalysisTest {
     });
   }
 
+  test_local_override() {
+    addFile('/libA.dart', 'class A {m() {}}');
+    addTestFile('''
+import '/libA.dart';
+class B extends A {
+  m() {}
+  x() {^}
+}
+''');
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset));
+      expect(replacementLength, equals(0));
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'm',
+          relevance: DART_RELEVANCE_LOCAL_METHOD);
+    });
+  }
+
   test_locals() {
     addTestFile('class A {var a; x() {var b;^}} class DateTime { }');
     return getSuggestions().then((_) {
@@ -554,12 +405,12 @@ class CompletionTest extends AbstractAnalysisTest {
 
   test_offset_past_eof() {
     addTestFile('main() { }', offset: 300);
-    return getSuggestions().then((_) {
-      expect(replacementOffset, equals(300));
-      expect(replacementLength, equals(0));
-      expect(suggestionsDone, true);
-      expect(suggestions.length, 0);
-    });
+    Request request =
+        new CompletionGetSuggestionsParams(testFile, completionOffset)
+            .toRequest('0');
+    Response response = handler.handleRequest(request);
+    expect(response.id, '0');
+    expect(response.error.code, RequestErrorCode.INVALID_PARAMETER);
   }
 
   test_overrides() {
@@ -620,28 +471,6 @@ class B extends A {m() {^}}
     });
   }
 
-  test_relevancy_sorter_analysis() {
-    var originalSorter = DartCompletionManager.defaultContributionSorter;
-
-    // Setup the mock sorter to request additional analysis
-    var mockSorter = new MockRelevancySorter();
-    mockSorter.addTask(PARSED_UNIT);
-    mockSorter.addTask(LIBRARY_ELEMENT1);
-    mockSorter.addTask(RESOLVED_UNIT3);
-    mockSorter.addTask(RESOLVED_UNIT3);
-
-    DartCompletionManager.defaultContributionSorter = mockSorter;
-    addTestFile('main() {Map m; m.^}');
-
-    return getSuggestions().then((_) {
-      DartCompletionManager.defaultContributionSorter = originalSorter;
-      mockSorter.enabled = false;
-
-      // Assert that the analysis requests were processed
-      mockSorter.assertAnalysisRequestsProcessed();
-    });
-  }
-
   test_simple() {
     addTestFile('''
       void main() {
@@ -654,6 +483,16 @@ class B extends A {m() {^}}
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'Object');
       assertNoResult('HtmlElement');
       assertNoResult('test');
+    });
+  }
+
+  test_static() {
+    addTestFile('class A {static b() {} c() {}} main() {A.^}');
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset));
+      expect(replacementLength, equals(0));
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'b');
+      assertNoResult('c');
     });
   }
 
@@ -675,205 +514,16 @@ class B extends A {m() {^}}
   }
 }
 
-class MockCache extends CompletionCache {
-  MockCache(AnalysisContext context, Source source) : super(context, source);
-}
-
-class MockCompletionManager implements CompletionManager {
-  final AnalysisContext context;
-  final Source source;
-  final SearchEngine searchEngine;
-  StreamController<CompletionResult> controller;
-  int computeCallCount = 0;
-  int disposeCallCount = 0;
-
-  MockCompletionManager(this.context, this.source, this.searchEngine);
-
-  @override
-  Future<bool> computeCache() {
-    return new Future.value(true);
-  }
-
-  @override
-  void computeSuggestions(CompletionRequest request) {
-    ++computeCallCount;
-    CompletionResult result = new CompletionResultImpl(0, 0, [], true);
-    controller.add(result);
-  }
-
-  @override
-  void dispose() {
-    ++disposeCallCount;
-  }
-
-  @override
-  Stream<CompletionResult> results(CompletionRequest request) {
-    controller = new StreamController<CompletionResult>(onListen: () {
-      scheduleMicrotask(() {
-        computeSuggestions(request);
-      });
-    });
-    return controller.stream;
-  }
-}
-
-/**
- * Mock [AnaysisContext] for tracking usage of onSourcesChanged.
- */
-class MockContext implements AnalysisContext {
-  static final SourceFactory DEFAULT_SOURCE_FACTORY = new SourceFactory([]);
-
-  MockStream<SourcesChangedEvent> mockStream;
-
-  SourceFactory sourceFactory = DEFAULT_SOURCE_FACTORY;
-
-  MockContext() {
-    mockStream = new MockStream<SourcesChangedEvent>();
-  }
-
-  @override
-  Stream<SourcesChangedEvent> get onSourcesChanged => mockStream;
-
-  @override
-  bool exists(Source source) {
-    return source != null && source.exists();
-  }
-
-  @override
-  TimestampedData<String> getContents(Source source) {
-    return source.contents;
-  }
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class MockRelevancySorter implements ContributionSorter {
+class MockRelevancySorter implements DartContributionSorter {
   bool enabled = true;
-  List<ResultDescriptor> descriptors = <ResultDescriptor>[];
-
-  void addTask(ResultDescriptor descriptor) {
-    descriptors.add(descriptor);
-  }
-
-  void assertAnalysisRequestsProcessed() {
-    expect(descriptors, hasLength(0));
-  }
 
   @override
-  AnalysisRequest sort(
+  Future sort(
       CompletionRequest request, Iterable<CompletionSuggestion> suggestions) {
     if (!enabled) {
       throw 'unexpected sort';
     }
-    return _nextAnalysisRequest(request);
-  }
-
-  AnalysisRequest _callback(CompletionRequest request, var value) {
-    expect(value, isNotNull);
-    return _nextAnalysisRequest(request);
-  }
-
-  AnalysisRequest _nextAnalysisRequest(CompletionRequest request) {
-    if (descriptors.length == 0) {
-      return null;
-    }
-    return new AnalysisRequest(
-        request.source, descriptors.removeAt(0), _callback);
-  }
-}
-
-/**
- * Mock stream for tracking calls to listen and subscription.cancel.
- */
-class MockStream<E> implements Stream<E> {
-  MockSubscription<E> mockSubscription = new MockSubscription<E>();
-  int listenCount = 0;
-
-  int get cancelCount => mockSubscription.cancelCount;
-
-  @override
-  StreamSubscription<E> listen(void onData(E event),
-      {Function onError, void onDone(), bool cancelOnError}) {
-    ++listenCount;
-    return mockSubscription;
-  }
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-/**
- * Mock subscription for tracking calls to subscription.cancel.
- */
-class MockSubscription<E> implements StreamSubscription<E> {
-  int cancelCount = 0;
-
-  Future cancel() {
-    ++cancelCount;
-    return new Future.value(true);
-  }
-
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-class Test_AnalysisServer extends AnalysisServer {
-  final MockContext mockContext = new MockContext();
-
-  Test_AnalysisServer(
-      ServerCommunicationChannel channel,
-      ResourceProvider resourceProvider,
-      PubPackageMapProvider packageMapProvider,
-      Index index,
-      ServerPlugin serverPlugin,
-      AnalysisServerOptions analysisServerOptions,
-      DartSdk defaultSdk,
-      InstrumentationService instrumentationService)
-      : super(
-            channel,
-            resourceProvider,
-            packageMapProvider,
-            index,
-            serverPlugin,
-            analysisServerOptions,
-            defaultSdk,
-            instrumentationService);
-
-  @override
-  AnalysisContext getAnalysisContext(String path) {
-    return mockContext;
-  }
-
-  @override
-  ContextSourcePair getContextSourcePair(String path) {
-    ContextSourcePair pair = super.getContextSourcePair(path);
-    return new ContextSourcePair(mockContext, pair.source);
-  }
-}
-
-/**
- * A [CompletionDomainHandler] subclass that returns a mock completion manager
- * so that the domain handler cache management can be tested.
- */
-class Test_CompletionDomainHandler extends CompletionDomainHandler {
-  Test_CompletionDomainHandler(Test_AnalysisServer server) : super(server);
-
-  MockContext get mockContext => (server as Test_AnalysisServer).mockContext;
-
-  MockCompletionManager get mockManager => manager;
-
-  void contextsChanged(ContextsChangedEvent event) {
-    contextsChangedRaw(new ContextsChangedEvent(
-        added: event.added.length > 0 ? [mockContext] : [],
-        changed: event.changed.length > 0 ? [mockContext] : [],
-        removed: event.removed.length > 0 ? [mockContext] : []));
-  }
-
-  void contextsChangedRaw(ContextsChangedEvent newEvent) {
-    super.contextsChanged(newEvent);
-  }
-
-  CompletionManager createCompletionManager(
-      AnalysisContext context, Source source, SearchEngine searchEngine) {
-    return new MockCompletionManager(mockContext, source, searchEngine);
+    return new Future.value();
   }
 }
 

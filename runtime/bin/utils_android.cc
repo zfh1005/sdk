@@ -12,7 +12,7 @@
 
 #include "bin/utils.h"
 #include "platform/assert.h"
-
+#include "platform/utils.h"
 
 namespace dart {
 namespace bin {
@@ -22,7 +22,7 @@ OSError::OSError() : sub_system_(kSystem), code_(0), message_(NULL) {
   set_code(errno);
   const int kBufferSize = 1024;
   char error_message[kBufferSize];
-  strerror_r(errno, error_message, kBufferSize);
+  Utils::StrError(errno, error_message, kBufferSize);
   SetMessage(error_message);
 }
 
@@ -33,7 +33,7 @@ void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
   if (sub_system == kSystem) {
     const int kBufferSize = 1024;
     char error_message[kBufferSize];
-    strerror_r(code, error_message, kBufferSize);
+    Utils::StrError(code, error_message, kBufferSize);
     SetMessage(error_message);
   } else if (sub_system == kGetAddressInfo) {
     SetMessage(gai_strerror(code));
@@ -42,11 +42,13 @@ void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
   }
 }
 
+
 const char* StringUtils::ConsoleStringToUtf8(
     const char* str, intptr_t len, intptr_t* result_len) {
   UNIMPLEMENTED();
   return NULL;
 }
+
 
 const char* StringUtils::Utf8ToConsoleString(
     const char* utf8, intptr_t len, intptr_t* result_len) {
@@ -54,11 +56,13 @@ const char* StringUtils::Utf8ToConsoleString(
   return NULL;
 }
 
+
 char* StringUtils::ConsoleStringToUtf8(
     char* str, intptr_t len, intptr_t* result_len) {
   UNIMPLEMENTED();
   return NULL;
 }
+
 
 char* StringUtils::Utf8ToConsoleString(
     char* utf8, intptr_t len, intptr_t* result_len) {
@@ -66,22 +70,34 @@ char* StringUtils::Utf8ToConsoleString(
   return NULL;
 }
 
+
 bool ShellUtils::GetUtf8Argv(int argc, char** argv) {
   return false;
 }
 
-int64_t TimerUtils::GetCurrentTimeMilliseconds() {
-  return GetCurrentTimeMicros() / 1000;
+
+void TimerUtils::InitOnce() {
 }
 
-int64_t TimerUtils::GetCurrentTimeMicros() {
-  struct timeval tv;
-  if (gettimeofday(&tv, NULL) < 0) {
+
+int64_t TimerUtils::GetCurrentMonotonicMillis() {
+  return GetCurrentMonotonicMicros() / 1000;
+}
+
+
+int64_t TimerUtils::GetCurrentMonotonicMicros() {
+  struct timespec ts;
+  if (clock_gettime(CLOCK_MONOTONIC, &ts) != 0) {
     UNREACHABLE();
     return 0;
   }
-  return (static_cast<int64_t>(tv.tv_sec) * 1000000) + tv.tv_usec;
+  // Convert to microseconds.
+  int64_t result = ts.tv_sec;
+  result *= kMicrosecondsPerSecond;
+  result += (ts.tv_nsec / kNanosecondsPerMicrosecond);
+  return result;
 }
+
 
 void TimerUtils::Sleep(int64_t millis) {
   struct timespec req;  // requested.

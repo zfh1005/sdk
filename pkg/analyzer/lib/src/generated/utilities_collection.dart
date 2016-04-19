@@ -2,13 +2,36 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library engine.utilities.collection;
+library analyzer.src.generated.utilities_collection;
 
-import "dart:math" as math;
 import 'dart:collection';
+import "dart:math" as math;
 
-import 'java_core.dart';
-import 'scanner.dart' show Token;
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/generated/java_core.dart';
+
+/**
+ * Returns `true` if a and b contain equal elements in the same order.
+ */
+bool listsEqual(List a, List b) {
+  // TODO(rnystrom): package:collection also implements this, and analyzer
+  // already transitively depends on that package. Consider using it instead.
+  if (identical(a, b)) {
+    return true;
+  }
+
+  if (a.length != b.length) {
+    return false;
+  }
+
+  for (int i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) {
+      return false;
+    }
+  }
+
+  return true;
+}
 
 /**
  * The class `BooleanArray` defines methods for operating on integers as if they were arrays
@@ -462,25 +485,6 @@ class DirectedGraph_SccFinder<N> {
       _allComponents.add(component);
     }
     return vInfo;
-  }
-}
-
-/**
- * The class `ListUtilities` defines utility methods useful for working with [List
- ].
- */
-class ListUtilities {
-  /**
-   * Add all of the elements in the given array to the given list.
-   *
-   * @param list the list to which the elements are to be added
-   * @param elements the elements to be added to the list
-   */
-  static void addAll(List list, List<Object> elements) {
-    int count = elements.length;
-    for (int i = 0; i < count; i++) {
-      list.add(elements[i]);
-    }
   }
 }
 

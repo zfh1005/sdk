@@ -16,6 +16,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 DECLARE_FLAG(bool, thread_interrupter);
 DECLARE_FLAG(bool, trace_thread_interrupter);
 
@@ -44,7 +46,7 @@ class ThreadInterrupterAndroid : public AllStatic {
 };
 
 
-void ThreadInterrupter::InterruptThread(Thread* thread) {
+void ThreadInterrupter::InterruptThread(OSThread* thread) {
   if (FLAG_trace_thread_interrupter) {
     OS::Print("ThreadInterrupter interrupting %p\n",
               reinterpret_cast<void*>(thread->id()));
@@ -63,6 +65,8 @@ void ThreadInterrupter::InstallSignalHandler() {
 void ThreadInterrupter::RemoveSignalHandler() {
   SignalHandler::Remove();
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart
 

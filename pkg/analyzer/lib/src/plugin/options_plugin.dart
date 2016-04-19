@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.plugin.options;
+library analyzer.src.plugin.options_plugin;
 
 import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/plugin/task.dart';
@@ -34,11 +34,13 @@ class OptionsPlugin implements Plugin {
 
   /// All contributed options processors.
   List<OptionsProcessor> get optionsProcessors =>
-      optionsProcessorExtensionPoint?.extensions ?? const [];
+      optionsProcessorExtensionPoint?.extensions as List<OptionsProcessor> ??
+      const <OptionsProcessor>[];
 
   /// All contributed options validators.
   List<OptionsValidator> get optionsValidators =>
-      optionsValidatorExtensionPoint?.extensions ?? const [];
+      optionsValidatorExtensionPoint?.extensions as List<OptionsValidator> ??
+      const <OptionsValidator>[];
 
   @override
   String get uniqueIdentifier => UNIQUE_IDENTIFIER;

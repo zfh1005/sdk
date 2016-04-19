@@ -43,13 +43,13 @@ main(List args) {
     return;
   }
 
-  var abs_package_root = new File(Platform.packageRoot).absolute.path;
+  var abs_package_root = Uri.parse(Platform.packageRoot).toFilePath();
   var dart_executable =
       Directory.current.path + Platform.pathSeparator + Platform.executable;
   Directory tmp;
   try {
     tmp = Directory.current.createTempSync("temp_precompilation_test");
-    var exec = "${dart_executable}_no_snapshot";
+    var exec = "${dart_executable}_bootstrap";
     var args = ["--package-root=$abs_package_root",
                 "--gen-precompiled-snapshot",
                 "${abs_package_root}compiler/src/dart2js.dart"];
@@ -77,7 +77,7 @@ main(List args) {
 
     result = Process.runSync(
         cc,
-        [shared, cc_flags, "-o", libname, "precompiled.S"],
+        [shared, cc_flags, "-nostartfiles", "-o", libname, "precompiled.S"],
         workingDirectory: tmp.path);
     if (result.exitCode != 0) {
       print(result.stdout);
@@ -87,7 +87,7 @@ main(List args) {
 
     var ld_library_path = new String.fromEnvironment("LD_LIBRARY_PATH");
     ld_library_path = "${ld_library_path}:${tmp.path}";
-    exec = "${dart_executable}";
+    exec = "${dart_executable}_precompiled_runtime";
     args = ["--run-precompiled-snapshot", "ignored_script", "--version"];
     print("LD_LIBRARY_PATH=$ld_library_path $exec ${args.join(' ')}");
     result = Process.runSync(exec, args,

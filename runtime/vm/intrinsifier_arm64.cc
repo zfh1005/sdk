@@ -17,8 +17,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, interpret_irregexp);
-
 // When entering intrinsics code:
 // R4: Arguments descriptor
 // LR: Return address
@@ -36,7 +34,7 @@ intptr_t Intrinsifier::ParameterSlotFromSp() { return -1; }
 // Intrinsify only for Smi value and index. Non-smi values need a store buffer
 // update. Array length is always a Smi.
 void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
-  if (Isolate::Current()->flags().type_checks()) {
+  if (Isolate::Current()->type_checks()) {
     return;
   }
 
@@ -109,7 +107,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
 // On stack: growable array (+1), value (+0).
 void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   // In checked mode we need to type-check the incoming argument.
-  if (Isolate::Current()->flags().type_checks()) {
+  if (Isolate::Current()->type_checks()) {
     return;
   }
   Label fall_through;
@@ -240,12 +238,6 @@ static int GetScaleFactor(intptr_t size) {
 
 
 #define TYPED_DATA_ALLOCATOR(clazz)                                            \
-void Intrinsifier::TypedData_##clazz##_new(Assembler* assembler) {             \
-  intptr_t size = TypedData::ElementSizeInBytes(kTypedData##clazz##Cid);       \
-  intptr_t max_len = TypedData::MaxElements(kTypedData##clazz##Cid);           \
-  int shift = GetScaleFactor(size);                                            \
-  TYPED_ARRAY_ALLOCATION(TypedData, kTypedData##clazz##Cid, max_len, shift);   \
-}                                                                              \
 void Intrinsifier::TypedData_##clazz##_factory(Assembler* assembler) {         \
   intptr_t size = TypedData::ElementSizeInBytes(kTypedData##clazz##Cid);       \
   intptr_t max_len = TypedData::MaxElements(kTypedData##clazz##Cid);           \
@@ -1614,11 +1606,10 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   Label fall_through;
   __ ldr(R0, Address(SP, 0 * kWordSize));
   __ LoadClassIdMayBeSmi(R1, R0);
+  __ CompareImmediate(R1, kClosureCid);
+  __ b(&fall_through, EQ);  // Instance is a closure.
   __ LoadClassById(R2, R1);
   // R2: class of instance (R0).
-  __ ldr(R3, FieldAddress(R2, Class::signature_function_offset()));
-  __ CompareObject(R3, Object::null_object());
-  __ b(&fall_through, NE);
 
   __ ldr(R3, FieldAddress(R2, Class::num_type_arguments_offset()), kHalfword);
   __ CompareImmediate(R3, 0);
@@ -1671,6 +1662,119 @@ void Intrinsifier::StringBaseCodeUnitAt(Assembler* assembler) {
   __ AddImmediate(R0, R0, TwoByteString::data_offset() - kHeapObjectTag);
   __ ldr(R0, Address(R0, R1), kUnsignedHalfword);
   __ SmiTag(R0);
+  __ ret();
+
+  __ Bind(&fall_through);
+}
+
+
+void GenerateSubstringMatchesSpecialization(Assembler* assembler,
+                                            intptr_t receiver_cid,
+                                            intptr_t other_cid,
+                                            Label* return_true,
+                                            Label* return_false) {
+  __ SmiUntag(R1);
+  __ ldr(R8, FieldAddress(R0, String::length_offset()));  // this.length
+  __ SmiUntag(R8);
+  __ ldr(R9, FieldAddress(R2, String::length_offset()));  // other.length
+  __ SmiUntag(R9);
+
+  // if (other.length == 0) return true;
+  __ cmp(R9, Operand(0));
+  __ b(return_true, EQ);
+
+  // if (start < 0) return false;
+  __ cmp(R1, Operand(0));
+  __ b(return_false, LT);
+
+  // if (start + other.length > this.length) return false;
+  __ add(R3, R1, Operand(R9));
+  __ cmp(R3, Operand(R8));
+  __ b(return_false, GT);
+
+  if (receiver_cid == kOneByteStringCid) {
+    __ AddImmediate(R0, R0, OneByteString::data_offset() - kHeapObjectTag);
+    __ add(R0, R0, Operand(R1));
+  } else {
+    ASSERT(receiver_cid == kTwoByteStringCid);
+    __ AddImmediate(R0, R0, TwoByteString::data_offset() - kHeapObjectTag);
+    __ add(R0, R0, Operand(R1));
+    __ add(R0, R0, Operand(R1));
+  }
+  if (other_cid == kOneByteStringCid) {
+    __ AddImmediate(R2, R2, OneByteString::data_offset() - kHeapObjectTag);
+  } else {
+    ASSERT(other_cid == kTwoByteStringCid);
+    __ AddImmediate(R2, R2, TwoByteString::data_offset() - kHeapObjectTag);
+  }
+
+  // i = 0
+  __ LoadImmediate(R3, 0);
+
+  // do
+  Label loop;
+  __ Bind(&loop);
+
+  // this.codeUnitAt(i + start)
+  __ ldr(R10, Address(R0, 0),
+         receiver_cid == kOneByteStringCid ? kUnsignedByte : kUnsignedHalfword);
+  // other.codeUnitAt(i)
+  __ ldr(R11, Address(R2, 0),
+         other_cid == kOneByteStringCid ? kUnsignedByte : kUnsignedHalfword);
+  __ cmp(R10, Operand(R11));
+  __ b(return_false, NE);
+
+  // i++, while (i < len)
+  __ add(R3, R3, Operand(1));
+  __ add(R0, R0, Operand(receiver_cid == kOneByteStringCid ? 1 : 2));
+  __ add(R2, R2, Operand(other_cid == kOneByteStringCid ? 1 : 2));
+  __ cmp(R3, Operand(R9));
+  __ b(&loop, LT);
+
+  __ b(return_true);
+}
+
+
+// bool _substringMatches(int start, String other)
+// This intrinsic handles a OneByteString or TwoByteString receiver with a
+// OneByteString other.
+void Intrinsifier::StringBaseSubstringMatches(Assembler* assembler) {
+  Label fall_through, return_true, return_false, try_two_byte;
+  __ ldr(R0, Address(SP, 2 * kWordSize));  // this
+  __ ldr(R1, Address(SP, 1 * kWordSize));  // start
+  __ ldr(R2, Address(SP, 0 * kWordSize));  // other
+
+  __ tsti(R1, Immediate(kSmiTagMask));
+  __ b(&fall_through, NE);  // 'start' is not a Smi.
+
+  __ CompareClassId(R2, kOneByteStringCid);
+  __ b(&fall_through, NE);
+
+  __ CompareClassId(R0, kOneByteStringCid);
+  __ b(&fall_through, NE);
+
+  GenerateSubstringMatchesSpecialization(assembler,
+                                         kOneByteStringCid,
+                                         kOneByteStringCid,
+                                         &return_true,
+                                         &return_false);
+
+  __ Bind(&try_two_byte);
+  __ CompareClassId(R0, kTwoByteStringCid);
+  __ b(&fall_through, NE);
+
+  GenerateSubstringMatchesSpecialization(assembler,
+                                         kTwoByteStringCid,
+                                         kOneByteStringCid,
+                                         &return_true,
+                                         &return_false);
+
+  __ Bind(&return_true);
+  __ LoadObject(R0, Bool::True());
+  __ ret();
+
+  __ Bind(&return_false);
+  __ LoadObject(R0, Bool::False());
   __ ret();
 
   __ Bind(&fall_through);
@@ -2026,7 +2130,7 @@ void Intrinsifier::TwoByteString_equality(Assembler* assembler) {
 }
 
 
-void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
+void Intrinsifier::RegExp_ExecuteMatch(Assembler* assembler) {
   if (FLAG_interpret_irregexp) return;
 
   static const intptr_t kRegExpParamOffset = 2 * kWordSize;
@@ -2045,7 +2149,7 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
   __ LoadClassId(R1, R1);
   __ AddImmediate(R1, R1, -kOneByteStringCid);
   __ add(R1, R2, Operand(R1, LSL, kWordSizeLog2));
-  __ ldr(R0, FieldAddress(R1, JSRegExp::function_offset(kOneByteStringCid)));
+  __ ldr(R0, FieldAddress(R1, RegExp::function_offset(kOneByteStringCid)));
 
   // Registers are now set up for the lazy compile stub. It expects the function
   // in R0, the argument descriptor in R4, and IC-Data in R5.

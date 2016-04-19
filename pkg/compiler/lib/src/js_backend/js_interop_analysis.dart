@@ -5,8 +5,6 @@
 /// Analysis to determine how to generate code for typed JavaScript interop.
 library compiler.src.js_backend.js_interop_analysis;
 
-import '../common/names.dart' show Identifiers;
-import '../compiler.dart' show Compiler;
 import '../diagnostics/messages.dart' show MessageKind;
 import '../constants/values.dart'
     show
@@ -72,11 +70,11 @@ class JsInteropAnalysis {
         ConstantValue value = constructedConstant.fields[nameField];
         if (value.isString) {
           StringConstantValue stringValue = value;
-          backend.setJsInteropName(
+          backend.nativeData.setJsInteropName(
               e, stringValue.primitiveValue.slowToString());
         } else {
           // TODO(jacobr): report a warning if the value is not a String.
-          backend.setJsInteropName(e, '');
+          backend.nativeData.setJsInteropName(e, '');
         }
         enabledJsInterop = true;
         return;
@@ -119,6 +117,10 @@ class JsInteropAnalysis {
       if (!element.isClass) return;
 
       ClassElement classElement = element;
+
+      // Skip classes that are completely unreachable. This should only happen
+      // when all of jsinterop types are unreachable from main.
+      if (!backend.compiler.world.isImplemented(classElement)) return;
 
       if (!classElement
           .implementsInterface(helpers.jsJavaScriptObjectClass)) {
@@ -177,7 +179,7 @@ class JsInteropAnalysis {
           if (selector.namedArgumentCount > 0) return;
           int argumentCount = selector.argumentCount;
           var candidateParameterNames =
-              'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLOMOPQRSTUVWXYZ';
+              'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
           var parameters = new List<String>.generate(
               argumentCount, (i) => candidateParameterNames[i]);
 

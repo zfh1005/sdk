@@ -52,151 +52,6 @@ import '../world.dart' show ClassWorld;
 import 'inferrer_visitor.dart';
 
 /**
- * An implementation of [TypeSystem] for [TypeMask].
- */
-class TypeMaskSystem implements TypeSystem<TypeMask> {
-  final Compiler compiler;
-  final ClassWorld classWorld;
-  TypeMaskSystem(Compiler compiler)
-      : this.compiler = compiler,
-        this.classWorld = compiler.world;
-
-  TypeMask narrowType(TypeMask type,
-                      DartType annotation,
-                      {bool isNullable: true}) {
-    if (annotation.treatAsDynamic) return type;
-    if (annotation.isObject) return type;
-    TypeMask otherType;
-    if (annotation.isTypedef || annotation.isFunctionType) {
-      otherType = functionType;
-    } else if (annotation.isTypeVariable) {
-      // TODO(ngeoffray): Narrow to bound.
-      return type;
-    } else if (annotation.isVoid) {
-      otherType = nullType;
-    } else {
-      assert(annotation.isInterfaceType);
-      otherType = new TypeMask.nonNullSubtype(annotation.element, classWorld);
-    }
-    if (isNullable) otherType = otherType.nullable();
-    if (type == null) return otherType;
-    return type.intersection(otherType, classWorld);
-  }
-
-  TypeMask computeLUB(TypeMask firstType, TypeMask secondType) {
-    if (firstType == null) {
-      return secondType;
-    } else if (secondType == dynamicType || firstType == dynamicType) {
-      return dynamicType;
-    } else if (firstType == secondType) {
-      return firstType;
-    } else {
-      TypeMask union = firstType.union(secondType, classWorld);
-      // TODO(kasperl): If the union isn't nullable it seems wasteful
-      // to use dynamic. Fix that.
-      return union.containsAll(classWorld) ? dynamicType : union;
-    }
-  }
-
-  TypeMask allocateDiamondPhi(TypeMask firstType, TypeMask secondType) {
-    return computeLUB(firstType, secondType);
-  }
-
-  TypeMask get dynamicType => compiler.typesTask.dynamicType;
-  TypeMask get nullType => compiler.typesTask.nullType;
-  TypeMask get intType => compiler.typesTask.intType;
-  TypeMask get uint32Type => compiler.typesTask.uint32Type;
-  TypeMask get uint31Type => compiler.typesTask.uint31Type;
-  TypeMask get positiveIntType => compiler.typesTask.positiveIntType;
-  TypeMask get doubleType => compiler.typesTask.doubleType;
-  TypeMask get numType => compiler.typesTask.numType;
-  TypeMask get boolType => compiler.typesTask.boolType;
-  TypeMask get functionType => compiler.typesTask.functionType;
-  TypeMask get listType => compiler.typesTask.listType;
-  TypeMask get constListType => compiler.typesTask.constListType;
-  TypeMask get fixedListType => compiler.typesTask.fixedListType;
-  TypeMask get growableListType => compiler.typesTask.growableListType;
-  TypeMask get mapType => compiler.typesTask.mapType;
-  TypeMask get constMapType => compiler.typesTask.constMapType;
-  TypeMask get stringType => compiler.typesTask.stringType;
-  TypeMask get typeType => compiler.typesTask.typeType;
-  TypeMask get syncStarIterableType => compiler.typesTask.syncStarIterableType;
-  TypeMask get asyncFutureType => compiler.typesTask.asyncFutureType;
-  TypeMask get asyncStarStreamType => compiler.typesTask.asyncStarStreamType;
-  bool isNull(TypeMask mask) => mask.isEmpty && mask.isNullable;
-
-  TypeMask stringLiteralType(ast.DartString value) => stringType;
-  TypeMask boolLiteralType(ast.LiteralBool value) => boolType;
-
-  TypeMask nonNullSubtype(ClassElement type)
-      => new TypeMask.nonNullSubtype(type.declaration, classWorld);
-  TypeMask nonNullSubclass(ClassElement type)
-      => new TypeMask.nonNullSubclass(type.declaration, classWorld);
-  TypeMask nonNullExact(ClassElement type)
-      => new TypeMask.nonNullExact(type.declaration, classWorld);
-  TypeMask nonNullEmpty() => new TypeMask.nonNullEmpty();
-
-  TypeMask allocateList(TypeMask type,
-                        ast.Node node,
-                        Element enclosing,
-                        [TypeMask elementType, int length]) {
-    return new ContainerTypeMask(type, node, enclosing, elementType, length);
-  }
-
-  TypeMask allocateMap(TypeMask type, ast.Node node, Element element,
-                       [List<TypeMask> keys, List<TypeMask> values]) {
-    return type;
-  }
-
-  TypeMask allocateClosure(ast.Node node, Element element) {
-    return functionType;
-  }
-
-  TypeMask newTypedSelector(TypeMask receiver, TypeMask mask) {
-    return receiver;
-  }
-
-  TypeMask addPhiInput(Local variable,
-                       TypeMask phiType,
-                       TypeMask newType) {
-    return computeLUB(phiType, newType);
-  }
-
-  TypeMask allocatePhi(ast.Node node,
-                       Local variable,
-                       TypeMask inputType) {
-    return inputType;
-  }
-
-  TypeMask allocateLoopPhi(ast.Node node,
-                           Local variable,
-                           TypeMask inputType) {
-    return inputType;
-  }
-
-  TypeMask simplifyPhi(ast.Node node,
-                       Local variable,
-                       TypeMask phiType) {
-    return phiType;
-  }
-
-  bool selectorNeedsUpdate(TypeMask type, TypeMask mask) {
-    return type != mask;
-  }
-
-  TypeMask refineReceiver(Selector selector,
-                          TypeMask mask,
-                          TypeMask receiverType,
-                          bool isConditional) {
-    TypeMask newType =
-        compiler.world.allFunctions.receiverType(selector, mask);
-    return receiverType.intersection(newType, classWorld);
-  }
-
-  TypeMask getConcreteTypeFor(TypeMask mask) => mask;
-}
-
-/**
  * Common super class used by [SimpleTypeInferrerVisitor] to propagate
  * type information about visited nodes, as well as to request type
  * information of elements.
@@ -482,6 +337,15 @@ abstract class InferrerEngine<T, V extends TypeSystem>
   }
 }
 
+/// [SimpleTypeInferrerVisitor] can be thought of as a type-inference graph
+/// builder for a single element.
+///
+/// Calling [run] will start the work of visiting the body of the code to
+/// construct a set of infernece-nodes that abstractly represent what the code
+/// is doing.
+///
+/// This visitor is parameterized by an [InferenceEngine], which internally
+/// decides how to represent inference nodes.
 class SimpleTypeInferrerVisitor<T>
     extends InferrerVisitor<T, InferrerEngine<T, TypeSystem<T>>> {
   T returnType;
@@ -549,6 +413,9 @@ class SimpleTypeInferrerVisitor<T>
     FunctionSignature signature = function.functionSignature;
     signature.forEachOptionalParameter((ParameterElement element) {
       ast.Expression defaultValue = element.initializer;
+      // TODO(25566): The default value of a parameter of a redirecting factory
+      // constructor comes from the corresponding parameter of the target.
+
       // If this is a default value from a different context (because
       // the current function is synthetic, e.g., a constructor from
       // a mixin application), we have to start a new inferrer visitor
@@ -1445,6 +1312,24 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   @override
+  T visitSuperGetterSet(
+      ast.Send node,
+      MethodElement getter,
+      ast.Node rhs,
+      _) {
+    return handleErroneousSuperSend(node);
+  }
+
+  @override
+  T visitUnresolvedSuperSet(
+      ast.Send node,
+      Element element,
+      ast.Node rhs,
+      _) {
+    return handleErroneousSuperSend(node);
+  }
+
+  @override
   T visitUnresolvedSuperInvoke(
       ast.Send node,
       Element element,
@@ -1618,54 +1503,50 @@ class SimpleTypeInferrerVisitor<T>
     return super.handleTypeLiteralInvoke(arguments);
   }
 
-  /// Handle constructor invocation of [element].
-  T handleConstructorSend(ast.Send node, ConstructorElement element) {
+  /// Handle constructor invocation of [constructor].
+  T handleConstructorSend(ast.Send node, ConstructorElement constructor) {
+    ConstructorElement target = constructor.implementation;
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     if (visitingInitializers) {
       if (ast.Initializers.isConstructorRedirect(node)) {
         isConstructorRedirect = true;
       } else if (ast.Initializers.isSuperConstructorCall(node)) {
         seenSuperConstructorCall = true;
-        analyzeSuperConstructorCall(element, arguments);
+        analyzeSuperConstructorCall(constructor, arguments);
       }
     }
-    // If we are looking at a new expression on a forwarding factory,
-    // we have to forward the call to the effective target of the
-    // factory.
-    if (element.isFactoryConstructor) {
-      // TODO(herhut): Remove the while loop once effectiveTarget forwards to
-      //               patches.
-      while (element.isFactoryConstructor) {
-        ConstructorElement constructor = element;
-        if (!constructor.isRedirectingFactory) break;
-        element = constructor.effectiveTarget.implementation;
-      }
+    // If we are looking at a new expression on a forwarding factory, we have to
+    // forward the call to the effective target of the factory.
+    // TODO(herhut): Remove the loop once effectiveTarget forwards to patches.
+    while (target.isFactoryConstructor) {
+      if (!target.isRedirectingFactory) break;
+      target = target.effectiveTarget.implementation;
     }
-    if (compiler.backend.isForeign(element)) {
-      return handleForeignSend(node, element);
+    if (compiler.backend.isForeign(target)) {
+      return handleForeignSend(node, target);
     }
     Selector selector = elements.getSelector(node);
     TypeMask mask = elements.getTypeMask(node);
     // In erroneous code the number of arguments in the selector might not
     // match the function element.
     // TODO(polux): return nonNullEmpty and check it doesn't break anything
-    if (!selector.applies(element, compiler.world) ||
-        (mask != null && !mask.canHit(element, selector, compiler.world))) {
+    if (!selector.applies(target, compiler.world) ||
+        (mask != null && !mask.canHit(target, selector, compiler.world))) {
       return types.dynamicType;
     }
 
-    T returnType = handleStaticSend(node, selector, mask, element, arguments);
-    if (Elements.isGrowableListConstructorCall(element, node, compiler)) {
+    T returnType = handleStaticSend(node, selector, mask, target, arguments);
+    if (Elements.isGrowableListConstructorCall(constructor, node, compiler)) {
       return inferrer.concreteTypes.putIfAbsent(
           node, () => types.allocateList(
               types.growableListType, node, outermostElement,
               types.nonNullEmpty(), 0));
-    } else if (Elements.isFixedListConstructorCall(element, node, compiler)
-        || Elements.isFilledListConstructorCall(element, node, compiler)) {
+    } else if (Elements.isFixedListConstructorCall(constructor, node, compiler)
+        || Elements.isFilledListConstructorCall(constructor, node, compiler)) {
 
       int length = findLength(node);
       T elementType =
-          Elements.isFixedListConstructorCall(element, node, compiler)
+          Elements.isFixedListConstructorCall(constructor, node, compiler)
               ? types.nullType
               : arguments.positional[1];
 
@@ -1673,15 +1554,14 @@ class SimpleTypeInferrerVisitor<T>
           node, () => types.allocateList(
               types.fixedListType, node, outermostElement,
               elementType, length));
-    } else if (Elements.isConstructorOfTypedArraySubclass(element, compiler)) {
+    } else if (
+        Elements.isConstructorOfTypedArraySubclass(constructor, compiler)) {
       int length = findLength(node);
-      ConstructorElement constructor = element.implementation;
-      constructor = constructor.effectiveTarget;
       T elementType = inferrer.returnTypeOfElement(
-          constructor.enclosingClass.lookupMember('[]'));
+          target.enclosingClass.lookupMember('[]'));
       return inferrer.concreteTypes.putIfAbsent(
         node, () => types.allocateList(
-          types.nonNullExact(constructor.enclosingClass), node,
+          types.nonNullExact(target.enclosingClass), node,
           outermostElement, elementType, length));
     } else {
       return returnType;

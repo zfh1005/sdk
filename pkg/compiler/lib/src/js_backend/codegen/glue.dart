@@ -9,8 +9,6 @@ import '../backend_helpers.dart' show
 import '../js_backend.dart';
 
 import '../../common.dart';
-import '../../common/registry.dart' show
-    Registry;
 import '../../common/codegen.dart' show
     CodegenRegistry;
 import '../../compiler.dart' show
@@ -30,7 +28,7 @@ import '../../universe/selector.dart' show
     Selector;
 import '../../world.dart' show
     ClassWorld;
-
+import '../../types/types.dart';
 
 /// Encapsulates the dependencies of the function-compiler to the compiler,
 /// backend and emitter.
@@ -228,8 +226,7 @@ class Glue {
     ClassWorld classWorld = _compiler.world;
     if (classWorld.isUsedAsMixin(cls)) return true;
 
-    Iterable<ClassElement> subclasses = _compiler.world.strictSubclassesOf(cls);
-    return subclasses.any((ClassElement subclass) {
+    return _compiler.world.anyStrictSubclassOf(cls, (ClassElement subclass) {
       return !_backend.rti.isTrivialSubstitution(subclass, cls);
     });
   }
@@ -287,5 +284,23 @@ class Glue {
     return _backend.constants.getConstantValueForVariable(elem);
   }
 
+  TypeMask extendMaskIfReachesAll(Selector selector, TypeMask mask) {
+    return _compiler.world.extendMaskIfReachesAll(selector, mask);
+  }
+
   FunctionElement get closureFromTearOff => _backend.helpers.closureFromTearOff;
+
+  js.Name registerOneShotInterceptor(Selector selector) {
+    return _backend.registerOneShotInterceptor(selector);
+  }
+
+  bool mayGenerateInstanceofCheck(DartType type) {
+    return _backend.mayGenerateInstanceofCheck(type);
+  }
+
+  bool methodUsesReceiverArgument(FunctionElement function) {
+    assert(isInterceptedMethod(function));
+    ClassElement class_ = function.enclosingClass.declaration;
+    return isInterceptorClass(class_) || isUsedAsMixin(class_);
+  }
 }

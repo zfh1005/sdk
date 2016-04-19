@@ -35,7 +35,6 @@ class VmService {
 
  private:
   static const intptr_t kServerIpStringBufferSize = 256;
-  friend void TriggerResourceLoad(Dart_NativeArguments args);
   friend void NotifyServerState(Dart_NativeArguments args);
 
   static void SetServerIPAndPort(const char* ip, intptr_t port);
@@ -55,7 +54,6 @@ class VmService {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(VmService);
 };
-
 
 }  // namespace bin
 }  // namespace dart

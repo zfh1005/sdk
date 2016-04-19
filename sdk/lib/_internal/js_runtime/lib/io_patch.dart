@@ -233,6 +233,10 @@ class _Platform {
     throw new UnsupportedError("Platform._packageRoot");
   }
   @patch
+  static String _packageConfig() {
+    throw new UnsupportedError("Platform._packageConfig");
+  }
+  @patch
   static _environment() {
     throw new UnsupportedError("Platform._environment");
   }
@@ -415,6 +419,11 @@ class SecurityContext {
   @patch
   static SecurityContext get defaultContext {
     throw new UnsupportedError("default SecurityContext getter");
+  }
+
+  @patch
+  static bool get alpnSupported {
+    throw new UnsupportedError("SecurityContext alpnSupported getter");
   }
 }
 

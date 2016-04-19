@@ -13,6 +13,7 @@
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
 #include "vm/exceptions.h"
+#include "vm/flags.h"
 #include "vm/flow_graph_allocator.h"
 #include "vm/il_printer.h"
 #include "vm/intrinsifier.h"
@@ -25,108 +26,106 @@
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
+#include "vm/timeline.h"
 
 namespace dart {
 
-DEFINE_FLAG(bool, allow_absolute_addresses, true,
-    "Allow embedding absolute addresses in generated code.");
-DEFINE_FLAG(bool, always_megamorphic_calls, false,
-    "Instance call always as megamorphic.");
 DEFINE_FLAG(bool, enable_simd_inline, true,
     "Enable inlining of SIMD related method calls.");
 DEFINE_FLAG(int, min_optimization_counter_threshold, 5000,
     "The minimum invocation count for a function.");
 DEFINE_FLAG(int, optimization_counter_scale, 2000,
     "The scale of invocation count, by size of the function.");
-DEFINE_FLAG(bool, polymorphic_with_deopt, true,
-    "Polymorphic calls can be generated so that failure either causes "
-    "deoptimization or falls through to a megamorphic call");
 DEFINE_FLAG(bool, source_lines, false, "Emit source line as assembly comment.");
 DEFINE_FLAG(bool, trace_inlining_intervals, false,
     "Inlining interval diagnostics");
 DEFINE_FLAG(bool, use_megamorphic_stub, true, "Out of line megamorphic lookup");
 
-DECLARE_FLAG(bool, background_compilation);
 DECLARE_FLAG(bool, code_comments);
-DECLARE_FLAG(bool, deoptimize_alot);
-DECLARE_FLAG(int, deoptimize_every);
 DECLARE_FLAG(charp, deoptimize_filter);
-DECLARE_FLAG(bool, disassemble);
-DECLARE_FLAG(bool, disassemble_optimized);
-DECLARE_FLAG(bool, emit_edge_counters);
-DECLARE_FLAG(bool, fields_may_be_reset);
-DECLARE_FLAG(bool, guess_other_cid);
-DECLARE_FLAG(bool, ic_range_profiling);
 DECLARE_FLAG(bool, intrinsify);
-DECLARE_FLAG(bool, load_deferred_eagerly);
-DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, propagate_ic_data);
 DECLARE_FLAG(int, regexp_optimization_counter_threshold);
 DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(int, stacktrace_every);
 DECLARE_FLAG(charp, stacktrace_filter);
-DECLARE_FLAG(bool, support_debugger);
-DECLARE_FLAG(bool, use_field_guards);
-DECLARE_FLAG(bool, use_cha_deopt);
-DECLARE_FLAG(bool, use_osr);
-DECLARE_FLAG(bool, warn_on_javascript_compatibility);
-DECLARE_FLAG(bool, print_stop_message);
-DECLARE_FLAG(bool, lazy_dispatchers);
-DECLARE_FLAG(bool, interpret_irregexp);
-DECLARE_FLAG(bool, enable_mirrors);
-DECLARE_FLAG(bool, link_natives_lazily);
 DECLARE_FLAG(bool, trace_compiler);
+DECLARE_FLAG(int, inlining_hotness);
+DECLARE_FLAG(int, inlining_size_threshold);
+DECLARE_FLAG(int, inlining_callee_size_threshold);
+DECLARE_FLAG(int, inline_getters_setters_smaller_than);
+DECLARE_FLAG(int, inlining_depth_threshold);
+DECLARE_FLAG(int, inlining_caller_size_threshold);
+DECLARE_FLAG(int, inlining_constant_arguments_max_size_threshold);
+DECLARE_FLAG(int, inlining_constant_arguments_min_size_threshold);
 
-bool FLAG_precompilation = false;
 static void PrecompilationModeHandler(bool value) {
   if (value) {
 #if defined(TARGET_ARCH_IA32)
     FATAL("Precompilation not supported on IA32");
 #endif
-    FLAG_precompilation = true;
 
+    // Flags affecting compilation only:
+    // There is no counter feedback in precompilation, so ignore the counter
+    // when making inlining decisions.
+    FLAG_inlining_hotness = 0;
+    // Use smaller thresholds in precompilation as we are compiling everything
+    // with the optimizing compiler instead of only hot functions.
+    FLAG_inlining_size_threshold = 5;
+    FLAG_inline_getters_setters_smaller_than = 5;
+    FLAG_inlining_callee_size_threshold = 20;
+    FLAG_inlining_depth_threshold = 2;
+    FLAG_inlining_caller_size_threshold = 1000;
+    FLAG_inlining_constant_arguments_max_size_threshold = 100;
+    FLAG_inlining_constant_arguments_min_size_threshold = 30;
+
+    FLAG_allow_absolute_addresses = false;
     FLAG_always_megamorphic_calls = true;
-    FLAG_polymorphic_with_deopt = false;
-    FLAG_optimization_counter_threshold = -1;
-    FLAG_use_field_guards = false;
-    FLAG_use_osr = false;
-    FLAG_emit_edge_counters = false;
-    FLAG_support_debugger = false;
+    FLAG_collect_dynamic_function_names = true;
+    FLAG_fields_may_be_reset = true;
     FLAG_ic_range_profiling = false;
+    FLAG_interpret_irregexp = true;
+    FLAG_lazy_dispatchers = false;
+    FLAG_link_natives_lazily = true;
+    FLAG_optimization_counter_threshold = -1;
+    FLAG_polymorphic_with_deopt = false;
+    FLAG_precompiled_mode = true;
+    FLAG_reorder_basic_blocks = false;
+    FLAG_use_field_guards = false;
+    FLAG_use_cha_deopt = false;
+
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    // Set flags affecting runtime accordingly for dart_noopt.
+    FLAG_background_compilation = false;
     FLAG_collect_code = false;
-    FLAG_load_deferred_eagerly = true;
+    FLAG_support_debugger = false;
     FLAG_deoptimize_alot = false;  // Used in some tests.
     FLAG_deoptimize_every = 0;     // Used in some tests.
-    FLAG_guess_other_cid = true;
-    Compiler::set_always_optimize(true);
-    // Triggers assert if we try to recompile (e.g., because of deferred
-    // loading, deoptimization, ...). Noopt mode simulates behavior
-    // of precompiled code, therefore do not allow recompilation.
-    Compiler::set_allow_recompilation(false);
-    // TODO(srdjan): Enable CHA deoptimization when eager class finalization is
-    // implemented, either with precompilation or as a special pass.
-    FLAG_use_cha_deopt = false;
-    // Calling the PrintStopMessage stub is not supported in precompiled code
-    // since it is done at places where no pool pointer is loaded.
-    FLAG_print_stop_message = false;
-
-    FLAG_lazy_dispatchers = false;
-    FLAG_interpret_irregexp = true;
     FLAG_enable_mirrors = false;
-    FLAG_link_natives_lazily = true;
-    FLAG_fields_may_be_reset = true;
-    FLAG_allow_absolute_addresses = false;
-
-    // Background compilation relies on two-stage compilation pipeline,
-    // while precompilation has only one.
-    FLAG_background_compilation = false;
+    FLAG_load_deferred_eagerly = true;
+    FLAG_print_stop_message = false;
+    FLAG_use_osr = false;
+#endif
   }
 }
-
 
 DEFINE_FLAG_HANDLER(PrecompilationModeHandler,
                     precompilation,
                     "Precompilation mode");
+
+#ifdef DART_PRECOMPILED_RUNTIME
+
+COMPILE_ASSERT(!FLAG_background_compilation);
+COMPILE_ASSERT(!FLAG_collect_code);
+COMPILE_ASSERT(!FLAG_deoptimize_alot);  // Used in some tests.
+COMPILE_ASSERT(!FLAG_enable_mirrors);
+COMPILE_ASSERT(FLAG_precompiled_runtime);
+COMPILE_ASSERT(!FLAG_print_stop_message);
+COMPILE_ASSERT(!FLAG_use_osr);
+COMPILE_ASSERT(FLAG_deoptimize_every == 0);  // Used in some tests.
+COMPILE_ASSERT(FLAG_load_deferred_eagerly);
+
+#endif  // DART_PRECOMPILED_RUNTIME
 
 
 // Assign locations to incoming arguments, i.e., values pushed above spill slots
@@ -165,6 +164,7 @@ FlowGraphCompiler::FlowGraphCompiler(
     const ParsedFunction& parsed_function,
     bool is_optimizing,
     const GrowableArray<const Function*>& inline_id_to_function,
+    const GrowableArray<TokenPosition>& inline_id_to_token_pos,
     const GrowableArray<intptr_t>& caller_inline_id)
       : thread_(Thread::Current()),
         zone_(Thread::Current()->zone()),
@@ -176,6 +176,8 @@ FlowGraphCompiler::FlowGraphCompiler(
         exception_handlers_list_(NULL),
         pc_descriptors_list_(NULL),
         stackmap_table_builder_(NULL),
+        code_source_map_builder_(NULL),
+        saved_code_size_(0),
         block_info_(block_order_.length()),
         deopt_infos_(),
         static_calls_target_table_(),
@@ -202,6 +204,7 @@ FlowGraphCompiler::FlowGraphCompiler(
         edge_counters_array_(Array::ZoneHandle()),
         inlined_code_intervals_(Array::ZoneHandle(Object::empty_array().raw())),
         inline_id_to_function_(inline_id_to_function),
+        inline_id_to_token_pos_(inline_id_to_token_pos),
         caller_inline_id_(caller_inline_id) {
   ASSERT(flow_graph->parsed_function().function().raw() ==
          parsed_function.function().raw());
@@ -250,14 +253,17 @@ bool FlowGraphCompiler::IsPotentialUnboxedField(const Field& field) {
 
 
 void FlowGraphCompiler::InitCompiler() {
+#ifndef PRODUCT
+  TimelineDurationScope tds(thread(),
+                            Timeline::GetCompilerStream(),
+                            "InitCompiler");
+#endif  // !PRODUCT
   pc_descriptors_list_ = new(zone()) DescriptorList(64);
-  exception_handlers_list_ = new(zone())ExceptionHandlerList();
+  exception_handlers_list_ = new(zone()) ExceptionHandlerList();
   block_info_.Clear();
   // Conservative detection of leaf routines used to remove the stack check
   // on function entry.
-  bool is_leaf = !parsed_function().function().IsClosureFunction()
-      && is_optimizing()
-      && !flow_graph().IsCompiledForOsr();
+  bool is_leaf = is_optimizing() && !flow_graph().IsCompiledForOsr();
   // Initialize block info and search optimized (non-OSR) code for calls
   // indicating a non-leaf routine and calls without IC data indicating
   // possible reoptimization.
@@ -422,7 +428,7 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
 
 
 void FlowGraphCompiler::EmitSourceLine(Instruction* instr) {
-  if ((instr->token_pos() == Scanner::kNoSourcePos) || (instr->env() == NULL)) {
+  if (!instr->token_pos().IsReal() || (instr->env() == NULL)) {
     return;
   }
   const Script& script =
@@ -458,12 +464,16 @@ static void LoopInfoComment(
 
 // We collect intervals while generating code.
 struct IntervalStruct {
-  // 'start' and 'end' are pc-offsets.
+  // 'start' is the pc-offsets where the inlined code started.
+  // 'pos' is the token position where the inlined call occured.
   intptr_t start;
+  TokenPosition pos;
   intptr_t inlining_id;
-  IntervalStruct(intptr_t s, intptr_t id) : start(s), inlining_id(id) {}
+  IntervalStruct(intptr_t s, TokenPosition tp, intptr_t id)
+      : start(s), pos(tp), inlining_id(id) {}
   void Dump() {
-    THR_Print("start: 0x%" Px " iid: %" Pd " ",  start, inlining_id);
+    THR_Print("start: 0x%" Px " iid: %" Pd " pos: %s",
+              start, inlining_id, pos.ToCString());
   }
 };
 
@@ -481,6 +491,7 @@ void FlowGraphCompiler::VisitBlocks() {
   GrowableArray<IntervalStruct> intervals;
   intptr_t prev_offset = 0;
   intptr_t prev_inlining_id = 0;
+  TokenPosition prev_inlining_pos = parsed_function_.function().token_pos();
   intptr_t max_inlining_id = 0;
   for (intptr_t i = 0; i < block_order().length(); ++i) {
     // Compile the block entry.
@@ -501,16 +512,26 @@ void FlowGraphCompiler::VisitBlocks() {
     LoopInfoComment(assembler(), *entry, *loop_headers);
 
     entry->set_offset(assembler()->CodeSize());
+    BeginCodeSourceRange();
     entry->EmitNativeCode(this);
+    EndCodeSourceRange(entry->token_pos());
     // Compile all successors until an exit, branch, or a block entry.
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       Instruction* instr = it.Current();
       // Compose intervals.
       if (instr->has_inlining_id() && is_optimizing()) {
         if (prev_inlining_id != instr->inlining_id()) {
-          intervals.Add(IntervalStruct(prev_offset, prev_inlining_id));
+          intervals.Add(
+              IntervalStruct(prev_offset, prev_inlining_pos, prev_inlining_id));
           prev_offset = assembler()->CodeSize();
           prev_inlining_id = instr->inlining_id();
+          if (prev_inlining_id < inline_id_to_token_pos_.length()) {
+            prev_inlining_pos = inline_id_to_token_pos_[prev_inlining_id];
+          } else {
+            // We will add this token position later when generating the
+            // profile.
+            prev_inlining_pos = TokenPosition::kNoSource;
+          }
           if (prev_inlining_id > max_inlining_id) {
             max_inlining_id = prev_inlining_id;
           }
@@ -526,12 +547,14 @@ void FlowGraphCompiler::VisitBlocks() {
       if (instr->IsParallelMove()) {
         parallel_move_resolver_.EmitNativeCode(instr->AsParallelMove());
       } else {
+        BeginCodeSourceRange();
         EmitInstructionPrologue(instr);
         ASSERT(pending_deoptimization_env_ == NULL);
         pending_deoptimization_env_ = instr->env();
         instr->EmitNativeCode(this);
         pending_deoptimization_env_ = NULL;
         EmitInstructionEpilogue(instr);
+        EndCodeSourceRange(instr->token_pos());
       }
 
 #if defined(DEBUG)
@@ -546,14 +569,10 @@ void FlowGraphCompiler::VisitBlocks() {
 #endif
   }
 
-  if (inline_id_to_function_.length() > max_inlining_id + 1) {
-    // TODO(srdjan): Some inlined function can disappear,
-    // truncate 'inline_id_to_function_'.
-  }
-
   if (is_optimizing()) {
     LogBlock lb;
-    intervals.Add(IntervalStruct(prev_offset, prev_inlining_id));
+    intervals.Add(
+        IntervalStruct(prev_offset, prev_inlining_pos, prev_inlining_id));
     inlined_code_intervals_ =
         Array::New(intervals.length() * Code::kInlIntNumEntries, Heap::kOld);
     Smi& start_h = Smi::Handle();
@@ -605,6 +624,7 @@ void FlowGraphCompiler::Bailout(const char* reason) {
   Report::MessageF(Report::kBailout,
                    Script::Handle(function.script()),
                    function.token_pos(),
+                   Report::AtLocation,
                    "FlowGraphCompiler Bailout: %s %s",
                    String::Handle(function.name()).ToCString(),
                    reason);
@@ -712,10 +732,14 @@ void FlowGraphCompiler::AddSlowPathCode(SlowPathCode* code) {
 
 void FlowGraphCompiler::GenerateDeferredCode() {
   for (intptr_t i = 0; i < slow_path_code_.length(); i++) {
+    BeginCodeSourceRange();
     slow_path_code_[i]->GenerateCode(this);
+    EndCodeSourceRange(TokenPosition::kDeferredSlowPath);
   }
   for (intptr_t i = 0; i < deopt_infos_.length(); i++) {
+    BeginCodeSourceRange();
     deopt_infos_[i]->GenerateCode(this, i);
+    EndCodeSourceRange(TokenPosition::kDeferredDeoptInfo);
   }
 }
 
@@ -741,7 +765,7 @@ void FlowGraphCompiler::SetNeedsStacktrace(intptr_t try_index) {
 // Uses current pc position and try-index.
 void FlowGraphCompiler::AddCurrentDescriptor(RawPcDescriptors::Kind kind,
                                              intptr_t deopt_id,
-                                             intptr_t token_pos) {
+                                             TokenPosition token_pos) {
   // When running with optimizations disabled, don't emit deopt-descriptors.
   if (!CanOptimize() && (kind == RawPcDescriptors::kDeopt)) return;
   pc_descriptors_list()->AddDescriptor(kind,
@@ -767,7 +791,7 @@ void FlowGraphCompiler::AddStubCallTarget(const Code& code) {
 
 
 void FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id,
-                                            intptr_t token_pos) {
+                                            TokenPosition token_pos) {
   ASSERT(is_optimizing());
   ASSERT(!intrinsic_mode());
   CompilerDeoptInfo* info =
@@ -784,7 +808,8 @@ void FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id,
 // and FlowGraphCompiler::SlowPathEnvironmentFor.
 // See StackFrame::VisitObjectPointers for the details of how stack map is
 // interpreted.
-void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs) {
+void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
+                                        intptr_t slow_path_argument_count) {
   if (is_optimizing() || locs->live_registers()->HasUntaggedValues()) {
     const intptr_t spill_area_size = is_optimizing() ?
         flow_graph_.graph_entry()->spill_slot_count() : 0;
@@ -844,10 +869,17 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs) {
       }
     }
 
-    intptr_t register_bit_count = bitmap->Length() - spill_area_size;
+    // Arguments pushed on top of live registers in the slow path are tagged.
+    for (intptr_t i = 0; i < slow_path_argument_count; ++i) {
+      bitmap->Set(bitmap->Length(), true);
+    }
+
+    // The slow path area Outside the spill area contains are live registers
+    // and pushed arguments for calls inside the slow path.
+    intptr_t slow_path_bit_count = bitmap->Length() - spill_area_size;
     stackmap_table_builder()->AddEntry(assembler()->CodeSize(),
                                        bitmap,
-                                       register_bit_count);
+                                       slow_path_bit_count);
   }
 }
 
@@ -916,8 +948,8 @@ Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
     return &intrinsic_slow_path_label_;
   }
 
-  // No deoptimization allowed when 'always_optimize' is set.
-  if (Compiler::always_optimize()) {
+  // No deoptimization allowed when 'FLAG_precompiled_mode' is set.
+  if (FLAG_precompiled_mode) {
     if (FLAG_trace_compiler) {
       THR_Print(
           "Retrying compilation %s, suppressing inlining of deopt_id:%" Pd "\n",
@@ -964,8 +996,8 @@ void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
 
 
 RawArray* FlowGraphCompiler::CreateDeoptInfo(Assembler* assembler) {
-  // No deopt information if we 'always_optimize' (no deoptimization allowed).
-  if (Compiler::always_optimize()) {
+  // No deopt information if we precompile (no deoptimization allowed).
+  if (FLAG_precompiled_mode) {
     return Array::empty_array().raw();
   }
   // For functions with optional arguments, all incoming arguments are copied
@@ -1026,8 +1058,8 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
     RawLocalVarDescriptors::VarInfo info;
     info.set_kind(RawLocalVarDescriptors::kSavedCurrentContext);
     info.scope_id = 0;
-    info.begin_pos = 0;
-    info.end_pos = 0;
+    info.begin_pos = TokenPosition::kMinSource;
+    info.end_pos = TokenPosition::kMinSource;
     info.set_index(parsed_function().current_context_var()->index());
     var_descs.SetVar(0, Symbols::CurrentContextVar(), &info);
   }
@@ -1065,7 +1097,7 @@ void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
 bool FlowGraphCompiler::TryIntrinsify() {
   // Intrinsification skips arguments checks, therefore disable if in checked
   // mode.
-  if (FLAG_intrinsify && !isolate()->flags().type_checks()) {
+  if (FLAG_intrinsify && !isolate()->type_checks()) {
     if (parsed_function().function().kind() == RawFunction::kImplicitGetter) {
       // An implicit getter must have a specific AST structure.
       const SequenceNode& sequence_node = *parsed_function().node_sequence();
@@ -1077,9 +1109,9 @@ bool FlowGraphCompiler::TryIntrinsify() {
           *return_node.value()->AsLoadInstanceFieldNode();
       // Only intrinsify getter if the field cannot contain a mutable double.
       // Reading from a mutable double box requires allocating a fresh double.
-      if (load_node.field().guarded_cid() == kDynamicCid) {
+      if (!IsPotentialUnboxedField(load_node.field())) {
         GenerateInlinedGetter(load_node.field().Offset());
-        return true;
+        return !FLAG_use_field_guards;
       }
       return false;
     }
@@ -1094,7 +1126,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
           *sequence_node.NodeAt(0)->AsStoreInstanceFieldNode();
       if (store_node.field().guarded_cid() == kDynamicCid) {
         GenerateInlinedSetter(store_node.field().Offset());
-        return true;
+        return !FLAG_use_field_guards;
       }
     }
   }
@@ -1117,18 +1149,20 @@ bool FlowGraphCompiler::TryIntrinsify() {
 
 void FlowGraphCompiler::GenerateInstanceCall(
     intptr_t deopt_id,
-    intptr_t token_pos,
+    TokenPosition token_pos,
     intptr_t argument_count,
     LocationSummary* locs,
-    const ICData& ic_data) {
-  if (Compiler::always_optimize()) {
+    const ICData& ic_data_in) {
+  const ICData& ic_data = ICData::ZoneHandle(ic_data_in.Original());
+  if (FLAG_precompiled_mode) {
     EmitSwitchableInstanceCall(ic_data, argument_count,
                                deopt_id, token_pos, locs);
     return;
   }
   if (FLAG_always_megamorphic_calls) {
     EmitMegamorphicInstanceCall(ic_data, argument_count,
-                                deopt_id, token_pos, locs);
+                                deopt_id, token_pos, locs,
+                                CatchClauseNode::kInvalidTryIndex);
     return;
   }
   ASSERT(!ic_data.IsNull());
@@ -1153,14 +1187,10 @@ void FlowGraphCompiler::GenerateInstanceCall(
     return;
   }
 
-  if (is_optimizing() &&
-      // Do not make the instance call megamorphic if the callee needs to decode
-      // the calling code sequence to lookup the ic data and verify if a JS
-      // warning has already been issued or not.
-      (!FLAG_warn_on_javascript_compatibility ||
-       !ic_data.MayCheckForJSWarning())) {
+  if (is_optimizing()) {
     EmitMegamorphicInstanceCall(ic_data, argument_count,
-                                deopt_id, token_pos, locs);
+                                deopt_id, token_pos, locs,
+                                CatchClauseNode::kInvalidTryIndex);
     return;
   }
 
@@ -1182,22 +1212,18 @@ void FlowGraphCompiler::GenerateInstanceCall(
 
 
 void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
-                                           intptr_t token_pos,
+                                           TokenPosition token_pos,
                                            const Function& function,
                                            intptr_t argument_count,
                                            const Array& argument_names,
                                            LocationSummary* locs,
-                                           const ICData& ic_data) {
+                                           const ICData& ic_data_in) {
+  const ICData& ic_data = ICData::ZoneHandle(ic_data_in.Original());
   const Array& arguments_descriptor = Array::ZoneHandle(
       ic_data.IsNull() ? ArgumentsDescriptor::New(argument_count,
                                                   argument_names)
                        : ic_data.arguments_descriptor());
-  // Proper reporting of Javascript incompatibilities requires icdata and
-  // may therefore prevent the optimization of some static calls.
-  if (is_optimizing() &&
-      !(FLAG_warn_on_javascript_compatibility &&
-        (MethodRecognizer::RecognizeKind(function) ==
-         MethodRecognizer::kObjectIdentical))) {
+  if (is_optimizing()) {
     EmitOptimizedStaticCall(function, arguments_descriptor,
                             argument_count, deopt_id, token_pos, locs);
   } else {
@@ -1262,17 +1288,22 @@ void FlowGraphCompiler::GenerateListTypeCheck(Register kClassIdReg,
 
 
 void FlowGraphCompiler::EmitComment(Instruction* instr) {
+  if (!FLAG_support_il_printer || !FLAG_support_disassembler) {
+    return;
+  }
+#ifndef PRODUCT
   char buffer[256];
   BufferFormatter f(buffer, sizeof(buffer));
   instr->PrintTo(&f);
   assembler()->Comment("%s", buffer);
+#endif
 }
 
 
 bool FlowGraphCompiler::NeedsEdgeCounter(TargetEntryInstr* block) {
   // Only emit an edge counter if there is not goto at the end of the block,
   // except for the entry block.
-  return (FLAG_emit_edge_counters
+  return (FLAG_reorder_basic_blocks
       && (!block->last_instruction()->IsGoto()
           || (block == flow_graph().graph_entry()->normal_entry())));
 }
@@ -1415,7 +1446,9 @@ void ParallelMoveResolver::EmitNativeCode(ParallelMoveInstr* parallel_move) {
     const MoveOperands& move = *moves_[i];
     if (!move.IsEliminated()) {
       ASSERT(move.src().IsConstant());
+      compiler_->BeginCodeSourceRange();
       EmitMove(i);
+      compiler_->EndCodeSourceRange(TokenPosition::kParallelMove);
     }
   }
 
@@ -1491,13 +1524,17 @@ void ParallelMoveResolver::PerformMove(int index) {
     const MoveOperands& other_move = *moves_[i];
     if (other_move.Blocks(destination)) {
       ASSERT(other_move.IsPending());
+      compiler_->BeginCodeSourceRange();
       EmitSwap(index);
+      compiler_->EndCodeSourceRange(TokenPosition::kParallelMove);
       return;
     }
   }
 
   // This move is not blocked.
+  compiler_->BeginCodeSourceRange();
   EmitMove(index);
+  compiler_->EndCodeSourceRange(TokenPosition::kParallelMove);
 }
 
 
@@ -1740,6 +1777,21 @@ RawArray* FlowGraphCompiler::InliningIdToFunction() const {
 }
 
 
+RawArray* FlowGraphCompiler::InliningIdToTokenPos() const {
+  if (inline_id_to_token_pos_.length() == 0) {
+    return Object::empty_array().raw();
+  }
+  const Array& res = Array::Handle(zone(),
+      Array::New(inline_id_to_token_pos_.length(), Heap::kOld));
+  Smi& smi = Smi::Handle(zone());
+  for (intptr_t i = 0; i < inline_id_to_token_pos_.length(); i++) {
+    smi = Smi::New(inline_id_to_token_pos_[i].value());
+    res.SetAt(i, smi);
+  }
+  return res.raw();
+}
+
+
 RawArray* FlowGraphCompiler::CallerInliningIdMap() const {
   if (caller_inline_id_.length() == 0) {
     return Object::empty_array().raw();
@@ -1755,12 +1807,36 @@ RawArray* FlowGraphCompiler::CallerInliningIdMap() const {
 }
 
 
+void FlowGraphCompiler::BeginCodeSourceRange() {
+NOT_IN_PRODUCT(
+  // Remember how many bytes of code we emitted so far. This function
+  // is called before we call into an instruction's EmitNativeCode.
+  saved_code_size_ = assembler()->CodeSize();
+);
+}
+
+
+bool FlowGraphCompiler::EndCodeSourceRange(TokenPosition token_pos) {
+NOT_IN_PRODUCT(
+  // This function is called after each instructions' EmitNativeCode.
+  if (saved_code_size_ < assembler()->CodeSize()) {
+    // We emitted more code, now associate the emitted code chunk with
+    // |token_pos|.
+    code_source_map_builder()->AddEntry(saved_code_size_, token_pos);
+    BeginCodeSourceRange();
+    return true;
+  }
+);
+  return false;
+}
+
+
 void FlowGraphCompiler::EmitPolymorphicInstanceCall(
     const ICData& ic_data,
     intptr_t argument_count,
     const Array& argument_names,
     intptr_t deopt_id,
-    intptr_t token_pos,
+    TokenPosition token_pos,
     LocationSummary* locs) {
   if (FLAG_polymorphic_with_deopt) {
     Label* deopt = AddDeoptStub(deopt_id,
@@ -1774,16 +1850,17 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
   } else {
     // Instead of deoptimizing, do a megamorphic call when no matching
     // cid found.
-    Label megamorphic, ok;
+    Label ok;
+    MegamorphicSlowPath* slow_path =
+        new MegamorphicSlowPath(ic_data, argument_count, deopt_id,
+                                token_pos, locs, CurrentTryIndex());
+    AddSlowPathCode(slow_path);
     EmitTestAndCall(ic_data, argument_count, argument_names,
-                    &megamorphic,  // No cid match.
-                    &ok,           // Found cid.
+                    slow_path->entry_label(),  // No cid match.
+                    &ok,                       // Found cid.
                     deopt_id, token_pos, locs);
-    // Fall through if last test is match.
-    assembler()->Jump(&ok);
-    assembler()->Bind(&megamorphic);
-    EmitMegamorphicInstanceCall(ic_data, argument_count, deopt_id,
-                                token_pos, locs);
+
+    assembler()->Bind(slow_path->exit_label());
     assembler()->Bind(&ok);
   }
 }

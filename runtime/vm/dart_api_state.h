@@ -24,9 +24,6 @@
 
 namespace dart {
 
-DECLARE_DEBUG_FLAG(bool, trace_zones);
-DECLARE_DEBUG_FLAG(bool, trace_handles);
-
 // Implementation of Zone support for very fast allocation of small chunks
 // of memory. The chunks cannot be deallocated individually, but instead
 // zones support deallocating all chunks in one fast operation when the
@@ -41,13 +38,11 @@ class ApiZone {
     if (thread != NULL) {
       thread->set_zone(&zone_);
     }
-#ifdef DEBUG
     if (FLAG_trace_zones) {
       OS::PrintErr("*** Starting a new Api zone 0x%" Px "(0x%" Px ")\n",
                    reinterpret_cast<intptr_t>(this),
                    reinterpret_cast<intptr_t>(&zone_));
     }
-#endif
   }
 
   // Delete all memory associated with the zone.
@@ -62,13 +57,11 @@ class ApiZone {
     if ((thread != NULL) && (thread->zone() == &zone_)) {
       thread->set_zone(zone_.previous_);
     }
-#ifdef DEBUG
     if (FLAG_trace_zones) {
       OS::PrintErr("*** Deleting Api zone 0x%" Px "(0x%" Px ")\n",
                    reinterpret_cast<intptr_t>(this),
                    reinterpret_cast<intptr_t>(&zone_));
     }
-#endif
   }
 
   // Allocates an array sized to hold 'len' elements of type
@@ -203,7 +196,6 @@ class FinalizablePersistentHandle {
  public:
   static FinalizablePersistentHandle* New(
       Isolate* isolate,
-      bool is_prologue,
       const Object& object,
       void* peer,
       Dart_WeakPersistentHandleFinalizer callback,
@@ -219,6 +211,10 @@ class FinalizablePersistentHandle {
   Dart_WeakPersistentHandleFinalizer callback() const { return callback_; }
   Dart_WeakPersistentHandle apiHandle() {
     return reinterpret_cast<Dart_WeakPersistentHandle>(this);
+  }
+
+  intptr_t external_size() const {
+    return ExternalSizeBits::decode(external_data_);
   }
 
   void SetExternalSize(intptr_t size, Isolate* isolate) {
@@ -251,34 +247,25 @@ class FinalizablePersistentHandle {
     set_external_size(0);
   }
 
-  bool IsPrologueWeakPersistent() {
-    return PrologueWeakBit::decode(external_data_);
-  }
-
-  void SetPrologueWeakPersistent(bool value) {
-    external_data_ = PrologueWeakBit::update(value, external_data_);
-  }
-
   static FinalizablePersistentHandle* Cast(Dart_WeakPersistentHandle handle);
 
  private:
   enum {
     kExternalNewSpaceBit = 0,
-    kPrologueWeakBit = 1,
-    kExternalSizeBits = 2,
-    kExternalSizeBitsSize = (kBitsPerWord - 2),
+    kExternalSizeBits = 1,
+    kExternalSizeBitsSize = (kBitsPerWord - 1),
   };
 
   // This part of external_data_ is the number of externally allocated bytes.
   // TODO(koda): Measure size in words instead.
-  class ExternalSizeBits : public BitField<intptr_t,
+  class ExternalSizeBits : public BitField<uword,
+                                           intptr_t,
                                            kExternalSizeBits,
-                                           kExternalSizeBitsSize> {};  // NOLINT
+                                           kExternalSizeBitsSize> {};
   // This bit of external_data_ is true if the referent was created in new
   // space and UpdateRelocated has not yet detected any promotion.
-  class ExternalNewSpaceBit : public BitField<bool, kExternalNewSpaceBit, 1> {};
-  // This bit is used to indicate that it is a prologue weak persistent handle.
-  class PrologueWeakBit : public BitField<bool, kPrologueWeakBit, 1> {};
+  class ExternalNewSpaceBit :
+      public BitField<uword, bool, kExternalNewSpaceBit, 1> {};
 
   friend class FinalizablePersistentHandles;
 
@@ -320,10 +307,6 @@ class FinalizablePersistentHandle {
 
   void set_callback(Dart_WeakPersistentHandleFinalizer callback) {
     callback_ = callback;
-  }
-
-  intptr_t external_size() const {
-    return ExternalSizeBits::decode(external_data_);
   }
 
   void set_external_size(intptr_t size) {
@@ -370,15 +353,12 @@ class LocalHandles : Handles<kLocalHandleSizeInWords,
   LocalHandles() : Handles<kLocalHandleSizeInWords,
                            kLocalHandlesPerChunk,
                            kOffsetOfRawPtrInLocalHandle>() {
-#ifdef DEBUG
     if (FLAG_trace_handles) {
       OS::PrintErr("*** Starting a new Local handle block 0x%" Px "\n",
                    reinterpret_cast<intptr_t>(this));
     }
-#endif
   }
   ~LocalHandles() {
-#ifdef DEBUG
     if (FLAG_trace_handles) {
       OS::PrintErr("***   Handle Counts for 0x(%" Px "):Scoped = %d\n",
                    reinterpret_cast<intptr_t>(this),
@@ -386,7 +366,6 @@ class LocalHandles : Handles<kLocalHandleSizeInWords,
       OS::PrintErr("*** Deleting Local handle block 0x%" Px "\n",
                    reinterpret_cast<intptr_t>(this));
     }
-#endif
   }
 
 
@@ -439,16 +418,13 @@ class PersistentHandles : Handles<kPersistentHandleSizeInWords,
                                 kPersistentHandlesPerChunk,
                                 kOffsetOfRawPtrInPersistentHandle>(),
         free_list_(NULL) {
-#ifdef DEBUG
     if (FLAG_trace_handles) {
       OS::PrintErr("*** Starting a new Persistent handle block 0x%" Px "\n",
                    reinterpret_cast<intptr_t>(this));
     }
-#endif
   }
   ~PersistentHandles() {
     free_list_ = NULL;
-#ifdef DEBUG
     if (FLAG_trace_handles) {
       OS::PrintErr("***   Handle Counts for 0x(%" Px "):Scoped = %d\n",
                    reinterpret_cast<intptr_t>(this),
@@ -456,7 +432,6 @@ class PersistentHandles : Handles<kPersistentHandleSizeInWords,
       OS::PrintErr("*** Deleting Persistent handle block 0x%" Px "\n",
                    reinterpret_cast<intptr_t>(this));
     }
-#endif
   }
 
   // Accessors.
@@ -468,6 +443,13 @@ class PersistentHandles : Handles<kPersistentHandleSizeInWords,
     Handles<kPersistentHandleSizeInWords,
             kPersistentHandlesPerChunk,
             kOffsetOfRawPtrInPersistentHandle>::VisitObjectPointers(visitor);
+  }
+
+  // Visit all the handles.
+  void Visit(HandleVisitor* visitor) {
+    Handles<kPersistentHandleSizeInWords,
+            kPersistentHandlesPerChunk,
+            kOffsetOfRawPtrInPersistentHandle>::Visit(visitor);
   }
 
   // Allocates a persistent handle, these have to be destroyed explicitly
@@ -673,11 +655,6 @@ class ApiGrowableArray : public BaseGrowableArray<T, ValueObject> {
 };
 
 
-// Forward declarations.
-class WeakReferenceSetBuilder;
-class WeakReferenceSet;
-
-
 // Implementation of the API State used in dart api for maintaining
 // local scopes, persistent handles etc. These are setup on a per isolate
 // basis and destroyed when the isolate is shutdown.
@@ -685,20 +662,11 @@ class ApiState {
  public:
   ApiState() : persistent_handles_(),
                weak_persistent_handles_(),
-               prologue_weak_persistent_handles_(),
-               reusable_scope_(NULL),
-               top_scope_(NULL),
-               delayed_weak_reference_sets_(NULL),
                null_(NULL),
                true_(NULL),
                false_(NULL),
                acquired_error_(NULL) {}
   ~ApiState() {
-    while (top_scope_ != NULL) {
-      ApiLocalScope* scope = top_scope_;
-      top_scope_ = top_scope_->previous();
-      delete scope;
-    }
     if (null_ != NULL) {
       persistent_handles().FreeHandle(null_);
       null_ = NULL;
@@ -718,77 +686,18 @@ class ApiState {
   }
 
   // Accessors.
-  ApiLocalScope* reusable_scope() const { return reusable_scope_; }
-  void set_reusable_scope(ApiLocalScope* value) {
-    ASSERT(value == NULL || reusable_scope_ == NULL);
-    reusable_scope_ = value;
-  }
-  ApiLocalScope* top_scope() const { return top_scope_; }
-  void set_top_scope(ApiLocalScope* value) { top_scope_ = value; }
-
   PersistentHandles& persistent_handles() { return persistent_handles_; }
 
   FinalizablePersistentHandles& weak_persistent_handles() {
     return weak_persistent_handles_;
   }
 
-  FinalizablePersistentHandles& prologue_weak_persistent_handles() {
-    return prologue_weak_persistent_handles_;
-  }
-
-  WeakReferenceSet* delayed_weak_reference_sets() {
-    return delayed_weak_reference_sets_;
-  }
-  void set_delayed_weak_reference_sets(WeakReferenceSet* reference_set) {
-    delayed_weak_reference_sets_ = reference_set;
-  }
-
-  void UnwindScopes(uword stack_marker) {
-    // Unwind all scopes using the same stack_marker, i.e. all scopes allocated
-    // under the same top_exit_frame_info.
-    while (top_scope_ != NULL &&
-           top_scope_->stack_marker() != 0 &&
-           top_scope_->stack_marker() == stack_marker) {
-      ApiLocalScope* scope = top_scope_;
-      top_scope_ = top_scope_->previous();
-      delete scope;
-    }
-  }
-
-  void VisitObjectPointers(ObjectPointerVisitor* visitor,
-                           bool visit_prologue_weak_handles) {
-    ApiLocalScope* scope = top_scope_;
-    while (scope != NULL) {
-      scope->local_handles()->VisitObjectPointers(visitor);
-      scope = scope->previous();
-    }
+  void VisitObjectPointers(ObjectPointerVisitor* visitor) {
     persistent_handles().VisitObjectPointers(visitor);
-    if (visit_prologue_weak_handles) {
-      prologue_weak_persistent_handles().VisitObjectPointers(visitor);
-    }
   }
 
-  void VisitWeakHandles(HandleVisitor* visitor,
-                        bool visit_prologue_weak_handles) {
+  void VisitWeakHandles(HandleVisitor* visitor) {
     weak_persistent_handles().VisitHandles(visitor);
-    if (visit_prologue_weak_handles) {
-      prologue_weak_persistent_handles().VisitHandles(visitor);
-    }
-  }
-
-  void VisitPrologueWeakHandles(HandleVisitor* visitor) {
-    prologue_weak_persistent_handles().VisitHandles(visitor);
-  }
-
-  bool IsValidLocalHandle(Dart_Handle object) const {
-    ApiLocalScope* scope = top_scope_;
-    while (scope != NULL) {
-      if (scope->local_handles()->IsValidHandle(object)) {
-        return true;
-      }
-      scope = scope->previous();
-    }
-    return false;
   }
 
   bool IsValidPersistentHandle(Dart_PersistentHandle object) const {
@@ -799,36 +708,13 @@ class ApiState {
     return weak_persistent_handles_.IsValidHandle(object);
   }
 
-  bool IsValidPrologueWeakPersistentHandle(
-      Dart_WeakPersistentHandle object) const {
-    return prologue_weak_persistent_handles_.IsValidHandle(object);
-  }
-
   bool IsProtectedHandle(PersistentHandle* object) const {
     if (object == NULL) return false;
     return object == null_ || object == true_ || object == false_;
   }
 
-  int CountLocalHandles() const {
-    int total = 0;
-    ApiLocalScope* scope = top_scope_;
-    while (scope != NULL) {
-      total += scope->local_handles()->CountHandles();
-      scope = scope->previous();
-    }
-    return total;
-  }
   int CountPersistentHandles() const {
     return persistent_handles_.CountHandles();
-  }
-  int ZoneSizeInBytes() const {
-    int total = 0;
-    ApiLocalScope* scope = top_scope_;
-    while (scope != NULL) {
-      total += scope->zone()->SizeInBytes();
-      scope = scope->previous();
-    }
-    return total;
   }
 
   void SetupAcquiredError() {
@@ -845,19 +731,11 @@ class ApiState {
     return acquired_error_;
   }
 
-  WeakReferenceSetBuilder* NewWeakReferenceSetBuilder();
-
-  void DelayWeakReferenceSet(WeakReferenceSet* reference_set);
-
   WeakTable* acquired_table() { return &acquired_table_; }
 
  private:
   PersistentHandles persistent_handles_;
   FinalizablePersistentHandles weak_persistent_handles_;
-  FinalizablePersistentHandles prologue_weak_persistent_handles_;
-  ApiLocalScope* reusable_scope_;
-  ApiLocalScope* top_scope_;
-  WeakReferenceSet* delayed_weak_reference_sets_;
   WeakTable acquired_table_;
 
   // Persistent handles to important objects.
@@ -870,123 +748,16 @@ class ApiState {
 };
 
 
-class WeakReferenceSet {
- public:
-  explicit WeakReferenceSet(Zone* zone)
-      : next_(NULL),
-        keys_(1, zone),
-        values_(1, zone) {
-  }
-  ~WeakReferenceSet() {}
-
-  WeakReferenceSet* next() const { return next_; }
-
-  intptr_t num_keys() const { return keys_.length(); }
-  RawObject** get_key(intptr_t i) {
-    ASSERT(i >= 0);
-    ASSERT(i < num_keys());
-    FinalizablePersistentHandle* ref =
-        FinalizablePersistentHandle::Cast(keys_[i]);
-    return ref->raw_addr();
-  }
-
-  intptr_t num_values() const { return values_.length(); }
-  RawObject** get_value(intptr_t i) {
-    ASSERT(i >= 0);
-    ASSERT(i < num_values());
-    FinalizablePersistentHandle* ref =
-        FinalizablePersistentHandle::Cast(values_[i]);
-    return ref->raw_addr();
-  }
-
-  bool SingletonKeyEqualsValue() const {
-    ASSERT((num_keys() == 1) && (num_values() == 1));
-    return (keys_[0] == values_[0]);
-  }
-
-  void Append(Dart_WeakPersistentHandle key, Dart_WeakPersistentHandle value) {
-    keys_.Add(key);
-    values_.Add(value);
-  }
-
-  void AppendKey(Dart_WeakPersistentHandle key) {
-    keys_.Add(key);
-  }
-
-  void AppendValue(Dart_WeakPersistentHandle value) {
-    values_.Add(value);
-  }
-
-  static WeakReferenceSet* Pop(WeakReferenceSet** queue) {
-    ASSERT(queue != NULL);
-    WeakReferenceSet* head = *queue;
-    if (head != NULL) {
-      *queue = head->next();
-      head->next_ = NULL;
-    }
-    return head;
-  }
-
-  static void Push(WeakReferenceSet* reference_set, WeakReferenceSet** queue) {
-    ASSERT(reference_set != NULL);
-    ASSERT(queue != NULL);
-    reference_set->next_ = *queue;
-    *queue = reference_set;
-  }
-
-  void* operator new(uword size, Zone* zone) {
-    return reinterpret_cast<void*>(zone->AllocUnsafe(size));
-  }
-
-  // Disallow explicit deallocation of WeakReferenceSet.
-  void operator delete(void* pointer) { UNREACHABLE(); }
-
- private:
-  WeakReferenceSet* next_;
-  ApiGrowableArray<Dart_WeakPersistentHandle> keys_;
-  ApiGrowableArray<Dart_WeakPersistentHandle> values_;
-
-  DISALLOW_COPY_AND_ASSIGN(WeakReferenceSet);
-};
-
-
-class WeakReferenceSetBuilder {
- public:
-  ApiState* api_state() const {
-    return api_state_;
-  }
-
-  WeakReferenceSet* NewWeakReferenceSet() {
-    return new (zone_) WeakReferenceSet(zone_);
-  }
-
- private:
-  explicit WeakReferenceSetBuilder(ApiState* api_state)
-      : api_state_(api_state),
-        zone_(api_state->top_scope()->zone()) {
-  }
-
-  ApiState* api_state_;
-  Zone* zone_;
-
-  friend class ApiState;
-  DISALLOW_IMPLICIT_CONSTRUCTORS(WeakReferenceSetBuilder);
-};
-
-
 inline FinalizablePersistentHandle* FinalizablePersistentHandle::New(
     Isolate* isolate,
-    bool is_prologue,
     const Object& object,
     void* peer,
     Dart_WeakPersistentHandleFinalizer callback,
     intptr_t external_size) {
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
-  FinalizablePersistentHandle* ref = is_prologue ?
-      state->prologue_weak_persistent_handles().AllocateHandle() :
+  FinalizablePersistentHandle* ref =
       state->weak_persistent_handles().AllocateHandle();
-  ref->SetPrologueWeakPersistent(is_prologue);
   ref->set_raw(object);
   ref->set_peer(peer);
   ref->set_callback(callback);

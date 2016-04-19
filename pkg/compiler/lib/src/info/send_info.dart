@@ -5,15 +5,11 @@
 /// Computes measurements about sends in a function.
 library compiler.src.info.send_info;
 
-import 'dart:convert';
-
 import 'package:dart2js_info/src/measurements.dart';
 import 'package:dart2js_info/src/util.dart' show
     recursiveDiagnosticString;
 
 import '../common.dart';
-import '../common/tasks.dart' show
-    CompilerTask;
 import '../compiler.dart' show
     Compiler;
 import '../dart_types.dart';
@@ -1616,6 +1612,10 @@ class _StatsVisitor<T> extends Visitor
   }
 
   void visitUnresolvedSuperGet(Send node, Element element, T arg) {
+    handleNSMSuper(node, element.enclosingClass);
+  }
+
+  void visitUnresolvedSuperSet(Send node, Element element, Node rhs, T arg) {
     handleNSMSuper(node, element.enclosingClass);
   }
 

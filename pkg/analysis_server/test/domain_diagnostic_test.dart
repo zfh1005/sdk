@@ -10,7 +10,9 @@ import 'package:analysis_server/src/domain_diagnostic.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:plugin/manager.dart';
+import 'package:plugin/plugin.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mock_sdk.dart';
@@ -25,11 +27,25 @@ main() {
   initializeTestEnvironment();
 
   setUp(() {
+    //
+    // Collect plugins
+    //
+    ServerPlugin serverPlugin = new ServerPlugin();
+    List<Plugin> plugins = <Plugin>[];
+    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
+    plugins.add(AnalysisEngine.instance.commandLinePlugin);
+    plugins.add(AnalysisEngine.instance.optionsPlugin);
+    plugins.add(serverPlugin);
+    //
+    // Process plugins
+    //
+    ExtensionManager manager = new ExtensionManager();
+    manager.processPlugins(plugins);
+    //
+    // Create the server
+    //
     var serverChannel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
-    ExtensionManager manager = new ExtensionManager();
-    ServerPlugin serverPlugin = new ServerPlugin();
-    manager.processPlugins([serverPlugin]);
     server = new AnalysisServer(
         serverChannel,
         resourceProvider,
@@ -37,7 +53,7 @@ main() {
         null,
         serverPlugin,
         new AnalysisServerOptions(),
-        new MockSdk(),
+        () => new MockSdk(),
         InstrumentationService.NULL_SERVICE);
     handler = new DiagnosticDomainHandler(server);
   });
@@ -55,14 +71,15 @@ main() {
       var request = new DiagnosticGetDiagnosticsParams().toRequest('0');
       var response = handler.handleRequest(request);
 
-      int fileCount = MockSdk.LIBRARIES.length + 1 /* test.dart */;
+      int fileCount = 1 /* test.dart */;
 
       var json = response.toJson()[Response.RESULT];
       expect(json['contexts'], hasLength(1));
       var context = json['contexts'][0];
       expect(context['name'], '/project');
       expect(context['explicitFileCount'], fileCount);
-      expect(context['implicitFileCount'], 0);
+      // dart:core dart:async dart:math dart:_internal
+      expect(context['implicitFileCount'], 4);
       expect(context['workItemQueueLength'], isNotNull);
     });
 

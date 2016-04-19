@@ -12,6 +12,7 @@ import os
 import re
 import shutil
 from generator import *
+from idlnode import IDLType, resolveTypedef
 
 _logger = logging.getLogger('dartgenerator')
 
@@ -36,6 +37,10 @@ class DartGenerator(object):
 
   def _IsCompoundType(self, database, type_name):
     if IsRegisteredType(type_name):
+      return True
+
+    # References a typedef - normally a union type.
+    if database.HasTypeDef(type_name):
       return True
 
     if type_name.endswith('?'):
@@ -93,6 +98,15 @@ class DartGenerator(object):
               type_name.endswith('Constructor')):
             _logger.warn('removing %s in %s which has unidentified type %s' %
                        (node_name, interface.id, type_name))
+
+          # One last check is the type a typedef in an IDL file (the typedefs
+          # are treated as global).
+          resolvedType = resolveTypedef(idl_type)
+          if (resolvedType != idl_type):
+            idl_type.id = resolvedType.id
+            idl_type.nullable = resolvedType.nullable
+            continue
+
           return False
         return True
 
@@ -240,3 +254,18 @@ class DartGenerator(object):
 
         if 'ScriptArguments' in call_with:
           operation.arguments.append(ARG)
+
+  def CleanupOperationArguments(self, database):
+    for interface in database.GetInterfaces():
+      for operation in interface.operations:
+        # TODO(terry): Hack to remove 3rd arguments in setInterval/setTimeout.
+        if ((operation.id == 'setInterval' or operation.id == 'setTimeout') and \
+            operation.arguments[0].type.id == 'any'):
+          operation.arguments.pop(2)
+
+        # Massage any operation argument type that is IDLEnum to String.
+        for index, argument in enumerate(operation.arguments):
+          type_name = argument.type.id
+          if database.HasEnum(type_name):
+            operation.arguments[index].type = IDLType('DOMString')
+

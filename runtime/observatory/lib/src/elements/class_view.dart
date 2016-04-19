@@ -15,6 +15,7 @@ import 'package:polymer/polymer.dart';
 class ClassViewElement extends ObservatoryElement {
   @published Class cls;
   @observable ServiceMap instances;
+  @observable int reachableBytes;
   @observable int retainedBytes;
   @observable ObservableList mostRetained;
   SampleBufferControlElement sampleBufferControlElement;
@@ -34,7 +35,7 @@ class ClassViewElement extends ObservatoryElement {
   }
 
   Future<ServiceObject> retainedToplist(var limit) {
-    return cls.isolate.fetchHeapSnapshot().last
+    return cls.isolate.fetchHeapSnapshot(true).last
       .then((HeapSnapshot snapshot) =>
           Future.wait(snapshot.getMostRetained(classId: cls.vmCid,
                                                limit: 10)))
@@ -44,6 +45,12 @@ class ClassViewElement extends ObservatoryElement {
   }
 
   // TODO(koda): Add no-arg "calculate-link" instead of reusing "eval-link".
+  Future<ServiceObject> reachableSize(var dummy) {
+    return cls.isolate.getReachableSize(cls).then((Instance obj) {
+      reachableBytes = int.parse(obj.valueAsString);
+    });
+  }
+
   Future<ServiceObject> retainedSize(var dummy) {
     return cls.isolate.getRetainedSize(cls).then((Instance obj) {
       retainedBytes = int.parse(obj.valueAsString);
@@ -79,10 +86,6 @@ class ClassViewElement extends ObservatoryElement {
     loads.add(cls.reload());
     cls.fields.forEach((field) => loads.add(field.reload()));
     return Future.wait(loads);
-  }
-
-  Future refreshCoverage() {
-    return cls.refreshCoverage();
   }
 
   onSampleBufferChange(CpuProfile sampleBuffer) {

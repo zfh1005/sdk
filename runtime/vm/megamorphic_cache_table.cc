@@ -16,7 +16,7 @@ RawMegamorphicCache* MegamorphicCacheTable::Lookup(Isolate* isolate,
                                                    const String& name,
                                                    const Array& descriptor) {
   // Multiple compilation threads could access this lookup.
-  MutexLocker ml(isolate->mutex());
+  SafepointMutexLocker ml(isolate->mutex());
   ASSERT(name.IsSymbol());
   // TODO(rmacnak): ASSERT(descriptor.IsCanonical());
 
@@ -61,7 +61,7 @@ void MegamorphicCacheTable::InitMissHandler(Isolate* isolate) {
   // it is considered in the search for an exception handler.
   code.set_exception_handlers(Object::empty_exception_handlers());
   const Class& cls =
-      Class::Handle(Type::Handle(Type::Function()).type_class());
+      Class::Handle(Type::Handle(Type::DartFunctionType()).type_class());
   const Function& function =
       Function::Handle(Function::New(Symbols::MegamorphicMiss(),
                                      RawFunction::kRegularFunction,
@@ -71,7 +71,8 @@ void MegamorphicCacheTable::InitMissHandler(Isolate* isolate) {
                                      false,  // Not external.
                                      false,  // Not native.
                                      cls,
-                                     0));  // No token position.
+                                     TokenPosition::kNoSource));
+  function.set_result_type(Type::Handle(Type::DynamicType()));
   function.set_is_debuggable(false);
   function.set_is_visible(false);
   function.AttachCode(code);

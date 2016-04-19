@@ -8,12 +8,12 @@
 #include "bin/extensions.h"
 #include <dlfcn.h>  // NOLINT
 
-
 namespace dart {
 namespace bin {
 
 const char* kPrecompiledLibraryName = "libprecompiled.so";
-const char* kPrecompiledSymbolName = "_kInstructionsSnapshot";
+const char* kPrecompiledInstructionsSymbolName = "_kInstructionsSnapshot";
+const char* kPrecompiledDataSymbolName = "_kDataSnapshot";
 
 void* Extensions::LoadExtensionLibrary(const char* library_file) {
   return dlopen(library_file, RTLD_LAZY);

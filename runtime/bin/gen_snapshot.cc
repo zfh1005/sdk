@@ -5,13 +5,11 @@
 // Generate a snapshot file after loading all the scripts specified on the
 // command line.
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 #include <cstdarg>
-
-#include "include/dart_api.h"
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
@@ -19,10 +17,12 @@
 #include "bin/file.h"
 #include "bin/log.h"
 #include "bin/thread.h"
+#include "bin/utils.h"
 #include "bin/vmservice_impl.h"
 
-#include "platform/globals.h"
+#include "include/dart_api.h"
 
+#include "platform/globals.h"
 
 namespace dart {
 namespace bin {
@@ -180,16 +180,16 @@ static int ParseArguments(int argc,
     return -1;
   }
 
-  if (instructions_snapshot_filename != NULL &&
-      embedder_entry_points_manifest == NULL) {
+  if ((instructions_snapshot_filename != NULL) &&
+      (embedder_entry_points_manifest == NULL)) {
     Log::PrintErr(
         "Specifying an instructions snapshot filename indicates precompilation"
         ". But no embedder entry points manifest was specified.\n\n");
     return -1;
   }
 
-  if (embedder_entry_points_manifest != NULL &&
-      instructions_snapshot_filename == NULL) {
+  if ((embedder_entry_points_manifest != NULL) &&
+      (instructions_snapshot_filename == NULL)) {
     Log::PrintErr(
         "Specifying the embedder entry points manifest indicates "
         "precompilation. But no instuctions snapshot was specified.\n\n");
@@ -255,12 +255,8 @@ static Dart_Handle ResolveUriInWorkingDirectory(const char* script_uri) {
 
     // Run DartUtils::ResolveUriInWorkingDirectory in context of uri resolver
     // isolate.
-    Dart_Handle builtin_lib =
-        Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
-    CHECK_RESULT(builtin_lib);
-
     Dart_Handle result = DartUtils::ResolveUriInWorkingDirectory(
-        DartUtils::NewString(script_uri), builtin_lib);
+        DartUtils::NewString(script_uri));
     if (Dart_IsError(result)) {
       failed = true;
       result_string = strdup(Dart_GetError(result));
@@ -284,12 +280,8 @@ static Dart_Handle FilePathFromUri(const char* script_uri) {
     UriResolverIsolateScope scope;
 
     // Run DartUtils::FilePathFromUri in context of uri resolver isolate.
-    Dart_Handle builtin_lib =
-        Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
-    CHECK_RESULT(builtin_lib);
-
     Dart_Handle result = DartUtils::FilePathFromUri(
-        DartUtils::NewString(script_uri), builtin_lib);
+        DartUtils::NewString(script_uri));
     if (Dart_IsError(result)) {
       failed = true;
       result_string = strdup(Dart_GetError(result));
@@ -313,14 +305,8 @@ static Dart_Handle ResolveUri(const char* library_uri, const char* uri) {
     UriResolverIsolateScope scope;
 
     // Run DartUtils::ResolveUri in context of uri resolver isolate.
-    Dart_Handle builtin_lib =
-        Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
-    CHECK_RESULT(builtin_lib);
-
     Dart_Handle result = DartUtils::ResolveUri(
-        DartUtils::NewString(library_uri),
-        DartUtils::NewString(uri),
-        builtin_lib);
+        DartUtils::NewString(library_uri), DartUtils::NewString(uri));
     if (Dart_IsError(result)) {
       failed = true;
       result_string = strdup(Dart_GetError(result));
@@ -448,7 +434,11 @@ static Dart_Handle LoadSnapshotCreationScript(const char* script_name) {
   if (Dart_IsError(source)) {
     return source;
   }
-  return Dart_LoadScript(resolved_script_uri, source, 0, 0);
+  if (IsSnapshottingForPrecompilation()) {
+    return Dart_LoadScript(resolved_script_uri, source, 0, 0);
+  } else {
+    return Dart_LoadLibrary(resolved_script_uri, source, 0, 0);
+  }
 }
 
 
@@ -837,7 +827,7 @@ static Dart_QualifiedFunctionName* ParseEntryPointsManifestFile(
 static Dart_QualifiedFunctionName* ParseEntryPointsManifestIfPresent() {
   Dart_QualifiedFunctionName* entries =
       ParseEntryPointsManifestFile(embedder_entry_points_manifest);
-  if (entries == NULL && IsSnapshottingForPrecompilation()) {
+  if ((entries == NULL) && IsSnapshottingForPrecompilation()) {
     Log::PrintErr(
         "Could not find native embedder entry points during precompilation\n");
     exit(255);
@@ -954,16 +944,19 @@ static void SetupForGenericSnapshotCreation() {
 static Dart_Isolate CreateServiceIsolate(const char* script_uri,
                                          const char* main,
                                          const char* package_root,
-                                         const char** package_map,
+                                         const char* package_config,
                                          Dart_IsolateFlags* flags,
                                          void* data,
                                          char** error) {
+  IsolateData* isolate_data = new IsolateData(script_uri,
+                                              package_root,
+                                              package_config);
   Dart_Isolate isolate = NULL;
   isolate = Dart_CreateIsolate(script_uri,
                                main,
                                NULL,
                                NULL,
-                               NULL,
+                               isolate_data,
                                error);
 
   if (isolate == NULL) {
@@ -1017,12 +1010,13 @@ int main(int argc, char** argv) {
   Thread::InitOnce();
   DartUtils::SetOriginalWorkingDirectory();
   // Start event handler.
+  TimerUtils::InitOnce();
   EventHandler::Start();
 
+#if !defined(PRODUCT)
+  // Constant true in PRODUCT mode.
   vm_options.AddArgument("--load_deferred_eagerly");
-  // Workaround until issue 21620 is fixed.
-  // (https://github.com/dart-lang/sdk/issues/21620)
-  vm_options.AddArgument("--no-concurrent_sweep");
+#endif
 
   if (IsSnapshottingForPrecompilation()) {
     vm_options.AddArgument("--precompilation");
@@ -1036,11 +1030,15 @@ int main(int argc, char** argv) {
 
   // Initialize the Dart VM.
   // Note: We don't expect isolates to be created from dart code during
-  // snapshot generation.
+  // core library snapshot generation. However for the case when a full
+  // snasphot is generated from a script (app_script_name != NULL) we will
+  // need the service isolate to resolve URI and load code.
   char* error = Dart_Initialize(
       NULL,
       NULL,
-      CreateServiceIsolate,
+      NULL,
+      (app_script_name != NULL) ? CreateServiceIsolate : NULL,
+      NULL,
       NULL,
       NULL,
       NULL,
@@ -1056,8 +1054,9 @@ int main(int argc, char** argv) {
     return 255;
   }
 
+  IsolateData* isolate_data = new IsolateData(NULL, NULL, NULL);
   Dart_Isolate isolate = Dart_CreateIsolate(
-      NULL, NULL, NULL, NULL, NULL, &error);
+      NULL, NULL, NULL, NULL, isolate_data, &error);
   if (isolate == NULL) {
     Log::PrintErr("Error: %s", error);
     free(error);
@@ -1079,25 +1078,21 @@ int main(int argc, char** argv) {
 
     SetupForUriResolution();
 
-    // Get handle to builtin library.
-    Dart_Handle builtin_lib =
-        Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
-    CHECK_RESULT(builtin_lib);
-
-    // Ensure that we mark all libraries as loaded.
-    result = Dart_FinalizeLoading(false);
+    // Prepare builtin and its dependent libraries for use to resolve URIs.
+    // Set up various closures, e.g: printing, timers etc.
+    // Set up 'package root' for URI resolution.
+    result = DartUtils::PrepareForScriptLoading(false, false);
     CHECK_RESULT(result);
 
-    // Prepare for script loading by setting up the 'print' and 'timer'
-    // closures and setting up 'package root' for URI resolution.
-    result =
-        DartUtils::PrepareForScriptLoading(package_root,
-                                           NULL,
-                                           NULL,
-                                           false,
-                                           false,
-                                           builtin_lib);
+    // Set up the load port provided by the service isolate so that we can
+    // load scripts.
+    result = DartUtils::SetupServiceLoadPort();
     CHECK_RESULT(result);
+
+    // Setup package root if specified.
+    result = DartUtils::SetupPackageRoot(package_root, NULL);
+    CHECK_RESULT(result);
+
     Dart_ExitScope();
     Dart_ExitIsolate();
 
@@ -1105,7 +1100,9 @@ int main(int argc, char** argv) {
 
     // Now we create an isolate into which we load all the code that needs to
     // be in the snapshot.
-    if (Dart_CreateIsolate(NULL, NULL, NULL, NULL, NULL, &error) == NULL) {
+    isolate_data = new IsolateData(NULL, NULL, NULL);
+    if (Dart_CreateIsolate(
+            NULL, NULL, NULL, NULL, isolate_data, &error) == NULL) {
       fprintf(stderr, "%s", error);
       free(error);
       exit(255);
@@ -1146,6 +1143,11 @@ int main(int argc, char** argv) {
   } else {
     SetupForGenericSnapshotCreation();
     CreateAndWriteSnapshot();
+  }
+  error = Dart_Cleanup();
+  if (error != NULL) {
+    Log::PrintErr("VM cleanup failed: %s\n", error);
+    free(error);
   }
   EventHandler::Stop();
   return 0;

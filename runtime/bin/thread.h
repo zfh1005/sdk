@@ -33,8 +33,8 @@ namespace bin {
 
 class Thread {
  public:
-  static ThreadLocalKey kUnsetThreadLocalKey;
-  static ThreadId kInvalidThreadId;
+  static const ThreadLocalKey kUnsetThreadLocalKey;
+  static const ThreadId kInvalidThreadId;
 
   typedef void (*ThreadStartFunction) (uword parameter);
 
@@ -57,6 +57,10 @@ class Thread {
   static void GetThreadCpuUsage(ThreadId thread_id, int64_t* cpu_usage);
 
   static void InitOnce();
+
+ private:
+  DISALLOW_ALLOCATION();
+  DISALLOW_IMPLICIT_CONSTRUCTORS(Thread);
 };
 
 
@@ -104,7 +108,6 @@ class Monitor {
 
   DISALLOW_COPY_AND_ASSIGN(Monitor);
 };
-
 
 }  // namespace bin
 }  // namespace dart

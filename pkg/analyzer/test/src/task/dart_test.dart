@@ -2,17 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library test.src.task.dart_test;
+library analyzer.test.src.task.dart_test;
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/context/cache.dart';
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisOptionsImpl, CacheState;
+    show AnalysisOptions, AnalysisOptionsImpl, CacheState;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
@@ -24,11 +27,12 @@ import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../generated/resolver_test.dart';
+import '../../generated/resolver_test_case.dart';
 import '../../generated/test_support.dart';
 import '../../reflective_tests.dart';
 import '../../utils.dart';
 import '../context/abstract_context.dart';
+import '../context/mock_sdk.dart';
 
 main() {
   initializeTestEnvironment();
@@ -40,13 +44,14 @@ main() {
   runReflectiveTests(BuildPublicNamespaceTaskTest);
   runReflectiveTests(BuildSourceExportClosureTaskTest);
   runReflectiveTests(BuildTypeProviderTaskTest);
+  runReflectiveTests(BuildTypeProviderTaskTest_noAsync);
   runReflectiveTests(ComputeConstantDependenciesTaskTest);
   runReflectiveTests(ComputeConstantValueTaskTest);
   runReflectiveTests(ComputeInferableStaticVariableDependenciesTaskTest);
   runReflectiveTests(ComputeLibraryCycleTaskTest);
+  runReflectiveTests(ComputePropagableVariableDependenciesTaskTest);
   runReflectiveTests(ContainingLibrariesTaskTest);
   runReflectiveTests(DartErrorsTaskTest);
-  runReflectiveTests(ErrorFilterTest);
   runReflectiveTests(EvaluateUnitConstantsTaskTest);
   runReflectiveTests(GatherUsedImportedElementsTaskTest);
   runReflectiveTests(GatherUsedLocalElementsTaskTest);
@@ -59,7 +64,10 @@ main() {
   runReflectiveTests(LibraryUnitErrorsTaskTest);
   runReflectiveTests(ParseDartTaskTest);
   runReflectiveTests(PartiallyResolveUnitReferencesTaskTest);
+  runReflectiveTests(PropagateVariableTypesInUnitTaskTest);
+  runReflectiveTests(PropagateVariableTypeTaskTest);
   runReflectiveTests(ResolveInstanceFieldsInUnitTaskTest);
+  runReflectiveTests(ResolveLibraryTaskTest);
   runReflectiveTests(ResolveLibraryTypeNamesTaskTest);
   runReflectiveTests(ResolveUnitTaskTest);
   runReflectiveTests(ResolveUnitTypeNamesTaskTest);
@@ -92,6 +100,8 @@ isInstanceOf isComputeConstantValueTask =
     new isInstanceOf<ComputeConstantValueTask>();
 isInstanceOf isComputeInferableStaticVariableDependenciesTask =
     new isInstanceOf<ComputeInferableStaticVariableDependenciesTask>();
+isInstanceOf isComputePropagableVariableDependenciesTask =
+    new isInstanceOf<ComputePropagableVariableDependenciesTask>();
 isInstanceOf isContainingLibrariesTask =
     new isInstanceOf<ContainingLibrariesTask>();
 isInstanceOf isDartErrorsTask = new isInstanceOf<DartErrorsTask>();
@@ -116,6 +126,11 @@ isInstanceOf isLibraryUnitErrorsTask =
 isInstanceOf isParseDartTask = new isInstanceOf<ParseDartTask>();
 isInstanceOf isPartiallyResolveUnitReferencesTask =
     new isInstanceOf<PartiallyResolveUnitReferencesTask>();
+isInstanceOf isPropagateVariableTypesInUnitTask =
+    new isInstanceOf<PropagateVariableTypesInUnitTask>();
+isInstanceOf isPropagateVariableTypeTask =
+    new isInstanceOf<PropagateVariableTypeTask>();
+isInstanceOf isResolveLibraryTask = new isInstanceOf<ResolveLibraryTask>();
 isInstanceOf isResolveLibraryTypeNamesTask =
     new isInstanceOf<ResolveLibraryTypeNamesTask>();
 isInstanceOf isResolveUnitTask = new isInstanceOf<ResolveUnitTask>();
@@ -134,6 +149,19 @@ final LintCode _testLintCode = new LintCode('test lint', 'test lint code');
 class BuildCompilationUnitElementTaskTest extends _AbstractDartTaskTest {
   Source source;
   LibrarySpecificUnit target;
+
+  test_created_resolved_unit() {
+    Source source = newSource(
+        '/test.dart',
+        r'''
+library lib;
+class A {}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT1);
+    expect(outputs[RESOLVED_UNIT1], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT1], isTrue);
+  }
 
   test_perform_find_constants() {
     _performBuildTask('''
@@ -157,8 +185,7 @@ f() {
       unitElement.types[0].fields[0],
       unitElement.functions[0].localVariables[0],
       unitElement.types[0].constructors[0],
-      new ConstantEvaluationTarget_Annotation(
-          context, source, source, annotation),
+      annotation.elementAnnotation,
       unitElement.types[0].constructors[0].parameters[0]
     ];
     expect(
@@ -177,10 +204,11 @@ class A {
 }
 class B = Object with A;
 ''');
-    expect(outputs, hasLength(3));
+    expect(outputs, hasLength(4));
     expect(outputs[COMPILATION_UNIT_CONSTANTS], isNotNull);
     expect(outputs[COMPILATION_UNIT_ELEMENT], isNotNull);
     expect(outputs[RESOLVED_UNIT1], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT1], isTrue);
   }
 
   test_perform_reuseElement() {
@@ -213,6 +241,22 @@ class B = Object with A;
 
 @reflectiveTest
 class BuildDirectiveElementsTaskTest extends _AbstractDartTaskTest {
+  /**
+   * Verify that the given [element] has exactly one annotation, and that its
+   * [ElementAnnotationImpl] is unresolved and points back to [element].
+   *
+   * The compilation unit stored in the [ElementAnnotationImpl] should be
+   * [compilationUnit].
+   */
+  void checkMetadata(Element element, CompilationUnitElement compilationUnit) {
+    expect(element.metadata, hasLength(1));
+    expect(element.metadata[0], new isInstanceOf<ElementAnnotationImpl>());
+    ElementAnnotationImpl elementAnnotation = element.metadata[0];
+    expect(elementAnnotation.element, isNull); // Not yet resolved
+    expect(elementAnnotation.compilationUnit, isNotNull);
+    expect(elementAnnotation.compilationUnit, compilationUnit);
+  }
+
   test_perform() {
     List<Source> sources = newSources({
       '/libA.dart': '''
@@ -440,6 +484,58 @@ library libC;
     expect(importElementC.prefix, prefixElement);
   }
 
+  test_perform_metadata() {
+    List<Source> sources = newSources({
+      '/libA.dart': '''
+@a library libA;
+@b import 'libB.dart';
+@c export 'libC.dart';
+@d part 'part.dart';''',
+      '/libB.dart': 'library libB;',
+      '/libC.dart': 'library libC;',
+      '/part.dart': 'part of libA;'
+    });
+    Source sourceA = sources[0];
+    // perform task
+    computeResult(sourceA, LIBRARY_ELEMENT2,
+        matcher: isBuildDirectiveElementsTask);
+    // Get outputs
+    LibraryElement libraryA =
+        context.getCacheEntry(sourceA).getValue(LIBRARY_ELEMENT2);
+    // Validate metadata
+    checkMetadata(libraryA, libraryA.definingCompilationUnit);
+    checkMetadata(libraryA.imports[0], libraryA.definingCompilationUnit);
+    checkMetadata(libraryA.exports[0], libraryA.definingCompilationUnit);
+    checkMetadata(libraryA.parts[0], libraryA.definingCompilationUnit);
+  }
+
+  test_perform_metadata_partOf() {
+    // We don't record annotations on `part of` directives because the element
+    // associated with a `part of` directive is the library, and the convention
+    // is to annotate the library at the site of the `library` declaration.
+    List<Source> sources = newSources({
+      '/libA.dart': '''
+library libA;
+part 'part.dart';''',
+      '/part.dart': '@a part of libA;'
+    });
+    Source sourceA = sources[0];
+    Source sourcePart = sources[1];
+    // perform task
+    computeResult(sourceA, LIBRARY_ELEMENT2,
+        matcher: isBuildDirectiveElementsTask);
+    // Get outputs
+    LibraryElement libraryA =
+        context.getCacheEntry(sourceA).getValue(LIBRARY_ELEMENT2);
+    CompilationUnit part = context
+        .getCacheEntry(new LibrarySpecificUnit(sourceA, sourcePart))
+        .getValue(RESOLVED_UNIT1);
+    // Validate metadata
+    expect(part.directives[0], new isInstanceOf<PartOfDirective>());
+    expect(part.directives[0].element, same(libraryA));
+    expect(part.directives[0].element.metadata, isEmpty);
+  }
+
   void _assertErrorsWithCodes(List<ErrorCode> expectedErrorCodes) {
     _fillErrorListener(BUILD_DIRECTIVES_ERRORS);
     errorListener.assertErrorsWithCodes(expectedErrorCodes);
@@ -458,6 +554,19 @@ library libC;
 
 @reflectiveTest
 class BuildEnumMemberElementsTaskTest extends _AbstractDartTaskTest {
+  test_created_resolved_unit() {
+    Source source = newSource(
+        '/test.dart',
+        r'''
+library lib;
+class A {}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT2);
+    expect(outputs[RESOLVED_UNIT2], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT2], isTrue);
+  }
+
   test_perform() {
     Source source = newSource(
         '/test.dart',
@@ -966,6 +1075,32 @@ class BuildTypeProviderTaskTest extends _AbstractDartTaskTest {
 }
 
 @reflectiveTest
+class BuildTypeProviderTaskTest_noAsync extends _AbstractDartTaskTest {
+  void prepareAnalysisContext([AnalysisOptions options]) {
+    AnalysisOptionsImpl newOptions = new AnalysisOptionsImpl();
+    newOptions.enableAsync = false;
+    super.prepareAnalysisContext(newOptions);
+  }
+
+  void setUp() {
+    sdk = new MockSdk(dartAsync: false);
+    super.setUp();
+  }
+
+  test_perform_noAsync() {
+    expect(context, isNotNull);
+    computeResult(AnalysisContextTarget.request, TYPE_PROVIDER,
+        matcher: isBuildTypeProviderTask);
+    // validate
+    TypeProvider typeProvider = outputs[TYPE_PROVIDER];
+    expect(typeProvider, isNotNull);
+    expect(typeProvider.boolType, isNotNull);
+    expect(typeProvider.intType, isNotNull);
+    expect(typeProvider.futureType, isNotNull);
+  }
+}
+
+@reflectiveTest
 class ComputeConstantDependenciesTaskTest extends _AbstractDartTaskTest {
   Annotation findClassAnnotation(CompilationUnit unit, String className) {
     for (CompilationUnitMember member in unit.declarations) {
@@ -1004,13 +1139,37 @@ class D { const D(value); }
     // Now compute the dependencies for the annotation, and check that it is
     // the set [x, constructorForD].
     // TODO(paulberry): test librarySource != source
-    computeResult(
-        new ConstantEvaluationTarget_Annotation(
-            context, source, source, annotation),
-        CONSTANT_DEPENDENCIES,
+    computeResult(annotation.elementAnnotation, CONSTANT_DEPENDENCIES,
         matcher: isComputeConstantDependenciesTask);
     expect(
         outputs[CONSTANT_DEPENDENCIES].toSet(), [x, constructorForD].toSet());
+  }
+
+  test_annotation_with_nonConstArg() {
+    Source source = newSource(
+        '/test.dart',
+        '''
+class A {
+  const A(x);
+}
+class C {
+  @A(const [(_) => null])
+  String s;
+}
+''');
+    // First compute the resolved unit for the source.
+    LibrarySpecificUnit librarySpecificUnit =
+        new LibrarySpecificUnit(source, source);
+    computeResult(librarySpecificUnit, RESOLVED_UNIT1);
+    CompilationUnit unit = outputs[RESOLVED_UNIT1];
+    // Find the annotation on the field.
+    ClassDeclaration classC = unit.declarations[1];
+    Annotation annotation = classC.members[0].metadata[0];
+    // Now compute the dependencies for the annotation, and check that it is
+    // the right size.
+    computeResult(annotation.elementAnnotation, CONSTANT_DEPENDENCIES,
+        matcher: isComputeConstantDependenciesTask);
+    expect(outputs[CONSTANT_DEPENDENCIES], hasLength(1));
   }
 
   test_annotation_without_args() {
@@ -1034,10 +1193,7 @@ const x = 1;
     Annotation annotation = findClassAnnotation(unit, 'C');
     // Now compute the dependencies for the annotation, and check that it is
     // the list [x].
-    computeResult(
-        new ConstantEvaluationTarget_Annotation(
-            context, source, source, annotation),
-        CONSTANT_DEPENDENCIES,
+    computeResult(annotation.elementAnnotation, CONSTANT_DEPENDENCIES,
         matcher: isComputeConstantDependenciesTask);
     expect(outputs[CONSTANT_DEPENDENCIES], [x]);
   }
@@ -1101,14 +1257,13 @@ class ComputeConstantValueTaskTest extends _AbstractDartTaskTest {
       if (member is ClassDeclaration && member.name.name == className) {
         expect(member.metadata, hasLength(1));
         Annotation annotation = member.metadata[0];
-        ConstantEvaluationTarget_Annotation target =
-            new ConstantEvaluationTarget_Annotation(
-                context, source, source, annotation);
+        ElementAnnotationImpl target = annotation.elementAnnotation;
         computeResult(target, CONSTANT_VALUE,
             matcher: isComputeConstantValueTask);
         expect(outputs[CONSTANT_VALUE], same(target));
-        EvaluationResultImpl evaluationResult = (annotation.elementAnnotation
-            as ElementAnnotationImpl).evaluationResult;
+        EvaluationResultImpl evaluationResult =
+            (annotation.elementAnnotation as ElementAnnotationImpl)
+                .evaluationResult;
         return evaluationResult;
       }
     }
@@ -1275,9 +1430,10 @@ const x = 1;
     // should be set to the same error state.
     for (String otherVariableName in otherVariables) {
       PropertyInducingElement otherVariableElement =
-          _findVariable(unit, otherVariableName);
-      _expectCircularityError((otherVariableElement
-          as TopLevelVariableElementImpl).evaluationResult);
+          AstFinder.getTopLevelVariableElement(unit, otherVariableName);
+      _expectCircularityError(
+          (otherVariableElement as TopLevelVariableElementImpl)
+              .evaluationResult);
     }
   }
 
@@ -1289,7 +1445,8 @@ const x = 1;
   EvaluationResultImpl _evaluateConstant(
       CompilationUnit unit, String variableName) {
     // Find the element for the given constant.
-    PropertyInducingElement variableElement = _findVariable(unit, variableName);
+    PropertyInducingElement variableElement =
+        AstFinder.getTopLevelVariableElement(unit, variableName);
     // Now compute the value of the constant.
     computeResult(variableElement, CONSTANT_VALUE,
         matcher: isComputeConstantValueTask);
@@ -1305,13 +1462,6 @@ const x = 1;
     expect(evaluationResult.errors, hasLength(1));
     expect(evaluationResult.errors[0].errorCode,
         CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT);
-  }
-
-  PropertyInducingElement _findVariable(
-      CompilationUnit unit, String variableName) {
-    // Find the element for the given constant.
-    return unit.element.topLevelVariables.firstWhere(
-        (TopLevelVariableElement variable) => variable.name == variableName);
   }
 
   CompilationUnit _resolveSource(Source source) {
@@ -1334,6 +1484,19 @@ class ComputeInferableStaticVariableDependenciesTaskTest
     super.setUp();
     // Variable dependencies are only available in strong mode.
     enableStrongMode();
+  }
+
+  test_created_resolved_unit() {
+    Source source = newSource(
+        '/test.dart',
+        r'''
+library lib;
+class A {}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT5);
+    expect(outputs[RESOLVED_UNIT5], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT5], isTrue);
   }
 
   test_perform() {
@@ -1532,6 +1695,62 @@ import 'a.dart';
     expect(dep2, hasLength(1)); // dart:core
   }
 
+  void test_library_cycle_override_inference_incremental() {
+    enableStrongMode();
+    Source lib1Source = newSource(
+        '/my_lib1.dart',
+        '''
+library my_lib1;
+import 'my_lib3.dart';
+''');
+    Source lib2Source = newSource(
+        '/my_lib2.dart',
+        '''
+library my_lib2;
+import 'my_lib1.dart';
+''');
+    Source lib3Source = newSource(
+        '/my_lib3.dart',
+        '''
+library my_lib3;
+import 'my_lib2.dart';
+
+class A {
+  int foo(int x) => null;
+}
+class B extends A {
+  foo(x) => null;
+}
+''');
+    AnalysisTarget lib1Target = new LibrarySpecificUnit(lib1Source, lib1Source);
+    AnalysisTarget lib2Target = new LibrarySpecificUnit(lib2Source, lib2Source);
+    AnalysisTarget lib3Target = new LibrarySpecificUnit(lib3Source, lib3Source);
+
+    computeResult(lib1Target, RESOLVED_UNIT);
+    computeResult(lib2Target, RESOLVED_UNIT);
+    computeResult(lib3Target, RESOLVED_UNIT);
+    CompilationUnit unit = outputs[RESOLVED_UNIT];
+    ClassElement b = unit.declarations[1].element;
+    expect(b.getMethod('foo').returnType.toString(), 'int');
+
+    // add a dummy edit.
+    context.setContents(
+        lib1Source,
+        '''
+library my_lib1;
+import 'my_lib3.dart';
+var foo = 123;
+''');
+
+    computeResult(lib1Target, RESOLVED_UNIT);
+    computeResult(lib2Target, RESOLVED_UNIT);
+    computeResult(lib3Target, RESOLVED_UNIT);
+    unit = outputs[RESOLVED_UNIT];
+    b = unit.declarations[1].element;
+    expect(b.getMethod('foo').returnType.toString(), 'int',
+        reason: 'edit should not affect member inference');
+  }
+
   void test_library_cycle_self_loop() {
     List<Source> sources = newSources({
       '/a.dart': '''
@@ -1646,7 +1865,7 @@ import 'dart:core';
     List<CompilationUnitElement> dep3 = results[3][LIBRARY_CYCLE_DEPENDENCIES];
     expect(dep0, hasLength(1)); // dart:core
     expect(dep1, hasLength(1)); // dart:core
-    expect(dep3, hasLength(3)); // dart:core, a.dart, b.dart
+    expect(dep2, hasLength(3)); // dart:core, a.dart, b.dart
     expect(dep3, hasLength(3)); // dart:core, a.dart, b.dart
   }
 
@@ -1761,6 +1980,134 @@ import 'dart:core';
 }
 
 @reflectiveTest
+class ComputePropagableVariableDependenciesTaskTest
+    extends _AbstractDartTaskTest {
+  test_perform_instanceField() {
+    AnalysisTarget source = newSource(
+        '/test.dart',
+        '''
+class A {
+  final a = a1 + a2 + a3 + a4 + B.b1 + B.b2 + B.b3 + B.b4;
+  static const a1 = 1;
+  final a2 = 2;
+  final a3;
+  var   a4 = 4;
+}
+class B {
+  static const b1 = 1;
+  static final b2 = 2;
+  static final b3;
+  static var   b4 = 4;
+}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT5);
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    FieldElement elementA = AstFinder.getFieldInClassElement(unit, 'A', 'a');
+    // compute
+    computeResult(elementA, PROPAGABLE_VARIABLE_DEPENDENCIES,
+        matcher: isComputePropagableVariableDependenciesTask);
+    // verify
+    expect(outputs, hasLength(1));
+    List<VariableElement> dependencies =
+        outputs[PROPAGABLE_VARIABLE_DEPENDENCIES];
+    expect(
+        dependencies,
+        unorderedEquals([
+          AstFinder.getFieldInClassElement(unit, 'A', 'a1'),
+          AstFinder.getFieldInClassElement(unit, 'A', 'a2'),
+          AstFinder.getFieldInClassElement(unit, 'B', 'b1'),
+          AstFinder.getFieldInClassElement(unit, 'B', 'b2')
+        ]));
+  }
+
+  test_perform_topLevel() {
+    AnalysisTarget source = newSource(
+        '/test.dart',
+        '''
+const a = d1 + d2 + d3 + d4;
+const d1 = 1;
+final d2 = 2;
+final d3;
+var   d4 = 4;
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT5);
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    TopLevelVariableElement elementA =
+        AstFinder.getTopLevelVariableElement(unit, 'a');
+    // compute
+    computeResult(elementA, PROPAGABLE_VARIABLE_DEPENDENCIES,
+        matcher: isComputePropagableVariableDependenciesTask);
+    // verify
+    expect(outputs, hasLength(1));
+    List<VariableElement> dependencies =
+        outputs[PROPAGABLE_VARIABLE_DEPENDENCIES];
+    expect(
+        dependencies,
+        unorderedEquals([
+          AstFinder.getTopLevelVariableElement(unit, 'd1'),
+          AstFinder.getTopLevelVariableElement(unit, 'd2')
+        ]));
+  }
+
+  test_perform_topLevel_ignoreLocal() {
+    AnalysisTarget source = newSource(
+        '/test.dart',
+        '''
+final a = () {
+  const b = 2;
+  const c = 3;
+  return b + c;
+}() + d;
+final d = 4;
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT5);
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    TopLevelVariableElement elementA =
+        AstFinder.getTopLevelVariableElement(unit, 'a');
+    // compute
+    computeResult(elementA, PROPAGABLE_VARIABLE_DEPENDENCIES,
+        matcher: isComputePropagableVariableDependenciesTask);
+    // verify
+    expect(outputs, hasLength(1));
+    List<VariableElement> dependencies =
+        outputs[PROPAGABLE_VARIABLE_DEPENDENCIES];
+    expect(dependencies,
+        unorderedEquals([AstFinder.getTopLevelVariableElement(unit, 'd')]));
+  }
+
+  test_perform_topLevel_withoutSpaceAfterType() {
+    AnalysisTarget source = newSource(
+        '/test.dart',
+        '''
+const List<int>a=[b, c];
+const b = 1;
+const c = 2;
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT5);
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    TopLevelVariableElement elementA =
+        AstFinder.getTopLevelVariableElement(unit, 'a');
+    // compute
+    computeResult(elementA, PROPAGABLE_VARIABLE_DEPENDENCIES,
+        matcher: isComputePropagableVariableDependenciesTask);
+    // verify
+    expect(outputs, hasLength(1));
+    List<VariableElement> dependencies =
+        outputs[PROPAGABLE_VARIABLE_DEPENDENCIES];
+    expect(
+        dependencies,
+        unorderedEquals([
+          AstFinder.getTopLevelVariableElement(unit, 'b'),
+          AstFinder.getTopLevelVariableElement(unit, 'c')
+        ]));
+  }
+}
+
+@reflectiveTest
 class ContainingLibrariesTaskTest extends _AbstractDartTaskTest {
   test_perform_definingCompilationUnit() {
     AnalysisTarget library = newSource('/test.dart', 'library test;');
@@ -1832,6 +2179,19 @@ class DartErrorsTaskTest extends _AbstractDartTaskTest {
 
 @reflectiveTest
 class EvaluateUnitConstantsTaskTest extends _AbstractDartTaskTest {
+  test_created_resolved_unit() {
+    Source source = newSource(
+        '/test.dart',
+        r'''
+library lib;
+class A {}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT11);
+    expect(outputs[RESOLVED_UNIT11], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT11], isTrue);
+  }
+
   test_perform() {
     Source source = newSource(
         '/test.dart',
@@ -1846,9 +2206,9 @@ f() {}
 const x = const C();
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT10,
+    computeResult(target, RESOLVED_UNIT11,
         matcher: isEvaluateUnitConstantsTask);
-    CompilationUnit unit = outputs[RESOLVED_UNIT10];
+    CompilationUnit unit = outputs[RESOLVED_UNIT11];
     CompilationUnitElement unitElement = unit.element;
     expect(
         (unitElement.types[0].constructors[0] as ConstructorElementImpl)
@@ -2241,30 +2601,6 @@ f(A a) {
 }
 
 @reflectiveTest
-class ErrorFilterTest extends _AbstractDartTaskTest {
-  @override
-  setUp() {
-    super.setUp();
-    context.setConfigurationData(CONFIGURED_ERROR_FILTERS, [
-      (AnalysisError error) => error.errorCode.name == 'INVALID_ASSIGNMENT'
-    ]);
-  }
-
-  test_error_filters() {
-    AnalysisTarget library = newSource('/test.dart', '''
-main() {
-  int x = ""; // INVALID_ASSIGNMENT (suppressed)
-  // UNUSED_LOCAL_VARIABLE
-}''');
-    computeResult(library, DART_ERRORS, matcher: isDartErrorsTask);
-    expect(outputs, hasLength(1));
-    List<AnalysisError> errors = outputs[DART_ERRORS];
-    expect(errors, hasLength(1));
-    expect(errors.first.errorCode, HintCode.UNUSED_LOCAL_VARIABLE);
-  }
-}
-
-@reflectiveTest
 class GenerateLintsTaskTest extends _AbstractDartTaskTest {
   void enableLints() {
     AnalysisOptionsImpl options = context.analysisOptions;
@@ -2315,11 +2651,27 @@ class GenerateLintsTaskTest_AstVisitor extends SimpleAstVisitor {
 
 class GenerateLintsTaskTest_TestLinter extends Linter {
   @override
+  String get name => 'GenerateLintsTaskTest_TestLinter';
+
+  @override
   AstVisitor getVisitor() => new GenerateLintsTaskTest_AstVisitor(this);
 }
 
 @reflectiveTest
 class InferInstanceMembersInUnitTaskTest extends _AbstractDartTaskTest {
+  test_created_resolved_unit() {
+    Source source = newSource(
+        '/test.dart',
+        r'''
+library lib;
+class A {}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT9);
+    expect(outputs[RESOLVED_UNIT9], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT9], isTrue);
+  }
+
   void test_perform() {
     enableStrongMode();
     AnalysisTarget source = newSource(
@@ -2337,14 +2689,14 @@ class X {}
 class Y {}
 class Z {}
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT8,
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT9,
         matcher: isInferInstanceMembersInUnitTask);
-    CompilationUnit unit = outputs[RESOLVED_UNIT8];
-    VariableDeclaration field = getFieldInClass(unit, 'B', 'f');
-    MethodDeclaration method = getMethodInClass(unit, 'B', 'm');
-    DartType typeX = getClass(unit, 'X').element.type;
-    DartType typeY = getClass(unit, 'Y').element.type;
-    DartType typeZ = getClass(unit, 'Z').element.type;
+    CompilationUnit unit = outputs[RESOLVED_UNIT9];
+    VariableDeclaration field = AstFinder.getFieldInClass(unit, 'B', 'f');
+    MethodDeclaration method = AstFinder.getMethodInClass(unit, 'B', 'm');
+    DartType typeX = AstFinder.getClass(unit, 'X').element.type;
+    DartType typeY = AstFinder.getClass(unit, 'Y').element.type;
+    DartType typeZ = AstFinder.getClass(unit, 'Z').element.type;
 
     expect(field.element.type, typeX);
     expect(method.element.returnType, typeY);
@@ -2371,16 +2723,19 @@ class M {
 }
 ''');
     computeResult(
-        new LibrarySpecificUnit(firstSource, firstSource), RESOLVED_UNIT8,
+        new LibrarySpecificUnit(firstSource, firstSource), RESOLVED_UNIT9,
         matcher: isInferInstanceMembersInUnitTask);
-    CompilationUnit firstUnit = outputs[RESOLVED_UNIT8];
+    CompilationUnit firstUnit = outputs[RESOLVED_UNIT9];
     computeResult(
-        new LibrarySpecificUnit(secondSource, secondSource), RESOLVED_UNIT8);
-    CompilationUnit secondUnit = outputs[RESOLVED_UNIT8];
+        new LibrarySpecificUnit(secondSource, secondSource), RESOLVED_UNIT9);
+    CompilationUnit secondUnit = outputs[RESOLVED_UNIT9];
 
-    VariableDeclaration variableA = getTopLevelVariable(firstUnit, 'a');
-    VariableDeclaration variableB = getTopLevelVariable(secondUnit, 'b');
-    VariableDeclaration variableC = getFieldInClass(secondUnit, 'M', 'c');
+    VariableDeclaration variableA =
+        AstFinder.getTopLevelVariable(firstUnit, 'a');
+    VariableDeclaration variableB =
+        AstFinder.getTopLevelVariable(secondUnit, 'b');
+    VariableDeclaration variableC =
+        AstFinder.getFieldInClass(secondUnit, 'M', 'c');
     InterfaceType stringType = context.typeProvider.stringType;
 
     expect(variableA.element.type, stringType);
@@ -2400,10 +2755,12 @@ class C {
   String field = topLevel;
 }
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT8);
-    CompilationUnit unit = outputs[RESOLVED_UNIT8];
-    VariableDeclaration topLevelDecl = getTopLevelVariable(unit, 'topLevel');
-    VariableDeclaration fieldDecl = getFieldInClass(unit, 'C', 'field');
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT9);
+    CompilationUnit unit = outputs[RESOLVED_UNIT9];
+    VariableDeclaration topLevelDecl =
+        AstFinder.getTopLevelVariable(unit, 'topLevel');
+    VariableDeclaration fieldDecl =
+        AstFinder.getFieldInClass(unit, 'C', 'field');
     VariableElement topLevel = topLevelDecl.name.staticElement;
     VariableElement field = fieldDecl.name.staticElement;
 
@@ -2416,6 +2773,19 @@ class C {
 
 @reflectiveTest
 class InferStaticVariableTypesInUnitTaskTest extends _AbstractDartTaskTest {
+  test_created_resolved_unit() {
+    Source source = newSource(
+        '/test.dart',
+        r'''
+library lib;
+class A {}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT7);
+    expect(outputs[RESOLVED_UNIT7], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT7], isTrue);
+  }
+
   void test_perform_const_field() {
     enableStrongMode();
     AnalysisTarget source = newSource(
@@ -2425,10 +2795,10 @@ class M {
   static const X = "";
 }
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT6,
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT7,
         matcher: isInferStaticVariableTypesInUnitTask);
-    CompilationUnit unit = outputs[RESOLVED_UNIT6];
-    VariableDeclaration declaration = getFieldInClass(unit, 'M', 'X');
+    CompilationUnit unit = outputs[RESOLVED_UNIT7];
+    VariableDeclaration declaration = AstFinder.getFieldInClass(unit, 'M', 'X');
     InterfaceType stringType = context.typeProvider.stringType;
     expect(declaration.element.type, stringType);
   }
@@ -2444,7 +2814,7 @@ var f = (int x) {
   return xSquared;
 };
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT6,
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT7,
         matcher: isInferStaticVariableTypesInUnitTask);
   }
 
@@ -2467,17 +2837,20 @@ var b = a;
 class M {}
 ''');
     computeResult(
-        new LibrarySpecificUnit(firstSource, firstSource), RESOLVED_UNIT6,
+        new LibrarySpecificUnit(firstSource, firstSource), RESOLVED_UNIT7,
         matcher: isInferStaticVariableTypesInUnitTask);
-    CompilationUnit firstUnit = outputs[RESOLVED_UNIT6];
+    CompilationUnit firstUnit = outputs[RESOLVED_UNIT7];
     computeResult(
-        new LibrarySpecificUnit(secondSource, secondSource), RESOLVED_UNIT6);
-    CompilationUnit secondUnit = outputs[RESOLVED_UNIT6];
+        new LibrarySpecificUnit(secondSource, secondSource), RESOLVED_UNIT7);
+    CompilationUnit secondUnit = outputs[RESOLVED_UNIT7];
 
-    VariableDeclaration variableA = getTopLevelVariable(firstUnit, 'a');
-    VariableDeclaration variableB = getTopLevelVariable(secondUnit, 'b');
-    VariableDeclaration variableC = getTopLevelVariable(firstUnit, 'c');
-    ClassDeclaration classM = getClass(secondUnit, 'M');
+    VariableDeclaration variableA =
+        AstFinder.getTopLevelVariable(firstUnit, 'a');
+    VariableDeclaration variableB =
+        AstFinder.getTopLevelVariable(secondUnit, 'b');
+    VariableDeclaration variableC =
+        AstFinder.getTopLevelVariable(firstUnit, 'c');
+    ClassDeclaration classM = AstFinder.getClass(secondUnit, 'M');
     DartType typeM = classM.element.type;
 
     expect(variableA.element.type, typeM);
@@ -2498,9 +2871,9 @@ var Y = () {
   return 1 + X;
 };
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT6,
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT7,
         matcher: isInferStaticVariableTypesInUnitTask);
-    CompilationUnit unit = outputs[RESOLVED_UNIT6];
+    CompilationUnit unit = outputs[RESOLVED_UNIT7];
     TopLevelVariableDeclaration declaration = unit.declarations[1];
     FunctionExpression function =
         declaration.variables.variables[0].initializer;
@@ -2524,7 +2897,8 @@ class C {
 ''');
     computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
     CompilationUnit unit = outputs[RESOLVED_UNIT5];
-    VariableDeclaration declaration = getFieldInClass(unit, 'C', 'field');
+    VariableDeclaration declaration =
+        AstFinder.getFieldInClass(unit, 'C', 'field');
     VariableElement variable = declaration.name.staticElement;
     InferStaticVariableTypeTask inferTask =
         new InferStaticVariableTypeTask(task.context, variable);
@@ -2539,7 +2913,8 @@ var topLevel = '';
 ''');
     computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
     CompilationUnit unit = outputs[RESOLVED_UNIT5];
-    VariableDeclaration declaration = getTopLevelVariable(unit, 'topLevel');
+    VariableDeclaration declaration =
+        AstFinder.getTopLevelVariable(unit, 'topLevel');
     VariableElement variable = declaration.name.staticElement;
     InferStaticVariableTypeTask inferTask =
         new InferStaticVariableTypeTask(task.context, variable);
@@ -2558,8 +2933,10 @@ class C {
 ''');
     computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
     CompilationUnit unit = outputs[RESOLVED_UNIT5];
-    VariableDeclaration topLevelDecl = getTopLevelVariable(unit, 'topLevel3');
-    VariableDeclaration fieldDecl = getFieldInClass(unit, 'C', 'field3');
+    VariableDeclaration topLevelDecl =
+        AstFinder.getTopLevelVariable(unit, 'topLevel3');
+    VariableDeclaration fieldDecl =
+        AstFinder.getFieldInClass(unit, 'C', 'field3');
     VariableElement topLevel = topLevelDecl.name.staticElement;
     VariableElement field = fieldDecl.name.staticElement;
 
@@ -2584,9 +2961,9 @@ class C {
     computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
     CompilationUnit unit = outputs[RESOLVED_UNIT5];
     VariableElement topLevel =
-        getTopLevelVariable(unit, 'topLevel').name.staticElement;
+        AstFinder.getTopLevelVariable(unit, 'topLevel').name.staticElement;
     VariableElement field =
-        getFieldInClass(unit, 'C', 'field').name.staticElement;
+        AstFinder.getFieldInClass(unit, 'C', 'field').name.staticElement;
 
     computeResult(field, INFERRED_STATIC_VARIABLE,
         matcher: isInferStaticVariableTypeTask);
@@ -2607,9 +2984,11 @@ var tau = piFirst ? pi * 2 : 6.28;
     computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
     CompilationUnit unit = outputs[RESOLVED_UNIT5];
     VariableElement piFirst =
-        getTopLevelVariable(unit, 'piFirst').name.staticElement;
-    VariableElement pi = getTopLevelVariable(unit, 'pi').name.staticElement;
-    VariableElement tau = getTopLevelVariable(unit, 'tau').name.staticElement;
+        AstFinder.getTopLevelVariable(unit, 'piFirst').name.staticElement;
+    VariableElement pi =
+        AstFinder.getTopLevelVariable(unit, 'pi').name.staticElement;
+    VariableElement tau =
+        AstFinder.getTopLevelVariable(unit, 'tau').name.staticElement;
 
     computeResult(piFirst, INFERRED_STATIC_VARIABLE,
         matcher: isInferStaticVariableTypeTask);
@@ -2627,7 +3006,8 @@ var a = '' / null;
 ''');
     computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
     CompilationUnit unit = outputs[RESOLVED_UNIT5];
-    VariableElement a = getTopLevelVariable(unit, 'a').name.staticElement;
+    VariableElement a =
+        AstFinder.getTopLevelVariable(unit, 'a').name.staticElement;
 
     computeResult(a, INFERRED_STATIC_VARIABLE,
         matcher: isInferStaticVariableTypeTask);
@@ -2643,7 +3023,8 @@ var a = null;
 ''');
     computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
     CompilationUnit unit = outputs[RESOLVED_UNIT5];
-    VariableElement a = getTopLevelVariable(unit, 'a').name.staticElement;
+    VariableElement a =
+        AstFinder.getTopLevelVariable(unit, 'a').name.staticElement;
 
     computeResult(a, INFERRED_STATIC_VARIABLE,
         matcher: isInferStaticVariableTypeTask);
@@ -2760,8 +3141,50 @@ part 'test.dart';
     expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(1));
     expect(outputs[PARSE_ERRORS], hasLength(0));
     expect(outputs[PARSED_UNIT], isNotNull);
-    expect(outputs[SOURCE_KIND], SourceKind.UNKNOWN);
+    expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
     expect(outputs[UNITS], hasLength(1));
+  }
+
+  test_perform_enableAsync_false() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableAsync = false;
+    prepareAnalysisContext(options);
+    _performParseTask(r'''
+import 'dart:async';
+class B {void foo() async {}}''');
+    expect(outputs, hasLength(9));
+    expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(1));
+    expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
+    _assertHasCore(outputs[IMPORTED_LIBRARIES], 2);
+    expect(outputs[INCLUDED_PARTS], hasLength(0));
+    expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(1));
+    expect(outputs[PARSE_ERRORS], hasLength(1));
+    expect(outputs[PARSED_UNIT], isNotNull);
+    expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
+    expect(outputs[UNITS], hasLength(1));
+  }
+
+  test_perform_enableAsync_true() {
+    _performParseTask(r'''
+import 'dart:async';
+class B {void foo() async {}}''');
+    expect(outputs, hasLength(9));
+    expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(1));
+    expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
+    _assertHasCore(outputs[IMPORTED_LIBRARIES], 2);
+    expect(outputs[INCLUDED_PARTS], hasLength(0));
+    expect(outputs[LIBRARY_SPECIFIC_UNITS], hasLength(1));
+    expect(outputs[PARSE_ERRORS], hasLength(0));
+    expect(outputs[PARSED_UNIT], isNotNull);
+    expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
+    expect(outputs[UNITS], hasLength(1));
+  }
+
+  test_perform_flushTokenStream() {
+    _performParseTask(r'''
+class Test {}
+''');
+    expect(analysisCache.getState(source, TOKEN_STREAM), CacheState.FLUSHED);
   }
 
   test_perform_invalidDirectives() {
@@ -2828,7 +3251,11 @@ class B {}''');
   }
 
   void _performParseTask(String content) {
-    source = newSource('/test.dart', content);
+    if (content == null) {
+      source = resourceProvider.getFile('/test.dart').createSource();
+    } else {
+      source = newSource('/test.dart', content);
+    }
     computeResult(source, PARSED_UNIT, matcher: isParseDartTask);
   }
 
@@ -2842,35 +3269,36 @@ class B {}''');
 
 @reflectiveTest
 class PartiallyResolveUnitReferencesTaskTest extends _AbstractDartTaskTest {
-  test_perform() {
+  test_perform_propagable() {
     enableStrongMode();
     Source source = newSource(
         '/test.dart',
         '''
-int a = b;
-int b = c;
-var d = 0;
-class A {}
+const t1 = 1;
+final t2 = 2;
+var   t3 = 3;
+final t4;
 class C {
-  static final f = '';
-  var g = 0;
+  static const fs1 = 1;
+  static final fs2 = 2;
+  static var   fs3 = 3;
+  static final fs4;
+  const fi1 = 1;
+  final fi2 = 2;
+  var   fi3 = 3;
+  final fi4;
 }
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT5,
+    computeResult(target, PROPAGABLE_VARIABLES_IN_UNIT,
         matcher: isPartiallyResolveUnitReferencesTask);
-    // Test the outputs
-    expect(outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT], hasLength(4));
-    CompilationUnit unit = outputs[RESOLVED_UNIT5];
-    expect(unit, same(outputs[RESOLVED_UNIT5]));
-    // Test the state of the AST
-    TopLevelVariableDeclaration a = unit.declarations[0];
-    VariableDeclaration variableA = a.variables.variables[0];
-    SimpleIdentifier initializer = variableA.initializer;
-    expect(initializer.staticElement, isNotNull);
+    // PROPAGABLE_VARIABLES_IN_UNIT
+    List<VariableElement> variables = outputs[PROPAGABLE_VARIABLES_IN_UNIT];
+    expect(variables.map((v) => v.displayName),
+        unorderedEquals(['t1', 't2', 'fs1', 'fs2', 'fi1', 'fi2']));
   }
 
-  test_perform_importExport() {
+  test_perform_strong_importExport() {
     newSource(
         '/a.dart',
         '''
@@ -2911,7 +3339,40 @@ main() {
     expect(methodElement, isNull);
   }
 
-  test_perform_notResolved() {
+  test_perform_strong_inferable() {
+    enableStrongMode();
+    Source source = newSource(
+        '/test.dart',
+        '''
+int a = b;
+int b = c;
+var d = 0;
+class A {}
+class C {
+  static final f = '';
+  var g = 0;
+}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT5,
+        matcher: isPartiallyResolveUnitReferencesTask);
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    // INFERABLE_STATIC_VARIABLES_IN_UNIT
+    {
+      List<VariableElement> variables =
+          outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT];
+      expect(variables, hasLength(4));
+      expect(variables.map((v) => v.displayName),
+          unorderedEquals(['a', 'b', 'd', 'f']));
+    }
+    // Test the state of the AST
+    TopLevelVariableDeclaration a = unit.declarations[0];
+    VariableDeclaration variableA = a.variables.variables[0];
+    SimpleIdentifier initializer = variableA.initializer;
+    expect(initializer.staticElement, isNotNull);
+  }
+
+  test_perform_strong_notResolved() {
     enableStrongMode();
     Source source = newSource(
         '/test.dart',
@@ -2978,11 +3439,156 @@ class C {
 }
 
 @reflectiveTest
+class PropagateVariableTypesInUnitTaskTest extends _AbstractDartTaskTest {
+  test_created_resolved_unit() {
+    Source source = newSource(
+        '/test.dart',
+        r'''
+library lib;
+class A {}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT6);
+    expect(outputs[RESOLVED_UNIT6], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT6], isTrue);
+  }
+
+  void test_perform_cycle() {
+    AnalysisTarget source = newSource(
+        '/test.dart',
+        '''
+final piFirst = true;
+final pi = piFirst ? 3.14 : tau / 2;
+final tau = piFirst ? pi * 2 : 6.28;
+''');
+    // compute
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT6,
+        matcher: isPropagateVariableTypesInUnitTask);
+    CompilationUnit unit = outputs[RESOLVED_UNIT6];
+    // verify
+    TopLevelVariableElement piFirst =
+        AstFinder.getTopLevelVariableElement(unit, 'piFirst');
+    TopLevelVariableElement pi =
+        AstFinder.getTopLevelVariableElement(unit, 'pi');
+    TopLevelVariableElement tau =
+        AstFinder.getTopLevelVariableElement(unit, 'tau');
+    expect(piFirst.propagatedType, context.typeProvider.boolType);
+    expect(pi.propagatedType, isNull);
+    expect(tau.propagatedType, isNull);
+  }
+
+  void test_perform_topLevel() {
+    AnalysisTarget source = newSource(
+        '/test.dart',
+        '''
+//final a = b + c.length;
+final a = b;
+final b = 1;
+final c = '2';
+''');
+    // compute
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT6,
+        matcher: isPropagateVariableTypesInUnitTask);
+    CompilationUnit unit = outputs[RESOLVED_UNIT6];
+    // verify
+    InterfaceType intType = context.typeProvider.intType;
+    InterfaceType stringType = context.typeProvider.stringType;
+    expect(AstFinder.getTopLevelVariableElement(unit, 'a').propagatedType,
+        intType);
+    expect(AstFinder.getTopLevelVariableElement(unit, 'b').propagatedType,
+        intType);
+    expect(AstFinder.getTopLevelVariableElement(unit, 'c').propagatedType,
+        stringType);
+  }
+}
+
+@reflectiveTest
+class PropagateVariableTypeTaskTest extends _AbstractDartTaskTest {
+  void test_perform_cycle() {
+    AnalysisTarget source = newSource(
+        '/test.dart',
+        '''
+final piFirst = true;
+final pi = piFirst ? 3.14 : tau / 2;
+final tau = piFirst ? pi * 2 : 6.28;
+''');
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    TopLevelVariableElement piFirst =
+        AstFinder.getTopLevelVariableElement(unit, 'piFirst');
+    TopLevelVariableElement pi =
+        AstFinder.getTopLevelVariableElement(unit, 'pi');
+    TopLevelVariableElement tau =
+        AstFinder.getTopLevelVariableElement(unit, 'tau');
+    // compute
+    computeResult(piFirst, PROPAGATED_VARIABLE,
+        matcher: isPropagateVariableTypeTask);
+    expect(piFirst.propagatedType, context.typeProvider.boolType);
+    expect(pi.propagatedType, isNull);
+    expect(tau.propagatedType, isNull);
+  }
+
+  void test_perform_null() {
+    enableStrongMode();
+    AnalysisTarget source = newSource(
+        '/test.dart',
+        '''
+var a = null;
+''');
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    TopLevelVariableElement a = AstFinder.getTopLevelVariableElement(unit, 'a');
+    // compute
+    computeResult(a, PROPAGATED_VARIABLE, matcher: isPropagateVariableTypeTask);
+    expect(a.propagatedType, isNull);
+  }
+
+  void test_perform_topLevel() {
+    AnalysisTarget source = newSource(
+        '/test.dart',
+        '''
+final a = b + c.length;
+final b = 1;
+final c = '2';
+''');
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    TopLevelVariableElement elementA =
+        AstFinder.getTopLevelVariableElement(unit, 'a');
+    TopLevelVariableElement elementB =
+        AstFinder.getTopLevelVariableElement(unit, 'b');
+    TopLevelVariableElement elementC =
+        AstFinder.getTopLevelVariableElement(unit, 'c');
+    // compute
+    computeResult(elementA, PROPAGATED_VARIABLE,
+        matcher: isPropagateVariableTypeTask);
+    InterfaceType intType = context.typeProvider.intType;
+    InterfaceType stringType = context.typeProvider.stringType;
+    expect(elementA.propagatedType, intType);
+    expect(elementB.propagatedType, intType);
+    expect(elementC.propagatedType, stringType);
+  }
+}
+
+@reflectiveTest
 class ResolveInstanceFieldsInUnitTaskTest extends _AbstractDartTaskTest {
   @override
   void setUp() {
     super.setUp();
     enableStrongMode();
+  }
+
+  test_created_resolved_unit() {
+    Source source = newSource(
+        '/test.dart',
+        r'''
+library lib;
+class A {}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT8);
+    expect(outputs[RESOLVED_UNIT8], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT8], isTrue);
   }
 
   // Test inference of instance fields across units
@@ -3012,35 +3618,34 @@ class ResolveInstanceFieldsInUnitTaskTest extends _AbstractDartTaskTest {
     DartType dynamicType = context.typeProvider.dynamicType;
 
     computeResult(
-        new LibrarySpecificUnit(sources[1], sources[1]), RESOLVED_UNIT7);
-    CompilationUnit unit1 = outputs[RESOLVED_UNIT7];
+        new LibrarySpecificUnit(sources[1], sources[1]), RESOLVED_UNIT8);
+    CompilationUnit unit1 = outputs[RESOLVED_UNIT8];
 
     // B.b2 shoud be resolved on the rhs, but not yet inferred.
     assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "B", "b2"), dynamicType, intType);
+        AstFinder.getFieldInClass(unit1, "B", "b2"), dynamicType, intType);
 
     computeResult(
-        new LibrarySpecificUnit(sources[0], sources[0]), RESOLVED_UNIT7);
-    CompilationUnit unit0 = outputs[RESOLVED_UNIT7];
+        new LibrarySpecificUnit(sources[0], sources[0]), RESOLVED_UNIT8);
+    CompilationUnit unit0 = outputs[RESOLVED_UNIT8];
 
     // B.b2 should now be fully resolved and inferred.
     assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "B", "b2"), intType, intType);
+        AstFinder.getFieldInClass(unit1, "B", "b2"), intType, intType);
 
     // A.a2 should now be resolved on the rhs, but not yet inferred.
     assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "A", "a2"), dynamicType, intType);
+        AstFinder.getFieldInClass(unit0, "A", "a2"), dynamicType, intType);
 
     computeResult(
-        new LibrarySpecificUnit(sources[2], sources[2]), RESOLVED_UNIT7);
-    CompilationUnit unit2 = outputs[RESOLVED_UNIT7];
+        new LibrarySpecificUnit(sources[2], sources[2]), RESOLVED_UNIT8);
 
     // A.a2 should now be fully resolved and inferred.
     assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "A", "a2"), intType, intType);
+        AstFinder.getFieldInClass(unit0, "A", "a2"), intType, intType);
 
     assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "B", "b2"), intType, intType);
+        AstFinder.getFieldInClass(unit1, "B", "b2"), intType, intType);
   }
 
   // Test inference of instance fields across units
@@ -3067,24 +3672,22 @@ class ResolveInstanceFieldsInUnitTaskTest extends _AbstractDartTaskTest {
           }
     '''
     });
-    InterfaceType intType = context.typeProvider.intType;
     DartType dynamicType = context.typeProvider.dynamicType;
 
     computeResult(
-        new LibrarySpecificUnit(sources[0], sources[0]), RESOLVED_UNIT7);
-    CompilationUnit unit0 = outputs[RESOLVED_UNIT7];
+        new LibrarySpecificUnit(sources[0], sources[0]), RESOLVED_UNIT8);
+    CompilationUnit unit0 = outputs[RESOLVED_UNIT8];
 
     // A.a2 should now be resolved on the rhs, but not yet inferred.
     assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "A", "a2"), dynamicType, dynamicType);
+        AstFinder.getFieldInClass(unit0, "A", "a2"), dynamicType, dynamicType);
 
     computeResult(
-        new LibrarySpecificUnit(sources[2], sources[2]), RESOLVED_UNIT7);
-    CompilationUnit unit2 = outputs[RESOLVED_UNIT7];
+        new LibrarySpecificUnit(sources[2], sources[2]), RESOLVED_UNIT8);
 
-    // A.a2 should now be fully resolved and inferred.
+    // A.a2 should now be fully resolved and inferred (but not re-resolved).
     assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "A", "a2"), dynamicType, dynamicType);
+        AstFinder.getFieldInClass(unit0, "A", "a2"), dynamicType, dynamicType);
   }
 
   // Test inference of instance fields across units with cycles
@@ -3118,41 +3721,40 @@ class ResolveInstanceFieldsInUnitTaskTest extends _AbstractDartTaskTest {
     DartType dynamicType = context.typeProvider.dynamicType;
 
     computeResult(
-        new LibrarySpecificUnit(sources[1], sources[1]), RESOLVED_UNIT7);
-    CompilationUnit unit1 = outputs[RESOLVED_UNIT7];
+        new LibrarySpecificUnit(sources[1], sources[1]), RESOLVED_UNIT8);
+    CompilationUnit unit1 = outputs[RESOLVED_UNIT8];
 
     assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "B", "b1"), intType, intType);
+        AstFinder.getFieldInClass(unit1, "B", "b1"), intType, intType);
     assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "B", "b2"), dynamicType, intType);
-
-    computeResult(
-        new LibrarySpecificUnit(sources[0], sources[0]), RESOLVED_UNIT7);
-    CompilationUnit unit0 = outputs[RESOLVED_UNIT7];
-
-    assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "A", "a1"), intType, intType);
-    assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "A", "a2"), dynamicType, intType);
-
-    assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "B", "b1"), intType, intType);
-    assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "B", "b2"), intType, intType);
+        AstFinder.getFieldInClass(unit1, "B", "b2"), dynamicType, intType);
 
     computeResult(
-        new LibrarySpecificUnit(sources[2], sources[2]), RESOLVED_UNIT7);
-    CompilationUnit unit2 = outputs[RESOLVED_UNIT7];
+        new LibrarySpecificUnit(sources[0], sources[0]), RESOLVED_UNIT8);
+    CompilationUnit unit0 = outputs[RESOLVED_UNIT8];
 
     assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "A", "a1"), intType, intType);
+        AstFinder.getFieldInClass(unit0, "A", "a1"), intType, intType);
     assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "A", "a2"), intType, intType);
+        AstFinder.getFieldInClass(unit0, "A", "a2"), dynamicType, intType);
 
     assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "B", "b1"), intType, intType);
+        AstFinder.getFieldInClass(unit1, "B", "b1"), intType, intType);
     assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "B", "b2"), intType, intType);
+        AstFinder.getFieldInClass(unit1, "B", "b2"), intType, intType);
+
+    computeResult(
+        new LibrarySpecificUnit(sources[2], sources[2]), RESOLVED_UNIT8);
+
+    assertVariableDeclarationTypes(
+        AstFinder.getFieldInClass(unit0, "A", "a1"), intType, intType);
+    assertVariableDeclarationTypes(
+        AstFinder.getFieldInClass(unit0, "A", "a2"), intType, intType);
+
+    assertVariableDeclarationTypes(
+        AstFinder.getFieldInClass(unit1, "B", "b1"), intType, intType);
+    assertVariableDeclarationTypes(
+        AstFinder.getFieldInClass(unit1, "B", "b2"), intType, intType);
   }
 
   // Test inference between static and instance fields
@@ -3181,28 +3783,53 @@ class ResolveInstanceFieldsInUnitTaskTest extends _AbstractDartTaskTest {
     DartType dynamicType = context.typeProvider.dynamicType;
 
     computeResult(
-        new LibrarySpecificUnit(sources[0], sources[0]), RESOLVED_UNIT7);
-    CompilationUnit unit0 = outputs[RESOLVED_UNIT7];
+        new LibrarySpecificUnit(sources[0], sources[0]), RESOLVED_UNIT8);
+    CompilationUnit unit0 = outputs[RESOLVED_UNIT8];
 
     // A.a2 should now be resolved on the rhs, but not yet inferred.
     assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "A", "a2"), dynamicType, dynamicType);
+        AstFinder.getFieldInClass(unit0, "A", "a2"), dynamicType, dynamicType);
 
     // B.b2 shoud be resolved on the rhs, but not yet inferred.
     assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "B", "b2"), dynamicType, intType);
+        AstFinder.getFieldInClass(unit0, "B", "b2"), dynamicType, intType);
 
     computeResult(
-        new LibrarySpecificUnit(sources[1], sources[1]), RESOLVED_UNIT7);
-    CompilationUnit unit1 = outputs[RESOLVED_UNIT7];
+        new LibrarySpecificUnit(sources[1], sources[1]), RESOLVED_UNIT8);
 
-    // A.a2 should now be fully resolved and inferred.
+    // A.a2 should now be fully resolved and inferred (but not re-resolved).
     assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "A", "a2"), dynamicType, dynamicType);
+        AstFinder.getFieldInClass(unit0, "A", "a2"), dynamicType, dynamicType);
 
     // B.b2 should now be fully resolved and inferred.
     assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "B", "b2"), intType, intType);
+        AstFinder.getFieldInClass(unit0, "B", "b2"), intType, intType);
+  }
+}
+
+@reflectiveTest
+class ResolveLibraryTaskTest extends _AbstractDartTaskTest {
+  test_perform() {
+    Source sourceLib = newSource(
+        '/my_lib.dart',
+        '''
+library my_lib;
+const a = new A();
+class A {
+  const A();
+}
+@a
+class C {}
+''');
+    computeResult(sourceLib, LIBRARY_ELEMENT, matcher: isResolveLibraryTask);
+    // validate
+    LibraryElement library = outputs[LIBRARY_ELEMENT];
+    ClassElement classC = library.getType('C');
+    List<ElementAnnotation> metadata = classC.metadata;
+    expect(metadata, hasLength(1));
+    ElementAnnotation annotation = metadata[0];
+    expect(annotation, isNotNull);
+    expect((annotation as ElementAnnotationImpl).evaluationResult, isNotNull);
   }
 }
 
@@ -3269,6 +3896,19 @@ class B {}
 
 @reflectiveTest
 class ResolveUnitTaskTest extends _AbstractDartTaskTest {
+  test_created_resolved_unit() {
+    Source source = newSource(
+        '/test.dart',
+        r'''
+library lib;
+class A {}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT10);
+    expect(outputs[RESOLVED_UNIT10], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT10], isTrue);
+  }
+
   void test_perform() {
     AnalysisTarget source = newSource(
         '/test.dart',
@@ -3283,9 +3923,9 @@ class C {
   }
 }
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT9,
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT10,
         matcher: isResolveUnitTask);
-    CompilationUnit unit = outputs[RESOLVED_UNIT9];
+    CompilationUnit unit = outputs[RESOLVED_UNIT10];
 
     FunctionDeclaration f = unit.declarations[0];
     _assertResolved(f.functionExpression.body);
@@ -3294,6 +3934,33 @@ class C {
     _assertResolved(m.body);
 
     expect(outputs[RESOLVE_UNIT_ERRORS], hasLength(0));
+  }
+
+  void test_perform_ensurePropagatedVariableTypes() {
+    newSource(
+        '/lib.dart',
+        '''
+class A {
+  final v = 1;
+}
+''');
+    AnalysisTarget source = newSource(
+        '/test.dart',
+        '''
+import 'lib.dart';
+main(A a) {
+  a.v.isEven;
+}
+''');
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT10,
+        matcher: isResolveUnitTask);
+    expect(outputs[RESOLVE_UNIT_ERRORS], hasLength(0));
+    CompilationUnit unit = outputs[RESOLVED_UNIT10];
+    FunctionDeclaration main = unit.declarations[0];
+    BlockFunctionBody body = main.functionExpression.body;
+    ExpressionStatement statement = body.block.statements.single;
+    Expression expression = statement.expression;
+    expect(expression.bestType, context.typeProvider.boolType);
   }
 
   void _assertResolved(FunctionBody body) {
@@ -3305,6 +3972,19 @@ class C {
 
 @reflectiveTest
 class ResolveUnitTypeNamesTaskTest extends _AbstractDartTaskTest {
+  test_created_resolved_unit() {
+    Source source = newSource(
+        '/test.dart',
+        r'''
+library lib;
+class A {}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT3);
+    expect(outputs[RESOLVED_UNIT3], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT3], isTrue);
+  }
+
   test_perform() {
     Source source = newSource(
         '/test.dart',
@@ -3398,10 +4078,23 @@ class ResolveVariableReferencesTaskTest extends _AbstractDartTaskTest {
    * Verify that the mutated states of the given [variable] correspond to the
    * [mutatedInClosure] and [mutatedInScope] matchers.
    */
-  void expectMutated(VariableElement variable, Matcher mutatedInClosure,
-      Matcher mutatedInScope) {
-    expect(variable.isPotentiallyMutatedInClosure, mutatedInClosure);
-    expect(variable.isPotentiallyMutatedInScope, mutatedInScope);
+  void expectMutated(FunctionBody body, VariableElement variable,
+      bool mutatedInClosure, bool mutatedInScope) {
+    expect(body.isPotentiallyMutatedInClosure(variable), mutatedInClosure);
+    expect(body.isPotentiallyMutatedInScope(variable), mutatedInScope);
+  }
+
+  test_created_resolved_unit() {
+    Source source = newSource(
+        '/test.dart',
+        r'''
+library lib;
+class A {}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT4);
+    expect(outputs[RESOLVED_UNIT4], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT4], isTrue);
   }
 
   test_perform_buildClosureLibraryElements() {
@@ -3438,11 +4131,13 @@ main() {
         matcher: isResolveVariableReferencesTask);
     // validate
     CompilationUnit unit = outputs[RESOLVED_UNIT4];
-    FunctionElement main = unit.element.functions[0];
-    expectMutated(main.localVariables[0], isFalse, isFalse);
-    expectMutated(main.localVariables[1], isFalse, isTrue);
-    expectMutated(main.localVariables[2], isTrue, isTrue);
-    expectMutated(main.localVariables[3], isTrue, isTrue);
+    FunctionDeclaration mainDeclaration = unit.declarations[0];
+    FunctionBody body = mainDeclaration.functionExpression.body;
+    FunctionElement main = mainDeclaration.element;
+    expectMutated(body, main.localVariables[0], false, false);
+    expectMutated(body, main.localVariables[1], false, true);
+    expectMutated(body, main.localVariables[2], true, true);
+    expectMutated(body, main.localVariables[3], true, true);
   }
 
   test_perform_parameter() {
@@ -3463,11 +4158,13 @@ main(p1, p2, p3, p4) {
         matcher: isResolveVariableReferencesTask);
     // validate
     CompilationUnit unit = outputs[RESOLVED_UNIT4];
-    FunctionElement main = unit.element.functions[0];
-    expectMutated(main.parameters[0], isFalse, isFalse);
-    expectMutated(main.parameters[1], isFalse, isTrue);
-    expectMutated(main.parameters[2], isTrue, isTrue);
-    expectMutated(main.parameters[3], isTrue, isTrue);
+    FunctionDeclaration mainDeclaration = unit.declarations[0];
+    FunctionBody body = mainDeclaration.functionExpression.body;
+    FunctionElement main = mainDeclaration.element;
+    expectMutated(body, main.parameters[0], false, false);
+    expectMutated(body, main.parameters[1], false, true);
+    expectMutated(body, main.parameters[2], true, true);
+    expectMutated(body, main.parameters[3], true, true);
   }
 }
 
@@ -3539,14 +4236,18 @@ var piFirst = true;
 var pi = piFirst ? 3.14 : tau / 2;
 var tau = piFirst ? pi * 2 : 6.28;
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT9);
-    CompilationUnit unit = outputs[RESOLVED_UNIT9];
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT10);
+    CompilationUnit unit = outputs[RESOLVED_UNIT10];
     VariableElement piFirst =
-        getTopLevelVariable(unit, 'piFirst').name.staticElement;
-    VariableElement pi = getTopLevelVariable(unit, 'pi').name.staticElement;
-    VariableElement tau = getTopLevelVariable(unit, 'tau').name.staticElement;
-    Expression piFirstUse = (getTopLevelVariable(unit, 'tau').initializer
-        as ConditionalExpression).condition;
+        AstFinder.getTopLevelVariable(unit, 'piFirst').name.staticElement;
+    VariableElement pi =
+        AstFinder.getTopLevelVariable(unit, 'pi').name.staticElement;
+    VariableElement tau =
+        AstFinder.getTopLevelVariable(unit, 'tau').name.staticElement;
+    Expression piFirstUse = (AstFinder
+            .getTopLevelVariable(unit, 'tau')
+            .initializer as ConditionalExpression)
+        .condition;
 
     expect(piFirstUse.staticType, context.typeProvider.boolType);
     expect(piFirst.type, context.typeProvider.boolType);
@@ -3578,26 +4279,26 @@ var tau = piFirst ? pi * 2 : 6.28;
           }
 ''');
     computeResult(
-        new LibrarySpecificUnit(firstSource, firstSource), RESOLVED_UNIT9);
-    CompilationUnit unit1 = outputs[RESOLVED_UNIT9];
+        new LibrarySpecificUnit(firstSource, firstSource), RESOLVED_UNIT10);
+    CompilationUnit unit1 = outputs[RESOLVED_UNIT10];
     computeResult(
-        new LibrarySpecificUnit(secondSource, secondSource), RESOLVED_UNIT9);
-    CompilationUnit unit2 = outputs[RESOLVED_UNIT9];
+        new LibrarySpecificUnit(secondSource, secondSource), RESOLVED_UNIT10);
+    CompilationUnit unit2 = outputs[RESOLVED_UNIT10];
 
     InterfaceType intType = context.typeProvider.intType;
 
     assertVariableDeclarationTypes(
-        getTopLevelVariable(unit1, "x"), intType, intType);
+        AstFinder.getTopLevelVariable(unit1, "x"), intType, intType);
     assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "A", "x"), intType, intType);
+        AstFinder.getFieldInClass(unit1, "A", "x"), intType, intType);
 
     assertVariableDeclarationTypes(
-        getTopLevelVariable(unit2, "y"), intType, intType);
+        AstFinder.getTopLevelVariable(unit2, "y"), intType, intType);
     assertVariableDeclarationTypes(
-        getFieldInClass(unit2, "B", "y"), intType, intType);
+        AstFinder.getFieldInClass(unit2, "B", "y"), intType, intType);
 
     List<Statement> statements =
-        getStatementsInTopLevelFunction(unit2, "test1");
+        AstFinder.getStatementsInTopLevelFunction(unit2, "test1");
 
     assertAssignmentStatementTypes(statements[1], intType, intType);
     assertAssignmentStatementTypes(statements[2], intType, intType);
@@ -3629,7 +4330,7 @@ var tau = piFirst ? pi * 2 : 6.28;
     '''
     });
     List<dynamic> units =
-        computeLibraryResults(sources, RESOLVED_UNIT9).toList();
+        computeLibraryResults(sources, RESOLVED_UNIT10).toList();
     CompilationUnit unit0 = units[0];
     CompilationUnit unit1 = units[1];
     CompilationUnit unit2 = units[2];
@@ -3637,13 +4338,13 @@ var tau = piFirst ? pi * 2 : 6.28;
     InterfaceType intType = context.typeProvider.intType;
 
     assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "A", "a2"), intType, intType);
+        AstFinder.getFieldInClass(unit0, "A", "a2"), intType, intType);
 
     assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "B", "b2"), intType, intType);
+        AstFinder.getFieldInClass(unit1, "B", "b2"), intType, intType);
 
     List<Statement> statements =
-        getStatementsInTopLevelFunction(unit2, "test1");
+        AstFinder.getStatementsInTopLevelFunction(unit2, "test1");
 
     assertAssignmentStatementTypes(statements[1], intType, intType);
   }
@@ -3676,18 +4377,21 @@ var tau = piFirst ? pi * 2 : 6.28;
     '''
     });
     List<dynamic> units =
-        computeLibraryResults(sources, RESOLVED_UNIT9).toList();
+        computeLibraryResults(sources, RESOLVED_UNIT10).toList();
     CompilationUnit unit0 = units[0];
-    CompilationUnit unit1 = units[1];
     CompilationUnit unit2 = units[2];
 
     InterfaceType intType = context.typeProvider.intType;
     InterfaceType stringType = context.typeProvider.stringType;
 
     assertVariableDeclarationStatementTypes(
-        getStatementsInTopLevelFunction(unit0, "foo")[0], stringType, intType);
+        AstFinder.getStatementsInTopLevelFunction(unit0, "foo")[0],
+        stringType,
+        intType);
     assertVariableDeclarationStatementTypes(
-        getStatementsInTopLevelFunction(unit2, "foo")[0], stringType, intType);
+        AstFinder.getStatementsInTopLevelFunction(unit2, "foo")[0],
+        stringType,
+        intType);
   }
 
   // Test inference interactions between local variables and top level
@@ -3714,27 +4418,27 @@ var tau = piFirst ? pi * 2 : 6.28;
           }
 ''');
     computeResult(
-        new LibrarySpecificUnit(firstSource, firstSource), RESOLVED_UNIT9);
-    CompilationUnit unit1 = outputs[RESOLVED_UNIT9];
+        new LibrarySpecificUnit(firstSource, firstSource), RESOLVED_UNIT10);
+    CompilationUnit unit1 = outputs[RESOLVED_UNIT10];
     computeResult(
-        new LibrarySpecificUnit(secondSource, secondSource), RESOLVED_UNIT9);
-    CompilationUnit unit2 = outputs[RESOLVED_UNIT9];
+        new LibrarySpecificUnit(secondSource, secondSource), RESOLVED_UNIT10);
+    CompilationUnit unit2 = outputs[RESOLVED_UNIT10];
 
     InterfaceType intType = context.typeProvider.intType;
     InterfaceType stringType = context.typeProvider.stringType;
 
     assertVariableDeclarationTypes(
-        getTopLevelVariable(unit1, "x"), intType, intType);
+        AstFinder.getTopLevelVariable(unit1, "x"), intType, intType);
     assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "A", "x"), intType, intType);
+        AstFinder.getFieldInClass(unit1, "A", "x"), intType, intType);
 
     assertVariableDeclarationTypes(
-        getTopLevelVariable(unit2, "y"), intType, intType);
+        AstFinder.getTopLevelVariable(unit2, "y"), intType, intType);
     assertVariableDeclarationTypes(
-        getFieldInClass(unit2, "B", "y"), intType, intType);
+        AstFinder.getFieldInClass(unit2, "B", "y"), intType, intType);
 
     List<Statement> statements =
-        getStatementsInTopLevelFunction(unit2, "test1");
+        AstFinder.getStatementsInTopLevelFunction(unit2, "test1");
 
     assertAssignmentStatementTypes(statements[0], intType, stringType);
     assertAssignmentStatementTypes(statements[1], intType, stringType);
@@ -3768,7 +4472,7 @@ var tau = piFirst ? pi * 2 : 6.28;
     '''
     });
     List<dynamic> units =
-        computeLibraryResults(sources, RESOLVED_UNIT9).toList();
+        computeLibraryResults(sources, RESOLVED_UNIT10).toList();
     CompilationUnit unit0 = units[0];
     CompilationUnit unit1 = units[1];
     CompilationUnit unit2 = units[2];
@@ -3776,17 +4480,17 @@ var tau = piFirst ? pi * 2 : 6.28;
     InterfaceType intType = context.typeProvider.intType;
 
     assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "A", "a1"), intType, intType);
+        AstFinder.getFieldInClass(unit0, "A", "a1"), intType, intType);
     assertVariableDeclarationTypes(
-        getFieldInClass(unit0, "A", "a2"), intType, intType);
+        AstFinder.getFieldInClass(unit0, "A", "a2"), intType, intType);
 
     assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "B", "b1"), intType, intType);
+        AstFinder.getFieldInClass(unit1, "B", "b1"), intType, intType);
     assertVariableDeclarationTypes(
-        getFieldInClass(unit1, "B", "b2"), intType, intType);
+        AstFinder.getFieldInClass(unit1, "B", "b2"), intType, intType);
 
     List<Statement> statements =
-        getStatementsInTopLevelFunction(unit2, "test1");
+        AstFinder.getStatementsInTopLevelFunction(unit2, "test1");
 
     assertAssignmentStatementTypes(statements[1], intType, intType);
     assertAssignmentStatementTypes(statements[2], intType, intType);
@@ -3804,13 +4508,14 @@ var tau = piFirst ? pi * 2 : 6.28;
         y = "hi";
       }
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT9);
-    CompilationUnit unit = outputs[RESOLVED_UNIT9];
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT10);
+    CompilationUnit unit = outputs[RESOLVED_UNIT10];
 
     InterfaceType intType = context.typeProvider.intType;
     InterfaceType stringType = context.typeProvider.stringType;
 
-    List<Statement> statements = getStatementsInTopLevelFunction(unit, "test");
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "test");
 
     assertVariableDeclarationStatementTypes(statements[0], intType, intType);
     assertAssignmentStatementTypes(statements[1], intType, stringType);
@@ -3842,13 +4547,14 @@ var tau = piFirst ? pi * 2 : 6.28;
         final z = 42; // should infer `int`
       }
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT9);
-    CompilationUnit unit = outputs[RESOLVED_UNIT9];
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT10);
+    CompilationUnit unit = outputs[RESOLVED_UNIT10];
 
     InterfaceType intType = context.typeProvider.intType;
     InterfaceType stringType = context.typeProvider.stringType;
 
-    List<Statement> statements = getStatementsInMethod(unit, "A", "test1");
+    List<Statement> statements =
+        AstFinder.getStatementsInMethod(unit, "A", "test1");
 
     assertVariableDeclarationStatementTypes(statements[0], intType, intType);
     assertAssignmentStatementTypes(statements[1], intType, stringType);
@@ -3863,9 +4569,9 @@ var tau = piFirst ? pi * 2 : 6.28;
     assertAssignmentStatementTypes(statements[8], intType, intType);
 
     assertVariableDeclarationTypes(
-        getFieldInClass(unit, "A", "x"), intType, intType);
+        AstFinder.getFieldInClass(unit, "A", "x"), intType, intType);
     assertVariableDeclarationTypes(
-        getFieldInClass(unit, "A", "z"), intType, intType);
+        AstFinder.getFieldInClass(unit, "A", "z"), intType, intType);
   }
 
   // Test inference of instance fields across units
@@ -3890,13 +4596,14 @@ var tau = piFirst ? pi * 2 : 6.28;
       int y = 0; // field def after use
       final z = 42; // should infer `int`
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT9);
-    CompilationUnit unit = outputs[RESOLVED_UNIT9];
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT10);
+    CompilationUnit unit = outputs[RESOLVED_UNIT10];
 
     InterfaceType intType = context.typeProvider.intType;
     InterfaceType stringType = context.typeProvider.stringType;
 
-    List<Statement> statements = getStatementsInTopLevelFunction(unit, "test1");
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "test1");
 
     assertVariableDeclarationStatementTypes(statements[0], intType, intType);
     assertAssignmentStatementTypes(statements[1], intType, stringType);
@@ -3911,11 +4618,11 @@ var tau = piFirst ? pi * 2 : 6.28;
     assertAssignmentStatementTypes(statements[8], intType, intType);
 
     assertVariableDeclarationTypes(
-        getTopLevelVariable(unit, "x"), intType, intType);
+        AstFinder.getTopLevelVariable(unit, "x"), intType, intType);
     assertVariableDeclarationTypes(
-        getTopLevelVariable(unit, "y"), intType, intType);
+        AstFinder.getTopLevelVariable(unit, "y"), intType, intType);
     assertVariableDeclarationTypes(
-        getTopLevelVariable(unit, "z"), intType, intType);
+        AstFinder.getTopLevelVariable(unit, "z"), intType, intType);
   }
 
   // Test inference between static and instance fields
@@ -3942,8 +4649,8 @@ var tau = piFirst ? pi * 2 : 6.28;
         new A().y2 = /*severe:StaticTypeError*/"hi";
       }
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT9);
-    CompilationUnit unit = outputs[RESOLVED_UNIT9];
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT10);
+    CompilationUnit unit = outputs[RESOLVED_UNIT10];
 
     InterfaceType intType = context.typeProvider.intType;
     InterfaceType stringType = context.typeProvider.stringType;
@@ -3951,19 +4658,20 @@ var tau = piFirst ? pi * 2 : 6.28;
     DartType dynamicType = context.typeProvider.dynamicType;
 
     assertVariableDeclarationTypes(
-        getTopLevelVariable(unit, "x"), dynamicType, bottomType);
+        AstFinder.getTopLevelVariable(unit, "x"), dynamicType, bottomType);
     assertVariableDeclarationTypes(
-        getTopLevelVariable(unit, "y"), intType, intType);
+        AstFinder.getTopLevelVariable(unit, "y"), intType, intType);
     assertVariableDeclarationTypes(
-        getFieldInClass(unit, "A", "x"), dynamicType, bottomType);
+        AstFinder.getFieldInClass(unit, "A", "x"), dynamicType, bottomType);
     assertVariableDeclarationTypes(
-        getFieldInClass(unit, "A", "y"), intType, intType);
+        AstFinder.getFieldInClass(unit, "A", "y"), intType, intType);
     assertVariableDeclarationTypes(
-        getFieldInClass(unit, "A", "x2"), dynamicType, bottomType);
+        AstFinder.getFieldInClass(unit, "A", "x2"), dynamicType, bottomType);
     assertVariableDeclarationTypes(
-        getFieldInClass(unit, "A", "y2"), intType, intType);
+        AstFinder.getFieldInClass(unit, "A", "y2"), intType, intType);
 
-    List<Statement> statements = getStatementsInTopLevelFunction(unit, "test");
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "test");
 
     assertAssignmentStatementTypes(statements[0], dynamicType, stringType);
     assertAssignmentStatementTypes(statements[1], intType, stringType);
@@ -3983,13 +4691,14 @@ var tau = piFirst ? pi * 2 : 6.28;
         x = "hi";
       }
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT9);
-    CompilationUnit unit = outputs[RESOLVED_UNIT9];
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT10);
+    CompilationUnit unit = outputs[RESOLVED_UNIT10];
 
     InterfaceType intType = context.typeProvider.intType;
     InterfaceType stringType = context.typeProvider.stringType;
 
-    List<Statement> statements = getStatementsInTopLevelFunction(unit, "test");
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "test");
     VariableDeclaration decl =
         (statements[0] as VariableDeclarationStatement).variables.variables[0];
     expect(decl.element.type, intType);
@@ -4010,6 +4719,19 @@ class StrongModeVerifyUnitTaskTest extends _AbstractDartTaskTest {
     enableStrongMode();
   }
 
+  test_created_resolved_unit() {
+    Source source = newSource(
+        '/test.dart',
+        r'''
+library lib;
+class A {}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT);
+    expect(outputs[RESOLVED_UNIT], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT], isTrue);
+  }
+
   void test_perform_recordDynamicInvoke() {
     enableStrongMode();
     AnalysisTarget source = newSource(
@@ -4027,7 +4749,8 @@ void main() {
     _fillErrorListener(STRONG_MODE_ERRORS);
     expect(errorListener.errors, isEmpty);
 
-    List<Statement> statements = getStatementsInTopLevelFunction(unit, "main");
+    List<Statement> statements =
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
     ExpressionStatement statement = statements[1];
     IndexExpression idx = statement.expression;
     expect(DynamicInvoke.get(idx.target), isNotNull);
@@ -4040,10 +4763,9 @@ void main() {
     AnalysisTarget source = newSource(
         '/test.dart',
         '''
-int topLevel = 3;
-class C {
-  String field = topLevel;
-}
+class A {}
+class B extends A {}
+B b = new A();
 ''');
     computeResult(new LibrarySpecificUnit(source, source), STRONG_MODE_ERRORS);
     // validate
@@ -4051,7 +4773,7 @@ class C {
 
     var errors = errorListener.errors;
     expect(errors.length, 1);
-    expect(errors[0].errorCode.name, "dev_compiler.StaticTypeError");
+    expect(errors[0].errorCode.name, "STRONG_MODE_STATIC_TYPE_ERROR");
   }
 }
 
@@ -4070,6 +4792,95 @@ main(int p) {
     // validate
     _fillErrorListener(VERIFY_ERRORS);
     errorListener.assertErrorsWithCodes(<ErrorCode>[
+      CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+    ]);
+  }
+
+  test_perform_ConstantValidator_declaredIdentifier() {
+    Source source = newSource(
+        '/test.dart',
+        '''
+void main() {
+  for (const foo in []) {
+    print(foo);
+  }
+}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, VERIFY_ERRORS, matcher: isVerifyUnitTask);
+    // validate
+    _fillErrorListener(VERIFY_ERRORS);
+    errorListener.assertNoErrors();
+  }
+
+  test_perform_ConstantValidator_dependencyCycle() {
+    Source source = newSource(
+        '/test.dart',
+        '''
+const int a = b;
+const int b = c;
+const int c = a;
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, VERIFY_ERRORS, matcher: isVerifyUnitTask);
+    // validate
+    _fillErrorListener(VERIFY_ERRORS);
+    errorListener.assertErrorsWithCodes(<ErrorCode>[
+      CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
+      CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
+      CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT
+    ]);
+  }
+
+  test_perform_ConstantValidator_duplicateFields() {
+    Source source = newSource(
+        '/test.dart',
+        '''
+class Test {
+  final int x = 1;
+  final int x = 2;
+  const Test();
+}
+
+main() {
+  const Test();
+}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, VERIFY_ERRORS, matcher: isVerifyUnitTask);
+    // validate
+    _fillErrorListener(VERIFY_ERRORS);
+    errorListener.assertNoErrors();
+  }
+
+  test_perform_ConstantValidator_noInitializer() {
+    Source source = newSource(
+        '/test.dart',
+        '''
+const x;
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, VERIFY_ERRORS, matcher: isVerifyUnitTask);
+    // validate
+    _fillErrorListener(VERIFY_ERRORS);
+    errorListener.assertErrorsWithCodes(
+        <ErrorCode>[CompileTimeErrorCode.CONST_NOT_INITIALIZED]);
+  }
+
+  test_perform_ConstantValidator_unknownValue() {
+    Source source = newSource(
+        '/test.dart',
+        '''
+import 'no-such-file.dart' as p;
+
+const int x = p.y;
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, VERIFY_ERRORS, matcher: isVerifyUnitTask);
+    // validate
+    _fillErrorListener(VERIFY_ERRORS);
+    errorListener.assertErrorsWithCodes(<ErrorCode>[
+      CompileTimeErrorCode.URI_DOES_NOT_EXIST,
       CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
     ]);
   }
@@ -4218,114 +5029,6 @@ class _AbstractDartTaskTest extends AbstractContextTest {
     AnalysisOptionsImpl options = context.analysisOptions;
     options.strongMode = true;
     context.analysisOptions = options;
-  }
-
-  /**
-   * Return the declaration of the class with the given [className] in the given
-   * compilation [unit].
-   */
-  ClassDeclaration getClass(CompilationUnit unit, String className) {
-    NodeList<CompilationUnitMember> unitMembers = unit.declarations;
-    for (CompilationUnitMember unitMember in unitMembers) {
-      if (unitMember is ClassDeclaration && unitMember.name.name == className) {
-        return unitMember;
-      }
-    }
-    fail('No class named $className in ${unit.element.source}');
-    return null;
-  }
-
-  /**
-   * Return the declaration of the field with the given [fieldName] in the class
-   * with the given [className] in the given compilation [unit].
-   */
-  VariableDeclaration getFieldInClass(
-      CompilationUnit unit, String className, String fieldName) {
-    ClassDeclaration unitMember = getClass(unit, className);
-    NodeList<ClassMember> classMembers = unitMember.members;
-    for (ClassMember classMember in classMembers) {
-      if (classMember is FieldDeclaration) {
-        NodeList<VariableDeclaration> fields = classMember.fields.variables;
-        for (VariableDeclaration field in fields) {
-          if (field.name.name == fieldName) {
-            return field;
-          }
-        }
-      }
-    }
-    fail('No field named $fieldName in $className');
-    return null;
-  }
-
-  /**
-   * Return the declaration of the method with the given [methodName] in the
-   * class with the given [className] in the given compilation [unit].
-   */
-  MethodDeclaration getMethodInClass(
-      CompilationUnit unit, String className, String methodName) {
-    ClassDeclaration unitMember = getClass(unit, className);
-    NodeList<ClassMember> classMembers = unitMember.members;
-    for (ClassMember classMember in classMembers) {
-      if (classMember is MethodDeclaration) {
-        if (classMember.name.name == methodName) {
-          return classMember;
-        }
-      }
-    }
-    fail('No method named $methodName in $className');
-    return null;
-  }
-
-  List<Statement> getStatementsInMethod(
-      CompilationUnit unit, String className, String methodName) {
-    MethodDeclaration method = getMethodInClass(unit, className, methodName);
-    BlockFunctionBody body = method.body;
-    return body.block.statements;
-  }
-
-  List<Statement> getStatementsInTopLevelFunction(
-      CompilationUnit unit, String functionName) {
-    FunctionDeclaration function = getTopLevelFunction(unit, functionName);
-    BlockFunctionBody body = function.functionExpression.body;
-    return body.block.statements;
-  }
-
-  /**
-   * Return the declaration of the top-level function with the given
-   * [functionName] in the given compilation [unit].
-   */
-  FunctionDeclaration getTopLevelFunction(
-      CompilationUnit unit, String functionName) {
-    NodeList<CompilationUnitMember> unitMembers = unit.declarations;
-    for (CompilationUnitMember unitMember in unitMembers) {
-      if (unitMember is FunctionDeclaration) {
-        if (unitMember.name.name == functionName) {
-          return unitMember;
-        }
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Return the declaration of the top-level variable with the given
-   * [variableName] in the given compilation [unit].
-   */
-  VariableDeclaration getTopLevelVariable(
-      CompilationUnit unit, String variableName) {
-    NodeList<CompilationUnitMember> unitMembers = unit.declarations;
-    for (CompilationUnitMember unitMember in unitMembers) {
-      if (unitMember is TopLevelVariableDeclaration) {
-        NodeList<VariableDeclaration> variables =
-            unitMember.variables.variables;
-        for (VariableDeclaration variable in variables) {
-          if (variable.name.name == variableName) {
-            return variable;
-          }
-        }
-      }
-    }
-    return null;
   }
 
   void setUp() {

@@ -71,6 +71,20 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
   }
 
   /**
+   * Validates that there is no [Override] at the offset of [search].
+   *
+   * If [length] is not specified explicitly, then length of an identifier
+   * from [search] is used.
+   */
+  void assertNoOverride(String search, [int length = -1]) {
+    int offset = findOffset(search);
+    if (length == -1) {
+      length = findIdentifierLength(search);
+    }
+    findOverride(offset, length, false);
+  }
+
+  /**
    * Asserts that there are no overridden member from the superclass.
    */
   void assertNoSuperMember() {
@@ -121,7 +135,7 @@ class AnalysisNotificationOverridesTest extends AbstractAnalysisTest {
     createProject();
   }
 
-  test_afterAnalysis() {
+  test_afterAnalysis() async {
     addTestFile('''
 class A {
   m() {} // in A
@@ -130,16 +144,136 @@ class B implements A {
   m() {} // in B
 }
 ''');
-    return waitForTasksFinished().then((_) {
-      return prepareOverrides().then((_) {
-        assertHasOverride('m() {} // in B');
-        assertNoSuperMember();
-        assertHasInterfaceMember('m() {} // in A');
-      });
-    });
+    await waitForTasksFinished();
+    await prepareOverrides();
+    assertHasOverride('m() {} // in B');
+    assertNoSuperMember();
+    assertHasInterfaceMember('m() {} // in A');
   }
 
-  test_definedInInterface_ofInterface() {
+  test_BAD_fieldByMethod() async {
+    addTestFile('''
+class A {
+  int fff; // in A
+}
+class B extends A {
+  fff() {} // in B
+}
+''');
+    await prepareOverrides();
+    assertNoOverride('fff() {} // in B');
+  }
+
+  test_BAD_getterByMethod() async {
+    addTestFile('''
+class A {
+  get fff => null;
+}
+class B extends A {
+  fff() {}
+}
+''');
+    await prepareOverrides();
+    assertNoOverride('fff() {}');
+  }
+
+  test_BAD_getterBySetter() async {
+    addTestFile('''
+class A {
+  get fff => null;
+}
+class B extends A {
+  set fff(x) {}
+}
+''');
+    await prepareOverrides();
+    assertNoOverride('fff(x) {}');
+  }
+
+  test_BAD_methodByField() async {
+    addTestFile('''
+class A {
+  fff() {} // in A
+}
+class B extends A {
+  int fff; // in B
+}
+''');
+    await prepareOverrides();
+    assertNoOverride('fff; // in B');
+  }
+
+  test_BAD_methodByGetter() async {
+    addTestFile('''
+class A {
+  fff() {}
+}
+class B extends A {
+  int get fff => null;
+}
+''');
+    await prepareOverrides();
+    assertNoOverride('fff => null');
+  }
+
+  test_BAD_methodBySetter() async {
+    addTestFile('''
+class A {
+  fff(x) {} // A
+}
+class B extends A {
+  set fff(x) {} // B
+}
+''');
+    await prepareOverrides();
+    assertNoOverride('fff(x) {} // B');
+  }
+
+  test_BAD_privateByPrivate_inDifferentLib() async {
+    addFile(
+        '$testFolder/lib.dart',
+        r'''
+class A {
+  void _m() {}
+}
+''');
+    addTestFile('''
+import 'lib.dart';
+class B extends A {
+  void _m() {} // in B
+}
+''');
+    await prepareOverrides();
+    assertNoOverride('_m() {} // in B');
+  }
+
+  test_BAD_setterByGetter() async {
+    addTestFile('''
+class A {
+  set fff(x) {}
+}
+class B extends A {
+  get fff => null;
+}
+''');
+    await prepareOverrides();
+    assertNoOverride('fff => null;');
+  }
+
+  test_BAD_setterByMethod() async {
+    addTestFile('''
+class A {
+  set fff(x) {} // A
+}
+class B extends A {
+  fff(x) {} // B
+}
+''');
+    await prepareOverrides();
+    assertNoOverride('fff(x) {} // B');
+  }
+
+  test_definedInInterface_ofInterface() async {
     addTestFile('''
 class A {
   m() {} // in A
@@ -149,14 +283,13 @@ class C implements B {
   m() {} // in C
 }
 ''');
-    return prepareOverrides().then((_) {
-      assertHasOverride('m() {} // in C');
-      assertNoSuperMember();
-      assertHasInterfaceMember('m() {} // in A');
-    });
+    await prepareOverrides();
+    assertHasOverride('m() {} // in C');
+    assertNoSuperMember();
+    assertHasInterfaceMember('m() {} // in A');
   }
 
-  test_definedInInterface_ofSuper() {
+  test_definedInInterface_ofSuper() async {
     addTestFile('''
 class A {
   m() {} // in A
@@ -166,14 +299,13 @@ class C extends B {
   m() {} // in C
 }
 ''');
-    return prepareOverrides().then((_) {
-      assertHasOverride('m() {} // in C');
-      assertNoSuperMember();
-      assertHasInterfaceMember('m() {} // in A');
-    });
+    await prepareOverrides();
+    assertHasOverride('m() {} // in C');
+    assertNoSuperMember();
+    assertHasInterfaceMember('m() {} // in A');
   }
 
-  test_interface_method_direct_multiple() {
+  test_interface_method_direct_multiple() async {
     addTestFile('''
 class IA {
   m() {} // in IA
@@ -185,15 +317,14 @@ class A implements IA, IB {
   m() {} // in A
 }
 ''');
-    return prepareOverrides().then((_) {
-      assertHasOverride('m() {} // in A');
-      assertNoSuperMember();
-      assertHasInterfaceMember('m() {} // in IA');
-      assertHasInterfaceMember('m() {} // in IB');
-    });
+    await prepareOverrides();
+    assertHasOverride('m() {} // in A');
+    assertNoSuperMember();
+    assertHasInterfaceMember('m() {} // in IA');
+    assertHasInterfaceMember('m() {} // in IB');
   }
 
-  test_interface_method_direct_single() {
+  test_interface_method_direct_single() async {
     addTestFile('''
 class A {
   m() {} // in A
@@ -202,14 +333,13 @@ class B implements A {
   m() {} // in B
 }
 ''');
-    return prepareOverrides().then((_) {
-      assertHasOverride('m() {} // in B');
-      assertNoSuperMember();
-      assertHasInterfaceMember('m() {} // in A');
-    });
+    await prepareOverrides();
+    assertHasOverride('m() {} // in B');
+    assertNoSuperMember();
+    assertHasInterfaceMember('m() {} // in A');
   }
 
-  test_interface_method_indirect_single() {
+  test_interface_method_indirect_single() async {
     addTestFile('''
 class A {
   m() {} // in A
@@ -220,14 +350,13 @@ class C implements B {
   m() {} // in C
 }
 ''');
-    return prepareOverrides().then((_) {
-      assertHasOverride('m() {} // in C');
-      assertNoSuperMember();
-      assertHasInterfaceMember('m() {} // in A');
-    });
+    await prepareOverrides();
+    assertHasOverride('m() {} // in C');
+    assertNoSuperMember();
+    assertHasInterfaceMember('m() {} // in A');
   }
 
-  test_interface_stopWhenFound() {
+  test_interface_stopWhenFound() async {
     addTestFile('''
 class A {
   m() {} // in A
@@ -239,14 +368,13 @@ class C implements B {
   m() {} // in C
 }
 ''');
-    return prepareOverrides().then((_) {
-      assertHasOverride('m() {} // in C');
-      expect(override.interfaceMembers, hasLength(1));
-      assertHasInterfaceMember('m() {} // in B');
-    });
+    await prepareOverrides();
+    assertHasOverride('m() {} // in C');
+    expect(override.interfaceMembers, hasLength(2));
+    assertHasInterfaceMember('m() {} // in B');
   }
 
-  test_mix_sameMethod() {
+  test_mix_sameMethod() async {
     addTestFile('''
 class A {
   m() {} // in A
@@ -257,14 +385,13 @@ class C extends A implements A {
   m() {} // in C
 }
 ''');
-    return prepareOverrides().then((_) {
-      assertHasOverride('m() {} // in C');
-      assertHasSuperElement('m() {} // in A');
-      assertNoInterfaceMembers();
-    });
+    await prepareOverrides();
+    assertHasOverride('m() {} // in C');
+    assertHasSuperElement('m() {} // in A');
+    assertNoInterfaceMembers();
   }
 
-  test_mix_sameMethod_Object_hashCode() {
+  test_mix_sameMethod_Object_hashCode() async {
     addTestFile('''
 class A {}
 abstract class B {}
@@ -272,14 +399,13 @@ class C extends A implements A {
   int get hashCode => 42;
 }
 ''');
-    return prepareOverrides().then((_) {
-      assertHasOverride('hashCode => 42;');
-      expect(override.superclassMember, isNotNull);
-      expect(override.interfaceMembers, isNull);
-    });
+    await prepareOverrides();
+    assertHasOverride('hashCode => 42;');
+    expect(override.superclassMember, isNotNull);
+    expect(override.interfaceMembers, isNull);
   }
 
-  test_staticMembers() {
+  test_staticMembers() async {
     addTestFile('''
 class A {
   static int F = 0;
@@ -294,12 +420,11 @@ class B extends A {
   static void set S(int v) {}
 }
 ''');
-    return prepareOverrides().then((_) {
-      expect(overridesList, isEmpty);
-    });
+    await prepareOverrides();
+    expect(overridesList, isEmpty);
   }
 
-  test_super_fieldByField() {
+  test_super_fieldByField() async {
     addTestFile('''
 class A {
   int fff; // in A
@@ -308,14 +433,13 @@ class B extends A {
   int fff; // in B
 }
 ''');
-    return prepareOverrides().then((_) {
-      assertHasOverride('fff; // in B');
-      assertHasSuperElement('fff; // in A');
-      assertNoInterfaceMembers();
-    });
+    await prepareOverrides();
+    assertHasOverride('fff; // in B');
+    assertHasSuperElement('fff; // in A');
+    assertNoInterfaceMembers();
   }
 
-  test_super_fieldByGetter() {
+  test_super_fieldByGetter() async {
     addTestFile('''
 class A {
   int fff; // in A
@@ -324,30 +448,13 @@ class B extends A {
   get fff => 0; // in B
 }
 ''');
-    return prepareOverrides().then((_) {
-      assertHasOverride('fff => 0; // in B');
-      assertHasSuperElement('fff; // in A');
-      assertNoInterfaceMembers();
-    });
+    await prepareOverrides();
+    assertHasOverride('fff => 0; // in B');
+    assertHasSuperElement('fff; // in A');
+    assertNoInterfaceMembers();
   }
 
-  test_super_fieldByMethod() {
-    addTestFile('''
-class A {
-  int fff; // in A
-}
-class B extends A {
-  fff() {} // in B
-}
-''');
-    return prepareOverrides().then((_) {
-      assertHasOverride('fff() {} // in B');
-      assertHasSuperElement('fff; // in A');
-      assertNoInterfaceMembers();
-    });
-  }
-
-  test_super_fieldBySetter() {
+  test_super_fieldBySetter() async {
     addTestFile('''
 class A {
   int fff; // in A
@@ -356,14 +463,13 @@ class B extends A {
   set fff(x) {} // in B
 }
 ''');
-    return prepareOverrides().then((_) {
-      assertHasOverride('fff(x) {} // in B');
-      assertHasSuperElement('fff; // in A');
-      assertNoInterfaceMembers();
-    });
+    await prepareOverrides();
+    assertHasOverride('fff(x) {} // in B');
+    assertHasSuperElement('fff; // in A');
+    assertNoInterfaceMembers();
   }
 
-  test_super_getterByField() {
+  test_super_getterByField() async {
     addTestFile('''
 class A {
   get fff => 0; // in A
@@ -373,14 +479,13 @@ class B extends A {
   int fff; // in B
 }
 ''');
-    return prepareOverrides().then((_) {
-      assertHasOverride('fff; // in B');
-      assertHasSuperElement('fff => 0; // in A');
-      assertNoInterfaceMembers();
-    });
+    await prepareOverrides();
+    assertHasOverride('fff; // in B');
+    assertHasSuperElement('fff => 0; // in A');
+    assertNoInterfaceMembers();
   }
 
-  test_super_getterByGetter() {
+  test_super_getterByGetter() async {
     addTestFile('''
 class A {
   get fff => 0; // in A
@@ -389,14 +494,13 @@ class B extends A {
   get fff => 0; // in B
 }
 ''');
-    return prepareOverrides().then((_) {
-      assertHasOverride('fff => 0; // in B');
-      assertHasSuperElement('fff => 0; // in A');
-      assertNoInterfaceMembers();
-    });
+    await prepareOverrides();
+    assertHasOverride('fff => 0; // in B');
+    assertHasSuperElement('fff => 0; // in A');
+    assertNoInterfaceMembers();
   }
 
-  test_super_method_direct() {
+  test_super_method_direct() async {
     addTestFile('''
 class A {
   m() {} // in A
@@ -405,14 +509,13 @@ class B extends A {
   m() {} // in B
 }
 ''');
-    return prepareOverrides().then((_) {
-      assertHasOverride('m() {} // in B');
-      assertHasSuperElement('m() {} // in A');
-      assertNoInterfaceMembers();
-    });
+    await prepareOverrides();
+    assertHasOverride('m() {} // in B');
+    assertHasSuperElement('m() {} // in A');
+    assertNoInterfaceMembers();
   }
 
-  test_super_method_indirect() {
+  test_super_method_indirect() async {
     addTestFile('''
 class A {
   m() {} // in A
@@ -423,14 +526,28 @@ class C extends B {
   m() {} // in C
 }
 ''');
-    return prepareOverrides().then((_) {
-      assertHasOverride('m() {} // in C');
-      assertHasSuperElement('m() {} // in A');
-      assertNoInterfaceMembers();
-    });
+    await prepareOverrides();
+    assertHasOverride('m() {} // in C');
+    assertHasSuperElement('m() {} // in A');
+    assertNoInterfaceMembers();
   }
 
-  test_super_method_superTypeCycle() {
+  test_super_method_privateByPrivate() async {
+    addTestFile('''
+class A {
+  _m() {} // in A
+}
+class B extends A {
+  _m() {} // in B
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('_m() {} // in B');
+    assertHasSuperElement('_m() {} // in A');
+    assertNoInterfaceMembers();
+  }
+
+  test_super_method_superTypeCycle() async {
     addTestFile('''
 class A extends B {
   m() {} // in A
@@ -439,12 +556,11 @@ class B extends A {
   m() {} // in B
 }
 ''');
-    return prepareOverrides().then((_) {
-      // must finish
-    });
+    await prepareOverrides();
+    // must finish
   }
 
-  test_super_setterBySetter() {
+  test_super_setterBySetter() async {
     addTestFile('''
 class A {
   set fff(x) {} // in A
@@ -453,10 +569,9 @@ class B extends A {
   set fff(x) {} // in B
 }
 ''');
-    return prepareOverrides().then((_) {
-      assertHasOverride('fff(x) {} // in B');
-      assertHasSuperElement('fff(x) {} // in A');
-      assertNoInterfaceMembers();
-    });
+    await prepareOverrides();
+    assertHasOverride('fff(x) {} // in B');
+    assertHasSuperElement('fff(x) {} // in A');
+    assertNoInterfaceMembers();
   }
 }

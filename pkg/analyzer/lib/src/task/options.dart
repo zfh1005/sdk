@@ -4,14 +4,18 @@
 
 library analyzer.src.task.options;
 
+import 'dart:collection';
+
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/plugin/options.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
+import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/general.dart';
+import 'package:analyzer/src/task/strong/info.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:source_span/source_span.dart';
@@ -26,17 +30,26 @@ final ListResultDescriptor<AnalysisError> ANALYSIS_OPTIONS_ERRORS =
 
 final _OptionsProcessor _processor = new _OptionsProcessor();
 
+void applyToAnalysisOptions(
+    AnalysisOptionsImpl options, Map<String, Object> optionMap) {
+  _processor.applyToAnalysisOptions(options, optionMap);
+}
+
 /// Configure this [context] based on configuration details specified in
-/// the given [options].
+/// the given [options].  If [options] is `null`, default values are applied.
 void configureContextOptions(
-        AnalysisContext context, Map<String, YamlNode> options) =>
+        AnalysisContext context, Map<String, Object> options) =>
     _processor.configure(context, options);
 
 /// `analyzer` analysis options constants.
 class AnalyzerOptions {
   static const String analyzer = 'analyzer';
+  static const String enableAsync = 'enableAsync';
   static const String enableGenericMethods = 'enableGenericMethods';
+  static const String enableStrictCallChecks = 'enableStrictCallChecks';
   static const String enableSuperMixins = 'enableSuperMixins';
+  static const String enableConditionalDirectives =
+      "enableConditionalDirectives";
   static const String errors = 'errors';
   static const String exclude = 'exclude';
   static const String language = 'language';
@@ -45,6 +58,10 @@ class AnalyzerOptions {
 
   /// Ways to say `ignore`.
   static const List<String> ignoreSynonyms = const ['ignore', 'false'];
+
+  /// Valid error `severity`s.
+  static final List<String> severities =
+      new List.unmodifiable(severityMap.keys);
 
   /// Ways to say `include`.
   static const List<String> includeSynonyms = const ['include', 'true'];
@@ -63,7 +80,10 @@ class AnalyzerOptions {
 
   /// Supported `analyzer` language configuration options.
   static const List<String> languageOptions = const [
+    enableAsync,
+    enableConditionalDirectives,
     enableGenericMethods,
+    enableStrictCallChecks,
     enableSuperMixins
   ];
 }
@@ -113,17 +133,37 @@ class ErrorBuilder {
 
   /// Report an unsupported [node] value, defined in the given [scopeName].
   void reportError(ErrorReporter reporter, String scopeName, YamlNode node) {
-    reporter.reportErrorForSpan(
-        code, node.span, [scopeName, node.value, proposal]);
+    reporter
+        .reportErrorForSpan(code, node.span, [scopeName, node.value, proposal]);
   }
 }
 
 /// Validates `analyzer` error filter options.
 class ErrorFilterOptionValidator extends OptionsValidator {
-  /// Pretty list of legal includes.
-  static final String legalIncludes = StringUtilities.printListOfQuotedNames(
+  /// Legal values.
+  static final List<String> legalValues =
       new List.from(AnalyzerOptions.ignoreSynonyms)
-        ..addAll(AnalyzerOptions.includeSynonyms));
+        ..addAll(AnalyzerOptions.includeSynonyms)
+        ..addAll(AnalyzerOptions.severities);
+
+  /// Pretty String listing legal values.
+  static final String legalValueString =
+      StringUtilities.printListOfQuotedNames(legalValues);
+
+  /// Lazily populated set of error codes (hashed for speedy lookup).
+  static HashSet<String> _errorCodes;
+
+  /// Legal error code names.
+  static Set<String> get errorCodes {
+    if (_errorCodes == null) {
+      _errorCodes = new HashSet<String>();
+      // Engine codes.
+      _errorCodes.addAll(ErrorCode.values.map((ErrorCode code) => code.name));
+      // Strong-mode codes.
+      _errorCodes.addAll(StaticInfo.names);
+    }
+    return _errorCodes;
+  }
 
   @override
   void validate(ErrorReporter reporter, Map<String, YamlNode> options) {
@@ -138,7 +178,7 @@ class ErrorFilterOptionValidator extends OptionsValidator {
       filters.nodes.forEach((k, v) {
         if (k is YamlScalar) {
           value = toUpperCase(k.value);
-          if (!ErrorCode.values.any((ErrorCode code) => code.name == value)) {
+          if (!errorCodes.contains(value)) {
             reporter.reportErrorForSpan(
                 AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE,
                 k.span,
@@ -147,12 +187,14 @@ class ErrorFilterOptionValidator extends OptionsValidator {
         }
         if (v is YamlScalar) {
           value = toLowerCase(v.value);
-          if (!AnalyzerOptions.ignoreSynonyms.contains(value) &&
-              !AnalyzerOptions.includeSynonyms.contains(value)) {
+          if (!legalValues.contains(value)) {
             reporter.reportErrorForSpan(
                 AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES,
-                v.span,
-                [AnalyzerOptions.errors, v.value?.toString(), legalIncludes]);
+                v.span, [
+              AnalyzerOptions.errors,
+              v.value?.toString(),
+              legalValueString
+            ]);
           }
         }
       });
@@ -170,7 +212,8 @@ class GenerateOptionsErrorsTask extends SourceBasedAnalysisTask {
       'GenerateOptionsErrorsTask',
       createTask,
       buildInputs,
-      <ResultDescriptor>[ANALYSIS_OPTIONS_ERRORS, LINE_INFO]);
+      <ResultDescriptor>[ANALYSIS_OPTIONS_ERRORS, LINE_INFO],
+      suitabilityFor: suitabilityFor);
 
   final AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
 
@@ -225,27 +268,16 @@ class GenerateOptionsErrorsTask extends SourceBasedAnalysisTask {
   static GenerateOptionsErrorsTask createTask(
           AnalysisContext context, AnalysisTarget target) =>
       new GenerateOptionsErrorsTask(context, target);
-}
 
-/// Validates `analyzer` strong-mode value configuration options.
-class StrongModeOptionValueValidator extends OptionsValidator {
-  ErrorBuilder trueOrFalseBuilder = new TrueOrFalseValueErrorBuilder();
-
-  @override
-  void validate(ErrorReporter reporter, Map<String, YamlNode> options) {
-    var analyzer = options[AnalyzerOptions.analyzer];
-    if (analyzer is! YamlMap) {
-      return;
+  /**
+   * Return an indication of how suitable this task is for the given [target].
+   */
+  static TaskSuitability suitabilityFor(AnalysisTarget target) {
+    if (target is Source &&
+        target.shortName == AnalysisEngine.ANALYSIS_OPTIONS_FILE) {
+      return TaskSuitability.HIGHEST;
     }
-
-    var v = analyzer.nodes[AnalyzerOptions.strong_mode];
-    if (v is YamlScalar) {
-      var value = toLowerCase(v.value);
-      if (!AnalyzerOptions.trueOrFalse.contains(value)) {
-        trueOrFalseBuilder.reportError(
-            reporter, AnalyzerOptions.strong_mode, v);
-      }
-    }
+    return TaskSuitability.NONE;
   }
 }
 
@@ -313,6 +345,28 @@ class OptionsFileValidator {
   }
 }
 
+/// Validates `analyzer` strong-mode value configuration options.
+class StrongModeOptionValueValidator extends OptionsValidator {
+  ErrorBuilder trueOrFalseBuilder = new TrueOrFalseValueErrorBuilder();
+
+  @override
+  void validate(ErrorReporter reporter, Map<String, YamlNode> options) {
+    var analyzer = options[AnalyzerOptions.analyzer];
+    if (analyzer is! YamlMap) {
+      return;
+    }
+
+    var v = analyzer.nodes[AnalyzerOptions.strong_mode];
+    if (v is YamlScalar) {
+      var value = toLowerCase(v.value);
+      if (!AnalyzerOptions.trueOrFalse.contains(value)) {
+        trueOrFalseBuilder.reportError(
+            reporter, AnalyzerOptions.strong_mode, v);
+      }
+    }
+  }
+}
+
 /// Validates `analyzer` top-level options.
 class TopLevelAnalyzerOptionsValidator extends TopLevelOptionValidator {
   TopLevelAnalyzerOptionsValidator()
@@ -366,13 +420,39 @@ class TrueOrFalseValueErrorBuilder extends ErrorBuilder {
 }
 
 class _OptionsProcessor {
-  void configure(AnalysisContext context, Map<String, YamlNode> options) {
-    if (options == null) {
+  static final Map<String, Object> defaults = {'analyzer': {}};
+
+  /**
+   * Apply the options in the given [optionMap] to the given analysis [options].
+   */
+  void applyToAnalysisOptions(
+      AnalysisOptionsImpl options, Map<String, Object> optionMap) {
+    if (optionMap == null) {
       return;
+    }
+    var analyzer = optionMap[AnalyzerOptions.analyzer];
+    if (analyzer is! Map) {
+      return;
+    }
+    // Process strong mode option.
+    var strongMode = analyzer[AnalyzerOptions.strong_mode];
+    if (strongMode is bool) {
+      options.strongMode = strongMode;
+    }
+    // Process language options.
+    var language = analyzer[AnalyzerOptions.language];
+    _applyLanguageOptions(options, language);
+  }
+
+  /// Configure [context] based on the given [options] (which can be `null`
+  /// to restore [defaults]).
+  void configure(AnalysisContext context, Map<String, Object> options) {
+    if (options == null) {
+      options = defaults;
     }
 
     var analyzer = options[AnalyzerOptions.analyzer];
-    if (analyzer is! YamlMap) {
+    if (analyzer is! Map) {
       return;
     }
 
@@ -382,58 +462,74 @@ class _OptionsProcessor {
 
     // Set filters.
     var filters = analyzer[AnalyzerOptions.errors];
-    setFilters(context, filters);
+    setProcessors(context, filters);
 
     // Process language options.
     var language = analyzer[AnalyzerOptions.language];
     setLanguageOptions(context, language);
   }
 
-  void setFilters(AnalysisContext context, Object codes) {
-    List<ErrorFilter> filters = <ErrorFilter>[];
-    // If codes are enumerated, collect them as filters; else leave filters
-    // empty to overwrite previous value.
-    if (codes is YamlMap) {
-      String value;
-      codes.nodes.forEach((k, v) {
-        if (k is YamlScalar && v is YamlScalar) {
-          value = toLowerCase(v.value);
-          if (AnalyzerOptions.ignoreSynonyms.contains(value)) {
-            // Case-insensitive.
-            String code = toUpperCase(k.value);
-            filters.add((AnalysisError error) => error.errorCode.name == code);
-          }
-        }
-      });
+  void setLanguageOption(
+      AnalysisContext context, Object feature, Object value) {
+    if (feature == AnalyzerOptions.enableAsync) {
+      if (isFalse(value)) {
+        AnalysisOptionsImpl options =
+            new AnalysisOptionsImpl.from(context.analysisOptions);
+        options.enableAsync = false;
+        context.analysisOptions = options;
+      }
     }
-    context.setConfigurationData(CONFIGURED_ERROR_FILTERS, filters);
+    if (feature == AnalyzerOptions.enableStrictCallChecks) {
+      if (isTrue(value)) {
+        AnalysisOptionsImpl options =
+            new AnalysisOptionsImpl.from(context.analysisOptions);
+        options.enableStrictCallChecks = true;
+        context.analysisOptions = options;
+      }
+    }
+    if (feature == AnalyzerOptions.enableSuperMixins) {
+      if (isTrue(value)) {
+        AnalysisOptionsImpl options =
+            new AnalysisOptionsImpl.from(context.analysisOptions);
+        options.enableSuperMixins = true;
+        context.analysisOptions = options;
+      }
+    }
+    if (feature == AnalyzerOptions.enableGenericMethods) {
+      if (isTrue(value)) {
+        AnalysisOptionsImpl options =
+            new AnalysisOptionsImpl.from(context.analysisOptions);
+        options.enableGenericMethods = true;
+        context.analysisOptions = options;
+      }
+    }
+    if (feature == AnalyzerOptions.enableConditionalDirectives) {
+      if (isTrue(value)) {
+        AnalysisOptionsImpl options =
+            new AnalysisOptionsImpl.from(context.analysisOptions);
+        options.enableConditionalDirectives = true;
+        context.analysisOptions = options;
+      }
+    }
   }
 
   void setLanguageOptions(AnalysisContext context, Object configs) {
     if (configs is YamlMap) {
       configs.nodes.forEach((k, v) {
-        String feature;
         if (k is YamlScalar && v is YamlScalar) {
-          feature = k.value?.toString();
-          if (feature == AnalyzerOptions.enableSuperMixins) {
-            if (isTrue(v.value)) {
-              AnalysisOptionsImpl options =
-                  new AnalysisOptionsImpl.from(context.analysisOptions);
-              options.enableSuperMixins = true;
-              context.analysisOptions = options;
-            }
-          }
-          if (feature == AnalyzerOptions.enableGenericMethods) {
-            if (isTrue(v.value)) {
-              AnalysisOptionsImpl options =
-                  new AnalysisOptionsImpl.from(context.analysisOptions);
-              options.enableGenericMethods = true;
-              context.analysisOptions = options;
-            }
-          }
+          String feature = k.value?.toString();
+          setLanguageOption(context, feature, v.value);
         }
       });
+    } else if (configs is Map) {
+      configs.forEach((k, v) => setLanguageOption(context, k, v));
     }
+  }
+
+  void setProcessors(AnalysisContext context, Object codes) {
+    ErrorConfig config = new ErrorConfig(codes);
+    context.setConfigurationData(
+        CONFIGURED_ERROR_PROCESSORS, config.processors);
   }
 
   void setStrongMode(AnalysisContext context, Object strongMode) {
@@ -443,6 +539,36 @@ class _OptionsProcessor {
           new AnalysisOptionsImpl.from(context.analysisOptions);
       options.strongMode = strong;
       context.analysisOptions = options;
+    }
+  }
+
+  void _applyLanguageOption(
+      AnalysisOptionsImpl options, Object feature, Object value) {
+    bool boolValue = toBool(value);
+    if (boolValue != null) {
+      if (feature == AnalyzerOptions.enableAsync) {
+        options.enableAsync = boolValue;
+      }
+      if (feature == AnalyzerOptions.enableSuperMixins) {
+        options.enableSuperMixins = boolValue;
+      }
+      if (feature == AnalyzerOptions.enableGenericMethods) {
+        options.enableGenericMethods = boolValue;
+      }
+    }
+  }
+
+  void _applyLanguageOptions(AnalysisOptionsImpl options, Object configs) {
+    if (configs is YamlMap) {
+      configs.nodes.forEach((key, value) {
+        if (key is YamlScalar && value is YamlScalar) {
+          String feature = key.value?.toString();
+          _applyLanguageOption(options, feature, value.value);
+        }
+      });
+    } else if (configs is Map) {
+      configs
+          .forEach((key, value) => _applyLanguageOption(options, key, value));
     }
   }
 }

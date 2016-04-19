@@ -21,8 +21,18 @@ inline uintptr_t AtomicOperations::FetchAndIncrement(uintptr_t* p) {
 }
 
 
+inline void AtomicOperations::IncrementBy(intptr_t* p, intptr_t value) {
+  __sync_fetch_and_add(p, value);
+}
+
+
 inline uintptr_t AtomicOperations::FetchAndDecrement(uintptr_t* p) {
   return __sync_fetch_and_sub(p, 1);
+}
+
+
+inline void AtomicOperations::DecrementBy(intptr_t* p, intptr_t value) {
+  __sync_fetch_and_sub(p, value);
 }
 
 
@@ -30,6 +40,13 @@ inline uintptr_t AtomicOperations::FetchAndDecrement(uintptr_t* p) {
 inline uword AtomicOperations::CompareAndSwapWord(uword* ptr,
                                                   uword old_value,
                                                   uword new_value) {
+  return __sync_val_compare_and_swap(ptr, old_value, new_value);
+}
+
+
+inline uint32_t AtomicOperations::CompareAndSwapUint32(uint32_t* ptr,
+                                                       uint32_t old_value,
+                                                       uint32_t new_value) {
   return __sync_val_compare_and_swap(ptr, old_value, new_value);
 }
 #endif  // !defined(USING_SIMULATOR)

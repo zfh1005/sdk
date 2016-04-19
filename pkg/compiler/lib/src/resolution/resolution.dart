@@ -21,6 +21,11 @@ import '../compiler.dart' show
     Compiler;
 import '../compile_time_constants.dart' show
     ConstantCompiler;
+import '../constants/expressions.dart' show
+    ConstantExpression,
+    ConstantExpressionKind,
+    ConstructedConstantExpression,
+    ErroneousConstantExpression;
 import '../constants/values.dart' show
     ConstantValue;
 import '../core_types.dart' show
@@ -157,56 +162,52 @@ class ResolverTask extends CompilerTask {
     FunctionExpression functionExpression = element.node;
     AsyncModifier asyncModifier = functionExpression.asyncModifier;
     if (asyncModifier != null) {
-      if (!compiler.backend.supportsAsyncAwait) {
-        reporter.reportErrorMessage(functionExpression.asyncModifier,
-            MessageKind.ASYNC_AWAIT_NOT_SUPPORTED);
-      } else {
-        if (asyncModifier.isAsynchronous) {
-          element.asyncMarker = asyncModifier.isYielding
-              ? AsyncMarker.ASYNC_STAR : AsyncMarker.ASYNC;
-        } else {
-          element.asyncMarker = AsyncMarker.SYNC_STAR;
-        }
-        if (element.isAbstract) {
-          reporter.reportErrorMessage(
-              asyncModifier,
-              MessageKind.ASYNC_MODIFIER_ON_ABSTRACT_METHOD,
-              {'modifier': element.asyncMarker});
-        } else if (element.isConstructor) {
-          reporter.reportErrorMessage(
-              asyncModifier,
-              MessageKind.ASYNC_MODIFIER_ON_CONSTRUCTOR,
-              {'modifier': element.asyncMarker});
-        } else {
-          if (element.isSetter) {
-            reporter.reportErrorMessage(
-                asyncModifier,
-                MessageKind.ASYNC_MODIFIER_ON_SETTER,
-                {'modifier': element.asyncMarker});
 
-          }
-          if (functionExpression.body.asReturn() != null &&
-              element.asyncMarker.isYielding) {
-            reporter.reportErrorMessage(
-                asyncModifier,
-                MessageKind.YIELDING_MODIFIER_ON_ARROW_BODY,
-                {'modifier': element.asyncMarker});
-          }
+      if (asyncModifier.isAsynchronous) {
+        element.asyncMarker = asyncModifier.isYielding
+            ? AsyncMarker.ASYNC_STAR : AsyncMarker.ASYNC;
+      } else {
+        element.asyncMarker = AsyncMarker.SYNC_STAR;
+      }
+      if (element.isAbstract) {
+        reporter.reportErrorMessage(
+            asyncModifier,
+            MessageKind.ASYNC_MODIFIER_ON_ABSTRACT_METHOD,
+            {'modifier': element.asyncMarker});
+      } else if (element.isConstructor) {
+        reporter.reportErrorMessage(
+            asyncModifier,
+            MessageKind.ASYNC_MODIFIER_ON_CONSTRUCTOR,
+            {'modifier': element.asyncMarker});
+      } else {
+        if (element.isSetter) {
+          reporter.reportErrorMessage(
+              asyncModifier,
+              MessageKind.ASYNC_MODIFIER_ON_SETTER,
+              {'modifier': element.asyncMarker});
+
         }
-        switch (element.asyncMarker) {
-        case AsyncMarker.ASYNC:
-          registry.registerFeature(Feature.ASYNC);
-          coreClasses.futureClass.ensureResolved(resolution);
-          break;
-        case AsyncMarker.ASYNC_STAR:
-          registry.registerFeature(Feature.ASYNC_STAR);
-          coreClasses.streamClass.ensureResolved(resolution);
-          break;
-        case AsyncMarker.SYNC_STAR:
-          registry.registerFeature(Feature.SYNC_STAR);
-          coreClasses.iterableClass.ensureResolved(resolution);
-          break;
+        if (functionExpression.body.asReturn() != null &&
+            element.asyncMarker.isYielding) {
+          reporter.reportErrorMessage(
+              asyncModifier,
+              MessageKind.YIELDING_MODIFIER_ON_ARROW_BODY,
+              {'modifier': element.asyncMarker});
         }
+      }
+      switch (element.asyncMarker) {
+      case AsyncMarker.ASYNC:
+        registry.registerFeature(Feature.ASYNC);
+        coreClasses.futureClass.ensureResolved(resolution);
+        break;
+      case AsyncMarker.ASYNC_STAR:
+        registry.registerFeature(Feature.ASYNC_STAR);
+        coreClasses.streamClass.ensureResolved(resolution);
+        break;
+      case AsyncMarker.SYNC_STAR:
+        registry.registerFeature(Feature.SYNC_STAR);
+        coreClasses.iterableClass.ensureResolved(resolution);
+        break;
       }
     }
   }
@@ -223,7 +224,7 @@ class ResolverTask extends CompilerTask {
   WorldImpact resolveMethodElementImplementation(
       FunctionElement element, FunctionExpression tree) {
     return reporter.withCurrentElement(element, () {
-      if (element.isExternal && tree.hasBody()) {
+      if (element.isExternal && tree.hasBody) {
         reporter.reportErrorMessage(
             element,
             MessageKind.EXTERNAL_WITH_BODY,
@@ -234,11 +235,14 @@ class ResolverTask extends CompilerTask {
           reporter.reportErrorMessage(
               tree, MessageKind.CONSTRUCTOR_WITH_RETURN_TYPE);
         }
-        if (element.isConst &&
-            tree.hasBody() &&
-            !tree.isRedirectingFactory) {
-          reporter.reportErrorMessage(
-              tree, MessageKind.CONST_CONSTRUCTOR_HAS_BODY);
+        if (tree.hasBody && element.isConst) {
+          if (element.isGenerativeConstructor) {
+            reporter.reportErrorMessage(
+                tree, MessageKind.CONST_CONSTRUCTOR_WITH_BODY);
+          } else if (!tree.isRedirectingFactory) {
+            reporter.reportErrorMessage(
+                tree, MessageKind.CONST_FACTORY);
+          }
         }
       }
 
@@ -262,7 +266,8 @@ class ResolverTask extends CompilerTask {
             tree, MessageKind.FUNCTION_WITH_INITIALIZER);
       }
 
-      if (!compiler.analyzeSignaturesOnly || tree.isRedirectingFactory) {
+      if (!compiler.options.analyzeSignaturesOnly ||
+          tree.isRedirectingFactory) {
         // We need to analyze the redirecting factory bodies to ensure that
         // we can analyze compile-time constants.
         visitor.visit(tree.body);
@@ -512,7 +517,7 @@ class ResolverTask extends CompilerTask {
    * called by [resolveClass] and [ClassSupertypeResolver].
    */
   void loadSupertypes(BaseClassElementX cls, Spannable from) {
-    reporter.withCurrentElement(cls, () => measure(() {
+    measure(() {
       if (cls.supertypeLoadState == STATE_DONE) return;
       if (cls.supertypeLoadState == STATE_STARTED) {
         reporter.reportErrorMessage(
@@ -539,7 +544,7 @@ class ResolverTask extends CompilerTask {
           cls.supertypeLoadState = STATE_DONE;
         }
       });
-    }));
+    });
   }
 
   // TODO(johnniwinther): Remove this queue when resolution has been split into
@@ -762,7 +767,7 @@ class ResolverTask extends CompilerTask {
                            ClassElement mixin) {
     // TODO(johnniwinther): Avoid the use of [TreeElements] here.
     if (resolutionTree == null) return;
-    Iterable<Node> superUses = resolutionTree.superUses;
+    Iterable<SourceSpan> superUses = resolutionTree.superUses;
     if (superUses.isEmpty) return;
     DiagnosticMessage error = reporter.createMessage(
         mixinApplication,
@@ -770,7 +775,7 @@ class ResolverTask extends CompilerTask {
         {'className': mixin.name});
     // Show the user the problematic uses of 'super' in the mixin.
     List<DiagnosticMessage> infos = <DiagnosticMessage>[];
-    for (Node use in superUses) {
+    for (SourceSpan use in superUses) {
       infos.add(reporter.createMessage(
           use,
           MessageKind.ILLEGAL_MIXIN_SUPER_USE));
@@ -860,7 +865,7 @@ class ResolverTask extends CompilerTask {
     if (lookupElement == null) {
       reporter.internalError(member,
           "No abstract field for accessor");
-    } else if (!identical(lookupElement.kind, ElementKind.ABSTRACT_FIELD)) {
+    } else if (!lookupElement.isAbstractField) {
       if (lookupElement.isMalformed || lookupElement.isAmbiguous) return;
       reporter.internalError(member,
           "Inaccessible abstract field for accessor");
@@ -873,14 +878,14 @@ class ResolverTask extends CompilerTask {
     if (setter == null) return;
     int getterFlags = getter.modifiers.flags | Modifiers.FLAG_ABSTRACT;
     int setterFlags = setter.modifiers.flags | Modifiers.FLAG_ABSTRACT;
-    if (!identical(getterFlags, setterFlags)) {
+    if (getterFlags != setterFlags) {
       final mismatchedFlags =
         new Modifiers.withFlags(null, getterFlags ^ setterFlags);
-      reporter.reportErrorMessage(
+      reporter.reportWarningMessage(
           field.getter,
           MessageKind.GETTER_MISMATCH,
           {'modifiers': mismatchedFlags});
-      reporter.reportErrorMessage(
+      reporter.reportWarningMessage(
           field.setter,
           MessageKind.SETTER_MISMATCH,
           {'modifiers': mismatchedFlags});
@@ -1065,8 +1070,29 @@ class ResolverTask extends CompilerTask {
       node.accept(visitor);
       // TODO(johnniwinther): Avoid passing the [TreeElements] to
       // [compileMetadata].
-      annotation.constant =
-          constantCompiler.compileMetadata(annotation, node, registry.mapping);
+      ConstantExpression constant = constantCompiler.compileMetadata(
+          annotation, node, registry.mapping);
+      switch (constant.kind) {
+        case ConstantExpressionKind.CONSTRUCTED:
+          ConstructedConstantExpression constructedConstant = constant;
+          if (constructedConstant.type.isGeneric) {
+            // Const constructor calls cannot have type arguments.
+            // TODO(24312): Remove this.
+            reporter.reportErrorMessage(
+                node, MessageKind.INVALID_METADATA_GENERIC);
+            constant = new ErroneousConstantExpression();
+          }
+          break;
+        case ConstantExpressionKind.VARIABLE:
+        case ConstantExpressionKind.ERRONEOUS:
+          break;
+        default:
+          reporter.reportErrorMessage(node, MessageKind.INVALID_METADATA);
+          constant = new ErroneousConstantExpression();
+          break;
+      }
+      annotation.constant = constant;
+
       constantCompiler.evaluate(annotation.constant);
       // TODO(johnniwinther): Register the relation between the annotation
       // and the annotated element instead. This will allow the backend to

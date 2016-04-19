@@ -558,7 +558,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   bool checkAssignable(Spannable spannable, DartType from, DartType to,
                        {bool isConst: false}) {
     if (!types.isAssignable(from, to)) {
-      if (compiler.enableTypeAssertions && isConst) {
+      if (compiler.options.enableTypeAssertions && isConst) {
         reporter.reportErrorMessage(
             spannable,
             MessageKind.NOT_ASSIGNABLE,
@@ -829,12 +829,12 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       if (!foundPrivateMember) {
         switch (memberKind) {
           case MemberKind.METHOD:
-            reportMessage(node, MessageKind.METHOD_NOT_FOUND,
+            reportMessage(node, MessageKind.UNDEFINED_METHOD,
                 {'className': receiverType.name, 'memberName': name},
                 isHint: isHint);
             break;
           case MemberKind.OPERATOR:
-            reportMessage(node, MessageKind.OPERATOR_NOT_FOUND,
+            reportMessage(node, MessageKind.UNDEFINED_OPERATOR,
                 {'className': receiverType.name, 'memberName': name},
                 isHint: isHint);
             break;
@@ -842,7 +842,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
             if (lookupMemberSignature(memberName.setter, interface) != null) {
               // A setter is present so warn explicitly about the missing
               // getter.
-              reportMessage(node, MessageKind.GETTER_NOT_FOUND,
+              reportMessage(node,
+                  MessageKind.UNDEFINED_INSTANCE_GETTER_BUT_SETTER,
                   {'className': receiverType.name, 'memberName': name},
                   isHint: isHint);
             } else if (name == 'await') {
@@ -857,13 +858,13 @@ class TypeCheckerVisitor extends Visitor<DartType> {
               }
               reportMessage(node, kind, arguments, isHint: isHint);
             } else {
-              reportMessage(node, MessageKind.MEMBER_NOT_FOUND,
+              reportMessage(node, MessageKind.UNDEFINED_GETTER,
                   {'className': receiverType.name, 'memberName': name},
                   isHint: isHint);
             }
             break;
           case MemberKind.SETTER:
-            reportMessage(node, MessageKind.SETTER_NOT_FOUND,
+            reportMessage(node, MessageKind.UNDEFINED_SETTER,
                 {'className': receiverType.name, 'memberName': name},
                 isHint: isHint);
             break;
@@ -1712,11 +1713,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
 
   DartType visitAwait(Await node) {
     DartType expressionType = analyze(node.expression);
-    if (compiler.backend.supportsAsyncAwait) {
-      return types.flatten(expressionType);
-    } else {
-      return const DynamicType();
-    }
+    return types.flatten(expressionType);
   }
 
   DartType visitYield(Yield node) {
@@ -1839,29 +1836,27 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   visitAsyncForIn(AsyncForIn node) {
     DartType elementType = computeForInElementType(node);
     DartType expressionType = analyze(node.expression);
-    if (compiler.backend.supportsAsyncAwait) {
-      DartType streamOfDynamic = coreTypes.streamType();
-      if (!types.isAssignable(expressionType, streamOfDynamic)) {
-        reportMessage(node.expression,
-            MessageKind.NOT_ASSIGNABLE,
-            {'fromType': expressionType, 'toType': streamOfDynamic},
-            isHint: true);
-      } else {
-        InterfaceType interfaceType =
-            Types.computeInterfaceType(resolution, expressionType);
-        if (interfaceType != null) {
-          InterfaceType streamType =
-              interfaceType.asInstanceOf(streamOfDynamic.element);
-          if (streamType != null) {
-            DartType streamElementType = streamType.typeArguments.first;
-            if (!types.isAssignable(streamElementType, elementType)) {
-              reportMessage(node.expression,
-                  MessageKind.FORIN_NOT_ASSIGNABLE,
-                  {'currentType': streamElementType,
-                   'expressionType': expressionType,
-                   'elementType': elementType},
-                  isHint: true);
-            }
+    DartType streamOfDynamic = coreTypes.streamType();
+    if (!types.isAssignable(expressionType, streamOfDynamic)) {
+      reportMessage(node.expression,
+          MessageKind.NOT_ASSIGNABLE,
+          {'fromType': expressionType, 'toType': streamOfDynamic},
+          isHint: true);
+    } else {
+      InterfaceType interfaceType =
+          Types.computeInterfaceType(resolution, expressionType);
+      if (interfaceType != null) {
+        InterfaceType streamType =
+            interfaceType.asInstanceOf(streamOfDynamic.element);
+        if (streamType != null) {
+          DartType streamElementType = streamType.typeArguments.first;
+          if (!types.isAssignable(streamElementType, elementType)) {
+            reportMessage(node.expression,
+                MessageKind.FORIN_NOT_ASSIGNABLE,
+                {'currentType': streamElementType,
+                 'expressionType': expressionType,
+                 'elementType': elementType},
+                isHint: true);
           }
         }
       }

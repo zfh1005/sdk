@@ -13,8 +13,7 @@ namespace dart {
 namespace bin {
 
 const char* Platform::executable_name_ = NULL;
-const char* Platform::resolved_executable_name_ = NULL;
-const char* Platform::package_root_ = NULL;
+char* Platform::resolved_executable_name_ = NULL;
 int Platform::script_index_ = 1;
 char** Platform::argv_ = NULL;
 
@@ -46,12 +45,28 @@ void FUNCTION_NAME(Platform_LocalHostname)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(Platform_ExecutableName)(Dart_NativeArguments args) {
   ASSERT(Platform::GetExecutableName() != NULL);
+  if (Dart_IsRunningPrecompiledCode()) {
+    // This is a work-around to be able to use most of the existing test suite
+    // for precompilation. Many tests do something like Process.run(
+    // Platform.executable, some_other_script.dart). But with precompilation
+    // the script is already fixed, so the spawned process runs the same script
+    // again and we have a fork-bomb.
+    Dart_ThrowException(Dart_NewStringFromCString(
+        "Platform.executable not supported under precompilation"));
+    UNREACHABLE();
+  }
   Dart_SetReturnValue(
       args, Dart_NewStringFromCString(Platform::GetExecutableName()));
 }
 
 
 void FUNCTION_NAME(Platform_ResolvedExecutableName)(Dart_NativeArguments args) {
+  if (Dart_IsRunningPrecompiledCode()) {
+    Dart_ThrowException(Dart_NewStringFromCString(
+        "Platform.resolvedExecutable not supported under precompilation"));
+    UNREACHABLE();
+  }
+
   if (Platform::GetResolvedExecutableName() != NULL) {
     Dart_SetReturnValue(
         args, Dart_NewStringFromCString(Platform::GetResolvedExecutableName()));
@@ -76,15 +91,6 @@ void FUNCTION_NAME(Platform_ExecutableArguments)(Dart_NativeArguments args) {
 }
 
 
-void FUNCTION_NAME(Platform_PackageRoot)(Dart_NativeArguments args) {
-  const char* package_root = Platform::GetPackageRoot();
-  if (package_root == NULL) {
-    package_root = "";
-  }
-  Dart_SetReturnValue(args, Dart_NewStringFromCString(package_root));
-}
-
-
 void FUNCTION_NAME(Platform_Environment)(Dart_NativeArguments args) {
   intptr_t count = 0;
   char** env = Platform::Environment(&count);
@@ -96,22 +102,18 @@ void FUNCTION_NAME(Platform_Environment)(Dart_NativeArguments args) {
   } else {
     Dart_Handle result = Dart_NewList(count);
     if (Dart_IsError(result)) {
-      Platform::FreeEnvironment(env, count);
       Dart_PropagateError(result);
     }
     for (intptr_t i = 0; i < count; i++) {
       Dart_Handle str = DartUtils::NewString(env[i]);
       if (Dart_IsError(str)) {
-        Platform::FreeEnvironment(env, count);
         Dart_PropagateError(str);
       }
       Dart_Handle error = Dart_ListSetAt(result, i, str);
       if (Dart_IsError(error)) {
-        Platform::FreeEnvironment(env, count);
         Dart_PropagateError(error);
       }
     }
-    Platform::FreeEnvironment(env, count);
     Dart_SetReturnValue(args, result);
   }
 }

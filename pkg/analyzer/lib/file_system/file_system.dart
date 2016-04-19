@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library file_system;
+library analyzer.file_system.file_system;
 
 import 'dart:async';
 
@@ -14,7 +14,7 @@ import 'package:watcher/watcher.dart';
 /**
  * [File]s are leaf [Resource]s which contain data.
  */
-abstract class File extends Resource {
+abstract class File implements Resource {
   /**
    * Watch for changes to this file
    */
@@ -32,10 +32,33 @@ abstract class File extends Resource {
   Source createSource([Uri uri]);
 
   /**
+   * Synchronously read the entire file contents as a list of bytes.
+   * Throws a [FileSystemException] if the operation fails.
+   */
+  List<int> readAsBytesSync();
+
+  /**
    * Synchronously read the entire file contents as a [String].
    * Throws [FileSystemException] if the file does not exist.
    */
   String readAsStringSync();
+
+  /**
+   * Synchronously rename this file.
+   * Return a [File] instance for the renamed file.
+   *
+   * If [newPath] identifies an existing file, that file is replaced.
+   * If [newPath] identifies an existing resource the operation might fail and
+   * an exception is thrown.
+   */
+  File renameSync(String newPath);
+
+  /**
+   * Synchronously write a list of bytes to the file.
+   *
+   * Throws a [FileSystemException] if the operation fails.
+   */
+  void writeAsBytesSync(List<int> bytes);
 }
 
 /**
@@ -47,13 +70,14 @@ class FileSystemException implements Exception {
 
   FileSystemException(this.path, this.message);
 
+  @override
   String toString() => 'FileSystemException(path=$path; message=$message)';
 }
 
 /**
  * [Folder]s are [Resource]s which may contain files and/or other folders.
  */
-abstract class Folder extends Resource {
+abstract class Folder implements Resource {
   /**
    * Watch for changes to the files inside this folder (and in any nested
    * folders, including folders reachable via links).
@@ -62,7 +86,7 @@ abstract class Folder extends Resource {
 
   /**
    * If the path [path] is a relative path, convert it to an absolute path
-   * by interpreting it relative to this folder.  If it is already an aboslute
+   * by interpreting it relative to this folder.  If it is already an absolute
    * path, then don't change it.
    *
    * However, regardless of whether [path] is relative or absolute, normalize

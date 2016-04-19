@@ -300,7 +300,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   int localPort = 0;
 
   // Holds the address used to connect or bind the socket.
-  var /* InternetAddress or UnixDomainAddress */ localAddress;
+  InternetAddress localAddress;
 
   int available = 0;
 
@@ -384,7 +384,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     return new Future.value(host)
         .then((host) {
           if (host is _InternetAddress) return [host];
-          if (host is UnixDomainAddress) return [host];
           return lookup(host)
               .then((addresses) {
                 if (addresses.isEmpty) {
@@ -412,11 +411,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
             socket.localAddress = address;
             var result;
             if (sourceAddress == null) {
-              if (address is UnixDomainAddress) {
-                result = socket.nativeCreateConnectUnix(address.path);
-              } else {
-                result = socket.nativeCreateConnect(address._in_addr, port);
-              }
+              result = socket.nativeCreateConnect(address._in_addr, port);
             } else {
               assert(sourceAddress is _InternetAddress);
               result = socket.nativeCreateBindConnect(
@@ -430,9 +425,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
               connectNext();
             } else {
               // Query the local port, for error messages.
-              if (address is !UnixDomainAddress) {
-                socket.port;
-              }
+              socket.port;
               // Set up timer for when we should retry the next address
               // (if any).
               var duration = address.isLoopback ?
@@ -481,7 +474,6 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     return new Future.value(host)
         .then((host) {
           if (host is _InternetAddress) return host;
-          if (host is UnixDomainAddress) return host;
           return lookup(host)
               .then((list) {
                 if (list.length == 0) {
@@ -493,23 +485,11 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
         .then((address) {
           var socket = new _NativeSocket.listen();
           socket.localAddress = address;
-          var result;
-          if (host is UnixDomainAddress) {
-            result = socket.nativeCreateBindListenUnix(host.path,
-                                                       backlog,
-                                                       shared);
-            if (result is OSError) {
-              throw new SocketException("Failed to create server socket",
-                                        osError: result);
-          }
-          } else {
-            result = socket.nativeCreateBindListen(address._in_addr,
-                                                   port,
-                                                   backlog,
-                                                   v6Only,
-                                                   shared);
-          }
-
+          var result = socket.nativeCreateBindListen(address._in_addr,
+                                                     port,
+                                                     backlog,
+                                                     v6Only,
+                                                     shared);
           if (result is OSError) {
             throw new SocketException("Failed to create server socket",
                                       osError: result,
@@ -734,20 +714,15 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
     return result[1];
   }
 
-  /* InternetAddress or UnixDomainAddress */ get address => localAddress;
+  InternetAddress get address => localAddress;
 
   InternetAddress get remoteAddress {
     if (isClosing || isClosed) throw const SocketException.closed();
     var result = nativeGetRemotePeer();
     if (result is OSError) throw result;
     var addr = result[0];
-    // TODO(sgjesse): Type enum.
-    if (addr[0] == 2) {
-      return new UnixDomainAddress(addr[1]);
-    } else {
-      var type = new InternetAddressType._from(addr[0]);
-      return new _InternetAddress(addr[1], null, addr[2]);
-    }
+    var type = new InternetAddressType._from(addr[0]);
+    return new _InternetAddress(addr[1], null, addr[2]);
   }
 
   void issueReadEvent() {
@@ -957,9 +932,9 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
       eventPort = new RawReceivePort(multiplex);
     }
     if (!connectedResourceHandler) {
-      registerExtension('__getOpenSockets',
+      registerExtension('ext.dart.io.getOpenSockets',
                         _SocketResourceInfo.getOpenSockets);
-      registerExtension('__getSocketByID',
+      registerExtension('ext.dart.io.getSocketByID',
                         _SocketResourceInfo.getSocketInfoMapByID);
 
       connectedResourceHandler = true;
@@ -984,7 +959,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   // error objects.
   static createError(error,
                      String message,
-                     [address,
+                     [InternetAddress address,
                       int port]) {
     if (error is OSError) {
       return new SocketException(
@@ -1089,12 +1064,9 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
   nativeCreateBindConnect(
       List<int> addr, int port, List<int> sourceAddr)
       native "Socket_CreateBindConnect";
-  nativeCreateConnectUnix(String path) native "Socket_CreateConnectUnix";
   nativeCreateBindListen(List<int> addr, int port, int backlog, bool v6Only,
                          bool shared)
       native "ServerSocket_CreateBindListen";
-  nativeCreateBindListenUnix(String addr, int backlog, bool shared)
-      native "ServerSocket_CreateBindListenUnix";
   nativeCreateBindDatagram(List<int> addr, int port, bool reuseAddress)
       native "Socket_CreateBindDatagram";
   nativeAccept(_NativeSocket socket) native "ServerSocket_Accept";
@@ -1152,9 +1124,7 @@ class _RawServerSocket extends Stream<RawSocket>
       read: zone.bindCallback(() {
         while (_socket.available > 0) {
           var socket = _socket.accept();
-          if (socket == null) {
-            return;
-          }
+          if (socket == null) return;
           _controller.add(new _RawSocket(socket));
           if (_controller.isPaused) return;
         }
@@ -1273,9 +1243,11 @@ class _RawSocket extends Stream<RawSocketEvent>
     native.isClosedWrite = true;
     if (fd != null) _getStdioHandle(native, fd);
     var result = new _RawSocket(native);
-    result._isMacOSTerminalInput =
-        Platform.isMacOS &&
-        _StdIOUtils._socketType(result._socket) == _STDIO_HANDLE_TYPE_TERMINAL;
+    if (fd != null) {
+      var socketType = _StdIOUtils._socketType(result._socket);
+      result._isMacOSTerminalInput =
+          Platform.isMacOS && socketType == _STDIO_HANDLE_TYPE_TERMINAL;
+    }
     return result;
   }
 

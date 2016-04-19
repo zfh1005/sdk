@@ -15,17 +15,18 @@
  *   of exactly one task.
  * - Convert this tool to use package_config to find the package map.
  */
-library task_dependency_graph.generate;
+library analyzer.tool.task_dependency_graph.generate;
 
 import 'dart:io' hide File;
 import 'dart:io' as io;
 
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/codegen/tools.dart';
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -120,13 +121,14 @@ class Driver {
    * Generate the task dependency graph and return it as a [String].
    */
   String generateFileContents() {
+    AnalysisEngine.instance.processRequiredPlugins();
     List<String> lines = <String>[];
     resourceProvider = PhysicalResourceProvider.INSTANCE;
     DartSdk sdk = DirectoryBasedDartSdk.defaultSdk;
     context = AnalysisEngine.instance.createAnalysisContext();
     String packageRootPath;
-    if (Platform.packageRoot.isNotEmpty) {
-      packageRootPath = Platform.packageRoot;
+    if (Platform.packageRoot != null) {
+      packageRootPath = Uri.parse(Platform.packageRoot).toFilePath();
     } else {
       packageRootPath = path.join(rootDir, 'packages');
     }
@@ -149,9 +151,9 @@ class Driver {
     resultDescriptorType = modelElement
         .getType('ResultDescriptor')
         .type
-        .substitute4([dynamicType]);
+        .instantiate([dynamicType]);
     listOfResultDescriptorType =
-        context.typeProvider.listType.substitute4([resultDescriptorType]);
+        context.typeProvider.listType.instantiate([resultDescriptorType]);
     CompilationUnitElement enginePluginUnitElement =
         getUnit(enginePluginSource).element;
     enginePluginClass = enginePluginUnitElement.getType('EnginePlugin');

@@ -23,6 +23,7 @@ class StackFrame;
 class TimelineEvent;
 
 // Holds all data relevant for execution of deoptimization instructions.
+// Structure is allocated in C-heap.
 class DeoptContext {
  public:
   enum DestFrameOptions {
@@ -30,12 +31,14 @@ class DeoptContext {
     kDestIsAllocated        // Write deopt frame to a buffer.
   };
 
+  // If 'deoptimizing_code' is false, only frame is being deoptimized.
   DeoptContext(const StackFrame* frame,
                const Code& code,
                DestFrameOptions dest_options,
                fpu_register_t* fpu_registers,
                intptr_t* cpu_registers,
-               bool is_lazy_deopt);
+               bool is_lazy_deopt,
+               bool deoptimizing_code);
   virtual ~DeoptContext();
 
   // Returns the offset of the dest fp from the dest sp.  Used in
@@ -96,6 +99,8 @@ class DeoptContext {
   RawCode* code() const { return code_; }
 
   bool is_lazy_deopt() const { return is_lazy_deopt_; }
+
+  bool deoptimizing_code() const { return deoptimizing_code_; }
 
   ICData::DeoptReasonId deopt_reason() const { return deopt_reason_; }
   bool HasDeoptFlag(ICData::DeoptFlags flag) {
@@ -224,7 +229,7 @@ class DeoptContext {
   uint32_t deopt_flags_;
   intptr_t caller_fp_;
   Thread* thread_;
-  TimelineEvent* timeline_event_;
+  int64_t deopt_start_micros_;
 
   DeferredSlot* deferred_slots_;
 
@@ -232,6 +237,7 @@ class DeoptContext {
   DeferredObject** deferred_objects_;
 
   const bool is_lazy_deopt_;
+  const bool deoptimizing_code_;
 
   DISALLOW_COPY_AND_ASSIGN(DeoptContext);
 };
@@ -393,8 +399,9 @@ class RegisterSource {
   }
 
  private:
-  class KindField : public BitField<intptr_t, 0, 1> { };
-  class RawIndexField : public BitField<intptr_t, 1, kBitsPerWord - 1> { };
+  class KindField : public BitField<intptr_t, intptr_t, 0, 1> { };
+  class RawIndexField :
+      public BitField<intptr_t, intptr_t, 1, kBitsPerWord - 1> { };
 
   bool is_register() const {
     return KindField::decode(source_index_) == kRegister;
@@ -478,7 +485,10 @@ class DeoptInfoBuilder : public ValueObject {
   intptr_t CalculateStackIndex(const Location& source_loc) const;
 
   intptr_t FrameSize() const {
-    return instructions_.length() - frame_start_;
+    ASSERT(frame_start_ != -1);
+    const intptr_t frame_size = instructions_.length() - frame_start_;
+    ASSERT(frame_size >= 0);
+    return frame_size;
   }
 
   void AddConstant(const Object& obj, intptr_t dest_index);
@@ -537,8 +547,9 @@ class DeoptTable : public AllStatic {
                     FlagsField::encode(flags));
   }
 
-  class ReasonField : public BitField<ICData::DeoptReasonId, 0, 8> { };
-  class FlagsField : public BitField<uint32_t, 8, 8> { };
+  class ReasonField :
+      public BitField<intptr_t, ICData::DeoptReasonId, 0, 8> { };
+  class FlagsField : public BitField<intptr_t, uint32_t, 8, 8> { };
 
  private:
   static const intptr_t kEntrySize = 3;

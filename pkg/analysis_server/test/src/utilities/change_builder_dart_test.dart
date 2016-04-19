@@ -4,10 +4,10 @@
 
 library analysis_server.test.src.utilities.change_builder_dart_test;
 
-import 'package:analysis_server/plugin/edit/utilities/change_builder_dart.dart';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
+import 'package:analysis_server/src/provisional/edit/utilities/change_builder_dart.dart';
 import 'package:analysis_server/src/utilities/change_builder_dart.dart';
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
@@ -60,8 +60,8 @@ class DartEditBuilderImplTest extends AbstractContextTest {
     DartChangeBuilderImpl builder = new DartChangeBuilderImpl(context);
     builder.addFileEdit(source, 1, (DartFileEditBuilderImpl builder) {
       builder.addInsertion(0, (DartEditBuilder builder) {
-        builder.writeClassDeclaration('C',
-            interfaces: [declaration.element.type]);
+        builder
+            .writeClassDeclaration('C', interfaces: [declaration.element.type]);
       });
     });
     SourceEdit edit = getEdit(builder);
@@ -549,7 +549,7 @@ f(int i, String s) {
     builder.addFileEdit(source, 1, (DartFileEditBuilderImpl builder) {
       builder.addInsertion(content.length - 1, (DartEditBuilder builder) {
         builder
-            .writeType(classB.element.type.substitute4([classA.element.type]));
+            .writeType(classB.element.type.instantiate([classA.element.type]));
       });
     });
     SourceEdit edit = getEdit(builder);

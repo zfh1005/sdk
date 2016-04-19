@@ -10,10 +10,8 @@
 
 #include "include/dart_api.h"
 
-
 namespace dart {
 namespace bin {
-
 
 void TimeoutQueue::UpdateTimeout(Dart_Port port, int64_t timeout) {
   // Find port if present.
@@ -47,8 +45,8 @@ void TimeoutQueue::UpdateTimeout(Dart_Port port, int64_t timeout) {
   next_timeout_ = NULL;
   current = timeouts_;
   while (current != NULL) {
-    if (next_timeout_ == NULL ||
-        current->timeout() < next_timeout_->timeout()) {
+    if ((next_timeout_ == NULL) ||
+        (current->timeout() < next_timeout_->timeout())) {
       next_timeout_ = current;
     }
     current = current->next();
@@ -78,7 +76,9 @@ void EventHandler::NotifyShutdownDone() {
 
 
 void EventHandler::Stop() {
-  if (event_handler == NULL) return;
+  if (event_handler == NULL) {
+    return;
+  }
 
   // Wait until it has stopped.
   {
@@ -101,7 +101,9 @@ void EventHandler::Stop() {
 
 
 EventHandlerImplementation* EventHandler::delegate() {
-  if (event_handler == NULL) return NULL;
+  if (event_handler == NULL) {
+    return NULL;
+  }
   return &event_handler->delegate_;
 }
 
@@ -129,6 +131,13 @@ void FUNCTION_NAME(EventHandler_SendData)(Dart_NativeArguments args) {
   }
   int64_t data = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 2));
   event_handler->SendData(id, dart_port, data);
+}
+
+
+void FUNCTION_NAME(EventHandler_TimerMillisecondClock)(
+    Dart_NativeArguments args) {
+  int64_t now = TimerUtils::GetCurrentMonotonicMillis();
+  Dart_SetReturnValue(args, Dart_NewInteger(now));
 }
 
 }  // namespace bin

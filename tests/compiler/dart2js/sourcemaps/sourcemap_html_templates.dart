@@ -165,6 +165,9 @@ a, a:hover {
 h3 {
   cursor: pointer;
 }
+.line {
+  margin: 0px;
+}
 .lineNumber {
   font-size: smaller;
   color: #888;
@@ -178,6 +181,11 @@ h3 {
 $css,
 .code {
   font-family: monospace;
+}
+td,.code {
+  font-family: monospace;
+  max-width: 400px;
+  overflow: hidden;
 }
 </style>
 </head>

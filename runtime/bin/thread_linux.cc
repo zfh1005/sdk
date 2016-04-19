@@ -6,12 +6,14 @@
 #if defined(TARGET_OS_LINUX)
 
 #include "bin/thread.h"
+#include "bin/thread_linux.h"
 
 #include <errno.h>  // NOLINT
 #include <sys/resource.h>  // NOLINT
 #include <sys/time.h>  // NOLINT
 
 #include "platform/assert.h"
+#include "platform/utils.h"
 
 namespace dart {
 namespace bin {
@@ -21,7 +23,7 @@ namespace bin {
     const int kBufferSize = 1024; \
     char error_buf[kBufferSize]; \
     FATAL2("pthread error: %d (%s)", result, \
-           strerror_r(result, error_buf, kBufferSize)); \
+           Utils::StrError(result, error_buf, kBufferSize)); \
   }
 
 
@@ -32,12 +34,14 @@ namespace bin {
     char error_buf[kBufferSize]; \
     fprintf(stderr, "%s:%d: pthread error: %d (%s)\n", \
             __FILE__, __LINE__, result, \
-            strerror_r(result, error_buf, kBufferSize)); \
+            Utils::StrError(result, error_buf, kBufferSize)); \
     return result; \
   }
 #else
 #define RETURN_ON_PTHREAD_FAILURE(result) \
-  if (result != 0) return result;
+  if (result != 0) { \
+    return result; \
+  }
 #endif
 
 
@@ -114,8 +118,9 @@ int Thread::Start(ThreadStartFunction function, uword parameter) {
 }
 
 
-ThreadLocalKey Thread::kUnsetThreadLocalKey = static_cast<pthread_key_t>(-1);
-ThreadId Thread::kInvalidThreadId = static_cast<ThreadId>(0);
+const ThreadLocalKey Thread::kUnsetThreadLocalKey =
+    static_cast<pthread_key_t>(-1);
+const ThreadId Thread::kInvalidThreadId = static_cast<ThreadId>(0);
 
 ThreadLocalKey Thread::CreateThreadLocal() {
   pthread_key_t key = kUnsetThreadLocalKey;
@@ -163,7 +168,7 @@ intptr_t Thread::ThreadIdToIntPtr(ThreadId id) {
 
 
 bool Thread::Compare(ThreadId a, ThreadId b) {
-  return pthread_equal(a, b) != 0;
+  return (pthread_equal(a, b) != 0);
 }
 
 

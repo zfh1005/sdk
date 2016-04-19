@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of tree;
+import '../tokens/token.dart' show BeginGroupToken, Token;
+import '../tokens/token_constants.dart' as Tokens show IDENTIFIER_TOKEN, KEYWORD_TOKEN, PLUS_TOKEN;
+import '../util/util.dart';
+import 'nodes.dart';
 
 String unparse(Node node, {minify: true}) {
   Unparser unparser = new Unparser(minify: minify);
@@ -782,9 +785,33 @@ class Unparser extends Indentation implements Visitor {
     newline();
   }
 
+  visitConditionalUri(ConditionalUri node) {
+    write(node.ifToken.value);
+    space();
+    write('(');
+    visit(node.key);
+    if (node.value != null) {
+      space();
+      write("==");
+      space();
+      visit(node.value);
+    }
+    write(")");
+    space();
+    visit(node.uri);
+  }
+
+  visitDottedName(DottedName node) {
+    unparseNodeListOfIdentifiers(node.identifiers);
+  }
+
   visitImport(Import node) {
     addToken(node.importKeyword);
     visit(node.uri);
+    if (node.hasConditionalUris) {
+      write(' ');
+      visitNodeList(node.conditionalUris);
+    }
     if (node.isDeferred) {
       write(' deferred');
     }
@@ -803,6 +830,10 @@ class Unparser extends Indentation implements Visitor {
   visitExport(Export node) {
     addToken(node.exportKeyword);
     visit(node.uri);
+    if (node.hasConditionalUris) {
+      write(' ');
+      visitNodeList(node.conditionalUris);
+    }
     if (node.combinators != null) {
       write(' ');
       visit(node.combinators);

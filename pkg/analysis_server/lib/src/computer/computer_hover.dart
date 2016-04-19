@@ -6,52 +6,12 @@ library computer.hover;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart'
     show HoverInformation;
-import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
-
-/**
- * Converts [str] from a Dart Doc string with slashes and stars to a plain text
- * representation of the comment.
- */
-String _removeDartDocDelimiters(String str) {
-  if (str == null) {
-    return null;
-  }
-  // remove /** */
-  if (str.startsWith('/**')) {
-    str = str.substring(3);
-  }
-  if (str.endsWith("*/")) {
-    str = str.substring(0, str.length - 2);
-  }
-  str = str.trim();
-  // remove leading '* '
-  List<String> lines = str.split('\n');
-  StringBuffer sb = new StringBuffer();
-  bool firstLine = true;
-  for (String line in lines) {
-    line = line.trim();
-    if (line.startsWith("*")) {
-      line = line.substring(1);
-      if (line.startsWith(" ")) {
-        line = line.substring(1);
-      }
-    } else if (line.startsWith("///")) {
-      line = line.substring(3);
-      if (line.startsWith(" ")) {
-        line = line.substring(1);
-      }
-    }
-    if (!firstLine) {
-      sb.write('\n');
-    }
-    firstLine = false;
-    sb.write(line);
-  }
-  str = sb.toString();
-  // done
-  return str;
-}
+import 'package:analysis_server/src/computer/computer_overrides.dart';
+import 'package:analysis_server/src/utilities/documentation.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 
 /**
  * A computer for the hover at the specified offset of a Dart [CompilationUnit].
@@ -102,7 +62,7 @@ class DartUnitHoverComputer {
           ClassElement containingClass =
               element.getAncestor((e) => e is ClassElement);
           if (containingClass != null) {
-            hover.containingClassDescription = containingClass.toString();
+            hover.containingClassDescription = containingClass.displayName;
           }
           // containing library
           LibraryElement library = element.library;
@@ -117,8 +77,26 @@ class DartUnitHoverComputer {
       // parameter
       hover.parameter = _safeToString(expression.bestParameterElement);
       // types
-      hover.staticType = _safeToString(expression.staticType);
-      hover.propagatedType = _safeToString(expression.propagatedType);
+      {
+        AstNode parent = expression.parent;
+        DartType staticType = null;
+        DartType propagatedType = expression.propagatedType;
+        if (element == null || element is VariableElement) {
+          staticType = expression.staticType;
+        }
+        if (parent is MethodInvocation && parent.methodName == expression) {
+          staticType = parent.staticInvokeType;
+          propagatedType = parent.propagatedInvokeType;
+          if (staticType != null && staticType.isDynamic) {
+            staticType = null;
+          }
+          if (propagatedType != null && propagatedType.isDynamic) {
+            propagatedType = null;
+          }
+        }
+        hover.staticType = _safeToString(staticType);
+        hover.propagatedType = _safeToString(propagatedType);
+      }
       // done
       return hover;
     }
@@ -130,8 +108,23 @@ class DartUnitHoverComputer {
     if (element is ParameterElement) {
       element = element.enclosingElement;
     }
-    String dartDoc = element.computeDocumentationComment();
-    return _removeDartDocDelimiters(dartDoc);
+    // The documentation of the element itself.
+    if (element.documentationComment != null) {
+      return removeDartDocDelimiters(element.documentationComment);
+    }
+    // Look for documentation comments of overridden members.
+    OverriddenElements overridden = findOverriddenElements(element);
+    for (Element superElement in []
+      ..addAll(overridden.superElements)
+      ..addAll(overridden.interfaceElements)) {
+      String rawDoc = superElement.documentationComment;
+      if (rawDoc != null) {
+        Element interfaceClass = superElement.enclosingElement;
+        return removeDartDocDelimiters(rawDoc) +
+            '\n\nCopied from `${interfaceClass.displayName}`.';
+      }
+    }
+    return null;
   }
 
   static _safeToString(obj) => obj != null ? obj.toString() : null;

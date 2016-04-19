@@ -34,6 +34,7 @@ class ObjectPointerVisitor;
   V(Other, "other")                                                            \
   V(Call, "call")                                                              \
   V(Current, "current")                                                        \
+  V(_current, "_current")                                                      \
   V(MoveNext, "moveNext")                                                      \
   V(IsYieldEach, "isYieldEach")                                                \
   V(Value, "value")                                                            \
@@ -55,9 +56,9 @@ class ObjectPointerVisitor;
   V(_EnumNames, "_enum_names")                                                 \
   V(ExprTemp, ":expr_temp")                                                    \
   V(AnonymousClosure, "<anonymous closure>")                                   \
+  V(AnonymousSignature, "<anonymous signature>")                               \
   V(ImplicitClosure, "<implicit closure>")                                     \
   V(ClosureParameter, ":closure")                                              \
-  V(PhaseParameter, ":phase")                                                  \
   V(TypeArgumentsParameter, ":type_arguments")                                 \
   V(AssertionError, "_AssertionError")                                         \
   V(CastError, "_CastError")                                                   \
@@ -144,7 +145,7 @@ class ObjectPointerVisitor;
   V(Patch, "patch")                                                            \
   V(PatchClass, "PatchClass")                                                  \
   V(Function, "Function")                                                      \
-  V(FunctionImpl, "_FunctionImpl")                                             \
+  V(_Closure, "_Closure")                                                      \
   V(FunctionResult, "function result")                                         \
   V(FactoryResult, "factory result")                                           \
   V(ClosureData, "ClosureData")                                                \
@@ -160,6 +161,7 @@ class ObjectPointerVisitor;
   V(Instructions, "Instructions")                                              \
   V(ObjectPool, "ObjectPool")                                                  \
   V(PcDescriptors, "PcDescriptors")                                            \
+  V(CodeSourceMap, "CodeSourceMap")                                            \
   V(Stackmap, "Stackmap")                                                      \
   V(LocalVarDescriptors, "LocalVarDescriptors")                                \
   V(ExceptionHandlers, "ExceptionHandlers")                                    \
@@ -197,15 +199,12 @@ class ObjectPointerVisitor;
   V(_RawReceivePortImpl, "_RawReceivePortImpl")                                \
   V(_SendPortImpl, "_SendPortImpl")                                            \
   V(_StackTrace, "_StackTrace")                                                \
-  V(JSSyntaxRegExp, "_JSSyntaxRegExp")                                         \
+  V(_RegExp, "_RegExp")                                                        \
   V(RegExp, "RegExp")                                                          \
-  V(Irregexp, ":irregexp")                                                     \
+  V(ColonMatcher, ":matcher")                                                  \
   V(Object, "Object")                                                          \
   V(Int, "int")                                                                \
   V(Double, "double")                                                          \
-  V(_Float32x4, "_Float32x4")                                                  \
-  V(_Float64x2, "_Float64x2")                                                  \
-  V(_Int32x4, "_Int32x4")                                                      \
   V(Float32x4, "Float32x4")                                                    \
   V(Float64x2, "Float64x2")                                                    \
   V(Int32x4, "Int32x4")                                                        \
@@ -223,34 +222,20 @@ class ObjectPointerVisitor;
   V(Float64x2List, "Float64x2List")                                            \
   V(Float32List, "Float32List")                                                \
   V(Float64List, "Float64List")                                                \
-  V(_Int8Array, "_Int8Array")                                                  \
-  V(_Int8ArrayFactory, "_Int8Array.")                                          \
-  V(_Uint8Array, "_Uint8Array")                                                \
-  V(_Uint8ArrayFactory, "_Uint8Array.")                                        \
-  V(_Uint8ClampedArray, "_Uint8ClampedArray")                                  \
-  V(_Uint8ClampedArrayFactory, "_Uint8ClampedArray.")                          \
-  V(_Int16Array, "_Int16Array")                                                \
-  V(_Int16ArrayFactory, "_Int16Array.")                                        \
-  V(_Uint16Array, "_Uint16Array")                                              \
-  V(_Uint16ArrayFactory, "_Uint16Array.")                                      \
-  V(_Int32Array, "_Int32Array")                                                \
-  V(_Int32ArrayFactory, "_Int32Array.")                                        \
-  V(_Uint32Array, "_Uint32Array")                                              \
-  V(_Uint32ArrayFactory, "_Uint32Array.")                                      \
-  V(_Int64Array, "_Int64Array")                                                \
-  V(_Int64ArrayFactory, "_Int64Array.")                                        \
-  V(_Uint64Array, "_Uint64Array")                                              \
-  V(_Uint64ArrayFactory, "_Uint64Array.")                                      \
-  V(_Float32x4Array, "_Float32x4Array")                                        \
-  V(_Float32x4ArrayFactory, "_Float32x4Array.")                                \
-  V(_Int32x4Array, "_Int32x4Array")                                            \
-  V(_Int32x4ArrayFactory, "_Int32x4Array.")                                    \
-  V(_Float64x2Array, "_Float64x2Array")                                        \
-  V(_Float64x2ArrayFactory, "_Float64x2Array.")                                \
-  V(_Float32Array, "_Float32Array")                                            \
-  V(_Float32ArrayFactory, "_Float32Array.")                                    \
-  V(_Float64Array, "_Float64Array")                                            \
-  V(_Float64ArrayFactory, "_Float64Array.")                                    \
+  V(_Int8ArrayFactory, "Int8List.")                                          \
+  V(_Uint8ArrayFactory, "Uint8List.")                                        \
+  V(_Uint8ClampedArrayFactory, "Uint8ClampedList.")                          \
+  V(_Int16ArrayFactory, "Int16List.")                                        \
+  V(_Uint16ArrayFactory, "Uint16List.")                                      \
+  V(_Int32ArrayFactory, "Int32List.")                                        \
+  V(_Uint32ArrayFactory, "Uint32List.")                                      \
+  V(_Int64ArrayFactory, "Int64List.")                                        \
+  V(_Uint64ArrayFactory, "Uint64List.")                                      \
+  V(_Float32x4ArrayFactory, "Float32x4List.")                                \
+  V(_Int32x4ArrayFactory, "Int32x4List.")                                    \
+  V(_Float64x2ArrayFactory, "Float64x2List.")                                \
+  V(_Float32ArrayFactory, "Float32List.")                                    \
+  V(_Float64ArrayFactory, "Float64List.")                                    \
   V(_Int8ArrayView, "_Int8ArrayView")                                          \
   V(_Uint8ArrayView, "_Uint8ArrayView")                                        \
   V(_Uint8ClampedArrayView, "_Uint8ClampedArrayView")                          \
@@ -283,8 +268,8 @@ class ObjectPointerVisitor;
   V(ByteDataDot, "ByteData.")                                                  \
   V(ByteDataDot_view, "ByteData._view")                                        \
   V(_ByteDataView, "_ByteDataView")                                            \
-  V(_ByteBuffer, "_ByteBuffer")                                                \
-  V(_ByteBufferDot_New, "_ByteBuffer._New")                                    \
+  V(ByteBuffer, "ByteBuffer")                                                  \
+  V(ByteBufferDot_New, "ByteBuffer._New")                                      \
   V(_WeakProperty, "_WeakProperty")                                            \
   V(_MirrorReference, "_MirrorReference")                                      \
   V(InvocationMirror, "_InvocationMirror")                                     \
@@ -305,17 +290,18 @@ class ObjectPointerVisitor;
   V(OutOfMemoryError, "OutOfMemoryError")                                      \
   V(NullThrownError, "NullThrownError")                                        \
   V(IsolateSpawnException, "IsolateSpawnException")                            \
-  V(IsolateUnhandledException, "_IsolateUnhandledException")                   \
-  V(JavascriptIntegerOverflowError, "_JavascriptIntegerOverflowError")         \
-  V(JavascriptCompatibilityError, "_JavascriptCompatibilityError")             \
   V(BooleanExpression, "boolean expression")                                   \
-  V(Malformed, "malformed")                                                    \
-  V(Malbounded, "malbounded")                                                  \
   V(MegamorphicMiss, "megamorphic_miss")                                       \
   V(CommaSpace, ", ")                                                          \
   V(ColonSpace, ": ")                                                          \
   V(RParenArrow, ") => ")                                                      \
   V(SpaceExtendsSpace, " extends ")                                            \
+  V(SpaceWhereNewLine, " where\n")                                             \
+  V(SpaceIsFromSpace, " is from ")                                             \
+  V(InTypeCast, " in type cast")                                               \
+  V(TypeQuote, "type '")                                                       \
+  V(QuoteIsNotASubtypeOf, "' is not a subtype of ")                            \
+  V(SpaceOfSpace, " of ")                                                      \
   V(SwitchExpr, ":switch_expr")                                                \
   V(TwoNewlines, "\n\n")                                                       \
   V(TwoSpaces, "  ")                                                           \
@@ -330,7 +316,6 @@ class ObjectPointerVisitor;
   V(ClosurizePrefix, "get:#")                                                  \
   V(SetterPrefix, "set:")                                                      \
   V(InitPrefix, "init:")                                                       \
-  V(_New, "_new")                                                              \
   V(Index, "index")                                                            \
   V(DartScheme, "dart:")                                                       \
   V(DartSchemePrivate, "dart:_")                                               \
@@ -401,6 +386,8 @@ class ObjectPointerVisitor;
   V(ConstructorClosurePrefix, "new#")                                          \
   V(_runExtension, "_runExtension")                                            \
   V(_runPendingImmediateCallback, "_runPendingImmediateCallback")              \
+  V(DartLibrary, "dart.library.")                                              \
+  V(DartLibraryMirrors, "dart.library.mirrors")                                \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This
@@ -421,7 +408,7 @@ class Symbols : public AllStatic {
 
     kKwTableStart,  // First keyword at kKwTableStart + 1.
 
-#define DEFINE_KEYWORD_SYMBOL_INDEX(t, s, p, a)                            \
+#define DEFINE_KEYWORD_SYMBOL_INDEX(t, s, p, a)                                \
     t##Id,
     DART_KEYWORD_LIST(DEFINE_KEYWORD_SYMBOL_INDEX)
 #undef DEFINE_KEYWORD_SYMBOL_INDEX
@@ -494,8 +481,11 @@ class Symbols : public AllStatic {
   static const String& NewLine() {
     return *(symbol_handles_[kNullCharId + '\n']);
   }
-  static const String& DoubleQuotes() {
+  static const String& DoubleQuote() {
     return *(symbol_handles_[kNullCharId + '"']);
+  }
+  static const String& SingleQuote() {
+    return *(symbol_handles_[kNullCharId + '\'']);
   }
   static const String& LowercaseR() {
     return *(symbol_handles_[kNullCharId + 'r']);
@@ -570,6 +560,11 @@ class Symbols : public AllStatic {
 
   // Initialize and setup a symbol table for the isolate.
   static void SetupSymbolTable(Isolate* isolate);
+
+  // Treat the symbol table as weak and collect garbage. Answer the number of
+  // symbols deleted from the symbol table because they where not referenced
+  // from anywhere else.
+  static intptr_t Compact(Isolate* isolate);
 
   // Creates a Symbol given a C string that is assumed to contain
   // UTF-8 encoded characters and '\0' is considered a termination character.

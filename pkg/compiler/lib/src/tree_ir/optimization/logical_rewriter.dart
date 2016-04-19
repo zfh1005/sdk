@@ -63,11 +63,6 @@ class LogicalRewriter extends RecursiveTransformer
 
   final FallthroughStack fallthrough = new FallthroughStack();
 
-  @override
-  void visitInnerFunction(FunctionDefinition node) {
-    new LogicalRewriter().rewrite(node);
-  }
-
   /// True if the given statement is equivalent to its fallthrough semantics.
   ///
   /// This means it will ultimately translate to an empty statement.
@@ -358,7 +353,8 @@ class LogicalRewriter extends RecursiveTransformer
       case BuiltinOperator.IsNumber:
       case BuiltinOperator.IsNotNumber:
       case BuiltinOperator.IsFloor:
-      case BuiltinOperator.IsNumberAndFloor:
+      case BuiltinOperator.IsInteger:
+      case BuiltinOperator.IsNotInteger:
       case BuiltinOperator.Identical:
         return true;
       default:
@@ -378,6 +374,12 @@ class LogicalRewriter extends RecursiveTransformer
       case BuiltinOperator.LooseNeq: return BuiltinOperator.LooseEq;
       case BuiltinOperator.IsNumber: return BuiltinOperator.IsNotNumber;
       case BuiltinOperator.IsNotNumber: return BuiltinOperator.IsNumber;
+      case BuiltinOperator.IsInteger: return BuiltinOperator.IsNotInteger;
+      case BuiltinOperator.IsNotInteger: return BuiltinOperator.IsInteger;
+      case BuiltinOperator.IsUnsigned32BitInteger:
+        return BuiltinOperator.IsNotUnsigned32BitInteger;
+      case BuiltinOperator.IsNotUnsigned32BitInteger:
+        return BuiltinOperator.IsUnsigned32BitInteger;
 
       // Because of NaN, these do not have a negated form.
       case BuiltinOperator.NumLt:
@@ -543,9 +545,9 @@ class LogicalRewriter extends RecursiveTransformer
     }
   }
 
-  /// True if [e2] is known to return the same value as [e1] 
+  /// True if [e2] is known to return the same value as [e1]
   /// (with no additional side effects) if evaluated immediately after [e1].
-  /// 
+  ///
   /// Concretely, this is true if [e1] and [e2] are uses of the same variable,
   /// or if [e2] is a use of a variable assigned by [e1].
   bool isSameVariable(Expression e1, Expression e2) {

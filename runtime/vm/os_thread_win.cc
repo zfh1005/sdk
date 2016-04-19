@@ -6,6 +6,7 @@
 #if defined(TARGET_OS_WINDOWS)
 
 #include "vm/growable_array.h"
+#include "vm/lockers.h"
 #include "vm/os_thread.h"
 
 #include <process.h>  // NOLINT
@@ -20,13 +21,17 @@ bool private_flag_windows_run_tls_destructors = true;
 
 class ThreadStartData {
  public:
-  ThreadStartData(OSThread::ThreadStartFunction function, uword parameter)
-      : function_(function), parameter_(parameter) {}
+  ThreadStartData(const char* name,
+                  OSThread::ThreadStartFunction function,
+                  uword parameter)
+      : name_(name), function_(function), parameter_(parameter) {}
 
+  const char* name() const { return name_; }
   OSThread::ThreadStartFunction function() const { return function_; }
   uword parameter() const { return parameter_; }
 
  private:
+  const char* name_;
   OSThread::ThreadStartFunction function_;
   uword parameter_;
 
@@ -40,14 +45,22 @@ class ThreadStartData {
 static unsigned int __stdcall ThreadEntry(void* data_ptr) {
   ThreadStartData* data = reinterpret_cast<ThreadStartData*>(data_ptr);
 
+  const char* name = data->name();
   OSThread::ThreadStartFunction function = data->function();
   uword parameter = data->parameter();
   delete data;
 
   MonitorData::GetMonitorWaitDataForThread();
 
-  // Call the supplied thread start function handing it its parameters.
-  function(parameter);
+  // Create new OSThread object and set as TLS for new thread.
+  OSThread* thread = OSThread::CreateOSThread();
+  if (thread != NULL) {
+    OSThread::SetCurrent(thread);
+    thread->set_name(name);
+
+    // Call the supplied thread start function handing it its parameters.
+    function(parameter);
+  }
 
   // Clean up the monitor wait data for this thread.
   MonitorWaitData::ThreadExit();
@@ -56,8 +69,10 @@ static unsigned int __stdcall ThreadEntry(void* data_ptr) {
 }
 
 
-int OSThread::Start(ThreadStartFunction function, uword parameter) {
-  ThreadStartData* start_data = new ThreadStartData(function, parameter);
+int OSThread::Start(const char* name,
+                    ThreadStartFunction function,
+                    uword parameter) {
+  ThreadStartData* start_data = new ThreadStartData(name, function, parameter);
   uint32_t tid;
   uintptr_t thread = _beginthreadex(NULL, OSThread::GetMaxStackSize(),
                                     ThreadEntry, start_data, 0, &tid);
@@ -74,9 +89,10 @@ int OSThread::Start(ThreadStartFunction function, uword parameter) {
   return 0;
 }
 
-ThreadLocalKey OSThread::kUnsetThreadLocalKey = TLS_OUT_OF_INDEXES;
-ThreadId OSThread::kInvalidThreadId = 0;
-ThreadJoinId OSThread::kInvalidThreadJoinId = 0;
+
+const ThreadId OSThread::kInvalidThreadId = 0;
+const ThreadJoinId OSThread::kInvalidThreadJoinId = 0;
+
 
 ThreadLocalKey OSThread::CreateThreadLocal(ThreadDestructor destructor) {
   ThreadLocalKey key = TlsAlloc();
@@ -115,6 +131,8 @@ ThreadId OSThread::GetCurrentThreadTraceId() {
 
 
 ThreadJoinId OSThread::GetCurrentThreadJoinId() {
+  // TODO(zra): Use the thread handle as the join id in order to have a more
+  // reliable join on windows.
   return ::GetCurrentThreadId();
 }
 
@@ -261,8 +279,7 @@ void Mutex::Unlock() {
 }
 
 
-ThreadLocalKey MonitorWaitData::monitor_wait_data_key_ =
-    OSThread::kUnsetThreadLocalKey;
+ThreadLocalKey MonitorWaitData::monitor_wait_data_key_ = kUnsetThreadLocalKey;
 
 
 Monitor::Monitor() {
@@ -289,6 +306,21 @@ Monitor::~Monitor() {
 }
 
 
+bool Monitor::TryEnter() {
+  // Attempt to pass the semaphore but return immediately.
+  BOOL result = TryEnterCriticalSection(&data_.cs_);
+  if (!result) {
+    return false;
+  }
+#if defined(DEBUG)
+  // When running with assertions enabled we do track the owner.
+  ASSERT(owner_ == OSThread::kInvalidThreadId);
+  owner_ = OSThread::GetCurrentThreadId();
+#endif  // defined(DEBUG)
+  return true;
+}
+
+
 void Monitor::Enter() {
   EnterCriticalSection(&data_.cs_);
 
@@ -312,8 +344,7 @@ void Monitor::Exit() {
 
 
 void MonitorWaitData::ThreadExit() {
-  if (MonitorWaitData::monitor_wait_data_key_ !=
-      OSThread::kUnsetThreadLocalKey) {
+  if (MonitorWaitData::monitor_wait_data_key_ != kUnsetThreadLocalKey) {
     uword raw_wait_data =
       OSThread::GetThreadLocal(MonitorWaitData::monitor_wait_data_key_);
     // Clear in case this is called a second time.
@@ -421,8 +452,7 @@ void MonitorData::SignalAndRemoveAllWaiters() {
 MonitorWaitData* MonitorData::GetMonitorWaitDataForThread() {
   // Ensure that the thread local key for monitor wait data objects is
   // initialized.
-  ASSERT(MonitorWaitData::monitor_wait_data_key_ !=
-         OSThread::kUnsetThreadLocalKey);
+  ASSERT(MonitorWaitData::monitor_wait_data_key_ != kUnsetThreadLocalKey);
 
   // Get the MonitorWaitData object containing the event for this
   // thread from thread local storage. Create it if it does not exist.
@@ -536,7 +566,7 @@ void ThreadLocalData::AddThreadLocal(ThreadLocalKey key,
     // We only care about thread locals with destructors.
     return;
   }
-  mutex_->Lock();
+  MutexLocker ml(mutex_, false);
 #if defined(DEBUG)
   // Verify that we aren't added twice.
   for (intptr_t i = 0; i < thread_locals_->length(); i++) {
@@ -546,12 +576,12 @@ void ThreadLocalData::AddThreadLocal(ThreadLocalKey key,
 #endif
   // Add to list.
   thread_locals_->Add(ThreadLocalEntry(key, destructor));
-  mutex_->Unlock();
 }
 
 
 void ThreadLocalData::RemoveThreadLocal(ThreadLocalKey key) {
-  ASSERT(thread_locals_ != NULL);  mutex_->Lock();
+  ASSERT(thread_locals_ != NULL);
+  MutexLocker ml(mutex_, false);
   intptr_t i = 0;
   for (; i < thread_locals_->length(); i++) {
     const ThreadLocalEntry& entry = thread_locals_->At(i);
@@ -561,11 +591,9 @@ void ThreadLocalData::RemoveThreadLocal(ThreadLocalKey key) {
   }
   if (i == thread_locals_->length()) {
     // Not found.
-    mutex_->Unlock();
     return;
   }
   thread_locals_->RemoveAt(i);
-  mutex_->Unlock();
 }
 
 
@@ -574,7 +602,7 @@ void ThreadLocalData::RemoveThreadLocal(ThreadLocalKey key) {
 void ThreadLocalData::RunDestructors() {
   ASSERT(thread_locals_ != NULL);
   ASSERT(mutex_ != NULL);
-  mutex_->Lock();
+  MutexLocker ml(mutex_, false);
   for (intptr_t i = 0; i < thread_locals_->length(); i++) {
     const ThreadLocalEntry& entry = thread_locals_->At(i);
     // We access the exiting thread's TLS variable here.
@@ -582,7 +610,6 @@ void ThreadLocalData::RunDestructors() {
     // We invoke the constructor here.
     entry.destructor()(p);
   }
-  mutex_->Unlock();
 }
 
 

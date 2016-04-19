@@ -18,6 +18,7 @@ namespace dart {
 // Facilitate quick access to the current zone once we have the curren thread.
 #define Z (T->zone())
 
+#ifndef PRODUCT
 
 #define UNWRAP_AND_CHECK_PARAM(type, var, param)                               \
   type& var = type::Handle();                                                  \
@@ -56,6 +57,7 @@ namespace dart {
 
 DART_EXPORT intptr_t Dart_CacheObject(Dart_Handle object_in) {
   DARTSCOPE(Thread::Current());
+  Isolate* I = T->isolate();
   const Object& obj = Object::Handle(Z, Api::UnwrapHandle(object_in));
   if (obj.IsApiError()) {
     return -1;
@@ -66,11 +68,12 @@ DART_EXPORT intptr_t Dart_CacheObject(Dart_Handle object_in) {
 
 DART_EXPORT Dart_Handle Dart_GetCachedObject(intptr_t obj_id) {
   DARTSCOPE(Thread::Current());
+  Isolate* I = T->isolate();
   if (!I->debugger()->IsValidObjectId(obj_id)) {
     return Api::NewError("%s: object id %" Pd " is invalid",
                          CURRENT_FUNC, obj_id);
   }
-  return Api::NewHandle(I, I->debugger()->GetCachedObject(obj_id));
+  return Api::NewHandle(T, I->debugger()->GetCachedObject(obj_id));
 }
 
 
@@ -117,10 +120,10 @@ static void DebuggerEventHandler(DebuggerEvent* event) {
     if (paused_event_handler != NULL) {
       Dart_CodeLocation location;
       ActivationFrame* top_frame = event->top_frame();
-      location.script_url = Api::NewHandle(isolate, top_frame->SourceUrl());
+      location.script_url = Api::NewHandle(thread, top_frame->SourceUrl());
       const Library& lib = Library::Handle(top_frame->Library());
       location.library_id = lib.index();
-      location.token_pos = top_frame->TokenPos();
+      location.token_pos = top_frame->TokenPos().Pos();
       intptr_t bp_id = 0;
       if (event->breakpoint() != NULL) {
         ASSERT(event->breakpoint()->id() != ILLEGAL_BREAKPOINT_ID);
@@ -136,17 +139,17 @@ static void DebuggerEventHandler(DebuggerEvent* event) {
       Zone* zone = thread->zone();
       Library& library = Library::Handle(zone);
       Script& script = Script::Handle(zone);
-      intptr_t token_pos;
+      TokenPosition token_pos;
       bpt->bpt_location()->GetCodeLocation(&library, &script, &token_pos);
-      location.script_url = Api::NewHandle(isolate, script.url());
+      location.script_url = Api::NewHandle(thread, script.url());
       location.library_id = library.index();
-      location.token_pos = token_pos;
+      location.token_pos = token_pos.Pos();
       (*bp_resolved_handler)(isolate_id, bpt->id(), location);
     }
   } else if (event->type() == DebuggerEvent::kExceptionThrown) {
     if (exc_thrown_handler != NULL) {
       Dart_Handle exception =
-          Api::NewHandle(isolate, event->exception()->raw());
+          Api::NewHandle(thread, event->exception()->raw());
       Dart_StackTrace trace =
       reinterpret_cast<Dart_StackTrace>(isolate->debugger()->StackTrace());
       (*exc_thrown_handler)(isolate_id, exception, trace);
@@ -199,6 +202,7 @@ DART_EXPORT void Dart_SetIsolateEventHandler(Dart_IsolateEventHandler handler) {
 DART_EXPORT Dart_Handle Dart_SetExceptionPauseInfo(
                             Dart_ExceptionPauseInfo pause_info) {
   DARTSCOPE(Thread::Current());
+  Isolate* I = T->isolate();
   I->debugger()->SetExceptionPauseInfo(pause_info);
   return Api::Success();
 }
@@ -206,12 +210,14 @@ DART_EXPORT Dart_Handle Dart_SetExceptionPauseInfo(
 
 DART_EXPORT Dart_ExceptionPauseInfo Dart_GetExceptionPauseInfo() {
   DARTSCOPE(Thread::Current());
+  Isolate* I = T->isolate();
   return I->debugger()->GetExceptionPauseInfo();
 }
 
 
 DART_EXPORT Dart_Handle Dart_GetStackTrace(Dart_StackTrace* trace) {
   DARTSCOPE(Thread::Current());
+  Isolate* I = T->isolate();
   CHECK_NOT_NULL(trace);
   *trace = reinterpret_cast<Dart_StackTrace>(
       I->debugger()->CurrentStackTrace());
@@ -231,6 +237,7 @@ DART_EXPORT Dart_Handle Dart_GetStackTraceFromError(Dart_Handle handle,
     if (dart_stacktrace.IsNull()) {
       *trace = NULL;
     } else {
+      Isolate* I = T->isolate();
       *trace = reinterpret_cast<Dart_StackTrace>(
         I->debugger()->StackTraceFrom(dart_stacktrace));
     }
@@ -251,10 +258,10 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameInfo(
   DARTSCOPE(Thread::Current());
   CHECK_AND_CAST(ActivationFrame, frame, activation_frame);
   if (function_name != NULL) {
-    *function_name = Api::NewHandle(I, frame->QualifiedFunctionName());
+    *function_name = Api::NewHandle(T, frame->QualifiedFunctionName());
   }
   if (script_url != NULL) {
-    *script_url = Api::NewHandle(I, frame->SourceUrl());
+    *script_url = Api::NewHandle(T, frame->SourceUrl());
   }
   if (line_number != NULL) {
     *line_number = frame->LineNumber();
@@ -276,17 +283,17 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameGetLocation(
   DARTSCOPE(Thread::Current());
   CHECK_AND_CAST(ActivationFrame, frame, activation_frame);
   if (function_name != NULL) {
-    *function_name = Api::NewHandle(I, frame->QualifiedFunctionName());
+    *function_name = Api::NewHandle(T, frame->QualifiedFunctionName());
   }
   if (function != NULL) {
-    *function = Api::NewHandle(I, frame->function().raw());
+    *function = Api::NewHandle(T, frame->function().raw());
   }
 
   if (location != NULL) {
-    location->script_url = Api::NewHandle(I, frame->SourceUrl());
+    location->script_url = Api::NewHandle(T, frame->SourceUrl());
     const Library& lib = Library::Handle(Z, frame->Library());
     location->library_id = lib.index();
-    location->token_pos = frame->TokenPos();
+    location->token_pos = frame->TokenPos().Pos();
   }
   return Api::Success();
 }
@@ -320,7 +327,7 @@ DART_EXPORT Dart_Handle Dart_GetLocalVariables(
                             Dart_ActivationFrame activation_frame) {
   DARTSCOPE(Thread::Current());
   CHECK_AND_CAST(ActivationFrame, frame, activation_frame);
-  return Api::NewHandle(I, frame->GetLocalVariables());
+  return Api::NewHandle(T, frame->GetLocalVariables());
 }
 
 
@@ -328,6 +335,7 @@ DART_EXPORT Dart_Handle Dart_SetBreakpoint(
                             Dart_Handle script_url_in,
                             intptr_t line_number) {
   DARTSCOPE(Thread::Current());
+  Isolate* I = T->isolate();
   UNWRAP_AND_CHECK_PARAM(String, script_url, script_url_in);
 
   Debugger* debugger = I->debugger();
@@ -343,6 +351,7 @@ DART_EXPORT Dart_Handle Dart_SetBreakpoint(
 
 DART_EXPORT Dart_Handle Dart_GetBreakpointURL(intptr_t bp_id) {
   DARTSCOPE(Thread::Current());
+  Isolate* I = T->isolate();
   Debugger* debugger = I->debugger();
 
   Breakpoint* bpt = debugger->GetBreakpointById(bp_id);
@@ -350,12 +359,13 @@ DART_EXPORT Dart_Handle Dart_GetBreakpointURL(intptr_t bp_id) {
     return Api::NewError("%s: breakpoint with id %" Pd " does not exist",
                            CURRENT_FUNC, bp_id);
   }
-  return Api::NewHandle(I, bpt->bpt_location()->url());
+  return Api::NewHandle(T, bpt->bpt_location()->url());
 }
 
 
 DART_EXPORT Dart_Handle Dart_GetBreakpointLine(intptr_t bp_id) {
   DARTSCOPE(Thread::Current());
+  Isolate* I = T->isolate();
   Debugger* debugger = I->debugger();
 
   Breakpoint* bpt = debugger->GetBreakpointById(bp_id);
@@ -376,6 +386,7 @@ DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(
                             Dart_Handle class_name_in,
                             Dart_Handle function_name_in) {
   DARTSCOPE(Thread::Current());
+  Isolate* I = T->isolate();
   UNWRAP_AND_CHECK_PARAM(Library, library, library_in);
   UNWRAP_AND_CHECK_PARAM(String, class_name, class_name_in);
   UNWRAP_AND_CHECK_PARAM(String, function_name, function_name_in);
@@ -415,6 +426,7 @@ DART_EXPORT Dart_Handle Dart_OneTimeBreakAtEntry(
                             Dart_Handle class_name_in,
                             Dart_Handle function_name_in) {
   DARTSCOPE(Thread::Current());
+  Isolate* I = T->isolate();
   UNWRAP_AND_CHECK_PARAM(Library, library, library_in);
   UNWRAP_AND_CHECK_PARAM(String, class_name, class_name_in);
   UNWRAP_AND_CHECK_PARAM(String, function_name, function_name_in);
@@ -442,7 +454,7 @@ DART_EXPORT Dart_Handle Dart_OneTimeBreakAtEntry(
   const Error& error = Error::Handle(Z,
       debugger->OneTimeBreakAtEntry(bp_target));
   if (!error.IsNull()) {
-    return Api::NewHandle(I, error.raw());
+    return Api::NewHandle(T, error.raw());
   }
   return Api::Success();
 }
@@ -450,6 +462,7 @@ DART_EXPORT Dart_Handle Dart_OneTimeBreakAtEntry(
 
 DART_EXPORT Dart_Handle Dart_RemoveBreakpoint(intptr_t bp_id) {
   DARTSCOPE(Thread::Current());
+  Isolate* I = T->isolate();
   I->debugger()->RemoveBreakpoint(bp_id);
   return Api::Success();
 }
@@ -457,6 +470,7 @@ DART_EXPORT Dart_Handle Dart_RemoveBreakpoint(intptr_t bp_id) {
 
 DART_EXPORT Dart_Handle Dart_SetStepOver() {
   DARTSCOPE(Thread::Current());
+  Isolate* I = T->isolate();
   I->debugger()->SetStepOver();
   return Api::Success();
 }
@@ -464,6 +478,7 @@ DART_EXPORT Dart_Handle Dart_SetStepOver() {
 
 DART_EXPORT Dart_Handle Dart_SetStepInto() {
   DARTSCOPE(Thread::Current());
+  Isolate* I = T->isolate();
   I->debugger()->SetSingleStep();
   return Api::Success();
 }
@@ -471,6 +486,7 @@ DART_EXPORT Dart_Handle Dart_SetStepInto() {
 
 DART_EXPORT Dart_Handle Dart_SetStepOut() {
   DARTSCOPE(Thread::Current());
+  Isolate* I = T->isolate();
   I->debugger()->SetStepOut();
   return Api::Success();
 }
@@ -478,44 +494,48 @@ DART_EXPORT Dart_Handle Dart_SetStepOut() {
 
 DART_EXPORT Dart_Handle Dart_GetInstanceFields(Dart_Handle object_in) {
   DARTSCOPE(Thread::Current());
+  Isolate* I = T->isolate();
   UNWRAP_AND_CHECK_PARAM(Instance, obj, object_in);
-  return Api::NewHandle(I, I->debugger()->GetInstanceFields(obj));
+  return Api::NewHandle(T, I->debugger()->GetInstanceFields(obj));
 }
 
 
 DART_EXPORT Dart_Handle Dart_GetStaticFields(Dart_Handle target) {
   DARTSCOPE(Thread::Current());
+  Isolate* I = T->isolate();
   const Type& type_obj = Api::UnwrapTypeHandle(Z, target);
   if (type_obj.IsNull()) {
     return Api::NewError("%s expects argument 'target' to be a type",
                          CURRENT_FUNC);
   }
   const Class& cls = Class::Handle(Z, type_obj.type_class());
-  return Api::NewHandle(I, I->debugger()->GetStaticFields(cls));
+  return Api::NewHandle(T, I->debugger()->GetStaticFields(cls));
 }
 
 
 DART_EXPORT Dart_Handle Dart_GetLibraryFields(intptr_t library_id) {
   DARTSCOPE(Thread::Current());
+  Isolate* I = T->isolate();
   const Library& lib =
       Library::Handle(Z, Library::GetLibrary(library_id));
   if (lib.IsNull()) {
     return Api::NewError("%s: %" Pd " is not a valid library id",
                          CURRENT_FUNC, library_id);
   }
-  return Api::NewHandle(I, I->debugger()->GetLibraryFields(lib));
+  return Api::NewHandle(T, I->debugger()->GetLibraryFields(lib));
 }
 
 
 DART_EXPORT Dart_Handle Dart_GetGlobalVariables(intptr_t library_id) {
   DARTSCOPE(Thread::Current());
+  Isolate* I = T->isolate();
 
   const Library& lib = Library::Handle(Z, Library::GetLibrary(library_id));
   if (lib.IsNull()) {
     return Api::NewError("%s: %" Pd " is not a valid library id",
                          CURRENT_FUNC, library_id);
   }
-  return Api::NewHandle(I, I->debugger()->GetGlobalFields(lib));
+  return Api::NewHandle(T, I->debugger()->GetGlobalFields(lib));
 }
 
 
@@ -525,7 +545,7 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameEvaluate(
   DARTSCOPE(Thread::Current());
   CHECK_AND_CAST(ActivationFrame, frame, activation_frame);
   UNWRAP_AND_CHECK_PARAM(String, expr, expr_in);
-  return Api::NewHandle(I, frame->Evaluate(expr));
+  return Api::NewHandle(T, frame->Evaluate(expr));
 }
 
 
@@ -543,22 +563,22 @@ DART_EXPORT Dart_Handle Dart_EvaluateExpr(Dart_Handle target_in,
   // Type extends Instance, must check first.
   if (target.IsType()) {
     const Class& cls = Class::Handle(Z, Type::Cast(target).type_class());
-    return Api::NewHandle(I, cls.Evaluate(expr,
+    return Api::NewHandle(T, cls.Evaluate(expr,
                                           Array::empty_array(),
                                           Array::empty_array()));
   } else if (target.IsInstance()) {
     const Instance& inst = Instance::Cast(target);
-    return Api::NewHandle(I, inst.Evaluate(expr,
+    return Api::NewHandle(T, inst.Evaluate(expr,
                                            Array::empty_array(),
                                            Array::empty_array()));
   } else if (target.IsLibrary()) {
     const Library& lib = Library::Cast(target);
-    return Api::NewHandle(I, lib.Evaluate(expr,
+    return Api::NewHandle(T, lib.Evaluate(expr,
                                           Array::empty_array(),
                                           Array::empty_array()));
   } else if (target.IsClass()) {
     const Class& cls = Class::Cast(target);
-    return Api::NewHandle(I, cls.Evaluate(expr,
+    return Api::NewHandle(T, cls.Evaluate(expr,
                                           Array::empty_array(),
                                           Array::empty_array()));
   }
@@ -569,7 +589,7 @@ DART_EXPORT Dart_Handle Dart_EvaluateExpr(Dart_Handle target_in,
 DART_EXPORT Dart_Handle Dart_GetObjClass(Dart_Handle object_in) {
   DARTSCOPE(Thread::Current());
   UNWRAP_AND_CHECK_PARAM(Instance, obj, object_in);
-  return Api::NewHandle(I, obj.GetType());
+  return Api::NewHandle(T, obj.GetType());
 }
 
 
@@ -585,11 +605,12 @@ DART_EXPORT Dart_Handle Dart_GetObjClassId(Dart_Handle object_in,
 
 DART_EXPORT Dart_Handle Dart_GetClassFromId(intptr_t class_id) {
   DARTSCOPE(Thread::Current());
+  Isolate* I = T->isolate();
   if (!I->class_table()->IsValidIndex(class_id)) {
     return Api::NewError("%s: %" Pd " is not a valid class id",
                          CURRENT_FUNC, class_id);
   }
-  return Api::NewHandle(I, I->class_table()->At(class_id));
+  return Api::NewHandle(T, I->class_table()->At(class_id));
 }
 
 
@@ -613,7 +634,7 @@ DART_EXPORT Dart_Handle Dart_GetSupertype(Dart_Handle type_in) {
     if (type.IsNull()) {
       return Dart_Null();
     }
-    return Api::NewHandle(I, type.Canonicalize());
+    return Api::NewHandle(T, type.Canonicalize());
   }
   // Set up the type arguments array for the super class type.
   const Class& super_cls = Class::Handle(cls.SuperClass());
@@ -632,10 +653,10 @@ DART_EXPORT Dart_Handle Dart_GetSupertype(Dart_Handle type_in) {
 
   // Construct the super type object, canonicalize it and return.
   Type& instantiated_type = Type::Handle(
-      Type::New(super_cls, super_type_args_array, Scanner::kNoSourcePos));
+      Type::New(super_cls, super_type_args_array, TokenPosition::kNoSource));
   ASSERT(!instantiated_type.IsNull());
   instantiated_type.SetIsFinalized();
-  return Api::NewHandle(I, instantiated_type.Canonicalize());
+  return Api::NewHandle(T, instantiated_type.Canonicalize());
 }
 
 
@@ -651,17 +672,17 @@ DART_EXPORT Dart_Handle Dart_GetClosureInfo(
   if (!instance.IsClosure()) {
     return Api::NewError("%s: parameter 0 is not a closure", CURRENT_FUNC);
   }
-  const Function& func = Function::Handle(Closure::function(instance));
+  const Function& func = Function::Handle(Closure::Cast(instance).function());
   ASSERT(!func.IsNull());
   if (name != NULL) {
-    *name = Api::NewHandle(I, func.QualifiedUserVisibleName());
+    *name = Api::NewHandle(T, func.QualifiedUserVisibleName());
   }
   if (signature != NULL) {
-    *signature = Api::NewHandle(I, func.UserVisibleSignature());
+    *signature = Api::NewHandle(T, func.UserVisibleSignature());
   }
 
   if (location != NULL) {
-    if (func.token_pos() >= 0) {
+    if (func.token_pos().IsReal()) {
       const Class& cls = Class::Handle(Z, func.origin());
       ASSERT(!cls.IsNull());
       const Library& lib = Library::Handle(Z, cls.library());
@@ -669,11 +690,11 @@ DART_EXPORT Dart_Handle Dart_GetClosureInfo(
       // Note func.script() is not the same as cls.script() for eval functions.
       const Script& script = Script::Handle(Z, func.script());
       ASSERT(!script.IsNull());
-      location->script_url = Api::NewHandle(I, script.url());
+      location->script_url = Api::NewHandle(T, script.url());
       location->library_id = lib.index();
-      location->token_pos = func.token_pos();
+      location->token_pos = func.token_pos().Pos();
     } else {
-      location->script_url = Api::NewHandle(I, String::null());
+      location->script_url = Api::NewHandle(T, String::null());
       location->library_id = -1;
       location->token_pos = -1;
     }
@@ -689,13 +710,14 @@ DART_EXPORT Dart_Handle Dart_GetClassInfo(
                             intptr_t* super_class_id,
                             Dart_Handle* static_fields) {
   DARTSCOPE(Thread::Current());
+  Isolate* I = T->isolate();
   if (!I->class_table()->IsValidIndex(cls_id)) {
     return Api::NewError("%s: %" Pd " is not a valid class id",
                          CURRENT_FUNC, cls_id);
   }
   Class& cls = Class::Handle(Z, I->class_table()->At(cls_id));
   if (class_name != NULL) {
-    *class_name = Api::NewHandle(I, cls.Name());
+    *class_name = Api::NewHandle(T, cls.Name());
   }
   if (library_id != NULL) {
     const Library& lib = Library::Handle(Z, cls.library());
@@ -710,7 +732,7 @@ DART_EXPORT Dart_Handle Dart_GetClassInfo(
   }
   if (static_fields != NULL) {
     *static_fields =
-        Api::NewHandle(I, I->debugger()->GetStaticFields(cls));
+        Api::NewHandle(T, I->debugger()->GetStaticFields(cls));
   }
   return Api::Success();
 }
@@ -732,7 +754,7 @@ DART_EXPORT Dart_Handle Dart_ScriptGetSource(
                          CURRENT_FUNC, script_url.ToCString(),
                          String::Handle(lib.url()).ToCString());
   }
-  return Api::NewHandle(I, script.Source());
+  return Api::NewHandle(T, script.Source());
 }
 
 
@@ -755,7 +777,7 @@ DART_EXPORT Dart_Handle Dart_ScriptGetTokenInfo(
 
   const GrowableObjectArray& info =
       GrowableObjectArray::Handle(script.GenerateLineNumberArray());
-  return Api::NewHandle(I, Array::MakeArray(info));
+  return Api::NewHandle(T, Array::MakeArray(info));
 }
 
 
@@ -778,7 +800,7 @@ DART_EXPORT Dart_Handle Dart_GenerateScriptSource(Dart_Handle library_url_in,
                          library_url.ToCString());
   }
 
-  return Api::NewHandle(I, script.GenerateSource());
+  return Api::NewHandle(T, script.GenerateSource());
 }
 
 
@@ -802,12 +824,13 @@ DART_EXPORT Dart_Handle Dart_GetScriptURLs(Dart_Handle library_url_in) {
     url = script.url();
     script_list.SetAt(i, url);
   }
-  return Api::NewHandle(I, script_list.raw());
+  return Api::NewHandle(T, script_list.raw());
 }
 
 
 DART_EXPORT Dart_Handle Dart_GetLibraryIds() {
   DARTSCOPE(Thread::Current());
+  Isolate* I = T->isolate();
 
   const GrowableObjectArray& libs =
       GrowableObjectArray::Handle(Z, I->object_store()->libraries());
@@ -822,7 +845,7 @@ DART_EXPORT Dart_Handle Dart_GetLibraryIds() {
     ASSERT(Smi::IsValid(lib.index()));
     library_id_list.SetAt(i, Smi::Handle(Smi::New(lib.index())));
   }
-  return Api::NewHandle(I, library_id_list.raw());
+  return Api::NewHandle(T, library_id_list.raw());
 }
 
 
@@ -833,7 +856,7 @@ DART_EXPORT Dart_Handle Dart_GetLibraryFromId(intptr_t library_id) {
     return Api::NewError("%s: %" Pd " is not a valid library id",
                          CURRENT_FUNC, library_id);
   }
-  return Api::NewHandle(I, lib.raw());
+  return Api::NewHandle(T, lib.raw());
 }
 
 
@@ -885,7 +908,7 @@ DART_EXPORT Dart_Handle Dart_GetLibraryImports(intptr_t library_id) {
       import_list.Add(Smi::Handle(Smi::New(imported.index())));
     }
   }
-  return Api::NewHandle(I, Array::MakeArray(import_list));
+  return Api::NewHandle(T, Array::MakeArray(import_list));
 }
 
 
@@ -896,7 +919,7 @@ DART_EXPORT Dart_Handle Dart_GetLibraryURL(intptr_t library_id) {
     return Api::NewError("%s: %" Pd " is not a valid library id",
                          CURRENT_FUNC, library_id);
   }
-  return Api::NewHandle(I, lib.url());
+  return Api::NewHandle(T, lib.url());
 }
 
 
@@ -937,5 +960,13 @@ DART_EXPORT Dart_IsolateId Dart_GetIsolateId(Dart_Isolate dart_isolate) {
   Isolate* isolate = reinterpret_cast<Isolate*>(dart_isolate);
   return isolate->debugger()->GetIsolateId();
 }
+
+#else
+
+DART_EXPORT void Dart_SetPausedEventHandler(Dart_PausedEventHandler handler) {
+  // NOOP.
+}
+
+#endif  // !PRODUCT
 
 }  // namespace dart

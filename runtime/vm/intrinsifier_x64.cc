@@ -17,8 +17,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, interpret_irregexp);
-
 // When entering intrinsics code:
 // R10: Arguments descriptor
 // TOS: Return address
@@ -34,7 +32,7 @@ intptr_t Intrinsifier::ParameterSlotFromSp() { return 0; }
 
 
 void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
-  if (Isolate::Current()->flags().type_checks()) {
+  if (Isolate::Current()->type_checks()) {
     return;
   }
 
@@ -104,7 +102,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
 // On stack: growable array (+2), value (+1), return-address (+0).
 void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   // In checked mode we need to check the incoming argument.
-  if (Isolate::Current()->flags().type_checks()) return;
+  if (Isolate::Current()->type_checks()) return;
   Label fall_through;
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Array.
   __ movq(RCX, FieldAddress(RAX, GrowableObjectArray::length_offset()));
@@ -240,12 +238,6 @@ static ScaleFactor GetScaleFactor(intptr_t size) {
 
 
 #define TYPED_DATA_ALLOCATOR(clazz)                                            \
-void Intrinsifier::TypedData_##clazz##_new(Assembler* assembler) {             \
-  intptr_t size = TypedData::ElementSizeInBytes(kTypedData##clazz##Cid);       \
-  intptr_t max_len = TypedData::MaxElements(kTypedData##clazz##Cid);           \
-  ScaleFactor scale = GetScaleFactor(size);                                    \
-  TYPED_ARRAY_ALLOCATION(TypedData, kTypedData##clazz##Cid, max_len, scale);   \
-}                                                                              \
 void Intrinsifier::TypedData_##clazz##_factory(Assembler* assembler) {         \
   intptr_t size = TypedData::ElementSizeInBytes(kTypedData##clazz##Cid);       \
   intptr_t max_len = TypedData::MaxElements(kTypedData##clazz##Cid);           \
@@ -1536,11 +1528,11 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   __ LoadClassIdMayBeSmi(RCX, RAX);
 
   // RCX: untagged cid of instance (RAX).
+  __ cmpq(RCX, Immediate(kClosureCid));
+  __ j(EQUAL, &fall_through, Assembler::kNearJump);  // Instance is a closure.
+
   __ LoadClassById(RDI, RCX);
   // RDI: class of instance (RAX).
-  __ movq(RCX, FieldAddress(RDI, Class::signature_function_offset()));
-  __ CompareObject(RCX, Object::null_object());
-  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
 
   __ movzxw(RCX, FieldAddress(RDI, Class::num_type_arguments_offset()));
   __ cmpq(RCX, Immediate(0));
@@ -1589,6 +1581,115 @@ void Intrinsifier::StringBaseCodeUnitAt(Assembler* assembler) {
   ASSERT(kSmiTagShift == 1);
   __ movzxw(RAX, FieldAddress(RAX, RCX, TIMES_1, OneByteString::data_offset()));
   __ SmiTag(RAX);
+  __ ret();
+
+  __ Bind(&fall_through);
+}
+
+
+void GenerateSubstringMatchesSpecialization(Assembler* assembler,
+                                            intptr_t receiver_cid,
+                                            intptr_t other_cid,
+                                            Label* return_true,
+                                            Label* return_false) {
+  __ movq(R8, FieldAddress(RAX, String::length_offset()));
+  __ movq(R9, FieldAddress(RCX, String::length_offset()));
+
+  // if (other.length == 0) return true;
+  __ testq(R9, R9);
+  __ j(ZERO, return_true);
+
+  // if (start < 0) return false;
+  __ testq(RBX, RBX);
+  __ j(SIGN, return_false);
+
+  // if (start + other.length > this.length) return false;
+  __ movq(R11, RBX);
+  __ addq(R11, R9);
+  __ cmpq(R11, R8);
+  __ j(GREATER, return_false);
+
+  __ SmiUntag(RBX);  // start
+  __ SmiUntag(R9);   // other.length
+  __ movq(R11, Immediate(0));  // i = 0
+
+  // do
+  Label loop;
+  __ Bind(&loop);
+
+  // this.codeUnitAt(i + start)
+  // clobbering this.length
+  __ movq(R8, R11);
+  __ addq(R8, RBX);
+  if (receiver_cid == kOneByteStringCid) {
+    __ movzxb(R12,
+              FieldAddress(RAX, R8, TIMES_1, OneByteString::data_offset()));
+  } else {
+    ASSERT(receiver_cid == kTwoByteStringCid);
+    __ movzxw(R12,
+              FieldAddress(RAX, R8, TIMES_2, TwoByteString::data_offset()));
+  }
+  // other.codeUnitAt(i)
+  if (other_cid == kOneByteStringCid) {
+    __ movzxb(R13,
+              FieldAddress(RCX, R11, TIMES_1, OneByteString::data_offset()));
+  } else {
+    ASSERT(other_cid == kTwoByteStringCid);
+    __ movzxw(R13,
+              FieldAddress(RCX, R11, TIMES_2, TwoByteString::data_offset()));
+  }
+  __ cmpq(R12, R13);
+  __ j(NOT_EQUAL, return_false);
+
+  // i++, while (i < len)
+  __ addq(R11, Immediate(1));
+  __ cmpq(R11, R9);
+  __ j(LESS, &loop, Assembler::kNearJump);
+
+  __ jmp(return_true);
+}
+
+
+// bool _substringMatches(int start, String other)
+// This intrinsic handles a OneByteString or TwoByteString receiver with a
+// OneByteString other.
+void Intrinsifier::StringBaseSubstringMatches(Assembler* assembler) {
+  Label fall_through, return_true, return_false, try_two_byte;
+  __ movq(RAX, Address(RSP, + 3 * kWordSize));  // receiver
+  __ movq(RBX, Address(RSP, + 2 * kWordSize));  // start
+  __ movq(RCX, Address(RSP, + 1 * kWordSize));  // other
+
+  __ testq(RBX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through);  // 'start' is not Smi.
+
+  __ CompareClassId(RCX, kOneByteStringCid);
+  __ j(NOT_EQUAL, &fall_through);
+
+  __ CompareClassId(RAX, kOneByteStringCid);
+  __ j(NOT_EQUAL, &try_two_byte);
+
+  GenerateSubstringMatchesSpecialization(assembler,
+                                         kOneByteStringCid,
+                                         kOneByteStringCid,
+                                         &return_true,
+                                         &return_false);
+
+  __ Bind(&try_two_byte);
+  __ CompareClassId(RAX, kTwoByteStringCid);
+  __ j(NOT_EQUAL, &fall_through);
+
+  GenerateSubstringMatchesSpecialization(assembler,
+                                         kTwoByteStringCid,
+                                         kOneByteStringCid,
+                                         &return_true,
+                                         &return_false);
+
+  __ Bind(&return_true);
+  __ LoadObject(RAX, Bool::True());
+  __ ret();
+
+  __ Bind(&return_false);
+  __ LoadObject(RAX, Bool::False());
   __ ret();
 
   __ Bind(&fall_through);
@@ -1938,7 +2039,7 @@ void Intrinsifier::TwoByteString_equality(Assembler* assembler) {
 }
 
 
-void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
+void Intrinsifier::RegExp_ExecuteMatch(Assembler* assembler) {
   if (FLAG_interpret_irregexp) return;
 
   static const intptr_t kRegExpParamOffset = 3 * kWordSize;
@@ -1957,7 +2058,7 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
   __ LoadClassId(RDI, RDI);
   __ SubImmediate(RDI, Immediate(kOneByteStringCid));
   __ movq(RAX, FieldAddress(RBX, RDI, TIMES_8,
-                            JSRegExp::function_offset(kOneByteStringCid)));
+                            RegExp::function_offset(kOneByteStringCid)));
 
   // Registers are now set up for the lazy compile stub. It expects the function
   // in RAX, the argument descriptor in R10, and IC-Data in RCX.

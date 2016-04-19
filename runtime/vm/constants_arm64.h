@@ -25,18 +25,18 @@ enum Register {
   R12 = 12,
   R13 = 13,
   R14 = 14,
-  R15 = 15,
+  R15 = 15,  // SP in Dart code.
   R16 = 16,  // IP0 aka TMP
   R17 = 17,  // IP1 aka TMP2
   R18 = 18,  // "platform register" on iOS.
-  R19 = 19,  // SP in Dart code.
-  R20 = 20,  // THR
+  R19 = 19,
+  R20 = 20,
   R21 = 21,
   R22 = 22,
   R23 = 23,
   R24 = 24,
   R25 = 25,
-  R26 = 26,
+  R26 = 26,  // THR
   R27 = 27,  // PP
   R28 = 28,  // CTX
   R29 = 29,  // FP
@@ -53,7 +53,7 @@ enum Register {
   // Aliases.
   IP0 = R16,
   IP1 = R17,
-  SP = R19,
+  SP = R15,
   FP = R29,
   LR = R30,
 };
@@ -112,11 +112,11 @@ const Register CTX = R28;  // Location of current context at method entry.
 const Register PP = R27;  // Caches object pool pointer in generated code.
 const Register CODE_REG = R24;
 const Register FPREG = FP;  // Frame pointer register.
-const Register SPREG = R19;  // Stack pointer register.
+const Register SPREG = R15;  // Stack pointer register.
 const Register LRREG = LR;  // Link register.
 const Register ICREG = R5;  // IC data register.
 const Register ARGS_DESC_REG = R4;  // Arguments descriptor register.
-const Register THR = R20;  // Caches current thread in generated code.
+const Register THR = R26;  // Caches current thread in generated code.
 
 
 // Exception object is passed in this register to the catch handlers when an
@@ -143,12 +143,12 @@ const RegList kAbiArgumentCpuRegs =
     (1 << R0) | (1 << R1) | (1 << R2) | (1 << R3) |
     (1 << R4) | (1 << R5) | (1 << R6) | (1 << R7);
 const RegList kAbiPreservedCpuRegs =
-    (1 << R20) | (1 << R21) | (1 << R22) | (1 << R23) |
-    (1 << R24) | (1 << R25) | (1 << R26) | (1 << R27) |
-    (1 << R28);
-const Register kAbiFirstPreservedCpuReg = R20;
+    (1 << R19) | (1 << R20) | (1 << R21) | (1 << R22) |
+    (1 << R23) | (1 << R24) | (1 << R25) | (1 << R26) |
+    (1 << R27) | (1 << R28);
+const Register kAbiFirstPreservedCpuReg = R19;
 const Register kAbiLastPreservedCpuReg = R28;
-const int kAbiPreservedCpuRegCount = 9;
+const int kAbiPreservedCpuRegCount = 10;
 const VRegister kAbiFirstPreservedFpuReg = V8;
 const VRegister kAbiLastPreservedFpuReg = V15;
 const int kAbiPreservedFpuRegCount = 8;
@@ -172,8 +172,8 @@ const RegList kDartAvailableCpuRegs =
 const RegList kDartVolatileCpuRegs =
     kDartAvailableCpuRegs & ~kAbiPreservedCpuRegs;
 const Register kDartFirstVolatileCpuReg = R0;
-const Register kDartLastVolatileCpuReg = R15;
-const int kDartVolatileCpuRegCount = 16;
+const Register kDartLastVolatileCpuReg = R14;
+const int kDartVolatileCpuRegCount = 15;
 const int kDartVolatileFpuRegCount = 24;
 
 static inline Register ConcreteRegister(Register r) {
@@ -330,6 +330,8 @@ enum SystemOp {
   SystemMask = 0xffc00000,
   SystemFixed = CompareBranchFixed | B31 | B30 | B24,
   HINT = SystemFixed | B17 | B16 | B13 | B4 | B3 | B2 | B1 | B0,
+  CLREX = SystemFixed | B17 | B16 | B13 | B12 | B11 | B10 | B9 | B8 |
+      B6 | B4 | B3 | B2 | B1 | B0,
 };
 
 // C3.2.5
@@ -362,6 +364,14 @@ enum LoadRegLiteralOp {
   LoadRegLiteralMask = 0x3b000000,
   LoadRegLiteralFixed = LoadStoreFixed | B28,
   LDRpc = LoadRegLiteralFixed,
+};
+
+// C3.3.6
+enum LoadStoreExclusiveOp {
+  LoadStoreExclusiveMask = 0x3f000000,
+  LoadStoreExclusiveFixed = B27,
+  LDXR = LoadStoreExclusiveFixed | B22,
+  STXR = LoadStoreExclusiveFixed,
 };
 
 // C3.3.7-10
@@ -616,6 +626,7 @@ _V(UnconditionalBranchReg)                                                     \
 _V(LoadStoreReg)                                                               \
 _V(LoadStoreRegPair)                                                           \
 _V(LoadRegLiteral)                                                             \
+_V(LoadStoreExclusive)                                                         \
 _V(AddSubImm)                                                                  \
 _V(LogicalImm)                                                                 \
 _V(MoveWide)                                                                   \
@@ -692,6 +703,8 @@ enum InstructionFields {
   kRtBits = 5,
   kRt2Shift = 10,
   kRt2Bits = 5,
+  kRsShift = 16,
+  kRsBits = 5,
 
   // V Registers.
   kVdShift = 0,
@@ -892,6 +905,8 @@ class Instr {
                                         Bits(kRtShift, kRtBits)); }
   inline Register Rt2Field() const { return static_cast<Register>(
                                         Bits(kRt2Shift, kRt2Bits)); }
+  inline Register RsField() const { return static_cast<Register>(
+                                        Bits(kRsShift, kRsBits)); }
 
   inline VRegister VdField() const { return static_cast<VRegister>(
                                         Bits(kVdShift, kVdBits)); }

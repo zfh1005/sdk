@@ -159,8 +159,11 @@ import 'tokens/token.dart' show
 
 class PatchParserTask extends CompilerTask {
   final String name = "Patching Parser";
+  final bool _enableConditionalDirectives;
 
-  PatchParserTask(Compiler compiler): super(compiler);
+  PatchParserTask(Compiler compiler, {bool enableConditionalDirectives})
+      : this._enableConditionalDirectives = enableConditionalDirectives,
+        super(compiler);
 
   /**
    * Scans a library patch file, applies the method patches and
@@ -195,7 +198,9 @@ class PatchParserTask extends CompilerTask {
                                                         compilationUnit,
                                                         idGenerator);
       try {
-        new PartialParser(patchListener).parseUnit(tokens);
+        new PartialParser(patchListener,
+            enableConditionalDirectives: _enableConditionalDirectives)
+            .parseUnit(tokens);
       } on ParserError catch (e) {
         // No need to recover from a parser error in platform libraries, user
         // will never see this if the libraries are tested correctly.
@@ -212,7 +217,8 @@ class PatchParserTask extends CompilerTask {
 
     measure(() => reporter.withCurrentElement(cls, () {
       MemberListener listener = new PatchMemberListener(compiler, cls);
-      Parser parser = new PatchClassElementParser(listener);
+      Parser parser = new PatchClassElementParser(
+          listener, enableConditionalDirectives: _enableConditionalDirectives);
       try {
         Token token = parser.parseTopLevelDeclaration(cls.beginToken);
         assert(identical(token, cls.endToken.next));
@@ -264,7 +270,9 @@ class PatchMemberListener extends MemberListener {
  * declarations.
  */
 class PatchClassElementParser extends PartialParser {
-  PatchClassElementParser(Listener listener) : super(listener);
+  PatchClassElementParser(Listener listener, {bool enableConditionalDirectives})
+      : super(listener,
+          enableConditionalDirectives: enableConditionalDirectives);
 
   Token parseClassBody(Token token) => fullParseClassBody(token);
 }
@@ -455,7 +463,7 @@ class NativeAnnotationHandler implements EagerAnnotationHandler<String> {
       String native = getNativeAnnotation(annotation);
       if (native != null) {
         JavaScriptBackend backend = compiler.backend;
-        backend.setNativeClassTagInfo(element, native);
+        backend.nativeData.setNativeClassTagInfo(element, native);
         return native;
       }
     }
@@ -488,7 +496,7 @@ class JsInteropAnnotationHandler implements EagerAnnotationHandler<bool> {
     bool hasJsInterop = hasJsNameAnnotation(annotation);
     if (hasJsInterop) {
       JavaScriptBackend backend = compiler.backend;
-      backend.markAsJsInterop(element);
+      backend.nativeData.markAsJsInterop(element);
     }
     // Due to semantics of apply in the baseclass we have to return null to
     // indicate that no match was found.
