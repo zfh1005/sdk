@@ -888,7 +888,7 @@ abstract class SummaryTest {
     expect(xInitializerReturnType.reference, yInitializerReturnType.reference);
   }
 
-  test_cascaded_export_hide_hide() {
+  solo_test_cascaded_export_hide_hide() {
     addNamedSource('/lib1.dart', 'export "lib2.dart" hide C hide B, C;');
     addNamedSource('/lib2.dart', 'class A {} class B {} class C {}');
     serializeLibraryText(

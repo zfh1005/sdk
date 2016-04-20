@@ -200,6 +200,7 @@ class SourceFactoryImpl implements SourceFactory {
    */
   @override
   Source resolveUri(Source containingSource, String containedUri) {
+    print('Resolving ${containingSource?.uri} => $containedUri');
     if (containedUri == null || containedUri.isEmpty) {
       return null;
     }

@@ -9,6 +9,7 @@ import 'package:unittest/unittest.dart';
 
 import '../../reflective_tests.dart';
 import 'summarize_ast_test.dart';
+import 'summary_common.dart';
 
 main() {
   groupSep = ' | ';
@@ -466,9 +467,9 @@ class D extends C {
     addNamedSource('/b.dart', '');
     addNamedSource('/c.dart', '');
     createLinker('import "a.dart"; import "c.dart";');
-    LibraryElementForLink libA = getLibrary('file:///a.dart');
-    LibraryElementForLink libB = getLibrary('file:///b.dart');
-    LibraryElementForLink libC = getLibrary('file:///c.dart');
+    LibraryElementForLink libA = getLibrary(absUri('/a.dart'));
+    LibraryElementForLink libB = getLibrary(absUri('/b.dart'));
+    LibraryElementForLink libC = getLibrary(absUri('/c.dart'));
     expect(libA.libraryCycleForLink.node.isEvaluated, isFalse);
     expect(libB.libraryCycleForLink.node.isEvaluated, isFalse);
     expect(libC.libraryCycleForLink.node.isEvaluated, isFalse);
@@ -482,8 +483,8 @@ class D extends C {
     addNamedSource('/a.dart', 'import "b.dart";');
     addNamedSource('/b.dart', 'import "a.dart";');
     createLinker('');
-    LibraryElementForLink libA = getLibrary('file:///a.dart');
-    LibraryElementForLink libB = getLibrary('file:///b.dart');
+    LibraryElementForLink libA = getLibrary(absUri('/a.dart'));
+    LibraryElementForLink libB = getLibrary(absUri('/b.dart'));
     LibraryCycleForLink libraryCycle = libA.libraryCycleForLink;
     expect(libB.libraryCycleForLink, same(libraryCycle));
     expect(libraryCycle.dependencies, isEmpty);
@@ -496,10 +497,10 @@ class D extends C {
     addNamedSource('/c.dart', 'import "a.dart"; import "d.dart";');
     addNamedSource('/d.dart', 'import "b.dart"; import "c.dart";');
     createLinker('');
-    LibraryElementForLink libA = getLibrary('file:///a.dart');
-    LibraryElementForLink libB = getLibrary('file:///b.dart');
-    LibraryElementForLink libC = getLibrary('file:///c.dart');
-    LibraryElementForLink libD = getLibrary('file:///d.dart');
+    LibraryElementForLink libA = getLibrary(absUri('/a.dart'));
+    LibraryElementForLink libB = getLibrary(absUri('/b.dart'));
+    LibraryElementForLink libC = getLibrary(absUri('/c.dart'));
+    LibraryElementForLink libD = getLibrary(absUri('/d.dart'));
     LibraryCycleForLink libraryCycle = libC.libraryCycleForLink;
     expect(libD.libraryCycleForLink, same(libraryCycle));
     expect(libraryCycle.dependencies,
@@ -511,8 +512,8 @@ class D extends C {
     addNamedSource('/a.dart', 'export "b.dart";');
     addNamedSource('/b.dart', 'export "a.dart";');
     createLinker('');
-    LibraryElementForLink libA = getLibrary('file:///a.dart');
-    LibraryElementForLink libB = getLibrary('file:///b.dart');
+    LibraryElementForLink libA = getLibrary(absUri('/a.dart'));
+    LibraryElementForLink libB = getLibrary(absUri('/b.dart'));
     LibraryCycleForLink libraryCycle = libA.libraryCycleForLink;
     expect(libB.libraryCycleForLink, same(libraryCycle));
     expect(libraryCycle.dependencies, isEmpty);
@@ -530,8 +531,8 @@ class D extends C {
     addNamedSource('/a.dart', '');
     addNamedSource('/b.dart', '');
     createLinker('import "a.dart"; import "b.dart";');
-    LibraryElementForLink libA = getLibrary('file:///a.dart');
-    LibraryElementForLink libB = getLibrary('file:///b.dart');
+    LibraryElementForLink libA = getLibrary(absUri('/a.dart'));
+    LibraryElementForLink libB = getLibrary(absUri('/b.dart'));
     LibraryCycleForLink libraryCycle = testLibrary.libraryCycleForLink;
     expect(libraryCycle.dependencies,
         unorderedEquals([libA.libraryCycleForLink, libB.libraryCycleForLink]));
