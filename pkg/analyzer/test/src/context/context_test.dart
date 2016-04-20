@@ -1397,6 +1397,22 @@ main() {}''');
     expect(analysisResult.changeNotices, isNotNull);
   }
 
+  void test_handleContentsChanged_incremental_newContentsNull() {
+    context.analysisOptions = new AnalysisOptionsImpl()..incremental = true;
+    ContentCache contentCache = new ContentCache();
+    context.contentCache = contentCache;
+    // old contents
+    String oldContents = 'foo() {}';
+    Source source = resourceProvider.getFile('/test.dart').createSource();
+    contentCache.setContents(source, oldContents);
+    expect(context.computeLibraryElement(source), isNotNull);
+    // new contents
+    String newContents = null;
+    contentCache.setContents(source, newContents);
+    context.handleContentsChanged(source, oldContents, newContents, true);
+    expect(context.getLibraryElement(source), isNull);
+  }
+
   Future test_implicitAnalysisEvents_added() async {
     AnalyzedSourcesListener listener = new AnalyzedSourcesListener();
     context.implicitAnalysisEvents.listen(listener.onData);
@@ -1915,14 +1931,14 @@ library expectedToFindSemicolon
     LibrarySpecificUnit unitA = new LibrarySpecificUnit(sourceA, sourceA);
     for (int i = 0; i < 10000; i++) {
       context.performAnalysisTask();
-      if (context.getResult(unitA, RESOLVED_UNIT2) != null) {
+      if (context.getResult(unitA, RESOLVED_UNIT3) != null) {
         break;
       }
     }
     // Update the source.
     // This should invalidate all the results and also reset the driver.
     context.setContents(sourceA, "library semicolonWasAdded;");
-    expect(context.getResult(unitA, RESOLVED_UNIT2), isNull);
+    expect(context.getResult(unitA, RESOLVED_UNIT3), isNull);
     expect(analysisDriver.currentWorkOrder, isNull);
     // Continue analysis.
     _analyzeAll_assertFinished();
@@ -2114,6 +2130,7 @@ class ClassTwo {
     entry.setState(RESOLVED_UNIT9, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT10, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT11, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT12, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);
 
     context.resolveCompilationUnit2(source, source);

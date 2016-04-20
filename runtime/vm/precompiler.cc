@@ -282,6 +282,14 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
   }
 
   Dart_QualifiedFunctionName vm_entry_points[] = {
+    // TODO(rmacnak): These types are not allocated from C++ but they are
+    // cached in the object store. Consider clearing them from the object store
+    // before snapshotting and adjusting InitKnownObjects to allow their
+    // absence.
+    { "dart:async", "Future", "Future." },
+    { "dart:async", "Completer", "Completer." },
+    { "dart:async", "StreamIterator", "StreamIterator." },
+
     // Functions
     { "dart:async", "::", "_setScheduleImmediateClosure" },
     { "dart:core", "::", "_completeDeferredLoads" },
@@ -314,9 +322,11 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
     { "dart:typed_data", "ByteData", "ByteData." },
     { "dart:typed_data", "ByteData", "ByteData._view" },
     { "dart:typed_data", "ByteBuffer", "ByteBuffer._New" },
+#if !defined(PRODUCT)
     { "dart:_vmservice", "::", "_registerIsolate" },
     { "dart:_vmservice", "::", "boot" },
     { "dart:developer", "Metrics", "_printMetrics" },
+#endif  // !PRODUCT
     // Fields
     { "dart:core", "Error", "_stackTrace" },
     { "dart:math", "_Random", "_state" },
@@ -338,9 +348,9 @@ void Precompiler::AddEntryPoints(Dart_QualifiedFunctionName entry_points[]) {
   String& function_name = String::Handle(Z);
 
   for (intptr_t i = 0; entry_points[i].library_uri != NULL; i++) {
-    library_uri = Symbols::New(entry_points[i].library_uri);
-    class_name = Symbols::New(entry_points[i].class_name);
-    function_name = Symbols::New(entry_points[i].function_name);
+    library_uri = Symbols::New(thread(), entry_points[i].library_uri);
+    class_name = Symbols::New(thread(), entry_points[i].class_name);
+    function_name = Symbols::New(thread(), entry_points[i].function_name);
 
     lib = Library::LookupLibrary(library_uri);
     if (lib.IsNull()) {
@@ -372,7 +382,7 @@ void Precompiler::AddEntryPoints(Dart_QualifiedFunctionName entry_points[]) {
 
       ASSERT(!cls.IsNull());
       func = cls.LookupFunctionAllowPrivate(function_name);
-      field = cls.LookupField(function_name);
+      field = cls.LookupFieldAllowPrivate(function_name);
     }
 
     if (func.IsNull() && field.IsNull()) {
@@ -836,7 +846,7 @@ RawObject* Precompiler::ExecuteOnce(SequenceNode* fragment) {
     // Function fits the bill.
     const char* kEvalConst = "eval_const";
     const Function& func = Function::ZoneHandle(Function::New(
-        String::Handle(Symbols::New(kEvalConst)),
+        String::Handle(Symbols::New(thread, kEvalConst)),
         RawFunction::kRegularFunction,
         true,  // static function
         false,  // not const function
@@ -979,14 +989,14 @@ void Precompiler::CheckForNewDynamicFunctions() {
         // Handle the implicit call type conversions.
         if (Field::IsGetterName(selector)) {
           selector2 = Field::NameFromGetter(selector);
-          selector3 = Symbols::Lookup(selector2);
+          selector3 = Symbols::Lookup(thread(), selector2);
           if (IsSent(selector2)) {
             // Call-through-getter.
             // Function is get:foo and somewhere foo is called.
             AddFunction(function);
           }
-          selector3 = Symbols::LookupFromConcat(Symbols::ClosurizePrefix(),
-                                                selector2);
+          selector3 = Symbols::LookupFromConcat(thread(),
+              Symbols::ClosurizePrefix(), selector2);
           if (IsSent(selector3)) {
             // Hash-closurization.
             // Function is get:foo and somewhere get:#foo is called.
@@ -1000,8 +1010,8 @@ void Precompiler::CheckForNewDynamicFunctions() {
             AddFunction(function2);
           }
         } else if (Field::IsSetterName(selector)) {
-          selector2 = Symbols::LookupFromConcat(Symbols::ClosurizePrefix(),
-                                                selector);
+          selector2 = Symbols::LookupFromConcat(thread(),
+              Symbols::ClosurizePrefix(), selector);
           if (IsSent(selector2)) {
             // Hash-closurization.
             // Function is set:foo and somewhere get:#set:foo is called.
@@ -1026,8 +1036,8 @@ void Precompiler::CheckForNewDynamicFunctions() {
             function2 = function.GetMethodExtractor(selector2);
             AddFunction(function2);
           }
-          selector2 = Symbols::LookupFromConcat(Symbols::ClosurizePrefix(),
-                                                selector);
+          selector2 = Symbols::LookupFromConcat(thread(),
+              Symbols::ClosurizePrefix(), selector);
           if (IsSent(selector2)) {
             // Hash-closurization.
             // Function is foo and somewhere get:#foo is called.
@@ -1047,6 +1057,8 @@ void Precompiler::CheckForNewDynamicFunctions() {
 
 class NameFunctionsTraits {
  public:
+  static const char* Name() { return "NameFunctionsTraits"; }
+
   static bool IsMatch(const Object& a, const Object& b) {
     return a.IsString() && b.IsString() &&
         String::Cast(a).Equals(String::Cast(b));

@@ -1195,6 +1195,9 @@ class Class : public Object {
   RawField* LookupInstanceField(const String& name) const;
   RawField* LookupStaticField(const String& name) const;
   RawField* LookupField(const String& name) const;
+  RawField* LookupFieldAllowPrivate(const String& name) const;
+  RawField* LookupInstanceFieldAllowPrivate(const String& name) const;
+  RawField* LookupStaticFieldAllowPrivate(const String& name) const;
 
   RawLibraryPrefix* LookupLibraryPrefix(const String& name) const;
 
@@ -1214,6 +1217,9 @@ class Class : public Object {
                                        intptr_t* index) const;
 
   void InsertCanonicalConstant(intptr_t index, const Instance& constant) const;
+  void InsertCanonicalNumber(Zone* zone,
+                             intptr_t index,
+                             const Number& constant) const;
 
   intptr_t FindCanonicalTypeIndex(const AbstractType& needle) const;
   RawAbstractType* CanonicalTypeFromIndex(intptr_t idx) const;
@@ -1265,6 +1271,12 @@ class Class : public Object {
 
   void set_is_prefinalized() const;
 
+  bool is_refinalize_after_patch() const {
+    return ClassFinalizedBits::decode(raw_ptr()->state_bits_)
+        == RawClass::kRefinalizeAfterPatch;
+  }
+
+  void SetRefinalizeAfterPatch() const;
   void ResetFinalization() const;
 
   bool is_marked_for_parsing() const {
@@ -1377,6 +1389,8 @@ class Class : public Object {
 
   bool TraceAllocation(Isolate* isolate) const;
   void SetTraceAllocation(bool trace_allocation) const;
+
+  bool ValidatePostFinalizePatch(const Class& orig_class, Error* error) const;
 
  private:
   enum MemberKind {
@@ -2067,6 +2081,11 @@ class ICData : public Object {
     kCachedICDataArrayCount = 4
   };
 
+#if defined(TAG_IC_DATA)
+  void set_tag(intptr_t value) const;
+  intptr_t tag() const { return raw_ptr()->tag_; }
+#endif
+
  private:
   static RawICData* New();
 
@@ -2249,6 +2268,8 @@ class Function : public Object {
     return OFFSET_OF(RawFunction, entry_point_);
   }
 
+  virtual intptr_t Hash() const;
+
   // Returns true if there is at least one debugger breakpoint
   // set in this function.
   bool HasBreakpoint() const;
@@ -2423,10 +2444,11 @@ class Function : public Object {
     StoreNonPointer(&raw_ptr()->usage_counter_, value);
   }
 
-  int16_t deoptimization_counter() const {
+  int8_t deoptimization_counter() const {
     return raw_ptr()->deoptimization_counter_;
   }
-  void set_deoptimization_counter(int16_t value) const {
+  void set_deoptimization_counter(int8_t value) const {
+    ASSERT(value >= 0);
     StoreNonPointer(&raw_ptr()->deoptimization_counter_, value);
   }
 
@@ -2708,6 +2730,14 @@ class Function : public Object {
 
   void set_modifier(RawFunction::AsyncModifier value) const;
 
+  // 'was_compiled' is true if the function was compiled once in this
+  // VM instantiation. It independent from presence of type feedback
+  // (ic_data_array) and code, whihc may be loaded from a snapshot.
+  void set_was_compiled(bool value) const {
+    StoreNonPointer(&raw_ptr()->was_compiled_, value ? 1 : 0);
+  }
+  bool was_compiled() const { return raw_ptr()->was_compiled_ == 1; }
+
   // static: Considered during class-side or top-level resolution rather than
   //         instance-side resolution.
   // const: Valid target of a const constructor call.
@@ -2814,7 +2844,7 @@ FOR_EACH_FUNCTION_KIND_BIT(DEFINE_BIT)
   RawScript* eval_script() const;
   void set_eval_script(const Script& value) const;
   void set_num_optional_parameters(intptr_t value) const;  // Encoded value.
-  void set_kind_tag(intptr_t value) const;
+  void set_kind_tag(uint32_t value) const;
   void set_data(const Object& value) const;
 
   static RawFunction* New();
@@ -2822,6 +2852,8 @@ FOR_EACH_FUNCTION_KIND_BIT(DEFINE_BIT)
   RawString* QualifiedName(NameVisibility name_visibility) const;
 
   void BuildSignatureParameters(
+      Thread* thread,
+      Zone* zone,
       bool instantiate,
       NameVisibility name_visibility,
       const TypeArguments& instantiator,
@@ -3067,9 +3099,7 @@ class Field : public Object {
     set_kind_bits(UnboxingCandidateBit::update(b, raw_ptr()->kind_bits_));
   }
 
-  static bool IsExternalizableCid(intptr_t cid) {
-    return (cid == kOneByteStringCid) || (cid == kTwoByteStringCid);
-  }
+  static bool IsExternalizableCid(intptr_t cid);
 
   enum {
     kUnknownLengthOffset = -1,
@@ -3552,6 +3582,7 @@ class Library : public Object {
   // Library imports.
   RawArray* imports() const { return raw_ptr()->imports_; }
   RawArray* exports() const { return raw_ptr()->exports_; }
+  RawArray* exports2() const { return raw_ptr()->exports2_; }
   void AddImport(const Namespace& ns) const;
   intptr_t num_imports() const { return raw_ptr()->num_imports_; }
   RawNamespace* ImportAt(intptr_t index) const;
@@ -3856,7 +3887,10 @@ class Instructions : public Object {
   intptr_t size() const { return raw_ptr()->size_; }  // Excludes HeaderSize().
 
   uword EntryPoint() const {
-    return reinterpret_cast<uword>(raw_ptr()) + HeaderSize();
+    return EntryPoint(raw());
+  }
+  static uword EntryPoint(RawInstructions* instr) {
+    return reinterpret_cast<uword>(instr->ptr()) + HeaderSize();
   }
 
   static const intptr_t kMaxElements = (kMaxInt32 -
@@ -4323,9 +4357,7 @@ class DeoptInfo : public AllStatic {
 
 class Code : public Object {
  public:
-  RawInstructions* active_instructions() const {
-    return raw_ptr()->active_instructions_;
-  }
+  uword active_entry_point() const { return raw_ptr()->entry_point_; }
 
   RawInstructions* instructions() const { return raw_ptr()->instructions_; }
 
@@ -4355,20 +4387,15 @@ class Code : public Object {
   }
   void set_is_alive(bool value) const;
 
-  uword EntryPoint() const {
-    return Instructions::Handle(instructions()).EntryPoint();
-  }
-  intptr_t Size() const {
-    const Instructions& instr = Instructions::Handle(instructions());
-    return instr.size();
-  }
+  uword EntryPoint() const;
+  intptr_t Size() const;
+
   RawObjectPool* GetObjectPool() const {
     return object_pool();
   }
   bool ContainsInstructionAt(uword addr) const {
-    const Instructions& instr = Instructions::Handle(instructions());
-    const uword offset = addr - instr.EntryPoint();
-    return offset < static_cast<uword>(instr.size());
+    const uword offset = addr - EntryPoint();
+    return offset < static_cast<uword>(Size());
   }
 
   // Returns true if there is a debugger breakpoint set in this code object.
@@ -4607,12 +4634,11 @@ class Code : public Object {
   void Enable() const {
     if (!IsDisabled()) return;
     ASSERT(Thread::Current()->IsMutatorThread());
-    ASSERT(instructions() != active_instructions());
     SetActiveInstructions(instructions());
   }
 
   bool IsDisabled() const {
-    return instructions() != active_instructions();
+    return active_entry_point() != EntryPoint();
   }
 
  private:
@@ -4638,8 +4664,7 @@ class Code : public Object {
 
   class SlowFindRawCodeVisitor : public FindObjectVisitor {
    public:
-    explicit SlowFindRawCodeVisitor(uword pc)
-        : FindObjectVisitor(Isolate::Current()), pc_(pc) { }
+    explicit SlowFindRawCodeVisitor(uword pc) : pc_(pc) { }
     virtual ~SlowFindRawCodeVisitor() { }
 
     // Check if object matches find condition.
@@ -5137,7 +5162,8 @@ class Instance : public Object {
   virtual RawInstance* CheckAndCanonicalize(const char** error_str) const;
 
   // Returns true if all fields are OK for canonicalization.
-  virtual bool CheckAndCanonicalizeFields(const char** error_str) const;
+  virtual bool CheckAndCanonicalizeFields(Zone* zone,
+                                          const char** error_str) const;
 
   RawObject* GetField(const Field& field) const {
     return *FieldAddr(field);
@@ -5185,7 +5211,8 @@ class Instance : public Object {
   // error object if evaluating the expression fails. The method has
   // the formal parameters given in param_names, and is invoked with
   // the argument values given in param_values.
-  RawObject* Evaluate(const String& expr,
+  RawObject* Evaluate(const Class& method_cls,
+                      const String& expr,
                       const Array& param_names,
                       const Array& param_values) const;
 
@@ -5923,6 +5950,9 @@ class Number : public Instance {
   // TODO(iposva): Add more useful Number methods.
   RawString* ToString(Heap::Space space) const;
 
+  // Numbers are canonicalized differently from other instances/strings.
+  virtual RawInstance* CheckAndCanonicalize(const char** error_str) const;
+
  private:
   OBJECT_IMPLEMENTATION(Number, Instance);
 
@@ -5996,10 +6026,6 @@ class Smi : public Integer {
   virtual bool Equals(const Instance& other) const;
   virtual bool IsZero() const { return Value() == 0; }
   virtual bool IsNegative() const { return Value() < 0; }
-  // Smi values are implicitly canonicalized.
-  virtual RawInstance* CheckAndCanonicalize(const char** error_str) const {
-    return reinterpret_cast<RawSmi*>(raw_value());
-  }
 
   virtual double AsDoubleValue() const;
   virtual int64_t AsInt64Value() const;
@@ -6119,6 +6145,7 @@ class Mint : public Integer {
 
   MINT_OBJECT_IMPLEMENTATION(Mint, Integer, Integer);
   friend class Class;
+  friend class Number;
 };
 
 
@@ -6135,7 +6162,8 @@ class Bigint : public Integer {
 
   virtual int CompareWith(const Integer& other) const;
 
-  virtual bool CheckAndCanonicalizeFields(const char** error_str) const;
+  virtual bool CheckAndCanonicalizeFields(Zone* zone,
+                                          const char** error_str) const;
 
   virtual bool FitsIntoSmi() const;
   bool FitsIntoInt64() const;
@@ -6250,6 +6278,7 @@ class Double : public Number {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Double, Number);
   friend class Class;
+  friend class Number;
 };
 
 
@@ -6381,6 +6410,7 @@ class String : public Instance {
 
   bool StartsWith(const String& other) const;
 
+  // Strings are canonicalized using the symbol table.
   virtual RawInstance* CheckAndCanonicalize(const char** error_str) const;
 
   bool IsSymbol() const { return raw()->IsCanonical(); }
@@ -7084,7 +7114,8 @@ class Array : public Instance {
   }
 
   // Returns true if all elements are OK for canonicalization.
-  virtual bool CheckAndCanonicalizeFields(const char** error_str) const;
+  virtual bool CheckAndCanonicalizeFields(Zone* zone,
+                                          const char** error_str) const;
 
   // Make the array immutable to Dart code by switching the class pointer
   // to ImmutableArray.
@@ -7230,8 +7261,13 @@ class GrowableObjectArray : public Instance {
     StorePointer(&raw_ptr()->type_arguments_, value.raw());
   }
 
-  virtual bool CanonicalizeEquals(const Instance& other) const;
+  // We don't expect a growable object array to be canonicalized.
+  virtual bool CanonicalizeEquals(const Instance& other) const {
+    UNREACHABLE();
+    return false;
+  }
 
+  // We don't expect a growable object array to be canonicalized.
   virtual RawInstance* CheckAndCanonicalize(const char** error_str) const {
     UNREACHABLE();
     return Instance::null();
@@ -7921,7 +7957,8 @@ class Closure : public Instance {
   }
 
   // Returns true if all elements are OK for canonicalization.
-  virtual bool CheckAndCanonicalizeFields(const char** error_str) const {
+  virtual bool CheckAndCanonicalizeFields(Zone* zone,
+                                          const char** error_str) const {
     // None of the fields of a closure are instances.
     return true;
   }

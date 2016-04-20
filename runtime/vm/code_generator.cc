@@ -1078,7 +1078,7 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
     if (is_extractor) {
       field_name = String::SubString(field_name, 1);
       ASSERT(!Field::IsGetterName(field_name));
-      field_name = Symbols::New(field_name);
+      field_name = Symbols::New(thread, field_name);
 
       if (!Field::IsSetterName(field_name)) {
         const String& getter_name =
@@ -1793,6 +1793,17 @@ END_LEAF_RUNTIME_ENTRY
 // materialization phase.
 DEFINE_RUNTIME_ENTRY(DeoptimizeMaterialize, 0) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DEBUG)
+  {
+    // We may rendezvous for a safepoint at entry or GC from the allocations
+    // below. Check the stack is walkable.
+    StackFrameIterator frames_iterator(StackFrameIterator::kValidateFrames);
+    StackFrame* frame = frames_iterator.NextFrame();
+    while (frame != NULL) {
+      frame = frames_iterator.NextFrame();
+    }
+  }
+#endif
   DeoptContext* deopt_context = isolate->deopt_context();
   intptr_t deopt_arg_count = deopt_context->MaterializeDeferredObjects();
   isolate->set_deopt_context(NULL);

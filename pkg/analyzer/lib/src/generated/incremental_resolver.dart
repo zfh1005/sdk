@@ -928,6 +928,7 @@ class IncrementalBodyDelta extends Delta {
         isByTask(PropagateVariableTypeTask.DESCRIPTOR) ||
         isByTask(ScanDartTask.DESCRIPTOR) ||
         isByTask(ResolveConstantExpressionTask.DESCRIPTOR) ||
+        isByTask(ResolveDirectiveElementsTask.DESCRIPTOR) ||
         isByTask(ResolveInstanceFieldsInUnitTask.DESCRIPTOR) ||
         isByTask(ResolveLibraryReferencesTask.DESCRIPTOR) ||
         isByTask(ResolveLibraryTask.DESCRIPTOR) ||
@@ -1676,6 +1677,23 @@ class PoorMansIncrementalResolver {
     _updateEntry();
     // resolve references in the comment
     incrementalResolver._resolveReferences(newComment);
+    // update 'documentationComment' of the parent element(s)
+    {
+      AstNode parent = newComment.parent;
+      if (parent is AnnotatedNode) {
+        Element parentElement = ElementLocator.locate(newComment.parent);
+        if (parentElement is ElementImpl) {
+          setElementDocumentationComment(parentElement, parent);
+        } else if (parentElement == null && parent is FieldDeclaration) {
+          for (VariableDeclaration field in parent.fields.variables) {
+            if (field.element is ElementImpl) {
+              setElementDocumentationComment(
+                  field.element as ElementImpl, parent);
+            }
+          }
+        }
+      }
+    }
     // OK
     return true;
   }

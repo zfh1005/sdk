@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_single_unit.dart';
@@ -122,6 +123,23 @@ class NoMatchABCDE {}
     _assertHasDefinedName(locations, topE);
   }
 
+  test_getDefinedNames_topLevel2() async {
+    _indexTestUnit(
+        '''
+class A {} // A
+class B = Object with A;
+class NoMatchABCDE {}
+''',
+        declOnly: true);
+    Element topA = findElement('A');
+    Element topB = findElement('B');
+    List<Location> locations = await index.getDefinedNames(
+        new RegExp(r'^[A-E]$'), IndexNameKind.topLevel);
+    expect(locations, hasLength(2));
+    _assertHasDefinedName(locations, topA);
+    _assertHasDefinedName(locations, topB);
+  }
+
   test_getRelations_isExtendedBy() async {
     _indexTestUnit(r'''
 class A {}
@@ -230,6 +248,24 @@ class A {
     findLocationTest(locations, 'test();', false);
   }
 
+  test_indexDeclarations_nullUnit() async {
+    index.indexDeclarations(null);
+  }
+
+  test_indexDeclarations_nullUnitElement() async {
+    resolveTestUnit('');
+    testUnit.element = null;
+    index.indexDeclarations(testUnit);
+  }
+
+  test_indexUnit_nullLibraryElement() async {
+    resolveTestUnit('');
+    CompilationUnitElement unitElement = new _CompilationUnitElementMock();
+    expect(unitElement.library, isNull);
+    testUnit.element = unitElement;
+    index.indexUnit(testUnit);
+  }
+
   test_indexUnit_nullUnit() async {
     index.indexUnit(null);
   }
@@ -298,9 +334,13 @@ class A {}
         '${locations.join('\n')}');
   }
 
-  void _indexTestUnit(String code) {
+  void _indexTestUnit(String code, {bool declOnly: false}) {
     resolveTestUnit(code);
-    index.indexUnit(testUnit);
+    if (declOnly) {
+      index.indexDeclarations(testUnit);
+    } else {
+      index.indexUnit(testUnit);
+    }
   }
 
   Source _indexUnit(String path, String code) {
@@ -310,3 +350,6 @@ class A {}
     return source;
   }
 }
+
+class _CompilationUnitElementMock extends TypedMock
+    implements CompilationUnitElement {}

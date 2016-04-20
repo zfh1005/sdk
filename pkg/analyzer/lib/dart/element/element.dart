@@ -624,6 +624,11 @@ abstract class Element implements AnalysisTarget {
   bool get isDeprecated;
 
   /**
+   * Return `true` if this element has an annotation of the form '@JS(..)'.
+   */
+  bool get isJS;
+
+  /**
    * Return `true` if this element has an annotation of the form '@override'.
    */
   bool get isOverride;
@@ -644,6 +649,11 @@ abstract class Element implements AnalysisTarget {
    * any library that imports the library in which they are declared.
    */
   bool get isPublic;
+
+  /**
+   * Return `true` if this element has an annotation of the form '@required'.
+   */
+  bool get isRequired;
 
   /**
    * Return `true` if this element is synthetic. A synthetic element is an
@@ -808,6 +818,12 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   bool get isDeprecated;
 
   /**
+   * Return `true` if this annotation marks the associated element with the `JS`
+   * annotation.
+   */
+  bool get isJS;
+
+  /**
    * Return `true` if this annotation marks the associated member as requiring
    * overriding methods to call super.
    */
@@ -830,6 +846,12 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
    * a proxy object.
    */
   bool get isProxy;
+
+  /**
+   * Return `true` if this annotation marks the associated member as being
+   * required.
+   */
+  bool get isRequired;
 }
 
 /**

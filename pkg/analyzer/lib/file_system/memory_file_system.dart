@@ -296,7 +296,7 @@ class _MemoryDummyLink extends _MemoryResource implements File {
   }
 
   @override
-  Resource renameSync(String newPath) {
+  File renameSync(String newPath) {
     throw new FileSystemException(path, 'File could not be renamed');
   }
 
@@ -454,17 +454,6 @@ class _MemoryFileSource extends Source {
 
   @override
   bool exists() => file.exists;
-
-  @override
-  Uri resolveRelativeUri(Uri relativeUri) {
-    Uri baseUri = uri;
-    String scheme = uri.scheme;
-    if (scheme == DartUriResolver.DART_SCHEME) {
-      String libraryName = uri.path;
-      baseUri = Uri.parse('$scheme:$libraryName/$libraryName.dart');
-    }
-    return baseUri.resolveUri(relativeUri);
-  }
 
   @override
   String toString() => file.toString();

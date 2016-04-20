@@ -733,10 +733,11 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
       func.set_optimized_call_site_count(0);
     } else {
       func.set_usage_counter(reader->Read<int32_t>());
-      func.set_deoptimization_counter(reader->Read<int16_t>());
+      func.set_deoptimization_counter(reader->Read<int8_t>());
       func.set_optimized_instruction_count(reader->Read<uint16_t>());
       func.set_optimized_call_site_count(reader->Read<uint16_t>());
     }
+    func.set_was_compiled(false);
 
     // Set all the object fields.
     READ_OBJECT_FIELDS(func,
@@ -814,7 +815,7 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
       } else {
         writer->Write<int32_t>(0);
       }
-      writer->Write<int16_t>(ptr()->deoptimization_counter_);
+      writer->Write<int8_t>(ptr()->deoptimization_counter_);
       writer->Write<uint16_t>(ptr()->optimized_instruction_count_);
       writer->Write<uint16_t>(ptr()->optimized_call_site_count_);
     }
@@ -855,8 +856,6 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
   if (reader->snapshot_code()) {
     field.set_token_pos(TokenPosition::kNoSource);
     ASSERT(!FLAG_use_field_guards);
-    field.set_guarded_cid(kDynamicCid);
-    field.set_is_nullable(true);
   } else {
     field.set_token_pos(
         TokenPosition::SnapshotDecode(reader->Read<int32_t>()));
@@ -873,8 +872,9 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
                      field.raw()->from(), toobj,
                      kAsReference);
 
-  if (reader->snapshot_code()) {
-    ASSERT(!FLAG_use_field_guards);
+  if (!FLAG_use_field_guards) {
+    field.set_guarded_cid(kDynamicCid);
+    field.set_is_nullable(true);
     field.set_guarded_list_length(Field::kNoFixedLength);
     field.set_guarded_list_length_in_object_offset(Field::kUnknownLengthOffset);
   } else {
@@ -1339,6 +1339,19 @@ void RawNamespace::WriteTo(SnapshotWriter* writer,
 }
 
 
+#if defined(DEBUG)
+static uword Checksum(uword entry, intptr_t size) {
+  uword sum = 0;
+  uword* start = reinterpret_cast<uword*>(entry);
+  uword* end = reinterpret_cast<uword*>(entry + size);
+  for (uword* cursor = start; cursor < end; cursor++) {
+    sum ^= *cursor;
+  }
+  return sum;
+}
+#endif
+
+
 RawCode* Code::ReadFrom(SnapshotReader* reader,
                         intptr_t object_id,
                         intptr_t tags,
@@ -1354,20 +1367,66 @@ RawCode* Code::ReadFrom(SnapshotReader* reader,
   result.set_state_bits(reader->Read<int32_t>());
   result.set_lazy_deopt_pc_offset(-1);
 
-  // Set all the object fields.
-  READ_OBJECT_FIELDS(result,
-                     result.raw()->from(), result.raw()->to_snapshot(),
-                     kAsReference);
-  for (RawObject** ptr = result.raw()->to();
-       ptr > result.raw()->to_snapshot();
-       ptr--) {
-    result.StorePointer(ptr, Object::null());
-  }
+  int32_t text_offset = reader->Read<int32_t>();
+  int32_t instructions_size = reader->Read<int32_t>();
+  uword entry_point = reader->GetInstructionsAt(text_offset);
 
-  // Fix entry point.
-  uword new_entry = result.EntryPoint();
-  ASSERT(Dart::vm_isolate()->heap()->CodeContains(new_entry));
-  result.StoreNonPointer(&result.raw_ptr()->entry_point_, new_entry);
+#if defined(DEBUG)
+  uword expected_check = reader->Read<uword>();
+  uword actual_check = Checksum(entry_point, instructions_size);
+  ASSERT(expected_check == actual_check);
+#endif
+
+  result.StoreNonPointer(&result.raw_ptr()->entry_point_, entry_point);
+
+  result.StorePointer(reinterpret_cast<RawSmi*const*>(
+                          &result.raw_ptr()->instructions_),
+                      Smi::New(instructions_size));
+
+  (*reader->PassiveObjectHandle()) ^= reader->ReadObjectImpl(kAsReference);
+  result.StorePointer(reinterpret_cast<RawObject*const*>(
+                          &result.raw_ptr()->object_pool_),
+                      reader->PassiveObjectHandle()->raw());
+
+  (*reader->PassiveObjectHandle()) ^= reader->ReadObjectImpl(kAsReference);
+  result.StorePointer(&result.raw_ptr()->owner_,
+                      reader->PassiveObjectHandle()->raw());
+
+  (*reader->PassiveObjectHandle()) ^= reader->ReadObjectImpl(kAsReference);
+  result.StorePointer(reinterpret_cast<RawObject*const*>(
+                          &result.raw_ptr()->exception_handlers_),
+                      reader->PassiveObjectHandle()->raw());
+
+  (*reader->PassiveObjectHandle()) ^= reader->ReadObjectImpl(kAsReference);
+  result.StorePointer(reinterpret_cast<RawObject*const*>(
+                          &result.raw_ptr()->pc_descriptors_),
+                      reader->PassiveObjectHandle()->raw());
+
+  (*reader->PassiveObjectHandle()) ^= reader->ReadObjectImpl(kAsReference);
+  result.StorePointer(reinterpret_cast<RawObject*const*>(
+                          &result.raw_ptr()->code_source_map_),
+                      reader->PassiveObjectHandle()->raw());
+
+  (*reader->PassiveObjectHandle()) ^= reader->ReadObjectImpl(kAsReference);
+  result.StorePointer(reinterpret_cast<RawObject*const*>(
+                          &result.raw_ptr()->stackmaps_),
+                      reader->PassiveObjectHandle()->raw());
+
+  result.StorePointer(&result.raw_ptr()->deopt_info_array_,
+                      Array::null());
+  result.StorePointer(&result.raw_ptr()->static_calls_target_table_,
+                      Array::null());
+  result.StorePointer(&result.raw_ptr()->var_descriptors_,
+                      LocalVarDescriptors::null());
+  result.StorePointer(&result.raw_ptr()->inlined_metadata_,
+                      Array::null());
+  result.StorePointer(&result.raw_ptr()->comments_,
+                      Array::null());
+  result.StorePointer(&result.raw_ptr()->return_address_metadata_,
+                      Object::null());
+
+  ASSERT(result.Size() == instructions_size);
+  ASSERT(result.EntryPoint() == entry_point);
 
   return result.raw();
 }
@@ -1397,11 +1456,23 @@ void RawCode::WriteTo(SnapshotWriter* writer,
   // Write out all the non object fields.
   writer->Write<int32_t>(ptr()->state_bits_);
 
-  // Write out all the object pointer fields.
-  SnapshotWriterVisitor visitor(writer, kAsReference);
-  visitor.VisitPointers(from(), to_snapshot());
+  RawInstructions* instr = ptr()->instructions_;
+  intptr_t size = instr->ptr()->size_;
+  int32_t text_offset = writer->GetInstructionsId(instr, this);
+  writer->Write<int32_t>(text_offset);
+  writer->Write<int32_t>(size);
+#if defined(DEBUG)
+  uword entry = ptr()->entry_point_;
+  uword check = Checksum(entry, size);
+  writer->Write<uword>(check);
+#endif
 
-  writer->SetInstructionsCode(ptr()->instructions_, this);
+  writer->WriteObjectImpl(ptr()->object_pool_, kAsReference);
+  writer->WriteObjectImpl(ptr()->owner_, kAsReference);
+  writer->WriteObjectImpl(ptr()->exception_handlers_, kAsReference);
+  writer->WriteObjectImpl(ptr()->pc_descriptors_, kAsReference);
+  writer->WriteObjectImpl(ptr()->code_source_map_, kAsReference);
+  writer->WriteObjectImpl(ptr()->stackmaps_, kAsReference);
 }
 
 
@@ -1410,21 +1481,8 @@ RawInstructions* Instructions::ReadFrom(SnapshotReader* reader,
                                         intptr_t tags,
                                         Snapshot::Kind kind,
                                         bool as_reference) {
-  ASSERT(reader->snapshot_code());
-  ASSERT(kind == Snapshot::kFull);
-
-#ifdef DEBUG
-  intptr_t full_tags = static_cast<uword>(reader->Read<intptr_t>());
-#else
-  intptr_t full_tags = 0;  // unused in release mode
-#endif
-  intptr_t offset = reader->Read<int32_t>();
-  Instructions& result =
-      Instructions::ZoneHandle(reader->zone(),
-                               reader->GetInstructionsAt(offset, full_tags));
-  reader->AddBackRef(object_id, &result, kIsDeserialized);
-
-  return result.raw();
+  UNREACHABLE();
+  return Instructions::null();
 }
 
 
@@ -1432,24 +1490,7 @@ void RawInstructions::WriteTo(SnapshotWriter* writer,
                               intptr_t object_id,
                               Snapshot::Kind kind,
                               bool as_reference) {
-  ASSERT(writer->snapshot_code());
-  ASSERT(kind == Snapshot::kFull);
-
-  writer->WriteInlinedObjectHeader(object_id);
-  writer->WriteVMIsolateObject(kInstructionsCid);
-  writer->WriteTags(writer->GetObjectTags(this));
-
-#ifdef DEBUG
-  // Instructions will be written pre-marked and in the VM heap. Write out
-  // the tags we expect to find when reading the snapshot for a sanity check
-  // that our offsets/alignment didn't get out of sync.
-  uword written_tags = writer->GetObjectTags(this);
-  written_tags = RawObject::VMHeapObjectTag::update(true, written_tags);
-  written_tags = RawObject::MarkBit::update(true, written_tags);
-  writer->Write<intptr_t>(written_tags);
-#endif
-
-  writer->Write<int32_t>(writer->GetInstructionsId(this));
+  UNREACHABLE();
 }
 
 
@@ -1931,6 +1972,9 @@ RawICData* ICData::ReadFrom(SnapshotReader* reader,
 
   result.set_deopt_id(reader->Read<int32_t>());
   result.set_state_bits(reader->Read<uint32_t>());
+#if defined(TAG_IC_DATA)
+  result.set_tag(reader->Read<int16_t>());
+#endif
 
   // Set all the object fields.
   RawObject** toobj = reader->snapshot_code()
@@ -1963,6 +2007,9 @@ void RawICData::WriteTo(SnapshotWriter* writer,
   // Write out all the non object fields.
   writer->Write<int32_t>(ptr()->deopt_id_);
   writer->Write<uint32_t>(ptr()->state_bits_);
+#if defined(TAG_IC_DATA)
+  writer->Write<int16_t>(ptr()->tag_);
+#endif
 
   // Write out all the object pointer fields.
   // In precompiled snapshots, omit the owner field. The owner field may
@@ -2471,7 +2518,7 @@ void String::ReadFromImpl(SnapshotReader* reader,
     for (intptr_t i = 0; i < len; i++) {
       ptr[i] = reader->Read<CharacterType>();
     }
-    *str_obj ^= (*new_symbol)(ptr, len);
+    *str_obj ^= (*new_symbol)(reader->thread(), ptr, len);
   } else {
     // Set up the string object.
     *str_obj = StringType::New(len, HEAP_SPACE(kind));

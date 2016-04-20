@@ -677,6 +677,7 @@ class RawClass : public RawObject {
     kAllocated = 0,  // Initial state.
     kPreFinalized,  // VM classes: size precomputed, but no checks done.
     kFinalized,  // Class parsed, finalized and ready for use.
+    kRefinalizeAfterPatch,  // Class needs to be refinalized (patched).
   };
 
  private:
@@ -851,7 +852,8 @@ class RawFunction : public RawObject {
   int32_t usage_counter_;  // Incremented while function is running.
   int16_t num_fixed_parameters_;
   int16_t num_optional_parameters_;  // > 0: positional; < 0: named.
-  int16_t deoptimization_counter_;
+  int8_t deoptimization_counter_;
+  int8_t was_compiled_;
   uint32_t kind_tag_;  // See Function::KindTagBits.
   uint16_t optimized_instruction_count_;
   uint16_t optimized_call_site_count_;
@@ -1019,10 +1021,13 @@ class RawLibrary : public RawObject {
   RawString* private_key_;
   RawArray* dictionary_;         // Top-level names in this library.
   RawGrowableObjectArray* metadata_;  // Metadata on classes, methods etc.
-  RawClass* toplevel_class_;  // Class containing top-level elements.
+  RawClass* toplevel_class_;     // Class containing top-level elements.
   RawGrowableObjectArray* patch_classes_;
   RawArray* imports_;            // List of Namespaces imported without prefix.
   RawArray* exports_;            // List of re-exported Namespaces.
+  RawArray* exports2_;           // Copy of exports_, used by background
+                                 // compiler to detect cycles without colliding
+                                 // with mutator thread lookups.
   RawInstance* load_error_;      // Error iff load_state_ == kLoadError.
   RawObject** to_snapshot() {
     return reinterpret_cast<RawObject**>(&ptr()->load_error_);
@@ -1035,13 +1040,13 @@ class RawLibrary : public RawObject {
 
   Dart_NativeEntryResolver native_entry_resolver_;  // Resolves natives.
   Dart_NativeEntrySymbol native_entry_symbol_resolver_;
-  classid_t index_;             // Library id number.
-  uint16_t num_imports_;        // Number of entries in imports_.
-  int8_t load_state_;           // Of type LibraryState.
+  classid_t index_;              // Library id number.
+  uint16_t num_imports_;         // Number of entries in imports_.
+  int8_t load_state_;            // Of type LibraryState.
   bool corelib_imported_;
   bool is_dart_scheme_;
-  bool debuggable_;             // True if debugger can stop in library.
-  bool is_in_fullsnapshot_;     // True if library is in a full snapshot.
+  bool debuggable_;              // True if debugger can stop in library.
+  bool is_in_fullsnapshot_;      // True if library is in a full snapshot.
 
   friend class Class;
   friend class Isolate;
@@ -1079,10 +1084,12 @@ class RawCode : public RawObject {
   uword entry_point_;
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->active_instructions_);
+    return reinterpret_cast<RawObject**>(&ptr()->instructions_);
   }
-  RawInstructions* active_instructions_;
-  RawInstructions* instructions_;
+  union {
+    RawInstructions* instructions_;
+    RawSmi* precompiled_instructions_size_;
+  };
   RawObjectPool* object_pool_;
   // If owner_ is Function::null() the owner is a regular stub.
   // If owner_ is a Class the owner is the allocation stub for that class.
@@ -1471,6 +1478,10 @@ class RawICData : public RawObject {
   int32_t deopt_id_;     // Deoptimization id corresponding to this IC.
   uint32_t state_bits_;  // Number of arguments tested in IC, deopt reasons,
                          // range feedback.
+#if defined(TAG_IC_DATA)
+  intptr_t tag_;  // Debugging, verifying that the icdata is assigned to the
+                  // same instruction again. Store -1 or Instruction::Tag.
+#endif
 };
 
 

@@ -59,6 +59,9 @@ DEFINE_FLAG(bool, check_function_fingerprints, true,
 #endif  // defined(DART_NO_SNAPSHOT).
 DEFINE_FLAG(bool, verify_acquired_data, false,
             "Verify correct API acquire/release of typed data.");
+DEFINE_FLAG(bool, support_externalizable_strings, false,
+            "Support Dart_MakeExternalString.");
+
 
 ThreadLocalKey Api::api_native_key_ = kUnsetThreadLocalKey;
 Dart_Handle Api::true_handle_ = NULL;
@@ -97,7 +100,6 @@ const char* CanonicalFunction(const char* func) {
 class FunctionVisitor : public ObjectVisitor {
  public:
   explicit FunctionVisitor(Thread* thread) :
-      ObjectVisitor(thread->isolate()),
       classHandle_(Class::Handle(thread->zone())),
       funcHandle_(Function::Handle(thread->zone())),
       typeHandle_(AbstractType::Handle(thread->zone())) {}
@@ -1466,6 +1468,7 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(
     intptr_t* isolate_snapshot_size) {
   ASSERT(FLAG_load_deferred_eagerly);
   DARTSCOPE(Thread::Current());
+  API_TIMELINE_DURATION;
   Isolate* I = T->isolate();
   if (vm_isolate_snapshot_buffer != NULL &&
       vm_isolate_snapshot_size == NULL) {
@@ -1483,6 +1486,8 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(
     return state;
   }
   I->heap()->CollectAllGarbage();
+  I->StopBackgroundCompiler();
+
 #if defined(DEBUG)
   FunctionVisitor check_canonical(T);
   I->heap()->IterateObjects(&check_canonical);
@@ -1537,6 +1542,7 @@ static Dart_Handle createLibrarySnapshot(Dart_Handle library,
 
 DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
                                                   intptr_t* size) {
+  API_TIMELINE_DURATION;
   return createLibrarySnapshot(Dart_Null(), buffer, size);
 }
 
@@ -1544,6 +1550,7 @@ DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
 DART_EXPORT Dart_Handle Dart_CreateLibrarySnapshot(Dart_Handle library,
                                                    uint8_t** buffer,
                                                    intptr_t* size) {
+  API_TIMELINE_DURATION;
   return createLibrarySnapshot(library, buffer, size);
 }
 
@@ -2515,6 +2522,10 @@ DART_EXPORT Dart_Handle Dart_MakeExternalString(Dart_Handle str,
                                                 void* peer,
                                                 Dart_PeerFinalizer cback) {
   DARTSCOPE(Thread::Current());
+  if (!FLAG_support_externalizable_strings) {
+    return Api::NewError("Dart_MakeExternalString with "
+                         "--support_externalizable_strings=false");
+  }
   const String& str_obj = Api::UnwrapStringHandle(Z, str);
   if (str_obj.IsExternal()) {
     return str;  // String is already an external string.
@@ -4258,7 +4269,7 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
     // getter Function.
     Class& cls = Class::Handle(Z, Type::Cast(obj).type_class());
 
-    field = cls.LookupStaticField(field_name);
+    field = cls.LookupStaticFieldAllowPrivate(field_name);
     if (field.IsNull() || field.IsUninitialized()) {
       const String& getter_name =
           String::Handle(Z, Field::GetterName(field_name));
@@ -4388,7 +4399,7 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
     // setter Function.
     Class& cls = Class::Handle(Z, Type::Cast(obj).type_class());
 
-    field = cls.LookupStaticField(field_name);
+    field = cls.LookupStaticFieldAllowPrivate(field_name);
     if (field.IsNull()) {
       String& setter_name = String::Handle(Z, Field::SetterName(field_name));
       setter = cls.LookupStaticFunctionAllowPrivate(setter_name);
@@ -4427,7 +4438,7 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
     Class& cls = Class::Handle(Z, instance.clazz());
     String& setter_name = String::Handle(Z, Field::SetterName(field_name));
     while (!cls.IsNull()) {
-      field = cls.LookupInstanceField(field_name);
+      field = cls.LookupInstanceFieldAllowPrivate(field_name);
       if (!field.IsNull() && field.is_final()) {
         return Api::NewError("%s: cannot set final field '%s'.",
                              CURRENT_FUNC, field_name.ToCString());
@@ -4607,7 +4618,7 @@ DART_EXPORT Dart_Handle Dart_CreateNativeWrapperClass(Dart_Handle library,
   }
   CHECK_CALLBACK_STATE(T);
 
-  String& cls_symbol = String::Handle(Z, Symbols::New(cls_name));
+  String& cls_symbol = String::Handle(Z, Symbols::New(T, cls_name));
   const Class& cls = Class::Handle(Z,
       Class::NewNativeWrapper(lib, cls_symbol, field_count));
   if (cls.IsNull()) {
@@ -5461,7 +5472,7 @@ DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
   CHECK_CALLBACK_STATE(T);
   CHECK_COMPILATION_ALLOWED(I);
 
-  const String& prefix_symbol = String::Handle(Z, Symbols::New(prefix_vm));
+  const String& prefix_symbol = String::Handle(Z, Symbols::New(T, prefix_vm));
   const Namespace& import_ns = Namespace::Handle(Z,
       Namespace::New(import_vm, Object::null_array(), Object::null_array()));
   if (prefix_vm.Length() == 0) {
@@ -5945,7 +5956,7 @@ DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
 
 DART_EXPORT void Dart_TimelineEvent(const char* label,
                                     int64_t timestamp0,
-                                    int64_t timestamp1,
+                                    int64_t timestamp1_or_async_id,
                                     Dart_Timeline_Event_Type type,
                                     intptr_t argument_count,
                                     const char** argument_names,
@@ -5956,7 +5967,7 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
   if (type < Dart_Timeline_Event_Begin) {
     return;
   }
-  if (type > Dart_Timeline_Event_Duration) {
+  if (type > Dart_Timeline_Event_Counter) {
     return;
   }
   TimelineStream* stream = Timeline::GetEmbedderStream();
@@ -5976,7 +5987,19 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
       event->Instant(label, timestamp0);
     break;
     case Dart_Timeline_Event_Duration:
-      event->Duration(label, timestamp0, timestamp1);
+      event->Duration(label, timestamp0, timestamp1_or_async_id);
+    break;
+    case Dart_Timeline_Event_Async_Begin:
+      event->AsyncBegin(label, timestamp1_or_async_id, timestamp0);
+    break;
+    case Dart_Timeline_Event_Async_End:
+      event->AsyncEnd(label, timestamp1_or_async_id, timestamp0);
+    break;
+    case Dart_Timeline_Event_Async_Instant:
+      event->AsyncInstant(label, timestamp1_or_async_id, timestamp0);
+    break;
+    case Dart_Timeline_Event_Counter:
+      event->Counter(label, timestamp0);
     break;
     default:
       FATAL("Unknown Dart_Timeline_Event_Type");
@@ -5989,114 +6012,15 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
 }
 
 
-DART_EXPORT void Dart_TimelineDuration(const char* label,
-                                       int64_t start_micros,
-                                       int64_t end_micros) {
-  if (!FLAG_support_timeline) {
+DART_EXPORT void Dart_SetThreadName(const char* name) {
+  OSThread* thread = OSThread::Current();
+  if (thread == NULL) {
+    // VM is shutting down.
     return;
   }
-  if (start_micros > end_micros) {
-    FATAL1("%s: start_micros must be <= end_micros", CURRENT_FUNC);
-  }
-  if (label == NULL) {
-    return;
-  }
-  TimelineStream* stream = Timeline::GetEmbedderStream();
-  ASSERT(stream != NULL);
-  TimelineEvent* event = stream->StartEvent();
-  if (event != NULL) {
-    event->Duration(label, start_micros, end_micros);
-    event->Complete();
-  }
+  thread->SetName(name);
 }
 
-
-DART_EXPORT void Dart_TimelineInstant(const char* label) {
-  if (!FLAG_support_timeline) {
-    return;
-  }
-  if (label == NULL) {
-    return;
-  }
-  TimelineStream* stream = Timeline::GetEmbedderStream();
-  ASSERT(stream != NULL);
-  TimelineEvent* event = stream->StartEvent();
-  if (event != NULL) {
-    event->Instant(label);
-    event->Complete();
-  }
-  return;
-}
-
-
-DART_EXPORT void Dart_TimelineAsyncBegin(const char* label,
-                                         int64_t* async_id) {
-  if (!FLAG_support_timeline) {
-    return;
-  }
-  if (label == NULL) {
-    return;
-  }
-  if (async_id == NULL) {
-    return;
-  }
-  *async_id = -1;
-  TimelineStream* stream = Timeline::GetEmbedderStream();
-  ASSERT(stream != NULL);
-  TimelineEvent* event = stream->StartEvent();
-  if (event != NULL) {
-    TimelineEventRecorder* recorder = Timeline::recorder();
-    ASSERT(recorder != NULL);
-    *async_id = recorder->GetNextAsyncId();
-    event->AsyncBegin(label, *async_id);
-    event->Complete();
-  }
-  return;
-}
-
-
-DART_EXPORT void Dart_TimelineAsyncInstant(const char* label,
-                                           int64_t async_id) {
-  if (!FLAG_support_timeline) {
-    return;
-  }
-  if (async_id < 0) {
-    return;
-  }
-  if (label == NULL) {
-    return;
-  }
-  TimelineStream* stream = Timeline::GetEmbedderStream();
-  ASSERT(stream != NULL);
-  TimelineEvent* event = stream->StartEvent();
-  if (event != NULL) {
-    event->AsyncInstant(label, async_id);
-    event->Complete();
-  }
-  return;
-}
-
-
-DART_EXPORT void Dart_TimelineAsyncEnd(const char* label,
-                                       int64_t async_id) {
-  if (!FLAG_support_timeline) {
-    return;
-  }
-  if (async_id < 0) {
-    return;
-  }
-  if (label == NULL) {
-    return;
-  }
-  TimelineStream* stream = Timeline::GetEmbedderStream();
-  ASSERT(stream != NULL);
-  TimelineEvent* event = stream->StartEvent();
-  if (event != NULL) {
-    event->AsyncEnd(label, async_id);
-    event->Complete();
-  }
-  return;
-}
 
 // The precompiler is included in dart_bootstrap and dart_noopt, and
 // excluded from dart and dart_precompiled_runtime.

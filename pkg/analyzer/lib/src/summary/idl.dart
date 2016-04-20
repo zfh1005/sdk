@@ -49,6 +49,9 @@ import 'format.dart' as generated;
  * Annotation describing information which is not part of Dart semantics; in
  * other words, if this information (or any information it refers to) changes,
  * static analysis and runtime behavior of the library are unaffected.
+ *
+ * Information that has purely local effect (in other words, it does not affect
+ * the API of the code being analyzed) is also marked as `informative`.
  */
 const informative = null;
 
@@ -427,6 +430,13 @@ abstract class LinkedLibrary extends base.SummaryClass {
   List<LinkedDependency> get dependencies;
 
   /**
+   * For each export in [UnlinkedUnit.exports], an index into [dependencies]
+   * of the library being exported.
+   */
+  @Id(6)
+  List<int> get exportDependencies;
+
+  /**
    * Information about entities in the export namespace of the library that are
    * not in the public namespace of the library (that is, entities that are
    * brought into the namespace via `export` directives).
@@ -435,6 +445,13 @@ abstract class LinkedLibrary extends base.SummaryClass {
    */
   @Id(4)
   List<LinkedExportName> get exportNames;
+
+  /**
+   * Indicates whether this library was summarized in "fallback mode".  If
+   * true, all other fields in the data structure have their default values.
+   */
+  @Id(5)
+  bool get fallbackMode;
 
   /**
    * For each import in [UnlinkedUnit.imports], an index into [dependencies]
@@ -711,11 +728,6 @@ enum ReferenceKind {
   method,
 
   /**
-   * The `length` property access.
-   */
-  length,
-
-  /**
    * The entity is a typedef.
    */
   typedef,
@@ -860,6 +872,7 @@ abstract class UnlinkedClass extends base.SummaryClass {
   /**
    * Code range of the class.
    */
+  @informative
   @Id(13)
   CodeRange get codeRange;
 
@@ -988,6 +1001,12 @@ abstract class UnlinkedCombinator extends base.SummaryClass {
  */
 abstract class UnlinkedConst extends base.SummaryClass {
   /**
+   * Sequence of operators used by assignment operations.
+   */
+  @Id(6)
+  List<UnlinkedExprAssignOperator> get assignmentOperators;
+
+  /**
    * Sequence of 64-bit doubles consumed by the operation `pushDouble`.
    */
   @Id(4)
@@ -1002,11 +1021,11 @@ abstract class UnlinkedConst extends base.SummaryClass {
   List<int> get ints;
 
   /**
-   * Indicates whether the expression is not a valid potentially constant
+   * Indicates whether the expression is a valid potentially constant
    * expression.
    */
   @Id(5)
-  bool get isInvalid;
+  bool get isValidConst;
 
   /**
    * Sequence of operations to execute (starting with an empty stack) to form
@@ -1121,6 +1140,13 @@ enum UnlinkedConstOperation {
   pushReference,
 
   /**
+   * Pop the top value from the stack, extract the value of the property with
+   * the name obtained from [UnlinkedConst.strings], and push the result back
+   * onto the stack.
+   */
+  extractProperty,
+
+  /**
    * Pop the top `n` values from the stack (where `n` is obtained from
    * [UnlinkedConst.ints]) into a list (filled from the end) and take the next
    * `n` values from [UnlinkedConst.strings] and use the lists of names and
@@ -1170,12 +1196,6 @@ enum UnlinkedConstOperation {
    * the [Map] are obtained from [UnlinkedConst.references].
    */
   makeTypedMap,
-
-  /**
-   * Pop the top 2 values from the stack, pass them to the predefined Dart
-   * function `identical`, and push the result back onto the stack.
-   */
-  identical,
 
   /**
    * Pop the top 2 values from the stack, evaluate `v1 == v2`, and push the
@@ -1316,10 +1336,118 @@ enum UnlinkedConstOperation {
   conditional,
 
   /**
-   * Pop the top value from the stack, evaluate `v.length`, and push the result
-   * back onto the stack.
+   * Pop from the stack `value` and get the next `target` reference from
+   * [UnlinkedConst.references] - a top-level variable (prefixed or not), an
+   * assignable field of a class (prefixed or not), or a sequence of getters
+   * ending with an assignable property `a.b.b.c.d.e`.  In general `a.b` cannot
+   * not be distinguished between: `a` is a prefix and `b` is a top-level
+   * variable; or `a` is an object and `b` is the name of a property.  Perform
+   * `reference op= value` where `op` is the next assignment operator from
+   * [UnlinkedConst.assignmentOperators].  Push `value` back into the stack.
+   *
+   * If the assignment operator is a prefix/postfix increment/decrement, then
+   * `value` is not present in the stack, so it should not be popped and the
+   * corresponding value of the `target` after/before update is pushed into the
+   * stack instead.
    */
-  length,
+  assignToRef,
+
+  /**
+   * Pop from the stack `target` and `value`.  Get the name of the property from
+   * `UnlinkedConst.strings` and assign the `value` to the named property of the
+   * `target`.  This operation is used when we know that the `target` is an
+   * object reference expression, e.g. `new Foo().a.b.c` or `a.b[0].c.d`.
+   * Perform `target.property op= value` where `op` is the next assignment
+   * operator from [UnlinkedConst.assignmentOperators].  Push `value` back into
+   * the stack.
+   *
+   * If the assignment operator is a prefix/postfix increment/decrement, then
+   * `value` is not present in the stack, so it should not be popped and the
+   * corresponding value of the `target` after/before update is pushed into the
+   * stack instead.
+   */
+  assignToProperty,
+
+  /**
+   * Pop from the stack `index`, `target` and `value`.  Perform
+   * `target[index] op= value`  where `op` is the next assignment operator from
+   * [UnlinkedConst.assignmentOperators].  Push `value` back into the stack.
+   *
+   * If the assignment operator is a prefix/postfix increment/decrement, then
+   * `value` is not present in the stack, so it should not be popped and the
+   * corresponding value of the `target` after/before update is pushed into the
+   * stack instead.
+   */
+  assignToIndex,
+
+  /**
+   * Pop from the stack `index` and `target`.  Push into the stack the result
+   * of evaluation of `target[index]`.
+   */
+  extractIndex,
+
+  /**
+   * Pop the top `n` values from the stack (where `n` is obtained from
+   * [UnlinkedConst.ints]) into a list (filled from the end) and take the next
+   * `n` values from [UnlinkedConst.strings] and use the lists of names and
+   * values to create named arguments.  Then pop the top `m` values from the
+   * stack (where `m` is obtained from [UnlinkedConst.ints]) into a list (filled
+   * from the end) and use them as positional arguments.  Use the lists of
+   * positional and names arguments to invoke a method (or a function) with
+   * the reference from [UnlinkedConst.references].  Push the result of
+   * invocation value into the stack.
+   *
+   * In general `a.b` cannot not be distinguished between: `a` is a prefix and
+   * `b` is a top-level function; or `a` is an object and `b` is the name of a
+   * method.  This operation should be used for a sequence of identifiers
+   * `a.b.b.c.d.e` ending with an invokable result.
+   */
+  invokeMethodRef,
+
+  /**
+   * Pop the top `n` values from the stack (where `n` is obtained from
+   * [UnlinkedConst.ints]) into a list (filled from the end) and take the next
+   * `n` values from [UnlinkedConst.strings] and use the lists of names and
+   * values to create named arguments.  Then pop the top `m` values from the
+   * stack (where `m` is obtained from [UnlinkedConst.ints]) into a list (filled
+   * from the end) and use them as positional arguments.  Use the lists of
+   * positional and names arguments to invoke the method with the name from
+   * [UnlinkedConst.strings] of the target popped from the stack, and push the
+   * resulting value into the stack.
+   *
+   * This operation should be used for invocation of a method invocation
+   * where `target` is know to be an object instance.
+   */
+  invokeMethod,
+
+  /**
+   * Begin a new cascade section.  Duplicate the top value of the stack.
+   */
+  cascadeSectionBegin,
+
+  /**
+   * End a new cascade section.  Pop the top value from the stack and throw it
+   * away.
+   */
+  cascadeSectionEnd,
+
+  /**
+   * Pop the top value from the stack and cast it to the type with reference
+   * from [UnlinkedConst.references], push the result into the stack.
+   */
+  typeCast,
+
+  /**
+   * Pop the top value from the stack and check whether it is a subclass of the
+   * type with reference from [UnlinkedConst.references], push the result into
+   * the stack.
+   */
+  typeCheck,
+
+  /**
+   * Pop the top value from the stack and raise an exception with this value.
+   */
+  throwException,
 }
 
 /**
@@ -1416,6 +1544,7 @@ abstract class UnlinkedEnum extends base.SummaryClass {
   /**
    * Code range of the enum.
    */
+  @informative
   @Id(5)
   CodeRange get codeRange;
 
@@ -1488,6 +1617,7 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
   /**
    * Code range of the executable.
    */
+  @informative
   @Id(26)
   CodeRange get codeRange;
 
@@ -1577,18 +1707,21 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
   /**
    * The list of local functions.
    */
+  @informative
   @Id(18)
   List<UnlinkedExecutable> get localFunctions;
 
   /**
    * The list of local labels.
    */
+  @informative
   @Id(22)
   List<UnlinkedLabel> get localLabels;
 
   /**
    * The list of local variables.
    */
+  @informative
   @Id(19)
   List<UnlinkedVariable> get localVariables;
 
@@ -1758,6 +1891,100 @@ abstract class UnlinkedExportPublic extends base.SummaryClass {
 }
 
 /**
+ * Enum representing the various kinds of assignment operations combined
+ * with:
+ *    [UnlinkedConstOperation.assignToRef],
+ *    [UnlinkedConstOperation.assignToProperty],
+ *    [UnlinkedConstOperation.assignToIndex].
+ */
+enum UnlinkedExprAssignOperator {
+  /**
+   * Perform simple assignment `target = operand`.
+   */
+  assign,
+
+  /**
+   * Perform `target ??= operand`.
+   */
+  ifNull,
+
+  /**
+   * Perform `target *= operand`.
+   */
+  multiply,
+
+  /**
+   * Perform `target /= operand`.
+   */
+  divide,
+
+  /**
+   * Perform `target ~/= operand`.
+   */
+  floorDivide,
+
+  /**
+   * Perform `target %= operand`.
+   */
+  modulo,
+
+  /**
+   * Perform `target += operand`.
+   */
+  plus,
+
+  /**
+   * Perform `target -= operand`.
+   */
+  minus,
+
+  /**
+   * Perform `target <<= operand`.
+   */
+  shiftLeft,
+
+  /**
+   * Perform `target >>= operand`.
+   */
+  shiftRight,
+
+  /**
+   * Perform `target &= operand`.
+   */
+  bitAnd,
+
+  /**
+   * Perform `target ^= operand`.
+   */
+  bitXor,
+
+  /**
+   * Perform `target |= operand`.
+   */
+  bitOr,
+
+  /**
+   * Perform `++target`.
+   */
+  prefixIncrement,
+
+  /**
+   * Perform `--target`.
+   */
+  prefixDecrement,
+
+  /**
+   * Perform `target++`.
+   */
+  postfixIncrement,
+
+  /**
+   * Perform `target++`.
+   */
+  postfixDecrement,
+}
+
+/**
  * Unlinked summary information about an import declaration.
  */
 abstract class UnlinkedImport extends base.SummaryClass {
@@ -1877,6 +2104,7 @@ abstract class UnlinkedParam extends base.SummaryClass {
   /**
    * Code range of the parameter.
    */
+  @informative
   @Id(14)
   CodeRange get codeRange;
 
@@ -2133,6 +2361,7 @@ abstract class UnlinkedTypedef extends base.SummaryClass {
   /**
    * Code range of the typedef.
    */
+  @informative
   @Id(7)
   CodeRange get codeRange;
 
@@ -2196,6 +2425,7 @@ abstract class UnlinkedTypeParam extends base.SummaryClass {
   /**
    * Code range of the type parameter.
    */
+  @informative
   @Id(4)
   CodeRange get codeRange;
 
@@ -2230,6 +2460,7 @@ abstract class UnlinkedUnit extends base.SummaryClass {
   /**
    * Code range of the unit.
    */
+  @informative
   @Id(15)
   CodeRange get codeRange;
 
@@ -2251,6 +2482,16 @@ abstract class UnlinkedUnit extends base.SummaryClass {
    */
   @Id(13)
   List<UnlinkedExportNonPublic> get exports;
+
+  /**
+   * If this compilation unit was summarized in fallback mode, the path where
+   * the compilation unit may be found on disk.  Otherwise empty.
+   *
+   * When this field is non-empty, all other fields in the data structure have
+   * their default values.
+   */
+  @Id(16)
+  String get fallbackModePath;
 
   /**
    * Import declarations in the compilation unit.
@@ -2344,6 +2585,7 @@ abstract class UnlinkedVariable extends base.SummaryClass {
   /**
    * Code range of the variable.
    */
+  @informative
   @Id(14)
   CodeRange get codeRange;
 
@@ -2376,6 +2618,7 @@ abstract class UnlinkedVariable extends base.SummaryClass {
    * The synthetic initializer function of the variable.  Absent if the variable
    * does not have an initializer.
    */
+  @informative
   @Id(13)
   UnlinkedExecutable get initializer;
 

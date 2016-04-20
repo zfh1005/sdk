@@ -26,7 +26,9 @@
 #include "platform/globals.h"
 #include "platform/hashmap.h"
 #include "platform/text_buffer.h"
+#if !defined(DART_PRECOMPILER)
 #include "zlib/zlib.h"
+#endif
 
 namespace dart {
 namespace bin {
@@ -743,31 +745,31 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
                                                 char** error,
                                                 int* exit_code) {
   ASSERT(script_uri != NULL);
-#if defined(DART_PRODUCT_BINARY)
-  if (strcmp(script_uri, DART_VM_SERVICE_ISOLATE_NAME) == 0) {
-    // No service isolate support.
-    return NULL;
-  }
-#endif  // defined(DART_PRODUCT_BINARY)
 
-  if (run_full_snapshot &&
+#if defined(DART_PRODUCT_BINARY)
+  const bool run_service_isolate = false;
+#elif defined(PRODUCT)
+  const bool run_service_isolate = !run_full_snapshot &&
+                                   !run_precompiled_snapshot;
+#else
+  const bool run_service_isolate = !run_full_snapshot;
+#endif
+  if (!run_service_isolate &&
       (strcmp(script_uri, DART_VM_SERVICE_ISOLATE_NAME) == 0)) {
     // We do not create a service isolate when running a full application
-    // snapshot.
+    // snapshot or a precompiled snapshot in product mode.
     return NULL;
   }
+
   IsolateData* isolate_data = new IsolateData(script_uri,
                                               package_root,
                                               packages_config);
-  Dart_Isolate isolate = NULL;
-
-  isolate = Dart_CreateIsolate(script_uri,
-                               main,
-                               isolate_snapshot_buffer,
-                               flags,
-                               isolate_data,
-                               error);
-
+  Dart_Isolate isolate = Dart_CreateIsolate(script_uri,
+                                            main,
+                                            isolate_snapshot_buffer,
+                                            flags,
+                                            isolate_data,
+                                            error);
   if (isolate == NULL) {
     delete isolate_data;
     return NULL;
@@ -812,9 +814,12 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   result = DartUtils::PrepareForScriptLoading(false, trace_loading);
   CHECK_RESULT(result);
 
-  if (!run_full_snapshot) {
+  if (!run_precompiled_snapshot && !run_full_snapshot) {
     // Set up the load port provided by the service isolate so that we can
     // load scripts.
+    // With a full snapshot or a precompiled snapshot in product mode, there is
+    // no service isolate. A precompiled snapshot in release or debug mode does
+    // have the service isolate, but it doesn't use it for loading.
     result = DartUtils::SetupServiceLoadPort();
     CHECK_RESULT(result);
   }
@@ -835,9 +840,11 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
     result = Dart_RunLoop();
     CHECK_RESULT(result);
 
-    if (isolate_data->load_async_id >= 0) {
-      Dart_TimelineAsyncEnd("LoadScript", isolate_data->load_async_id);
-    }
+    Dart_TimelineEvent("LoadScript",
+                       Dart_TimelineGetMicros(),
+                       Dart_GetMainPortId(),
+                       Dart_Timeline_Event_Async_End,
+                       0, NULL, NULL);
 
     result = DartUtils::SetupIOLibrary(script_uri);
     CHECK_RESULT(result);
@@ -1197,6 +1204,7 @@ static void ComputeSnapshotFilenames(const char* filename,
   snprintf(*isolate_snapshot_fname, len + 1, "%s.%s", filename, kIsolateSuffix);
 }
 
+
 static void GenerateFullSnapshot() {
   // Create a full snapshot of the script.
   Dart_Handle result;
@@ -1299,7 +1307,7 @@ bool RunMainIsolate(const char* script_name,
         reinterpret_cast<IsolateData*>(Dart_IsolateData(isolate));
     result = Dart_LibraryImportLibrary(
         isolate_data->builtin_lib(), root_lib, Dart_Null());
-#ifndef DART_PRODUCT_BINARY
+#if !defined(DART_PRODUCT_BINARY) && !defined(PRODUCT)
     if (is_noopt || gen_precompiled_snapshot) {
       // Load the embedder's portion of the VM service's Dart code so it will
       // be included in the precompiled snapshot.
@@ -1347,7 +1355,9 @@ bool RunMainIsolate(const char* script_name,
         { "dart:io", "_ProcessStartStatus", "set:_errorMessage" },
         { "dart:io", "_SecureFilterImpl", "get:ENCRYPTED_SIZE" },
         { "dart:io", "_SecureFilterImpl", "get:SIZE" },
+#if !defined(PRODUCT)
         { "dart:vmservice_io", "::", "main" },
+#endif  // !PRODUCT
         { NULL, NULL, NULL }  // Must be terminated with NULL entries.
       };
 

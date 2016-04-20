@@ -4775,6 +4775,34 @@ f3() {
 ''');
   }
 
+  void test_updateFunctionToForLoop() {
+    _resolveUnit(r'''
+class PlayDrag {
+  final List<num> times = new List<num>();
+
+  PlayDrag.start() {}
+
+  void update(num pos) {
+    fo (int i = times.length - 2; i >= 0; i--) {}
+  }
+}
+''');
+
+    _updateAndValidate(
+        r'''
+class PlayDrag {
+  final List<num> times = new List<num>();
+
+  PlayDrag.start() {}
+
+  void update(num pos) {
+    for (int i = times.length - 2; i >= 0; i--) {}
+  }
+}
+''',
+        expectLibraryUnchanged: false);
+  }
+
   void test_visibleRange() {
     _resolveUnit(r'''
 class Test {
@@ -4846,34 +4874,6 @@ class B extends A {}
     }
   }
 
-  void test_updateFunctionToForLoop() {
-    _resolveUnit(r'''
-class PlayDrag {
-  final List<num> times = new List<num>();
-
-  PlayDrag.start() {}
-
-  void update(num pos) {
-    fo (int i = times.length - 2; i >= 0; i--) {}
-  }
-}
-''');
-
-    _updateAndValidate(
-        r'''
-class PlayDrag {
-  final List<num> times = new List<num>();
-
-  PlayDrag.start() {}
-
-  void update(num pos) {
-    for (int i = times.length - 2; i >= 0; i--) {}
-  }
-}
-''',
-        expectLibraryUnchanged: false);
-  }
-
   void _assertCacheResults(
       {bool expectLibraryUnchanged: true,
       bool expectCachePostConstantsValid: true}) {
@@ -4905,8 +4905,9 @@ class PlayDrag {
     _assertCacheUnitResult(RESOLVED_UNIT8);
     _assertCacheUnitResult(RESOLVED_UNIT9);
     _assertCacheUnitResult(RESOLVED_UNIT10);
+    _assertCacheUnitResult(RESOLVED_UNIT11);
     if (expectCachePostConstantsValid) {
-      _assertCacheUnitResult(RESOLVED_UNIT11);
+      _assertCacheUnitResult(RESOLVED_UNIT12);
       _assertCacheUnitResult(RESOLVED_UNIT);
     }
   }
@@ -5290,17 +5291,17 @@ class _TestLogger implements logging.Logger {
   Object lastException;
   Object lastStackTrace;
 
-  void expectNoErrors() {
-    if (lastException != null) {
-      fail("logged an exception:\n$lastException\n$lastStackTrace\n");
-    }
-  }
-
   @override
   void enter(String name) {}
 
   @override
   void exit() {}
+
+  void expectNoErrors() {
+    if (lastException != null) {
+      fail("logged an exception:\n$lastException\n$lastStackTrace\n");
+    }
+  }
 
   @override
   void log(Object obj) {}

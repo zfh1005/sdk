@@ -20,11 +20,13 @@ enum SerializedElementKind {
   COMPILATION_UNIT,
   CLASS,
   ENUM,
+  NAMED_MIXIN_APPLICATION,
   GENERATIVE_CONSTRUCTOR,
   FACTORY_CONSTRUCTOR,
   TOPLEVEL_FIELD,
   STATIC_FIELD,
   INSTANCE_FIELD,
+  ENUM_CONSTANT,
   TOPLEVEL_FUNCTION,
   TOPLEVEL_GETTER,
   TOPLEVEL_SETTER,
@@ -42,6 +44,11 @@ enum SerializedElementKind {
   IMPORT,
   EXPORT,
   PREFIX,
+  LOCAL_VARIABLE,
+  EXTERNAL_LIBRARY,
+  EXTERNAL_LIBRARY_MEMBER,
+  EXTERNAL_STATIC_MEMBER,
+  EXTERNAL_CONSTRUCTOR,
 }
 
 /// Set of serializers used to serialize different kinds of elements by
@@ -52,18 +59,19 @@ enum SerializedElementKind {
 /// and [ConstantExpression] that the serialized [Element] depends upon are also
 /// serialized.
 const List<ElementSerializer> ELEMENT_SERIALIZERS = const [
-    const LibrarySerializer(),
-    const CompilationUnitSerializer(),
-    const ClassSerializer(),
-    const ConstructorSerializer(),
-    const FieldSerializer(),
-    const FunctionSerializer(),
-    const TypedefSerializer(),
-    const TypeVariableSerializer(),
-    const ParameterSerializer(),
-    const ImportSerializer(),
-    const ExportSerializer(),
-    const PrefixSerializer(),
+  const LibrarySerializer(),
+  const CompilationUnitSerializer(),
+  const ClassSerializer(),
+  const ConstructorSerializer(),
+  const FieldSerializer(),
+  const FunctionSerializer(),
+  const TypedefSerializer(),
+  const TypeVariableSerializer(),
+  const ParameterSerializer(),
+  const ImportSerializer(),
+  const ExportSerializer(),
+  const PrefixSerializer(),
+  const LocalVariableSerializer(),
 ];
 
 /// Interface for a function that can serialize a set of element kinds.
@@ -74,15 +82,14 @@ abstract class ElementSerializer {
 
   /// Serializes [element] into the [encoder] using the [kind] computed
   /// by [getSerializedKind].
-  void serialize(Element element,
-                 ObjectEncoder encoder,
-                 SerializedElementKind kind);
+  void serialize(
+      Element element, ObjectEncoder encoder, SerializedElementKind kind);
 }
 
 class SerializerUtil {
   /// Serialize the declared members of [element] into [encoder].
-  static void serializeMembers(Iterable<Element> members,
-                               ObjectEncoder encoder) {
+  static void serializeMembers(
+      Iterable<Element> members, ObjectEncoder encoder) {
     MapEncoder mapEncoder = encoder.createMap(Key.MEMBERS);
     for (Element member in members) {
       String name = member.name;
@@ -110,8 +117,8 @@ class SerializerUtil {
   }
 
   /// Serialize the parameters of [element] into [encoder].
-  static void serializeParameters(FunctionElement element,
-                                  ObjectEncoder encoder) {
+  static void serializeParameters(
+      FunctionElement element, ObjectEncoder encoder) {
     FunctionType type = element.type;
     encoder.setType(Key.RETURN_TYPE, type.returnType);
     encoder.setElements(Key.PARAMETERS, element.parameters);
@@ -181,27 +188,24 @@ class LibrarySerializer implements ElementSerializer {
     return imports;
   }
 
-  static List<Element> getImportedElements(
-      LibraryElement element) {
+  static List<Element> getImportedElements(LibraryElement element) {
     Set<Element> importedElements = new Set<Element>();
     element.forEachImport(SerializerUtil.flattenElements(importedElements));
     if (element.isPatched) {
-      element.implementation.forEachImport(
-          SerializerUtil.flattenElements(importedElements));
+      element.implementation
+          .forEachImport(SerializerUtil.flattenElements(importedElements));
     }
     return importedElements.toList();
   }
 
-  static List<Element> getExportedElements(
-      LibraryElement element) {
+  static List<Element> getExportedElements(LibraryElement element) {
     Set<Element> exportedElements = new Set<Element>();
     element.forEachExport(SerializerUtil.flattenElements(exportedElements));
     return exportedElements.toList();
   }
 
-  void serialize(LibraryElement element,
-                 ObjectEncoder encoder,
-                 SerializedElementKind kind) {
+  void serialize(LibraryElement element, ObjectEncoder encoder,
+      SerializedElementKind kind) {
     encoder.setUri(
         Key.CANONICAL_URI, element.canonicalUri, element.canonicalUri);
     encoder.setString(Key.LIBRARY_NAME, element.libraryName);
@@ -214,7 +218,6 @@ class LibrarySerializer implements ElementSerializer {
     encoder.setElements(Key.IMPORT_SCOPE, getImportedElements(element));
 
     encoder.setElements(Key.EXPORT_SCOPE, getExportedElements(element));
-
   }
 }
 
@@ -228,9 +231,8 @@ class CompilationUnitSerializer implements ElementSerializer {
     return null;
   }
 
-  void serialize(CompilationUnitElement element,
-                 ObjectEncoder encoder,
-                 SerializedElementKind kind) {
+  void serialize(CompilationUnitElement element, ObjectEncoder encoder,
+      SerializedElementKind kind) {
     encoder.setElement(Key.LIBRARY, element.library);
     encoder.setUri(
         Key.URI, element.library.canonicalUri, element.script.resourceUri);
@@ -252,8 +254,13 @@ class ClassSerializer implements ElementSerializer {
       ClassElement cls = element;
       if (cls.isEnumClass) {
         return SerializedElementKind.ENUM;
+      } else if (cls.isMixinApplication) {
+        if (!cls.isUnnamedMixinApplication) {
+          return SerializedElementKind.NAMED_MIXIN_APPLICATION;
+        }
+      } else {
+        return SerializedElementKind.CLASS;
       }
-      return SerializedElementKind.CLASS;
     }
     return null;
   }
@@ -271,34 +278,43 @@ class ClassSerializer implements ElementSerializer {
     return members;
   }
 
-  void serialize(ClassElement element,
-                 ObjectEncoder encoder,
-                 SerializedElementKind kind) {
+  void serialize(
+      ClassElement element, ObjectEncoder encoder, SerializedElementKind kind) {
     encoder.setElement(Key.LIBRARY, element.library);
     encoder.setElement(Key.COMPILATION_UNIT, element.compilationUnit);
     encoder.setString(Key.NAME, element.name);
     SerializerUtil.serializePosition(element, encoder);
     encoder.setTypes(Key.TYPE_VARIABLES, element.typeVariables);
     encoder.setBool(Key.IS_ABSTRACT, element.isAbstract);
-    if (element.isUnnamedMixinApplication) {
-      encoder.setBool(Key.IS_UNNAMED_MIXIN_APPLICATION, true);
-    }
-    if (element.supertype != null) {
-      encoder.setType(Key.SUPERTYPE, element.supertype);
-    }
-    // TODO(johnniwinther): Make [OrderedTypeSet] easier to (de)serialize.
-    ObjectEncoder supertypes = encoder.createObject(Key.SUPERTYPES);
-    supertypes.setTypes(Key.TYPES,
-        element.allSupertypesAndSelf.types.toList());
-    supertypes.setTypes(Key.SUPERTYPES,
-        element.allSupertypesAndSelf.supertypes.toList());
-    supertypes.setInts(Key.OFFSETS, element.allSupertypesAndSelf.levelOffsets);
-    encoder.setTypes(Key.INTERFACES, element.interfaces.toList());
     SerializerUtil.serializeMembers(getMembers(element), encoder);
     encoder.setBool(Key.IS_PROXY, element.isProxy);
     if (kind == SerializedElementKind.ENUM) {
       EnumClassElement enumClass = element;
       encoder.setElements(Key.FIELDS, enumClass.enumValues);
+    }
+    if (element.isObject) return;
+
+    List<InterfaceType> mixins = <InterfaceType>[];
+    ClassElement superclass = element.superclass;
+    while (superclass.isUnnamedMixinApplication) {
+      MixinApplicationElement mixinElement = superclass;
+      mixins.add(element.thisType.asInstanceOf(mixinElement.mixin));
+      superclass = mixinElement.superclass;
+    }
+    mixins = mixins.reversed.toList();
+    InterfaceType supertype = element.thisType.asInstanceOf(superclass);
+
+    encoder.setType(Key.SUPERTYPE, supertype);
+    encoder.setTypes(Key.MIXINS, mixins);
+    encoder.setTypes(Key.INTERFACES, element.interfaces.toList());
+    FunctionType callType = element.declaration.callType;
+    if (callType != null) {
+      encoder.setType(Key.CALL_TYPE, element.callType);
+    }
+
+    if (element.isMixinApplication) {
+      MixinApplicationElement mixinElement = element;
+      encoder.setType(Key.MIXIN, mixinElement.mixinType);
     }
   }
 }
@@ -315,24 +331,21 @@ class ConstructorSerializer implements ElementSerializer {
     return null;
   }
 
-  void serialize(ConstructorElement element,
-                 ObjectEncoder encoder,
-                 SerializedElementKind kind) {
+  void serialize(ConstructorElement element, ObjectEncoder encoder,
+      SerializedElementKind kind) {
     encoder.setElement(Key.CLASS, element.enclosingClass);
     encoder.setType(Key.TYPE, element.type);
     encoder.setString(Key.NAME, element.name);
     SerializerUtil.serializePosition(element, encoder);
     SerializerUtil.serializeParameters(element, encoder);
     encoder.setBool(Key.IS_CONST, element.isConst);
-    // TODO(johnniwinther): Handle external constructors.
     encoder.setBool(Key.IS_EXTERNAL, element.isExternal);
     if (element.isExternal) return;
     if (element.isConst && !element.isFromEnvironmentConstructor) {
       ConstantConstructor constantConstructor = element.constantConstructor;
-      ObjectEncoder constantEncoder =
-          encoder.createObject(Key.CONSTRUCTOR);
-      const ConstantConstructorSerializer().visit(
-          constantConstructor, constantEncoder);
+      ObjectEncoder constantEncoder = encoder.createObject(Key.CONSTRUCTOR);
+      const ConstantConstructorSerializer()
+          .visit(constantConstructor, constantEncoder);
     }
   }
 }
@@ -343,15 +356,19 @@ class FieldSerializer implements ElementSerializer {
   SerializedElementKind getSerializedKind(Element element) {
     if (element.isField) {
       if (element.isTopLevel) return SerializedElementKind.TOPLEVEL_FIELD;
-      if (element.isStatic) return SerializedElementKind.STATIC_FIELD;
+      if (element.isStatic) {
+        if (element is EnumConstantElement) {
+          return SerializedElementKind.ENUM_CONSTANT;
+        }
+        return SerializedElementKind.STATIC_FIELD;
+      }
       if (element.isInstanceMember) return SerializedElementKind.INSTANCE_FIELD;
     }
     return null;
   }
 
-  void serialize(FieldElement element,
-                 ObjectEncoder encoder,
-                 SerializedElementKind kind) {
+  void serialize(
+      FieldElement element, ObjectEncoder encoder, SerializedElementKind kind) {
     encoder.setString(Key.NAME, element.name);
     SerializerUtil.serializePosition(element, encoder);
     encoder.setType(Key.TYPE, element.type);
@@ -366,6 +383,10 @@ class FieldSerializer implements ElementSerializer {
     } else {
       encoder.setElement(Key.LIBRARY, element.library);
       encoder.setElement(Key.COMPILATION_UNIT, element.compilationUnit);
+    }
+    if (element is EnumConstantElement) {
+      EnumConstantElement enumConstant = element;
+      encoder.setInt(Key.INDEX, enumConstant.index);
     }
   }
 }
@@ -401,9 +422,8 @@ class FunctionSerializer implements ElementSerializer {
     return null;
   }
 
-  void serialize(FunctionElement element,
-                 ObjectEncoder encoder,
-                 SerializedElementKind kind) {
+  void serialize(FunctionElement element, ObjectEncoder encoder,
+      SerializedElementKind kind) {
     encoder.setString(Key.NAME, element.name);
     SerializerUtil.serializePosition(element, encoder);
     SerializerUtil.serializeParameters(element, encoder);
@@ -436,9 +456,8 @@ class TypedefSerializer implements ElementSerializer {
     return null;
   }
 
-  void serialize(TypedefElement element,
-                 ObjectEncoder encoder,
-                 SerializedElementKind kind) {
+  void serialize(TypedefElement element, ObjectEncoder encoder,
+      SerializedElementKind kind) {
     encoder.setString(Key.NAME, element.name);
     SerializerUtil.serializePosition(element, encoder);
     encoder.setType(Key.ALIAS, element.alias);
@@ -458,9 +477,8 @@ class TypeVariableSerializer implements ElementSerializer {
     return null;
   }
 
-  void serialize(TypeVariableElement element,
-                 ObjectEncoder encoder,
-                 SerializedElementKind kind) {
+  void serialize(TypeVariableElement element, ObjectEncoder encoder,
+      SerializedElementKind kind) {
     encoder.setElement(Key.TYPE_DECLARATION, element.typeDeclaration);
     encoder.setString(Key.NAME, element.name);
     SerializerUtil.serializePosition(element, encoder);
@@ -482,9 +500,8 @@ class ParameterSerializer implements ElementSerializer {
     return null;
   }
 
-  void serialize(ParameterElement element,
-                 ObjectEncoder encoder,
-                 SerializedElementKind kind) {
+  void serialize(ParameterElement element, ObjectEncoder encoder,
+      SerializedElementKind kind) {
     encoder.setElement(Key.FUNCTION, element.functionDeclaration);
     encoder.setString(Key.NAME, element.name);
     SerializerUtil.serializePosition(element, encoder);
@@ -501,6 +518,31 @@ class ParameterSerializer implements ElementSerializer {
   }
 }
 
+class LocalVariableSerializer implements ElementSerializer {
+  const LocalVariableSerializer();
+
+  SerializedElementKind getSerializedKind(Element element) {
+    if (element.isVariable) {
+      return SerializedElementKind.LOCAL_VARIABLE;
+    }
+    return null;
+  }
+
+  void serialize(LocalVariableElement element, ObjectEncoder encoder,
+      SerializedElementKind kind) {
+    encoder.setString(Key.NAME, element.name);
+    SerializerUtil.serializePosition(element, encoder);
+    encoder.setType(Key.TYPE, element.type);
+    encoder.setBool(Key.IS_FINAL, element.isFinal);
+    encoder.setBool(Key.IS_CONST, element.isConst);
+    if (element.isConst) {
+      ConstantExpression constant = element.constant;
+      encoder.setConstant(Key.CONSTANT, constant);
+    }
+    encoder.setElement(Key.EXECUTABLE_CONTEXT, element.executableContext);
+  }
+}
+
 class ImportSerializer implements ElementSerializer {
   const ImportSerializer();
 
@@ -511,9 +553,8 @@ class ImportSerializer implements ElementSerializer {
     return null;
   }
 
-  void serialize(ImportElement element,
-                 ObjectEncoder encoder,
-                 SerializedElementKind kind) {
+  void serialize(ImportElement element, ObjectEncoder encoder,
+      SerializedElementKind kind) {
     encoder.setElement(Key.LIBRARY, element.library);
     encoder.setElement(Key.COMPILATION_UNIT, element.compilationUnit);
     encoder.setElement(Key.LIBRARY_DEPENDENCY, element.importedLibrary);
@@ -536,9 +577,8 @@ class ExportSerializer implements ElementSerializer {
     return null;
   }
 
-  void serialize(ExportElement element,
-                 ObjectEncoder encoder,
-                 SerializedElementKind kind) {
+  void serialize(ExportElement element, ObjectEncoder encoder,
+      SerializedElementKind kind) {
     encoder.setElement(Key.LIBRARY, element.library);
     encoder.setElement(Key.COMPILATION_UNIT, element.compilationUnit);
     encoder.setElement(Key.LIBRARY_DEPENDENCY, element.exportedLibrary);
@@ -557,9 +597,8 @@ class PrefixSerializer implements ElementSerializer {
     return null;
   }
 
-  void serialize(PrefixElement element,
-                 ObjectEncoder encoder,
-                 SerializedElementKind kind) {
+  void serialize(PrefixElement element, ObjectEncoder encoder,
+      SerializedElementKind kind) {
     encoder.setString(Key.NAME, element.name);
     encoder.setElement(Key.LIBRARY, element.library);
     encoder.setElement(Key.COMPILATION_UNIT, element.compilationUnit);
@@ -574,16 +613,14 @@ class PrefixSerializer implements ElementSerializer {
 ///
 /// This is used by the [Deserializer].
 class ElementDeserializer {
-
   /// Deserializes an [Element] from an [ObjectDecoder].
   ///
   /// The class is called from the [Deserializer] when an [Element]
   /// needs deserialization. The [ObjectDecoder] ensures that any [Element],
   /// [DartType], and [ConstantExpression] that the deserialized [Element]
   /// depends upon are available.
-  static Element deserialize(ObjectDecoder decoder) {
-    SerializedElementKind elementKind =
-        decoder.getEnum(Key.KIND, SerializedElementKind.values);
+  static Element deserialize(
+      ObjectDecoder decoder, SerializedElementKind elementKind) {
     switch (elementKind) {
       case SerializedElementKind.LIBRARY:
         return new LibraryElementZ(decoder);
@@ -593,10 +630,14 @@ class ElementDeserializer {
         return new ClassElementZ(decoder);
       case SerializedElementKind.ENUM:
         return new EnumClassElementZ(decoder);
+      case SerializedElementKind.NAMED_MIXIN_APPLICATION:
+        return new NamedMixinApplicationElementZ(decoder);
       case SerializedElementKind.TOPLEVEL_FIELD:
         return new TopLevelFieldElementZ(decoder);
       case SerializedElementKind.STATIC_FIELD:
         return new StaticFieldElementZ(decoder);
+      case SerializedElementKind.ENUM_CONSTANT:
+        return new EnumConstantElementZ(decoder);
       case SerializedElementKind.INSTANCE_FIELD:
         return new InstanceFieldElementZ(decoder);
       case SerializedElementKind.GENERATIVE_CONSTRUCTOR:
@@ -637,6 +678,13 @@ class ElementDeserializer {
         return new ExportElementZ(decoder);
       case SerializedElementKind.PREFIX:
         return new PrefixElementZ(decoder);
+      case SerializedElementKind.LOCAL_VARIABLE:
+        return new LocalVariableElementZ(decoder);
+      case SerializedElementKind.EXTERNAL_LIBRARY:
+      case SerializedElementKind.EXTERNAL_LIBRARY_MEMBER:
+      case SerializedElementKind.EXTERNAL_STATIC_MEMBER:
+      case SerializedElementKind.EXTERNAL_CONSTRUCTOR:
+        break;
     }
     throw new UnsupportedError("Unexpected element kind '${elementKind}.");
   }

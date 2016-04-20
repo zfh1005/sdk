@@ -420,7 +420,7 @@ class HtmlDartGenerator(object):
           else:
             checks.append('(%s is %s)' % (
                 parameter_name, test_type))
-        elif i >= number_of_required_in_dart:
+        elif i >= number_of_required_in_dart and not argument.type.nullable:
           checks.append('%s != null' % parameter_name)
 
       # There can be multiple presence checks.  We need them all since a later
@@ -626,7 +626,7 @@ class HtmlDartGenerator(object):
             (factory_params, converted_arguments) = self._ConvertArgumentTypes(
                 stmts_emitter, arguments, argument_count, constructor_info)
             args = ', '.join(converted_arguments)
-            call_template = 'wrap_jso($FACTORY_NAME($FACTORY_PARAMS))'
+            call_template = '$FACTORY_NAME($FACTORY_PARAMS)'
         else:
             qualified_name = emitter.Format(
                 '$FACTORY.$NAME',

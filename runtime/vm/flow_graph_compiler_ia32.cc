@@ -120,7 +120,7 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
 
   Zone* zone = compiler->zone();
 
-  builder->AddPcMarker(Function::Handle(zone), slot_ix++);
+  builder->AddPcMarker(Function::ZoneHandle(zone), slot_ix++);
   builder->AddCallerFp(slot_ix++);
   builder->AddReturnAddress(current->function(), deopt_id(), slot_ix++);
 
@@ -1505,8 +1505,10 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         Label* match_found,
                                         intptr_t deopt_id,
                                         TokenPosition token_index,
-                                        LocationSummary* locs) {
+                                        LocationSummary* locs,
+                                        bool complete) {
   ASSERT(is_optimizing());
+  ASSERT(!complete);
   __ Comment("EmitTestAndCall");
   const Array& arguments_descriptor =
       Array::ZoneHandle(zone(), ArgumentsDescriptor::New(argument_count,

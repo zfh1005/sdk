@@ -228,8 +228,6 @@ class Isolate : public BaseIsolate {
     library_tag_handler_ = value;
   }
 
-  void SetupInstructionsSnapshotPage(
-      const uint8_t* instructions_snapshot_buffer);
   void SetupDataSnapshotPage(
       const uint8_t* instructions_snapshot_buffer);
 
@@ -420,8 +418,10 @@ class Isolate : public BaseIsolate {
 
   void PrintJSON(JSONStream* stream, bool ref = true);
 
-  CompilerStats* compiler_stats() {
-    return compiler_stats_;
+  // Mutator thread is used to aggregate compiler stats.
+  CompilerStats* aggregate_compiler_stats() {
+    ASSERT(HasMutatorThread());
+    return mutator_thread_->compiler_stats();
   }
 
   VMTagCounters* vm_tag_counters() {
@@ -487,30 +487,48 @@ class Isolate : public BaseIsolate {
     all_classes_finalized_ = value;
   }
 
-  static const uint32_t kInvalidGen = 0;
-
-  void IncrCHAInvalidationGen() {
-    cha_invalidation_gen_++;
-    if (cha_invalidation_gen_ == kInvalidGen) cha_invalidation_gen_++;
+  // True during top level parsing.
+  bool IsTopLevelParsing() {
+    const intptr_t value =
+        AtomicOperations::LoadRelaxedIntPtr(&top_level_parsing_count_);
+    ASSERT(value >= 0);
+    return value > 0;
   }
-  void ResetCHAInvalidationGen() { cha_invalidation_gen_ = kInvalidGen; }
-  uint32_t cha_invalidation_gen() const { return cha_invalidation_gen_; }
 
+  void IncrTopLevelParsingCount() {
+    AtomicOperations::IncrementBy(&top_level_parsing_count_, 1);
+  }
+  void DecrTopLevelParsingCount() {
+    AtomicOperations::DecrementBy(&top_level_parsing_count_, 1);
+  }
+
+  static const intptr_t kInvalidGen = 0;
 
   void IncrFieldInvalidationGen() {
-    field_invalidation_gen_++;
-    if (field_invalidation_gen_ == kInvalidGen) field_invalidation_gen_++;
+    AtomicOperations::IncrementBy(&field_invalidation_gen_, 1);
+    if (field_invalidation_gen_ == kInvalidGen) {
+      AtomicOperations::IncrementBy(&field_invalidation_gen_, 1);
+    }
+  }
+  intptr_t field_invalidation_gen() const { return field_invalidation_gen_; }
+
+  void IncrLoadingInvalidationGen() {
+    AtomicOperations::IncrementBy(&loading_invalidation_gen_, 1);
+    if (loading_invalidation_gen_ == kInvalidGen) {
+      AtomicOperations::IncrementBy(&loading_invalidation_gen_, 1);
+    }
+  }
+  intptr_t loading_invalidation_gen() {
+    return AtomicOperations::LoadRelaxedIntPtr(&loading_invalidation_gen_);
   }
 
-  void ResetFieldInvalidationGen() { field_invalidation_gen_ = kInvalidGen; }
-  uint32_t field_invalidation_gen() const { return field_invalidation_gen_; }
-
-  void IncrPrefixInvalidationGen() {
-    prefix_invalidation_gen_++;
-    if (prefix_invalidation_gen_ == kInvalidGen) prefix_invalidation_gen_++;
-  }
-  void ResetPrefixInvalidationGen() { prefix_invalidation_gen_ = kInvalidGen; }
-  uint32_t prefix_invalidation_gen() const { return prefix_invalidation_gen_; }
+  // Used by mutator thread to notify background compiler which fields
+  // triggered code invalidation.
+  void AddDisablingField(const Field& field);
+  // Returns Field::null() if none available in the list. Can be called
+  // only from background compiler and while mutator thread is at safepoint.
+  RawField* GetDisablingField();
+  void ClearDisablingFieldList();
 
   // Used by background compiler which field became boxed and must trigger
   // deoptimization in the mutator thread.
@@ -564,6 +582,8 @@ class Isolate : public BaseIsolate {
 
   static void DisableIsolateCreation();
   static void EnableIsolateCreation();
+
+  void StopBackgroundCompiler();
 
  private:
   friend class Dart;  // Init, InitOnce, Shutdown.
@@ -663,8 +683,6 @@ class Isolate : public BaseIsolate {
   intptr_t defer_finalization_count_;
   DeoptContext* deopt_context_;
 
-  CompilerStats* compiler_stats_;
-
   bool is_service_isolate_;
 
   // Isolate-specific flags.
@@ -730,14 +748,17 @@ class Isolate : public BaseIsolate {
   // Invalidation generations; used to track events occuring in parallel
   // to background compilation. The counters may overflow, which is OK
   // since we check for equality to detect if an event occured.
-  uint32_t cha_invalidation_gen_;
-  uint32_t field_invalidation_gen_;
-  uint32_t prefix_invalidation_gen_;
+  intptr_t field_invalidation_gen_;
+  intptr_t loading_invalidation_gen_;
+  intptr_t top_level_parsing_count_;
 
-  // Protect access to boxed_field_list_.
-  Mutex* boxed_field_list_mutex_;
+  // Protect access to boxed_field_list_ and disabling_field_list_.
+  Mutex* field_list_mutex_;
   // List of fields that became boxed and that trigger deoptimization.
   RawGrowableObjectArray* boxed_field_list_;
+  // List of fields that were disabling code while background compiler
+  // was running.
+  RawGrowableObjectArray* disabling_field_list_;
 
   // This guards spawn_count_. An isolate cannot complete shutdown and be
   // destroyed while there are child isolates in the midst of a spawn.

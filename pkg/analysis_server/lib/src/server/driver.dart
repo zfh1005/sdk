@@ -399,16 +399,16 @@ class Driver implements ServerStarter {
       // Use DirectoryBasedDartSdk.defaultSdkDirectory, which will make a guess.
       defaultSdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
     }
-    SdkCreator defaultSdkCreator = () {
+    SdkCreator defaultSdkCreator = (AnalysisOptions options) {
       DirectoryBasedDartSdk sdk =
           new DirectoryBasedDartSdk(defaultSdkDirectory);
-      sdk.useSummary = true;
+      sdk.analysisOptions = options;
       return sdk;
     };
     // TODO(brianwilkerson) It would be nice to avoid creating an SDK that
     // cannot be re-used, but the SDK is needed to create a package map provider
     // in the case where we need to run `pub` in order to get the package map.
-    DirectoryBasedDartSdk defaultSdk = defaultSdkCreator();
+    DirectoryBasedDartSdk defaultSdk = defaultSdkCreator(null);
     //
     // Initialize the instrumentation service.
     //
@@ -467,7 +467,7 @@ class Driver implements ServerStarter {
    */
   dynamic _captureExceptions(InstrumentationService service, dynamic callback(),
       {void print(String line)}) {
-    Function errorFunction = (Zone self, ZoneDelegate parent, Zone zone,
+    var errorFunction = (Zone self, ZoneDelegate parent, Zone zone,
         dynamic exception, StackTrace stackTrace) {
       service.logPriorityException(exception, stackTrace);
       AnalysisServer analysisServer = socketServer.analysisServer;
@@ -475,11 +475,11 @@ class Driver implements ServerStarter {
           'Captured exception', exception, stackTrace);
       throw exception;
     };
-    Function printFunction = print == null
+    var printFunction = print == null
         ? null
         : (Zone self, ZoneDelegate parent, Zone zone, String line) {
-            // Note: we don't pass the line on to stdout, because that is reserved
-            // for communication to the client.
+            // Note: we don't pass the line on to stdout, because that is
+            // reserved for communication to the client.
             print(line);
           };
     ZoneSpecification zoneSpecification = new ZoneSpecification(

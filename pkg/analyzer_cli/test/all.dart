@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'boot_loader_test.dart' as boot_loader;
+import 'build_mode_test.dart' as build_mode_test;
 import 'driver_test.dart' as driver;
 import 'error_test.dart' as error;
+import 'message_grouper_test.dart' as message_grouper;
 import 'options_test.dart' as options;
 import 'package_prefix_test.dart' as package_prefix;
 import 'perf_report_test.dart' as perf;
@@ -16,12 +18,14 @@ import 'super_mixin_test.dart' as super_mixin;
 
 main() {
   boot_loader.main();
+  build_mode_test.main();
   driver.main();
   // TODO(pq): fix tests to run safely on the bots
   // https://github.com/dart-lang/sdk/issues/25001
   //sdk_ext.main();
   //strong_mode.main();
   error.main();
+  message_grouper.main();
   options.main();
   perf.main();
   plugin_manager.main();

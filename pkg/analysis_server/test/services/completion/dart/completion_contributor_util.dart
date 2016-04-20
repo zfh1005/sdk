@@ -110,7 +110,9 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
       bool isDeprecated: false,
       bool isPotential: false,
       String elemFile,
-      int elemOffset}) {
+      int elemOffset,
+      String paramName,
+      String paramType}) {
     CompletionSuggestion cs =
         getSuggest(completion: completion, csKind: csKind, elemKind: elemKind);
     if (cs == null) {
@@ -140,6 +142,12 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     }
     if (elemOffset != null) {
       expect(cs.element.location.offset, elemOffset);
+    }
+    if(paramName != null) {
+      expect(cs.parameterName, paramName);
+    }
+    if(paramType != null) {
+      expect(cs.parameterType, paramType);
     }
     return cs;
   }
@@ -519,9 +527,13 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     return cs;
   }
 
-  Future performAnalysis(int times, Completer completer) {
-    if (completer.isCompleted) return completer.future;
-    if (times == 0 || context == null) return new Future.value();
+  Future/*<E>*/ performAnalysis/*<E>*/(int times, Completer/*<E>*/ completer) {
+    if (completer.isCompleted) {
+      return completer.future;
+    }
+    if (times == 0 || context == null) {
+      return new Future.value();
+    }
     context.performAnalysisTask();
     // We use a delayed future to allow microtask events to finish. The
     // Future.value or Future() constructors use scheduleMicrotask themselves and

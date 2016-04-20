@@ -461,6 +461,9 @@ abstract class Member implements Element {
   bool get isDeprecated => _baseElement.isDeprecated;
 
   @override
+  bool get isJS => _baseElement.isJS;
+
+  @override
   bool get isOverride => _baseElement.isOverride;
 
   @override
@@ -471,6 +474,9 @@ abstract class Member implements Element {
 
   @override
   bool get isPublic => _baseElement.isPublic;
+
+  @override
+  bool get isRequired => _baseElement.isRequired;
 
   @override
   bool get isSynthetic => _baseElement.isSynthetic;

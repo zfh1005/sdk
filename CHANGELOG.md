@@ -1,5 +1,16 @@
 ## 1.16.0
 
+### Core library changes
+
+* `dart:convert`
+  * Added `BASE64URL` codec and corresponding `Base64Codec.urlSafe` constructor.
+* `dart:io`
+  * Added `SecurityContext.alpnSupported`, which is true if a platform
+    supports ALPN, and false otherwise.
+
+* `dart:convert`
+  * Introduce `ChunkedConverter` and deprecate chunked methods on `Converter`.
+
 ### Analyzer
 
 *   Static checking of `for in` statements. These will now produce static
@@ -21,6 +32,20 @@
 
   * Both `pub get` and `pub upgrade` now have a `--no-precompile` flag that
     disables precompilation of executables and transformed dependencies.
+
+  * `pub publish` now resolves symlinks when publishing from a Git repository.
+    This matches the behavior it always had when publishing a package that
+    wasn't in a Git repository.
+
+* Dart Dev Compiler
+  * The **experimental** `dartdevc` executable has been added to the SDK.
+
+  * It will help early adopters validate the implementation and provide
+    feedback. `dartdevc` **is not** yet ready for production usage.
+
+  * Read more about the Dart Dev Compiler [here][dartdevc].
+
+[dartdevc]: https://github.com/dart-lang/dev_compiler
 
 ## 1.15.0 - 2016-03-09
 

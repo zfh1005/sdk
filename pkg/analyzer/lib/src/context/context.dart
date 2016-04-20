@@ -833,8 +833,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  Object getConfigurationData(ResultDescriptor key) =>
-      _configurationData[key] ?? key?.defaultValue;
+  Object/*=V*/ getConfigurationData/*<V>*/(ResultDescriptor/*<V>*/ key) =>
+      (_configurationData[key] ?? key?.defaultValue) as Object/*=V*/;
 
   @override
   TimestampedData<String> getContents(Source source) {
@@ -1066,7 +1066,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       // If not the same content (e.g. the file is being closed without save),
       // then force analysis.
       if (changed) {
-        if (!analysisOptions.incremental ||
+        if (newContents == null ||
+            !analysisOptions.incremental ||
             !_tryPoorMansIncrementalResolution(source, newContents)) {
           _sourceChanged(source);
         }
@@ -1237,6 +1238,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       entry.setState(RESOLVED_UNIT9, CacheState.FLUSHED);
       entry.setState(RESOLVED_UNIT10, CacheState.FLUSHED);
       entry.setState(RESOLVED_UNIT11, CacheState.FLUSHED);
+      entry.setState(RESOLVED_UNIT12, CacheState.FLUSHED);
       // USED_IMPORTED_ELEMENTS
       // USED_LOCAL_ELEMENTS
       setValue(STRONG_MODE_ERRORS, AnalysisError.NO_ERRORS);
@@ -1315,6 +1317,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     entry.setState(RESOLVED_UNIT9, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT10, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT11, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT12, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);
   }
 
@@ -1550,12 +1553,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         new LibrarySpecificUnit(librarySource, unitSource);
     for (ResultDescriptor result in [
       RESOLVED_UNIT,
+      RESOLVED_UNIT12,
       RESOLVED_UNIT11,
       RESOLVED_UNIT10,
       RESOLVED_UNIT9,
       RESOLVED_UNIT8,
-      RESOLVED_UNIT7,
-      RESOLVED_UNIT6
+      RESOLVED_UNIT7
     ]) {
       CompilationUnit unit = getResult(target, result);
       if (unit != null) {
@@ -2173,6 +2176,22 @@ abstract class ResultProvider {
  * An [AnalysisContext] that only contains sources for a Dart SDK.
  */
 class SdkAnalysisContext extends AnalysisContextImpl {
+  /**
+   * Initialize a newly created SDK analysis context with the given [options].
+   * Analysis options cannot be changed afterwards.  If the given [options] are
+   * `null`, then default options are used.
+   */
+  SdkAnalysisContext(AnalysisOptions options) {
+    if (options != null) {
+      super.analysisOptions = options;
+    }
+  }
+
+  @override
+  void set analysisOptions(AnalysisOptions options) {
+    throw new StateError('AnalysisOptions of SDK context cannot be changed.');
+  }
+
   @override
   AnalysisCache createCacheFromSourceFactory(SourceFactory factory) {
     if (factory == null) {

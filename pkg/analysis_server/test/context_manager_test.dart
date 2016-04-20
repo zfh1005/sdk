@@ -145,7 +145,8 @@ class AbstractContextManagerTest {
     manager.processPlugins(plugins);
   }
 
-  UriResolver provideEmbeddedUriResolver(Folder folder) => embeddedUriResolver;
+  EmbedderUriResolver provideEmbeddedUriResolver(Folder folder) =>
+      embeddedUriResolver;
 
   UriResolver providePackageResolver(Folder folder) => packageResolver;
 
@@ -153,7 +154,7 @@ class AbstractContextManagerTest {
     processRequiredPlugins();
     resourceProvider = new MemoryResourceProvider();
     packageMapProvider = new MockPackageMapProvider();
-    DartSdkManager sdkManager = new DartSdkManager(() {
+    DartSdkManager sdkManager = new DartSdkManager((_) {
       return new MockSdk();
     });
     manager = new ContextManagerImpl(
@@ -399,7 +400,6 @@ analyzer:
   language:
     enableGenericMethods: true
     enableAsync: false
-    enableConditionalDirectives: true
   errors:
     unused_local_variable: false
 linter:
@@ -425,7 +425,6 @@ linter:
     expect(context.analysisOptions.enableAsync, isFalse);
     // * from `.analysis_options`:
     expect(context.analysisOptions.enableGenericMethods, isTrue);
-    expect(context.analysisOptions.enableConditionalDirectives, isTrue);
 
     // * verify tests are excluded
     expect(

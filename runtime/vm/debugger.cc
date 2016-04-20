@@ -45,7 +45,6 @@ DEFINE_FLAG(bool, steal_breakpoints, false,
             "handler instead.  This handler dispatches breakpoints to "
             "the VM service.");
 
-DECLARE_FLAG(bool, trace_isolates);
 DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
 
 
@@ -1072,12 +1071,14 @@ RawObject* ActivationFrame::Evaluate(const String& expr) {
                         Array::Handle(Array::MakeArray(param_values)));
   } else {
     const Object& receiver = Object::Handle(GetReceiver());
+    const Class& method_cls = Class::Handle(function().origin());
     ASSERT(receiver.IsInstance() || receiver.IsNull());
     if (!(receiver.IsInstance() || receiver.IsNull())) {
       return Object::null();
     }
     const Instance& inst = Instance::Cast(receiver);
-    return inst.Evaluate(expr,
+    return inst.Evaluate(method_cls,
+                         expr,
                          Array::Handle(Array::MakeArray(param_names)),
                          Array::Handle(Array::MakeArray(param_values)));
   }
@@ -2363,7 +2364,8 @@ RawObject* Debugger::GetInstanceField(const Class& cls,
 
 RawObject* Debugger::GetStaticField(const Class& cls,
                                     const String& field_name) {
-  const Field& fld = Field::Handle(cls.LookupStaticField(field_name));
+  const Field& fld =
+      Field::Handle(cls.LookupStaticFieldAllowPrivate(field_name));
   if (!fld.IsNull()) {
     // Return the value in the field if it has been initialized already.
     const Instance& value = Instance::Handle(fld.StaticValue());

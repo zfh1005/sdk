@@ -46,11 +46,6 @@ import 'package:yaml/yaml.dart';
  */
 class ContextInfo {
   /**
-   * The [ContextManager] which is tracking this information.
-   */
-  final ContextManagerImpl contextManager;
-
-  /**
    * The [Folder] for which this information object is created.
    */
   final Folder folder;
@@ -102,8 +97,7 @@ class ContextInfo {
 
   ContextInfo(ContextManagerImpl contextManager, this.parent, Folder folder,
       File packagespecFile, this.packageRoot)
-      : contextManager = contextManager,
-        folder = folder,
+      : folder = folder,
         pathFilter = new PathFilter(
             folder.path, null, contextManager.resourceProvider.pathContext) {
     packageDescriptionPath = packagespecFile.path;
@@ -115,8 +109,7 @@ class ContextInfo {
    * [ContextInfo]s.
    */
   ContextInfo._root()
-      : contextManager = null,
-        folder = null,
+      : folder = null,
         pathFilter = null;
 
   /**
@@ -592,7 +585,7 @@ class ContextManagerImpl implements ContextManager {
       info.context.analysisOptions = new AnalysisOptionsImpl();
 
       // Apply inherited options.
-      options = _getEmbeddedOptions(info.context);
+      options = _toStringMap(_getEmbeddedOptions(info.context));
       if (options != null) {
         configureContextOptions(info.context, options);
       }
@@ -600,7 +593,7 @@ class ContextManagerImpl implements ContextManager {
       // Check for embedded options.
       YamlMap embeddedOptions = _getEmbeddedOptions(info.context);
       if (embeddedOptions != null) {
-        options = new Merger().merge(embeddedOptions, options);
+        options = _toStringMap(new Merger().merge(embeddedOptions, options));
       }
     }
 
@@ -624,26 +617,24 @@ class ContextManagerImpl implements ContextManager {
     }
 
     var analyzer = options[AnalyzerOptions.analyzer];
-    if (analyzer is! Map) {
-      // Done.
-      return;
-    }
-
-    // Set ignore patterns.
-    YamlList exclude = analyzer[AnalyzerOptions.exclude];
-    if (exclude != null) {
-      setIgnorePatternsForContext(info, exclude);
+    if (analyzer is Map) {
+      // Set ignore patterns.
+      YamlList exclude = analyzer[AnalyzerOptions.exclude];
+      List<String> excludeList = _toStringList(exclude);
+      if (excludeList != null) {
+        setIgnorePatternsForContext(info, excludeList);
+      }
     }
   }
 
   /**
-   * Return the options from the analysis options file in the given [folder], or
-   * `null` if there is no file in the folder or if the contents of the file are
-   * not valid YAML.
+   * Return the options from the analysis options file in the given [folder]
+   * if exists, or in one of the parent folders, or `null` if no analysis
+   * options file is found or if the contents of the file are not valid YAML.
    */
   Map<String, Object> readOptions(Folder folder) {
     try {
-      return analysisOptionsProvider.getOptions(folder);
+      return analysisOptionsProvider.getOptions(folder, crawlUp: true);
     } catch (_) {
       // Parse errors are reported by GenerateOptionsErrorsTask.
     }
@@ -1561,6 +1552,44 @@ class ContextManagerImpl implements ContextManager {
       }
     }
     return false;
+  }
+
+  /**
+   * If all of the elements of [list] are strings, return a list of strings
+   * containing the same elements. Otherwise, return `null`.
+   */
+  List<String> _toStringList(YamlList list) {
+    if (list == null) {
+      return null;
+    }
+    List<String> stringList = <String>[];
+    for (var element in list) {
+      if (element is String) {
+        stringList.add(element);
+      } else {
+        return null;
+      }
+    }
+    return stringList;
+  }
+
+  /**
+   * If the given [object] is a map, and all of the keys in the map are strings,
+   * return a map containing the same mappings. Otherwise, return `null`.
+   */
+  Map<String, Object> _toStringMap(Object object) {
+    if (object is Map) {
+      Map<String, Object> stringMap = new HashMap<String, Object>();
+      for (var key in object.keys) {
+        if (key is String) {
+          stringMap[key] = object[key];
+        } else {
+          return null;
+        }
+      }
+      return stringMap;
+    }
+    return null;
   }
 
   void _updateContextPackageUriResolver(

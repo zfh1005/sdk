@@ -56,7 +56,7 @@ vars = {
   "intl_rev": "@a8b480b9c436f6c0ec16730804c914bdb4e30d53",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@2.0.0",
-  "linter_rev": "@a60289545b34ab1f047a0a3f0673a4c5abde0eaf",
+  "linter_rev": "@bcd4cf615665a80edf3f9a924388e59644a667cd",
   "logging_rev": "@85d83e002670545e9039ad3985f0018ab640e597",
   "markdown_rev": "@4aaadf3d940bb172e1f6285af4d2b1710d309982",
   "matcher_tag": "@0.12.0",
@@ -71,12 +71,13 @@ vars = {
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "plugin_tag": "@0.1.0",
   "pool_tag": "@1.2.1",
-  "pub_rev": "@c1405b945c6d818c8cfe78334e8d4b11fd913103",
+  "protobuf_tag": "@0.5.0+1",
+  "pub_rev": "@5257a0630a8db4f1ae339910eef5080ce384afc7",
   "pub_cache_tag": "@v0.1.0",
   "pub_semver_tag": "@1.2.1",
   "quiver_tag": "@0.21.4",
   "resource_rev":"@a49101ba2deb29c728acba6fb86000a8f730f4b1",
-  "root_certificates_rev": "@c3a41df63afacec62fcb8135196177e35fe72f71",
+  "root_certificates_rev": "@aed07942ce98507d2be28cbd29e879525410c7fc",
   "scheduled_test_tag": "@0.12.5+2",
   "shelf_tag": "@0.6.5",
   "smoke_rev" : "@f3361191cc2a85ebc1e4d4c33aec672d7915aba9",
@@ -97,7 +98,7 @@ vars = {
   "watcher_tag": "@0.9.7",
   "when_tag": "@0.2.0+2",
   "which_tag": "@0.1.3+1",
-  "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
+  "web_components_rev": "@6349e09f9118dce7ae1b309af5763745e25a9d61",
   "web_socket_channel_tag": "@1.0.0",
   "WebCore_rev": "@a86fe28efadcfc781f836037a80f27e22a5dad17",
   "yaml_tag": "@2.1.5",
@@ -109,10 +110,6 @@ vars = {
 }
 
 deps = {
-  # Pull in fletch for annotated steps -  ONLY ON FLETCH BRANCH OF SDK.
-  Var("dart_root") + "/third_party/fletch":
-      "https://github.com/dartino/sdk.git",
-
   # Stuff needed for GYP to run.
   Var("dart_root") + "/third_party/gyp":
       Var('chromium_git') + '/external/gyp.git' + Var("gyp_rev"),
@@ -229,6 +226,8 @@ deps = {
       (Var("github_mirror") % "plugin") + Var("plugin_tag"),
   Var("dart_root") + "/third_party/pkg/pool":
       (Var("github_mirror") % "pool") + Var("pool_tag"),
+  Var("dart_root") + "/third_party/pkg/protobuf":
+      (Var("github_dartlang") % "dart-protobuf") + Var("protobuf_tag"),
   Var("dart_root") + "/third_party/pkg/pub_semver":
       (Var("github_mirror") % "pub_semver") + Var("pub_semver_tag"),
   Var("dart_root") + "/third_party/pkg/pub":

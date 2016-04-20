@@ -9,7 +9,9 @@ class Key {
   static const Key ALIAS = const Key('alias');
   static const Key ARGUMENTS = const Key('arguments');
   static const Key BOUND = const Key('bound');
+  static const Key CACHED_TYPE = const Key('cachedType');
   static const Key CALL_STRUCTURE = const Key('callStructure');
+  static const Key CALL_TYPE = const Key('callType');
   static const Key CANONICAL_URI = const Key('canonicalUri');
   static const Key CLASS = const Key('class');
   static const Key COMPILATION_UNIT = const Key('compilation-unit');
@@ -29,9 +31,12 @@ class Key {
   static const Key EXPORT_SCOPE = const Key('export-scope');
   static const Key EXPRESSION = const Key('expression');
   static const Key FALSE = const Key('false');
+  static const Key FEATURES = const Key('features');
   static const Key FIELD = const Key('field');
   static const Key FIELDS = const Key('fields');
   static const Key FUNCTION = const Key('function');
+  static const Key GET_OR_SET = const Key('getOrSet');
+  static const Key GETTER = const Key('getter');
   static const Key ID = const Key('id');
   static const Key IMPACTS = const Key('impacts');
   static const Key IMPORT = const Key('import');
@@ -42,6 +47,7 @@ class Key {
   static const Key IS_ABSTRACT = const Key('isAbstract');
   static const Key IS_CONST = const Key('isConst');
   static const Key IS_DEFERRED = const Key('isDeferred');
+  static const Key IS_EMPTY = const Key('isEmpty');
   static const Key IS_EXTERNAL = const Key('isExternal');
   static const Key IS_FINAL = const Key('isFinal');
   static const Key IS_NAMED = const Key('isNamed');
@@ -58,14 +64,18 @@ class Key {
   static const Key LIBRARY = const Key('library');
   static const Key LIBRARY_DEPENDENCY = const Key('library-dependency');
   static const Key LIBRARY_NAME = const Key('library-name');
+  static const Key LISTS = const Key('lists');
+  static const Key MAPS = const Key('maps');
   static const Key MEMBERS = const Key('members');
+  static const Key MIXIN = const Key('mixin');
+  static const Key MIXINS = const Key('mixins');
   static const Key NAME = const Key('name');
   static const Key NAMES = const Key('names');
   static const Key NAMED_ARGUMENTS = const Key('named-arguments');
   static const Key NAMED_PARAMETERS = const Key('named-parameters');
   static const Key NAMED_PARAMETER_TYPES = const Key('named-parameter-types');
+  static const Key NEW_STRUCTURE = const Key('newStructure');
   static const Key OFFSET = const Key('offset');
-  static const Key OFFSETS = const Key('offsets');
   static const Key OPERATOR = const Key('operator');
   static const Key OPTIONAL_PARAMETER_TYPES =
       const Key('optional-parameter-types');
@@ -74,9 +84,15 @@ class Key {
   static const Key PREFIX = const Key('prefix');
   static const Key RETURN_TYPE = const Key('return-type');
   static const Key RIGHT = const Key('right');
+  static const Key SELECTOR = const Key('selector');
+  static const Key SEMANTICS = const Key('semantics');
+  static const Key SEND_STRUCTURE = const Key('sendStructure');
+  static const Key SETTER = const Key('setter');
   static const Key STATIC_USES = const Key('static-uses');
+  static const Key SUB_KIND = const Key('subKind');
   static const Key SUPERTYPE = const Key('supertype');
   static const Key SUPERTYPES = const Key('supertypes');
+  static const Key SYMBOLS = const Key('symbols');
   static const Key TAGS = const Key('tags');
   static const Key TRUE = const Key('true');
   static const Key TYPE = const Key('type');
