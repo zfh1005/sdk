@@ -9,11 +9,13 @@
 # process was actually found.
 #
 
+import errno
 import optparse
 import os
 import signal
 import subprocess
 import sys
+import time
 
 import utils
 
@@ -146,11 +148,36 @@ def PrintPidInfo(pid):
 
 
 def KillPosix(pid):
-  try:
-    os.kill(int(pid), signal.SIGKILL)
-  except:
-    # Ignore this, the process is already dead from killing another process.
-    pass
+  def kill(sig):
+    """Returns True when signal was delivered successfully.
+
+This makes it easy to use kill as the normal Unix kill: for sending a signal,
+or for testing if a process is running.
+
+    """
+    try:
+      os.kill(int(pid), sig)
+      # The process exists and the signal was sent.
+      return True
+    except OSError as e:
+      if e.errno == errno.ESRCH:
+        # No such process, we failed to deliver the signal.
+        return False
+      else:
+        raise # Propagate other errors.
+  if kill(signal.SIGKILL):
+    # The process existed (and the signal was delivered successfully). Now the
+    # process should terminate (unless something is really wrong and a power
+    # cycle is required).
+    #
+    # Se we poll for the process to die. If the process doesn't die, the build
+    # bot will time out after 20 minutes. In this case, the build bot status
+    # will be exceptional (purple). This is precisely what we want, so we do
+    # not attempt to recover from a hung process here.
+    while True:
+      time.sleep(0.01)
+      if not kill(0):
+        return
 
 def KillWindows(pid):
   # os.kill is not available until python 2.7
