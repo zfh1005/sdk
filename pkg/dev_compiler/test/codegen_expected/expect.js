@@ -1,9 +1,9 @@
 define(['dart_sdk'], function(dart_sdk) {
   'use strict';
-  let core = dart_sdk.core;
-  let dart = dart_sdk.dart;
-  let dartx = dart_sdk.dartx;
-  let expect = Object.create(null);
+  const core = dart_sdk.core;
+  const dart = dart_sdk.dart;
+  const dartx = dart_sdk.dartx;
+  const expect = Object.create(null);
   let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.functionType(dart.void, [])))();
   let dynamicAnddynamicTobool = () => (dynamicAnddynamicTobool = dart.constFn(dart.definiteFunctionType(core.bool, [dart.dynamic, dart.dynamic])))();
   expect.Expect = class Expect extends core.Object {

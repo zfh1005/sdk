@@ -1,33 +1,33 @@
-export let dart = Object.create(null);
-export let dartx = Object.create(null);
-export let _debugger = Object.create(null);
-export let _foreign_helper = Object.create(null);
-export let _interceptors = Object.create(null);
-export let _internal = Object.create(null);
-export let _isolate_helper = Object.create(null);
-export let _js_embedded_names = Object.create(null);
-export let _js_helper = Object.create(null);
-export let _js_mirrors = Object.create(null);
-export let _js_primitives = Object.create(null);
-export let _metadata = Object.create(null);
-export let _native_typed_data = Object.create(null);
-export let async = Object.create(null);
-export let collection = Object.create(null);
-export let convert = Object.create(null);
-export let core = Object.create(null);
-export let isolate = Object.create(null);
-export let js = Object.create(null);
-export let js_util = Object.create(null);
-export let math = Object.create(null);
-export let mirrors = Object.create(null);
-export let typed_data = Object.create(null);
-export let indexed_db = Object.create(null);
-export let html = Object.create(null);
-export let html_common = Object.create(null);
-export let svg = Object.create(null);
-export let web_audio = Object.create(null);
-export let web_gl = Object.create(null);
-export let web_sql = Object.create(null);
+export const dart = Object.create(null);
+export const dartx = Object.create(null);
+export const _debugger = Object.create(null);
+export const _foreign_helper = Object.create(null);
+export const _interceptors = Object.create(null);
+export const _internal = Object.create(null);
+export const _isolate_helper = Object.create(null);
+export const _js_embedded_names = Object.create(null);
+export const _js_helper = Object.create(null);
+export const _js_mirrors = Object.create(null);
+export const _js_primitives = Object.create(null);
+export const _metadata = Object.create(null);
+export const _native_typed_data = Object.create(null);
+export const async = Object.create(null);
+export const collection = Object.create(null);
+export const convert = Object.create(null);
+export const core = Object.create(null);
+export const isolate = Object.create(null);
+export const js = Object.create(null);
+export const js_util = Object.create(null);
+export const math = Object.create(null);
+export const mirrors = Object.create(null);
+export const typed_data = Object.create(null);
+export const indexed_db = Object.create(null);
+export const html = Object.create(null);
+export const html_common = Object.create(null);
+export const svg = Object.create(null);
+export const web_audio = Object.create(null);
+export const web_gl = Object.create(null);
+export const web_sql = Object.create(null);
 let ListOfObject = () => (ListOfObject = dart.constFn(core.List$(core.Object)))();
 let JSArrayOfListOfObject = () => (JSArrayOfListOfObject = dart.constFn(_interceptors.JSArray$(ListOfObject())))();
 let JSArrayOfObject = () => (JSArrayOfObject = dart.constFn(_interceptors.JSArray$(core.Object)))();
@@ -1019,6 +1019,7 @@ dart.registerExtension = function(jsType, dartExtType) {
   if (!jsType) return;
   let extProto = dartExtType.prototype;
   let jsProto = jsType.prototype;
+  if (!jsProto) return;
   jsProto[dart._extensionType] = dartExtType;
   dart._installProperties(jsProto, extProto);
   let originalSigFn = dart.getOwnPropertyDescriptor(dartExtType, dart._methodSig).get;
@@ -1125,7 +1126,7 @@ dart.wrapType = function(type) {
   }
   return type[dart._typeObject] = new dart.WrappedType(type);
 };
-let _wrappedType = Symbol('_wrappedType');
+const _wrappedType = Symbol('_wrappedType');
 dart.unwrapType = function(obj) {
   return dart.dload(obj, _wrappedType);
 };
@@ -2575,7 +2576,7 @@ _debugger._getType = function(object) {
   return core.Type.is(object) ? object : dart.getReifiedType(object);
 };
 dart.fn(_debugger._getType, dynamicToObject());
-let _simpleFormatter = Symbol('_simpleFormatter');
+const _simpleFormatter = Symbol('_simpleFormatter');
 _debugger.safePreview = function(object, config) {
   try {
     let preview = _debugger._devtoolsFormatter[_simpleFormatter].preview(object, config);
@@ -2750,8 +2751,8 @@ _debugger.safeProperties = function(object) {
   return MapOfdynamic$Object().fromIterable(_debugger.getOwnPropertyNames(object)[dartx.where](dart.fn(each => _debugger.safeGetProperty(object, each) != null, StringTobool())), {key: dart.fn(name => name, dynamicTodynamic()), value: dart.fn(name => _debugger.safeGetProperty(object, name), dynamicToObject())});
 };
 dart.fn(_debugger.safeProperties, dynamicTodynamic());
-let _attributes = Symbol('_attributes');
-let _jsonML = Symbol('_jsonML');
+const _attributes = Symbol('_attributes');
+const _jsonML = Symbol('_jsonML');
 _debugger.JsonMLElement = class JsonMLElement extends core.Object {
   new(tagName) {
     this[_attributes] = null;
@@ -2887,7 +2888,7 @@ dart.setSignature(_debugger.JsonMLFormatter, {
   })
 });
 _debugger.Formatter = class Formatter extends core.Object {};
-let _formatters = Symbol('_formatters');
+const _formatters = Symbol('_formatters');
 _debugger.DartFormatter = class DartFormatter extends core.Object {
   new() {
     this[_formatters] = null;
@@ -3601,7 +3602,7 @@ dart.fn(_interceptors.getNativeInterceptor, dynamicTodynamic());
 _interceptors.setDispatchProperty = function(object, value) {
 };
 dart.fn(_interceptors.setDispatchProperty, dynamicAnddynamicTodynamic());
-let _removeWhere = Symbol('_removeWhere');
+const _removeWhere = Symbol('_removeWhere');
 _interceptors.JSArray$ = dart.generic(E => {
   let JSArrayOfE = () => (JSArrayOfE = dart.constFn(_interceptors.JSArray$(E)))();
   let IterableOfE = () => (IterableOfE = dart.constFn(core.Iterable$(E)))();
@@ -4281,10 +4282,10 @@ _interceptors.JSUnmodifiableArray$ = dart.generic(E => {
   return JSUnmodifiableArray;
 });
 _interceptors.JSUnmodifiableArray = JSUnmodifiableArray();
-let _iterable = Symbol('_iterable');
-let _length = Symbol('_length');
-let _index = Symbol('_index');
-let _current = Symbol('_current');
+const _iterable = Symbol('_iterable');
+const _length = Symbol('_length');
+const _index = Symbol('_index');
+const _current = Symbol('_current');
 _interceptors.ArrayIterator$ = dart.generic(E => {
   let IteratorOfE = () => (IteratorOfE = dart.constFn(core.Iterator$(E)))();
   let JSArrayOfE = () => (JSArrayOfE = dart.constFn(_interceptors.JSArray$(E)))();
@@ -4328,11 +4329,11 @@ _interceptors.ArrayIterator$ = dart.generic(E => {
   return ArrayIterator;
 });
 _interceptors.ArrayIterator = ArrayIterator();
-let _isInt32 = Symbol('_isInt32');
-let _tdivSlow = Symbol('_tdivSlow');
-let _shlPositive = Symbol('_shlPositive');
-let _shrOtherPositive = Symbol('_shrOtherPositive');
-let _shrBothPositive = Symbol('_shrBothPositive');
+const _isInt32 = Symbol('_isInt32');
+const _tdivSlow = Symbol('_tdivSlow');
+const _shlPositive = Symbol('_shlPositive');
+const _shrOtherPositive = Symbol('_shrOtherPositive');
+const _shrBothPositive = Symbol('_shrBothPositive');
 dart.defineExtensionNames([
   'compareTo',
   'isNegative',
@@ -4900,7 +4901,7 @@ dart.setSignature(_interceptors.JSNumber, {
 _interceptors.JSNumber._MIN_INT32 = -2147483648;
 _interceptors.JSNumber._MAX_INT32 = 2147483647;
 dart.registerExtension(dart.global.Number, _interceptors.JSNumber);
-let _defaultSplit = Symbol('_defaultSplit');
+const _defaultSplit = Symbol('_defaultSplit');
 let const;
 dart.defineExtensionNames([
   'codeUnitAt',
@@ -5439,7 +5440,7 @@ dart.defineLazy(core.double, {
   }
 });
 _internal.POWERS_OF_TEN = dart.constList([1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, 10000000.0, 100000000.0, 1000000000.0, 10000000000.0, 100000000000.0, 1000000000000.0, 10000000000000.0, 100000000000000.0, 1000000000000000.0, 10000000000000000.0, 100000000000000000.0, 1000000000000000000.0, 10000000000000000000.0, 100000000000000000000.0, 1e+21, 1e+22], core.double);
-let _string = Symbol('_string');
+const _string = Symbol('_string');
 collection.ListMixin$ = dart.generic(E => {
   let ListIteratorOfE = () => (ListIteratorOfE = dart.constFn(_internal.ListIterator$(E)))();
   let VoidToE = () => (VoidToE = dart.constFn(dart.functionType(E, [])))();
@@ -6866,11 +6867,11 @@ _internal.ListIterable$ = dart.generic(E => {
   return ListIterable;
 });
 _internal.ListIterable = ListIterable();
-let _iterable = Symbol('_iterable');
-let _start = Symbol('_start');
-let _endOrLength = Symbol('_endOrLength');
-let _endIndex = Symbol('_endIndex');
-let _startIndex = Symbol('_startIndex');
+const _iterable = Symbol('_iterable');
+const _start = Symbol('_start');
+const _endOrLength = Symbol('_endOrLength');
+const _endIndex = Symbol('_endIndex');
+const _startIndex = Symbol('_startIndex');
 _internal.SubListIterable$ = dart.generic(E => {
   let EmptyIterableOfE = () => (EmptyIterableOfE = dart.constFn(_internal.EmptyIterable$(E)))();
   let SubListIterableOfE = () => (SubListIterableOfE = dart.constFn(_internal.SubListIterable$(E)))();
@@ -6980,9 +6981,9 @@ _internal.SubListIterable$ = dart.generic(E => {
   return SubListIterable;
 });
 _internal.SubListIterable = SubListIterable();
-let _length = Symbol('_length');
-let _index = Symbol('_index');
-let _current = Symbol('_current');
+const _length = Symbol('_length');
+const _index = Symbol('_index');
+const _current = Symbol('_current');
 _internal.ListIterator$ = dart.generic(E => {
   let IteratorOfE = () => (IteratorOfE = dart.constFn(core.Iterator$(E)))();
   let IterableOfE = () => (IterableOfE = dart.constFn(core.Iterable$(E)))();
@@ -7027,11 +7028,11 @@ _internal.ListIterator$ = dart.generic(E => {
 });
 _internal.ListIterator = ListIterator();
 _internal._Transformation$ = dart.generic((S, T) => {
-  let _Transformation = dart.typedef('_Transformation', () => dart.functionType(T, [S]));
+  const _Transformation = dart.typedef('_Transformation', () => dart.functionType(T, [S]));
   return _Transformation;
 });
 _internal._Transformation = _Transformation();
-let _f = Symbol('_f');
+const _f = Symbol('_f');
 _internal.MappedIterable$ = dart.generic((S, T) => {
   let EfficientLengthMappedIterableOfS$T = () => (EfficientLengthMappedIterableOfS$T = dart.constFn(_internal.EfficientLengthMappedIterable$(S, T)))();
   let MappedIterableOfS$T = () => (MappedIterableOfS$T = dart.constFn(_internal.MappedIterable$(S, T)))();
@@ -7117,7 +7118,7 @@ _internal.EfficientLengthMappedIterable$ = dart.generic((S, T) => {
   return EfficientLengthMappedIterable;
 });
 _internal.EfficientLengthMappedIterable = EfficientLengthMappedIterable();
-let _iterator = Symbol('_iterator');
+const _iterator = Symbol('_iterator');
 core.Iterator$ = dart.generic(E => {
   class Iterator extends core.Object {}
   dart.addTypeTests(Iterator);
@@ -7158,7 +7159,7 @@ _internal.MappedIterator$ = dart.generic((S, T) => {
   return MappedIterator;
 });
 _internal.MappedIterator = MappedIterator();
-let _source = Symbol('_source');
+const _source = Symbol('_source');
 _internal.MappedListIterable$ = dart.generic((S, T) => {
   let IterableOfS = () => (IterableOfS = dart.constFn(core.Iterable$(S)))();
   let _TransformationOfS$T = () => (_TransformationOfS$T = dart.constFn(_internal._Transformation$(S, T)))();
@@ -7189,7 +7190,7 @@ _internal.MappedListIterable$ = dart.generic((S, T) => {
 });
 _internal.MappedListIterable = MappedListIterable();
 _internal._ElementPredicate$ = dart.generic(E => {
-  let _ElementPredicate = dart.typedef('_ElementPredicate', () => dart.functionType(core.bool, [E]));
+  const _ElementPredicate = dart.typedef('_ElementPredicate', () => dart.functionType(core.bool, [E]));
   return _ElementPredicate;
 });
 _internal._ElementPredicate = _ElementPredicate();
@@ -7252,7 +7253,7 @@ _internal.WhereIterator$ = dart.generic(E => {
 });
 _internal.WhereIterator = WhereIterator();
 _internal._ExpandFunction$ = dart.generic((S, T) => {
-  let _ExpandFunction = dart.typedef('_ExpandFunction', () => dart.functionType(core.Iterable$(T), [S]));
+  const _ExpandFunction = dart.typedef('_ExpandFunction', () => dart.functionType(core.Iterable$(T), [S]));
   return _ExpandFunction;
 });
 _internal._ExpandFunction = _ExpandFunction();
@@ -7283,7 +7284,7 @@ _internal.ExpandIterable$ = dart.generic((S, T) => {
   return ExpandIterable;
 });
 _internal.ExpandIterable = ExpandIterable();
-let _currentExpansion = Symbol('_currentExpansion');
+const _currentExpansion = Symbol('_currentExpansion');
 _internal.ExpandIterator$ = dart.generic((S, T) => {
   let IteratorOfS = () => (IteratorOfS = dart.constFn(core.Iterator$(S)))();
   let _ExpandFunctionOfS$T = () => (_ExpandFunctionOfS$T = dart.constFn(_internal._ExpandFunction$(S, T)))();
@@ -7331,7 +7332,7 @@ _internal.ExpandIterator$ = dart.generic((S, T) => {
   return ExpandIterator;
 });
 _internal.ExpandIterator = ExpandIterator();
-let _takeCount = Symbol('_takeCount');
+const _takeCount = Symbol('_takeCount');
 _internal.TakeIterable$ = dart.generic(E => {
   let EfficientLengthTakeIterableOfE = () => (EfficientLengthTakeIterableOfE = dart.constFn(_internal.EfficientLengthTakeIterable$(E)))();
   let TakeIterableOfE = () => (TakeIterableOfE = dart.constFn(_internal.TakeIterable$(E)))();
@@ -7392,7 +7393,7 @@ _internal.EfficientLengthTakeIterable$ = dart.generic(E => {
   return EfficientLengthTakeIterable;
 });
 _internal.EfficientLengthTakeIterable = EfficientLengthTakeIterable();
-let _remaining = Symbol('_remaining');
+const _remaining = Symbol('_remaining');
 _internal.TakeIterator$ = dart.generic(E => {
   let IteratorOfE = () => (IteratorOfE = dart.constFn(core.Iterator$(E)))();
   class TakeIterator extends core.Iterator$(E) {
@@ -7452,7 +7453,7 @@ _internal.TakeWhileIterable$ = dart.generic(E => {
   return TakeWhileIterable;
 });
 _internal.TakeWhileIterable = TakeWhileIterable();
-let _isFinished = Symbol('_isFinished');
+const _isFinished = Symbol('_isFinished');
 _internal.TakeWhileIterator$ = dart.generic(E => {
   let IteratorOfE = () => (IteratorOfE = dart.constFn(core.Iterator$(E)))();
   let _ElementPredicateOfE = () => (_ElementPredicateOfE = dart.constFn(_internal._ElementPredicate$(E)))();
@@ -7488,7 +7489,7 @@ _internal.TakeWhileIterator$ = dart.generic(E => {
   return TakeWhileIterator;
 });
 _internal.TakeWhileIterator = TakeWhileIterator();
-let _skipCount = Symbol('_skipCount');
+const _skipCount = Symbol('_skipCount');
 _internal.SkipIterable$ = dart.generic(E => {
   let EfficientLengthSkipIterableOfE = () => (EfficientLengthSkipIterableOfE = dart.constFn(_internal.EfficientLengthSkipIterable$(E)))();
   let SkipIterableOfE = () => (SkipIterableOfE = dart.constFn(_internal.SkipIterable$(E)))();
@@ -7614,7 +7615,7 @@ _internal.SkipWhileIterable$ = dart.generic(E => {
   return SkipWhileIterable;
 });
 _internal.SkipWhileIterable = SkipWhileIterable();
-let _hasSkipped = Symbol('_hasSkipped');
+const _hasSkipped = Symbol('_hasSkipped');
 _internal.SkipWhileIterator$ = dart.generic(E => {
   let IteratorOfE = () => (IteratorOfE = dart.constFn(core.Iterator$(E)))();
   let _ElementPredicateOfE = () => (_ElementPredicateOfE = dart.constFn(_internal._ElementPredicate$(E)))();
@@ -7964,7 +7965,7 @@ _internal.FixedLengthListBase$ = dart.generic(E => {
   return FixedLengthListBase;
 });
 _internal.FixedLengthListBase = FixedLengthListBase();
-let _backedList = Symbol('_backedList');
+const _backedList = Symbol('_backedList');
 _internal._ListIndicesIterable = class _ListIndicesIterable extends _internal.ListIterable$(core.int) {
   new(backedList) {
     this[_backedList] = backedList;
@@ -7985,7 +7986,7 @@ dart.setSignature(_internal._ListIndicesIterable, {
   methods: () => ({elementAt: dart.definiteFunctionType(core.int, [core.int])})
 });
 dart.defineExtensionMembers(_internal._ListIndicesIterable, ['elementAt', 'length']);
-let _values = Symbol('_values');
+const _values = Symbol('_values');
 _internal.ListMapView$ = dart.generic(E => {
   let SubListIterableOfE = () => (SubListIterableOfE = dart.constFn(_internal.SubListIterable$(E)))();
   let VoidToE = () => (VoidToE = dart.constFn(dart.functionType(E, [])))();
@@ -8493,7 +8494,7 @@ dart.setSignature(_internal.Sort, {
   names: ['sort', 'sortRange', '_doSort', '_insertionSort', '_dualPivotQuicksort']
 });
 _internal.Sort._INSERTION_SORT_THRESHOLD = 32;
-let _name = Symbol('_name');
+const _name = Symbol('_name');
 _internal.Symbol = class Symbol extends core.Object {
   new(name) {
     this[_name] = name;
@@ -8580,7 +8581,7 @@ _isolate_helper._callInIsolate = function(isolate, func) {
   return result;
 };
 dart.lazyFn(_isolate_helper._callInIsolate, () => _IsolateContextAndFunctionTodynamic());
-let _activeJsAsyncCount = Symbol('_activeJsAsyncCount');
+const _activeJsAsyncCount = Symbol('_activeJsAsyncCount');
 _isolate_helper.enterJsAsync = function() {
   let o = _isolate_helper._globalState.topEventLoop;
   o[_activeJsAsyncCount] = dart.notNull(o[_activeJsAsyncCount]) + 1;
@@ -8633,8 +8634,8 @@ dart.copyProperties(_isolate_helper, {
     dart.globalState = val;
   }
 });
-let _nativeDetectEnvironment = Symbol('_nativeDetectEnvironment');
-let _nativeInitWorkerMessageHandler = Symbol('_nativeInitWorkerMessageHandler');
+const _nativeDetectEnvironment = Symbol('_nativeDetectEnvironment');
+const _nativeInitWorkerMessageHandler = Symbol('_nativeInitWorkerMessageHandler');
 _isolate_helper._Manager = class _Manager extends core.Object {
   get useWorkers() {
     return this.supportsWorkers;
@@ -8721,13 +8722,13 @@ dart.setSignature(_isolate_helper._Manager, {
   statics: () => ({_serializePrintMessage: dart.definiteFunctionType(dart.dynamic, [dart.dynamic])}),
   names: ['_serializePrintMessage']
 });
-let _scheduledControlEvents = Symbol('_scheduledControlEvents');
-let _isExecutingEvent = Symbol('_isExecutingEvent');
-let _id = Symbol('_id');
-let _updateGlobalState = Symbol('_updateGlobalState');
-let _setGlobals = Symbol('_setGlobals');
-let _addRegistration = Symbol('_addRegistration');
-let _close = Symbol('_close');
+const _scheduledControlEvents = Symbol('_scheduledControlEvents');
+const _isExecutingEvent = Symbol('_isExecutingEvent');
+const _id = Symbol('_id');
+const _updateGlobalState = Symbol('_updateGlobalState');
+const _setGlobals = Symbol('_setGlobals');
+const _addRegistration = Symbol('_addRegistration');
+const _close = Symbol('_close');
 _isolate_helper._IsolateContext = class _IsolateContext extends core.Object {
   new() {
     this.id = (() => {
@@ -9022,7 +9023,7 @@ dart.setSignature(_isolate_helper._IsolateContext, {
     unregister: dart.definiteFunctionType(dart.void, [core.int])
   })
 });
-let _runHelper = Symbol('_runHelper');
+const _runHelper = Symbol('_runHelper');
 _isolate_helper._EventLoop = class _EventLoop extends core.Object {
   new() {
     this.events = QueueOf_IsolateEvent().new();
@@ -9055,7 +9056,7 @@ _isolate_helper._EventLoop = class _EventLoop extends core.Object {
   }
   [_runHelper]() {
     if (_isolate_helper.globalWindow != null) {
-      let next = (function() {
+      const next = (function() {
         if (!dart.test(this.runIteration())) return;
         async.Timer.run(next);
       }).bind(this);
@@ -9453,8 +9454,8 @@ dart.defineLazy(_isolate_helper.IsolateNatives, {
     return new (ExpandoOfint())();
   }
 });
-let _isolateId = Symbol('_isolateId');
-let _checkReplyTo = Symbol('_checkReplyTo');
+const _isolateId = Symbol('_isolateId');
+const _checkReplyTo = Symbol('_checkReplyTo');
 _isolate_helper._BaseSendPort = class _BaseSendPort extends core.Object {
   new(isolateId) {
     this[_isolateId] = isolateId;
@@ -9471,9 +9472,9 @@ dart.setSignature(_isolate_helper._BaseSendPort, {
   fields: () => ({[_isolateId]: core.int}),
   methods: () => ({[_checkReplyTo]: dart.definiteFunctionType(dart.void, [isolate.SendPort])})
 });
-let _receivePort = Symbol('_receivePort');
-let _isClosed = Symbol('_isClosed');
-let _add = Symbol('_add');
+const _receivePort = Symbol('_receivePort');
+const _isClosed = Symbol('_isClosed');
+const _add = Symbol('_add');
 _isolate_helper._NativeJsSendPort = class _NativeJsSendPort extends _isolate_helper._BaseSendPort {
   new(receivePort, isolateId) {
     this[_receivePort] = receivePort;
@@ -9507,8 +9508,8 @@ dart.setSignature(_isolate_helper._NativeJsSendPort, {
   fields: () => ({[_receivePort]: _isolate_helper.RawReceivePortImpl}),
   methods: () => ({send: dart.definiteFunctionType(dart.void, [dart.dynamic])})
 });
-let _workerId = Symbol('_workerId');
-let _receivePortId = Symbol('_receivePortId');
+const _workerId = Symbol('_workerId');
+const _receivePortId = Symbol('_receivePortId');
 _isolate_helper._WorkerSendPort = class _WorkerSendPort extends _isolate_helper._BaseSendPort {
   new(workerId, isolateId, receivePortId) {
     this[_workerId] = workerId;
@@ -9542,7 +9543,7 @@ dart.setSignature(_isolate_helper._WorkerSendPort, {
   }),
   methods: () => ({send: dart.definiteFunctionType(dart.void, [dart.dynamic])})
 });
-let _handler = Symbol('_handler');
+const _handler = Symbol('_handler');
 _isolate_helper.RawReceivePortImpl = class RawReceivePortImpl extends core.Object {
   new(handler) {
     this[_handler] = handler;
@@ -9614,14 +9615,14 @@ dart.setSignature(_isolate_helper.RawReceivePortImpl, {
   sfields: () => ({_nextFreeId: core.int})
 });
 _isolate_helper.RawReceivePortImpl._nextFreeId = 1;
-let _rawPort = Symbol('_rawPort');
-let _controller = Symbol('_controller');
-let _add = Symbol('_add');
-let _closeUnchecked = Symbol('_closeUnchecked');
-let _addError = Symbol('_addError');
-let _completeError = Symbol('_completeError');
-let _complete = Symbol('_complete');
-let _sink = Symbol('_sink');
+const _rawPort = Symbol('_rawPort');
+const _controller = Symbol('_controller');
+const _add = Symbol('_add');
+const _closeUnchecked = Symbol('_closeUnchecked');
+const _addError = Symbol('_addError');
+const _completeError = Symbol('_completeError');
+const _complete = Symbol('_complete');
+const _sink = Symbol('_sink');
 async.Stream$ = dart.generic(T => {
   let _EmptyStreamOfT = () => (_EmptyStreamOfT = dart.constFn(async._EmptyStream$(T)))();
   let StreamControllerOfT = () => (StreamControllerOfT = dart.constFn(async.StreamController$(T)))();
@@ -9782,7 +9783,7 @@ async.Stream$ = dart.generic(T => {
       return convert => {
         let controller = null;
         let subscription = null;
-        let onListen = (function() {
+        const onListen = (function() {
           let add = dart.bind(controller, 'add');
           dart.assert(async._StreamController.is(controller) || async._BroadcastStreamController.is(controller));
           let eventSink = async._EventSink$(E).as(controller);
@@ -9826,7 +9827,7 @@ async.Stream$ = dart.generic(T => {
       return convert => {
         let controller = null;
         let subscription = null;
-        let onListen = (function() {
+        const onListen = (function() {
           dart.assert(async._StreamController.is(controller) || async._BroadcastStreamController.is(controller));
           let eventSink = async._EventSink$(E).as(controller);
           subscription = this.listen(dart.fn(event => {
@@ -10275,7 +10276,7 @@ async.Stream$ = dart.generic(T => {
         controller.close();
       }
       dart.fn(onDone, VoidTovoid());
-      let onListen = (function() {
+      const onListen = (function() {
         zone = async.Zone.current;
         if (onTimeout == null) {
           timeout = dart.fn(() => {
@@ -10415,16 +10416,16 @@ dart.setSignature(_isolate_helper.ReceivePortImpl, {
     close: dart.definiteFunctionType(dart.void, [])
   })
 });
-let _once = Symbol('_once');
-let _inEventLoop = Symbol('_inEventLoop');
-let _handle = Symbol('_handle');
+const _once = Symbol('_once');
+const _inEventLoop = Symbol('_inEventLoop');
+const _handle = Symbol('_handle');
 _isolate_helper.TimerImpl = class TimerImpl extends core.Object {
   new(milliseconds, callback) {
     this[_once] = true;
     this[_inEventLoop] = false;
     this[_handle] = null;
     if (milliseconds == 0 && (!dart.test(_isolate_helper.hasTimer()) || dart.test(_isolate_helper._globalState.isWorker))) {
-      let internalCallback = (function() {
+      const internalCallback = (function() {
         this[_handle] = null;
         callback();
       }).bind(this);
@@ -10433,7 +10434,7 @@ _isolate_helper.TimerImpl = class TimerImpl extends core.Object {
       _isolate_helper._globalState.topEventLoop.enqueue(_isolate_helper._globalState.currentContext, internalCallback, 'timer');
       this[_inEventLoop] = true;
     } else if (dart.test(_isolate_helper.hasTimer())) {
-      let internalCallback = (function() {
+      const internalCallback = (function() {
         this[_handle] = null;
         _isolate_helper.leaveJsAsync();
         callback();
@@ -10549,7 +10550,7 @@ _isolate_helper._clone = function(message) {
   return deserializer.deserialize(serializer.serialize(message));
 };
 dart.fn(_isolate_helper._clone, dynamicTodynamic());
-let _serializeSendPorts = Symbol('_serializeSendPorts');
+const _serializeSendPorts = Symbol('_serializeSendPorts');
 _isolate_helper._Serializer = class _Serializer extends core.Object {
   new(opts) {
     let serializeSendPorts = opts && 'serializeSendPorts' in opts ? opts.serializeSendPorts : true;
@@ -10693,7 +10694,7 @@ dart.setSignature(_isolate_helper._Serializer, {
     serializeDartObject: dart.definiteFunctionType(dart.dynamic, [dart.dynamic])
   })
 });
-let _adjustSendPorts = Symbol('_adjustSendPorts');
+const _adjustSendPorts = Symbol('_adjustSendPorts');
 _isolate_helper._Deserializer = class _Deserializer extends core.Object {
   new(opts) {
     let adjustSendPorts = opts && 'adjustSendPorts' in opts ? opts.adjustSendPorts : true;
@@ -11369,8 +11370,8 @@ _js_helper.throwConcurrentModificationError = function(collection) {
   dart.throw(new core.ConcurrentModificationError(collection));
 };
 dart.fn(_js_helper.throwConcurrentModificationError, dynamicTodynamic());
-let _message = Symbol('_message');
-let _method = Symbol('_method');
+const _message = Symbol('_message');
+const _method = Symbol('_method');
 core.Error = class Error extends core.Object {
   new() {
   }
@@ -11422,7 +11423,7 @@ dart.setSignature(_js_helper.NullError, {
     [_method]: core.String
   })
 });
-let _receiver = Symbol('_receiver');
+const _receiver = Symbol('_receiver');
 _js_helper.JsNoSuchMethodError = class JsNoSuchMethodError extends core.Error {
   new(message, match) {
     this[_message] = message;
@@ -11464,8 +11465,8 @@ _js_helper.getTraceFromException = function(exception) {
   return new _js_helper._StackTrace(exception);
 };
 dart.lazyFn(_js_helper.getTraceFromException, () => dynamicToStackTrace());
-let _exception = Symbol('_exception');
-let _trace = Symbol('_trace');
+const _exception = Symbol('_exception');
+const _trace = Symbol('_trace');
 _js_helper._StackTrace = class _StackTrace extends core.Object {
   new(exception) {
     this[_exception] = exception;
@@ -11667,8 +11668,8 @@ _js_helper.jsonEncodeNative = function(string) {
   return JSON.stringify(string);
 };
 dart.lazyFn(_js_helper.jsonEncodeNative, () => StringToString());
-let _jsIterator = Symbol('_jsIterator');
-let _current = Symbol('_current');
+const _jsIterator = Symbol('_jsIterator');
+const _current = Symbol('_current');
 _js_helper.SyncIterator$ = dart.generic(E => {
   let IteratorOfE = () => (IteratorOfE = dart.constFn(core.Iterator$(E)))();
   class SyncIterator extends core.Object {
@@ -11699,8 +11700,8 @@ _js_helper.SyncIterator$ = dart.generic(E => {
   return SyncIterator;
 });
 _js_helper.SyncIterator = SyncIterator();
-let _generator = Symbol('_generator');
-let _args = Symbol('_args');
+const _generator = Symbol('_generator');
+const _args = Symbol('_args');
 collection.IterableBase$ = dart.generic(E => {
   class IterableBase extends core.Iterable$(E) {
     new() {
@@ -11846,27 +11847,27 @@ _js_helper.SupportJsExtensionMethods = class SupportJsExtensionMethods extends c
 dart.setSignature(_js_helper.SupportJsExtensionMethods, {
   constructors: () => ({new: dart.definiteFunctionType(_js_helper.SupportJsExtensionMethods, [])})
 });
-let _length = Symbol('_length');
-let _strings = Symbol('_strings');
-let _nums = Symbol('_nums');
-let _rest = Symbol('_rest');
-let _first = Symbol('_first');
-let _last = Symbol('_last');
-let _modifications = Symbol('_modifications');
-let _containsTableEntry = Symbol('_containsTableEntry');
-let _getBucket = Symbol('_getBucket');
-let _getTableCell = Symbol('_getTableCell');
-let _newHashTable = Symbol('_newHashTable');
-let _addHashTableEntry = Symbol('_addHashTableEntry');
-let _getTableBucket = Symbol('_getTableBucket');
-let _newLinkedCell = Symbol('_newLinkedCell');
-let _setTableEntry = Symbol('_setTableEntry');
-let _removeHashTableEntry = Symbol('_removeHashTableEntry');
-let _unlinkCell = Symbol('_unlinkCell');
-let _modified = Symbol('_modified');
-let _next = Symbol('_next');
-let _deleteTableEntry = Symbol('_deleteTableEntry');
-let _previous = Symbol('_previous');
+const _length = Symbol('_length');
+const _strings = Symbol('_strings');
+const _nums = Symbol('_nums');
+const _rest = Symbol('_rest');
+const _first = Symbol('_first');
+const _last = Symbol('_last');
+const _modifications = Symbol('_modifications');
+const _containsTableEntry = Symbol('_containsTableEntry');
+const _getBucket = Symbol('_getBucket');
+const _getTableCell = Symbol('_getTableCell');
+const _newHashTable = Symbol('_newHashTable');
+const _addHashTableEntry = Symbol('_addHashTableEntry');
+const _getTableBucket = Symbol('_getTableBucket');
+const _newLinkedCell = Symbol('_newLinkedCell');
+const _setTableEntry = Symbol('_setTableEntry');
+const _removeHashTableEntry = Symbol('_removeHashTableEntry');
+const _unlinkCell = Symbol('_unlinkCell');
+const _modified = Symbol('_modified');
+const _next = Symbol('_next');
+const _deleteTableEntry = Symbol('_deleteTableEntry');
+const _previous = Symbol('_previous');
 _js_helper.JsLinkedHashMap$ = dart.generic((K, V) => {
   let JsLinkedHashMapOfK$V = () => (JsLinkedHashMapOfK$V = dart.constFn(_js_helper.JsLinkedHashMap$(K, V)))();
   let LinkedHashMapKeyIterableOfK = () => (LinkedHashMapKeyIterableOfK = dart.constFn(_js_helper.LinkedHashMapKeyIterable$(K)))();
@@ -12280,7 +12281,7 @@ _js_helper.LinkedHashMapCell$ = dart.generic((K, V) => {
   return LinkedHashMapCell;
 });
 _js_helper.LinkedHashMapCell = LinkedHashMapCell();
-let _map = Symbol('_map');
+const _map = Symbol('_map');
 _js_helper.LinkedHashMapKeyIterable$ = dart.generic(E => {
   let LinkedHashMapKeyIteratorOfE = () => (LinkedHashMapKeyIteratorOfE = dart.constFn(_js_helper.LinkedHashMapKeyIterator$(E)))();
   let ETovoid = () => (ETovoid = dart.constFn(dart.functionType(dart.void, [E])))();
@@ -12331,7 +12332,7 @@ _js_helper.LinkedHashMapKeyIterable$ = dart.generic(E => {
   return LinkedHashMapKeyIterable;
 });
 _js_helper.LinkedHashMapKeyIterable = LinkedHashMapKeyIterable();
-let _cell = Symbol('_cell');
+const _cell = Symbol('_cell');
 _js_helper.LinkedHashMapKeyIterator$ = dart.generic(E => {
   let IteratorOfE = () => (IteratorOfE = dart.constFn(core.Iterator$(E)))();
   let JsLinkedHashMapOfE$dynamic = () => (JsLinkedHashMapOfE$dynamic = dart.constFn(_js_helper.JsLinkedHashMap$(E, dart.dynamic)))();
@@ -12395,31 +12396,31 @@ dart.fn(_js_helper.findDispatchTagForInterceptorClass, dynamicTodynamic());
 _js_helper.makeLeafDispatchRecord = function(interceptor) {
 };
 dart.fn(_js_helper.makeLeafDispatchRecord, dynamicTodynamic());
-let _nativeRegExp = Symbol('_nativeRegExp');
+const _nativeRegExp = Symbol('_nativeRegExp');
 _js_helper.regExpGetNative = function(regexp) {
   return regexp[_nativeRegExp];
 };
 dart.lazyFn(_js_helper.regExpGetNative, () => JSSyntaxRegExpTodynamic());
-let _nativeGlobalVersion = Symbol('_nativeGlobalVersion');
+const _nativeGlobalVersion = Symbol('_nativeGlobalVersion');
 _js_helper.regExpGetGlobalNative = function(regexp) {
   let nativeRegexp = regexp[_nativeGlobalVersion];
   nativeRegexp.lastIndex = 0;
   return nativeRegexp;
 };
 dart.lazyFn(_js_helper.regExpGetGlobalNative, () => JSSyntaxRegExpTodynamic());
-let _nativeAnchoredVersion = Symbol('_nativeAnchoredVersion');
+const _nativeAnchoredVersion = Symbol('_nativeAnchoredVersion');
 _js_helper.regExpCaptureCount = function(regexp) {
   let nativeAnchoredRegExp = regexp[_nativeAnchoredVersion];
   let match = nativeAnchoredRegExp.exec('');
   return core.int._check(dart.dsend(dart.dload(match, 'length'), '-', 2));
 };
 dart.lazyFn(_js_helper.regExpCaptureCount, () => JSSyntaxRegExpToint());
-let _nativeGlobalRegExp = Symbol('_nativeGlobalRegExp');
-let _nativeAnchoredRegExp = Symbol('_nativeAnchoredRegExp');
-let _isMultiLine = Symbol('_isMultiLine');
-let _isCaseSensitive = Symbol('_isCaseSensitive');
-let _execGlobal = Symbol('_execGlobal');
-let _execAnchored = Symbol('_execAnchored');
+const _nativeGlobalRegExp = Symbol('_nativeGlobalRegExp');
+const _nativeAnchoredRegExp = Symbol('_nativeAnchoredRegExp');
+const _isMultiLine = Symbol('_isMultiLine');
+const _isCaseSensitive = Symbol('_isCaseSensitive');
+const _execGlobal = Symbol('_execGlobal');
+const _execAnchored = Symbol('_execAnchored');
 _js_helper.JSSyntaxRegExp = class JSSyntaxRegExp extends core.Object {
   toString() {
     return dart.str`RegExp/${this.pattern}/`;
@@ -12545,7 +12546,7 @@ dart.setSignature(_js_helper.JSSyntaxRegExp, {
   names: ['makeNative']
 });
 dart.defineExtensionMembers(_js_helper.JSSyntaxRegExp, ['allMatches', 'matchAsPrefix']);
-let _match = Symbol('_match');
+const _match = Symbol('_match');
 _js_helper._MatchImplementation = class _MatchImplementation extends core.Object {
   new(pattern, match) {
     this.pattern = pattern;
@@ -12598,9 +12599,9 @@ dart.setSignature(_js_helper._MatchImplementation, {
     groups: dart.definiteFunctionType(core.List$(core.String), [ListOfint()])
   })
 });
-let _re = Symbol('_re');
-let _string = Symbol('_string');
-let _start = Symbol('_start');
+const _re = Symbol('_re');
+const _string = Symbol('_string');
+const _start = Symbol('_start');
 core.Match = class Match extends core.Object {};
 _js_helper._AllMatchesIterable = class _AllMatchesIterable extends collection.IterableBase$(core.Match) {
   new(re, string, start) {
@@ -12624,8 +12625,8 @@ dart.setSignature(_js_helper._AllMatchesIterable, {
   getters: () => ({iterator: dart.definiteFunctionType(core.Iterator$(core.Match), [])})
 });
 dart.defineExtensionMembers(_js_helper._AllMatchesIterable, ['iterator']);
-let _regExp = Symbol('_regExp');
-let _nextIndex = Symbol('_nextIndex');
+const _regExp = Symbol('_regExp');
+const _nextIndex = Symbol('_nextIndex');
 _js_helper._AllMatchesIterator = class _AllMatchesIterator extends core.Object {
   new(regExp, string, nextIndex) {
     this[_regExp] = regExp;
@@ -12738,9 +12739,9 @@ _js_helper.allMatchesInStringUnchecked = function(pattern, string, startIndex) {
   return new _js_helper._StringAllMatchesIterable(string, pattern, startIndex);
 };
 dart.lazyFn(_js_helper.allMatchesInStringUnchecked, () => StringAndStringAndintToIterableOfMatch());
-let _input = Symbol('_input');
-let _pattern = Symbol('_pattern');
-let _index = Symbol('_index');
+const _input = Symbol('_input');
+const _pattern = Symbol('_pattern');
+const _index = Symbol('_index');
 _js_helper._StringAllMatchesIterable = class _StringAllMatchesIterable extends core.Iterable$(core.Match) {
   new(input, pattern, index) {
     this[_input] = input;
@@ -13068,7 +13069,7 @@ _js_mirrors._defaultConstructorType = function(type) {
 };
 dart.fn(_js_mirrors._defaultConstructorType, dynamicTodynamic());
 _js_mirrors._Lazy$ = dart.generic(T => {
-  let _Lazy = dart.typedef('_Lazy', () => dart.functionType(T, []));
+  const _Lazy = dart.typedef('_Lazy', () => dart.functionType(T, []));
   return _Lazy;
 });
 _js_mirrors._Lazy = _Lazy();
@@ -13231,7 +13232,7 @@ _js_mirrors.JsObjectMirror = class JsObjectMirror extends _js_mirrors.JsMirror {
   }
 };
 _js_mirrors.JsObjectMirror[dart.implements] = () => [mirrors.ObjectMirror];
-let _toJsMap = Symbol('_toJsMap');
+const _toJsMap = Symbol('_toJsMap');
 _js_mirrors.JsInstanceMirror = class JsInstanceMirror extends _js_mirrors.JsObjectMirror {
   get hasReflectee() {
     return true;
@@ -13323,12 +13324,12 @@ dart.setSignature(_js_mirrors.JsClosureMirror, {
   constructors: () => ({_: dart.definiteFunctionType(_js_mirrors.JsClosureMirror, [dart.dynamic])}),
   methods: () => ({apply: dart.definiteFunctionType(mirrors.InstanceMirror, [core.List], [MapOfSymbol$dynamic()])})
 });
-let _metadata = Symbol('_metadata');
-let _cls = Symbol('_cls');
+const _metadata = Symbol('_metadata');
+const _cls = Symbol('_cls');
 let const;
-let _declarations = Symbol('_declarations');
-let _raw = Symbol('_raw');
-let _typeArguments = Symbol('_typeArguments');
+const _declarations = Symbol('_declarations');
+const _raw = Symbol('_raw');
+const _typeArguments = Symbol('_typeArguments');
 let const;
 _js_mirrors.JsClassMirror = class JsClassMirror extends _js_mirrors.JsMirror {
   get metadata() {
@@ -13536,7 +13537,7 @@ dart.setSignature(_js_mirrors.JsClassMirror, {
   }),
   methods: () => ({newInstance: dart.definiteFunctionType(mirrors.InstanceMirror, [core.Symbol, core.List], [MapOfSymbol$dynamic()])})
 });
-let _name = Symbol('_name');
+const _name = Symbol('_name');
 _js_mirrors.JsVariableMirror = class JsVariableMirror extends _js_mirrors.JsMirror {
   get simpleName() {
     return core.Symbol.new(this[_name]);
@@ -13620,8 +13621,8 @@ _js_mirrors.JsParameterMirror[dart.implements] = () => [mirrors.ParameterMirror]
 dart.setSignature(_js_mirrors.JsParameterMirror, {
   constructors: () => ({_: dart.definiteFunctionType(_js_mirrors.JsParameterMirror, [core.String, core.Type, core.List])})
 });
-let _params = Symbol('_params');
-let _createParameterMirrorList = Symbol('_createParameterMirrorList');
+const _params = Symbol('_params');
+const _createParameterMirrorList = Symbol('_createParameterMirrorList');
 let const;
 let const;
 let const;
@@ -13976,7 +13977,7 @@ dart.setSignature(_native_typed_data.NativeByteBuffer, {
   })
 });
 dart.registerExtension(dart.global.ArrayBuffer, _native_typed_data.NativeByteBuffer);
-let _storage = Symbol('_storage');
+const _storage = Symbol('_storage');
 typed_data.Float32x4 = class Float32x4 extends core.Object {
   static new(x, y, z, w) {
     return new _native_typed_data.NativeFloat32x4(x, y, z, w);
@@ -15368,8 +15369,8 @@ dart.defineExtensionMembers(_native_typed_data.NativeFloat64x2List, [
   'elementSizeInBytes',
   'length'
 ]);
-let _invalidPosition = Symbol('_invalidPosition');
-let _checkPosition = Symbol('_checkPosition');
+const _invalidPosition = Symbol('_invalidPosition');
+const _checkPosition = Symbol('_checkPosition');
 dart.defineExtensionNames([
   'buffer',
   'lengthInBytes',
@@ -15442,18 +15443,18 @@ _native_typed_data._ensureNativeList = function(list) {
   return result;
 };
 dart.lazyFn(_native_typed_data._ensureNativeList, () => ListToList());
-let _getFloat32 = Symbol('_getFloat32');
-let _getFloat64 = Symbol('_getFloat64');
-let _getInt16 = Symbol('_getInt16');
-let _getInt32 = Symbol('_getInt32');
-let _getUint16 = Symbol('_getUint16');
-let _getUint32 = Symbol('_getUint32');
-let _setFloat32 = Symbol('_setFloat32');
-let _setFloat64 = Symbol('_setFloat64');
-let _setInt16 = Symbol('_setInt16');
-let _setInt32 = Symbol('_setInt32');
-let _setUint16 = Symbol('_setUint16');
-let _setUint32 = Symbol('_setUint32');
+const _getFloat32 = Symbol('_getFloat32');
+const _getFloat64 = Symbol('_getFloat64');
+const _getInt16 = Symbol('_getInt16');
+const _getInt32 = Symbol('_getInt32');
+const _getUint16 = Symbol('_getUint16');
+const _getUint32 = Symbol('_getUint32');
+const _setFloat32 = Symbol('_setFloat32');
+const _setFloat64 = Symbol('_setFloat64');
+const _setInt16 = Symbol('_setInt16');
+const _setInt32 = Symbol('_setInt32');
+const _setUint16 = Symbol('_setUint16');
+const _setUint32 = Symbol('_setUint32');
 dart.defineExtensionNames([
   'runtimeType',
   'elementSizeInBytes',
@@ -15662,7 +15663,7 @@ dart.setSignature(_native_typed_data.NativeByteData, {
   names: ['_create1', '_create2', '_create3']
 });
 dart.registerExtension(dart.global.DataView, _native_typed_data.NativeByteData);
-let _setRangeFast = Symbol('_setRangeFast');
+const _setRangeFast = Symbol('_setRangeFast');
 _native_typed_data.NativeTypedArray = class NativeTypedArray extends _native_typed_data.NativeTypedData {
   [_setRangeFast](start, end, source, skipCount) {
     let targetLength = this[dartx.length];
@@ -17024,10 +17025,10 @@ dart.setSignature(async._UncaughtAsyncError, {
   statics: () => ({_getBestStackTrace: dart.definiteFunctionType(core.StackTrace, [dart.dynamic, core.StackTrace])}),
   names: ['_getBestStackTrace']
 });
-let _controller = Symbol('_controller');
-let _subscribe = Symbol('_subscribe');
-let _createSubscription = Symbol('_createSubscription');
-let _onListen = Symbol('_onListen');
+const _controller = Symbol('_controller');
+const _subscribe = Symbol('_subscribe');
+const _createSubscription = Symbol('_createSubscription');
+const _onListen = Symbol('_onListen');
 async._StreamImpl$ = dart.generic(T => {
   let _BufferingStreamSubscriptionOfT = () => (_BufferingStreamSubscriptionOfT = dart.constFn(async._BufferingStreamSubscription$(T)))();
   let TTovoid = () => (TTovoid = dart.constFn(dart.functionType(dart.void, [T])))();
@@ -17106,49 +17107,49 @@ async._BroadcastStream$ = dart.generic(T => {
   return _BroadcastStream;
 });
 async._BroadcastStream = _BroadcastStream();
-let _eventState = Symbol('_eventState');
-let _next = Symbol('_next');
-let _previous = Symbol('_previous');
-let _expectsEvent = Symbol('_expectsEvent');
-let _toggleEventId = Symbol('_toggleEventId');
-let _isFiring = Symbol('_isFiring');
-let _setRemoveAfterFiring = Symbol('_setRemoveAfterFiring');
-let _removeAfterFiring = Symbol('_removeAfterFiring');
-let _onPause = Symbol('_onPause');
-let _onResume = Symbol('_onResume');
-let _recordCancel = Symbol('_recordCancel');
-let _onCancel = Symbol('_onCancel');
-let _recordPause = Symbol('_recordPause');
-let _recordResume = Symbol('_recordResume');
-let _zone = Symbol('_zone');
-let _state = Symbol('_state');
-let _onData = Symbol('_onData');
-let _onError = Symbol('_onError');
-let _onDone = Symbol('_onDone');
-let _cancelFuture = Symbol('_cancelFuture');
-let _pending = Symbol('_pending');
-let _setPendingEvents = Symbol('_setPendingEvents');
-let _isCanceled = Symbol('_isCanceled');
-let _isPaused = Symbol('_isPaused');
-let _isInputPaused = Symbol('_isInputPaused');
-let _inCallback = Symbol('_inCallback');
-let _guardCallback = Symbol('_guardCallback');
-let _decrementPauseCount = Symbol('_decrementPauseCount');
-let _hasPending = Symbol('_hasPending');
-let _mayResumeInput = Symbol('_mayResumeInput');
-let _cancel = Symbol('_cancel');
-let _isClosed = Symbol('_isClosed');
-let _waitsForCancel = Symbol('_waitsForCancel');
-let _canFire = Symbol('_canFire');
-let _cancelOnError = Symbol('_cancelOnError');
-let _incrementPauseCount = Symbol('_incrementPauseCount');
-let _sendData = Symbol('_sendData');
-let _addPending = Symbol('_addPending');
-let _sendError = Symbol('_sendError');
-let _sendDone = Symbol('_sendDone');
+const _eventState = Symbol('_eventState');
+const _next = Symbol('_next');
+const _previous = Symbol('_previous');
+const _expectsEvent = Symbol('_expectsEvent');
+const _toggleEventId = Symbol('_toggleEventId');
+const _isFiring = Symbol('_isFiring');
+const _setRemoveAfterFiring = Symbol('_setRemoveAfterFiring');
+const _removeAfterFiring = Symbol('_removeAfterFiring');
+const _onPause = Symbol('_onPause');
+const _onResume = Symbol('_onResume');
+const _recordCancel = Symbol('_recordCancel');
+const _onCancel = Symbol('_onCancel');
+const _recordPause = Symbol('_recordPause');
+const _recordResume = Symbol('_recordResume');
+const _zone = Symbol('_zone');
+const _state = Symbol('_state');
+const _onData = Symbol('_onData');
+const _onError = Symbol('_onError');
+const _onDone = Symbol('_onDone');
+const _cancelFuture = Symbol('_cancelFuture');
+const _pending = Symbol('_pending');
+const _setPendingEvents = Symbol('_setPendingEvents');
+const _isCanceled = Symbol('_isCanceled');
+const _isPaused = Symbol('_isPaused');
+const _isInputPaused = Symbol('_isInputPaused');
+const _inCallback = Symbol('_inCallback');
+const _guardCallback = Symbol('_guardCallback');
+const _decrementPauseCount = Symbol('_decrementPauseCount');
+const _hasPending = Symbol('_hasPending');
+const _mayResumeInput = Symbol('_mayResumeInput');
+const _cancel = Symbol('_cancel');
+const _isClosed = Symbol('_isClosed');
+const _waitsForCancel = Symbol('_waitsForCancel');
+const _canFire = Symbol('_canFire');
+const _cancelOnError = Symbol('_cancelOnError');
+const _incrementPauseCount = Symbol('_incrementPauseCount');
+const _sendData = Symbol('_sendData');
+const _addPending = Symbol('_addPending');
+const _sendError = Symbol('_sendError');
+const _sendDone = Symbol('_sendDone');
 let const;
-let _close = Symbol('_close');
-let _checkState = Symbol('_checkState');
+const _close = Symbol('_close');
+const _checkState = Symbol('_checkState');
 async._BufferingStreamSubscription$ = dart.generic(T => {
   let _PendingEventsOfT = () => (_PendingEventsOfT = dart.constFn(async._PendingEvents$(T)))();
   let _DelayedDataOfT = () => (_DelayedDataOfT = dart.constFn(async._DelayedData$(T)))();
@@ -17352,7 +17353,7 @@ async._BufferingStreamSubscription$ = dart.generic(T => {
       dart.assert(!dart.test(this[_isPaused]));
       dart.assert(!dart.test(this[_inCallback]));
       let wasInputPaused = this[_isInputPaused];
-      let sendError = (function() {
+      const sendError = (function() {
         if (dart.test(this[_isCanceled]) && !dart.test(this[_waitsForCancel])) return;
         this[_state] = (dart.notNull(this[_state]) | async._BufferingStreamSubscription._STATE_IN_CALLBACK) >>> 0;
         if (ZoneBinaryCallbackOfdynamic$Object$StackTrace().is(this[_onError])) {
@@ -17381,7 +17382,7 @@ async._BufferingStreamSubscription$ = dart.generic(T => {
       dart.assert(!dart.test(this[_isCanceled]));
       dart.assert(!dart.test(this[_isPaused]));
       dart.assert(!dart.test(this[_inCallback]));
-      let sendDone = (function() {
+      const sendDone = (function() {
         if (!dart.test(this[_waitsForCancel])) return;
         this[_state] = (dart.notNull(this[_state]) | async._BufferingStreamSubscription._STATE_CANCELED | async._BufferingStreamSubscription._STATE_CLOSED | async._BufferingStreamSubscription._STATE_IN_CALLBACK) >>> 0;
         this[_zone].runGuarded(dart.dynamic)(this[_onDone]);
@@ -17592,22 +17593,22 @@ async._BroadcastSubscription = _BroadcastSubscription();
 async._BroadcastSubscription._STATE_EVENT_ID = 1;
 async._BroadcastSubscription._STATE_FIRING = 2;
 async._BroadcastSubscription._STATE_REMOVE_AFTER_FIRING = 4;
-let _firstSubscription = Symbol('_firstSubscription');
-let _lastSubscription = Symbol('_lastSubscription');
-let _addStreamState = Symbol('_addStreamState');
-let _doneFuture = Symbol('_doneFuture');
-let _isEmpty = Symbol('_isEmpty');
-let _hasOneListener = Symbol('_hasOneListener');
-let _isAddingStream = Symbol('_isAddingStream');
-let _mayAddEvent = Symbol('_mayAddEvent');
-let _ensureDoneFuture = Symbol('_ensureDoneFuture');
-let _addListener = Symbol('_addListener');
-let _removeListener = Symbol('_removeListener');
-let _callOnCancel = Symbol('_callOnCancel');
-let _addEventError = Symbol('_addEventError');
-let _forEachListener = Symbol('_forEachListener');
-let _mayComplete = Symbol('_mayComplete');
-let _asyncComplete = Symbol('_asyncComplete');
+const _firstSubscription = Symbol('_firstSubscription');
+const _lastSubscription = Symbol('_lastSubscription');
+const _addStreamState = Symbol('_addStreamState');
+const _doneFuture = Symbol('_doneFuture');
+const _isEmpty = Symbol('_isEmpty');
+const _hasOneListener = Symbol('_hasOneListener');
+const _isAddingStream = Symbol('_isAddingStream');
+const _mayAddEvent = Symbol('_mayAddEvent');
+const _ensureDoneFuture = Symbol('_ensureDoneFuture');
+const _addListener = Symbol('_addListener');
+const _removeListener = Symbol('_removeListener');
+const _callOnCancel = Symbol('_callOnCancel');
+const _addEventError = Symbol('_addEventError');
+const _forEachListener = Symbol('_forEachListener');
+const _mayComplete = Symbol('_mayComplete');
+const _asyncComplete = Symbol('_asyncComplete');
 async._BroadcastStreamController$ = dart.generic(T => {
   let _BroadcastStreamOfT = () => (_BroadcastStreamOfT = dart.constFn(async._BroadcastStream$(T)))();
   let _StreamSinkWrapperOfT = () => (_StreamSinkWrapperOfT = dart.constFn(async._StreamSinkWrapper$(T)))();
@@ -18011,7 +18012,7 @@ async._AsyncBroadcastStreamController$ = dart.generic(T => {
   return _AsyncBroadcastStreamController;
 });
 async._AsyncBroadcastStreamController = _AsyncBroadcastStreamController();
-let _addPendingEvent = Symbol('_addPendingEvent');
+const _addPendingEvent = Symbol('_addPendingEvent');
 let const;
 async._AsBroadcastStreamController$ = dart.generic(T => {
   let _StreamImplEventsOfT = () => (_StreamImplEventsOfT = dart.constFn(async._StreamImplEvents$(T)))();
@@ -18085,8 +18086,8 @@ async._AsBroadcastStreamController$ = dart.generic(T => {
   return _AsBroadcastStreamController;
 });
 async._AsBroadcastStreamController = _AsBroadcastStreamController();
-let _pauseCount = Symbol('_pauseCount');
-let _resume = Symbol('_resume');
+const _pauseCount = Symbol('_pauseCount');
+const _resume = Symbol('_resume');
 async._DoneSubscription$ = dart.generic(T => {
   let StreamSubscriptionOfT = () => (StreamSubscriptionOfT = dart.constFn(async.StreamSubscription$(T)))();
   let TTovoid = () => (TTovoid = dart.constFn(dart.functionType(dart.void, [T])))();
@@ -18160,7 +18161,7 @@ dart.setSignature(async.DeferredLibrary, {
   }),
   methods: () => ({load: dart.definiteFunctionType(async.Future$(core.Null), [])})
 });
-let _s = Symbol('_s');
+const _s = Symbol('_s');
 async.DeferredLoadException = class DeferredLoadException extends core.Object {
   new(s) {
     this[_s] = s;
@@ -18174,7 +18175,7 @@ dart.setSignature(async.DeferredLoadException, {
   constructors: () => ({new: dart.definiteFunctionType(async.DeferredLoadException, [core.String])}),
   fields: () => ({[_s]: core.String})
 });
-let _completeWithValue = Symbol('_completeWithValue');
+const _completeWithValue = Symbol('_completeWithValue');
 let const;
 async.Future$ = dart.flattenFutures(dart.generic(T => {
   let _FutureOfT = () => (_FutureOfT = dart.constFn(async._Future$(T)))();
@@ -18426,7 +18427,7 @@ async._nonNullError = function(error) {
 };
 dart.fn(async._nonNullError, ObjectToObject());
 async._FutureOnValue$ = dart.generic((S, T) => {
-  let _FutureOnValue = dart.typedef('_FutureOnValue', () => dart.functionType(dart.dynamic, [S]));
+  const _FutureOnValue = dart.typedef('_FutureOnValue', () => dart.functionType(dart.dynamic, [S]));
   return _FutureOnValue;
 });
 async._FutureOnValue = _FutureOnValue();
@@ -18464,7 +18465,7 @@ async._Completer$ = dart.generic(T => {
   return _Completer;
 });
 async._Completer = _Completer();
-let _asyncCompleteError = Symbol('_asyncCompleteError');
+const _asyncCompleteError = Symbol('_asyncCompleteError');
 async._AsyncCompleter$ = dart.generic(T => {
   class _AsyncCompleter extends async._Completer$(T) {
     new() {
@@ -18511,10 +18512,10 @@ async._SyncCompleter$ = dart.generic(T => {
   return _SyncCompleter;
 });
 async._SyncCompleter = _SyncCompleter();
-let _nextListener = Symbol('_nextListener');
-let _onValue = Symbol('_onValue');
-let _errorTest = Symbol('_errorTest');
-let _whenCompleteAction = Symbol('_whenCompleteAction');
+const _nextListener = Symbol('_nextListener');
+const _onValue = Symbol('_onValue');
+const _errorTest = Symbol('_errorTest');
+const _whenCompleteAction = Symbol('_whenCompleteAction');
 async._FutureListener$ = dart.generic((S, T) => {
   let _FutureOnValueOfS$T = () => (_FutureOnValueOfS$T = dart.constFn(async._FutureOnValue$(S, T)))();
   let _FutureOfT = () => (_FutureOfT = dart.constFn(async._Future$(T)))();
@@ -18666,24 +18667,24 @@ dart.defineLazy(async._FutureListener, {
     return async._FutureListener.MASK_WHENCOMPLETE;
   }
 });
-let _resultOrListeners = Symbol('_resultOrListeners');
-let _isPendingComplete = Symbol('_isPendingComplete');
-let _mayAddListener = Symbol('_mayAddListener');
-let _isChained = Symbol('_isChained');
-let _isComplete = Symbol('_isComplete');
-let _hasError = Symbol('_hasError');
-let _setChained = Symbol('_setChained');
-let _thenNoZoneRegistration = Symbol('_thenNoZoneRegistration');
-let _setPendingComplete = Symbol('_setPendingComplete');
-let _error = Symbol('_error');
-let _chainSource = Symbol('_chainSource');
-let _setValue = Symbol('_setValue');
-let _setErrorObject = Symbol('_setErrorObject');
-let _setError = Symbol('_setError');
-let _cloneResult = Symbol('_cloneResult');
-let _prependListeners = Symbol('_prependListeners');
-let _reverseListeners = Symbol('_reverseListeners');
-let _removeListeners = Symbol('_removeListeners');
+const _resultOrListeners = Symbol('_resultOrListeners');
+const _isPendingComplete = Symbol('_isPendingComplete');
+const _mayAddListener = Symbol('_mayAddListener');
+const _isChained = Symbol('_isChained');
+const _isComplete = Symbol('_isComplete');
+const _hasError = Symbol('_hasError');
+const _setChained = Symbol('_setChained');
+const _thenNoZoneRegistration = Symbol('_thenNoZoneRegistration');
+const _setPendingComplete = Symbol('_setPendingComplete');
+const _error = Symbol('_error');
+const _chainSource = Symbol('_chainSource');
+const _setValue = Symbol('_setValue');
+const _setErrorObject = Symbol('_setErrorObject');
+const _setError = Symbol('_setError');
+const _cloneResult = Symbol('_cloneResult');
+const _prependListeners = Symbol('_prependListeners');
+const _reverseListeners = Symbol('_reverseListeners');
+const _removeListeners = Symbol('_removeListeners');
 async._Future$ = dart.flattenFutures(dart.generic(T => {
   let _FutureOfT = () => (_FutureOfT = dart.constFn(async._Future$(T)))();
   let _FutureListenerOfT$T = () => (_FutureListenerOfT$T = dart.constFn(async._FutureListener$(T, T)))();
@@ -19283,7 +19284,7 @@ async._schedulePriorityAsyncCallback = function(callback) {
   }
 };
 dart.fn(async._schedulePriorityAsyncCallback, _AsyncCallbackTovoid());
-let _scheduleMicrotask = Symbol('_scheduleMicrotask');
+const _scheduleMicrotask = Symbol('_scheduleMicrotask');
 async.scheduleMicrotask = function(callback) {
   let currentZone = async._Zone._check(async.Zone.current);
   if (core.identical(async._ROOT_ZONE, currentZone)) {
@@ -19386,7 +19387,7 @@ async.EventSink$ = dart.generic(T => {
   return EventSink;
 });
 async.EventSink = EventSink();
-let _stream = Symbol('_stream');
+const _stream = Symbol('_stream');
 async.StreamView$ = dart.generic(T => {
   let StreamSubscriptionOfT = () => (StreamSubscriptionOfT = dart.constFn(async.StreamSubscription$(T)))();
   let StreamSubscriptionOfTTovoid = () => (StreamSubscriptionOfTTovoid = dart.constFn(dart.functionType(dart.void, [StreamSubscriptionOfT()])))();
@@ -19581,12 +19582,12 @@ async._StreamControllerLifecycle$ = dart.generic(T => {
   return _StreamControllerLifecycle;
 });
 async._StreamControllerLifecycle = _StreamControllerLifecycle();
-let _varData = Symbol('_varData');
-let _isInitialState = Symbol('_isInitialState');
-let _subscription = Symbol('_subscription');
-let _pendingEvents = Symbol('_pendingEvents');
-let _ensurePendingEvents = Symbol('_ensurePendingEvents');
-let _badEventState = Symbol('_badEventState');
+const _varData = Symbol('_varData');
+const _isInitialState = Symbol('_isInitialState');
+const _subscription = Symbol('_subscription');
+const _pendingEvents = Symbol('_pendingEvents');
+const _ensurePendingEvents = Symbol('_ensurePendingEvents');
+const _badEventState = Symbol('_badEventState');
 let const;
 async._StreamController$ = dart.generic(T => {
   let _ControllerStreamOfT = () => (_ControllerStreamOfT = dart.constFn(async._ControllerStream$(T)))();
@@ -19789,7 +19790,7 @@ async._StreamController$ = dart.generic(T => {
           result = result.whenComplete(this.onCancel);
         }
       }
-      let complete = (function() {
+      const complete = (function() {
         if (this[_doneFuture] != null && dart.test(this[_doneFuture][_mayComplete])) {
           this[_doneFuture][_asyncComplete](null);
         }
@@ -19968,7 +19969,7 @@ async._runGuarded = function(notificationHandler) {
 
 };
 dart.fn(async._runGuarded, _NotificationHandlerToFuture());
-let _target = Symbol('_target');
+const _target = Symbol('_target');
 async._StreamSinkWrapper$ = dart.generic(T => {
   let StreamOfT = () => (StreamOfT = dart.constFn(async.Stream$(T)))();
   let StreamSinkOfT = () => (StreamSinkOfT = dart.constFn(async.StreamSink$(T)))();
@@ -20095,11 +20096,11 @@ async._EventDispatch$ = dart.generic(T => {
 });
 async._EventDispatch = _EventDispatch();
 async._EventGenerator$ = dart.generic(T => {
-  let _EventGenerator = dart.typedef('_EventGenerator', () => dart.functionType(async._PendingEvents$(T), []));
+  const _EventGenerator = dart.typedef('_EventGenerator', () => dart.functionType(async._PendingEvents$(T), []));
   return _EventGenerator;
 });
 async._EventGenerator = _EventGenerator();
-let _isUsed = Symbol('_isUsed');
+const _isUsed = Symbol('_isUsed');
 async._GeneratedStreamImpl$ = dart.generic(T => {
   let _BufferingStreamSubscriptionOfT = () => (_BufferingStreamSubscriptionOfT = dart.constFn(async._BufferingStreamSubscription$(T)))();
   let TTovoid = () => (TTovoid = dart.constFn(dart.functionType(dart.void, [T])))();
@@ -20128,8 +20129,8 @@ async._GeneratedStreamImpl$ = dart.generic(T => {
   return _GeneratedStreamImpl;
 });
 async._GeneratedStreamImpl = _GeneratedStreamImpl();
-let _iterator = Symbol('_iterator');
-let _eventScheduled = Symbol('_eventScheduled');
+const _iterator = Symbol('_iterator');
+const _eventScheduled = Symbol('_eventScheduled');
 async._PendingEvents$ = dart.generic(T => {
   let _EventDispatchOfT = () => (_EventDispatchOfT = dart.constFn(async._EventDispatch$(T)))();
   class _PendingEvents extends core.Object {
@@ -20238,7 +20239,7 @@ async._IterablePendingEvents$ = dart.generic(T => {
 });
 async._IterablePendingEvents = _IterablePendingEvents();
 async._DataHandler$ = dart.generic(T => {
-  let _DataHandler = dart.typedef('_DataHandler', () => dart.functionType(dart.void, [T]));
+  const _DataHandler = dart.typedef('_DataHandler', () => dart.functionType(dart.void, [T]));
   return _DataHandler;
 });
 async._DataHandler = _DataHandler();
@@ -20374,8 +20375,8 @@ async._StreamImplEvents$ = dart.generic(T => {
   return _StreamImplEvents;
 });
 async._StreamImplEvents = _StreamImplEvents();
-let _unlink = Symbol('_unlink');
-let _insertBefore = Symbol('_insertBefore');
+const _unlink = Symbol('_unlink');
+const _insertBefore = Symbol('_insertBefore');
 async._BroadcastLinkedList = class _BroadcastLinkedList extends core.Object {
   new() {
     this[_next] = null;
@@ -20405,13 +20406,13 @@ dart.setSignature(async._BroadcastLinkedList, {
   })
 });
 async._BroadcastCallback$ = dart.generic(T => {
-  let _BroadcastCallback = dart.typedef('_BroadcastCallback', () => dart.functionType(dart.void, [async.StreamSubscription$(T)]));
+  const _BroadcastCallback = dart.typedef('_BroadcastCallback', () => dart.functionType(dart.void, [async.StreamSubscription$(T)]));
   return _BroadcastCallback;
 });
 async._BroadcastCallback = _BroadcastCallback();
-let _schedule = Symbol('_schedule');
-let _isSent = Symbol('_isSent');
-let _isScheduled = Symbol('_isScheduled');
+const _schedule = Symbol('_schedule');
+const _isSent = Symbol('_isSent');
+const _isScheduled = Symbol('_isScheduled');
 async._DoneStreamSubscription$ = dart.generic(T => {
   let StreamSubscriptionOfT = () => (StreamSubscriptionOfT = dart.constFn(async.StreamSubscription$(T)))();
   let TTovoid = () => (TTovoid = dart.constFn(dart.functionType(dart.void, [T])))();
@@ -20511,13 +20512,13 @@ async._DoneStreamSubscription = _DoneStreamSubscription();
 async._DoneStreamSubscription._DONE_SENT = 1;
 async._DoneStreamSubscription._SCHEDULED = 2;
 async._DoneStreamSubscription._PAUSED = 4;
-let _source = Symbol('_source');
-let _onListenHandler = Symbol('_onListenHandler');
-let _onCancelHandler = Symbol('_onCancelHandler');
-let _cancelSubscription = Symbol('_cancelSubscription');
-let _pauseSubscription = Symbol('_pauseSubscription');
-let _resumeSubscription = Symbol('_resumeSubscription');
-let _isSubscriptionPaused = Symbol('_isSubscriptionPaused');
+const _source = Symbol('_source');
+const _onListenHandler = Symbol('_onListenHandler');
+const _onCancelHandler = Symbol('_onCancelHandler');
+const _cancelSubscription = Symbol('_cancelSubscription');
+const _pauseSubscription = Symbol('_pauseSubscription');
+const _resumeSubscription = Symbol('_resumeSubscription');
+const _isSubscriptionPaused = Symbol('_isSubscriptionPaused');
 async._AsBroadcastStream$ = dart.generic(T => {
   let StreamSubscriptionOfT = () => (StreamSubscriptionOfT = dart.constFn(async.StreamSubscription$(T)))();
   let _AsBroadcastStreamControllerOfT = () => (_AsBroadcastStreamControllerOfT = dart.constFn(async._AsBroadcastStreamController$(T)))();
@@ -20669,9 +20670,9 @@ async._BroadcastSubscriptionWrapper$ = dart.generic(T => {
   return _BroadcastSubscriptionWrapper;
 });
 async._BroadcastSubscriptionWrapper = _BroadcastSubscriptionWrapper();
-let _current = Symbol('_current');
-let _futureOrPrefetch = Symbol('_futureOrPrefetch');
-let _clear = Symbol('_clear');
+const _current = Symbol('_current');
+const _futureOrPrefetch = Symbol('_futureOrPrefetch');
+const _clear = Symbol('_clear');
 async._StreamIteratorImpl$ = dart.generic(T => {
   let StreamIteratorOfT = () => (StreamIteratorOfT = dart.constFn(async.StreamIterator$(T)))();
   let StreamOfT = () => (StreamOfT = dart.constFn(async.Stream$(T)))();
@@ -20894,9 +20895,9 @@ async._cancelAndValue = function(subscription, future, value) {
   }
 };
 dart.fn(async._cancelAndValue, StreamSubscriptionAnd_FutureAnddynamicTovoid());
-let _handleData = Symbol('_handleData');
-let _handleError = Symbol('_handleError');
-let _handleDone = Symbol('_handleDone');
+const _handleData = Symbol('_handleData');
+const _handleError = Symbol('_handleError');
+const _handleDone = Symbol('_handleDone');
 async._ForwardingStream$ = dart.generic((S, T) => {
   let _ForwardingStreamSubscriptionOfS$T = () => (_ForwardingStreamSubscriptionOfS$T = dart.constFn(async._ForwardingStreamSubscription$(S, T)))();
   let StreamOfS = () => (StreamOfS = dart.constFn(async.Stream$(S)))();
@@ -21012,7 +21013,7 @@ async._ForwardingStreamSubscription$ = dart.generic((S, T) => {
 });
 async._ForwardingStreamSubscription = _ForwardingStreamSubscription();
 async._Predicate$ = dart.generic(T => {
-  let _Predicate = dart.typedef('_Predicate', () => dart.functionType(core.bool, [T]));
+  const _Predicate = dart.typedef('_Predicate', () => dart.functionType(core.bool, [T]));
   return _Predicate;
 });
 async._Predicate = _Predicate();
@@ -21025,7 +21026,7 @@ async._addErrorWithReplacement = function(sink, error, stackTrace) {
   sink[_addError](error, core.StackTrace._check(stackTrace));
 };
 dart.fn(async._addErrorWithReplacement, _EventSinkAnddynamicAnddynamicTovoid());
-let _test = Symbol('_test');
+const _test = Symbol('_test');
 async._WhereStream$ = dart.generic(T => {
   let _EventSinkOfT = () => (_EventSinkOfT = dart.constFn(async._EventSink$(T)))();
   let _PredicateOfT = () => (_PredicateOfT = dart.constFn(async._Predicate$(T)))();
@@ -21061,11 +21062,11 @@ async._WhereStream$ = dart.generic(T => {
 });
 async._WhereStream = _WhereStream();
 async._Transformation$ = dart.generic((S, T) => {
-  let _Transformation = dart.typedef('_Transformation', () => dart.functionType(T, [S]));
+  const _Transformation = dart.typedef('_Transformation', () => dart.functionType(T, [S]));
   return _Transformation;
 });
 async._Transformation = _Transformation();
-let _transform = Symbol('_transform');
+const _transform = Symbol('_transform');
 async._MapStream$ = dart.generic((S, T) => {
   let _TransformationOfS$T = () => (_TransformationOfS$T = dart.constFn(async._Transformation$(S, T)))();
   let StreamOfS = () => (StreamOfS = dart.constFn(async.Stream$(S)))();
@@ -21098,7 +21099,7 @@ async._MapStream$ = dart.generic((S, T) => {
   return _MapStream;
 });
 async._MapStream = _MapStream();
-let _expand = Symbol('_expand');
+const _expand = Symbol('_expand');
 async._ExpandStream$ = dart.generic((S, T) => {
   let _TransformationOfS$IterableOfT = () => (_TransformationOfS$IterableOfT = dart.constFn(async._Transformation$(S, IterableOfT())))();
   let StreamOfS = () => (StreamOfS = dart.constFn(async.Stream$(S)))();
@@ -21183,7 +21184,7 @@ async._HandleErrorStream$ = dart.generic(T => {
   return _HandleErrorStream;
 });
 async._HandleErrorStream = _HandleErrorStream();
-let _count = Symbol('_count');
+const _count = Symbol('_count');
 async._TakeStream$ = dart.generic(T => {
   let _StateStreamSubscriptionOfT = () => (_StateStreamSubscriptionOfT = dart.constFn(async._StateStreamSubscription$(T)))();
   let _EventSinkOfT = () => (_EventSinkOfT = dart.constFn(async._EventSink$(T)))();
@@ -21224,8 +21225,8 @@ async._TakeStream$ = dart.generic(T => {
   return _TakeStream;
 });
 async._TakeStream = _TakeStream();
-let _sharedState = Symbol('_sharedState');
-let _flag = Symbol('_flag');
+const _sharedState = Symbol('_sharedState');
+const _flag = Symbol('_flag');
 async._StateStreamSubscription$ = dart.generic(T => {
   let _ForwardingStreamOfT$T = () => (_ForwardingStreamOfT$T = dart.constFn(async._ForwardingStream$(T, T)))();
   let TTovoid = () => (TTovoid = dart.constFn(dart.functionType(dart.void, [T])))();
@@ -21387,11 +21388,11 @@ async._SkipWhileStream$ = dart.generic(T => {
 });
 async._SkipWhileStream = _SkipWhileStream();
 async._Equality$ = dart.generic(T => {
-  let _Equality = dart.typedef('_Equality', () => dart.functionType(core.bool, [T, T]));
+  const _Equality = dart.typedef('_Equality', () => dart.functionType(core.bool, [T, T]));
   return _Equality;
 });
 async._Equality = _Equality();
-let _equals = Symbol('_equals');
+const _equals = Symbol('_equals');
 async._DistinctStream$ = dart.generic(T => {
   let _EventSinkOfT = () => (_EventSinkOfT = dart.constFn(async._EventSink$(T)))();
   let _EqualityOfT = () => (_EqualityOfT = dart.constFn(async._Equality$(T)))();
@@ -21479,8 +21480,8 @@ async._EventSinkWrapper$ = dart.generic(T => {
   return _EventSinkWrapper;
 });
 async._EventSinkWrapper = _EventSinkWrapper();
-let _transformerSink = Symbol('_transformerSink');
-let _isSubscribed = Symbol('_isSubscribed');
+const _transformerSink = Symbol('_transformerSink');
+const _isSubscribed = Symbol('_isSubscribed');
 async._SinkTransformerStreamSubscription$ = dart.generic((S, T) => {
   let EventSinkOfS = () => (EventSinkOfS = dart.constFn(async.EventSink$(S)))();
   let StreamSubscriptionOfS = () => (StreamSubscriptionOfS = dart.constFn(async.StreamSubscription$(S)))();
@@ -21586,11 +21587,11 @@ async._SinkTransformerStreamSubscription$ = dart.generic((S, T) => {
 });
 async._SinkTransformerStreamSubscription = _SinkTransformerStreamSubscription();
 async._SinkMapper$ = dart.generic((S, T) => {
-  let _SinkMapper = dart.typedef('_SinkMapper', () => dart.functionType(async.EventSink$(S), [async.EventSink$(T)]));
+  const _SinkMapper = dart.typedef('_SinkMapper', () => dart.functionType(async.EventSink$(S), [async.EventSink$(T)]));
   return _SinkMapper;
 });
 async._SinkMapper = _SinkMapper();
-let _sinkMapper = Symbol('_sinkMapper');
+const _sinkMapper = Symbol('_sinkMapper');
 async._StreamSinkTransformer$ = dart.generic((S, T) => {
   let StreamOfS = () => (StreamOfS = dart.constFn(async.Stream$(S)))();
   let _BoundSinkStreamOfS$T = () => (_BoundSinkStreamOfS$T = dart.constFn(async._BoundSinkStream$(S, T)))();
@@ -21650,17 +21651,17 @@ async._BoundSinkStream$ = dart.generic((S, T) => {
 });
 async._BoundSinkStream = _BoundSinkStream();
 async._TransformDataHandler$ = dart.generic((S, T) => {
-  let _TransformDataHandler = dart.typedef('_TransformDataHandler', () => dart.functionType(dart.void, [S, async.EventSink$(T)]));
+  const _TransformDataHandler = dart.typedef('_TransformDataHandler', () => dart.functionType(dart.void, [S, async.EventSink$(T)]));
   return _TransformDataHandler;
 });
 async._TransformDataHandler = _TransformDataHandler();
 async._TransformErrorHandler$ = dart.generic(T => {
-  let _TransformErrorHandler = dart.typedef('_TransformErrorHandler', () => dart.functionType(dart.void, [core.Object, core.StackTrace, async.EventSink$(T)]));
+  const _TransformErrorHandler = dart.typedef('_TransformErrorHandler', () => dart.functionType(dart.void, [core.Object, core.StackTrace, async.EventSink$(T)]));
   return _TransformErrorHandler;
 });
 async._TransformErrorHandler = _TransformErrorHandler();
 async._TransformDoneHandler$ = dart.generic(T => {
-  let _TransformDoneHandler = dart.typedef('_TransformDoneHandler', () => dart.functionType(dart.void, [async.EventSink$(T)]));
+  const _TransformDoneHandler = dart.typedef('_TransformDoneHandler', () => dart.functionType(dart.void, [async.EventSink$(T)]));
   return _TransformDoneHandler;
 });
 async._TransformDoneHandler = _TransformDoneHandler();
@@ -21756,11 +21757,11 @@ async._StreamHandlerTransformer$ = dart.generic((S, T) => {
 });
 async._StreamHandlerTransformer = _StreamHandlerTransformer();
 async._SubscriptionTransformer$ = dart.generic((S, T) => {
-  let _SubscriptionTransformer = dart.typedef('_SubscriptionTransformer', () => dart.functionType(async.StreamSubscription$(T), [async.Stream$(S), core.bool]));
+  const _SubscriptionTransformer = dart.typedef('_SubscriptionTransformer', () => dart.functionType(async.StreamSubscription$(T), [async.Stream$(S), core.bool]));
   return _SubscriptionTransformer;
 });
 async._SubscriptionTransformer = _SubscriptionTransformer();
-let _transformer = Symbol('_transformer');
+const _transformer = Symbol('_transformer');
 async._StreamSubscriptionTransformer$ = dart.generic((S, T) => {
   let StreamOfS = () => (StreamOfS = dart.constFn(async.Stream$(S)))();
   let _BoundSubscriptionStreamOfS$T = () => (_BoundSubscriptionStreamOfS$T = dart.constFn(async._BoundSubscriptionStream$(S, T)))();
@@ -21859,52 +21860,52 @@ dart.setSignature(async.Timer, {
   names: ['run', '_createTimer', '_createPeriodicTimer']
 });
 async.ZoneCallback$ = dart.generic(R => {
-  let ZoneCallback = dart.typedef('ZoneCallback', () => dart.functionType(R, []));
+  const ZoneCallback = dart.typedef('ZoneCallback', () => dart.functionType(R, []));
   return ZoneCallback;
 });
 async.ZoneCallback = ZoneCallback();
 async.ZoneUnaryCallback$ = dart.generic((R, T) => {
-  let ZoneUnaryCallback = dart.typedef('ZoneUnaryCallback', () => dart.functionType(R, [T]));
+  const ZoneUnaryCallback = dart.typedef('ZoneUnaryCallback', () => dart.functionType(R, [T]));
   return ZoneUnaryCallback;
 });
 async.ZoneUnaryCallback = ZoneUnaryCallback();
 async.ZoneBinaryCallback$ = dart.generic((R, T1, T2) => {
-  let ZoneBinaryCallback = dart.typedef('ZoneBinaryCallback', () => dart.functionType(R, [T1, T2]));
+  const ZoneBinaryCallback = dart.typedef('ZoneBinaryCallback', () => dart.functionType(R, [T1, T2]));
   return ZoneBinaryCallback;
 });
 async.ZoneBinaryCallback = ZoneBinaryCallback();
 async.HandleUncaughtErrorHandler$ = dart.generic(R => {
-  let HandleUncaughtErrorHandler = dart.typedef('HandleUncaughtErrorHandler', () => dart.functionType(R, [async.Zone, async.ZoneDelegate, async.Zone, dart.dynamic, core.StackTrace]));
+  const HandleUncaughtErrorHandler = dart.typedef('HandleUncaughtErrorHandler', () => dart.functionType(R, [async.Zone, async.ZoneDelegate, async.Zone, dart.dynamic, core.StackTrace]));
   return HandleUncaughtErrorHandler;
 });
 async.HandleUncaughtErrorHandler = HandleUncaughtErrorHandler();
 async.RunHandler$ = dart.generic(R => {
-  let RunHandler = dart.typedef('RunHandler', () => dart.functionType(R, [async.Zone, async.ZoneDelegate, async.Zone, dart.functionType(R, [])]));
+  const RunHandler = dart.typedef('RunHandler', () => dart.functionType(R, [async.Zone, async.ZoneDelegate, async.Zone, dart.functionType(R, [])]));
   return RunHandler;
 });
 async.RunHandler = RunHandler();
 async.RunUnaryHandler$ = dart.generic((R, T) => {
-  let RunUnaryHandler = dart.typedef('RunUnaryHandler', () => dart.functionType(R, [async.Zone, async.ZoneDelegate, async.Zone, dart.functionType(R, [T]), T]));
+  const RunUnaryHandler = dart.typedef('RunUnaryHandler', () => dart.functionType(R, [async.Zone, async.ZoneDelegate, async.Zone, dart.functionType(R, [T]), T]));
   return RunUnaryHandler;
 });
 async.RunUnaryHandler = RunUnaryHandler();
 async.RunBinaryHandler$ = dart.generic((R, T1, T2) => {
-  let RunBinaryHandler = dart.typedef('RunBinaryHandler', () => dart.functionType(R, [async.Zone, async.ZoneDelegate, async.Zone, dart.functionType(R, [T1, T2]), T1, T2]));
+  const RunBinaryHandler = dart.typedef('RunBinaryHandler', () => dart.functionType(R, [async.Zone, async.ZoneDelegate, async.Zone, dart.functionType(R, [T1, T2]), T1, T2]));
   return RunBinaryHandler;
 });
 async.RunBinaryHandler = RunBinaryHandler();
 async.RegisterCallbackHandler$ = dart.generic(R => {
-  let RegisterCallbackHandler = dart.typedef('RegisterCallbackHandler', () => dart.functionType(async.ZoneCallback$(R), [async.Zone, async.ZoneDelegate, async.Zone, dart.functionType(R, [])]));
+  const RegisterCallbackHandler = dart.typedef('RegisterCallbackHandler', () => dart.functionType(async.ZoneCallback$(R), [async.Zone, async.ZoneDelegate, async.Zone, dart.functionType(R, [])]));
   return RegisterCallbackHandler;
 });
 async.RegisterCallbackHandler = RegisterCallbackHandler();
 async.RegisterUnaryCallbackHandler$ = dart.generic((R, T) => {
-  let RegisterUnaryCallbackHandler = dart.typedef('RegisterUnaryCallbackHandler', () => dart.functionType(async.ZoneUnaryCallback$(R, T), [async.Zone, async.ZoneDelegate, async.Zone, dart.functionType(R, [T])]));
+  const RegisterUnaryCallbackHandler = dart.typedef('RegisterUnaryCallbackHandler', () => dart.functionType(async.ZoneUnaryCallback$(R, T), [async.Zone, async.ZoneDelegate, async.Zone, dart.functionType(R, [T])]));
   return RegisterUnaryCallbackHandler;
 });
 async.RegisterUnaryCallbackHandler = RegisterUnaryCallbackHandler();
 async.RegisterBinaryCallbackHandler$ = dart.generic((R, T1, T2) => {
-  let RegisterBinaryCallbackHandler = dart.typedef('RegisterBinaryCallbackHandler', () => dart.functionType(async.ZoneBinaryCallback$(R, T1, T2), [async.Zone, async.ZoneDelegate, async.Zone, dart.functionType(R, [T1, T2])]));
+  const RegisterBinaryCallbackHandler = dart.typedef('RegisterBinaryCallbackHandler', () => dart.functionType(async.ZoneBinaryCallback$(R, T1, T2), [async.Zone, async.ZoneDelegate, async.Zone, dart.functionType(R, [T1, T2])]));
   return RegisterBinaryCallbackHandler;
 });
 async.RegisterBinaryCallbackHandler = RegisterBinaryCallbackHandler();
@@ -22050,25 +22051,25 @@ dart.defineLazy(async.Zone, {
   },
   set _current(_) {}
 });
-let _delegate = Symbol('_delegate');
+const _delegate = Symbol('_delegate');
 async._parentDelegate = function(zone) {
   if (zone.parent == null) return null;
   return zone.parent[_delegate];
 };
 dart.lazyFn(async._parentDelegate, () => _ZoneToZoneDelegate());
-let _delegationTarget = Symbol('_delegationTarget');
-let _handleUncaughtError = Symbol('_handleUncaughtError');
-let _run = Symbol('_run');
-let _runUnary = Symbol('_runUnary');
-let _runBinary = Symbol('_runBinary');
-let _registerCallback = Symbol('_registerCallback');
-let _registerUnaryCallback = Symbol('_registerUnaryCallback');
-let _registerBinaryCallback = Symbol('_registerBinaryCallback');
-let _errorCallback = Symbol('_errorCallback');
-let _createTimer = Symbol('_createTimer');
-let _createPeriodicTimer = Symbol('_createPeriodicTimer');
-let _print = Symbol('_print');
-let _fork = Symbol('_fork');
+const _delegationTarget = Symbol('_delegationTarget');
+const _handleUncaughtError = Symbol('_handleUncaughtError');
+const _run = Symbol('_run');
+const _runUnary = Symbol('_runUnary');
+const _runBinary = Symbol('_runBinary');
+const _registerCallback = Symbol('_registerCallback');
+const _registerUnaryCallback = Symbol('_registerUnaryCallback');
+const _registerBinaryCallback = Symbol('_registerBinaryCallback');
+const _errorCallback = Symbol('_errorCallback');
+const _createTimer = Symbol('_createTimer');
+const _createPeriodicTimer = Symbol('_createPeriodicTimer');
+const _print = Symbol('_print');
+const _fork = Symbol('_fork');
 async._ZoneDelegate = class _ZoneDelegate extends core.Object {
   new(delegationTarget) {
     this[_delegationTarget] = delegationTarget;
@@ -22187,7 +22188,7 @@ dart.setSignature(async._ZoneDelegate, {
     fork: dart.definiteFunctionType(async.Zone, [async.Zone, async.ZoneSpecification, core.Map])
   })
 });
-let _map = Symbol('_map');
+const _map = Symbol('_map');
 async._Zone = class _Zone extends core.Object {
   new() {
   }
@@ -22200,7 +22201,7 @@ dart.setSignature(async._Zone, {
   constructors: () => ({new: dart.definiteFunctionType(async._Zone, [])}),
   methods: () => ({inSameErrorZone: dart.definiteFunctionType(core.bool, [async.Zone])})
 });
-let _delegateCache = Symbol('_delegateCache');
+const _delegateCache = Symbol('_delegateCache');
 async._CustomZone = class _CustomZone extends async._Zone {
   get [_delegate]() {
     if (this[_delegateCache] != null) return this[_delegateCache];
@@ -22901,21 +22902,21 @@ async.runZoned = function(R) {
 };
 dart.lazyFn(async.runZoned, () => Fn__ToR());
 collection._USE_ES6_MAPS = true;
-let _length = Symbol('_length');
-let _strings = Symbol('_strings');
-let _nums = Symbol('_nums');
-let _rest = Symbol('_rest');
-let _keys = Symbol('_keys');
-let _containsKey = Symbol('_containsKey');
-let _getBucket = Symbol('_getBucket');
-let _findBucketIndex = Symbol('_findBucketIndex');
-let _computeKeys = Symbol('_computeKeys');
-let _get = Symbol('_get');
-let _addHashTableEntry = Symbol('_addHashTableEntry');
-let _set = Symbol('_set');
-let _computeHashCode = Symbol('_computeHashCode');
-let _removeHashTableEntry = Symbol('_removeHashTableEntry');
-let _remove = Symbol('_remove');
+const _length = Symbol('_length');
+const _strings = Symbol('_strings');
+const _nums = Symbol('_nums');
+const _rest = Symbol('_rest');
+const _keys = Symbol('_keys');
+const _containsKey = Symbol('_containsKey');
+const _getBucket = Symbol('_getBucket');
+const _findBucketIndex = Symbol('_findBucketIndex');
+const _computeKeys = Symbol('_computeKeys');
+const _get = Symbol('_get');
+const _addHashTableEntry = Symbol('_addHashTableEntry');
+const _set = Symbol('_set');
+const _computeHashCode = Symbol('_computeHashCode');
+const _removeHashTableEntry = Symbol('_removeHashTableEntry');
+const _remove = Symbol('_remove');
 collection._HashMap$ = dart.generic((K, V) => {
   let _HashMapKeyIterableOfK = () => (_HashMapKeyIterableOfK = dart.constFn(collection._HashMapKeyIterable$(K)))();
   let MappedIterableOfK$V = () => (MappedIterableOfK$V = dart.constFn(_internal.MappedIterable$(K, V)))();
@@ -23273,9 +23274,9 @@ collection._IdentityHashMap$ = dart.generic((K, V) => {
   return _IdentityHashMap;
 });
 collection._IdentityHashMap = _IdentityHashMap();
-let _equals = Symbol('_equals');
-let _hashCode = Symbol('_hashCode');
-let _validKey = Symbol('_validKey');
+const _equals = Symbol('_equals');
+const _hashCode = Symbol('_hashCode');
+const _validKey = Symbol('_validKey');
 collection._CustomHashMap$ = dart.generic((K, V) => {
   let _EqualityOfK = () => (_EqualityOfK = dart.constFn(collection._Equality$(K)))();
   let _HasherOfK = () => (_HasherOfK = dart.constFn(collection._Hasher$(K)))();
@@ -23336,7 +23337,7 @@ collection._CustomHashMap$ = dart.generic((K, V) => {
   return _CustomHashMap;
 });
 collection._CustomHashMap = _CustomHashMap();
-let _map = Symbol('_map');
+const _map = Symbol('_map');
 collection._HashMapKeyIterable$ = dart.generic(E => {
   let _HashMapKeyIteratorOfE = () => (_HashMapKeyIteratorOfE = dart.constFn(collection._HashMapKeyIterator$(E)))();
   let ETovoid = () => (ETovoid = dart.constFn(dart.functionType(dart.void, [E])))();
@@ -23385,8 +23386,8 @@ collection._HashMapKeyIterable$ = dart.generic(E => {
   return _HashMapKeyIterable;
 });
 collection._HashMapKeyIterable = _HashMapKeyIterable();
-let _offset = Symbol('_offset');
-let _current = Symbol('_current');
+const _offset = Symbol('_offset');
+const _current = Symbol('_current');
 collection._HashMapKeyIterator$ = dart.generic(E => {
   let IteratorOfE = () => (IteratorOfE = dart.constFn(core.Iterator$(E)))();
   let _HashMapOfE$dynamic = () => (_HashMapOfE$dynamic = dart.constFn(collection._HashMap$(E, dart.dynamic)))();
@@ -23468,8 +23469,8 @@ collection._LinkedIdentityHashMap$ = dart.generic((K, V) => {
   return _LinkedIdentityHashMap;
 });
 collection._LinkedIdentityHashMap = _LinkedIdentityHashMap();
-let _modifications = Symbol('_modifications');
-let _modified = Symbol('_modified');
+const _modifications = Symbol('_modifications');
+const _modified = Symbol('_modified');
 collection._Es6LinkedIdentityHashMap$ = dart.generic((K, V) => {
   let _Es6MapIterableOfK = () => (_Es6MapIterableOfK = dart.constFn(collection._Es6MapIterable$(K)))();
   let MapOfK$V = () => (MapOfK$V = dart.constFn(core.Map$(K, V)))();
@@ -23603,7 +23604,7 @@ collection._Es6LinkedIdentityHashMap$ = dart.generic((K, V) => {
   return _Es6LinkedIdentityHashMap;
 });
 collection._Es6LinkedIdentityHashMap = _Es6LinkedIdentityHashMap();
-let _isKeys = Symbol('_isKeys');
+const _isKeys = Symbol('_isKeys');
 collection._Es6MapIterable$ = dart.generic(E => {
   let _Es6MapIteratorOfE = () => (_Es6MapIteratorOfE = dart.constFn(collection._Es6MapIterator$(E)))();
   let ETovoid = () => (ETovoid = dart.constFn(dart.functionType(dart.void, [E])))();
@@ -23665,9 +23666,9 @@ collection._Es6MapIterable$ = dart.generic(E => {
   return _Es6MapIterable;
 });
 collection._Es6MapIterable = _Es6MapIterable();
-let _jsIterator = Symbol('_jsIterator');
-let _next = Symbol('_next');
-let _done = Symbol('_done');
+const _jsIterator = Symbol('_jsIterator');
+const _next = Symbol('_next');
+const _done = Symbol('_done');
 collection._Es6MapIterator$ = dart.generic(E => {
   let IteratorOfE = () => (IteratorOfE = dart.constFn(core.Iterator$(E)))();
   class _Es6MapIterator extends core.Object {
@@ -23783,12 +23784,12 @@ collection._LinkedCustomHashMap$ = dart.generic((K, V) => {
   return _LinkedCustomHashMap;
 });
 collection._LinkedCustomHashMap = _LinkedCustomHashMap();
-let _elements = Symbol('_elements');
-let _newSet = Symbol('_newSet');
-let _computeElements = Symbol('_computeElements');
-let _contains = Symbol('_contains');
-let _lookup = Symbol('_lookup');
-let _add = Symbol('_add');
+const _elements = Symbol('_elements');
+const _newSet = Symbol('_newSet');
+const _computeElements = Symbol('_computeElements');
+const _contains = Symbol('_contains');
+const _lookup = Symbol('_lookup');
+const _add = Symbol('_add');
 collection.SetMixin$ = dart.generic(E => {
   let IterableOfE = () => (IterableOfE = dart.constFn(core.Iterable$(E)))();
   let SetOfE = () => (SetOfE = dart.constFn(core.Set$(E)))();
@@ -24459,8 +24460,8 @@ collection._IdentityHashSet$ = dart.generic(E => {
   return _IdentityHashSet;
 });
 collection._IdentityHashSet = _IdentityHashSet();
-let _equality = Symbol('_equality');
-let _hasher = Symbol('_hasher');
+const _equality = Symbol('_equality');
+const _hasher = Symbol('_hasher');
 collection._CustomHashSet$ = dart.generic(E => {
   let _CustomHashSetOfE = () => (_CustomHashSetOfE = dart.constFn(collection._CustomHashSet$(E)))();
   let _EqualityOfE = () => (_EqualityOfE = dart.constFn(collection._Equality$(E)))();
@@ -24564,15 +24565,15 @@ collection._HashSetIterator$ = dart.generic(E => {
   return _HashSetIterator;
 });
 collection._HashSetIterator = _HashSetIterator();
-let _first = Symbol('_first');
-let _last = Symbol('_last');
-let _unsupported = Symbol('_unsupported');
-let _getTableEntry = Symbol('_getTableEntry');
-let _element = Symbol('_element');
-let _newLinkedCell = Symbol('_newLinkedCell');
-let _unlinkCell = Symbol('_unlinkCell');
-let _filterWhere = Symbol('_filterWhere');
-let _previous = Symbol('_previous');
+const _first = Symbol('_first');
+const _last = Symbol('_last');
+const _unsupported = Symbol('_unsupported');
+const _getTableEntry = Symbol('_getTableEntry');
+const _element = Symbol('_element');
+const _newLinkedCell = Symbol('_newLinkedCell');
+const _unlinkCell = Symbol('_unlinkCell');
+const _filterWhere = Symbol('_filterWhere');
+const _previous = Symbol('_previous');
 collection._LinkedHashSet$ = dart.generic(E => {
   let _LinkedHashSetOfE = () => (_LinkedHashSetOfE = dart.constFn(collection._LinkedHashSet$(E)))();
   let _LinkedHashSetIteratorOfE = () => (_LinkedHashSetIteratorOfE = dart.constFn(collection._LinkedHashSetIterator$(E)))();
@@ -25018,7 +25019,7 @@ collection._LinkedHashSetCell$ = dart.generic(E => {
   return _LinkedHashSetCell;
 });
 collection._LinkedHashSetCell = _LinkedHashSetCell();
-let _cell = Symbol('_cell');
+const _cell = Symbol('_cell');
 collection._LinkedHashSetIterator$ = dart.generic(E => {
   let IteratorOfE = () => (IteratorOfE = dart.constFn(core.Iterator$(E)))();
   class _LinkedHashSetIterator extends core.Object {
@@ -25061,7 +25062,7 @@ collection._LinkedHashSetIterator$ = dart.generic(E => {
   return _LinkedHashSetIterator;
 });
 collection._LinkedHashSetIterator = _LinkedHashSetIterator();
-let _source = Symbol('_source');
+const _source = Symbol('_source');
 collection.UnmodifiableListView$ = dart.generic(E => {
   let IterableOfE = () => (IterableOfE = dart.constFn(core.Iterable$(E)))();
   class UnmodifiableListView extends _internal.UnmodifiableListBase$(E) {
@@ -25097,12 +25098,12 @@ collection._defaultHashCode = function(a) {
 };
 dart.fn(collection._defaultHashCode, dynamicToint());
 collection._Equality$ = dart.generic(K => {
-  let _Equality = dart.typedef('_Equality', () => dart.functionType(core.bool, [K, K]));
+  const _Equality = dart.typedef('_Equality', () => dart.functionType(core.bool, [K, K]));
   return _Equality;
 });
 collection._Equality = _Equality();
 collection._Hasher$ = dart.generic(K => {
-  let _Hasher = dart.typedef('_Hasher', () => dart.functionType(core.int, [K]));
+  const _Hasher = dart.typedef('_Hasher', () => dart.functionType(core.int, [K]));
   return _Hasher;
 });
 collection._Hasher = _Hasher();
@@ -25605,9 +25606,9 @@ collection._iterablePartsToStrings = function(iterable, parts) {
   parts[dartx.add](ultimateString);
 };
 dart.lazyFn(collection._iterablePartsToStrings, () => IterableAndListTovoid());
-let _iterator = Symbol('_iterator');
-let _state = Symbol('_state');
-let _move = Symbol('_move');
+const _iterator = Symbol('_iterator');
+const _state = Symbol('_state');
+const _move = Symbol('_move');
 collection.HasNextIterator$ = dart.generic(E => {
   let IteratorOfE = () => (IteratorOfE = dart.constFn(core.Iterator$(E)))();
   class HasNextIterator extends core.Object {
@@ -25800,10 +25801,10 @@ collection.LinkedHashSet$ = dart.generic(E => {
   return LinkedHashSet;
 });
 collection.LinkedHashSet = LinkedHashSet();
-let _modificationCount = Symbol('_modificationCount');
-let _insertBefore = Symbol('_insertBefore');
-let _list = Symbol('_list');
-let _unlink = Symbol('_unlink');
+const _modificationCount = Symbol('_modificationCount');
+const _insertBefore = Symbol('_insertBefore');
+const _list = Symbol('_list');
+const _unlink = Symbol('_unlink');
 collection.LinkedList$ = dart.generic(E => {
   let IterableOfE = () => (IterableOfE = dart.constFn(core.Iterable$(E)))();
   let _LinkedListIteratorOfE = () => (_LinkedListIteratorOfE = dart.constFn(collection._LinkedListIterator$(E)))();
@@ -25965,7 +25966,7 @@ collection.LinkedList$ = dart.generic(E => {
   return LinkedList;
 });
 collection.LinkedList = LinkedList();
-let _visitedFirst = Symbol('_visitedFirst');
+const _visitedFirst = Symbol('_visitedFirst');
 collection._LinkedListIterator$ = dart.generic(E => {
   let IteratorOfE = () => (IteratorOfE = dart.constFn(core.Iterator$(E)))();
   let LinkedListOfE = () => (LinkedListOfE = dart.constFn(collection.LinkedList$(E)))();
@@ -26548,9 +26549,9 @@ collection.Queue$ = dart.generic(E => {
   return Queue;
 });
 collection.Queue = Queue();
-let _previousLink = Symbol('_previousLink');
-let _nextLink = Symbol('_nextLink');
-let _link = Symbol('_link');
+const _previousLink = Symbol('_previousLink');
+const _nextLink = Symbol('_nextLink');
+const _link = Symbol('_link');
 collection._DoubleLink$ = dart.generic(E => {
   class _DoubleLink extends core.Object {
     new() {
@@ -26643,10 +26644,10 @@ collection._UserDoubleLinkedQueueEntry$ = dart.generic(E => {
   return _UserDoubleLinkedQueueEntry;
 });
 collection._UserDoubleLinkedQueueEntry = _UserDoubleLinkedQueueEntry();
-let _queue = Symbol('_queue');
-let _append = Symbol('_append');
-let _prepend = Symbol('_prepend');
-let _asNonSentinelEntry = Symbol('_asNonSentinelEntry');
+const _queue = Symbol('_queue');
+const _append = Symbol('_append');
+const _prepend = Symbol('_prepend');
+const _asNonSentinelEntry = Symbol('_asNonSentinelEntry');
 collection._DoubleLinkedQueueEntry$ = dart.generic(E => {
   let _DoubleLinkedQueueElementOfE = () => (_DoubleLinkedQueueElementOfE = dart.constFn(collection._DoubleLinkedQueueElement$(E)))();
   let DoubleLinkedQueueOfE = () => (DoubleLinkedQueueOfE = dart.constFn(collection.DoubleLinkedQueue$(E)))();
@@ -26684,7 +26685,7 @@ collection._DoubleLinkedQueueEntry$ = dart.generic(E => {
   return _DoubleLinkedQueueEntry;
 });
 collection._DoubleLinkedQueueEntry = _DoubleLinkedQueueEntry();
-let _elementCount = Symbol('_elementCount');
+const _elementCount = Symbol('_elementCount');
 collection._DoubleLinkedQueueElement$ = dart.generic(E => {
   let DoubleLinkedQueueEntryOfE = () => (DoubleLinkedQueueEntryOfE = dart.constFn(collection.DoubleLinkedQueueEntry$(E)))();
   let DoubleLinkedQueueOfE = () => (DoubleLinkedQueueOfE = dart.constFn(collection.DoubleLinkedQueue$(E)))();
@@ -26769,8 +26770,8 @@ collection._DoubleLinkedQueueSentinel$ = dart.generic(E => {
   return _DoubleLinkedQueueSentinel;
 });
 collection._DoubleLinkedQueueSentinel = _DoubleLinkedQueueSentinel();
-let _sentinel = Symbol('_sentinel');
-let _filter = Symbol('_filter');
+const _sentinel = Symbol('_sentinel');
+const _filter = Symbol('_filter');
 collection.DoubleLinkedQueue$ = dart.generic(E => {
   let _DoubleLinkedQueueSentinelOfE = () => (_DoubleLinkedQueueSentinelOfE = dart.constFn(collection._DoubleLinkedQueueSentinel$(E)))();
   let DoubleLinkedQueueOfE = () => (DoubleLinkedQueueOfE = dart.constFn(collection.DoubleLinkedQueue$(E)))();
@@ -26952,7 +26953,7 @@ collection.DoubleLinkedQueue$ = dart.generic(E => {
   return DoubleLinkedQueue;
 });
 collection.DoubleLinkedQueue = DoubleLinkedQueue();
-let _nextEntry = Symbol('_nextEntry');
+const _nextEntry = Symbol('_nextEntry');
 collection._DoubleLinkedQueueIterator$ = dart.generic(E => {
   let _DoubleLinkedQueueElementOfE = () => (_DoubleLinkedQueueElementOfE = dart.constFn(collection._DoubleLinkedQueueElement$(E)))();
   let IteratorOfE = () => (IteratorOfE = dart.constFn(core.Iterator$(E)))();
@@ -26998,13 +26999,13 @@ collection._DoubleLinkedQueueIterator$ = dart.generic(E => {
   return _DoubleLinkedQueueIterator;
 });
 collection._DoubleLinkedQueueIterator = _DoubleLinkedQueueIterator();
-let _head = Symbol('_head');
-let _tail = Symbol('_tail');
-let _table = Symbol('_table');
-let _checkModification = Symbol('_checkModification');
-let _writeToList = Symbol('_writeToList');
-let _preGrow = Symbol('_preGrow');
-let _grow = Symbol('_grow');
+const _head = Symbol('_head');
+const _tail = Symbol('_tail');
+const _table = Symbol('_table');
+const _checkModification = Symbol('_checkModification');
+const _writeToList = Symbol('_writeToList');
+const _preGrow = Symbol('_preGrow');
+const _grow = Symbol('_grow');
 collection.ListQueue$ = dart.generic(E => {
   let ListOfE = () => (ListOfE = dart.constFn(core.List$(E)))();
   let ListQueueOfE = () => (ListQueueOfE = dart.constFn(collection.ListQueue$(E)))();
@@ -27345,8 +27346,8 @@ collection.ListQueue$ = dart.generic(E => {
 });
 collection.ListQueue = ListQueue();
 collection.ListQueue._INITIAL_CAPACITY = 8;
-let _end = Symbol('_end');
-let _position = Symbol('_position');
+const _end = Symbol('_end');
+const _position = Symbol('_position');
 collection._ListQueueIterator$ = dart.generic(E => {
   let IteratorOfE = () => (IteratorOfE = dart.constFn(core.Iterator$(E)))();
   let ListQueueOfE = () => (ListQueueOfE = dart.constFn(collection.ListQueue$(E)))();
@@ -27390,7 +27391,7 @@ collection._ListQueueIterator$ = dart.generic(E => {
 });
 collection._ListQueueIterator = _ListQueueIterator();
 collection._Predicate$ = dart.generic(T => {
-  let _Predicate = dart.typedef('_Predicate', () => dart.functionType(core.bool, [T]));
+  const _Predicate = dart.typedef('_Predicate', () => dart.functionType(core.bool, [T]));
   return _Predicate;
 });
 collection._Predicate = _Predicate();
@@ -27429,17 +27430,17 @@ collection._SplayTreeMapNode$ = dart.generic((K, V) => {
   return _SplayTreeMapNode;
 });
 collection._SplayTreeMapNode = _SplayTreeMapNode();
-let _count = Symbol('_count');
-let _splayCount = Symbol('_splayCount');
-let _root = Symbol('_root');
-let _dummy = Symbol('_dummy');
-let _comparator = Symbol('_comparator');
-let _compare = Symbol('_compare');
-let _splay = Symbol('_splay');
-let _splayMin = Symbol('_splayMin');
-let _splayMax = Symbol('_splayMax');
-let _addNewRoot = Symbol('_addNewRoot');
-let _clear = Symbol('_clear');
+const _count = Symbol('_count');
+const _splayCount = Symbol('_splayCount');
+const _root = Symbol('_root');
+const _dummy = Symbol('_dummy');
+const _comparator = Symbol('_comparator');
+const _compare = Symbol('_compare');
+const _splay = Symbol('_splay');
+const _splayMin = Symbol('_splayMin');
+const _splayMax = Symbol('_splayMax');
+const _addNewRoot = Symbol('_addNewRoot');
+const _clear = Symbol('_clear');
 collection._SplayTree$ = dart.generic((K, Node) => {
   class _SplayTree extends core.Object {
     new() {
@@ -27756,7 +27757,7 @@ collection.SplayTreeMap$ = dart.generic((K, V) => {
     containsValue(value) {
       let found = false;
       let initialSplayCount = this[_splayCount];
-      let visit = (function(node) {
+      const visit = (function(node) {
         while (node != null) {
           if (dart.equals(node.value, value)) return true;
           if (initialSplayCount != this[_splayCount]) {
@@ -27873,12 +27874,12 @@ collection.SplayTreeMap$ = dart.generic((K, V) => {
   return SplayTreeMap;
 });
 collection.SplayTreeMap = SplayTreeMap();
-let _workList = Symbol('_workList');
-let _tree = Symbol('_tree');
-let _currentNode = Symbol('_currentNode');
-let _findLeftMostDescendent = Symbol('_findLeftMostDescendent');
-let _getValue = Symbol('_getValue');
-let _rebuildWorkList = Symbol('_rebuildWorkList');
+const _workList = Symbol('_workList');
+const _tree = Symbol('_tree');
+const _currentNode = Symbol('_currentNode');
+const _findLeftMostDescendent = Symbol('_findLeftMostDescendent');
+const _getValue = Symbol('_getValue');
+const _rebuildWorkList = Symbol('_rebuildWorkList');
 collection._SplayTreeIterator$ = dart.generic((K, T) => {
   let _SplayTreeNodeOfK = () => (_SplayTreeNodeOfK = dart.constFn(collection._SplayTreeNode$(K)))();
   let JSArrayOf_SplayTreeNodeOfK = () => (JSArrayOf_SplayTreeNodeOfK = dart.constFn(_interceptors.JSArray$(_SplayTreeNodeOfK())))();
@@ -27973,7 +27974,7 @@ collection._SplayTreeIterator$ = dart.generic((K, T) => {
   return _SplayTreeIterator;
 });
 collection._SplayTreeIterator = _SplayTreeIterator();
-let _copyNode = Symbol('_copyNode');
+const _copyNode = Symbol('_copyNode');
 collection._SplayTreeKeyIterable$ = dart.generic(K => {
   let _SplayTreeKeyIteratorOfK = () => (_SplayTreeKeyIteratorOfK = dart.constFn(collection._SplayTreeKeyIterator$(K)))();
   let SplayTreeSetOfK = () => (SplayTreeSetOfK = dart.constFn(collection.SplayTreeSet$(K)))();
@@ -28105,7 +28106,7 @@ collection._SplayTreeNodeIterator$ = dart.generic(K => {
   return _SplayTreeNodeIterator;
 });
 collection._SplayTreeNodeIterator = _SplayTreeNodeIterator();
-let _clone = Symbol('_clone');
+const _clone = Symbol('_clone');
 collection.SplayTreeSet$ = dart.generic(E => {
   let _SplayTreeNodeOfE = () => (_SplayTreeNodeOfE = dart.constFn(collection._SplayTreeNode$(E)))();
   let ComparatorOfE = () => (ComparatorOfE = dart.constFn(core.Comparator$(E)))();
@@ -28312,9 +28313,9 @@ collection.SplayTreeSet$ = dart.generic(E => {
   return SplayTreeSet;
 });
 collection.SplayTreeSet = SplayTreeSet();
-let _processed = Symbol('_processed');
-let _computeKeys = Symbol('_computeKeys');
-let _original = Symbol('_original');
+const _processed = Symbol('_processed');
+const _computeKeys = Symbol('_computeKeys');
+const _original = Symbol('_original');
 convert._convertJsonToDart = function(json, reviver) {
   dart.assert(reviver != null);
   function walk(e) {
@@ -28358,11 +28359,11 @@ convert._convertJsonToDartLazy = function(object) {
   return object;
 };
 dart.fn(convert._convertJsonToDartLazy, dynamicTodynamic());
-let _data = Symbol('_data');
-let _isUpgraded = Symbol('_isUpgraded');
-let _upgradedMap = Symbol('_upgradedMap');
-let _process = Symbol('_process');
-let _upgrade = Symbol('_upgrade');
+const _data = Symbol('_data');
+const _isUpgraded = Symbol('_isUpgraded');
+const _upgradedMap = Symbol('_upgradedMap');
+const _process = Symbol('_process');
+const _upgrade = Symbol('_upgrade');
 convert._JsonMap = class _JsonMap extends core.Object {
   new(original) {
     this[_processed] = convert._JsonMap._newJavaScriptObject();
@@ -28585,7 +28586,7 @@ dart.defineExtensionMembers(convert._JsonMap, [
   'keys',
   'values'
 ]);
-let _parent = Symbol('_parent');
+const _parent = Symbol('_parent');
 convert._JsonMapKeyIterable = class _JsonMapKeyIterable extends _internal.ListIterable {
   new(parent) {
     this[_parent] = parent;
@@ -28612,9 +28613,9 @@ dart.setSignature(convert._JsonMapKeyIterable, {
   methods: () => ({elementAt: dart.definiteFunctionType(core.String, [core.int])})
 });
 dart.defineExtensionMembers(convert._JsonMapKeyIterable, ['elementAt', 'contains', 'length', 'iterator']);
-let _reviver = Symbol('_reviver');
-let _sink = Symbol('_sink');
-let _stringSink = Symbol('_stringSink');
+const _reviver = Symbol('_reviver');
+const _sink = Symbol('_sink');
+const _stringSink = Symbol('_stringSink');
 convert.StringConversionSinkMixin = class StringConversionSinkMixin extends core.Object {
   add(str) {
     this.addSlice(str, 0, str[dartx.length], false);
@@ -28691,7 +28692,7 @@ dart.setSignature(convert._JsonDecoderSink, {
     [_sink]: SinkOfObject()
   })
 });
-let _allowInvalid = Symbol('_allowInvalid');
+const _allowInvalid = Symbol('_allowInvalid');
 let const;
 let const;
 let const;
@@ -28956,7 +28957,7 @@ dart.setSignature(convert.AsciiCodec, {
 });
 convert.ASCII = dart.const(new convert.AsciiCodec());
 convert._ASCII_MASK = 127;
-let _subsetMask = Symbol('_subsetMask');
+const _subsetMask = Symbol('_subsetMask');
 convert.Converter$ = dart.generic((S, T) => {
   let StreamOfS = () => (StreamOfS = dart.constFn(async.Stream$(S)))();
   let _ConverterStreamEventSinkOfS$dynamic = () => (_ConverterStreamEventSinkOfS$dynamic = dart.constFn(convert._ConverterStreamEventSink$(S, dart.dynamic)))();
@@ -29078,7 +29079,7 @@ dart.setSignature(convert._UnicodeSubsetEncoderSink, {
     addSlice: dart.definiteFunctionType(dart.void, [core.String, core.int, core.int, core.bool])
   })
 });
-let _convertInvalid = Symbol('_convertInvalid');
+const _convertInvalid = Symbol('_convertInvalid');
 convert._UnicodeSubsetDecoder = class _UnicodeSubsetDecoder extends convert.Converter$(core.List$(core.int), core.String) {
   new(allowInvalid, subsetMask) {
     this[_allowInvalid] = allowInvalid;
@@ -29151,7 +29152,7 @@ dart.setSignature(convert.AsciiDecoder, {
   constructors: () => ({new: dart.definiteFunctionType(convert.AsciiDecoder, [], {allowInvalid: core.bool})}),
   methods: () => ({startChunkedConversion: dart.definiteFunctionType(convert.ByteConversionSink, [SinkOfString()])})
 });
-let _utf8Sink = Symbol('_utf8Sink');
+const _utf8Sink = Symbol('_utf8Sink');
 let const;
 convert.ChunkedConversionSink$ = dart.generic(T => {
   let _SimpleCallbackSinkOfT = () => (_SimpleCallbackSinkOfT = dart.constFn(convert._SimpleCallbackSink$(T)))();
@@ -29276,7 +29277,7 @@ dart.setSignature(convert._SimpleAsciiDecoderSink, {
     add: dart.definiteFunctionType(dart.void, [ListOfint()])
   })
 });
-let _urlSafe = Symbol('_urlSafe');
+const _urlSafe = Symbol('_urlSafe');
 convert.Base64Encoder = class Base64Encoder extends convert.Converter$(core.List$(core.int), core.String) {
   new() {
     this[_urlSafe] = false;
@@ -29313,7 +29314,7 @@ dart.setSignature(convert.Base64Encoder, {
   })
 });
 let const;
-let _encoder = Symbol('_encoder');
+const _encoder = Symbol('_encoder');
 let const;
 let const;
 convert.Base64Codec = class Base64Codec extends convert.Codec$(core.List$(core.int), core.String) {
@@ -29348,8 +29349,8 @@ dart.setSignature(convert.Base64Codec, {
 convert.BASE64 = dart.const(new convert.Base64Codec());
 convert.BASE64URL = dart.const(new convert.Base64Codec.urlSafe());
 convert._paddingChar = 61;
-let _alphabet = Symbol('_alphabet');
-let _state = Symbol('_state');
+const _alphabet = Symbol('_alphabet');
+const _state = Symbol('_state');
 convert._Base64Encoder = class _Base64Encoder extends core.Object {
   new(urlSafe) {
     this[_alphabet] = dart.test(urlSafe) ? convert._Base64Encoder._base64urlAlphabet : convert._Base64Encoder._base64Alphabet;
@@ -29530,7 +29531,7 @@ dart.setSignature(convert._BufferCachingBase64Encoder, {
   constructors: () => ({new: dart.definiteFunctionType(convert._BufferCachingBase64Encoder, [core.bool])}),
   fields: () => ({bufferCache: typed_data.Uint8List})
 });
-let _add = Symbol('_add');
+const _add = Symbol('_add');
 convert._Base64EncoderSink = class _Base64EncoderSink extends convert.ByteConversionSinkBase {
   add(source) {
     this[_add](source, 0, source[dartx.length], false);
@@ -29889,7 +29890,7 @@ dart.defineLazy(convert._Base64Decoder, {
     return typed_data.Int8List.fromList(JSArrayOfint().of([convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder._p, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, 62, convert._Base64Decoder.__, 62, convert._Base64Decoder.__, 63, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder._p, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, 63, convert._Base64Decoder.__, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__, convert._Base64Decoder.__]));
   }
 });
-let _decoder = Symbol('_decoder');
+const _decoder = Symbol('_decoder');
 convert._Base64DecoderSink = class _Base64DecoderSink extends convert.StringConversionSinkBase {
   new(sink) {
     this[_decoder] = new convert._Base64Decoder();
@@ -29945,9 +29946,9 @@ dart.setSignature(convert._ByteAdapterSink, {
     close: dart.definiteFunctionType(dart.void, [])
   })
 });
-let _buffer = Symbol('_buffer');
-let _callback = Symbol('_callback');
-let _bufferIndex = Symbol('_bufferIndex');
+const _buffer = Symbol('_buffer');
+const _callback = Symbol('_callback');
+const _bufferIndex = Symbol('_bufferIndex');
 convert._ByteCallbackSink = class _ByteCallbackSink extends convert.ByteConversionSinkBase {
   new(callback) {
     this[_buffer] = typed_data.Uint8List.new(convert._ByteCallbackSink._INITIAL_BUFFER_SIZE);
@@ -29998,7 +29999,7 @@ dart.setSignature(convert._ByteCallbackSink, {
 });
 convert._ByteCallbackSink._INITIAL_BUFFER_SIZE = 1024;
 convert._ChunkedConversionCallback$ = dart.generic(T => {
-  let _ChunkedConversionCallback = dart.typedef('_ChunkedConversionCallback', () => dart.functionType(dart.void, [T]));
+  const _ChunkedConversionCallback = dart.typedef('_ChunkedConversionCallback', () => dart.functionType(dart.void, [T]));
   return _ChunkedConversionCallback;
 });
 convert._ChunkedConversionCallback = _ChunkedConversionCallback();
@@ -30026,7 +30027,7 @@ convert.ChunkedConverter$ = dart.generic((S, T, S2, T2) => {
   return ChunkedConverter;
 });
 convert.ChunkedConverter = ChunkedConverter();
-let _accumulated = Symbol('_accumulated');
+const _accumulated = Symbol('_accumulated');
 convert._SimpleCallbackSink$ = dart.generic(T => {
   let JSArrayOfT = () => (JSArrayOfT = dart.constFn(_interceptors.JSArray$(T)))();
   let ListOfT = () => (ListOfT = dart.constFn(core.List$(T)))();
@@ -30059,8 +30060,8 @@ convert._SimpleCallbackSink$ = dart.generic(T => {
   return _SimpleCallbackSink;
 });
 convert._SimpleCallbackSink = _SimpleCallbackSink();
-let _eventSink = Symbol('_eventSink');
-let _chunkedSink = Symbol('_chunkedSink');
+const _eventSink = Symbol('_eventSink');
+const _chunkedSink = Symbol('_chunkedSink');
 convert._ConverterStreamEventSink$ = dart.generic((S, T) => {
   let EventSinkOfS = () => (EventSinkOfS = dart.constFn(async.EventSink$(S)))();
   let SinkOfS = () => (SinkOfS = dart.constFn(core.Sink$(S)))();
@@ -30100,8 +30101,8 @@ convert._ConverterStreamEventSink$ = dart.generic((S, T) => {
   return _ConverterStreamEventSink;
 });
 convert._ConverterStreamEventSink = _ConverterStreamEventSink();
-let _second = Symbol('_second');
-let _first = Symbol('_first');
+const _second = Symbol('_second');
+const _first = Symbol('_first');
 convert._FusedCodec$ = dart.generic((S, M, T) => {
   let CodecOfS$M = () => (CodecOfS$M = dart.constFn(convert.Codec$(S, M)))();
   let CodecOfM$T = () => (CodecOfM$T = dart.constFn(convert.Codec$(M, T)))();
@@ -30132,7 +30133,7 @@ convert._FusedCodec$ = dart.generic((S, M, T) => {
   return _FusedCodec;
 });
 convert._FusedCodec = _FusedCodec();
-let _codec = Symbol('_codec');
+const _codec = Symbol('_codec');
 convert._InvertedCodec$ = dart.generic((T, S) => {
   let CodecOfS$T = () => (CodecOfS$T = dart.constFn(convert.Codec$(S, T)))();
   class _InvertedCodec extends convert.Codec$(T, S) {
@@ -30195,7 +30196,7 @@ convert._FusedConverter$ = dart.generic((S, M, T) => {
   return _FusedConverter;
 });
 convert._FusedConverter = _FusedConverter();
-let _name = Symbol('_name');
+const _name = Symbol('_name');
 let const;
 let const;
 let const;
@@ -30262,7 +30263,7 @@ dart.defineLazy(convert.HtmlEscapeMode, {
     return const || (const = dart.const(new convert.HtmlEscapeMode._('element', true, false, false, false)));
   }
 });
-let _convert = Symbol('_convert');
+const _convert = Symbol('_convert');
 convert.HtmlEscape = class HtmlEscape extends convert.Converter$(core.String, core.String) {
   new(mode) {
     if (mode === void 0) mode = convert.HtmlEscapeMode.UNKNOWN;
@@ -30339,7 +30340,7 @@ dart.setSignature(convert.HtmlEscape, {
   })
 });
 convert.HTML_ESCAPE = dart.const(new convert.HtmlEscape());
-let _escape = Symbol('_escape');
+const _escape = Symbol('_escape');
 convert._HtmlEscapeSink = class _HtmlEscapeSink extends convert.StringConversionSinkBase {
   new(escape, sink) {
     this[_escape] = escape;
@@ -30402,7 +30403,7 @@ convert.JsonCyclicError = class JsonCyclicError extends convert.JsonUnsupportedO
 dart.setSignature(convert.JsonCyclicError, {
   constructors: () => ({new: dart.definiteFunctionType(convert.JsonCyclicError, [core.Object])})
 });
-let _toEncodable = Symbol('_toEncodable');
+const _toEncodable = Symbol('_toEncodable');
 let const;
 let const;
 convert.JsonCodec = class JsonCodec extends convert.Codec$(core.Object, core.String) {
@@ -30514,8 +30515,8 @@ dart.setSignature(convert.JsonEncoder, {
     fuse: dart.definiteFunctionType(T => [convert.Converter$(core.Object, T), [convert.Converter$(core.String, T)]])
   })
 });
-let _indent = Symbol('_indent');
-let _bufferSize = Symbol('_bufferSize');
+const _indent = Symbol('_indent');
+const _bufferSize = Symbol('_bufferSize');
 convert.JsonUtf8Encoder = class JsonUtf8Encoder extends convert.Converter$(core.Object, core.List$(core.int)) {
   new(indent, toEncodable, bufferSize) {
     if (indent === void 0) indent = null;
@@ -30593,7 +30594,7 @@ dart.setSignature(convert.JsonUtf8Encoder, {
   names: ['_utf8Encode']
 });
 convert.JsonUtf8Encoder.DEFAULT_BUFFER_SIZE = 256;
-let _isDone = Symbol('_isDone');
+const _isDone = Symbol('_isDone');
 convert._JsonEncoderSink = class _JsonEncoderSink extends convert.ChunkedConversionSink$(core.Object) {
   new(sink, toEncodable, indent) {
     this[_sink] = sink;
@@ -30627,7 +30628,7 @@ dart.setSignature(convert._JsonEncoderSink, {
     close: dart.definiteFunctionType(dart.void, [])
   })
 });
-let _addChunk = Symbol('_addChunk');
+const _addChunk = Symbol('_addChunk');
 convert._JsonUtf8EncoderSink = class _JsonUtf8EncoderSink extends convert.ChunkedConversionSink$(core.Object) {
   new(sink, toEncodable, indent, bufferSize) {
     this[_sink] = sink;
@@ -30717,9 +30718,9 @@ convert._defaultToEncodable = function(object) {
   return dart.dsend(object, 'toJson');
 };
 dart.fn(convert._defaultToEncodable, dynamicTodynamic());
-let _seen = Symbol('_seen');
-let _checkCycle = Symbol('_checkCycle');
-let _removeSeen = Symbol('_removeSeen');
+const _seen = Symbol('_seen');
+const _checkCycle = Symbol('_checkCycle');
+const _removeSeen = Symbol('_removeSeen');
 convert._JsonStringifier = class _JsonStringifier extends core.Object {
   new(toEncodable) {
     this[_seen] = core.List.new();
@@ -30938,7 +30939,7 @@ convert._JsonStringifier.CHAR_n = 110;
 convert._JsonStringifier.CHAR_r = 114;
 convert._JsonStringifier.CHAR_t = 116;
 convert._JsonStringifier.CHAR_u = 117;
-let _indentLevel = Symbol('_indentLevel');
+const _indentLevel = Symbol('_indentLevel');
 convert._JsonPrettyPrintMixin = class _JsonPrettyPrintMixin extends core.Object {
   new() {
     this[_indentLevel] = 0;
@@ -31294,7 +31295,7 @@ dart.setSignature(convert.Latin1Decoder, {
   constructors: () => ({new: dart.definiteFunctionType(convert.Latin1Decoder, [], {allowInvalid: core.bool})}),
   methods: () => ({startChunkedConversion: dart.definiteFunctionType(convert.ByteConversionSink, [SinkOfString()])})
 });
-let _addSliceToSink = Symbol('_addSliceToSink');
+const _addSliceToSink = Symbol('_addSliceToSink');
 convert._Latin1DecoderSink = class _Latin1DecoderSink extends convert.ByteConversionSinkBase {
   new(sink) {
     this[_sink] = sink;
@@ -31452,9 +31453,9 @@ dart.setSignature(convert.LineSplitter, {
   statics: () => ({split: dart.definiteFunctionType(core.Iterable$(core.String), [core.String], [core.int, core.int])}),
   names: ['split']
 });
-let _carry = Symbol('_carry');
-let _skipLeadingLF = Symbol('_skipLeadingLF');
-let _addLines = Symbol('_addLines');
+const _carry = Symbol('_carry');
+const _skipLeadingLF = Symbol('_skipLeadingLF');
+const _addLines = Symbol('_addLines');
 convert._LineSplitterSink = class _LineSplitterSink extends convert.StringConversionSinkBase {
   new(sink) {
     this[_sink] = sink;
@@ -31612,7 +31613,7 @@ dart.setSignature(convert._ClosableStringSink, {
     writeAll: dart.definiteFunctionType(dart.void, [core.Iterable], [core.String])
   })
 });
-let _flush = Symbol('_flush');
+const _flush = Symbol('_flush');
 convert._StringConversionSinkAsStringSinkAdapter = class _StringConversionSinkAsStringSinkAdapter extends core.Object {
   new(chunkedSink) {
     this[_chunkedSink] = chunkedSink;
@@ -31805,7 +31806,7 @@ dart.setSignature(convert._Utf8ConversionSink, {
 });
 convert.UNICODE_REPLACEMENT_CHARACTER_RUNE = 65533;
 convert.UNICODE_BOM_CHARACTER_RUNE = 65279;
-let _allowMalformed = Symbol('_allowMalformed');
+const _allowMalformed = Symbol('_allowMalformed');
 let const;
 convert.Utf8Codec = class Utf8Codec extends convert.Encoding {
   new(opts) {
@@ -31839,8 +31840,8 @@ dart.setSignature(convert.Utf8Codec, {
   methods: () => ({decode: dart.definiteFunctionType(core.String, [ListOfint()], {allowMalformed: core.bool})})
 });
 convert.UTF8 = dart.const(new convert.Utf8Codec());
-let _fillBuffer = Symbol('_fillBuffer');
-let _writeSurrogate = Symbol('_writeSurrogate');
+const _fillBuffer = Symbol('_fillBuffer');
+const _writeSurrogate = Symbol('_writeSurrogate');
 convert.Utf8Encoder = class Utf8Encoder extends convert.Converter$(core.String, core.List$(core.int)) {
   new() {
     super.new();
@@ -32153,10 +32154,10 @@ convert._combineSurrogatePair = function(lead, tail) {
   return (65536 + ((dart.notNull(lead) & convert._SURROGATE_VALUE_MASK) << 10) | dart.notNull(tail) & convert._SURROGATE_VALUE_MASK) >>> 0;
 };
 dart.fn(convert._combineSurrogatePair, intAndintToint());
-let _isFirstCharacter = Symbol('_isFirstCharacter');
-let _value = Symbol('_value');
-let _expectedUnits = Symbol('_expectedUnits');
-let _extraUnits = Symbol('_extraUnits');
+const _isFirstCharacter = Symbol('_isFirstCharacter');
+const _value = Symbol('_value');
+const _expectedUnits = Symbol('_expectedUnits');
+const _extraUnits = Symbol('_extraUnits');
 convert._Utf8Decoder = class _Utf8Decoder extends core.Object {
   new(stringSink, allowMalformed) {
     this[_stringSink] = stringSink;
@@ -32200,7 +32201,7 @@ convert._Utf8Decoder = class _Utf8Decoder extends core.Object {
       return dart.notNull(to) - dart.notNull(from);
     }
     dart.fn(scanOneByteCharacters, dynamicAndintToint());
-    let addSingleBytes = (function(from, to) {
+    const addSingleBytes = (function(from, to) {
       dart.assert(dart.notNull(from) >= dart.notNull(startIndex) && dart.notNull(from) <= dart.notNull(endIndex));
       dart.assert(dart.notNull(to) >= dart.notNull(startIndex) && dart.notNull(to) <= dart.notNull(endIndex));
       this[_stringSink].write(core.String.fromCharCodes(codeUnits, from, to));
@@ -32385,7 +32386,7 @@ dart.setSignature(core.bool, {
   constructors: () => ({fromEnvironment: dart.definiteFunctionType(core.bool, [core.String], {defaultValue: core.bool})})
 });
 core.Comparator$ = dart.generic(T => {
-  let Comparator = dart.typedef('Comparator', () => dart.functionType(core.int, [T, T]));
+  const Comparator = dart.typedef('Comparator', () => dart.functionType(core.int, [T, T]));
   return Comparator;
 });
 core.Comparator = Comparator();
@@ -32403,7 +32404,7 @@ core.Comparable$ = dart.generic(T => {
   return Comparable;
 });
 core.Comparable = Comparable();
-let _value = Symbol('_value');
+const _value = Symbol('_value');
 core.DateTime = class DateTime extends core.Object {
   new(year, month, day, hour, minute, second, millisecond, microsecond) {
     if (month === void 0) month = 1;
@@ -32755,7 +32756,7 @@ core.DateTime.NOVEMBER = 11;
 core.DateTime.DECEMBER = 12;
 core.DateTime.MONTHS_PER_YEAR = 12;
 core.DateTime._MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
-let _duration = Symbol('_duration');
+const _duration = Symbol('_duration');
 core.Duration = class Duration extends core.Object {
   new(opts) {
     let days = opts && 'days' in opts ? opts.days : 0;
@@ -32963,9 +32964,9 @@ core.NullThrownError = class NullThrownError extends core.Error {
     return "Throw of null.";
   }
 };
-let _hasValue = Symbol('_hasValue');
-let _errorName = Symbol('_errorName');
-let _errorExplanation = Symbol('_errorExplanation');
+const _hasValue = Symbol('_hasValue');
+const _errorName = Symbol('_errorName');
+const _errorExplanation = Symbol('_errorExplanation');
 core.ArgumentError = class ArgumentError extends core.Error {
   new(message) {
     if (message === void 0) message = null;
@@ -33176,7 +33177,7 @@ dart.setSignature(core.IndexError, {
     end: dart.definiteFunctionType(core.int, [])
   })
 });
-let _className = Symbol('_className');
+const _className = Symbol('_className');
 core.AbstractClassInstantiationError = class AbstractClassInstantiationError extends core.Error {
   new(className) {
     this[_className] = className;
@@ -33190,11 +33191,11 @@ dart.setSignature(core.AbstractClassInstantiationError, {
   constructors: () => ({new: dart.definiteFunctionType(core.AbstractClassInstantiationError, [core.String])}),
   fields: () => ({[_className]: core.String})
 });
-let _receiver = Symbol('_receiver');
-let _memberName = Symbol('_memberName');
-let _arguments = Symbol('_arguments');
-let _namedArguments = Symbol('_namedArguments');
-let _existingArgumentNames = Symbol('_existingArgumentNames');
+const _receiver = Symbol('_receiver');
+const _memberName = Symbol('_memberName');
+const _arguments = Symbol('_arguments');
+const _namedArguments = Symbol('_namedArguments');
+const _existingArgumentNames = Symbol('_existingArgumentNames');
 core.NoSuchMethodError = class NoSuchMethodError extends core.Error {
   new(receiver, memberName, positionalArguments, namedArguments, existingArgumentNames) {
     if (existingArgumentNames === void 0) existingArgumentNames = null;
@@ -33484,7 +33485,7 @@ core.IntegerDivisionByZeroException[dart.implements] = () => [core.Exception];
 dart.setSignature(core.IntegerDivisionByZeroException, {
   constructors: () => ({new: dart.definiteFunctionType(core.IntegerDivisionByZeroException, [])})
 });
-let _getKey = Symbol('_getKey');
+const _getKey = Symbol('_getKey');
 core.Expando$ = dart.generic(T => {
   class Expando extends core.Object {
     new(name) {
@@ -33571,13 +33572,13 @@ core.identityHashCode = function(object) {
 };
 dart.fn(core.identityHashCode, ObjectToint());
 core._Generator$ = dart.generic(E => {
-  let _Generator = dart.typedef('_Generator', () => dart.functionType(E, [core.int]));
+  const _Generator = dart.typedef('_Generator', () => dart.functionType(E, [core.int]));
   return _Generator;
 });
 core._Generator = _Generator();
-let _end = Symbol('_end');
-let _start = Symbol('_start');
-let _generator = Symbol('_generator');
+const _end = Symbol('_end');
+const _start = Symbol('_start');
+const _generator = Symbol('_generator');
 core._GeneratorIterable$ = dart.generic(E => {
   let _GeneratorOfE = () => (_GeneratorOfE = dart.constFn(core._Generator$(E)))();
   let _GeneratorIteratorOfE = () => (_GeneratorIteratorOfE = dart.constFn(core._GeneratorIterator$(E)))();
@@ -33644,8 +33645,8 @@ core._GeneratorIterable$ = dart.generic(E => {
   return _GeneratorIterable;
 });
 core._GeneratorIterable = _GeneratorIterable();
-let _index = Symbol('_index');
-let _current = Symbol('_current');
+const _index = Symbol('_index');
+const _current = Symbol('_current');
 core._GeneratorIterator$ = dart.generic(E => {
   let IteratorOfE = () => (IteratorOfE = dart.constFn(core.Iterator$(E)))();
   let _GeneratorOfE = () => (_GeneratorOfE = dart.constFn(core._Generator$(E)))();
@@ -33839,7 +33840,7 @@ dart.setSignature(core.StackTrace, {
   }),
   sgetters: () => ({current: dart.definiteFunctionType(core.StackTrace, [])})
 });
-let _stackTrace = Symbol('_stackTrace');
+const _stackTrace = Symbol('_stackTrace');
 core._StringStackTrace = class _StringStackTrace extends core.Object {
   new(stackTrace) {
     this[_stackTrace] = stackTrace;
@@ -33853,7 +33854,7 @@ dart.setSignature(core._StringStackTrace, {
   constructors: () => ({new: dart.definiteFunctionType(core._StringStackTrace, [core.String])}),
   fields: () => ({[_stackTrace]: core.String})
 });
-let _stop = Symbol('_stop');
+const _stop = Symbol('_stop');
 core.Stopwatch = class Stopwatch extends core.Object {
   get frequency() {
     return core.Stopwatch._frequency;
@@ -33981,10 +33982,10 @@ core._combineSurrogatePair = function(start, end) {
   return 65536 + ((dart.notNull(start) & 1023) << 10) + (dart.notNull(end) & 1023);
 };
 dart.fn(core._combineSurrogatePair, intAndintToint());
-let _position = Symbol('_position');
-let _nextPosition = Symbol('_nextPosition');
-let _currentCodePoint = Symbol('_currentCodePoint');
-let _checkSplitSurrogate = Symbol('_checkSplitSurrogate');
+const _position = Symbol('_position');
+const _nextPosition = Symbol('_nextPosition');
+const _currentCodePoint = Symbol('_currentCodePoint');
+const _checkSplitSurrogate = Symbol('_checkSplitSurrogate');
 core.RuneIterator = class RuneIterator extends core.Object {
   new(string) {
     this.string = string;
@@ -34099,8 +34100,8 @@ dart.setSignature(core.RuneIterator, {
     movePrevious: dart.definiteFunctionType(core.bool, [])
   })
 });
-let _contents = Symbol('_contents');
-let _writeString = Symbol('_writeString');
+const _contents = Symbol('_contents');
+const _writeString = Symbol('_writeString');
 core.StringBuffer = class StringBuffer extends core.Object {
   new(content) {
     if (content === void 0) content = "";
@@ -34189,21 +34190,21 @@ core.Symbol = class Symbol extends core.Object {
 dart.setSignature(core.Symbol, {
   constructors: () => ({new: dart.definiteFunctionType(core.Symbol, [core.String])})
 });
-let _userInfo = Symbol('_userInfo');
-let _host = Symbol('_host');
-let _port = Symbol('_port');
-let _path = Symbol('_path');
-let _query = Symbol('_query');
-let _fragment = Symbol('_fragment');
-let _pathSegments = Symbol('_pathSegments');
-let _queryParameters = Symbol('_queryParameters');
-let _queryParameterLists = Symbol('_queryParameterLists');
-let _writeAuthority = Symbol('_writeAuthority');
+const _userInfo = Symbol('_userInfo');
+const _host = Symbol('_host');
+const _port = Symbol('_port');
+const _path = Symbol('_path');
+const _query = Symbol('_query');
+const _fragment = Symbol('_fragment');
+const _pathSegments = Symbol('_pathSegments');
+const _queryParameters = Symbol('_queryParameters');
+const _queryParameterLists = Symbol('_queryParameterLists');
+const _writeAuthority = Symbol('_writeAuthority');
 let const;
-let _mergePaths = Symbol('_mergePaths');
-let _toWindowsFilePath = Symbol('_toWindowsFilePath');
-let _toFilePath = Symbol('_toFilePath');
-let _isPathAbsolute = Symbol('_isPathAbsolute');
+const _mergePaths = Symbol('_mergePaths');
+const _toWindowsFilePath = Symbol('_toWindowsFilePath');
+const _toFilePath = Symbol('_toFilePath');
+const _isPathAbsolute = Symbol('_isPathAbsolute');
 core.Uri = class Uri extends core.Object {
   _internal(scheme, userInfo, host, port, path, query, fragment) {
     this.scheme = scheme;
@@ -35778,9 +35779,9 @@ dart.defineLazy(core.Uri, {
     return core.RegExp.new('^[\\-\\.0-9A-Z_a-z~]*$');
   }
 });
-let _text = Symbol('_text');
-let _separatorIndices = Symbol('_separatorIndices');
-let _uriCache = Symbol('_uriCache');
+const _text = Symbol('_text');
+const _separatorIndices = Symbol('_separatorIndices');
+const _uriCache = Symbol('_uriCache');
 core.UriData = class UriData extends core.Object {
   _(text, separatorIndices, uriCache) {
     this[_text] = text;
@@ -36152,7 +36153,7 @@ dart.setSignature(isolate.IsolateSpawnException, {
   constructors: () => ({new: dart.definiteFunctionType(isolate.IsolateSpawnException, [core.String])}),
   fields: () => ({message: core.String})
 });
-let _pause = Symbol('_pause');
+const _pause = Symbol('_pause');
 isolate.Isolate = class Isolate extends core.Object {
   new(controlPort, opts) {
     let pauseCapability = opts && 'pauseCapability' in opts ? opts.pauseCapability : null;
@@ -36364,7 +36365,7 @@ dart.setSignature(isolate._IsolateUnhandledException, {
     stackTrace: core.StackTrace
   })
 });
-let _description = Symbol('_description');
+const _description = Symbol('_description');
 isolate.RemoteError = class RemoteError extends core.Object {
   new(description, stackDescription) {
     this[_description] = description;
@@ -36382,7 +36383,7 @@ dart.setSignature(isolate.RemoteError, {
     stackTrace: core.StackTrace
   })
 });
-let _trace = Symbol('_trace');
+const _trace = Symbol('_trace');
 isolate._RemoteStackTrace = class _RemoteStackTrace extends core.Object {
   new(trace) {
     this[_trace] = trace;
@@ -36414,7 +36415,7 @@ dart.defineLazy(js, {
     return js._wrapToDart(js._global);
   }
 });
-let _jsObject = Symbol('_jsObject');
+const _jsObject = Symbol('_jsObject');
 js.JsObject = class JsObject extends core.Object {
   _fromJs(jsObject) {
     this[_jsObject] = jsObject;
@@ -36567,8 +36568,8 @@ dart.setSignature(js.JsFunction, {
   }),
   methods: () => ({apply: dart.definiteFunctionType(dart.dynamic, [core.List], {thisArg: dart.dynamic})})
 });
-let _checkIndex = Symbol('_checkIndex');
-let _checkInsertIndex = Symbol('_checkInsertIndex');
+const _checkIndex = Symbol('_checkIndex');
+const _checkInsertIndex = Symbol('_checkInsertIndex');
 js.JsArray$ = dart.generic(E => {
   let JSArrayOfE = () => (JSArrayOfE = dart.constFn(_interceptors.JSArray$(E)))();
   let IterableOfE = () => (IterableOfE = dart.constFn(core.Iterable$(E)))();
@@ -36720,7 +36721,7 @@ js._isBrowserType = function(o) {
   return o instanceof Blob || o instanceof Event || window.KeyRange && o instanceof KeyRange || o instanceof ImageData || o instanceof Node || window.TypedData && o instanceof TypedData || o instanceof Window;
 };
 dart.fn(js._isBrowserType, dynamicTobool());
-let _dartObj = Symbol('_dartObj');
+const _dartObj = Symbol('_dartObj');
 js._DartObject = class _DartObject extends core.Object {
   new(dartObj) {
     this[_dartObj] = dartObj;
@@ -37044,9 +37045,9 @@ dart.setSignature(math._JSRandom, {
     nextBool: dart.definiteFunctionType(core.bool, [])
   })
 });
-let _lo = Symbol('_lo');
-let _hi = Symbol('_hi');
-let _nextState = Symbol('_nextState');
+const _lo = Symbol('_lo');
+const _hi = Symbol('_hi');
+const _nextState = Symbol('_nextState');
 math._Random = class _Random extends core.Object {
   new(seed) {
     this[_lo] = 0;
@@ -37167,8 +37168,8 @@ dart.setSignature(math._Random, {
 math._Random._POW2_53_D = 1.0 * 9007199254740992;
 math._Random._POW2_27_D = 1.0 * (1 << 27);
 math._Random._MASK32 = 4294967295;
-let _buffer = Symbol('_buffer');
-let _getRandomBytes = Symbol('_getRandomBytes');
+const _buffer = Symbol('_buffer');
+const _getRandomBytes = Symbol('_getRandomBytes');
 math._JSSecureRandom = class _JSSecureRandom extends core.Object {
   new() {
     this[_buffer] = typed_data.ByteData.new(8);
@@ -37512,8 +37513,8 @@ math.Rectangle$ = dart.generic(T => {
   return Rectangle;
 });
 math.Rectangle = Rectangle();
-let _width = Symbol('_width');
-let _height = Symbol('_height');
+const _width = Symbol('_width');
+const _height = Symbol('_height');
 math.MutableRectangle$ = dart.generic(T => {
   let MutableRectangleOfT = () => (MutableRectangleOfT = dart.constFn(math.MutableRectangle$(T)))();
   let RectangleOfT = () => (RectangleOfT = dart.constFn(math.Rectangle$(T)))();
@@ -37699,7 +37700,7 @@ dart.setSignature(mirrors.MirrorsUsed, {
 });
 typed_data.ByteBuffer = class ByteBuffer extends core.Object {};
 typed_data.TypedData = class TypedData extends core.Object {};
-let _littleEndian = Symbol('_littleEndian');
+const _littleEndian = Symbol('_littleEndian');
 typed_data.Endianness = class Endianness extends core.Object {
   _(littleEndian) {
     this[_littleEndian] = littleEndian;
@@ -38151,9 +38152,9 @@ dart.fn(indexed_db._convertNativeToDart_IDBAny, dynamicTodynamic());
 indexed_db._idbKey = 'JSExtendableArray|=Object|num|String';
 indexed_db._annotation_Creates_IDBKey = dart.const(new _js_helper.Creates(indexed_db._idbKey));
 indexed_db._annotation_Returns_IDBKey = dart.const(new _js_helper.Returns(indexed_db._idbKey));
-let _delete = Symbol('_delete');
-let _update = Symbol('_update');
-let _update_1 = Symbol('_update_1');
+const _delete = Symbol('_delete');
+const _update = Symbol('_update');
+const _update_1 = Symbol('_update_1');
 dart.defineExtensionNames([
   'delete',
   'update',
@@ -38244,7 +38245,7 @@ dart.setSignature(indexed_db.Cursor, {
   })
 });
 dart.registerExtension(dart.global.IDBCursor, indexed_db.Cursor);
-let _get_value = Symbol('_get_value');
+const _get_value = Symbol('_get_value');
 dart.defineExtensionNames([
   'value'
 ]);
@@ -38265,12 +38266,12 @@ dart.setSignature(indexed_db.CursorWithValue, {
   getters: () => ({[dartx.value]: dart.definiteFunctionType(dart.dynamic, [])})
 });
 dart.registerExtension(dart.global.IDBCursorWithValue, indexed_db.CursorWithValue);
-let _createObjectStore = Symbol('_createObjectStore');
-let _transaction = Symbol('_transaction');
-let _createObjectStore_1 = Symbol('_createObjectStore_1');
-let _createObjectStore_2 = Symbol('_createObjectStore_2');
-let _addEventListener = Symbol('_addEventListener');
-let _removeEventListener = Symbol('_removeEventListener');
+const _createObjectStore = Symbol('_createObjectStore');
+const _transaction = Symbol('_transaction');
+const _createObjectStore_1 = Symbol('_createObjectStore_1');
+const _createObjectStore_2 = Symbol('_createObjectStore_2');
+const _addEventListener = Symbol('_addEventListener');
+const _removeEventListener = Symbol('_removeEventListener');
 dart.defineExtensionNames([
   'on',
   'addEventListener',
@@ -38475,9 +38476,9 @@ dart.defineLazy(indexed_db.Database, {
   }
 });
 dart.registerExtension(dart.global.IDBDatabase, indexed_db.Database);
-let _open = Symbol('_open');
-let _deleteDatabase = Symbol('_deleteDatabase');
-let _webkitGetDatabaseNames = Symbol('_webkitGetDatabaseNames');
+const _open = Symbol('_open');
+const _deleteDatabase = Symbol('_deleteDatabase');
+const _webkitGetDatabaseNames = Symbol('_webkitGetDatabaseNames');
 dart.defineExtensionNames([
   'open',
   'deleteDatabase',
@@ -38591,11 +38592,11 @@ indexed_db._completeRequest = function(T) {
   };
 };
 dart.lazyFn(indexed_db._completeRequest, () => RequestToFutureOfT());
-let _count = Symbol('_count');
-let _get = Symbol('_get');
-let _getKey = Symbol('_getKey');
-let _openCursor = Symbol('_openCursor');
-let _openKeyCursor = Symbol('_openKeyCursor');
+const _count = Symbol('_count');
+const _get = Symbol('_get');
+const _getKey = Symbol('_getKey');
+const _openCursor = Symbol('_openCursor');
+const _openKeyCursor = Symbol('_openKeyCursor');
 dart.defineExtensionNames([
   'count',
   'get',
@@ -38813,16 +38814,16 @@ dart.setSignature(indexed_db.KeyRange, {
   names: ['bound_', 'lowerBound_', 'only_', 'upperBound_']
 });
 dart.registerExtension(dart.global.IDBKeyRange, indexed_db.KeyRange);
-let _add = Symbol('_add');
-let _clear = Symbol('_clear');
-let _put = Symbol('_put');
-let _createIndex = Symbol('_createIndex');
-let _add_1 = Symbol('_add_1');
-let _add_2 = Symbol('_add_2');
-let _createIndex_1 = Symbol('_createIndex_1');
-let _createIndex_2 = Symbol('_createIndex_2');
-let _put_1 = Symbol('_put_1');
-let _put_2 = Symbol('_put_2');
+const _add = Symbol('_add');
+const _clear = Symbol('_clear');
+const _put = Symbol('_put');
+const _createIndex = Symbol('_createIndex');
+const _add_1 = Symbol('_add_1');
+const _add_2 = Symbol('_add_2');
+const _createIndex_1 = Symbol('_createIndex_1');
+const _createIndex_2 = Symbol('_createIndex_2');
+const _put_1 = Symbol('_put_1');
+const _put_2 = Symbol('_put_2');
 dart.defineExtensionNames([
   'add',
   'clear',
@@ -39110,7 +39111,7 @@ indexed_db._cast = function(To) {
   };
 };
 dart.fn(indexed_db._cast, dynamicToTo());
-let _get_result = Symbol('_get_result');
+const _get_result = Symbol('_get_result');
 dart.defineExtensionNames([
   'result',
   'onError',
@@ -39307,11 +39308,11 @@ dart.defineLazy(indexed_db.Transaction, {
   }
 });
 dart.registerExtension(dart.global.IDBTransaction, indexed_db.Transaction);
-let _createEvent = Symbol('_createEvent');
-let _initEvent = Symbol('_initEvent');
-let _selector = Symbol('_selector');
-let _get_currentTarget = Symbol('_get_currentTarget');
-let _get_target = Symbol('_get_target');
+const _createEvent = Symbol('_createEvent');
+const _initEvent = Symbol('_initEvent');
+const _selector = Symbol('_selector');
+const _get_currentTarget = Symbol('_get_currentTarget');
+const _get_target = Symbol('_get_target');
 dart.defineExtensionNames([
   'matchingTarget',
   'currentTarget',
@@ -39528,48 +39529,48 @@ dart.copyProperties(html, {
     return document;
   }
 });
-let _xtag = Symbol('_xtag');
-let _attributes = Symbol('_attributes');
-let _innerHtml = Symbol('_innerHtml');
-let _scrollHeight = Symbol('_scrollHeight');
-let _scrollLeft = Symbol('_scrollLeft');
-let _scrollTop = Symbol('_scrollTop');
-let _scrollWidth = Symbol('_scrollWidth');
-let _childElementCount = Symbol('_childElementCount');
-let _children = Symbol('_children');
-let _firstElementChild = Symbol('_firstElementChild');
-let _lastElementChild = Symbol('_lastElementChild');
-let _querySelectorAll = Symbol('_querySelectorAll');
-let _getComputedStyle = Symbol('_getComputedStyle');
-let _animate = Symbol('_animate');
-let _localName = Symbol('_localName');
-let _namespaceUri = Symbol('_namespaceUri');
-let _scrollIntoView = Symbol('_scrollIntoView');
-let _scrollIntoViewIfNeeded = Symbol('_scrollIntoViewIfNeeded');
-let _insertAdjacentText = Symbol('_insertAdjacentText');
-let _insertAdjacentNode = Symbol('_insertAdjacentNode');
-let _insertAdjacentHtml = Symbol('_insertAdjacentHtml');
-let _insertAdjacentElement = Symbol('_insertAdjacentElement');
-let _canBeUsedToCreateContextualFragment = Symbol('_canBeUsedToCreateContextualFragment');
-let _cannotBeUsedToCreateContextualFragment = Symbol('_cannotBeUsedToCreateContextualFragment');
-let _getElementsByTagName = Symbol('_getElementsByTagName');
-let _hasAttribute = Symbol('_hasAttribute');
-let _hasAttributeNS = Symbol('_hasAttributeNS');
-let _removeAttribute = Symbol('_removeAttribute');
-let _removeAttributeNS = Symbol('_removeAttributeNS');
-let _scroll_1 = Symbol('_scroll_1');
-let _scroll_2 = Symbol('_scroll_2');
-let _scroll_3 = Symbol('_scroll_3');
-let _scrollBy_1 = Symbol('_scrollBy_1');
-let _scrollBy_2 = Symbol('_scrollBy_2');
-let _scrollBy_3 = Symbol('_scrollBy_3');
-let _scrollTo_1 = Symbol('_scrollTo_1');
-let _scrollTo_2 = Symbol('_scrollTo_2');
-let _scrollTo_3 = Symbol('_scrollTo_3');
-let _removeChild = Symbol('_removeChild');
-let _replaceChild = Symbol('_replaceChild');
-let _this = Symbol('_this');
-let _clearChildren = Symbol('_clearChildren');
+const _xtag = Symbol('_xtag');
+const _attributes = Symbol('_attributes');
+const _innerHtml = Symbol('_innerHtml');
+const _scrollHeight = Symbol('_scrollHeight');
+const _scrollLeft = Symbol('_scrollLeft');
+const _scrollTop = Symbol('_scrollTop');
+const _scrollWidth = Symbol('_scrollWidth');
+const _childElementCount = Symbol('_childElementCount');
+const _children = Symbol('_children');
+const _firstElementChild = Symbol('_firstElementChild');
+const _lastElementChild = Symbol('_lastElementChild');
+const _querySelectorAll = Symbol('_querySelectorAll');
+const _getComputedStyle = Symbol('_getComputedStyle');
+const _animate = Symbol('_animate');
+const _localName = Symbol('_localName');
+const _namespaceUri = Symbol('_namespaceUri');
+const _scrollIntoView = Symbol('_scrollIntoView');
+const _scrollIntoViewIfNeeded = Symbol('_scrollIntoViewIfNeeded');
+const _insertAdjacentText = Symbol('_insertAdjacentText');
+const _insertAdjacentNode = Symbol('_insertAdjacentNode');
+const _insertAdjacentHtml = Symbol('_insertAdjacentHtml');
+const _insertAdjacentElement = Symbol('_insertAdjacentElement');
+const _canBeUsedToCreateContextualFragment = Symbol('_canBeUsedToCreateContextualFragment');
+const _cannotBeUsedToCreateContextualFragment = Symbol('_cannotBeUsedToCreateContextualFragment');
+const _getElementsByTagName = Symbol('_getElementsByTagName');
+const _hasAttribute = Symbol('_hasAttribute');
+const _hasAttributeNS = Symbol('_hasAttributeNS');
+const _removeAttribute = Symbol('_removeAttribute');
+const _removeAttributeNS = Symbol('_removeAttributeNS');
+const _scroll_1 = Symbol('_scroll_1');
+const _scroll_2 = Symbol('_scroll_2');
+const _scroll_3 = Symbol('_scroll_3');
+const _scrollBy_1 = Symbol('_scrollBy_1');
+const _scrollBy_2 = Symbol('_scrollBy_2');
+const _scrollBy_3 = Symbol('_scrollBy_3');
+const _scrollTo_1 = Symbol('_scrollTo_1');
+const _scrollTo_2 = Symbol('_scrollTo_2');
+const _scrollTo_3 = Symbol('_scrollTo_3');
+const _removeChild = Symbol('_removeChild');
+const _replaceChild = Symbol('_replaceChild');
+const _this = Symbol('_this');
+const _clearChildren = Symbol('_clearChildren');
 dart.defineExtensionNames([
   'nodes',
   'nodes',
@@ -41947,7 +41948,7 @@ dart.setSignature(html.Animation, {
   sgetters: () => ({supported: dart.definiteFunctionType(core.bool, [])})
 });
 dart.registerExtension(dart.global.Animation, html.Animation);
-let _get_computedTiming = Symbol('_get_computedTiming');
+const _get_computedTiming = Symbol('_get_computedTiming');
 dart.defineExtensionNames([
   'computedTiming',
   'timing'
@@ -43009,7 +43010,7 @@ dart.setSignature(html.AudioTrack, {
   })
 });
 dart.registerExtension(dart.global.AudioTrack, html.AudioTrack);
-let __getter__ = Symbol('__getter__');
+const __getter__ = Symbol('__getter__');
 dart.defineExtensionNames([
   'getTrackById',
   'onChange',
@@ -43334,7 +43335,7 @@ dart.setSignature(html.Blob, {
   names: ['_create_1', '_create_2', '_create_bag', '_bag_set']
 });
 dart.registerExtension(dart.global.Blob, html.Blob);
-let _requestDevice_1 = Symbol('_requestDevice_1');
+const _requestDevice_1 = Symbol('_requestDevice_1');
 dart.defineExtensionNames([
   'requestDevice'
 ]);
@@ -43848,7 +43849,7 @@ dart.setSignature(html.ButtonElement, {
   })
 });
 dart.registerExtension(dart.global.HTMLButtonElement, html.ButtonElement);
-let _createTextNode = Symbol('_createTextNode');
+const _createTextNode = Symbol('_createTextNode');
 dart.defineExtensionNames([
   'appendData',
   'deleteData',
@@ -43966,8 +43967,8 @@ dart.setSignature(html.CDataSection, {
   constructors: () => ({_: dart.definiteFunctionType(html.CDataSection, [])})
 });
 dart.registerExtension(dart.global.CDATASection, html.CDataSection);
-let _match_1 = Symbol('_match_1');
-let _match_2 = Symbol('_match_2');
+const _match_1 = Symbol('_match_1');
+const _match_2 = Symbol('_match_2');
 dart.defineExtensionNames([
   'delete',
   'has',
@@ -44019,9 +44020,9 @@ dart.setSignature(html.CacheStorage, {
   })
 });
 dart.registerExtension(dart.global.CacheStorage, html.CacheStorage);
-let _getContext_1 = Symbol('_getContext_1');
-let _getContext_2 = Symbol('_getContext_2');
-let _toDataUrl = Symbol('_toDataUrl');
+const _getContext_1 = Symbol('_getContext_1');
+const _getContext_2 = Symbol('_getContext_2');
+const _toDataUrl = Symbol('_toDataUrl');
 dart.defineExtensionNames([
   'getContext',
   'onWebGlContextLost',
@@ -44179,16 +44180,16 @@ dart.setSignature(html.CanvasPattern, {
 });
 dart.registerExtension(dart.global.CanvasPattern, html.CanvasPattern);
 html.CanvasRenderingContext = class CanvasRenderingContext extends core.Object {};
-let _addHitRegion_1 = Symbol('_addHitRegion_1');
-let _addHitRegion_2 = Symbol('_addHitRegion_2');
-let _createImageData_1 = Symbol('_createImageData_1');
-let _createImageData_2 = Symbol('_createImageData_2');
-let _getContextAttributes_1 = Symbol('_getContextAttributes_1');
-let _getImageData_1 = Symbol('_getImageData_1');
-let _getLineDash = Symbol('_getLineDash');
-let _putImageData_1 = Symbol('_putImageData_1');
-let _putImageData_2 = Symbol('_putImageData_2');
-let _arc = Symbol('_arc');
+const _addHitRegion_1 = Symbol('_addHitRegion_1');
+const _addHitRegion_2 = Symbol('_addHitRegion_2');
+const _createImageData_1 = Symbol('_createImageData_1');
+const _createImageData_2 = Symbol('_createImageData_2');
+const _getContextAttributes_1 = Symbol('_getContextAttributes_1');
+const _getImageData_1 = Symbol('_getImageData_1');
+const _getLineDash = Symbol('_getLineDash');
+const _putImageData_1 = Symbol('_putImageData_1');
+const _putImageData_2 = Symbol('_putImageData_2');
+const _arc = Symbol('_arc');
 dart.defineExtensionNames([
   'addHitRegion',
   'beginPath',
@@ -44821,8 +44822,8 @@ dart.setSignature(html.CircularGeofencingRegion, {
 html.CircularGeofencingRegion.MAX_RADIUS = 100.0;
 html.CircularGeofencingRegion.MIN_RADIUS = 1.0;
 dart.registerExtension(dart.global.CircularGeofencingRegion, html.CircularGeofencingRegion);
-let _postMessage_1 = Symbol('_postMessage_1');
-let _postMessage_2 = Symbol('_postMessage_2');
+const _postMessage_1 = Symbol('_postMessage_1');
+const _postMessage_2 = Symbol('_postMessage_2');
 dart.defineExtensionNames([
   'postMessage',
   'frameType',
@@ -44874,8 +44875,8 @@ dart.setSignature(html.Client, {
   })
 });
 dart.registerExtension(dart.global.Client, html.Client);
-let _matchAll_1 = Symbol('_matchAll_1');
-let _matchAll_2 = Symbol('_matchAll_2');
+const _matchAll_1 = Symbol('_matchAll_1');
+const _matchAll_2 = Symbol('_matchAll_2');
 dart.defineExtensionNames([
   'claim',
   'matchAll',
@@ -45002,12 +45003,12 @@ dart.setSignature(html.Comment, {
   })
 });
 dart.registerExtension(dart.global.Comment, html.Comment);
-let _initCompositionEvent = Symbol('_initCompositionEvent');
-let _initUIEvent = Symbol('_initUIEvent');
-let _charCode = Symbol('_charCode');
-let _keyCode = Symbol('_keyCode');
-let _get_view = Symbol('_get_view');
-let _which = Symbol('_which');
+const _initCompositionEvent = Symbol('_initCompositionEvent');
+const _initUIEvent = Symbol('_initUIEvent');
+const _charCode = Symbol('_charCode');
+const _keyCode = Symbol('_keyCode');
+const _get_view = Symbol('_get_view');
+const _which = Symbol('_which');
 dart.defineExtensionNames([
   'view',
   'detail',
@@ -45286,16 +45287,16 @@ dart.defineLazy(html.CompositorWorker, {
   }
 });
 dart.registerExtension(dart.global.CompositorWorker, html.CompositorWorker);
-let _fetch_1 = Symbol('_fetch_1');
-let _fetch_2 = Symbol('_fetch_2');
-let _webkitRequestFileSystem = Symbol('_webkitRequestFileSystem');
-let _webkitResolveLocalFileSystemUrl = Symbol('_webkitResolveLocalFileSystemUrl');
-let _setInterval_String = Symbol('_setInterval_String');
-let _setTimeout_String = Symbol('_setTimeout_String');
-let _clearInterval = Symbol('_clearInterval');
-let _clearTimeout = Symbol('_clearTimeout');
-let _setInterval = Symbol('_setInterval');
-let _setTimeout = Symbol('_setTimeout');
+const _fetch_1 = Symbol('_fetch_1');
+const _fetch_2 = Symbol('_fetch_2');
+const _webkitRequestFileSystem = Symbol('_webkitRequestFileSystem');
+const _webkitResolveLocalFileSystemUrl = Symbol('_webkitResolveLocalFileSystemUrl');
+const _setInterval_String = Symbol('_setInterval_String');
+const _setTimeout_String = Symbol('_setTimeout_String');
+const _clearInterval = Symbol('_clearInterval');
+const _clearTimeout = Symbol('_clearTimeout');
+const _setInterval = Symbol('_setInterval');
+const _setTimeout = Symbol('_setTimeout');
 dart.defineExtensionNames([
   'close',
   'fetch',
@@ -45526,7 +45527,7 @@ dart.defineLazy(html.CompositorWorkerGlobalScope, {
   }
 });
 dart.registerExtension(dart.global.CompositorWorkerGlobalScope, html.CompositorWorkerGlobalScope);
-let _isConsoleDefined = Symbol('_isConsoleDefined');
+const _isConsoleDefined = Symbol('_isConsoleDefined');
 html.Console = class Console extends core.Object {
   _safe() {
   }
@@ -45792,8 +45793,8 @@ dart.setSignature(html.Credential, {
   })
 });
 dart.registerExtension(dart.global.Credential, html.Credential);
-let _request_1 = Symbol('_request_1');
-let _request_2 = Symbol('_request_2');
+const _request_1 = Symbol('_request_1');
+const _request_2 = Symbol('_request_2');
 dart.defineExtensionNames([
   'notifySignedIn',
   'request',
@@ -45902,7 +45903,7 @@ dart.setSignature(html.CrossOriginServiceWorkerClient, {
   })
 });
 dart.registerExtension(dart.global.CrossOriginServiceWorkerClient, html.CrossOriginServiceWorkerClient);
-let _getRandomValues = Symbol('_getRandomValues');
+const _getRandomValues = Symbol('_getRandomValues');
 dart.defineExtensionNames([
   'getRandomValues',
   'subtle'
@@ -46249,101 +46250,101 @@ dart.setSignature(html.CssPageRule, {
   })
 });
 dart.registerExtension(dart.global.CSSPageRule, html.CssPageRule);
-let _getPropertyValueHelper = Symbol('_getPropertyValueHelper');
-let _supportsProperty = Symbol('_supportsProperty');
-let _getPropertyValue = Symbol('_getPropertyValue');
-let _setPropertyHelper = Symbol('_setPropertyHelper');
-let _browserPropertyName = Symbol('_browserPropertyName');
-let _background = Symbol('_background');
-let _backgroundAttachment = Symbol('_backgroundAttachment');
-let _backgroundColor = Symbol('_backgroundColor');
-let _backgroundImage = Symbol('_backgroundImage');
-let _backgroundPosition = Symbol('_backgroundPosition');
-let _backgroundRepeat = Symbol('_backgroundRepeat');
-let _border = Symbol('_border');
-let _borderBottom = Symbol('_borderBottom');
-let _borderBottomColor = Symbol('_borderBottomColor');
-let _borderBottomStyle = Symbol('_borderBottomStyle');
-let _borderBottomWidth = Symbol('_borderBottomWidth');
-let _borderCollapse = Symbol('_borderCollapse');
-let _borderColor = Symbol('_borderColor');
-let _borderLeft = Symbol('_borderLeft');
-let _borderLeftColor = Symbol('_borderLeftColor');
-let _borderLeftStyle = Symbol('_borderLeftStyle');
-let _borderLeftWidth = Symbol('_borderLeftWidth');
-let _borderRight = Symbol('_borderRight');
-let _borderRightColor = Symbol('_borderRightColor');
-let _borderRightStyle = Symbol('_borderRightStyle');
-let _borderRightWidth = Symbol('_borderRightWidth');
-let _borderSpacing = Symbol('_borderSpacing');
-let _borderStyle = Symbol('_borderStyle');
-let _borderTop = Symbol('_borderTop');
-let _borderTopColor = Symbol('_borderTopColor');
-let _borderTopStyle = Symbol('_borderTopStyle');
-let _borderTopWidth = Symbol('_borderTopWidth');
-let _borderWidth = Symbol('_borderWidth');
-let _bottom = Symbol('_bottom');
-let _captionSide = Symbol('_captionSide');
-let _clear = Symbol('_clear');
-let _clip = Symbol('_clip');
-let _color = Symbol('_color');
-let _content = Symbol('_content');
-let _cursor = Symbol('_cursor');
-let _direction = Symbol('_direction');
-let _display = Symbol('_display');
-let _emptyCells = Symbol('_emptyCells');
-let _font = Symbol('_font');
-let _fontFamily = Symbol('_fontFamily');
-let _fontSize = Symbol('_fontSize');
-let _fontStyle = Symbol('_fontStyle');
-let _fontVariant = Symbol('_fontVariant');
-let _fontWeight = Symbol('_fontWeight');
-let _height = Symbol('_height');
-let _left = Symbol('_left');
-let _letterSpacing = Symbol('_letterSpacing');
-let _lineHeight = Symbol('_lineHeight');
-let _listStyle = Symbol('_listStyle');
-let _listStyleImage = Symbol('_listStyleImage');
-let _listStylePosition = Symbol('_listStylePosition');
-let _listStyleType = Symbol('_listStyleType');
-let _margin = Symbol('_margin');
-let _marginBottom = Symbol('_marginBottom');
-let _marginLeft = Symbol('_marginLeft');
-let _marginRight = Symbol('_marginRight');
-let _marginTop = Symbol('_marginTop');
-let _maxHeight = Symbol('_maxHeight');
-let _maxWidth = Symbol('_maxWidth');
-let _minHeight = Symbol('_minHeight');
-let _minWidth = Symbol('_minWidth');
-let _outline = Symbol('_outline');
-let _outlineColor = Symbol('_outlineColor');
-let _outlineStyle = Symbol('_outlineStyle');
-let _outlineWidth = Symbol('_outlineWidth');
-let _overflow = Symbol('_overflow');
-let _padding = Symbol('_padding');
-let _paddingBottom = Symbol('_paddingBottom');
-let _paddingLeft = Symbol('_paddingLeft');
-let _paddingRight = Symbol('_paddingRight');
-let _paddingTop = Symbol('_paddingTop');
-let _pageBreakAfter = Symbol('_pageBreakAfter');
-let _pageBreakBefore = Symbol('_pageBreakBefore');
-let _pageBreakInside = Symbol('_pageBreakInside');
-let _position = Symbol('_position');
-let _quotes = Symbol('_quotes');
-let _right = Symbol('_right');
-let _tableLayout = Symbol('_tableLayout');
-let _textAlign = Symbol('_textAlign');
-let _textDecoration = Symbol('_textDecoration');
-let _textIndent = Symbol('_textIndent');
-let _textTransform = Symbol('_textTransform');
-let _top = Symbol('_top');
-let _unicodeBidi = Symbol('_unicodeBidi');
-let _verticalAlign = Symbol('_verticalAlign');
-let _visibility = Symbol('_visibility');
-let _whiteSpace = Symbol('_whiteSpace');
-let _width = Symbol('_width');
-let _wordSpacing = Symbol('_wordSpacing');
-let _zIndex = Symbol('_zIndex');
+const _getPropertyValueHelper = Symbol('_getPropertyValueHelper');
+const _supportsProperty = Symbol('_supportsProperty');
+const _getPropertyValue = Symbol('_getPropertyValue');
+const _setPropertyHelper = Symbol('_setPropertyHelper');
+const _browserPropertyName = Symbol('_browserPropertyName');
+const _background = Symbol('_background');
+const _backgroundAttachment = Symbol('_backgroundAttachment');
+const _backgroundColor = Symbol('_backgroundColor');
+const _backgroundImage = Symbol('_backgroundImage');
+const _backgroundPosition = Symbol('_backgroundPosition');
+const _backgroundRepeat = Symbol('_backgroundRepeat');
+const _border = Symbol('_border');
+const _borderBottom = Symbol('_borderBottom');
+const _borderBottomColor = Symbol('_borderBottomColor');
+const _borderBottomStyle = Symbol('_borderBottomStyle');
+const _borderBottomWidth = Symbol('_borderBottomWidth');
+const _borderCollapse = Symbol('_borderCollapse');
+const _borderColor = Symbol('_borderColor');
+const _borderLeft = Symbol('_borderLeft');
+const _borderLeftColor = Symbol('_borderLeftColor');
+const _borderLeftStyle = Symbol('_borderLeftStyle');
+const _borderLeftWidth = Symbol('_borderLeftWidth');
+const _borderRight = Symbol('_borderRight');
+const _borderRightColor = Symbol('_borderRightColor');
+const _borderRightStyle = Symbol('_borderRightStyle');
+const _borderRightWidth = Symbol('_borderRightWidth');
+const _borderSpacing = Symbol('_borderSpacing');
+const _borderStyle = Symbol('_borderStyle');
+const _borderTop = Symbol('_borderTop');
+const _borderTopColor = Symbol('_borderTopColor');
+const _borderTopStyle = Symbol('_borderTopStyle');
+const _borderTopWidth = Symbol('_borderTopWidth');
+const _borderWidth = Symbol('_borderWidth');
+const _bottom = Symbol('_bottom');
+const _captionSide = Symbol('_captionSide');
+const _clear = Symbol('_clear');
+const _clip = Symbol('_clip');
+const _color = Symbol('_color');
+const _content = Symbol('_content');
+const _cursor = Symbol('_cursor');
+const _direction = Symbol('_direction');
+const _display = Symbol('_display');
+const _emptyCells = Symbol('_emptyCells');
+const _font = Symbol('_font');
+const _fontFamily = Symbol('_fontFamily');
+const _fontSize = Symbol('_fontSize');
+const _fontStyle = Symbol('_fontStyle');
+const _fontVariant = Symbol('_fontVariant');
+const _fontWeight = Symbol('_fontWeight');
+const _height = Symbol('_height');
+const _left = Symbol('_left');
+const _letterSpacing = Symbol('_letterSpacing');
+const _lineHeight = Symbol('_lineHeight');
+const _listStyle = Symbol('_listStyle');
+const _listStyleImage = Symbol('_listStyleImage');
+const _listStylePosition = Symbol('_listStylePosition');
+const _listStyleType = Symbol('_listStyleType');
+const _margin = Symbol('_margin');
+const _marginBottom = Symbol('_marginBottom');
+const _marginLeft = Symbol('_marginLeft');
+const _marginRight = Symbol('_marginRight');
+const _marginTop = Symbol('_marginTop');
+const _maxHeight = Symbol('_maxHeight');
+const _maxWidth = Symbol('_maxWidth');
+const _minHeight = Symbol('_minHeight');
+const _minWidth = Symbol('_minWidth');
+const _outline = Symbol('_outline');
+const _outlineColor = Symbol('_outlineColor');
+const _outlineStyle = Symbol('_outlineStyle');
+const _outlineWidth = Symbol('_outlineWidth');
+const _overflow = Symbol('_overflow');
+const _padding = Symbol('_padding');
+const _paddingBottom = Symbol('_paddingBottom');
+const _paddingLeft = Symbol('_paddingLeft');
+const _paddingRight = Symbol('_paddingRight');
+const _paddingTop = Symbol('_paddingTop');
+const _pageBreakAfter = Symbol('_pageBreakAfter');
+const _pageBreakBefore = Symbol('_pageBreakBefore');
+const _pageBreakInside = Symbol('_pageBreakInside');
+const _position = Symbol('_position');
+const _quotes = Symbol('_quotes');
+const _right = Symbol('_right');
+const _tableLayout = Symbol('_tableLayout');
+const _textAlign = Symbol('_textAlign');
+const _textDecoration = Symbol('_textDecoration');
+const _textIndent = Symbol('_textIndent');
+const _textTransform = Symbol('_textTransform');
+const _top = Symbol('_top');
+const _unicodeBidi = Symbol('_unicodeBidi');
+const _verticalAlign = Symbol('_verticalAlign');
+const _visibility = Symbol('_visibility');
+const _whiteSpace = Symbol('_whiteSpace');
+const _width = Symbol('_width');
+const _wordSpacing = Symbol('_wordSpacing');
+const _zIndex = Symbol('_zIndex');
 dart.defineExtensionNames([
   'alignContent',
   'alignContent',
@@ -51948,9 +51949,9 @@ dart.defineLazy(html.CssStyleDeclaration, {
   }
 });
 dart.registerExtension(dart.global.CSSStyleDeclaration, html.CssStyleDeclaration);
-let _elementIterable = Symbol('_elementIterable');
-let _elementCssStyleDeclarationSetIterable = Symbol('_elementCssStyleDeclarationSetIterable');
-let _setAll = Symbol('_setAll');
+const _elementIterable = Symbol('_elementIterable');
+const _elementCssStyleDeclarationSetIterable = Symbol('_elementCssStyleDeclarationSetIterable');
+const _setAll = Symbol('_setAll');
 html._CssStyleDeclarationSet = class _CssStyleDeclarationSet extends dart.mixin(core.Object, html.CssStyleDeclarationBase) {
   new(elementIterable) {
     this[_elementIterable] = elementIterable;
@@ -52795,10 +52796,10 @@ dart.setSignature(html.CssViewportRule, {
   fields: () => ({[dartx.style]: html.CssStyleDeclaration})
 });
 dart.registerExtension(dart.global.CSSViewportRule, html.CssViewportRule);
-let _dartDetail = Symbol('_dartDetail');
-let _initCustomEvent = Symbol('_initCustomEvent');
-let _detail = Symbol('_detail');
-let _get__detail = Symbol('_get__detail');
+const _dartDetail = Symbol('_dartDetail');
+const _initCustomEvent = Symbol('_initCustomEvent');
+const _detail = Symbol('_detail');
+const _get__detail = Symbol('_get__detail');
 dart.defineExtensionNames([
   'detail'
 ]);
@@ -52997,7 +52998,7 @@ dart.setSignature(html.DataTransfer, {
   })
 });
 dart.registerExtension(dart.global.DataTransfer, html.DataTransfer);
-let _getAsString = Symbol('_getAsString');
+const _getAsString = Symbol('_getAsString');
 dart.defineExtensionNames([
   'getAsFile',
   'getAsString',
@@ -53374,7 +53375,7 @@ dart.setSignature(html.DeviceMotionEvent, {
   methods: () => ({[dartx.initDeviceMotionEvent]: dart.definiteFunctionType(dart.void, [core.String, core.bool, core.bool, html.DeviceAcceleration, html.DeviceAcceleration, html.DeviceRotationRate, core.num])})
 });
 dart.registerExtension(dart.global.DeviceMotionEvent, html.DeviceMotionEvent);
-let _initDeviceOrientationEvent = Symbol('_initDeviceOrientationEvent');
+const _initDeviceOrientationEvent = Symbol('_initDeviceOrientationEvent');
 dart.defineExtensionNames([
   'absolute',
   'alpha',
@@ -53509,24 +53510,24 @@ dart.setSignature(html.DialogElement, {
   })
 });
 dart.registerExtension(dart.global.HTMLDialogElement, html.DialogElement);
-let _getDirectory = Symbol('_getDirectory');
-let _getFile = Symbol('_getFile');
-let __getDirectory_1 = Symbol('__getDirectory_1');
-let __getDirectory_2 = Symbol('__getDirectory_2');
-let __getDirectory_3 = Symbol('__getDirectory_3');
-let __getDirectory_4 = Symbol('__getDirectory_4');
-let __getDirectory = Symbol('__getDirectory');
-let __getFile_1 = Symbol('__getFile_1');
-let __getFile_2 = Symbol('__getFile_2');
-let __getFile_3 = Symbol('__getFile_3');
-let __getFile_4 = Symbol('__getFile_4');
-let __getFile = Symbol('__getFile');
-let _removeRecursively = Symbol('_removeRecursively');
-let _copyTo = Symbol('_copyTo');
-let _getMetadata = Symbol('_getMetadata');
-let _getParent = Symbol('_getParent');
-let _moveTo = Symbol('_moveTo');
-let _remove = Symbol('_remove');
+const _getDirectory = Symbol('_getDirectory');
+const _getFile = Symbol('_getFile');
+const __getDirectory_1 = Symbol('__getDirectory_1');
+const __getDirectory_2 = Symbol('__getDirectory_2');
+const __getDirectory_3 = Symbol('__getDirectory_3');
+const __getDirectory_4 = Symbol('__getDirectory_4');
+const __getDirectory = Symbol('__getDirectory');
+const __getFile_1 = Symbol('__getFile_1');
+const __getFile_2 = Symbol('__getFile_2');
+const __getFile_3 = Symbol('__getFile_3');
+const __getFile_4 = Symbol('__getFile_4');
+const __getFile = Symbol('__getFile');
+const _removeRecursively = Symbol('_removeRecursively');
+const _copyTo = Symbol('_copyTo');
+const _getMetadata = Symbol('_getMetadata');
+const _getParent = Symbol('_getParent');
+const _moveTo = Symbol('_moveTo');
+const _remove = Symbol('_remove');
 dart.defineExtensionNames([
   'copyTo',
   'getMetadata',
@@ -53804,7 +53805,7 @@ dart.setSignature(html.DirectoryEntry, {
   })
 });
 dart.registerExtension(dart.global.DirectoryEntry, html.DirectoryEntry);
-let _readEntries = Symbol('_readEntries');
+const _readEntries = Symbol('_readEntries');
 dart.defineExtensionNames([
   'readEntries'
 ]);
@@ -53853,33 +53854,33 @@ dart.setSignature(html.DivElement, {
   })
 });
 dart.registerExtension(dart.global.HTMLDivElement, html.DivElement);
-let _body = Symbol('_body');
-let _get_window = Symbol('_get_window');
-let _head = Symbol('_head');
-let _lastModified = Symbol('_lastModified');
-let _preferredStylesheetSet = Symbol('_preferredStylesheetSet');
-let _referrer = Symbol('_referrer');
-let _selectedStylesheetSet = Symbol('_selectedStylesheetSet');
-let _styleSheets = Symbol('_styleSheets');
-let _title = Symbol('_title');
-let _visibilityState = Symbol('_visibilityState');
-let _webkitFullscreenElement = Symbol('_webkitFullscreenElement');
-let _webkitFullscreenEnabled = Symbol('_webkitFullscreenEnabled');
-let _webkitHidden = Symbol('_webkitHidden');
-let _webkitVisibilityState = Symbol('_webkitVisibilityState');
-let _caretRangeFromPoint = Symbol('_caretRangeFromPoint');
-let _createElement = Symbol('_createElement');
-let _createElementNS = Symbol('_createElementNS');
-let _createTouch_1 = Symbol('_createTouch_1');
-let _createTouch = Symbol('_createTouch');
-let _createTouchList = Symbol('_createTouchList');
-let _elementFromPoint = Symbol('_elementFromPoint');
-let _getCssCanvasContext = Symbol('_getCssCanvasContext');
-let _webkitExitFullscreen = Symbol('_webkitExitFullscreen');
-let _createElement_2 = Symbol('_createElement_2');
-let _createElementNS_2 = Symbol('_createElementNS_2');
-let _createNodeIterator = Symbol('_createNodeIterator');
-let _createTreeWalker = Symbol('_createTreeWalker');
+const _body = Symbol('_body');
+const _get_window = Symbol('_get_window');
+const _head = Symbol('_head');
+const _lastModified = Symbol('_lastModified');
+const _preferredStylesheetSet = Symbol('_preferredStylesheetSet');
+const _referrer = Symbol('_referrer');
+const _selectedStylesheetSet = Symbol('_selectedStylesheetSet');
+const _styleSheets = Symbol('_styleSheets');
+const _title = Symbol('_title');
+const _visibilityState = Symbol('_visibilityState');
+const _webkitFullscreenElement = Symbol('_webkitFullscreenElement');
+const _webkitFullscreenEnabled = Symbol('_webkitFullscreenEnabled');
+const _webkitHidden = Symbol('_webkitHidden');
+const _webkitVisibilityState = Symbol('_webkitVisibilityState');
+const _caretRangeFromPoint = Symbol('_caretRangeFromPoint');
+const _createElement = Symbol('_createElement');
+const _createElementNS = Symbol('_createElementNS');
+const _createTouch_1 = Symbol('_createTouch_1');
+const _createTouch = Symbol('_createTouch');
+const _createTouchList = Symbol('_createTouchList');
+const _elementFromPoint = Symbol('_elementFromPoint');
+const _getCssCanvasContext = Symbol('_getCssCanvasContext');
+const _webkitExitFullscreen = Symbol('_webkitExitFullscreen');
+const _createElement_2 = Symbol('_createElement_2');
+const _createElementNS_2 = Symbol('_createElementNS_2');
+const _createNodeIterator = Symbol('_createNodeIterator');
+const _createTreeWalker = Symbol('_createTreeWalker');
 dart.defineExtensionNames([
   'window',
   'adoptNode',
@@ -54660,7 +54661,7 @@ dart.defineLazy(html.Document, {
   }
 });
 dart.registerExtension(dart.global.Document, html.Document);
-let _docChildren = Symbol('_docChildren');
+const _docChildren = Symbol('_docChildren');
 dart.defineExtensionNames([
   'children',
   'children',
@@ -56020,9 +56021,9 @@ dart.setSignature(html.EffectModel, {
   constructors: () => ({_: dart.definiteFunctionType(html.EffectModel, [])})
 });
 dart.registerExtension(dart.global.EffectModel, html.EffectModel);
-let _childElements = Symbol('_childElements');
-let _element = Symbol('_element');
-let _filter = Symbol('_filter');
+const _childElements = Symbol('_childElements');
+const _element = Symbol('_element');
+const _filter = Symbol('_filter');
 html._ChildrenElementList = class _ChildrenElementList extends collection.ListBase$(html.Element) {
   _wrap(element) {
     this[_childElements] = html.HtmlCollection._check(element[_children]);
@@ -56223,8 +56224,8 @@ html.ElementList$ = dart.generic(T => {
   return ElementList;
 });
 html.ElementList = ElementList();
-let _nodeList = Symbol('_nodeList');
-let _forElementList = Symbol('_forElementList');
+const _nodeList = Symbol('_nodeList');
+const _forElementList = Symbol('_forElementList');
 html._FrozenElementList$ = dart.generic(E => {
   let ElementListOfE = () => (ElementListOfE = dart.constFn(html.ElementList$(E)))();
   let ComparatorOfE = () => (ComparatorOfE = dart.constFn(core.Comparator$(E)))();
@@ -56619,7 +56620,7 @@ dart.setSignature(html._ElementFactoryProvider, {
   statics: () => ({createElement_tag: dart.definiteFunctionType(dart.dynamic, [core.String, core.String])}),
   names: ['createElement_tag']
 });
-let _value = Symbol('_value');
+const _value = Symbol('_value');
 html.ScrollAlignment = class ScrollAlignment extends core.Object {
   _internal(value) {
     this[_value] = value;
@@ -56649,7 +56650,7 @@ dart.defineLazy(html.ScrollAlignment, {
     return dart.const(new html.ScrollAlignment._internal('BOTTOM'));
   }
 });
-let __setter__ = Symbol('__setter__');
+const __setter__ = Symbol('__setter__');
 dart.defineExtensionNames([
   'height',
   'name',
@@ -56896,7 +56897,7 @@ dart.defineLazy(html.EventSource, {
   }
 });
 dart.registerExtension(dart.global.EventSource, html.EventSource);
-let _ptr = Symbol('_ptr');
+const _ptr = Symbol('_ptr');
 html.Events = class Events extends core.Object {
   new(ptr) {
     this[_ptr] = ptr;
@@ -57150,7 +57151,7 @@ dart.setSignature(html.FieldSetElement, {
   })
 });
 dart.registerExtension(dart.global.HTMLFieldSetElement, html.FieldSetElement);
-let _get_lastModifiedDate = Symbol('_get_lastModifiedDate');
+const _get_lastModifiedDate = Symbol('_get_lastModifiedDate');
 dart.defineExtensionNames([
   'lastModifiedDate',
   'lastModified',
@@ -57211,8 +57212,8 @@ dart.setSignature(html.File, {
 });
 dart.registerExtension(dart.global.File, html.File);
 html._FileCallback = dart.typedef('_FileCallback', () => dart.functionType(dart.void, [html.File]));
-let _createWriter = Symbol('_createWriter');
-let _file = Symbol('_file');
+const _createWriter = Symbol('_createWriter');
+const _file = Symbol('_file');
 dart.defineExtensionNames([
   'createWriter',
   'file'
@@ -57670,7 +57671,7 @@ dart.defineLazy(html.FileWriter, {
 });
 dart.registerExtension(dart.global.FileWriter, html.FileWriter);
 html._FileWriterCallback = dart.typedef('_FileWriterCallback', () => dart.functionType(dart.void, [html.FileWriter]));
-let _get_relatedTarget = Symbol('_get_relatedTarget');
+const _get_relatedTarget = Symbol('_get_relatedTarget');
 dart.defineExtensionNames([
   'relatedTarget'
 ]);
@@ -57964,7 +57965,7 @@ dart.setSignature(html.FormData, {
   names: ['_create_1', '_create_2']
 });
 dart.registerExtension(dart.global.FormData, html.FormData);
-let _requestAutocomplete_1 = Symbol('_requestAutocomplete_1');
+const _requestAutocomplete_1 = Symbol('_requestAutocomplete_1');
 dart.defineExtensionNames([
   'checkValidity',
   'item',
@@ -58279,16 +58280,16 @@ dart.setSignature(html.GeofencingEvent, {
   })
 });
 dart.registerExtension(dart.global.GeofencingEvent, html.GeofencingEvent);
-let _getCurrentPosition = Symbol('_getCurrentPosition');
-let _ensurePosition = Symbol('_ensurePosition');
-let _watchPosition = Symbol('_watchPosition');
-let _clearWatch = Symbol('_clearWatch');
-let _getCurrentPosition_1 = Symbol('_getCurrentPosition_1');
-let _getCurrentPosition_2 = Symbol('_getCurrentPosition_2');
-let _getCurrentPosition_3 = Symbol('_getCurrentPosition_3');
-let _watchPosition_1 = Symbol('_watchPosition_1');
-let _watchPosition_2 = Symbol('_watchPosition_2');
-let _watchPosition_3 = Symbol('_watchPosition_3');
+const _getCurrentPosition = Symbol('_getCurrentPosition');
+const _ensurePosition = Symbol('_ensurePosition');
+const _watchPosition = Symbol('_watchPosition');
+const _clearWatch = Symbol('_clearWatch');
+const _getCurrentPosition_1 = Symbol('_getCurrentPosition_1');
+const _getCurrentPosition_2 = Symbol('_getCurrentPosition_2');
+const _getCurrentPosition_3 = Symbol('_getCurrentPosition_3');
+const _watchPosition_1 = Symbol('_watchPosition_1');
+const _watchPosition_2 = Symbol('_watchPosition_2');
+const _watchPosition_3 = Symbol('_watchPosition_3');
 dart.defineExtensionNames([
   'getCurrentPosition',
   'watchPosition'
@@ -59044,7 +59045,7 @@ dart.setSignature(html.HRElement, {
   fields: () => ({[dartx.color]: core.String})
 });
 dart.registerExtension(dart.global.HTMLHRElement, html.HRElement);
-let _initHashChangeEvent = Symbol('_initHashChangeEvent');
+const _initHashChangeEvent = Symbol('_initHashChangeEvent');
 dart.defineExtensionNames([
   'newUrl',
   'oldUrl'
@@ -59211,12 +59212,12 @@ dart.setSignature(html.HeadingElement, {
   })
 });
 dart.registerExtension(dart.global.HTMLHeadingElement, html.HeadingElement);
-let _get_options = Symbol('_get_options');
-let _get_state = Symbol('_get_state');
-let _pushState_1 = Symbol('_pushState_1');
-let _pushState_2 = Symbol('_pushState_2');
-let _replaceState_1 = Symbol('_replaceState_1');
-let _replaceState_2 = Symbol('_replaceState_2');
+const _get_options = Symbol('_get_options');
+const _get_state = Symbol('_get_state');
+const _pushState_1 = Symbol('_pushState_1');
+const _pushState_2 = Symbol('_pushState_2');
+const _replaceState_1 = Symbol('_replaceState_1');
+const _replaceState_2 = Symbol('_replaceState_2');
 dart.defineExtensionNames([
   'options',
   'state',
@@ -59627,7 +59628,7 @@ dart.setSignature(html.HtmlHtmlElement, {
   })
 });
 dart.registerExtension(dart.global.HTMLHtmlElement, html.HtmlHtmlElement);
-let _item = Symbol('_item');
+const _item = Symbol('_item');
 html.HtmlOptionsCollection = class HtmlOptionsCollection extends html.HtmlCollection {
   static _() {
     dart.throw(new core.UnsupportedError("Not supported"));
@@ -59641,7 +59642,7 @@ dart.setSignature(html.HtmlOptionsCollection, {
   methods: () => ({[_item]: dart.definiteFunctionType(html.Node, [core.int])})
 });
 dart.registerExtension(dart.global.HTMLOptionsCollection, html.HtmlOptionsCollection);
-let _get_response = Symbol('_get_response');
+const _get_response = Symbol('_get_response');
 dart.defineExtensionNames([
   'onAbort',
   'onError',
@@ -60040,7 +60041,7 @@ dart.setSignature(html.HttpRequestUpload, {
   constructors: () => ({_: dart.definiteFunctionType(html.HttpRequestUpload, [])})
 });
 dart.registerExtension(dart.global.XMLHttpRequestUpload, html.HttpRequestUpload);
-let _get_contentWindow = Symbol('_get_contentWindow');
+const _get_contentWindow = Symbol('_get_contentWindow');
 dart.defineExtensionNames([
   'contentWindow',
   'allowFullscreen',
@@ -60408,8 +60409,8 @@ dart.setSignature(html.InputDevice, {
   names: ['_create_1', '_create_2']
 });
 dart.registerExtension(dart.global.InputDevice, html.InputDevice);
-let _get_valueAsDate = Symbol('_get_valueAsDate');
-let _set_valueAsDate = Symbol('_set_valueAsDate');
+const _get_valueAsDate = Symbol('_get_valueAsDate');
+const _set_valueAsDate = Symbol('_set_valueAsDate');
 dart.defineExtensionNames([
   'valueAsDate',
   'valueAsDate',
@@ -61558,8 +61559,8 @@ html.ButtonInputElement[dart.implements] = () => [html.InputElementBase];
 dart.setSignature(html.ButtonInputElement, {
   constructors: () => ({new: dart.definiteFunctionType(html.ButtonInputElement, [])})
 });
-let _initKeyboardEvent = Symbol('_initKeyboardEvent');
-let _keyIdentifier = Symbol('_keyIdentifier');
+const _initKeyboardEvent = Symbol('_initKeyboardEvent');
+const _keyIdentifier = Symbol('_keyIdentifier');
 dart.defineExtensionNames([
   'keyCode',
   'charCode',
@@ -62384,7 +62385,7 @@ dart.setSignature(html.MediaDeviceInfo, {
   })
 });
 dart.registerExtension(dart.global.MediaDeviceInfo, html.MediaDeviceInfo);
-let _getUserMedia_1 = Symbol('_getUserMedia_1');
+const _getUserMedia_1 = Symbol('_getUserMedia_1');
 dart.defineExtensionNames([
   'enumerateDevices',
   'getUserMedia'
@@ -62636,7 +62637,7 @@ dart.setSignature(html.MediaKeyMessageEvent, {
   names: ['_create_1', '_create_2']
 });
 dart.registerExtension(dart.global.MediaKeyMessageEvent, html.MediaKeyMessageEvent);
-let _update = Symbol('_update');
+const _update = Symbol('_update');
 dart.defineExtensionNames([
   'close',
   'generateRequest',
@@ -62712,7 +62713,7 @@ dart.setSignature(html.MediaKeyStatusMap, {
   fields: () => ({[dartx.size]: core.int})
 });
 dart.registerExtension(dart.global.MediaKeyStatusMap, html.MediaKeyStatusMap);
-let _getConfiguration_1 = Symbol('_getConfiguration_1');
+const _getConfiguration_1 = Symbol('_getConfiguration_1');
 dart.defineExtensionNames([
   'createMediaKeys',
   'getConfiguration',
@@ -62745,7 +62746,7 @@ dart.setSignature(html.MediaKeySystemAccess, {
   })
 });
 dart.registerExtension(dart.global.MediaKeySystemAccess, html.MediaKeySystemAccess);
-let _createSession = Symbol('_createSession');
+const _createSession = Symbol('_createSession');
 dart.defineExtensionNames([
   'setServerCertificate'
 ]);
@@ -63492,9 +63493,9 @@ dart.setSignature(html.MessageChannel, {
   })
 });
 dart.registerExtension(dart.global.MessageChannel, html.MessageChannel);
-let _initMessageEvent = Symbol('_initMessageEvent');
-let _get_data = Symbol('_get_data');
-let _get_source = Symbol('_get_source');
+const _initMessageEvent = Symbol('_initMessageEvent');
+const _get_data = Symbol('_get_data');
+const _get_source = Symbol('_get_source');
 dart.defineExtensionNames([
   'data',
   'source',
@@ -63685,7 +63686,7 @@ dart.setSignature(html.MetaElement, {
   })
 });
 dart.registerExtension(dart.global.HTMLMetaElement, html.MetaElement);
-let _get_modificationTime = Symbol('_get_modificationTime');
+const _get_modificationTime = Symbol('_get_modificationTime');
 dart.defineExtensionNames([
   'modificationTime',
   'size'
@@ -64194,20 +64195,20 @@ dart.setSignature(html.ModElement, {
   })
 });
 dart.registerExtension(dart.global.HTMLModElement, html.ModElement);
-let _initMouseEvent = Symbol('_initMouseEvent');
-let _clientX = Symbol('_clientX');
-let _clientY = Symbol('_clientY');
-let _layerX = Symbol('_layerX');
-let _layerY = Symbol('_layerY');
-let _movementX = Symbol('_movementX');
-let _movementY = Symbol('_movementY');
-let _pageX = Symbol('_pageX');
-let _pageY = Symbol('_pageY');
-let _screenX = Symbol('_screenX');
-let _screenY = Symbol('_screenY');
-let _webkitMovementX = Symbol('_webkitMovementX');
-let _webkitMovementY = Symbol('_webkitMovementY');
-let _initMouseEvent_1 = Symbol('_initMouseEvent_1');
+const _initMouseEvent = Symbol('_initMouseEvent');
+const _clientX = Symbol('_clientX');
+const _clientY = Symbol('_clientY');
+const _layerX = Symbol('_layerX');
+const _layerY = Symbol('_layerY');
+const _movementX = Symbol('_movementX');
+const _movementY = Symbol('_movementY');
+const _pageX = Symbol('_pageX');
+const _pageY = Symbol('_pageY');
+const _screenX = Symbol('_screenX');
+const _screenY = Symbol('_screenY');
+const _webkitMovementX = Symbol('_webkitMovementX');
+const _webkitMovementY = Symbol('_webkitMovementY');
+const _initMouseEvent_1 = Symbol('_initMouseEvent_1');
 dart.defineExtensionNames([
   'relatedTarget',
   'client',
@@ -64425,9 +64426,9 @@ dart.setSignature(html.MouseEvent, {
 });
 dart.registerExtension(dart.global.MouseEvent, html.MouseEvent);
 html.MutationCallback = dart.typedef('MutationCallback', () => dart.functionType(dart.void, [ListOfMutationRecord(), html.MutationObserver]));
-let _observe_1 = Symbol('_observe_1');
-let _observe = Symbol('_observe');
-let _call = Symbol('_call');
+const _observe_1 = Symbol('_observe_1');
+const _observe = Symbol('_observe');
+const _call = Symbol('_call');
 dart.defineExtensionNames([
   'disconnect',
   'takeRecords',
@@ -64571,10 +64572,10 @@ dart.setSignature(html.MutationRecord, {
   })
 });
 dart.registerExtension(dart.global.MutationRecord, html.MutationRecord);
-let _ensureGetUserMedia = Symbol('_ensureGetUserMedia');
-let _getUserMedia = Symbol('_getUserMedia');
-let _requestMidiAccess_1 = Symbol('_requestMidiAccess_1');
-let _requestMidiAccess_2 = Symbol('_requestMidiAccess_2');
+const _ensureGetUserMedia = Symbol('_ensureGetUserMedia');
+const _getUserMedia = Symbol('_getUserMedia');
+const _requestMidiAccess_1 = Symbol('_requestMidiAccess_1');
+const _requestMidiAccess_2 = Symbol('_requestMidiAccess_2');
 dart.defineExtensionNames([
   'language',
   'getUserMedia',
@@ -66723,8 +66724,8 @@ dart.setSignature(html.PeriodicSyncEvent, {
   names: ['_create_1']
 });
 dart.registerExtension(dart.global.PeriodicSyncEvent, html.PeriodicSyncEvent);
-let _register_1 = Symbol('_register_1');
-let _register_2 = Symbol('_register_2');
+const _register_1 = Symbol('_register_1');
+const _register_2 = Symbol('_register_2');
 dart.defineExtensionNames([
   'getRegistration',
   'getRegistrations',
@@ -67579,10 +67580,10 @@ dart.setSignature(html.PushEvent, {
   names: ['_create_1', '_create_2']
 });
 dart.registerExtension(dart.global.PushEvent, html.PushEvent);
-let _permissionState_1 = Symbol('_permissionState_1');
-let _permissionState_2 = Symbol('_permissionState_2');
-let _subscribe_1 = Symbol('_subscribe_1');
-let _subscribe_2 = Symbol('_subscribe_2');
+const _permissionState_1 = Symbol('_permissionState_1');
+const _permissionState_2 = Symbol('_permissionState_2');
+const _subscribe_1 = Symbol('_subscribe_1');
+const _subscribe_2 = Symbol('_subscribe_2');
 dart.defineExtensionNames([
   'getSubscription',
   'permissionState',
@@ -68394,22 +68395,22 @@ dart.setSignature(html.RtcIceCandidateEvent, {
   fields: () => ({[dartx.candidate]: html.RtcIceCandidate})
 });
 dart.registerExtension(dart.global.RTCIceCandidateEvent, html.RtcIceCandidateEvent);
-let _createOffer = Symbol('_createOffer');
-let _createAnswer = Symbol('_createAnswer');
-let _getStats = Symbol('_getStats');
-let _addStream_1 = Symbol('_addStream_1');
-let _addStream_2 = Symbol('_addStream_2');
-let _createAnswer_1 = Symbol('_createAnswer_1');
-let _createAnswer_2 = Symbol('_createAnswer_2');
-let _createDataChannel_1 = Symbol('_createDataChannel_1');
-let _createDataChannel_2 = Symbol('_createDataChannel_2');
-let _createOffer_1 = Symbol('_createOffer_1');
-let _createOffer_2 = Symbol('_createOffer_2');
-let _setLocalDescription = Symbol('_setLocalDescription');
-let _setRemoteDescription = Symbol('_setRemoteDescription');
-let _updateIce_1 = Symbol('_updateIce_1');
-let _updateIce_2 = Symbol('_updateIce_2');
-let _updateIce_3 = Symbol('_updateIce_3');
+const _createOffer = Symbol('_createOffer');
+const _createAnswer = Symbol('_createAnswer');
+const _getStats = Symbol('_getStats');
+const _addStream_1 = Symbol('_addStream_1');
+const _addStream_2 = Symbol('_addStream_2');
+const _createAnswer_1 = Symbol('_createAnswer_1');
+const _createAnswer_2 = Symbol('_createAnswer_2');
+const _createDataChannel_1 = Symbol('_createDataChannel_1');
+const _createDataChannel_2 = Symbol('_createDataChannel_2');
+const _createOffer_1 = Symbol('_createOffer_1');
+const _createOffer_2 = Symbol('_createOffer_2');
+const _setLocalDescription = Symbol('_setLocalDescription');
+const _setRemoteDescription = Symbol('_setRemoteDescription');
+const _updateIce_1 = Symbol('_updateIce_1');
+const _updateIce_2 = Symbol('_updateIce_2');
+const _updateIce_3 = Symbol('_updateIce_3');
 dart.defineExtensionNames([
   'createOffer',
   'createAnswer',
@@ -68789,7 +68790,7 @@ dart.setSignature(html.RtcSessionDescription, {
   })
 });
 dart.registerExtension(dart.global.RTCSessionDescription, html.RtcSessionDescription);
-let _get_timestamp = Symbol('_get_timestamp');
+const _get_timestamp = Symbol('_get_timestamp');
 dart.defineExtensionNames([
   'timestamp',
   'names',
@@ -68857,10 +68858,10 @@ dart.setSignature(html.RtcStatsResponse, {
   })
 });
 dart.registerExtension(dart.global.RTCStatsResponse, html.RtcStatsResponse);
-let _availLeft = Symbol('_availLeft');
-let _availTop = Symbol('_availTop');
-let _availWidth = Symbol('_availWidth');
-let _availHeight = Symbol('_availHeight');
+const _availLeft = Symbol('_availLeft');
+const _availTop = Symbol('_availTop');
+const _availWidth = Symbol('_availWidth');
+const _availHeight = Symbol('_availHeight');
 dart.defineExtensionNames([
   'available',
   'colorDepth',
@@ -69683,8 +69684,8 @@ dart.setSignature(html.ServicePort, {
   })
 });
 dart.registerExtension(dart.global.ServicePort, html.ServicePort);
-let _connect_1 = Symbol('_connect_1');
-let _connect_2 = Symbol('_connect_2');
+const _connect_1 = Symbol('_connect_1');
+const _connect_2 = Symbol('_connect_2');
 dart.defineExtensionNames([
   'connect',
   'match',
@@ -69977,10 +69978,10 @@ dart.setSignature(html.ServiceWorkerMessageEvent, {
   names: ['_create_1', '_create_2']
 });
 dart.registerExtension(dart.global.ServiceWorkerMessageEvent, html.ServiceWorkerMessageEvent);
-let _getNotifications_1 = Symbol('_getNotifications_1');
-let _getNotifications_2 = Symbol('_getNotifications_2');
-let _showNotification_1 = Symbol('_showNotification_1');
-let _showNotification_2 = Symbol('_showNotification_2');
+const _getNotifications_1 = Symbol('_getNotifications_1');
+const _getNotifications_2 = Symbol('_getNotifications_2');
+const _showNotification_1 = Symbol('_showNotification_1');
+const _showNotification_2 = Symbol('_showNotification_2');
 dart.defineExtensionNames([
   'getNotifications',
   'showNotification',
@@ -70190,7 +70191,7 @@ html.ShadowRoot = class ShadowRoot extends html.DocumentFragment {
     html.ShadowRoot._shadowRootDeprecationReport();
   }
 };
-let innerHtml = Symbol(html.ShadowRoot.name + "." + dartx.innerHtml.toString());
+const innerHtml = Symbol(html.ShadowRoot.name + "." + dartx.innerHtml.toString());
 dart.setSignature(html.ShadowRoot, {
   constructors: () => ({_: dart.definiteFunctionType(html.ShadowRoot, [])}),
   fields: () => ({
@@ -71415,12 +71416,12 @@ dart.defineLazy(html.StashedPortCollection, {
   }
 });
 dart.registerExtension(dart.global.StashedPortCollection, html.StashedPortCollection);
-let _getItem = Symbol('_getItem');
-let _setItem = Symbol('_setItem');
-let _removeItem = Symbol('_removeItem');
-let _key = Symbol('_key');
-let _length = Symbol('_length');
-let __delete__ = Symbol('__delete__');
+const _getItem = Symbol('_getItem');
+const _setItem = Symbol('_setItem');
+const _removeItem = Symbol('_removeItem');
+const _key = Symbol('_key');
+const _length = Symbol('_length');
+const __delete__ = Symbol('__delete__');
 dart.defineExtensionNames([
   'addAll',
   'containsValue',
@@ -71558,7 +71559,7 @@ dart.setSignature(html.Storage, {
 });
 dart.registerExtension(dart.global.Storage, html.Storage);
 html.StorageErrorCallback = dart.typedef('StorageErrorCallback', () => dart.functionType(dart.void, [html.DomError]));
-let _initStorageEvent = Symbol('_initStorageEvent');
+const _initStorageEvent = Symbol('_initStorageEvent');
 dart.defineExtensionNames([
   'key',
   'newValue',
@@ -71967,14 +71968,14 @@ dart.setSignature(html.TableColElement, {
   fields: () => ({[dartx.span]: core.int})
 });
 dart.registerExtension(dart.global.HTMLTableColElement, html.TableColElement);
-let _tBodies = Symbol('_tBodies');
-let _rows = Symbol('_rows');
-let _createCaption = Symbol('_createCaption');
-let _createTBody = Symbol('_createTBody');
-let _createTFoot = Symbol('_createTFoot');
-let _createTHead = Symbol('_createTHead');
-let _insertRow = Symbol('_insertRow');
-let _nativeCreateTBody = Symbol('_nativeCreateTBody');
+const _tBodies = Symbol('_tBodies');
+const _rows = Symbol('_rows');
+const _createCaption = Symbol('_createCaption');
+const _createTBody = Symbol('_createTBody');
+const _createTFoot = Symbol('_createTFoot');
+const _createTHead = Symbol('_createTHead');
+const _insertRow = Symbol('_insertRow');
+const _nativeCreateTBody = Symbol('_nativeCreateTBody');
 dart.defineExtensionNames([
   'tBodies',
   'rows',
@@ -72142,8 +72143,8 @@ dart.setSignature(html.TableElement, {
   })
 });
 dart.registerExtension(dart.global.HTMLTableElement, html.TableElement);
-let _cells = Symbol('_cells');
-let _insertCell = Symbol('_insertCell');
+const _cells = Symbol('_cells');
+const _insertCell = Symbol('_insertCell');
 dart.defineExtensionNames([
   'cells',
   'addCell',
@@ -72594,7 +72595,7 @@ dart.setSignature(html.TextAreaElement, {
   })
 });
 dart.registerExtension(dart.global.HTMLTextAreaElement, html.TextAreaElement);
-let _initTextEvent = Symbol('_initTextEvent');
+const _initTextEvent = Symbol('_initTextEvent');
 dart.defineExtensionNames([
   'data'
 ]);
@@ -73097,16 +73098,16 @@ dart.setSignature(html.TitleElement, {
   })
 });
 dart.registerExtension(dart.global.HTMLTitleElement, html.TitleElement);
-let _radiusX = Symbol('_radiusX');
-let _radiusY = Symbol('_radiusY');
-let __clientX = Symbol('__clientX');
-let __clientY = Symbol('__clientY');
-let __screenX = Symbol('__screenX');
-let __screenY = Symbol('__screenY');
-let __pageX = Symbol('__pageX');
-let __pageY = Symbol('__pageY');
-let __radiusX = Symbol('__radiusX');
-let __radiusY = Symbol('__radiusY');
+const _radiusX = Symbol('_radiusX');
+const _radiusY = Symbol('_radiusY');
+const __clientX = Symbol('__clientX');
+const __clientY = Symbol('__clientY');
+const __screenX = Symbol('__screenX');
+const __screenY = Symbol('__screenY');
+const __pageX = Symbol('__pageX');
+const __pageY = Symbol('__pageY');
+const __radiusX = Symbol('__radiusX');
+const __radiusY = Symbol('__radiusY');
 dart.defineExtensionNames([
   'target',
   'client',
@@ -73235,7 +73236,7 @@ dart.setSignature(html.Touch, {
   })
 });
 dart.registerExtension(dart.global.Touch, html.Touch);
-let _initTouchEvent = Symbol('_initTouchEvent');
+const _initTouchEvent = Symbol('_initTouchEvent');
 dart.defineExtensionNames([
   'altKey',
   'changedTouches',
@@ -74828,14 +74829,14 @@ dart.defineLazy(html.WebSocket, {
   }
 });
 dart.registerExtension(dart.global.WebSocket, html.WebSocket);
-let _deltaX = Symbol('_deltaX');
-let _deltaY = Symbol('_deltaY');
-let _wheelDelta = Symbol('_wheelDelta');
-let _wheelDeltaX = Symbol('_wheelDeltaX');
-let _hasInitMouseScrollEvent = Symbol('_hasInitMouseScrollEvent');
-let _initMouseScrollEvent = Symbol('_initMouseScrollEvent');
-let _hasInitWheelEvent = Symbol('_hasInitWheelEvent');
-let _initWheelEvent = Symbol('_initWheelEvent');
+const _deltaX = Symbol('_deltaX');
+const _deltaY = Symbol('_deltaY');
+const _wheelDelta = Symbol('_wheelDelta');
+const _wheelDeltaX = Symbol('_wheelDeltaX');
+const _hasInitMouseScrollEvent = Symbol('_hasInitMouseScrollEvent');
+const _initMouseScrollEvent = Symbol('_initMouseScrollEvent');
+const _hasInitWheelEvent = Symbol('_hasInitWheelEvent');
+const _initWheelEvent = Symbol('_initWheelEvent');
 dart.defineExtensionNames([
   'deltaY',
   'deltaX',
@@ -74970,29 +74971,29 @@ html.WheelEvent.DOM_DELTA_LINE = 1;
 html.WheelEvent.DOM_DELTA_PAGE = 2;
 html.WheelEvent.DOM_DELTA_PIXEL = 0;
 dart.registerExtension(dart.global.WheelEvent, html.WheelEvent);
-let _open2 = Symbol('_open2');
-let _open3 = Symbol('_open3');
-let _location = Symbol('_location');
-let _ensureRequestAnimationFrame = Symbol('_ensureRequestAnimationFrame');
-let _requestAnimationFrame = Symbol('_requestAnimationFrame');
-let _cancelAnimationFrame = Symbol('_cancelAnimationFrame');
-let _requestFileSystem = Symbol('_requestFileSystem');
-let _get_opener = Symbol('_get_opener');
-let _pageXOffset = Symbol('_pageXOffset');
-let _pageYOffset = Symbol('_pageYOffset');
-let _get_parent = Symbol('_get_parent');
-let _get_self = Symbol('_get_self');
-let _get_top = Symbol('_get_top');
-let __getter___1 = Symbol('__getter___1');
-let __getter___2 = Symbol('__getter___2');
-let _scroll_4 = Symbol('_scroll_4');
-let _scroll_5 = Symbol('_scroll_5');
-let _scrollBy_4 = Symbol('_scrollBy_4');
-let _scrollBy_5 = Symbol('_scrollBy_5');
-let _scrollTo_4 = Symbol('_scrollTo_4');
-let _scrollTo_5 = Symbol('_scrollTo_5');
-let __requestFileSystem = Symbol('__requestFileSystem');
-let _resolveLocalFileSystemUrl = Symbol('_resolveLocalFileSystemUrl');
+const _open2 = Symbol('_open2');
+const _open3 = Symbol('_open3');
+const _location = Symbol('_location');
+const _ensureRequestAnimationFrame = Symbol('_ensureRequestAnimationFrame');
+const _requestAnimationFrame = Symbol('_requestAnimationFrame');
+const _cancelAnimationFrame = Symbol('_cancelAnimationFrame');
+const _requestFileSystem = Symbol('_requestFileSystem');
+const _get_opener = Symbol('_get_opener');
+const _pageXOffset = Symbol('_pageXOffset');
+const _pageYOffset = Symbol('_pageYOffset');
+const _get_parent = Symbol('_get_parent');
+const _get_self = Symbol('_get_self');
+const _get_top = Symbol('_get_top');
+const __getter___1 = Symbol('__getter___1');
+const __getter___2 = Symbol('__getter___2');
+const _scroll_4 = Symbol('_scroll_4');
+const _scroll_5 = Symbol('_scroll_5');
+const _scrollBy_4 = Symbol('_scrollBy_4');
+const _scrollBy_5 = Symbol('_scrollBy_5');
+const _scrollTo_4 = Symbol('_scrollTo_4');
+const _scrollTo_5 = Symbol('_scrollTo_5');
+const __requestFileSystem = Symbol('__requestFileSystem');
+const _resolveLocalFileSystemUrl = Symbol('_resolveLocalFileSystemUrl');
 dart.defineExtensionNames([
   'animationFrame',
   'document',
@@ -76181,7 +76182,7 @@ dart.defineLazy(html.Window, {
   }
 });
 dart.registerExtension(dart.global.Window, html.Window);
-let _returnValue = Symbol('_returnValue');
+const _returnValue = Symbol('_returnValue');
 html._WrappedEvent = class _WrappedEvent extends core.Object {
   new(wrapped) {
     this.wrapped = wrapped;
@@ -76296,7 +76297,7 @@ dart.setSignature(html._BeforeUnloadEvent, {
   getters: () => ({returnValue: dart.definiteFunctionType(core.String, [])}),
   setters: () => ({returnValue: dart.definiteFunctionType(dart.void, [core.String])})
 });
-let _eventType = Symbol('_eventType');
+const _eventType = Symbol('_eventType');
 html._BeforeUnloadEventStreamProvider = class _BeforeUnloadEventStreamProvider extends core.Object {
   new(eventType) {
     this[_eventType] = eventType;
@@ -78040,7 +78041,7 @@ dart.setSignature(html._XMLHttpRequestProgressEvent, {
   constructors: () => ({_: dart.definiteFunctionType(html._XMLHttpRequestProgressEvent, [])})
 });
 dart.registerExtension(dart.global.XMLHttpRequestProgressEvent, html._XMLHttpRequestProgressEvent);
-let _matches = Symbol('_matches');
+const _matches = Symbol('_matches');
 html._AttributeMap = class _AttributeMap extends core.Object {
   new(element) {
     this[_element] = element;
@@ -78177,7 +78178,7 @@ dart.defineExtensionMembers(html._ElementAttributeMap, [
   'remove',
   'length'
 ]);
-let _namespace = Symbol('_namespace');
+const _namespace = Symbol('_namespace');
 html._NamespacedAttributeMap = class _NamespacedAttributeMap extends html._AttributeMap {
   new(element, namespace) {
     this[_namespace] = namespace;
@@ -78224,10 +78225,10 @@ dart.defineExtensionMembers(html._NamespacedAttributeMap, [
   'remove',
   'length'
 ]);
-let _attr = Symbol('_attr');
-let _strip = Symbol('_strip');
-let _toHyphenedName = Symbol('_toHyphenedName');
-let _toCamelCase = Symbol('_toCamelCase');
+const _attr = Symbol('_attr');
+const _strip = Symbol('_strip');
+const _toHyphenedName = Symbol('_toHyphenedName');
+const _toCamelCase = Symbol('_toCamelCase');
 html._DataAttributeMap = class _DataAttributeMap extends core.Object {
   new(attributes) {
     this[_attributes] = attributes;
@@ -78377,7 +78378,7 @@ html.LocationBase = class LocationBase extends core.Object {};
 html.HistoryBase = class HistoryBase extends core.Object {};
 html.CssClassSet = class CssClassSet extends core.Object {};
 html.CssClassSet[dart.implements] = () => [SetOfString()];
-let _addOrSubtractToBoxModel = Symbol('_addOrSubtractToBoxModel');
+const _addOrSubtractToBoxModel = Symbol('_addOrSubtractToBoxModel');
 html.CssRect = class CssRect extends core.Object {
   new(element) {
     this[_element] = element;
@@ -78551,7 +78552,7 @@ dart.setSignature(html._ContentCssRect, {
   })
 });
 dart.defineExtensionMembers(html._ContentCssRect, ['height', 'width', 'left', 'top']);
-let _elementList = Symbol('_elementList');
+const _elementList = Symbol('_elementList');
 html._ContentCssListRect = class _ContentCssListRect extends html._ContentCssRect {
   new(elementList) {
     this[_elementList] = null;
@@ -78687,8 +78688,8 @@ dart.defineLazy(html, {
 html._CONTENT = 'content';
 html._PADDING = 'padding';
 html._MARGIN = 'margin';
-let _sets = Symbol('_sets');
-let _validateToken = Symbol('_validateToken');
+const _sets = Symbol('_sets');
+const _validateToken = Symbol('_validateToken');
 html_common.CssClassSetImpl = class CssClassSetImpl extends core.Object {
   [_validateToken](value) {
     if (dart.test(html_common.CssClassSetImpl._validTokenRE.hasMatch(value))) return value;
@@ -79168,7 +79169,7 @@ dart.setSignature(html._ElementCssClassSet, {
   names: ['_contains', '_add', '_remove', '_toggle', '_toggleDefault', '_toggleOnOff', '_addAll', '_removeAll', '_removeWhere', '_classListOf', '_classListLength', '_classListContains', '_classListContainsBeforeAddOrRemove', '_classListAdd', '_classListRemove', '_classListToggle1', '_classListToggle2']
 });
 dart.defineExtensionMembers(html._ElementCssClassSet, ['contains', 'length', 'isEmpty', 'isNotEmpty']);
-let _unit = Symbol('_unit');
+const _unit = Symbol('_unit');
 html.Dimension = class Dimension extends core.Object {
   percent(value) {
     this[_value] = value;
@@ -79304,8 +79305,8 @@ html.ElementStream$ = dart.generic(T => {
   return ElementStream;
 });
 html.ElementStream = ElementStream();
-let _target = Symbol('_target');
-let _useCapture = Symbol('_useCapture');
+const _target = Symbol('_target');
+const _useCapture = Symbol('_useCapture');
 html._EventStream$ = dart.generic(T => {
   let _EventStreamSubscriptionOfT = () => (_EventStreamSubscriptionOfT = dart.constFn(html._EventStreamSubscription$(T)))();
   let StreamSubscriptionOfT = () => (StreamSubscriptionOfT = dart.constFn(async.StreamSubscription$(T)))();
@@ -79384,7 +79385,7 @@ html._ElementEventStreamImpl$ = dart.generic(T => {
   return _ElementEventStreamImpl;
 });
 html._ElementEventStreamImpl = _ElementEventStreamImpl();
-let _targetList = Symbol('_targetList');
+const _targetList = Symbol('_targetList');
 html._ElementListEventStreamImpl$ = dart.generic(T => {
   let _StreamPoolOfT = () => (_StreamPoolOfT = dart.constFn(html._StreamPool$(T)))();
   let _EventStreamOfT = () => (_EventStreamOfT = dart.constFn(html._EventStream$(T)))();
@@ -79452,15 +79453,15 @@ html._ElementListEventStreamImpl$ = dart.generic(T => {
 });
 html._ElementListEventStreamImpl = _ElementListEventStreamImpl();
 html._EventListener$ = dart.generic(T => {
-  let _EventListener = dart.typedef('_EventListener', () => dart.functionType(dart.dynamic, [T]));
+  const _EventListener = dart.typedef('_EventListener', () => dart.functionType(dart.dynamic, [T]));
   return _EventListener;
 });
 html._EventListener = _EventListener();
-let _onData = Symbol('_onData');
-let _pauseCount = Symbol('_pauseCount');
-let _tryResume = Symbol('_tryResume');
-let _canceled = Symbol('_canceled');
-let _unlisten = Symbol('_unlisten');
+const _onData = Symbol('_onData');
+const _pauseCount = Symbol('_pauseCount');
+const _tryResume = Symbol('_tryResume');
+const _canceled = Symbol('_canceled');
+const _unlisten = Symbol('_unlisten');
 html._EventStreamSubscription$ = dart.generic(T => {
   let TTovoid = () => (TTovoid = dart.constFn(dart.functionType(dart.void, [T])))();
   class _EventStreamSubscription extends async.StreamSubscription$(T) {
@@ -79561,8 +79562,8 @@ html.CustomStream$ = dart.generic(T => {
   return CustomStream;
 });
 html.CustomStream = CustomStream();
-let _streamController = Symbol('_streamController');
-let _type = Symbol('_type');
+const _streamController = Symbol('_streamController');
+const _type = Symbol('_type');
 html._CustomEventStreamImpl$ = dart.generic(T => {
   let StreamControllerOfT = () => (StreamControllerOfT = dart.constFn(async.StreamController$(T)))();
   let CustomStreamOfT = () => (CustomStreamOfT = dart.constFn(html.CustomStream$(T)))();
@@ -79612,15 +79613,15 @@ html._CustomEventStreamImpl$ = dart.generic(T => {
   return _CustomEventStreamImpl;
 });
 html._CustomEventStreamImpl = _CustomEventStreamImpl();
-let _parent = Symbol('_parent');
-let _shadowKeyCode = Symbol('_shadowKeyCode');
-let _shadowCharCode = Symbol('_shadowCharCode');
-let _shadowAltKey = Symbol('_shadowAltKey');
-let _realKeyCode = Symbol('_realKeyCode');
-let _realCharCode = Symbol('_realCharCode');
-let _realAltKey = Symbol('_realAltKey');
-let _currentTarget = Symbol('_currentTarget');
-let _shadowKeyIdentifier = Symbol('_shadowKeyIdentifier');
+const _parent = Symbol('_parent');
+const _shadowKeyCode = Symbol('_shadowKeyCode');
+const _shadowCharCode = Symbol('_shadowCharCode');
+const _shadowAltKey = Symbol('_shadowAltKey');
+const _realKeyCode = Symbol('_realKeyCode');
+const _realCharCode = Symbol('_realCharCode');
+const _realAltKey = Symbol('_realAltKey');
+const _currentTarget = Symbol('_currentTarget');
+const _shadowKeyIdentifier = Symbol('_shadowKeyIdentifier');
 html.KeyEvent = class KeyEvent extends html._WrappedEvent {
   get keyCode() {
     return this[_shadowKeyCode];
@@ -79886,8 +79887,8 @@ dart.setSignature(html._CustomKeyEventStreamImpl, {
   constructors: () => ({new: dart.definiteFunctionType(html._CustomKeyEventStreamImpl, [core.String])}),
   methods: () => ({add: dart.definiteFunctionType(dart.void, [html.KeyEvent])})
 });
-let _subscriptions = Symbol('_subscriptions');
-let _controller = Symbol('_controller');
+const _subscriptions = Symbol('_subscriptions');
+const _controller = Symbol('_controller');
 html._StreamPool$ = dart.generic(T => {
   let StreamOfT = () => (StreamOfT = dart.constFn(async.Stream$(T)))();
   let StreamSubscriptionOfT = () => (StreamSubscriptionOfT = dart.constFn(async.StreamSubscription$(T)))();
@@ -79938,7 +79939,7 @@ html._StreamPool$ = dart.generic(T => {
   return _StreamPool;
 });
 html._StreamPool = _StreamPool();
-let _eventTypeGetter = Symbol('_eventTypeGetter');
+const _eventTypeGetter = Symbol('_eventTypeGetter');
 html._CustomEventStreamProvider$ = dart.generic(T => {
   let _EventStreamOfT = () => (_EventStreamOfT = dart.constFn(html._EventStream$(T)))();
   let _ElementEventStreamImplOfT = () => (_ElementEventStreamImplOfT = dart.constFn(html._ElementEventStreamImpl$(T)))();
@@ -80795,13 +80796,13 @@ html._KeyName.DEAD_IOTA = "DeadIota";
 html._KeyName.DEAD_VOICED_SOUND = "DeadVoicedSound";
 html._KeyName.DEC_SEMIVOICED_SOUND = "DeadSemivoicedSound";
 html._KeyName.UNIDENTIFIED = "Unidentified";
-let _stream = Symbol('_stream');
-let _keyDownList = Symbol('_keyDownList');
-let _capsLockOn = Symbol('_capsLockOn');
-let _determineKeyCodeForKeypress = Symbol('_determineKeyCodeForKeypress');
-let _findCharCodeKeyDown = Symbol('_findCharCodeKeyDown');
-let _firesKeyPressEvent = Symbol('_firesKeyPressEvent');
-let _normalizeKeyCodes = Symbol('_normalizeKeyCodes');
+const _stream = Symbol('_stream');
+const _keyDownList = Symbol('_keyDownList');
+const _capsLockOn = Symbol('_capsLockOn');
+const _determineKeyCodeForKeypress = Symbol('_determineKeyCodeForKeypress');
+const _findCharCodeKeyDown = Symbol('_findCharCodeKeyDown');
+const _firesKeyPressEvent = Symbol('_firesKeyPressEvent');
+const _normalizeKeyCodes = Symbol('_normalizeKeyCodes');
 html._KeyboardEventHandler = class _KeyboardEventHandler extends html.EventStreamProvider$(html.KeyEvent) {
   forTarget(e, opts) {
     let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
@@ -81109,7 +81110,7 @@ dart.setSignature(html.KeyboardEventStream, {
   }),
   names: ['onKeyPress', 'onKeyUp', 'onKeyDown']
 });
-let _validators = Symbol('_validators');
+const _validators = Symbol('_validators');
 html.NodeValidatorBuilder = class NodeValidatorBuilder extends core.Object {
   new() {
     this[_validators] = JSArrayOfNodeValidator().of([]);
@@ -81329,7 +81330,7 @@ dart.setSignature(html._CustomElementNodeValidator, {
     allowCustomTag: core.bool
   })
 });
-let _templateAttrs = Symbol('_templateAttrs');
+const _templateAttrs = Symbol('_templateAttrs');
 html._TemplatingNodeValidator = class _TemplatingNodeValidator extends html._SimpleNodeValidator {
   new() {
     this[_templateAttrs] = SetOfString().from(html._TemplatingNodeValidator._TEMPLATE_ATTRS);
@@ -81392,7 +81393,7 @@ dart.setSignature(html.ReadyState, {
 html.ReadyState.LOADING = "loading";
 html.ReadyState.INTERACTIVE = "interactive";
 html.ReadyState.COMPLETE = "complete";
-let _list = Symbol('_list');
+const _list = Symbol('_list');
 html._WrappedList$ = dart.generic(E => {
   let _WrappedIteratorOfE = () => (_WrappedIteratorOfE = dart.constFn(html._WrappedIterator$(E)))();
   let IterableOfE = () => (IterableOfE = dart.constFn(core.Iterable$(E)))();
@@ -81512,7 +81513,7 @@ html._WrappedList$ = dart.generic(E => {
   return _WrappedList;
 });
 html._WrappedList = _WrappedList();
-let _iterator = Symbol('_iterator');
+const _iterator = Symbol('_iterator');
 html._WrappedIterator$ = dart.generic(E => {
   let IteratorOfE = () => (IteratorOfE = dart.constFn(core.Iterator$(E)))();
   class _WrappedIterator extends core.Object {
@@ -81561,8 +81562,8 @@ dart.setSignature(html._HttpRequestUtils, {
   statics: () => ({get: dart.definiteFunctionType(html.HttpRequest, [core.String, HttpRequestTodynamic(), core.bool])}),
   names: ['get']
 });
-let _array = Symbol('_array');
-let _current = Symbol('_current');
+const _array = Symbol('_array');
+const _current = Symbol('_current');
 html.FixedSizeListIterator$ = dart.generic(T => {
   let IteratorOfT = () => (IteratorOfT = dart.constFn(core.Iterator$(T)))();
   let ListOfT = () => (ListOfT = dart.constFn(core.List$(T)))();
@@ -81662,7 +81663,7 @@ html._convertNativeToDart_EventTarget = function(e) {
     return html.EventTarget._check(e);
 };
 dart.fn(html._convertNativeToDart_EventTarget, dynamicToEventTarget());
-let _window = Symbol('_window');
+const _window = Symbol('_window');
 html._convertDartToNative_EventTarget = function(e) {
   if (html._DOMWindowCrossFrame.is(e)) {
     return html.EventTarget._check(e[_window]);
@@ -81757,9 +81758,9 @@ dart.fn(html._registerCustomElement, dynamicAnddynamicAndString__Tovoid());
 html._initializeCustomElement = function(e) {
 };
 dart.fn(html._initializeCustomElement, ElementTovoid());
-let _interceptor = Symbol('_interceptor');
-let _constructor = Symbol('_constructor');
-let _nativeType = Symbol('_nativeType');
+const _interceptor = Symbol('_interceptor');
+const _constructor = Symbol('_constructor');
+const _nativeType = Symbol('_nativeType');
 html._JSElementUpgrader = class _JSElementUpgrader extends core.Object {
   new(document, type, extendsTag) {
     this[_interceptor] = null;
@@ -81939,7 +81940,7 @@ dart.setSignature(html._LocationCrossFrame, {
   names: ['_setHref', '_createSafe']
 });
 dart.defineExtensionMembers(html._LocationCrossFrame, ['href']);
-let _history = Symbol('_history');
+const _history = Symbol('_history');
 html._HistoryCrossFrame = class _HistoryCrossFrame extends core.Object {
   back() {
     return this[_history].back();
@@ -81988,12 +81989,12 @@ dart.defineLazy(html.Platform, {
   }
 });
 html._wrapZoneCallback$ = dart.generic((A, R) => {
-  let _wrapZoneCallback = dart.typedef('_wrapZoneCallback', () => dart.functionType(R, [A]));
+  const _wrapZoneCallback = dart.typedef('_wrapZoneCallback', () => dart.functionType(R, [A]));
   return _wrapZoneCallback;
 });
 html._wrapZoneCallback = _wrapZoneCallback();
 html._wrapZoneBinaryCallback$ = dart.generic((A, B, R) => {
-  let _wrapZoneBinaryCallback = dart.typedef('_wrapZoneBinaryCallback', () => dart.functionType(R, [A, B]));
+  const _wrapZoneBinaryCallback = dart.typedef('_wrapZoneBinaryCallback', () => dart.functionType(R, [A, B]));
   return _wrapZoneBinaryCallback;
 });
 html._wrapZoneBinaryCallback = _wrapZoneBinaryCallback();
@@ -82077,8 +82078,8 @@ html.UriPolicy = class UriPolicy extends core.Object {
 dart.setSignature(html.UriPolicy, {
   constructors: () => ({new: dart.definiteFunctionType(html.UriPolicy, [])})
 });
-let _hiddenAnchor = Symbol('_hiddenAnchor');
-let _loc = Symbol('_loc');
+const _hiddenAnchor = Symbol('_hiddenAnchor');
+const _loc = Symbol('_loc');
 html._SameOriginUriPolicy = class _SameOriginUriPolicy extends core.Object {
   new() {
     this[_hiddenAnchor] = html.AnchorElement.new();
@@ -82122,15 +82123,15 @@ dart.setSignature(html._ThrowsNodeValidator, {
     allowsAttribute: dart.definiteFunctionType(core.bool, [html.Element, core.String, core.String])
   })
 });
-let _removeNode = Symbol('_removeNode');
-let _sanitizeElement = Symbol('_sanitizeElement');
-let _sanitizeUntrustedElement = Symbol('_sanitizeUntrustedElement');
+const _removeNode = Symbol('_removeNode');
+const _sanitizeElement = Symbol('_sanitizeElement');
+const _sanitizeUntrustedElement = Symbol('_sanitizeUntrustedElement');
 html._ValidatingTreeSanitizer = class _ValidatingTreeSanitizer extends core.Object {
   new(validator) {
     this.validator = validator;
   }
   sanitizeTree(node) {
-    let walk = (function(node, parent) {
+    const walk = (function(node, parent) {
       this.sanitizeNode(node, parent);
       let child = node[dartx.lastChild];
       while (child != null) {
@@ -82720,10 +82721,10 @@ html_common.Device._isFirefox = null;
 html_common.Device._isWebKit = null;
 html_common.Device._cachedCssPrefix = null;
 html_common.Device._cachedPropertyPrefix = null;
-let _childNodes = Symbol('_childNodes');
-let _node = Symbol('_node');
-let _iterable = Symbol('_iterable');
-let _filtered = Symbol('_filtered');
+const _childNodes = Symbol('_childNodes');
+const _node = Symbol('_node');
+const _iterable = Symbol('_iterable');
+const _filtered = Symbol('_filtered');
 html_common.FilteredElementList = class FilteredElementList extends collection.ListBase$(html.Element) {
   new(node) {
     this[_childNodes] = node[dartx.nodes];
@@ -82952,8 +82953,8 @@ dart.setSignature(svg._SvgElementFactoryProvider, {
   statics: () => ({createSvgElement_tag: dart.definiteFunctionType(svg.SvgElement, [core.String])}),
   names: ['createSvgElement_tag']
 });
-let _children = Symbol('_children');
-let _svgClassName = Symbol('_svgClassName');
+const _children = Symbol('_children');
+const _svgClassName = Symbol('_svgClassName');
 dart.defineExtensionNames([
   'classes',
   'children',
@@ -86396,7 +86397,7 @@ svg.Length.SVG_LENGTHTYPE_PT = 9;
 svg.Length.SVG_LENGTHTYPE_PX = 5;
 svg.Length.SVG_LENGTHTYPE_UNKNOWN = 0;
 dart.registerExtension(dart.global.SVGLength, svg.Length);
-let __setter__ = Symbol('__setter__');
+const __setter__ = Symbol('__setter__');
 dart.defineExtensionNames([
   'length',
   'get',
@@ -88923,7 +88924,7 @@ dart.setSignature(svg.StyleElement, {
   })
 });
 dart.registerExtension(dart.global.SVGStyleElement, svg.StyleElement);
-let _element = Symbol('_element');
+const _element = Symbol('_element');
 svg._AttributeClassSet = class _AttributeClassSet extends html_common.CssClassSetImpl {
   new(element) {
     this[_element] = element;
@@ -90052,7 +90053,7 @@ dart.setSignature(svg._SVGMPathElement, {
   })
 });
 dart.registerExtension(dart.global.SVGMPathElement, svg._SVGMPathElement);
-let _connect = Symbol('_connect');
+const _connect = Symbol('_connect');
 dart.defineExtensionNames([
   'disconnect',
   'connectNode',
@@ -90340,7 +90341,7 @@ dart.setSignature(web_audio.AudioBufferSourceNode, {
 });
 web_audio.AudioBufferSourceNode.endedEvent = dart.const(new (EventStreamProviderOfEvent())('ended'));
 dart.registerExtension(dart.global.AudioBufferSourceNode, web_audio.AudioBufferSourceNode);
-let _decodeAudioData = Symbol('_decodeAudioData');
+const _decodeAudioData = Symbol('_decodeAudioData');
 dart.defineExtensionNames([
   'createAnalyser',
   'createBiquadFilter',
@@ -91145,19 +91146,19 @@ dart.setSignature(web_audio.WaveShaperNode, {
   })
 });
 dart.registerExtension(dart.global.WaveShaperNode, web_audio.WaveShaperNode);
-let _getContextAttributes_1 = Symbol('_getContextAttributes_1');
-let _texImage2D_1 = Symbol('_texImage2D_1');
-let _texImage2D_2 = Symbol('_texImage2D_2');
-let _texImage2D_3 = Symbol('_texImage2D_3');
-let _texImage2D_4 = Symbol('_texImage2D_4');
-let _texImage2D_5 = Symbol('_texImage2D_5');
-let _texImage2DImageData_1 = Symbol('_texImage2DImageData_1');
-let _texSubImage2D_1 = Symbol('_texSubImage2D_1');
-let _texSubImage2D_2 = Symbol('_texSubImage2D_2');
-let _texSubImage2D_3 = Symbol('_texSubImage2D_3');
-let _texSubImage2D_4 = Symbol('_texSubImage2D_4');
-let _texSubImage2D_5 = Symbol('_texSubImage2D_5');
-let _texSubImage2DImageData_1 = Symbol('_texSubImage2DImageData_1');
+const _getContextAttributes_1 = Symbol('_getContextAttributes_1');
+const _texImage2D_1 = Symbol('_texImage2D_1');
+const _texImage2D_2 = Symbol('_texImage2D_2');
+const _texImage2D_3 = Symbol('_texImage2D_3');
+const _texImage2D_4 = Symbol('_texImage2D_4');
+const _texImage2D_5 = Symbol('_texImage2D_5');
+const _texImage2DImageData_1 = Symbol('_texImage2DImageData_1');
+const _texSubImage2D_1 = Symbol('_texSubImage2D_1');
+const _texSubImage2D_2 = Symbol('_texSubImage2D_2');
+const _texSubImage2D_3 = Symbol('_texSubImage2D_3');
+const _texSubImage2D_4 = Symbol('_texSubImage2D_4');
+const _texSubImage2D_5 = Symbol('_texSubImage2D_5');
+const _texSubImage2DImageData_1 = Symbol('_texSubImage2DImageData_1');
 dart.defineExtensionNames([
   'activeTexture',
   'attachShader',
@@ -93667,7 +93668,7 @@ dart.setSignature(web_sql.SqlResultSet, {
   })
 });
 dart.registerExtension(dart.global.SQLResultSet, web_sql.SqlResultSet);
-let _item_1 = Symbol('_item_1');
+const _item_1 = Symbol('_item_1');
 dart.defineExtensionNames([
   'length',
   'get',

@@ -1,9 +1,9 @@
 define(['dart_sdk'], function(dart_sdk) {
   'use strict';
-  let core = dart_sdk.core;
-  let dart = dart_sdk.dart;
-  let dartx = dart_sdk.dartx;
-  let async_helper = Object.create(null);
+  const core = dart_sdk.core;
+  const dart = dart_sdk.dart;
+  const dartx = dart_sdk.dartx;
+  const async_helper = Object.create(null);
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.functionType(dart.dynamic, [])))();
   let StringToException = () => (StringToException = dart.constFn(dart.definiteFunctionType(core.Exception, [core.String])))();
   let _Action0Tovoid = () => (_Action0Tovoid = dart.constFn(dart.definiteFunctionType(dart.void, [async_helper._Action0])))();

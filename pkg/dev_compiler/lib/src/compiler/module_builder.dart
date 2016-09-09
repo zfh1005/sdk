@@ -149,7 +149,7 @@ class LegacyModuleBuilder extends _ModuleBuilder {
         assert(!importName.isStar); // import * not supported in legacy modules.
         var asName = importName.asName ?? importName.name;
         importStatements.add(js.statement(
-            'let # = #.#', [asName, moduleVar, importName.name.name]));
+            'const # = #.#', [asName, moduleVar, importName.name.name]));
       }
     }
     statements.insertAll(0, importStatements);
@@ -198,7 +198,7 @@ class CommonJSModuleBuilder extends _ModuleBuilder {
       var moduleVar =
           new TemporaryId(pathToJSIdentifier(import.from.valueWithoutQuotes));
       importStatements
-          .add(js.statement('let # = require(#);', [moduleVar, import.from]));
+          .add(js.statement('const # = require(#);', [moduleVar, import.from]));
 
       // TODO(jmesserly): optimize for the common case of a single import.
       for (var importName in import.namedImports) {
@@ -206,7 +206,7 @@ class CommonJSModuleBuilder extends _ModuleBuilder {
         assert(!importName.isStar);
         var asName = importName.asName ?? importName.name;
         importStatements.add(js.statement(
-            'let # = #.#', [asName, moduleVar, importName.name.name]));
+            'const # = #.#', [asName, moduleVar, importName.name.name]));
       }
     }
     statements.insertAll(0, importStatements);
@@ -257,7 +257,7 @@ class AmdModuleBuilder extends _ModuleBuilder {
         assert(!importName.isStar);
         var asName = importName.asName ?? importName.name;
         importStatements.add(js.statement(
-            'let # = #.#', [asName, moduleVar, importName.name.name]));
+            'const # = #.#', [asName, moduleVar, importName.name.name]));
       }
     }
     statements.insertAll(0, importStatements);

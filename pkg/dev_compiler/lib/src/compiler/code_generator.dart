@@ -205,13 +205,13 @@ class CodeGenerator extends GeneralizingAstVisitor
           : new JS.TemporaryId(jsLibraryName(_libraryRoot, library));
       _libraries[library] = libraryTemp;
       items.add(new JS.ExportDeclaration(
-          js.call('let # = Object.create(null)', [libraryTemp])));
+          js.call('const # = Object.create(null)', [libraryTemp])));
 
       // dart:_runtime has a magic module that holds extension method symbols.
       // TODO(jmesserly): find a cleaner design for this.
       if (_isDartRuntime(library)) {
         items.add(new JS.ExportDeclaration(
-            js.call('let # = Object.create(null)', [_dartxVar])));
+            js.call('const # = Object.create(null)', [_dartxVar])));
       }
     }
 
@@ -586,7 +586,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     var typeFormals = element.typeParameters;
     if (typeFormals.isNotEmpty) {
       return _defineClassTypeArguments(element, typeFormals,
-          js.statement('let # = #;', [element.name, body]));
+          js.statement('const # = #;', [element.name, body]));
     } else {
       return js.statement('# = #;', [_emitTopLevelName(element), body]);
     }
@@ -959,7 +959,7 @@ class CodeGenerator extends GeneralizingAstVisitor
   void _emitSuperHelperSymbols(
       List<JS.TemporaryId> superHelperSymbols, List<JS.Statement> body) {
     for (var id in superHelperSymbols) {
-      body.add(js.statement('let # = Symbol(#)', [id, js.string(id.name)]));
+      body.add(js.statement('const # = Symbol(#)', [id, js.string(id.name)]));
     }
     superHelperSymbols.clear();
   }
@@ -985,7 +985,7 @@ class CodeGenerator extends GeneralizingAstVisitor
             var virtualField = new JS.TemporaryId(field.element.name);
             virtualFields[field.element] = virtualField;
             virtualFieldSymbols.add(js.statement(
-                'let # = Symbol(#.name + "." + #.toString());',
+                'const # = Symbol(#.name + "." + #.toString());',
                 [virtualField, className, fieldName]));
           }
         }
@@ -1003,7 +1003,7 @@ class CodeGenerator extends GeneralizingAstVisitor
 
     if (classElem.typeParameters.isNotEmpty) {
       if (callableClass != null) {
-        body.add(js.statement('let # = #;', [classExpr.name, callableClass]));
+        body.add(js.statement('const # = #;', [classExpr.name, callableClass]));
       } else {
         body.add(new JS.ClassDeclaration(classExpr));
       }
@@ -2588,7 +2588,7 @@ class CodeGenerator extends GeneralizingAstVisitor
     var name = new JS.Identifier(func.name.name);
     JS.Statement declareFn;
     if (JS.This.foundIn(fn)) {
-      declareFn = js.statement('let # = #.bind(this);', [name, fn]);
+      declareFn = js.statement('const # = #.bind(this);', [name, fn]);
     } else {
       declareFn = new JS.FunctionDeclaration(name, fn);
     }
@@ -5253,7 +5253,7 @@ class CodeGenerator extends GeneralizingAstVisitor
         .putIfAbsent(name, () {
       var id = new JS.TemporaryId(name);
       _moduleItems.add(
-          js.statement('let # = Symbol(#);', [id, js.string(id.name, "'")]));
+          js.statement('const # = Symbol(#);', [id, js.string(id.name, "'")]));
       return id;
     });
   }

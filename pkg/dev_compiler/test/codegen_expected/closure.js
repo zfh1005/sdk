@@ -1,4 +1,4 @@
-export let closure = Object.create(null);
+export const closure = Object.create(null);
 import { core, js, dart, dartx } from 'dart_sdk';
 let dynamic__Toint = () => (dynamic__Toint = dart.constFn(dart.functionType(core.int, [dart.dynamic], [dart.dynamic])))();
 let dynamic__Todynamic = () => (dynamic__Todynamic = dart.constFn(dart.functionType(dart.dynamic, [dart.dynamic], {y: core.String, z: dart.dynamic})))();

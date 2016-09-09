@@ -1,10 +1,10 @@
 define(['dart_sdk'], function(dart_sdk) {
   'use strict';
-  let core = dart_sdk.core;
-  let math = dart_sdk.math;
-  let dart = dart_sdk.dart;
-  let dartx = dart_sdk.dartx;
-  let map_keys = Object.create(null);
+  const core = dart_sdk.core;
+  const math = dart_sdk.math;
+  const dart = dart_sdk.dart;
+  const dartx = dart_sdk.dartx;
+  const map_keys = Object.create(null);
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   map_keys.main = function() {
     core.print(dart.map({'1': 2, '3': 4, '5': 6}, core.String, core.int));
