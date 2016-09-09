@@ -1,10 +1,10 @@
 define(['dart_sdk'], function(dart_sdk) {
   'use strict';
-  const core = dart_sdk.core;
-  const dart = dart_sdk.dart;
-  const dartx = dart_sdk.dartx;
-  const destructuring = Object.create(null);
-  const src__varargs = Object.create(null);
+  let core = dart_sdk.core;
+  let dart = dart_sdk.dart;
+  let dartx = dart_sdk.dartx;
+  let destructuring = Object.create(null);
+  let src__varargs = Object.create(null);
   let intAnddynamic__Todynamic = () => (intAnddynamic__Todynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.int, dart.dynamic], [dart.dynamic])))();
   let intAnddynamic__Todynamic$ = () => (intAnddynamic__Todynamic$ = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.int, dart.dynamic], {c: dart.dynamic})))();
   let intAnddynamicTodynamic = () => (intAnddynamicTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [core.int, dart.dynamic])))();

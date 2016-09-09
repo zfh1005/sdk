@@ -1,4 +1,4 @@
-export const es6_modules = Object.create(null);
+export let es6_modules = Object.create(null);
 import { core, dart, dartx } from 'dart_sdk';
 let B = () => (B = dart.constFn(es6_modules.B$()))();
 let _B = () => (_B = dart.constFn(es6_modules._B$()))();

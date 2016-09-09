@@ -1,13 +1,13 @@
 define(['dart_sdk'], function(dart_sdk) {
   'use strict';
-  const core = dart_sdk.core;
-  const html = dart_sdk.html;
-  const math = dart_sdk.math;
-  const dart = dart_sdk.dart;
-  const dartx = dart_sdk.dartx;
-  const sunflower = Object.create(null);
-  const circle = Object.create(null);
-  const painter = Object.create(null);
+  let core = dart_sdk.core;
+  let html = dart_sdk.html;
+  let math = dart_sdk.math;
+  let dart = dart_sdk.dart;
+  let dartx = dart_sdk.dartx;
+  let sunflower = Object.create(null);
+  let circle = Object.create(null);
+  let painter = Object.create(null);
   let StringToElement = () => (StringToElement = dart.constFn(dart.definiteFunctionType(html.Element, [core.String])))();
   let EventTovoid = () => (EventTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [html.Event])))();
   let VoidTovoid = () => (VoidTovoid = dart.constFn(dart.definiteFunctionType(dart.void, [])))();

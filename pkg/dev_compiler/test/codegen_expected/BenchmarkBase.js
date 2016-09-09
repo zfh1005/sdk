@@ -1,9 +1,9 @@
 define(['dart_sdk'], function(dart_sdk) {
   'use strict';
-  const core = dart_sdk.core;
-  const dart = dart_sdk.dart;
-  const dartx = dart_sdk.dartx;
-  const BenchmarkBase$ = Object.create(null);
+  let core = dart_sdk.core;
+  let dart = dart_sdk.dart;
+  let dartx = dart_sdk.dartx;
+  let BenchmarkBase$ = Object.create(null);
   let VoidTodynamic = () => (VoidTodynamic = dart.constFn(dart.definiteFunctionType(dart.dynamic, [])))();
   BenchmarkBase$.Expect = class Expect extends core.Object {
     static equals(expected, actual) {
