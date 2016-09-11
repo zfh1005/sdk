@@ -9,6 +9,8 @@ cache:
     - $HOME/.nvm
     - $HOME/.pub-cache/hosted
     - pkg/dev_compiler/node_modules
+addons:
+  firefox: latest
 before_install:
   # g++4.8.1 setup
   - if [ "$CXX" == "g++" ]; then sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; fi
