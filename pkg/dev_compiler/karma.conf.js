@@ -73,7 +73,7 @@ module.exports = function(config) {
       },
     },
 
-    browsers: ['Chrome', 'Firefox'],
+    browsers: ['Chrome'],
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
@@ -81,12 +81,16 @@ module.exports = function(config) {
   };
 
   if (process.env.TRAVIS) {
-    configuration.browsers = ['chrome_canary_travis', 'Firefox'];
+    configuration.browsers = ['chrome_canary_travis'];
     configuration.autoWatch = false;
     // Enable this for more logging on Travis.  It is too much for Travis to
     // automatically display, but still results in a downloadable raw log.
     // configuration.logLevel = config.LOG_DEBUG;
     configuration.client.captureConsole = true;
+  }
+
+  if (process.env.DDC_BROWSERS) {
+    configuration.browsers = process.env.DDC_BROWSERS.split(':');
   }
 
   config.set(configuration);
